@@ -652,3 +652,12 @@
   font-family: var(--ez-font-mono);
   font-size: 12px;
 }
+
+/* EZD-311: the gap marker selects its room; pick mode shows a crosshair. */
+.gapHit {
+  cursor: pointer;
+}
+
+.svg[data-picking='true'] {
+  cursor: crosshair;
+}

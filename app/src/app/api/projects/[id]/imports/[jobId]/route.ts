@@ -72,7 +72,13 @@ const fixSchema = z.union([
       typed: z.number().finite().positive().max(2400).optional(),
     })
     .strict(),
-  z.object({ boundary: z.array(pt).min(1).max(200) }).strict(),
+  // EZD-311: `keep` is Keep the room out of square, with the gap it accepted.
+  z
+    .object({
+      boundary: z.array(pt).min(1).max(200),
+      keep: z.object({ gap: pt }).strict().optional(),
+    })
+    .strict(),
 ]);
 const bodySchema = z
   .object({

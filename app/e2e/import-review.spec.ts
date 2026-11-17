@@ -595,3 +595,140 @@ test.describe('EZD-310 Typed vs scan conflicts', () => {
     await expect(tid(page, 'review-gap')).toHaveCount(0);
   });
 });
+
+// EZD-311 (AC-EZD-311-1 "Finish stays blocked until the gap is resolved"; S02 Controls Pick the wall that absorbs it,
+// Keep the room out of square, Esc; Q-0630). The east wall typed 10' 0" (2 in over its 118 in scan) leaves the
+// room 2 in open (EZD-310). Every item resolved, Finish is still blocked by the gap. Picking the west wall (scan
+// 10' 0", interior length of the fixture's west wall) gives it 10' 2", which closes the room: Finish is no longer
+// blocked. Undo opens the gap again; Keep the room out of square resolves it, and stays resolved after a reload.
+// Finish import stays disabled until EZD-313 builds it; data-blocked carries the rule.
+test.describe('EZD-311 Resolve the gap', () => {
+  let tenant = '';
+
+  test.afterAll(async () => {
+    try {
+      if (tenant) {
+        await harnessSql()`delete from public.job where tenant_id = ${tenant}::uuid`;
+        const rows = await harnessSql()<{ storage_path: string }[]>`
+          select storage_path from public.source_file where tenant_id = ${tenant}::uuid`;
+        if (rows.length > 0)
+          await adminDb()
+            .storage.from('sources')
+            .remove(rows.map((r) => r.storage_path));
+      }
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  test('EZD-311 Finish stays blocked until the gap is absorbed or kept (AC-1)', async ({ page, signInAs }) => {
+    test.setTimeout(180_000);
+    tenant = await createTenant();
+    const m = await createMember({ tenantId: tenant, scope: 'all' });
+    await setPermissions(tenant, m.membershipId, [
+      'view_projects',
+      'create_projects',
+      'edit_model',
+    ]);
+    await signInAs(m.email);
+    await page.goto('/');
+    // A real click at an element's middle (a vertical line's box has no width, so Playwright calls it hidden).
+    const clickAt = async (selector: string) => {
+      const box = (await page.locator(selector).first().boundingBox())!;
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    };
+
+    await tid(page, 'projects-new').click();
+    await tid(page, 'projects-new-file').click();
+    await tid(page, 'new-project-type').selectOption({ label: 'Kitchen' });
+    await tid(page, 'new-project-address').fill('19 Gap Ln');
+    await tid(page, 'new-project-next').click();
+    await tid(page, 'upload-input').setInputFiles([DXF]);
+    await expect(tid(page, 'upload-file')).toHaveAttribute('data-kind', 'polycam_dxf');
+    await tid(page, 'new-project-create').click();
+    await page.waitForURL(/\/projects\/[0-9a-f-]{36}\/import\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+    const jobId = page.url().split('/').at(-1) as string;
+    await expect(tid(page, 'import-review')).toHaveAttribute('data-status', 'ready', {
+      timeout: 90_000,
+    });
+    const finish = tid(page, 'import-review-finish');
+    await expect(finish).toHaveAttribute('data-blocked', 'true');
+
+    // The east wall typed 10' 0" (it is accepted with its fix), then Accept 6 resolves every other item.
+    const typed = tid(page, 'import-review-typed');
+    await typed.fill(`10'`);
+    await typed.press('Enter');
+    await expect(tid(page, 'review-gap')).toHaveText('2" gap');
+    await tid(page, 'import-review-accept-n').click();
+    await expect(tid(page, 'import-review-summary')).toContainText('0 to check');
+    // Every item is resolved, but the room does not close: Finish stays blocked.
+    await expect(finish).toHaveAttribute('data-blocked', 'true');
+    await expect(finish).toBeDisabled();
+
+    // The west wall's id, from the One by one list.
+    await page.locator('[data-testid=import-review-mode][data-mode=one_by_one]').click();
+    const westId = (await tid(page, 'import-review-row')
+      .filter({ hasText: 'West wall' })
+      .getAttribute('data-id')) as string;
+
+    // Clicking the red marker selects the room and shows Resolve the gap.
+    await clickAt('[data-testid=review-gap] rect');
+    await expect(tid(page, 'gap-title')).toHaveText('Resolve the gap');
+    await expect(tid(page, 'gap-size')).toHaveText('2" gap');
+
+    // Pick mode: Esc returns to the section; a wall across the gap is refused; the west wall absorbs it.
+    await tid(page, 'gap-pick').click();
+    await expect(tid(page, 'gap-hint')).toHaveText('Click a wall of this room, or press Esc to go back');
+    await page.keyboard.press('Escape');
+    await expect(tid(page, 'gap-pick')).toBeVisible();
+    await tid(page, 'gap-pick').click();
+    // Back leaves pick mode without a keyboard (Q-0630), then pick again.
+    await tid(page, 'gap-back').click();
+    await expect(tid(page, 'gap-pick')).toBeVisible();
+    await tid(page, 'gap-pick').click();
+    const northId = (await tid(page, 'import-review-row')
+      .filter({ hasText: 'North wall' })
+      .getAttribute('data-id')) as string;
+    await clickAt(`[data-testid=review-hit][data-id="${northId}"]`);
+    await expect(tid(page, 'gap-alert')).toHaveText(
+      'That wall runs across the gap. Pick a wall that runs the same way as the gap.',
+    );
+    await expect(finish).toHaveAttribute('data-blocked', 'true');
+    await clickAt(`[data-testid=review-hit][data-id="${westId}"]`);
+    await expect(tid(page, 'review-gap')).toHaveCount(0);
+    await expect(tid(page, 'inspector-gap')).toHaveCount(0);
+    await expect(finish).toHaveAttribute('data-blocked', 'false');
+    await page.locator(`[data-testid=import-review-row][data-id="${westId}"]`).click();
+    await expect(typed).toHaveValue(`10' 2"`);
+
+    // Undo opens the gap again; Keep the room out of square resolves it.
+    await page.keyboard.press('ControlOrMeta+z');
+    await expect(tid(page, 'review-gap')).toHaveText('2" gap');
+    await expect(finish).toHaveAttribute('data-blocked', 'true');
+    const roomId = (await tid(page, 'review-gap').getAttribute('data-room')) as string;
+    await clickAt('[data-testid=review-gap] rect');
+    await tid(page, 'gap-keep').click();
+    await expect(tid(page, 'review-gap')).toHaveCount(0);
+    await expect(finish).toHaveAttribute('data-blocked', 'false');
+
+    // The kept gap is saved with the room and still resolves it after a reload.
+    await expect
+      .poll(
+        async () =>
+          (
+            await harnessSql()<{ fix: { keep?: { gap: { x: number; y: number } } } | null }[]>`
+              select fix from public.import_review_item
+              where job_id = ${jobId}::uuid and item_id = ${roomId}`
+          )[0]?.fix?.keep?.gap ?? null,
+        { timeout: 15_000 },
+      )
+      .not.toBeNull();
+    await page.reload();
+    await expect(tid(page, 'import-review')).toHaveAttribute('data-status', 'ready', {
+      timeout: 30_000,
+    });
+    await expect(tid(page, 'review-gap')).toHaveCount(0);
+    await expect(finish).toHaveAttribute('data-blocked', 'false');
+  });
+});

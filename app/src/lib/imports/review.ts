@@ -42,6 +42,8 @@ export type ReviewRoom = {
   boundary: Pt[];
   closed: boolean;
   areaSqIn: number;
+  /** EZD-311: the gap (in) the room was kept out of square on; set from its fix (lib/imports/review-fix.ts). */
+  keptGap?: Pt;
 };
 
 export type ReviewItem = ReviewWall | ReviewOpening | ReviewRoom;

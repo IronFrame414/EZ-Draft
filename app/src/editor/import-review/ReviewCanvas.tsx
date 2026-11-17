@@ -97,6 +97,8 @@ export type ReviewCanvasProps = {
   gaps?: readonly RoomGap[];
   /** EZD-310: a point to zoom to (a conflict line was clicked); a new `n` zooms again. */
   focus?: { point: Pt; n: number } | null;
+  /** EZD-311: pick mode for Resolve the gap (a click on an item goes to onSelect, which picks the wall). */
+  picking?: boolean;
 };
 
 type Drag = { id: string; key: string; fix: ItemFix | null };
@@ -117,6 +119,7 @@ export function ReviewCanvas({
   onZoom,
   gaps = [],
   focus = null,
+  picking = false,
 }: ReviewCanvasProps): ReactElement {
   const t = useT();
   const [dragState, setHandleDrag] = useState<Drag | null>(null);
@@ -337,6 +340,7 @@ export function ReviewCanvas({
           className={styles.svg}
           aria-hidden="true"
           data-fixing={fixing ? 'true' : 'false'}
+          data-picking={picking ? 'true' : 'false'}
         >
           <g transform={transform}>
             {items.map((item) => {
@@ -415,7 +419,14 @@ export function ReviewCanvas({
           {gaps.map((g) => {
             const p = toScreen(g.point);
             return (
-              <g key={g.roomId} data-testid="review-gap" data-room={g.roomId}>
+              // EZD-311 (Q-0630): clicking the marker selects its room, which shows Resolve the gap.
+              <g
+                key={g.roomId}
+                data-testid="review-gap"
+                data-room={g.roomId}
+                className={styles.gapHit}
+                onPointerDown={(e) => pick(e, g.roomId)}
+              >
                 <rect x={p.x - 7} y={p.y - 7} width={14} height={14} rx={3} className={styles.gapMarker} />
                 <text x={p.x + 12} y={p.y - 12} className={styles.gapLabel}>
                   {t('office.review.gap_marker', {

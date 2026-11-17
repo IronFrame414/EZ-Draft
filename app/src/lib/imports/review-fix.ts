@@ -20,7 +20,8 @@ import type { Decision, Decisions, Pt, ReviewItem, ReviewOpening, ReviewWall } f
 // EZD-310: `typed` is the typed or laser value (in) that set the fix (lib/imports/review-conflicts.ts).
 export type WallFix = { geometry: { start: Pt; end: Pt }; typed?: number };
 export type OpeningFix = { center: Pt; width: number; typed?: number };
-export type RoomFix = { boundary: Pt[] };
+// EZD-311: `keep` is Keep the room out of square, with the gap vector (in) it accepted (lib/imports/review-conflicts.ts).
+export type RoomFix = { boundary: Pt[]; keep?: { gap: Pt } };
 export type ItemFix = WallFix | OpeningFix | RoomFix;
 export type Fixes = Readonly<Record<string, ItemFix>>;
 
@@ -53,7 +54,10 @@ export function parseFix(item: ReviewItem, raw: unknown): ItemFix | null {
   ) {
     return null;
   }
-  return { boundary: (r.boundary as Pt[]).map(copy) };
+  const room: RoomFix = { boundary: (r.boundary as Pt[]).map(copy) };
+  const keep = r.keep as Record<string, unknown> | undefined;
+  if (keep && isPt(keep.gap)) room.keep = { gap: copy(keep.gap) };
+  return room;
 }
 
 /** Shoelace area of a closed boundary, square inches. */
@@ -76,8 +80,11 @@ export function applyFix(item: ReviewItem, fix: ItemFix | undefined): ReviewItem
     const o = f as OpeningFix;
     return { ...item, center: o.center, width: o.width };
   }
-  const boundary = (f as RoomFix).boundary;
-  return { ...item, boundary, areaSqIn: item.closed ? polygonArea(boundary) : item.areaSqIn };
+  const { boundary, keep } = f as RoomFix;
+  const room = { ...item, boundary, areaSqIn: item.closed ? polygonArea(boundary) : item.areaSqIn };
+  // EZD-311: a room kept out of square carries the gap it accepted to Finish import (closureOverride, EZD-313).
+  if (keep) room.keptGap = copy(keep.gap);
+  return room;
 }
 
 /** Every item with its fix: what the canvas draws. */
@@ -173,7 +180,9 @@ export function dragHandle(
     };
   }
   const i = Number(key.replace('corner', ''));
-  return { boundary: item.boundary.map((p, n) => (n === i ? copy(to) : copy(p))) };
+  const boundary = item.boundary.map((p, n) => (n === i ? copy(to) : copy(p)));
+  // EZD-311: moving a corner keeps Keep the room out of square.
+  return item.keptGap ? { boundary, keep: { gap: copy(item.keptGap) } } : { boundary };
 }
 
 /** Length shown while dragging (S02 "live dimensions"): the wall's length or the opening's width, inches. */

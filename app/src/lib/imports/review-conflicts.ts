@@ -14,7 +14,8 @@
 //   later walls of the walk move along their wall by the part of the change that runs along it.
 import type { Pt, ReviewItem, ReviewOpening, ReviewRoom, ReviewWall } from './review';
 import { ROOM_EDGE_REACH_IN } from './review';
-import type { Fixes, ItemFix } from './review-fix';
+import type { Decisions } from './review';
+import type { Fixes, ItemFix, RoomFix, WallFix } from './review-fix';
 
 /**
  * The tolerance (in) used while the company's Defaults value is Not set: S02 Data shown "Tolerance from company
@@ -146,6 +147,22 @@ export function cornerOf(room: ReviewRoom, p: Pt): Corner {
 export type RoomGap = { roomId: string; inches: number; point: Pt; corner: Corner };
 
 /**
+ * EZD-311: where the room's walk ends against its first corner, as a vector (in): the sum of each typed wall's
+ * change along its walk direction. Zero when nothing on the walk is typed.
+ */
+export function gapVector(room: ReviewRoom, detected: readonly ReviewItem[], fixes: Fixes): Pt {
+  const walls = detected.filter((i): i is ReviewWall => i.type === 'wall');
+  let x = 0;
+  let y = 0;
+  for (const { wall, dir } of roomWalk(room, walls)) {
+    const d = typedDelta(wall, fixes) ?? 0;
+    x += d * dir.x;
+    y += d * dir.y;
+  }
+  return { x, y };
+}
+
+/**
  * A closed room whose typed lengths no longer add up (S02 Validation "Room closure"): the walk's miss at the first
  * corner, when it is greater than the tolerance. Null when the room closes.
  */
@@ -155,14 +172,7 @@ export function roomGap(
   fixes: Fixes,
   tolerance: number,
 ): RoomGap | null {
-  const walls = detected.filter((i): i is ReviewWall => i.type === 'wall');
-  let gx = 0;
-  let gy = 0;
-  for (const { wall, dir } of roomWalk(room, walls)) {
-    const d = typedDelta(wall, fixes) ?? 0;
-    gx += d * dir.x;
-    gy += d * dir.y;
-  }
+  const { x: gx, y: gy } = gapVector(room, detected, fixes);
   const inches = Math.hypot(gx, gy);
   if (!(inches > tolerance)) return null;
   const point = room.boundary[0];
@@ -229,7 +239,7 @@ export function itemConflicts(
     const at = walk.findIndex((w) => w.wall.id === item.id);
     if (at < 0) continue;
     const gap = roomGap(room, detected, fixes, tolerance);
-    if (gap) {
+    if (gap && !isGapKept(room, detected, fixes)) {
       errors.push({
         kind: 'gap',
         severity: 'error',
@@ -259,4 +269,150 @@ export function itemConflicts(
       point: centreOf(o),
     }));
   return [...errors, ...warnings];
+}
+
+// ---- Resolve the gap (EZD-311) ----
+// S02 Controls "Pick the wall that absorbs it: Enters pick mode; click a wall on the canvas; that wall's length
+// changes so the room closes. Only shown when a room no longer closes", "Keep the room out of square: Accepts the
+// gap; room is kept out of square; warning overridden"; Validation "Finish import blocked while any To check item is
+// unresolved or any room has an unresolved gap"; Decisions "Finish import requires every item to be resolved
+// (accepted, fixed or deleted) and every room gap resolved", "Pick the wall that absorbs it accepts any wall of the
+// room that does not close, adjacent to the gap or not. Walls of other rooms cannot be picked"; AC-EZD-311-1.
+// - Absorb: the picked wall takes a typed length (kept in its fix like any typed value) that cancels the gap along
+//   it, so the walk closes. A wall across the gap cannot absorb it; a gap with parts both ways has no single wall
+//   that absorbs it (Keep only, as in the Plan editor, EZD-210a).
+// - Keep: the room's fix keeps the gap vector it accepted. The gap stays resolved only while the walk still ends on
+//   that vector (within 1/32"); a later typed value that changes the gap opens it again (as closureOverride.gap in
+//   the Plan editor). The room's decision is left as it is.
+
+/** Two gaps match within this (in): a kept gap still applies, a wall still runs along the gap. */
+export const GAP_MATCH_IN = 1 / 32;
+
+/** The longest length a wall can take (200' 0", as the Plan editor's typed lengths). */
+export const MAX_WALL_IN = 2400;
+
+/** The gap vector a room's fix keeps (Keep the room out of square), or null. */
+export function keptGap(fix: ItemFix | undefined): Pt | null {
+  const k = (fix as RoomFix | undefined)?.keep?.gap;
+  return k && Number.isFinite(k.x) && Number.isFinite(k.y) ? { x: k.x, y: k.y } : null;
+}
+
+/** The room was kept out of square on the gap it has now. */
+export function isGapKept(room: ReviewRoom, detected: readonly ReviewItem[], fixes: Fixes): boolean {
+  const k = keptGap(fixes[room.id]);
+  if (!k) return false;
+  const g = gapVector(room, detected, fixes);
+  return Math.hypot(g.x - k.x, g.y - k.y) <= GAP_MATCH_IN;
+}
+
+export type OpenGap = RoomGap & {
+  /** The walk's miss at the first corner (in). */
+  vector: Pt;
+  /** The room's boundary walls, in walk order (the walls that show Resolve the gap when selected, Q-0630). */
+  wallIds: string[];
+  /** Some wall of the room runs along the gap, so Pick the wall that absorbs it is offered. */
+  absorbable: boolean;
+};
+
+/** The part of v across direction u (u a unit vector). */
+const across = (v: Pt, u: Pt) => Math.abs(v.x * u.y - v.y * u.x);
+
+/**
+ * Every room gap still to resolve, in room number order: rooms that no longer close, not kept out of square on the
+ * gap they have now, and not deleted (a deleted room does not become model data).
+ */
+export function openGaps(
+  detected: readonly ReviewItem[],
+  decisions: Decisions,
+  fixes: Fixes,
+  tolerance: number,
+): OpenGap[] {
+  const walls = detected.filter((i): i is ReviewWall => i.type === 'wall');
+  const out: OpenGap[] = [];
+  for (const gap of roomGaps(detected, fixes, tolerance)) {
+    const room = detected.find((i): i is ReviewRoom => i.type === 'room' && i.id === gap.roomId);
+    if (!room || decisions[room.id] === 'rejected' || isGapKept(room, detected, fixes)) continue;
+    const vector = gapVector(room, detected, fixes);
+    const walk = roomWalk(room, walls);
+    out.push({
+      ...gap,
+      vector,
+      wallIds: walk.map((w) => w.wall.id),
+      absorbable: walk.some((w) => across(vector, w.dir) <= tolerance),
+    });
+  }
+  return out;
+}
+
+/** The open gap the inspector shows for the selected item: the selected room's, or that of a room the wall bounds. */
+export function gapForSelection(gaps: readonly OpenGap[], selectedId: string | null): OpenGap | null {
+  if (selectedId === null) return null;
+  return gaps.find((g) => g.roomId === selectedId) ?? gaps.find((g) => g.wallIds.includes(selectedId)) ?? null;
+}
+
+export type AbsorbRefusal = 'no_gap' | 'not_in_room' | 'across' | 'zero_length' | 'too_long';
+export type AbsorbOutcome = { ok: true; fix: WallFix } | { ok: false; reason: AbsorbRefusal };
+
+/**
+ * Pick the wall that absorbs it: the fix that gives `wallId` the length closing the room's gap. The wall must be one
+ * of the room's boundary walls (any of them, adjacent to the gap or not) and run along the gap (what is left across
+ * it is within the tolerance). Its length now (typed, else scanned) changes by the gap's part along its walk
+ * direction; it must stay longer than 0" and at most 200' 0".
+ */
+export function absorbGap(
+  detected: readonly ReviewItem[],
+  decisions: Decisions,
+  fixes: Fixes,
+  tolerance: number,
+  roomId: string,
+  wallId: string,
+): AbsorbOutcome {
+  const gap = openGaps(detected, decisions, fixes, tolerance).find((g) => g.roomId === roomId);
+  const room = detected.find((i): i is ReviewRoom => i.type === 'room' && i.id === roomId);
+  if (!gap || !room) return { ok: false, reason: 'no_gap' };
+  const walls = detected.filter((i): i is ReviewWall => i.type === 'wall');
+  const step = roomWalk(room, walls).find((w) => w.wall.id === wallId);
+  if (!step) return { ok: false, reason: 'not_in_room' };
+  if (across(gap.vector, step.dir) > tolerance) return { ok: false, reason: 'across' };
+  const along = gap.vector.x * step.dir.x + gap.vector.y * step.dir.y;
+  const now = typedOf(fixes[wallId]) ?? len(step.wall.geometry.start, step.wall.geometry.end);
+  const length = now - along;
+  if (length < GAP_MATCH_IN) return { ok: false, reason: 'zero_length' };
+  if (length > MAX_WALL_IN) return { ok: false, reason: 'too_long' };
+  const f = fixes[wallId] as WallFix | undefined;
+  const standing: ReviewWall = f?.geometry ? { ...step.wall, geometry: f.geometry } : step.wall;
+  return { ok: true, fix: typedFix(standing, length) as WallFix };
+}
+
+/**
+ * Keep the room out of square: the room's fix keeping the gap it has now (its corners as they stand), or null when
+ * the room has no open gap.
+ */
+export function keepFix(
+  detected: readonly ReviewItem[],
+  decisions: Decisions,
+  fixes: Fixes,
+  tolerance: number,
+  roomId: string,
+): RoomFix | null {
+  const gap = openGaps(detected, decisions, fixes, tolerance).find((g) => g.roomId === roomId);
+  const room = detected.find((i): i is ReviewRoom => i.type === 'room' && i.id === roomId);
+  if (!gap || !room) return null;
+  const f = fixes[roomId] as RoomFix | undefined;
+  const boundary = (f?.boundary ?? room.boundary).map((p) => ({ x: p.x, y: p.y }));
+  return { boundary, keep: { gap: { x: gap.vector.x, y: gap.vector.y } } };
+}
+
+/**
+ * Finish import is blocked (S02 Validation; Decisions; AC-EZD-311-1) while any item has no decision (accepted,
+ * fixed or deleted) or any room has a gap still to resolve.
+ */
+export function finishBlocked(
+  detected: readonly ReviewItem[],
+  decisions: Decisions,
+  fixes: Fixes,
+  tolerance: number,
+): boolean {
+  if (detected.some((i) => decisions[i.id] === undefined)) return true;
+  return openGaps(detected, decisions, fixes, tolerance).length > 0;
 }

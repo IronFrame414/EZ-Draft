@@ -1179,6 +1179,8 @@ export const en = {
   'office.review.corner_southeast': 'southeast',
   'office.review.corner_southwest': 'southwest',
   'office.review.gap_marker': '{gap} gap',
+  'office.review.gap_back': 'Back',
+  'office.review.gap_pick_hint_touch': 'Tap a wall of this room, or tap Back to go back',
   'office.review.tolerance_value': 'Tolerance {tolerance} · shared with field measurements',
   'office.new_project.template_title': 'Template',
   'office.new_project.template_sub': 'Sizes editable now and later',

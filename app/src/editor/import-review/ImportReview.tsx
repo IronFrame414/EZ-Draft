@@ -19,6 +19,14 @@
 // Fix selected turns Fix mode on for the selected item (drag its ends on the canvas; a drag accepts it with its
 // fix); Delete rejects it (it does not become model data). Each action, undo and redo marks the items it changed
 // and the review saver sends them every 2 seconds (and at once when the page hides), so a reload restores them.
+// EZD-311 (S02 Controls Pick the wall that absorbs it, Keep the room out of square, Esc; States "Room not closed: red
+// gap marker and inspector section Resolve the gap"; Validation and Decisions "Finish import blocked while ... any
+// room has an unresolved gap"; Q-0630; AC-EZD-311-1): selecting a room that no longer closes, one of its walls, or
+// its red gap marker shows Resolve the gap (the Plan editor's section, editor/inspector/ResolveGap.tsx). Pick enters
+// pick mode: a click on a wall of that room gives it the length that closes the room (any other click is refused
+// with the Plan editor's wording); Esc returns to the section. Keep saves the gap the room is kept on. Both are
+// review actions (undo, redo, saved). The header's Finish import carries whether it is blocked (data-blocked);
+// it stays disabled until EZD-313 builds it.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { HeaderCard } from '../../components/shell/HeaderCard';
 import { HeaderButton } from '../../components/shell/HeaderButton';
@@ -75,11 +83,20 @@ import {
   isOverTolerance,
   itemConflicts,
   reviewTolerance,
-  roomGaps,
+  absorbGap,
+  finishBlocked,
+  gapForSelection,
+  keepFix,
+  openGaps,
   typedFix,
   typedOf,
+  type AbsorbRefusal,
   type Conflict,
+  type OpenGap,
 } from '../../lib/imports/review-conflicts';
+import { ResolveGap } from '../inspector/ResolveGap';
+import { gapSizeText, type GapBox } from '../tools/gap';
+import { useCoarsePointer } from '../../lib/device/useDeviceLayout';
 import { amount, ConflictList, TypedField } from './TypedConflicts';
 
 export const POLL_MS = 1500;
@@ -119,6 +136,8 @@ export function ImportReview({
 }): ReactElement {
   const t = useT();
   const [load, setLoad] = useState<Load>({ kind: 'loading' });
+  // EZD-311: Finish import is blocked until every item and every room gap is resolved (ReadyBody reports it).
+  const [blocked, setBlocked] = useState(true);
 
   useEffect(() => {
     let stopped = false;
@@ -207,13 +226,18 @@ export function ImportReview({
           <HeaderButton data-testid="import-review-cancel" disabled>
             {t('office.review.cancel')}
           </HeaderButton>
-          <HeaderButton variant="primary" data-testid="import-review-finish" disabled>
+          <HeaderButton
+            variant="primary"
+            data-testid="import-review-finish"
+            data-blocked={blocked || review?.status !== 'ready' ? 'true' : 'false'}
+            disabled
+          >
             {t('office.review.finish')}
           </HeaderButton>
         </div>
       </HeaderCard>
       {review?.status === 'ready' ? (
-        <ReadyBody review={review} fetchImpl={fetchImpl} />
+        <ReadyBody review={review} fetchImpl={fetchImpl} onBlocked={setBlocked} />
       ) : (
         <>
           <div className={styles.message} data-testid="import-review-message" role="status">
@@ -297,14 +321,40 @@ const SAVE_REFUSED: Record<number, MessageKey> = {
   409: 'error.lock_held',
 };
 
+const ABSORB_REFUSED: Record<AbsorbRefusal, MessageKey> = {
+  no_gap: 'office.tools.gap.gone',
+  not_in_room: 'office.tools.gap.not_in_room',
+  across: 'office.tools.gap.across',
+  zero_length: 'office.tools.gap.zero_length',
+  too_long: 'office.tools.gap.too_long',
+};
+
+/** The Plan editor's gap box for an open review gap: size to 1/16", Pick only when a wall runs along the gap. */
+export function reviewGapBox(gap: OpenGap): GapBox {
+  const displayIn = Math.round(gap.inches * 16) / 16;
+  return {
+    wallIds: gap.wallIds,
+    at: gap.point,
+    gap: gap.vector,
+    sizeIn: gap.inches,
+    displayIn,
+    sizeText: gapSizeText(displayIn),
+    actions: gap.absorbable ? ['absorb', 'keep'] : ['keep'],
+    note: gap.absorbable ? null : 'office.tools.gap.use_move',
+  };
+}
+
 export function ReadyBody({
   review,
   initialMode,
   fetchImpl,
+  onBlocked,
 }: {
   review: ImportReviewData;
   initialMode?: ReviewMode;
   fetchImpl?: typeof fetch;
+  /** EZD-311: whether Finish import is blocked, each time it changes. */
+  onBlocked?: (blocked: boolean) => void;
 }): ReactElement {
   const t = useT();
   const { items: detected, cutoff } = review;
@@ -388,9 +438,16 @@ export function ReadyBody({
       ? firstUnresolved(detected, review.decisions ?? {})
       : (toCheckItems(detected, cutoff, review.decisions ?? {})[0]?.id ?? null),
   );
-  // A new selection leaves Fix mode.
+  // EZD-311: pick mode for the gap of this room, and the last refusal shown in Resolve the gap.
+  const [picking, setPicking] = useState<string | null>(null);
+  const [gapAlert, setGapAlert] = useState<MessageKey | null>(null);
+  // A new selection leaves Fix mode and pick mode.
   const setSelectedId = (id: string | null) => {
-    if (selectedId !== id) setFixing(false);
+    if (selectedId !== id) {
+      setFixing(false);
+      setPicking(null);
+      setGapAlert(null);
+    }
     setSelectedIdRaw(id);
   };
   const [zoom, setZoom] = useState(100);
@@ -407,7 +464,64 @@ export function ReadyBody({
     () => (selectedId ? itemConflicts(detected, fixes, selectedId, tolerance) : []),
     [detected, fixes, selectedId, tolerance],
   );
-  const gaps = useMemo(() => roomGaps(detected, fixes, tolerance), [detected, fixes, tolerance]);
+  const gaps = useMemo(
+    () => openGaps(detected, decisions, fixes, tolerance),
+    [detected, decisions, fixes, tolerance],
+  );
+  const blocked = finishBlocked(detected, decisions, fixes, tolerance);
+  useEffect(() => {
+    onBlocked?.(blocked);
+  }, [blocked, onBlocked]);
+  const shownGap = picking
+    ? (gaps.find((g) => g.roomId === picking) ?? null)
+    : gapForSelection(gaps, selectedId);
+  // The gap closed another way (undo, a typed value): pick mode ends.
+  if (picking && !gaps.some((g) => g.roomId === picking)) setPicking(null);
+  const startPick = () => {
+    if (!shownGap) return;
+    setFixing(false);
+    setGapAlert(null);
+    setPicking(shownGap.roomId);
+  };
+  const keepRoom = () => {
+    if (!shownGap) return;
+    const roomId = shownGap.roomId;
+    const fix = keepFix(detected, decisions, fixes, tolerance, roomId);
+    if (!fix) {
+      setGapAlert('office.tools.gap.gone');
+      return;
+    }
+    setGapAlert(null);
+    act((s) => ({ ...s, fixes: { ...s.fixes, [roomId]: fix } }));
+  };
+  const pickWall = (id: string) => {
+    if (!picking) return;
+    const item = detected.find((i) => i.id === id);
+    if (!item || item.type !== 'wall') {
+      setGapAlert('office.tools.gap.not_in_room');
+      return;
+    }
+    const r = absorbGap(detected, decisions, fixes, tolerance, picking, id);
+    if (!r.ok) {
+      setGapAlert(ABSORB_REFUSED[r.reason]);
+      return;
+    }
+    setGapAlert(null);
+    setPicking(null);
+    act((s) => withFix(s, id, r.fix));
+  };
+  // Esc in pick mode returns to the section (S02 Esc "Cancels Fix or pick mode"; Q-0570).
+  useEffect(() => {
+    if (!picking) return;
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setPicking(null);
+      setGapAlert(null);
+    };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [picking]);
+  const coarse = useCoarsePointer();
   const [focus, setFocus] = useState<{ point: Pt; n: number } | null>(null);
   const zoomTo = (c: Conflict) => setFocus((f) => ({ point: c.point, n: (f?.n ?? 0) + 1 }));
   const commitTyped = (inches: number | null) => {
@@ -588,7 +702,10 @@ export function ReadyBody({
                 data-testid="import-review-fix"
                 aria-pressed={fixing}
                 disabled={!selected || decisions[selected.id] === 'rejected'}
-                onClick={() => setFixing((f) => !f)}
+                onClick={() => {
+                  setPicking(null);
+                  setFixing((f) => !f);
+                }}
               >
                 {t('office.review.fix')}
               </HeaderButton>
@@ -617,7 +734,8 @@ export function ReadyBody({
             items={items}
             detected={detected}
             selectedId={selectedId}
-            onSelect={setSelectedId}
+            onSelect={picking ? pickWall : setSelectedId}
+            picking={picking !== null}
             fixing={fixing}
             onFix={onFix}
             onExitFix={exitFix}
@@ -692,6 +810,21 @@ export function ReadyBody({
             </p>
           )}
           {selected ? <ConflictList conflicts={conflicts} items={items} onZoom={zoomTo} /> : null}
+          {shownGap ? (
+            <ResolveGap
+              box={reviewGapBox(shownGap)}
+              picking={picking !== null}
+              alert={gapAlert}
+              coarse={coarse}
+              onPick={startPick}
+              onKeep={keepRoom}
+              pickHint={coarse ? 'office.review.gap_pick_hint_touch' : undefined}
+              onBack={() => {
+                setPicking(null);
+                setGapAlert(null);
+              }}
+            />
+          ) : null}
           {mode === 'one_by_one' ? (
             <div className={styles.inspectorFoot} data-testid="import-review-step">
               <div className={styles.stepper}>
