@@ -4,7 +4,9 @@
 // EZD-212a Build step 9 (vault/plans/EZD-212a.md section 3): exports the moves core.
 // EZD-235 Build step 4 (vault/plans/EZD-235.md Decided "D-Where"; 11 rule 2): exports the derived values.
 // EZD-729 Build (AC-EZD-729-1): exports the plumbing locations.
+// EZD-402 (AC-EZD-402-1): exports the cabinet run totals.
 export * from './benchmark/benchmark';
+export * from './cabinets/run';
 export * from './derived';
 export * from './drawing';
 export * from './fixtures';

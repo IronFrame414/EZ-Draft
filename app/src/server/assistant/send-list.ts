@@ -232,6 +232,14 @@ export const PROJECTORS: {
   soffit: notSent,
   chase: notSent,
   group: notSent, // EZD-233: a group holds only member ids; nothing to send until a ticket decides
+  // EZD-402: cabinets are not sent until a ticket decides what of them the assistant reads.
+  cabinet_run: notSent,
+  cabinet_box: notSent,
+  cabinet_filler: notSent,
+  cabinet_panel: notSent,
+  cabinet_corner: notSent,
+  cabinet_shelf: notSent,
+  cabinet_trim: notSent,
 };
 
 const LABEL_WORDS = new Set(ROOM_LABEL_WORDS.map((w) => w.toLowerCase()));

@@ -4,8 +4,26 @@
 // EZD-234 Build (Q-0704 03-data-model rows 1-3; AC-EZD-234-3, -4): the phase 10 types, and `fileRefs` for every
 // type so the save check reads every source_file id a document holds.
 // EZD-233: the `group` type (two or more member ids on one level); a new type, so the version stays.
+// EZD-402: the cabinet types (run, box, filler, panel, corner treatment, open shelf, trim); new types, so the
+// version stays.
 import { z } from 'zod';
 import { blockingDataSchema, type BlockingData } from './blocking';
+import {
+  cabinetBoxDataSchema,
+  cabinetCornerDataSchema,
+  cabinetFillerDataSchema,
+  cabinetPanelDataSchema,
+  cabinetRunDataSchema,
+  cabinetShelfDataSchema,
+  cabinetTrimDataSchema,
+  type CabinetBoxData,
+  type CabinetCornerData,
+  type CabinetFillerData,
+  type CabinetPanelData,
+  type CabinetRunData,
+  type CabinetShelfData,
+  type CabinetTrimData,
+} from './cabinet';
 import { engineerNoteDataSchema, type EngineerNoteData } from './engineer-note';
 import {
   accessDataSchema,
@@ -31,6 +49,7 @@ import { roomDataSchema, type RoomData } from './room';
 import { wallDataSchema, type WallData } from './wall';
 
 export * from './blocking';
+export * from './cabinet';
 export * from './common';
 export * from './engineer-note';
 export * from './existing-details';
@@ -62,6 +81,13 @@ export const OBJECT_TYPES = [
   'soffit',
   'chase',
   'group',
+  'cabinet_run',
+  'cabinet_box',
+  'cabinet_filler',
+  'cabinet_panel',
+  'cabinet_corner',
+  'cabinet_shelf',
+  'cabinet_trim',
 ] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
@@ -84,6 +110,13 @@ type DataByType = {
   soffit: SoffitData;
   chase: ChaseData;
   group: GroupData;
+  cabinet_run: CabinetRunData;
+  cabinet_box: CabinetBoxData;
+  cabinet_filler: CabinetFillerData;
+  cabinet_panel: CabinetPanelData;
+  cabinet_corner: CabinetCornerData;
+  cabinet_shelf: CabinetShelfData;
+  cabinet_trim: CabinetTrimData;
 };
 export type ModelObject = {
   [T in ObjectType]: { id: string; type: T; data: DataByType[T] };
@@ -119,6 +152,13 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
   soffit: soffitDataSchema,
   chase: chaseDataSchema,
   group: groupDataSchema,
+  cabinet_run: cabinetRunDataSchema,
+  cabinet_box: cabinetBoxDataSchema,
+  cabinet_filler: cabinetFillerDataSchema,
+  cabinet_panel: cabinetPanelDataSchema,
+  cabinet_corner: cabinetCornerDataSchema,
+  cabinet_shelf: cabinetShelfDataSchema,
+  cabinet_trim: cabinetTrimDataSchema,
 };
 
 // A source_file id held in an object, with the source_file kinds that field accepts. An empty `kinds` refuses
@@ -150,6 +190,13 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   soffit: none,
   chase: none,
   group: none,
+  cabinet_run: none,
+  cabinet_box: none,
+  cabinet_filler: none,
+  cabinet_panel: none,
+  cabinet_corner: none,
+  cabinet_shelf: none,
+  cabinet_trim: none,
 };
 
 export function fileRefs(object: ModelObject): FileRef[] {

@@ -875,6 +875,149 @@
           "5a1b2c3d-0002-4e00-8a00-000000000002"
         ]
       }
+    },
+    {
+      "id": "c4b1e0a2-0d1f-4c55-9a51-7d0e2a3b4c01",
+      "type": "cabinet_run",
+      "schema_version": 6,
+      "data": {
+        "geometry": {
+          "hostWallId": "aaf876ba-3f51-4bdc-a79b-74af4fe95f45",
+          "start": {
+            "x": 0,
+            "y": 0
+          },
+          "axis": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "name": "Back wall run",
+          "base": [
+            "c4b1e0a2-0d1f-4c55-9a51-7d0e2a3b4c03",
+            "c4b1e0a2-0d1f-4c55-9a51-7d0e2a3b4c05",
+            "c4b1e0a2-0d1f-4c55-9a51-7d0e2a3b4c02",
+            "c4b1e0a2-0d1f-4c55-9a51-7d0e2a3b4c04"
+          ],
+          "upper": [
+            "c4b1e0a2-0d1f-4c55-9a51-7d0e2a3b4c06"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c4b1e0a2-0d1f-4c55-9a51-7d0e2a3b4c02",
+      "type": "cabinet_box",
+      "schema_version": 6,
+      "data": {
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "code": "SB36",
+          "boxType": "sink_base",
+          "width": 36,
+          "depth": 24,
+          "height": 34.5,
+          "faceLayout": "false_drawer_doors_2",
+          "hingeSide": "pair",
+          "finishedEnds": "none",
+          "catalogItemId": null,
+          "finish": null
+        }
+      }
+    },
+    {
+      "id": "c4b1e0a2-0d1f-4c55-9a51-7d0e2a3b4c03",
+      "type": "cabinet_filler",
+      "schema_version": 6,
+      "data": {
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "code": "F3",
+          "width": 3,
+          "depth": 24,
+          "height": 34.5,
+          "scribe": 0.5,
+          "catalogItemId": null,
+          "finish": null
+        }
+      }
+    },
+    {
+      "id": "c4b1e0a2-0d1f-4c55-9a51-7d0e2a3b4c04",
+      "type": "cabinet_panel",
+      "schema_version": 6,
+      "data": {
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "kind": "end",
+          "code": "EP",
+          "width": 0.75,
+          "depth": 24,
+          "height": 34.5,
+          "catalogItemId": null,
+          "finish": null
+        }
+      }
+    },
+    {
+      "id": "c4b1e0a2-0d1f-4c55-9a51-7d0e2a3b4c05",
+      "type": "cabinet_corner",
+      "schema_version": 6,
+      "data": {
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "kind": "lazy_susan",
+          "code": "LS36",
+          "width": 36,
+          "depth": 24,
+          "height": 34.5,
+          "catalogItemId": null,
+          "finish": null
+        }
+      }
+    },
+    {
+      "id": "c4b1e0a2-0d1f-4c55-9a51-7d0e2a3b4c06",
+      "type": "cabinet_shelf",
+      "schema_version": 6,
+      "data": {
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "code": "OS24",
+          "width": 24,
+          "depth": 12,
+          "height": 30,
+          "shelfCount": 3,
+          "catalogItemId": null,
+          "finish": null
+        }
+      }
+    },
+    {
+      "id": "c4b1e0a2-0d1f-4c55-9a51-7d0e2a3b4c07",
+      "type": "cabinet_trim",
+      "schema_version": 6,
+      "data": {
+        "geometry": {
+          "runId": "c4b1e0a2-0d1f-4c55-9a51-7d0e2a3b4c01",
+          "row": "base"
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "kind": "toe_kick",
+          "height": 4.5,
+          "catalogItemId": null,
+          "finish": null
+        }
+      }
     }
   ]
 }
