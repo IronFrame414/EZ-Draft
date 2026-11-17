@@ -9,6 +9,7 @@
 // later with scripts/loop/claim.mjs, and is checked for unclaimed changes before it merges (scripts/loop/lanes.mjs).
 import { spawn, spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { summarize, reportMarkdown } from './usage-report.mjs';
@@ -50,9 +51,25 @@ const cfg = () => ({ ...DEFAULTS, ...readJson(P.config, {}) });
 const now = () => new Date().toISOString().replace(/\.\d+Z$/, 'Z');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 function log(msg) { const line = `[${now()}] ${msg}`; console.log(line); appendFileSync(P.log, line + '\n'); }
+// Another process (a claude session's `git status`, a builder) can hold a checkout's index.lock for a moment; a git
+// call that fails only on that lock is retried, so a commit never stops halfway with its files staged.
 function git(args, cwd = ROOT, opts = {}) {
-  const r = spawnSync('git', args, { cwd, encoding: 'utf8', ...opts });
-  return { ok: r.status === 0, out: (r.stdout || '').trim(), err: (r.stderr || '').trim() };
+  for (let i = 0; ; i++) {
+    const r = spawnSync('git', args, { cwd, encoding: 'utf8', ...opts });
+    const res = { ok: r.status === 0, out: (r.stdout || '').trim(), err: (r.stderr || '').trim() };
+    if (res.ok || !/index\.lock/.test(res.err) || i >= 20) return res;
+    spawnSync('sleep', ['0.25']);
+  }
+}
+// Build files the loop writes and commits itself. A merge in the main checkout needs them unstaged.
+const BUILD_FILES = ['vault/build/state.json', 'vault/build/set-aside.md', 'vault/build/usage.jsonl', 'vault/build/loop.log', 'vault/build/trial-report.md'];
+// A read-only checkout of develop for the footprint calls, so a claude session's git calls never touch the main
+// checkout's index while the loop commits there.
+function footprintTree() {
+  const dir = path.join(ROOT, '.claude/worktrees/_footprint');
+  if (!existsSync(dir)) git(['worktree', 'add', '-q', '--detach', dir, 'develop']);
+  else git(['checkout', '-q', '--detach', '--force', 'develop'], dir);
+  return existsSync(dir) ? dir : ROOT;
 }
 
 // ---------- state ----------
@@ -350,7 +367,7 @@ async function handleLimit(r, s) {
 }
 async function limitCleared() {
   const c = cfg();
-  const r = await runClaude({ cwd: ROOT, prompt: 'Reply with the single word OK.', model: c.builder_model, effort: 'low',
+  const r = await runClaude({ cwd: os.tmpdir(), prompt: 'Reply with the single word OK.', model: c.builder_model, effort: 'low',
     name: 'limit-probe', timeoutMin: 3, readOnly: true });
   return { ok: !r.limited && r.code === 0 && !!r.res && !r.res.is_error, limited: r.limited };
 }
@@ -386,7 +403,7 @@ function setAside(s, t, reason, detail, wt, needs = []) {
     endRun(s, t.id);
     saveFootprint(t.id, null);
     cleanupWorktree(t.id);
-    log(`REQUEUED ${t.id} (first failure: ${reason})${added.length ? `; now waits for ${added.join(', ')}` : ''}`);
+    log(`REQUEUED ${t.id} (first failure: ${reason})${added.length ? `; now waits for ${added.join(', ')}` : ''}${detail ? `\n  detail: ${String(detail).replace(/\s+/g, ' ').slice(-600)}` : ''}`);
     saveState(s);
     return;
   }
@@ -443,7 +460,7 @@ async function review(t, wt, s, round, lane) {
 async function predictFootprint(t) {
   const c = cfg();
   const plan = existsSync(path.join(ROOT, 'vault/plans', `${t.id}.md`));
-  const r = await runClaude({ cwd: ROOT, prompt: footprintPrompt(t, plan, readingList(t.id)), model: c.builder_model,
+  const r = await runClaude({ cwd: footprintTree(), prompt: footprintPrompt(t, plan, readingList(t.id)), model: c.builder_model,
     effort: c.footprint_effort, name: `${t.id} footprint`, timeoutMin: c.footprint_timeout_min, readOnly: true });
   recordUsage(t.id, 'footprint', c.builder_model, r);
   if (r.limited) return { limited: true, r };
@@ -565,6 +582,11 @@ async function doTicket(t, s, lane, kind = 'ticket') {
 
   // squash merge into develop in the main checkout
   if (git(['rev-parse', '--abbrev-ref', 'HEAD']).out !== 'develop') { setAside(s, t, 'main checkout is not on develop', '', wt); return 'aside'; }
+  // The squash commit must hold the ticket's change only: unstage the loop's own build files first. Anything else
+  // staged in the main checkout is someone's work in progress, so the merge waits for it instead of taking it in.
+  git(['reset', '-q', '--', ...BUILD_FILES]);
+  const staged = git(['diff', '--cached', '--name-only']).out;
+  if (staged) { setAside(s, t, 'files are staged in the main checkout; not merging over them', staged, wt); return 'aside'; }
   const sq = git(['merge', '--squash', `t/${t.id}`]);
   if (!sq.ok) { git(['reset', '--merge']); setAside(s, t, 'squash merge failed', sq.err || sq.out, wt); return 'aside'; }
   const msg = `feat(${t.id}): ${t.title.slice(0, 90)}\n\nBuild v3 loop: Opus builder, ${rv.model} review pass${rv.notes ? ` (${rv.notes.slice(0, 200)})` : ''}.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`;
@@ -589,10 +611,11 @@ function push(s) {
   if (p.ok) { s.push_pending = false; saveState(s); log('pushed develop'); } else log(`push failed (will retry): ${p.err.slice(0, 200)}`);
 }
 function commitBuildFiles(msg) {
-  const files = ['vault/build/state.json', 'vault/build/set-aside.md', 'vault/build/usage.jsonl', 'vault/build/loop.log', 'vault/build/trial-report.md'].filter((f) => existsSync(path.join(ROOT, f)));
+  const files = BUILD_FILES.filter((f) => existsSync(path.join(ROOT, f)));
   git(['add', '--', ...files]);
   if (git(['diff', '--cached', '--quiet', '--', ...files]).ok) return;
-  git(['commit', '-q', '-m', `docs(build): ${msg}`, '--', ...files]);
+  const cm = git(['commit', '-q', '-m', `docs(build): ${msg}`, '--', ...files]);
+  if (!cm.ok) { git(['reset', '-q', '--', ...files]); log(`build files not committed (${cm.err.slice(0, 160)}); next time`); }
 }
 function writeTrialReport(s) {
   const rows = readFileSync(P.usage, 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l));
