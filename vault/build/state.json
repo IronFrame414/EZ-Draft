@@ -357,7 +357,8 @@
     "EZD-237",
     "EZD-224b",
     "EZD-308",
-    "EZD-125"
+    "EZD-125",
+    "EZD-126"
   ],
   "seeded_done": 324,
   "merged": [
@@ -595,6 +596,14 @@
       "ts": "2026-11-16T21:55:10Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-126",
+      "title": "Edit lock UI",
+      "commit": "b6ffab28",
+      "ts": "2026-11-17T00:06:45Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {},
@@ -624,5 +633,18 @@
       "reason": "builder crashed (no result)"
     }
   },
-  "running": {}
+  "running": {
+    "EZD-306": {
+      "lane": 1,
+      "title": "DXF conversion choice",
+      "started": "2026-11-16T23:09:40Z",
+      "develop": "f465d586"
+    },
+    "EZD-729": {
+      "lane": 2,
+      "title": "Plumbing locations",
+      "started": "2026-11-16T23:21:28Z",
+      "develop": "f465d586"
+    }
+  }
 }

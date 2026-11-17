@@ -4,7 +4,6 @@
   "reviewer_model": "claude-fable-5-2",
   "reviewer_fallback": "claude-opus-5-5",
   "trial_size": 20,
-  "lane": "0",
   "priority": [
     "EZD-116",
     "EZD-105b"
@@ -14,5 +13,6 @@
     "app/src/server/messages/catalogs/en.ts",
     "app/src/server/messages/catalogs/es.ts"
   ],
-  "footprint_lookahead": 25
+  "footprint_lookahead": 25,
+  "max_phase": 17
 }

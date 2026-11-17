@@ -39,6 +39,8 @@ const DEFAULTS = {
   // Josh 2026-11-14: a ticket in this phase rank or higher starts only when every ticket in every lower phase rank is
   // complete (done, a skipped track or a skipped status). A set-aside ticket is not complete and holds the gate.
   gate_from_phase: 13,
+  // Josh 2026-11-16: only phases that are ready build. A ticket in a phase rank above max_phase never starts.
+  max_phase: 999,
 };
 const SECURITY_PATHS = /(supabase\/migrations|\/server\/|rls|auth|permission|share|price|money|cost|webhook|invite|role)/i;
 
@@ -146,6 +148,7 @@ function candidates(s, c, statuses) {
   // A ticket that stopped because a file it needs was held waits until that holder is no longer building.
   const holding = (t) => (s.hold?.[t.id]?.holders || []).some((h) => running[h]);
   const list = tickets().filter((t) => !done.has(t.id) && !aside.has(t.id) && !running[t.id] && !holding(t)
+    && !(phaseRank(t.phase) > Number(c.max_phase ?? 999))
     && !c.skip_tracks.includes(t.track) && !c.skip_statuses.includes(statuses[t.id])
     && (t.depends_on || []).every((d) => done.has(d)));
   const retried = (t) => (s.retries?.[t.id] ? 1 : 0);
