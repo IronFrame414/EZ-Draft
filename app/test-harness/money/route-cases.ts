@@ -393,6 +393,34 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-309: the made job is not an import, so not found; review changes hold decisions and geometry (no money)',
   },
   {
+    file: `${API}projects/[id]/imports/[jobId]/finish/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/imports/[jobId]/finish/route'),
+    request: async (env) => {
+      const jobId = made(env, 'jobId');
+      return {
+        ...(await sendJson('POST', `/api/projects/${env.projectId}/imports/${jobId}/finish`, {})()),
+        params: { id: env.projectId, jobId },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-313: the made job is not an import, so not found; Finish answers a version id and counts (no money)',
+  },
+  {
+    file: `${API}projects/[id]/imports/[jobId]/cancel/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/imports/[jobId]/cancel/route'),
+    request: async (env) => {
+      const jobId = made(env, 'jobId');
+      return {
+        ...(await sendJson('POST', `/api/projects/${env.projectId}/imports/${jobId}/cancel`, {})()),
+        params: { id: env.projectId, jobId },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-313: the made job is not an import, so not found; Cancel answers a status (no money)',
+  },
+  {
     file: `${API}dev/permissions/projects/[id]/route.ts`,
     method: 'PATCH',
     load: () => import('../../src/app/api/dev/permissions/projects/[id]/route'),

@@ -20,6 +20,10 @@ export const es = {
   'error.not_authorized': 'No tienes permiso para hacer eso.',
   'error.import_not_found': 'Esa importación no está disponible.',
   'error.import_closed': 'Esta importación ya se terminó o se canceló.',
+  // EZD-313: Finish import refusals.
+  'error.import_not_ready': 'Esta importación todavía no está lista para terminar.',
+  'error.import_unresolved':
+    'Resuelve cada elemento y cada hueco de habitación antes de terminar la importación.',
   'error.job_not_found': 'Esa tarea ya no existe.',
   'error.invalid_input': 'Parte de esa información no es válida. Revísala e inténtalo de nuevo.',
   'common.invite.email_subject': 'Te invitaron a unirte a {company} en EZ Draft',

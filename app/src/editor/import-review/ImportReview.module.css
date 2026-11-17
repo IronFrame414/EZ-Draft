@@ -661,3 +661,14 @@
 .svg[data-picking='true'] {
   cursor: crosshair;
 }
+
+/* EZD-313: a refused Finish import or Cancel import, under the header card. */
+.closeError {
+  flex: none;
+  margin: 8px 16px 0;
+  padding: 8px 12px;
+  border-radius: var(--ez-radius-8);
+  color: var(--ez-red-text);
+  background: var(--ez-red-tint);
+  font-size: 13px;
+}

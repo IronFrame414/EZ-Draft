@@ -16,6 +16,11 @@ export type ReviewSaver = {
   mark(ids: readonly string[], mode?: ReviewMode): void;
   /** Send what is marked now (page hide); keepalive so it outlives the page. */
   flushNow(): void;
+  /**
+   * EZD-313: send what is marked now and wait until nothing is waiting or in flight (Finish import reads what the
+   * import has saved). True when everything is saved; false after a refusal or a failed send.
+   */
+  flush(): Promise<boolean>;
   /** Ids and mode still waiting to be sent (for tests). */
   pending(): { ids: string[]; mode: ReviewMode | null };
   dispose(): void;
@@ -42,12 +47,27 @@ export function createReviewSaver({
   let timer: ReturnType<typeof setTimeout> | null = null;
   let inFlight = false;
   let stopped = false;
+  let refused = false;
+  let failed = false;
+  let current: Promise<void> | null = null;
+
+  // A run that starts a send is tracked, so flush() can wait for it.
+  const start = (keepalive: boolean): Promise<void> => {
+    const before = inFlight;
+    const p = run(keepalive);
+    if (before || !inFlight) return p;
+    const tracked: Promise<void> = p.finally(() => {
+      if (current === tracked) current = null;
+    });
+    current = tracked;
+    return tracked;
+  };
 
   const schedule = () => {
     if (timer || stopped) return;
     timer = setTimeout(() => {
       timer = null;
-      void run(false);
+      void start(false);
     }, everyMs);
   };
 
@@ -87,11 +107,13 @@ export function createReviewSaver({
     }
     if (result === 'retry') {
       putBack(body);
+      failed = true;
       onRetry?.();
       schedule();
       return;
     }
     stopped = true;
+    refused = true;
     onRefused?.(result.refused);
   }
 
@@ -107,7 +129,21 @@ export function createReviewSaver({
         clearTimeout(timer);
         timer = null;
       }
-      void run(true);
+      void start(true);
+    },
+    async flush() {
+      for (;;) {
+        while (current) await current;
+        if (refused || stopped) return false;
+        if (ids.size === 0 && mode === null) return true;
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+        failed = false;
+        await start(false);
+        if (failed) return false;
+      }
     },
     pending: () => ({ ids: [...ids], mode }),
     dispose() {

@@ -73,7 +73,11 @@ export const EVENT_LOG: EventLogRules = {
   'lock.conflict': SINK,
   // Q-0735 (a): an autosave writes no row.
   'model.saved': { mode: 'none' },
-  'import.completed': SINK,
+  // EZD-313: written after Finish import commits, under the finishing member.
+  'import.completed': {
+    mode: 'sink',
+    object: (e) => ({ type: 'project', id: e.payload.projectId }),
+  },
   // EZD-302: emitted by the import job, which has no member session to write the log row with (log_event is for
   // signed-in members); the import.started row already records who started the import.
   'import.ready': { mode: 'none' },
@@ -171,6 +175,11 @@ export const EVENT_LOG: EventLogRules = {
   'library.item_deleted': {
     mode: 'sink',
     object: (e) => ({ type: 'library_item', id: e.payload.itemId }),
+  },
+  // EZD-313: written after Cancel import commits.
+  'import.cancelled': {
+    mode: 'sink',
+    object: (e) => ({ type: 'project', id: e.payload.projectId }),
   },
 };
 

@@ -97,6 +97,8 @@ export const EVENTS = {
   'library.item_created': { kind: 'log_only' },
   'library.item_updated': { kind: 'log_only' },
   'library.item_deleted': { kind: 'log_only' },
+  // EZD-313 (S02 Events emitted "import.cancelled (new)"): Cancel import discarded an import's detected items.
+  'import.cancelled': { kind: 'log_only' },
 } as const satisfies Record<string, { kind: EventKind }>;
 
 export type EventName = keyof typeof EVENTS;
@@ -131,7 +133,14 @@ export interface EventPayloads {
   'lock.conflict': Record<string, unknown>;
   // EZD-120a Build step 5: the ids of the objects one save wrote.
   'model.saved': { objectIds: string[] };
-  'import.completed': Record<string, unknown>;
+  // EZD-313 (S02 Events emitted "import.completed (new): project id, source_file ids, counts accepted/deleted,
+  // model_version_id").
+  'import.completed': {
+    projectId: string;
+    sourceFileIds: string[];
+    counts: { accepted: number; deleted: number };
+    modelVersionId: string;
+  };
   // EZD-302: the import sessions one detection run wrote and what they hold (07 import.ready; S02 summary).
   'import.ready': {
     projectId: string;
@@ -216,4 +225,6 @@ export interface EventPayloads {
   'library.item_created': { itemId: string; kind: LibraryKind };
   'library.item_updated': { itemId: string; kind: LibraryKind; fields: ('name' | 'data')[] };
   'library.item_deleted': { itemId: string; kind: LibraryKind; name: string };
+  // EZD-313 (S02 Events emitted import.cancelled): the import whose review was discarded.
+  'import.cancelled': { projectId: string; jobId: string };
 }

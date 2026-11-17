@@ -908,6 +908,9 @@ isOneToOne: false
 "cancel_edit_request":
 { Args: { "p_ip"?: unknown,"p_project": string }; Returns: Json
                            },
+"cancel_import":
+{ Args: { "p_job": string,"p_project": string }; Returns: Json
+                           },
 "cancel_invite":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
                            },
@@ -966,6 +969,9 @@ isOneToOne: false
                            },
 "error_tunnel_take":
 { Args: { "p_events": number,"p_ip_key": string }; Returns: boolean
+                           },
+"finish_import":
+{ Args: { "p_job": string,"p_objects": Json,"p_project": string }; Returns: Json
                            },
 "get_my_ai_key":
 { Args: Record<PropertyKey, never>; Returns: {

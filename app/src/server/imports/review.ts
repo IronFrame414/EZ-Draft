@@ -29,7 +29,8 @@ import { loadTenantDefaults } from '../defaults/defaults';
 import { signedDownloadUrl, StorageError, type DbClient } from '../storage/objects';
 import { readReviewSourceFiles } from '../storage/source-files';
 
-export type ImportReviewStatus = 'detecting' | 'ready' | 'failed';
+// EZD-313: finished or cancelled once Finish import or Cancel import has closed the review (import_session.status).
+export type ImportReviewStatus = 'detecting' | 'ready' | 'failed' | 'finished' | 'cancelled';
 
 export type ImportReviewView = {
   jobId: string;
@@ -147,6 +148,11 @@ export async function readImportReview(
     .eq('project_id', projectId)
     .order('created_at', { ascending: true });
   if (sessions.error) throw sessions.error;
+  const closed = sessions.data.find((s) => s.status === 'finished' || s.status === 'cancelled');
+  if (closed) {
+    const status = closed.status === 'finished' ? 'finished' : 'cancelled';
+    return { ...base, status, failedFile: null, items: [], meshUrl: null };
+  }
   const failed = sessions.data.find((s) => s.status === 'failed');
   if (failed) {
     const name = files.get(failed.source_file_id.toLowerCase())?.name ?? firstScan;

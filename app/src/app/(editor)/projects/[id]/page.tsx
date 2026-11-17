@@ -7,6 +7,8 @@ import { connection } from 'next/server';
 import type { ReactElement } from 'react';
 import { StateHost } from '../../../../components/states/StateHost';
 import { ProjectEditor } from '../../../../editor/ProjectEditor';
+import { ImportedNotice } from '../../../../editor/plan/ImportedNotice';
+import { parseImported } from '../../../../editor/plan/imported';
 import { MessagesProvider } from '../../../../lib/messages';
 import { requireSession } from '../../../../server/auth/session';
 import { reportError } from '../../../../server/errors/report';
@@ -30,6 +32,8 @@ export default async function EditorPage({
   const open = query?.conflicts === 'open' ? { conflictsOpen: true } : {};
   // EZD-237 (vault/plans/EZD-237.md D-Editor): `?benchmark=run` plays the benchmark (the Benchmark card's frame).
   const bench = query?.benchmark === 'run' ? { benchmark: true } : {};
+  // EZD-313 (S02 Decisions): `?imported=walls.windows.doors.rooms` shows the Finish import notice once.
+  const imported = parseImported(query?.imported);
   const ctx = await settingsPermissionContext();
   if (ctx === 'failed') {
     await reportError(new Error('editor_permissions_load_failed'), {
@@ -44,6 +48,7 @@ export default async function EditorPage({
   return (
     <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
       <StateHost>
+        {imported ? <ImportedNotice counts={imported} /> : null}
         <ProjectEditor
           projectId={id}
           devHooks={process.env.VERCEL_ENV !== 'production'}

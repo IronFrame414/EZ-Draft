@@ -15,6 +15,9 @@ export const en = {
   'error.not_authorized': "You don't have permission to do that.",
   'error.import_not_found': "That import isn't available.",
   'error.import_closed': 'This import is already finished or cancelled.',
+  // EZD-313: Finish import refusals.
+  'error.import_not_ready': 'This import is not ready to finish yet.',
+  'error.import_unresolved': 'Resolve every item and room gap before you finish the import.',
   'error.job_not_found': 'That job no longer exists.',
   'error.invalid_input': "Some of that information isn't valid. Check it and try again.",
   'common.sign_in.title': 'Sign in to EZ Draft',
@@ -1751,6 +1754,20 @@ export const en = {
   'office.send.email_greeting': 'Hello {client},',
   'office.send.email_body': '{company} sent you the design for {project}. Open it with the link below.',
   'office.send.email_link': 'Open the design',
+  // EZD-313: Finish import and Cancel import (S02 Controls; Decisions "opens 03 Plan with a short notice of the
+  // counts imported").
+  'office.review.cancel_title': 'Cancel this import?',
+  'office.review.cancel_message':
+    'The detected items are discarded and nothing is added to the model. Uploaded files are kept.',
+  'office.review.cancel_confirm': 'Cancel import',
+  'office.review.cancel_keep': 'Keep reviewing',
+  'office.review.finishing': 'Finishing the import…',
+  'office.review.close_failed': "Couldn't finish that. Try again.",
+  'office.review.closed_finished': 'This import is finished. Its items are in the model.',
+  'office.review.closed_cancelled': 'This import was cancelled. Nothing was imported.',
+  'office.review.open_plan': 'Open the plan',
+  'office.plan.imported':
+    'Import finished: {walls} walls, {windows} windows, {doors} doors, {rooms} rooms added.',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

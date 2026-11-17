@@ -10,8 +10,7 @@
 // To check list and Accept N), By room (items grouped by detected room, Accept room); Accept N accepts only items
 // at or above the company's high-confidence cutoff (AC-EZD-308-1; S02 Decisions). Decisions and the mode live in
 // this page; EZD-309 saves them per item. Fix selected and Delete (EZD-309) are not shown until they are built
-// (Q-0500 rule); Cancel import and Finish import show and stay disabled until EZD-313 builds them, Finish being
-// disabled anyway while any item is unresolved (S02 Controls). The fuller Loading, Error and Empty states are
+// (Q-0500 rule); Finish import is disabled while any item is unresolved (S02 Controls; EZD-313 builds both). The fuller Loading, Error and Empty states are
 // EZD-314's; this screen shows a one-line message for each.
 // EZD-309 (S02 Controls Fix selected, Delete, Click item on canvas, Hover item, Esc, Ctrl/Cmd+Z; phase-03 EZD-309
 // "each review action is saved as a per-item change, batched every 2 seconds"; Q-0215; AC-EZD-309-1, -2): the
@@ -25,9 +24,17 @@
 // its red gap marker shows Resolve the gap (the Plan editor's section, editor/inspector/ResolveGap.tsx). Pick enters
 // pick mode: a click on a wall of that room gives it the length that closes the room (any other click is refused
 // with the Plan editor's wording); Esc returns to the section. Keep saves the gap the room is kept on. Both are
-// review actions (undo, redo, saved). The header's Finish import carries whether it is blocked (data-blocked);
-// it stays disabled until EZD-313 builds it.
+// review actions (undo, redo, saved). The header's Finish import carries whether it is blocked (data-blocked).
+// EZD-313 (S02 Controls Cancel import "Asks to confirm, then discards detected items", Finish import "Writes accepted
+// items to the model as a new model version; opens 03 Plan ... Disabled while any item is unresolved"; Decisions
+// "opens 03 Plan with a short notice of the counts imported"; Q-0215 "Cancel returns to the project with nothing
+// imported"): Finish import is enabled once the review is ready and nothing blocks it. It first sends what the save
+// queue still holds, then POSTs finish and opens Plan with the counts (?imported=walls.windows.doors.rooms, shown
+// by editor/plan/ImportedNotice.tsx). Cancel import asks to confirm, POSTs cancel and returns to the project. A
+// refusal shows its message under the header. A finished or cancelled import shows a closed message.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
+import { ConfirmDialog } from '../../components/states/ConfirmDialog';
+import type { ConfirmChoice, ConfirmRequest } from '../../components/states/confirm-controller';
 import { HeaderCard } from '../../components/shell/HeaderCard';
 import { HeaderButton } from '../../components/shell/HeaderButton';
 import { Wordmark } from '../../components/shell/Wordmark';
@@ -95,6 +102,7 @@ import {
   type OpenGap,
 } from '../../lib/imports/review-conflicts';
 import { ResolveGap } from '../inspector/ResolveGap';
+import { importedQuery, type ImportedCounts } from '../plan/imported';
 import { gapSizeText, type GapBox } from '../tools/gap';
 import { useCoarsePointer } from '../../lib/device/useDeviceLayout';
 import { amount, ConflictList, TypedField } from './TypedConflicts';
@@ -105,7 +113,7 @@ export type ImportReviewData = {
   jobId: string;
   projectId: string;
   projectName: string;
-  status: 'detecting' | 'ready' | 'failed';
+  status: 'detecting' | 'ready' | 'failed' | 'finished' | 'cancelled';
   files: ReviewFile[];
   failedFile: string | null;
   items: ReviewItem[];
@@ -123,21 +131,72 @@ export type ImportReviewData = {
 type Load =
   { kind: 'loading' } | { kind: 'not_found' } | { kind: 'loaded'; review: ImportReviewData };
 
+/** EZD-313: what the header needs from the review's save queue. */
+export type ReviewControl = { flush(): Promise<boolean>; dispose(): void };
+
+const CLOSE_REFUSALS: readonly MessageKey[] = [
+  'error.import_not_found',
+  'error.import_not_ready',
+  'error.import_unresolved',
+  'error.import_closed',
+  'error.lock_held',
+  'error.not_authorized',
+  'error.invalid_input',
+];
+
+const CANCEL_REQUEST: ConfirmRequest = {
+  id: 1,
+  title: 'office.review.cancel_title',
+  message: 'office.review.cancel_message',
+  confirmLabel: 'office.review.cancel_confirm',
+  cancelLabel: 'office.review.cancel_keep',
+  tone: 'danger',
+};
+
+type Imported = ImportedCounts;
+
+/** The Plan address Finish import opens: the project, with the counts imported for the notice. */
+export const planAfterFinish = (projectId: string, c: Imported): string =>
+  `/projects/${projectId}?imported=${importedQuery(c)}`;
+
+async function refusalOf(res: Response): Promise<MessageKey> {
+  const body = (await res.json().catch(() => null)) as {
+    error?: { message_key?: unknown };
+  } | null;
+  const key = body?.error?.message_key;
+  return (CLOSE_REFUSALS as readonly unknown[]).includes(key)
+    ? (key as MessageKey)
+    : 'office.review.close_failed';
+}
+
 export function ImportReview({
   projectId,
   jobId,
   fetchImpl,
   pollMs = POLL_MS,
+  navigate = (url: string) => window.location.assign(url),
 }: {
   projectId: string;
   jobId: string;
   fetchImpl?: typeof fetch;
   pollMs?: number;
+  /** EZD-313: opens Plan or the project after Finish or Cancel. */
+  navigate?: (url: string) => void;
 }): ReactElement {
   const t = useT();
   const [load, setLoad] = useState<Load>({ kind: 'loading' });
   // EZD-311: Finish import is blocked until every item and every room gap is resolved (ReadyBody reports it).
   const [blocked, setBlocked] = useState(true);
+  // EZD-313: Finish and Cancel.
+  const control = useRef<ReviewControl | null>(null);
+  const setControl = useCallback((c: ReviewControl | null) => {
+    control.current = c;
+  }, []);
+  const [busy, setBusy] = useState<'finish' | 'cancel' | null>(null);
+  const [closeError, setCloseError] = useState<MessageKey | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  // The dialog answers once per opening (its Action also closes it, which reports cancel after confirm).
+  const answered = useRef(false);
 
   useEffect(() => {
     let stopped = false;
@@ -179,6 +238,64 @@ export function ImportReview({
 
   const review = load.kind === 'loaded' ? load.review : null;
   const files = review?.files ?? [];
+  const closed = review?.status === 'finished' || review?.status === 'cancelled';
+  const finishDisabled = blocked || review?.status !== 'ready' || busy !== null;
+  const cancelDisabled = review === null || closed || busy !== null;
+
+  const post = (action: 'finish' | 'cancel') =>
+    (fetchImpl ?? fetch)(`/api/projects/${projectId}/imports/${jobId}/${action}`, {
+      method: 'POST',
+      credentials: 'same-origin',
+    });
+
+  const finish = async () => {
+    if (finishDisabled) return;
+    setBusy('finish');
+    setCloseError(null);
+    try {
+      // What the save queue still holds is saved first: Finish writes what the import has saved.
+      const saved = (await control.current?.flush()) ?? true;
+      if (!saved) {
+        setCloseError('office.review.close_failed');
+        return;
+      }
+      const res = await post('finish');
+      if (!res.ok) {
+        setCloseError(await refusalOf(res));
+        return;
+      }
+      const body = (await res.json()) as { imported: Imported };
+      control.current?.dispose();
+      navigate(planAfterFinish(projectId, body.imported));
+    } catch {
+      setCloseError('office.review.close_failed');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const chooseCancel = async (choice: ConfirmChoice) => {
+    if (answered.current) return;
+    answered.current = true;
+    setConfirming(false);
+    if (choice !== 'confirm') return;
+    setBusy('cancel');
+    setCloseError(null);
+    try {
+      const res = await post('cancel');
+      if (!res.ok) {
+        setCloseError(await refusalOf(res));
+        return;
+      }
+      await res.text().catch(() => '');
+      control.current?.dispose();
+      navigate(`/projects/${projectId}`);
+    } catch {
+      setCloseError('office.review.close_failed');
+    } finally {
+      setBusy(null);
+    }
+  };
 
   return (
     <div
@@ -223,29 +340,64 @@ export function ImportReview({
           </li>
         </ol>
         <div className={styles.headerActions}>
-          <HeaderButton data-testid="import-review-cancel" disabled>
+          <HeaderButton
+            data-testid="import-review-cancel"
+            disabled={cancelDisabled}
+            onClick={() => {
+              answered.current = false;
+              setConfirming(true);
+            }}
+          >
             {t('office.review.cancel')}
           </HeaderButton>
           <HeaderButton
             variant="primary"
             data-testid="import-review-finish"
             data-blocked={blocked || review?.status !== 'ready' ? 'true' : 'false'}
-            disabled
+            aria-busy={busy === 'finish'}
+            disabled={finishDisabled}
+            onClick={() => void finish()}
           >
-            {t('office.review.finish')}
+            {busy === 'finish' ? t('office.review.finishing') : t('office.review.finish')}
           </HeaderButton>
         </div>
       </HeaderCard>
+      {closeError ? (
+        <div className={styles.closeError} data-testid="import-review-close-error" role="alert">
+          {t(closeError)}
+        </div>
+      ) : null}
+      {confirming ? (
+        <ConfirmDialog request={CANCEL_REQUEST} onChoose={(c) => void chooseCancel(c)} />
+      ) : null}
       {review?.status === 'ready' ? (
-        <ReadyBody review={review} fetchImpl={fetchImpl} onBlocked={setBlocked} />
+        <ReadyBody
+          review={review}
+          fetchImpl={fetchImpl}
+          onBlocked={setBlocked}
+          onControl={setControl}
+        />
       ) : (
         <>
           <div className={styles.message} data-testid="import-review-message" role="status">
-            {load.kind === 'not_found'
-              ? t('office.review.not_found')
-              : review?.status === 'failed'
-                ? t('office.review.failed', { name: review.failedFile ?? '' })
-                : t('office.review.detecting')}
+            {load.kind === 'not_found' ? (
+              t('office.review.not_found')
+            ) : closed ? (
+              <>
+                {t(
+                  review.status === 'finished'
+                    ? 'office.review.closed_finished'
+                    : 'office.review.closed_cancelled',
+                )}{' '}
+                <a href={`/projects/${projectId}`} data-testid="import-review-open-plan">
+                  {t('office.review.open_plan')}
+                </a>
+              </>
+            ) : review?.status === 'failed' ? (
+              t('office.review.failed', { name: review.failedFile ?? '' })
+            ) : (
+              t('office.review.detecting')
+            )}
           </div>
           <StatusBar />
         </>
@@ -349,12 +501,15 @@ export function ReadyBody({
   initialMode,
   fetchImpl,
   onBlocked,
+  onControl,
 }: {
   review: ImportReviewData;
   initialMode?: ReviewMode;
   fetchImpl?: typeof fetch;
   /** EZD-311: whether Finish import is blocked, each time it changes. */
   onBlocked?: (blocked: boolean) => void;
+  /** EZD-313: the save queue's flush and dispose, for Finish and Cancel (null when it goes). */
+  onControl?: (control: ReviewControl | null) => void;
 }): ReactElement {
   const t = useT();
   const { items: detected, cutoff } = review;
@@ -383,6 +538,7 @@ export function ReadyBody({
       onRefused: (status) => setSaveError(SAVE_REFUSED[status] ?? 'error.invalid_input'),
     });
     saver.current = s;
+    onControl?.({ flush: () => s.flush(), dispose: () => s.dispose() });
     const hide = () => s.flushNow();
     window.addEventListener('pagehide', hide);
     return () => {
@@ -390,8 +546,9 @@ export function ReadyBody({
       s.flushNow();
       s.dispose();
       saver.current = null;
+      onControl?.(null);
     };
-  }, [review.projectId, review.jobId, fetchImpl]);
+  }, [review.projectId, review.jobId, fetchImpl, onControl]);
 
   const act = useCallback((next: (s: ReviewState) => ReviewState) => {
     setHistory((h) => {
