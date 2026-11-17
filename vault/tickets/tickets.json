@@ -22498,6 +22498,34 @@
     "AC-EZD-421-2"
    ],
    "acs_source": "done-when"
+  },
+  {
+   "id": "EZD-422",
+   "phase": 10,
+   "title": "Fix: every fixture kind draws its own standard plan symbol, not the same box with diagonals",
+   "depends_raw": "EZD-234",
+   "spec_ref": "Q-0705 (standard drafting marks); S03 Fixtures; Josh 2026-11-17: the symbols need to be unique to each item",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Fixtures",
+    "spec/sections/00k-glossary-phase-10.md"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-234"
+   ],
+   "acs": [
+    "AC-EZD-422-1",
+    "AC-EZD-422-2",
+    "AC-EZD-422-3"
+   ],
+   "acs_source": "josh-2026-11-17"
   }
  ],
  "recut_applied": "2026-10-20"
