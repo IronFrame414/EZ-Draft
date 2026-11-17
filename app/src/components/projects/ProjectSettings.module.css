@@ -1,0 +1,30 @@
+/* EZD-130 (Q-0699; board S01b column 1): what the Project settings dialog adds to NewProject.module.css. Colors
+   and radii from tokens only (check C10; L-013); sizes, spacing and font sizes in px. */
+
+.scroll {
+  max-height: min(640px, calc(100vh - 180px));
+  overflow-y: auto;
+}
+
+.scope {
+  height: auto;
+  min-height: 64px;
+  padding-top: 8px;
+  resize: vertical;
+}
+
+.value {
+  margin: 0;
+  min-height: 20px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--ez-ink);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 10px;
+}

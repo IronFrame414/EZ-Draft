@@ -104,3 +104,20 @@
     min-height: var(--ez-touch-target);
   }
 }
+
+/* EZD-130: Project settings, the last item, a button styled as the Back to projects link. */
+.settings {
+  width: 100%;
+  margin-top: 0;
+  border: 0;
+  border-top: 1px solid var(--ez-divider);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings:hover,
+.settings:focus-visible {
+  background: var(--ez-hover);
+}

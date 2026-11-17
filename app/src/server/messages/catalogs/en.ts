@@ -255,6 +255,20 @@ export const en = {
   'office.switcher.label': 'Switch project',
   'office.switcher.no_recent': 'No recent projects',
   'office.switcher.back': 'Back to projects',
+  // EZD-130: Project settings (wording for Josh to confirm, vault/build/assumptions.md EZD-130; the section
+  // title is Q-0699's).
+  'office.project_settings.menu_item': 'Project settings',
+  'office.project_settings.title': 'Project settings',
+  'office.project_settings.subtitle': 'Changes apply to this project only',
+  'office.project_settings.defaults_title': 'Defaults for this project',
+  'office.project_settings.lock_hint': 'Start editing to change the type and defaults',
+  'office.project_settings.save': 'Save',
+  'office.project_settings.save_failed': "Couldn't save the project settings. Try again.",
+  'office.project_settings.load_failed': "Couldn't load the project settings.",
+  'office.project_settings.name_required': 'Enter a project name',
+  'office.project_settings.address_required': 'Enter an address',
+  'office.project_settings.too_long': 'Too long',
+  'office.project_settings.default_required': 'Enter a value',
   // EZD-126 (S06 Controls; board S06; Q-0697 decisions 05; Q-0206): the edit lock UI. Board text is decided; the
   // rest is listed in vault/build/assumptions.md for Josh to confirm. English only (office).
   'office.lock.banner_holder': '{name} is editing since {time}',

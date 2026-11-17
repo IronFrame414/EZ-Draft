@@ -438,6 +438,9 @@ export function ProjectEditor({
   }, [session, plan, t]);
   const part = (name: LockPartName) => lock && <lock.m.LockPart ui={lock.ui} part={name} />;
 
+  // EZD-130: a Project settings save (in the switcher) draws the header again with the new name and client.
+  useEffect(() => lock?.ui.switcher.onSaved(() => setLock({ ...lock })), [lock]);
+
   // D-Editor: each time the list opens (and at start with `conflictsOpen`), the list is read again.
   useEffect(() => {
     if (listOpen && session !== null) void session.conflicts.refresh();

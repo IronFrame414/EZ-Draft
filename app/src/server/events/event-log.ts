@@ -128,6 +128,11 @@ export const EVENT_LOG: EventLogRules = {
     mode: 'sink',
     object: (e) => ({ type: 'project', id: e.payload.projectId }),
   },
+  // EZD-130: Project settings saved.
+  'project.updated': {
+    mode: 'sink',
+    object: (e) => ({ type: 'project', id: e.payload.projectId }),
+  },
   'import.started': {
     mode: 'sink',
     object: (e) => ({ type: 'project', id: e.payload.projectId }),

@@ -1150,6 +1150,9 @@ isOneToOne: false
               "language_changed": boolean,"saved_ipad_input_mode": string,"saved_language": string
             }[]
                            },
+"update_project_settings":
+{ Args: { "p_changes": Json,"p_lock_epoch"?: number,"p_project": string }; Returns: Json
+                           },
 "update_role":
 { Args: { "p_granted": (string)[],"p_ip"?: unknown,"p_name": string,"p_role_id": string }; Returns: Json
                            },

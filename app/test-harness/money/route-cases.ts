@@ -961,6 +961,32 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-116: the project effective defaults; 200 { defaults } (no money)',
   },
   {
+    file: `${API}projects/[id]/settings/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/settings/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/settings`, { method: 'GET' }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-130: Project settings; 200 ProjectSettings (no money)',
+  },
+  {
+    file: `${API}projects/[id]/settings/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/projects/[id]/settings/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/settings`, {
+        method: 'PATCH',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ scopeOfWork: 'Money route case' }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-130: Project settings save; 200 ProjectSettings (no money)',
+  },
+  {
     file: `${API}projects/[id]/model/route.ts`,
     method: 'GET',
     load: () => import('../../src/app/api/projects/[id]/model/route'),

@@ -70,6 +70,8 @@ export const EVENTS = {
   'customer.created': { kind: 'log_only' },
   'customer.updated': { kind: 'log_only' },
   'project.created': { kind: 'log_only' },
+  // EZD-130 (Q-0697 decisions 03): Project settings saved; the changed keys.
+  'project.updated': { kind: 'log_only' },
   // EZD-301 (S01 Events emitted): the Upload step's files are stored and the import begins.
   'import.started': { kind: 'log_only' },
   'user.language_changed': { kind: 'log_only' },
@@ -173,6 +175,8 @@ export interface EventPayloads {
   // EZD-118 Build step 8: no `ezbinderJobId` (Q-0190); `source` only `standalone` (Q-0398).
   // EZD-301: `file` when the project starts from a file (S01 Events emitted).
   'project.created': { projectId: string; source: 'standalone' | 'file' };
+  // EZD-130: field names (name, address, scope_of_work, type, customer_id) and per-project default keys.
+  'project.updated': { projectId: string; keys: string[] };
   'import.started': { projectId: string; sourceFileIds: string[] };
   'user.language_changed': { appUserId: string; language: Language };
   // EZD-106: one Save on the Users page inspector (S15: user id, changed permissions, role, actor).

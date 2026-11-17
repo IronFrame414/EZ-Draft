@@ -250,6 +250,7 @@ test.describe('EZD-128 project switcher', () => {
     expect(await versions(ids.P1)).toBe(before + 1);
   });
 
+  // EZD-130: each count includes the Project settings item after Back to projects.
   test('EZD-128 B4 touch targets on iPad', { tag: ['@ipad'] }, async ({ page, signInAs }) => {
     test.setTimeout(150_000);
     const { ids, email } = await setup();
@@ -259,7 +260,7 @@ test.describe('EZD-128 project switcher', () => {
     await openMenu(page);
     await expect(tid(page, 'project-switcher-item')).toHaveCount(1);
     const panel = tid(page, 'project-switcher');
-    expect(await expectTouchTargets(page, panel)).toBe(3);
+    expect(await expectTouchTargets(page, panel)).toBe(4);
     const box = await panel.boundingBox();
     const viewport = page.viewportSize();
     expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height);
@@ -268,7 +269,7 @@ test.describe('EZD-128 project switcher', () => {
     await page.keyboard.press('Escape');
     await openMenu(page);
     await expect(tid(page, 'project-switcher-error')).toBeVisible();
-    expect(await expectTouchTargets(page, panel)).toBe(3);
+    expect(await expectTouchTargets(page, panel)).toBe(4);
     await page.unroute('**/api/projects/recent*');
 
     await rename(page, ids.P1, 'Floor T');
@@ -279,6 +280,6 @@ test.describe('EZD-128 project switcher', () => {
     await openMenu(page);
     await tid(page, 'project-switcher-item').first().click();
     await expect(tid(page, 'project-switcher-leave-error')).toBeVisible();
-    expect(await expectTouchTargets(page, panel)).toBe(4);
+    expect(await expectTouchTargets(page, panel)).toBe(5);
   });
 });

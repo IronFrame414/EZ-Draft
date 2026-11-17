@@ -276,4 +276,9 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   // EZD-237 section 3 C1 (vault/plans/EZD-237.md): the benchmark run functions, authenticated only.
   { fn: 'record_benchmark_run', args: { p_device: {}, p_app_version: 'dev-0', p_results: {} } },
   { fn: 'list_benchmark_runs', args: { p_page: 1 } },
+  // EZD-130: the Project settings write, authenticated only.
+  {
+    fn: 'update_project_settings',
+    args: { p_project: '00000000-0000-4000-8000-000000000000', p_changes: {} },
+  },
 ];

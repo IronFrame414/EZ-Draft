@@ -6,13 +6,16 @@
 //
 // `ProjectSwitcherPanel` is the panel alone (server-renderable: no portal, no effects); `ProjectSwitcher` puts it
 // in a portal below the name button (the header card clips its children) and closes it on Escape, a press or
-// focus outside, and a window resize, never while a leave runs. Project settings is EZD-130's item. Loaded with
+// focus outside, and a window resize, never while a leave runs. Project settings is EZD-130's item, after Back
+// to projects (P128 section 3 "For dependents"; glossary 00i "Project switcher"); it closes the panel and opens
+// the dialog, which loads with this module. Loaded with
 // the lock UI's lazy module (app/src/lazy/lock-ui), which the editor loads on the first user input.
 import {
   useEffect,
   useId,
   useLayoutEffect,
   useRef,
+  useState,
   useSyncExternalStore,
   type CSSProperties,
   type MouseEvent,
@@ -26,6 +29,11 @@ import { Skeleton, SkeletonGroup } from '../../components/states/Skeleton';
 import { useT } from '../../lib/messages';
 import { PROJECT_SEARCH_MAX } from '../../lib/projects/projects';
 import type { ThumbnailCapture } from '../../lib/thumbnail/thumbnail';
+import type { ProjectSettings } from '../../lib/projects/project-settings';
+import {
+  ProjectSettingsDialog,
+  type ProjectSettingsDialogProps,
+} from '../../components/projects/ProjectSettingsDialog';
 import touch from '../../styles/touch.module.css';
 import type { EditorSession } from '../editor-session';
 import {
@@ -47,6 +55,8 @@ export type ProjectSwitcherPanelProps = {
   maxHeight?: string;
   panelRef?: RefObject<HTMLDivElement | null>;
   style?: CSSProperties;
+  // EZD-130: opens Project settings; no item without it.
+  onSettings?: () => void;
 };
 
 const sameTarget = (a: LeaveTarget, b: LeaveTarget): boolean =>
@@ -66,6 +76,7 @@ export function ProjectSwitcherPanel({
   maxHeight,
   panelRef,
   style,
+  onSettings,
 }: ProjectSwitcherPanelProps): ReactElement {
   const t = useT();
   const leaving = state.leaving;
@@ -187,6 +198,17 @@ export function ProjectSwitcherPanel({
       >
         {backSaving ? t('office.editor.saving') : t('office.switcher.back')}
       </a>
+      {onSettings ? (
+        <button
+          type="button"
+          className={`${styles.back} ${styles.settings} ${touch.target}`}
+          data-testid="project-switcher-settings"
+          disabled={busy}
+          onClick={() => onSettings()}
+        >
+          {t('office.project_settings.menu_item')}
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -196,6 +218,7 @@ export type ProjectSwitcherProps = {
   state: SwitcherState;
   anchorRef: RefObject<HTMLButtonElement | null>;
   panelId: string;
+  onSettings?: () => void;
 };
 
 const GAP = 8;
@@ -206,6 +229,7 @@ export function ProjectSwitcher({
   state,
   anchorRef,
   panelId,
+  onSettings,
 }: ProjectSwitcherProps): ReactElement | null {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const open = state.open;
@@ -257,7 +281,20 @@ export function ProjectSwitcher({
 
   if (!open) return null;
   return createPortal(
-    <ProjectSwitcherPanel state={state} store={store} panelId={panelId} panelRef={panelRef} />,
+    <ProjectSwitcherPanel
+      state={state}
+      store={store}
+      panelId={panelId}
+      panelRef={panelRef}
+      onSettings={
+        onSettings
+          ? () => {
+              store.close();
+              onSettings();
+            }
+          : undefined
+      }
+    />,
     document.body,
   );
 }
@@ -271,6 +308,12 @@ export type SessionSwitcher = {
   anchor: RefObject<HTMLButtonElement | null>;
   // The panel gives the router's push once it is mounted.
   setNavigate: (navigate: ((href: string) => void) | null) => void;
+  // EZD-130: the open session's Project settings: what the dialog needs, and its save, which puts the new name
+  // and client in the session's model, re-reads the defaults and tells `onSaved` listeners (the editor draws its
+  // header again, AC-EZD-130-6).
+  settings: () => Pick<ProjectSettingsDialogProps, 'projectId' | 'holding' | 'lockEpoch'>;
+  saved: (s: ProjectSettings) => void;
+  onSaved: (cb: () => void) => () => void;
 };
 
 export function sessionSwitcher(
@@ -279,6 +322,7 @@ export function sessionSwitcher(
 ): SessionSwitcher {
   const anchor: RefObject<HTMLButtonElement | null> = { current: null };
   let navigate: ((href: string) => void) | null = null;
+  const savedListeners = new Set<() => void>();
   const store = createSwitcherStore({
     projectId: session.model.project.id,
     api: switcherHttpApi(),
@@ -290,6 +334,21 @@ export function sessionSwitcher(
     anchor,
     setNavigate(n) {
       navigate = n;
+    },
+    settings: () => ({
+      projectId: session.model.project.id,
+      holding: session.lock.holding,
+      lockEpoch: session.model.lockEpoch,
+    }),
+    saved(s) {
+      session.model.project.name = s.project.name;
+      session.model.project.clientName = s.client?.name ?? null;
+      void session.defaults.refresh();
+      for (const cb of savedListeners) cb();
+    },
+    onSaved(cb) {
+      savedListeners.add(cb);
+      return () => void savedListeners.delete(cb);
     },
     toggle(e) {
       const target = e?.currentTarget;
@@ -311,6 +370,7 @@ export function SwitcherPart({ switcher }: { switcher: SessionSwitcher }): React
     return () => setNavigate(null);
   }, [setNavigate, router]);
   const state = useSyncExternalStore(store.subscribe, store.getState, store.getState);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const open = state.open;
   useEffect(() => {
     const b = anchor.current;
@@ -321,5 +381,25 @@ export function SwitcherPart({ switcher }: { switcher: SessionSwitcher }): React
     if (open) b.setAttribute('aria-controls', panelId);
     else b.removeAttribute('aria-controls');
   }, [anchor, open, panelId]);
-  return <ProjectSwitcher store={store} state={state} anchorRef={anchor} panelId={panelId} />;
+  return (
+    <>
+      <ProjectSwitcher
+        store={store}
+        state={state}
+        anchorRef={anchor}
+        panelId={panelId}
+        onSettings={() => setSettingsOpen(true)}
+      />
+      {settingsOpen ? (
+        <ProjectSettingsDialog
+          {...switcher.settings()}
+          onClose={() => setSettingsOpen(false)}
+          onSaved={(s) => {
+            setSettingsOpen(false);
+            switcher.saved(s);
+          }}
+        />
+      ) : null}
+    </>
+  );
 }
