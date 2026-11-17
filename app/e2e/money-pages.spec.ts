@@ -23,7 +23,7 @@ import {
   type Sessions,
 } from '../test-harness/e2e/test';
 
-const EXPECTED_PATHS = 43;
+const EXPECTED_PATHS = 45;
 
 async function openEveryPage(sessions: Sessions, without: PermissionKey): Promise<void> {
   const tenant = await createTenant();

@@ -4,6 +4,7 @@
 // `toModelObjects`. The builders' rooms are exactly the outlines of their walls' inside faces.
 import {
   CURRENT_SCHEMA_VERSION,
+  newRoomAttributes,
   createOpeningData,
   createWallData,
   withObjectNumber,
@@ -88,7 +89,7 @@ export function roomValue(
       geometry: { boundary: boundary.map((p) => ({ x: p.x, y: p.y })) },
       status: 'existing',
       level,
-      attributes: { name },
+      attributes: newRoomAttributes(name),
       closureOverride,
     },
   };

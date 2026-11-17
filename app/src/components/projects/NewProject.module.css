@@ -526,3 +526,54 @@
   gap: 6px;
   color: var(--ez-slate-700);
 }
+
+/* EZD-129 (boards S01bForeman, S01bForemanStates): the Foreman field in the Project settings column. */
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--ez-slate-400);
+}
+
+.placeholder {
+  color: var(--ez-slate-500);
+}
+
+.menuHeading {
+  margin: 0;
+  padding: 8px 12px 4px;
+  font: 600 11px var(--ez-font-sans);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ez-slate-400);
+}
+
+/* EZD-301 (board S01b column 2): an input source card that is not picked. */
+.source {
+  cursor: pointer;
+}
+
+.source:disabled {
+  cursor: default;
+}
+
+.sourceOff {
+  border-color: var(--ez-border);
+  box-shadow: none;
+}
+
+.sourceIconOff {
+  background: var(--ez-surface-sunken);
+  color: var(--ez-slate-500);
+}
+
+/* EZD-301: the four file sources in one row. */
+.sourceGridFiles {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}

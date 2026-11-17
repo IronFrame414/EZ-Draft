@@ -1,19 +1,10 @@
-# Phase 6 · for Josh (questions 6, 2026-11-10)
+# Phase 6 · for Josh (questions 6, 2026-11-11)
 
-Agents settled 22 of 25 open questions (phase-auditor, with sources). Three design questions wait for you.
+Agents settled every phase 6 question (phase-auditor and orchestrator, with sources). Nothing waits on you except the S15i System status board you chose to have drawn (Q-0665 (b), brief in vault/questions/design-brief-2026-11-11.md): EZD-135b and EZD-237 wait for it.
 
 ## 1. Decisions needed (answer by number)
 
-1. **Q-0665 · System status page (EZD-135, EZD-237).** No board exists. Owner-only page with four cards: job failures, webhook failures, last off-site backup, last restore drill.
-   - (a) **Recommended:** no board; four cards in the Settings shell, same parts as the other Settings pages. You can change it at the field check.
-   - (b) You supply a board first; EZD-135 and EZD-237 wait.
-2. **Q-0666 · Floor switcher (EZD-6001).** Board S03 has no floor control.
-   - (a) **Recommended:** a "Floor" select at the left end of the bottom status bar, before View.
-   - (b) Top of the Layers tab. (c) A menu under the project name.
-3. **Q-0682 · Angular dimension gesture (part of EZD-216).** Neither the board nor the spec says how a user makes an angle dimension.
-   - (a) **Recommended:** click two non-parallel walls, then click where the arc goes; with (c) a Linear / Angular switch in the typed dimension bar.
-   - (b) Click the vertex, then one point on each arm, then the arc.
-   - Only the angular part waits; linear dimensions and notes go ahead.
+None. Answered by you 2026-11-11: Q-0665 (board drawn first), Q-0666 (Floor select at the left of the status bar), Q-0682 (click two walls, then the arc; Linear / Angular switch).
 
 ## 2. Agent answers to confirm (confirm or override)
 

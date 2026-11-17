@@ -38,6 +38,8 @@ export default async function ProjectsPage(): Promise<ReactElement> {
   const allowed = ctx === 'failed' || can(ctx, 'view_projects');
   const showSettings = ctx !== 'failed' && mayOpenSettings((p) => can(ctx, p));
   const canCreate = ctx !== 'failed' && can(ctx, 'create_projects');
+  // EZD-301 (S02 Permissions): starting from a file also needs Edit model (every import review action does).
+  const canImport = ctx !== 'failed' && can(ctx, 'create_projects') && can(ctx, 'edit_model');
   const account = {
     ...(await loadProjectsAccount(createSessionClient(), session)),
     showSettings,
@@ -47,7 +49,7 @@ export default async function ProjectsPage(): Promise<ReactElement> {
       <StateHost>
         <div className={styles.page}>
           {allowed ? (
-            <ProjectsView account={account} canCreate={canCreate} />
+            <ProjectsView account={account} canCreate={canCreate} canImport={canImport} />
           ) : (
             <ProjectsNoAccessView account={account} />
           )}

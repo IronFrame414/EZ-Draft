@@ -5,6 +5,7 @@
 import { requireApiSession } from '../../../server/auth/session';
 import { reportError } from '../../../server/errors/report';
 import { getPermissionContext, permissionList } from '../../../server/permissions';
+import { endedSessionResponse } from '../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,8 @@ export async function GET(): Promise<Response> {
     const ctx = await getPermissionContext();
     return Response.json({ permissions: permissionList(ctx) }, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportError(e, { source: 'function', location: 'api.permissions' });
     return dbUnavailable();
   }

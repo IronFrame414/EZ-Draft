@@ -1,14 +1,10 @@
 # Phase 7 · for Josh (spec-check 7, 2026-11-11)
 
-Phase 7: users, roles, project access and the event log. The spec check found 18 gaps. Agents settled 17 under your standing rule (CLAUDE.md rule 3); the security-reviewer checked every permission and sign-in answer. They are recorded as Q-0695 in the decisions files. One design question waits for you. Phase 7 is ready for your sign-off. Only EZD-105 and EZD-107 wait on question 1.
+Phase 7: users, roles, project access and the event log. The spec check found 18 gaps. Agents settled 17 under your standing rule (CLAUDE.md rule 3); the security-reviewer checked every permission and sign-in answer. They are recorded as Q-0695 in the decisions files. No question waits for you; EZD-105 and EZD-107 wait for the boards.
 
-## 1. Design question (answer by number)
+## 1. Decisions needed
 
-1. **Q-0696 · Pictures for five Users-page pieces.** Board S15 has no picture of five things the spec describes: the Invite user dialog, the custom-role editor (click a role card, or New role), the Project access choice with its project picker, the Foreman picker in the New project dialog, and the Set password button.
-   - (a) **Recommended:** draw boards for the two big pieces, the Invite user dialog and the role editor. Build the three small pieces from the spec text with the same parts as the other Settings pages. For My profile and notifications you chose to draw boards first (Q-0391); the small pieces match how the status bar popovers were handled (Q-0506).
-   - (b) Build all five from the spec text with no new boards. You change them at the field check.
-   - (c) Draw boards for all five first.
-   - Holds up: EZD-105 and EZD-107 under (a); EZD-105, EZD-107, EZD-129 and EZD-105b under (c); nothing under (b).
+None. Q-0696 is answered (Josh 2026-11-11, chat): the Cowork session draws the five boards from vault/questions/design-brief-2026-11-11.md. EZD-105 and EZD-107 wait for the approved boards.
 
 ## 2. Agent answers to confirm
 
@@ -33,3 +29,16 @@ Worked examples: `vault/spec/sections/09n-users-and-invites-examples.md`. Glossa
 - **Copy link on a pending invite** shows only to whoever last sent it and to Owners, matching your Q-0216. Anyone else with the Users page switch can press Resend, which makes them the sender.
 - **Last active wording:** "Now", "12 min ago", "3 hr ago" (same day), "Yesterday" (the previous calendar day), then the date.
 - Deactivate, reactivate, remove and switch changes are each written to the event log.
+
+## 4. Agent answers to confirm (questions unit, 2026-11-11)
+
+Confirm or override each. Nothing waits on these.
+
+- **Q-0721 (EZD-105):** Cancel invite never ships without the fix that stops it signing someone out of another company; the fix moves into the first invite ticket. Source: security-reviewer, Q-0695 row 62.
+- **Q-0731 (EZD-105b):** An Owner can set a password only for an active member with a confirmed account who is not an Owner or Users-page holder, not themself, and not in another company. Those people use "Forgot password". Source: security-reviewer, Q-0094, Q-0096.
+- **Q-0733 (EZD-105b):** Set password first asks "Set a password for {name}", then shows the password once. Source: phase-auditor, Q-0096.
+- **Q-0724 (EZD-106):** Remove asks in the shared confirm dialog naming the person; Deactivate acts at once (Reactivate undoes it). Source: phase-auditor.
+- **Q-0725 (EZD-106):** The footer "Unsaved: n change(s) from <Role> preset" counts pending edits (each changed switch, plus one for role, plus one for language). Source: phase-auditor, S15.
+- **Q-0735 (EZD-109):** Autosaves write no event-log row; a room-closure override does. Source: security-reviewer, spec 11 Security.
+- **Q-0719 (EZD-104):** The costs info note ("Company costs are hidden everywhere...") appears under the users table now. English only (the office screens have no Spanish). Source: phase-auditor, S15 board.
+- **Q-0718, Q-0720, Q-0722, Q-0729, Q-0730, Q-0732, Q-0734:** order and ownership only (event log is built first by EZD-109; the invite More menu comes with the invite ticket). Build-system and architecture, not listed for confirmation.

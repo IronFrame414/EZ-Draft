@@ -1,0 +1,21 @@
+# Plan review · phase 7
+
+Written by the launcher from the code-reviewer's final report (2026-11-11T08:26:29.221Z).
+
+VERDICT: FAIL (phase 7: EZD-104, 105, 105b, 106, 107, 109, 129, 138; the phase's tickets are in PHASES.md:46, because `phase-07.md` still holds the old sheets phase)
+
+1. **Conflict, all event-writing plans, behavior.** Q-0720 (EZD-105.md:202, which recommends a) and Q-0734 (EZD-109.md:413, which recommends c) are the same decision with opposite answers. Under each, a different ticket builds `event_log`. The ledger also has a cycle: EZD-109 depends on EZD-106, and EZD-106a needs `event_log`. This is not a design question, so the orchestrator settles it (CLAUDE.md rule 3). I recommend (c): EZD-109.md section 3 already fixes `private.write_event_log` and `eventLogIp`, and EZD-105b section 3 is written against them. Drop EZD-106 from EZD-109's dependencies.
+2. **EZD-105.md:48-73, Part a scope is missing contracts its dependents rely on (in-place, behavior).** It lacks `private.can_see_invite_link`, `inviteLink()` in the token module, and the `app/test-harness/invites.ts` helper (EZD-138 R-a3 to R-a5, plus the last-sender half of `canCopyLink`, which has no test row). It also needs to say the create route's 201 body returns `membershipId` and the link (EZD-129.md:196), and that `[id]` in `/invites/[id]/…` is the membership id (`UserRow` carries no invite id, EZD-104 section 3).
+3. **EZD-105.md:106 and :118, Part c (in-place, behavior).** The admin file holds "only" the invite calls, but EZD-105b puts `setMemberPassword` in that same file (`admin-auth.ts`, AC-EZD-105b-4). Name the file and allow the third call. Also, `accept_invite` must write the `user.joined` row in its own transaction (AC-EZD-105-8; EZD-109 makes it `transaction` mode, and its W2 test checks this). Its `link_app_user` redefinition must start from EZD-109's body (L-021).
+4. **Dependency conflict, EZD-105.md:172 against EZD-138.md:393 (Q-0729), behavior.** EZD-105 says EZD-138 needs all three parts. EZD-138 says EZD-105d comes after it, because Copy link on a pending row after a reload needs `row.invite.link`. EZD-106b (EZD-106.md:134, the selected invite's Copy link) has the same need. Settle Q-0729, then add EZD-138 to EZD-105d and EZD-106b, or move Copy link into EZD-138.
+5. **EZD-106.md:59-61, Part a misses AC clauses (in-place, behavior).** The scope-change half of AC-EZD-106-1 has no test: Part a has no scope write, and EZD-129a's test for its 09n Project scope row 3 covers it. Move that clause to EZD-129a or add a test. The Remove test also never checks that `event_log` rows stay (AC-EZD-106-6).
+6. **EZD-105b.md:408, size (in-place, minor).** About 25 files, over PROCESS.md:229 ("about 20 files"), and no split proposal. Recount without the one-line harness edits, or propose a split. Its dependencies on EZD-105c and the `event_log` ticket wait on finding 1.
+7. **Q-0730 (EZD-107.md:176), open with no owner yet (question, settled by agents, behavior).** The Invite dialog (EZD-105d) and the Role select (EZD-106b) need a roles list with ids, and neither plan names the source. Settle it with (a), and add EZD-107a to both parts' dependencies.
+8. **Note on the rules.** My review rules require a split proposal for any plan over 45,000 characters. EZD-104 (71k), 105b (84k), 109 (80k) and 138 (70k) are all over it, but PROCESS.md:229 says a plan has "no character target" (EZD-382). This doesn't block anything; the orchestrator should decide which rule stands.
+9. **Note on TRACE.md.** It lists EZD-109's test IDs twice, because it reads the plan's "Rows against wrong code" table as tests. It shows "no plan yet" for the four split proposals, whose AC maps cover AC-1 to -9 (105, 106) and AC-1 to -4 (107, 129).
+
+Passed: every test row in 104, 105b, 109 and 138 cites a source. Every plan has `security-review:`, a complexity rating and its ACs. Every plan with a visual checklist depends on EZD-016a. EZD-104 and EZD-109 need no change if finding 1 goes to (c).
+
+Re-dispatch to the planner: EZD-105 (findings 2, 3, 4), EZD-106 (4, 5), EZD-105b (6). Settle first: Q-0720/Q-0734, Q-0729, Q-0730, Q-0721, Q-0722.
+
+Files: vault/plans/EZD-104.md, EZD-105.md, EZD-105b.md, EZD-106.md, EZD-107.md, EZD-109.md, EZD-129.md, EZD-138.md; vault/tickets/TRACE.md; vault/spec/acceptance-criteria.md:1087-1130

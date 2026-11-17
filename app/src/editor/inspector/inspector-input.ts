@@ -1,7 +1,12 @@
 // EZD-213b Build step 4 (vault/plans/EZD-213b.md section 1, Decided "D-Parse", "D-Refusal text",
 // "D-commitInspectorEdits"; Q-0561; Q-0570; Q-0640 rows 5-4, 5-5; 04 Q-0630 row 20): typed inspector text becomes an
 // InspectorEdit, a refusal becomes its message key, and one commit's edits become one applyEdit (one undo step).
-import { parseLength, parseRoughOpening, type WallLayer } from '@ezdraft/geometry';
+import {
+  parseLength,
+  parseRoughOpening,
+  type WallLayer,
+  type ObjectStatus,
+} from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ModelStore } from '../model/model-store';
 import type { Change, Objects } from '../model/patches';
@@ -91,6 +96,8 @@ export function refusalMessage(
       return `office.inspector.error.${reason}`;
     case 'invalid_input':
       return 'office.length.refused';
+    case 'bearing_demo':
+      return 'office.edit.bearing_demo';
     case 'not_found':
     case 'not_applicable':
     case 'not_shared':
@@ -106,6 +113,10 @@ export type CommitDeps = {
   store: Pick<ModelStore, 'getState' | 'applyEdit'>;
   ids: readonly string[];
   newId: () => string;
+  // EZD-214: the phase view's status for rooms an edit makes; Existing when not given.
+  roomStatus?: ObjectStatus;
+  // EZD-6001 D-Wire: the floor the user chose (null = the lowest floor).
+  chosenFloor?: string | null;
 };
 
 export function commitInspectorEdits(
@@ -114,7 +125,7 @@ export function commitInspectorEdits(
 ): { ok: true; changed: number } | { ok: false; messageKey: MessageKey } {
   const { store, ids, newId } = deps;
   const objects = store.getState().objects;
-  const level = openFloorId(objects);
+  const level = openFloorId(objects, deps.chosenFloor ?? null);
   if (level === null) return { ok: true, changed: 0 };
   const w = new Map(objects);
   const merged = new Map<string, Change>();
@@ -126,6 +137,7 @@ export function commitInspectorEdits(
       edit,
       newId,
       highs: store.getState().numberHighs,
+      roomStatus: deps.roomStatus,
     });
     if (!r.ok) return { ok: false, messageKey: refusalMessage(edit.field, r.reason) };
     for (const change of r.changes) {

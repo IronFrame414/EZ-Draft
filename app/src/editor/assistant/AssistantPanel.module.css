@@ -96,6 +96,15 @@
   overflow-wrap: anywhere;
 }
 
+/* EZD-5603b Decided "Bubble photo"; board S03cAIAssistantPhoto line 180 */
+.bubblePhoto {
+  align-self: flex-end;
+  width: 180px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: var(--ez-radius-8);
+}
+
 .waiting {
   margin: 0;
   font-size: 14px;
@@ -207,6 +216,14 @@
   opacity: 0.55;
 }
 
+/* EZD-5603b Decided "Panel layout"; board S03cAIAssistantPhoto lines 190-197: the textarea sits in the composer box */
+.composer {
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  display: flex;
+  flex-direction: column;
+}
+
 .promptLabel {
   display: flex;
   flex-direction: column;
@@ -229,7 +246,7 @@
   line-height: 1.4;
   color: var(--ez-ink);
   padding: 10px 12px;
-  border: 1px solid var(--ez-border);
+  border: 0;
   border-radius: var(--ez-radius-10);
   box-sizing: border-box;
   width: 100%;

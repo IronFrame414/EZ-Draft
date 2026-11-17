@@ -8,10 +8,14 @@
 // EZD-204a Build step 2 (vault/plans/EZD-204a.md section 1, Decided "v3 → v4 step"; AC-EZD-204-6, -15; Q-0642
 // row 2; Q-0641 row 3): v3 to v4 gives every opening `axis: null`, Hinge left and swing left for a door, Not
 // rated, no shutter and a typed rough opening.
+// EZD-234 Build (Q-0704 03-data-model row 3 "One schema step for phase 10"; AC-EZD-234-4): v4 to v5 gives every
+// room `floorLevel: 0` and `photos: []`; the phase 10 types are new, so no stored object of theirs is older than v5.
+// EZD-218 (03 Q-0664 "Rooms gain …"; AC-EZD-218-6): v5 to v6 gives every room no type, an empty floor finish and
+// no ceiling type.
 import { coordsEqual } from '../tolerance';
 import type { StoredObject } from './index';
 
-export const CURRENT_SCHEMA_VERSION = 4;
+export const CURRENT_SCHEMA_VERSION = 6;
 
 // Takes an object at `schema_version` n and returns a new object at n + 1; never mutates its input.
 export type MigrateStep = (obj: Readonly<StoredObject>) => StoredObject;
@@ -92,10 +96,43 @@ const migrateV3ToV4: MigrateStep = (obj) => {
   return { id: obj.id, type: obj.type, schema_version: 4, data };
 };
 
+// Copies `data` and `data.attributes` only; every other subtree is shared by reference.
+const migrateV4ToV5: MigrateStep = (obj) => {
+  const data = obj.data;
+  if (obj.type === 'room' && isRecord(data) && isRecord(data.attributes)) {
+    return {
+      id: obj.id,
+      type: obj.type,
+      schema_version: 5,
+      data: { ...data, attributes: { ...data.attributes, floorLevel: 0, photos: [] } },
+    };
+  }
+  return { id: obj.id, type: obj.type, schema_version: 5, data };
+};
+
+// Copies `data` and `data.attributes` only; every other subtree is shared by reference.
+const migrateV5ToV6: MigrateStep = (obj) => {
+  const data = obj.data;
+  if (obj.type === 'room' && isRecord(data) && isRecord(data.attributes)) {
+    return {
+      id: obj.id,
+      type: obj.type,
+      schema_version: 6,
+      data: {
+        ...data,
+        attributes: { ...data.attributes, roomType: null, floorFinish: '', ceilingType: null },
+      },
+    };
+  }
+  return { id: obj.id, type: obj.type, schema_version: 6, data };
+};
+
 export const MIGRATIONS: Readonly<Record<number, MigrateStep>> = {
   1: migrateV1ToV2,
   2: migrateV2ToV3,
   3: migrateV3ToV4,
+  4: migrateV4ToV5,
+  5: migrateV5ToV6,
 };
 
 // null when the version is not an integer in 1..CURRENT_SCHEMA_VERSION or a step is missing; an object already

@@ -1,7 +1,12 @@
 // EZD-217 Build step 4 (vault/plans/EZD-217.md section 3 E1; Decided "Ids", "copyItems", "clipCenter",
 // "deleteChanges", "Bearing", "pasteChanges" (1)-(3), "Errors"; Q-0630 row 19; Q-0646 (a); Q-0625 (a)): the model
 // changes of Delete, Copy and Paste. Pure; values that fail `parseStoredObject` are skipped, never thrown on.
+// EZD-234 Build (AC-EZD-234-3; Q-0704 "a dangling id reads as no appliance"): Delete also removes selected fixtures
+// and utility points; a deleted appliance's points stay as they are and read as unlinked. Copy stays walls and
+// openings.
+// EZD-227 Build (AC-EZD-227-1): Delete removes selected blocking too; deleting its wall leaves it flagged.
 import {
+  blockingHostUpdates,
   numberNewObjects,
   openingHostUpdates,
   parseStoredObject,
@@ -11,10 +16,13 @@ import {
   type OpeningObject,
   type Point,
   type WallObject,
+  type ObjectStatus,
 } from '@ezdraft/geometry';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import type { Change, Objects } from '../model/patches';
 import {
+  blockingChange,
+  blockingsOn,
   openingChange,
   openingsOn,
   roomChanges,
@@ -39,7 +47,26 @@ function parse(id: string, value: ObjectValue): ModelObject | null {
 const wallsIn = (models: readonly ModelObject[]): WallObject[] =>
   models.filter((o): o is WallObject => o.type === 'wall');
 
+const COPY_TYPES: ReadonlySet<string> = new Set(['wall', 'opening']);
+const DELETE_TYPES: ReadonlySet<string> = new Set([
+  'wall',
+  'opening',
+  'fixture',
+  'utility_point',
+  'tile_shower', // EZD-226
+  'blocking', // EZD-227
+]);
+
 export function copyItems(objects: Objects, level: string, ids: readonly string[]): ClipItem[] {
+  return itemsOf(objects, level, ids, COPY_TYPES);
+}
+
+function itemsOf(
+  objects: Objects,
+  level: string,
+  ids: readonly string[],
+  types: ReadonlySet<string>,
+): ClipItem[] {
   const lvl = level.toLowerCase();
   const byLower = new Map<string, string>();
   for (const id of objects.keys()) byLower.set(id.toLowerCase(), id);
@@ -50,7 +77,7 @@ export function copyItems(objects: Objects, level: string, ids: readonly string[
     const key = byLower.get(lower);
     if (key === undefined || seen.has(lower)) continue;
     const value = objects.get(key)!;
-    if (value.type !== 'wall' && value.type !== 'opening') continue;
+    if (!types.has(value.type)) continue;
     const l = value.data.level;
     if (typeof l !== 'string' || l.toLowerCase() !== lvl) continue;
     seen.add(lower);
@@ -89,23 +116,32 @@ export function deleteChanges(
   level: string,
   ids: readonly string[],
   newId: () => string,
+  // EZD-214: rooms the delete makes take the phase view's status.
+  roomStatus: ObjectStatus = 'existing',
 ): Change[] {
-  const targets = copyItems(objects, level, ids).map((i) => i.id);
+  const targets = itemsOf(objects, level, ids, DELETE_TYPES).map((i) => i.id);
   if (targets.length === 0) return [];
   const gone = new Set(targets.map((id) => id.toLowerCase()));
   const before = toModelObjects(objects, level);
   const next = before.filter((o) => !(o.type === 'wall' && gone.has(o.id.toLowerCase())));
-  const rooms = roomChanges(reconcileRooms(next, level, newId));
+  const rooms = roomChanges(reconcileRooms(next, level, newId, roomStatus));
   const host = openingHostUpdates({
     level,
     walls: wallsIn(next),
     previousWalls: wallsIn(before),
     openings: openingsOn(objects, level).filter((o) => !gone.has(o.id.toLowerCase())),
   });
+  const blocks = blockingHostUpdates({
+    level,
+    walls: wallsIn(next),
+    previousWalls: wallsIn(before),
+    blockings: blockingsOn(objects, level).filter((o) => !gone.has(o.id.toLowerCase())),
+  });
   return [
     ...targets.map((id): Change => ({ id, value: null })),
     ...rooms,
     ...host.map(openingChange),
+    ...blocks.map(blockingChange),
   ];
 }
 
@@ -135,6 +171,8 @@ export function pasteChanges(
   at: Point,
   newId: () => string,
   highs: NumberHighs,
+  // EZD-214: pasted objects keep their copied status (05 Q-0630 row 19); rooms the paste makes take the view's.
+  roomStatus: ObjectStatus = 'existing',
 ): { changes: Change[]; ids: string[] } {
   const none = { changes: [], ids: [] };
   if (clip.length === 0 || !Number.isFinite(at.x) || !Number.isFinite(at.y)) return none;
@@ -195,7 +233,7 @@ export function pasteChanges(
 
   let changes: Change[];
   if (walls.length > 0) {
-    changes = wallEditChanges(temp, level, walls, newId, highs);
+    changes = wallEditChanges(temp, level, walls, newId, highs, roomStatus);
   } else {
     const levelWalls = wallsIn(toModelObjects(objects, level));
     changes = openingHostUpdates({

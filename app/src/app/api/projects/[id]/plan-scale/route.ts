@@ -8,6 +8,7 @@ import { reportRouteFailure } from '../../../../../server/errors/route-failure';
 import { setPlanScale } from '../../../../../server/model/model';
 import { requireApiPermission, requirePermission } from '../../../../../server/permissions';
 import { PLAN_SCALES, type PlanScale } from '../../../../../lib/plan/plan-scale';
+import { endedSessionResponse } from '../../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,6 +59,8 @@ export async function PUT(
     }
     return Response.json({ scale: body.data.scale }, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

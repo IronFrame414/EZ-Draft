@@ -13,6 +13,7 @@ import {
   verifySignInCode,
 } from '../../server/auth/actions';
 import { Captcha, type CaptchaSetup } from '../../components/auth/Captcha';
+import { InviteCodeForm } from '../../components/auth/InviteCodeForm';
 import styles from '../../components/auth/auth.module.css';
 
 // EZD-033 Step 6 (vault/plans/EZD-033.md; Q-0091; Q-0101): step 1 is email and password first, then
@@ -92,6 +93,8 @@ export function SignInForm({
     attempt: 0,
   });
   const [token, setToken] = useState<string | null>(null);
+  // EZD-138 (board S15j): "Have an invite code?" swaps step 1 for the invite code form, and the title with it.
+  const [inviteMode, setInviteMode] = useState(false);
   const step1Disabled = pending || (captcha !== null && token === null);
 
   const error = state.error ? (
@@ -104,114 +107,146 @@ export function SignInForm({
     </p>
   ) : null;
 
+  if (state.email === null && inviteMode) {
+    return (
+      <>
+        <h1 className={styles.title}>{t('common.sign_in.invite_code_title')}</h1>
+        <InviteCodeForm initialEmail={state.typedEmail} onBack={() => setInviteMode(false)} />
+      </>
+    );
+  }
+
+  const title = <h1 className={styles.title}>{t('common.sign_in.title')}</h1>;
+
   if (state.email === null) {
     return (
-      <form action={action} className={styles.form}>
-        <label className={styles.label} htmlFor="sign-in-email">
-          {t('common.sign_in.email_label')}
-        </label>
-        <input
-          id="sign-in-email"
-          className={styles.input}
-          type="email"
-          name="email"
-          autoComplete="email"
-          inputMode="email"
-          required
-          defaultValue={state.typedEmail ?? ''}
-          data-testid="sign-in-email"
-        />
-        <label className={styles.label} htmlFor="sign-in-password">
-          {t('common.sign_in.password_label')}
-        </label>
-        <input
-          id="sign-in-password"
-          className={styles.input}
-          type="password"
-          name="password"
-          autoComplete="current-password"
-          required
-          data-testid="sign-in-password"
-        />
-        {captcha !== null && <Captcha {...captcha} resetKey={state.attempt} onToken={setToken} />}
-        {token !== null && <input type="hidden" name="captcha_token" value={token} />}
-        {error}
-        <button
-          type="submit"
-          name="intent"
-          value="password"
-          className={styles.primary}
-          disabled={step1Disabled}
-          data-testid="sign-in-password-submit"
-        >
-          {t('common.sign_in.password_submit')}
-        </button>
-        <button
-          type="submit"
-          name="intent"
-          value="send"
-          formNoValidate
-          className={styles.secondary}
-          disabled={step1Disabled}
-          data-testid="sign-in-submit"
-        >
-          {t('common.sign_in.send_instead')}
-        </button>
-        <button
-          type="submit"
-          name="intent"
-          value="forgot"
-          formNoValidate
-          className={styles.textButton}
-          disabled={step1Disabled}
-          data-testid="sign-in-forgot"
-        >
-          {t('common.sign_in.forgot')}
-        </button>
-      </form>
+      <>
+        {title}
+        <form action={action} className={styles.form}>
+          <label className={styles.label} htmlFor="sign-in-email">
+            {t('common.sign_in.email_label')}
+          </label>
+          <input
+            id="sign-in-email"
+            className={styles.input}
+            type="email"
+            name="email"
+            autoComplete="email"
+            inputMode="email"
+            required
+            defaultValue={state.typedEmail ?? ''}
+            data-testid="sign-in-email"
+          />
+          <label className={styles.label} htmlFor="sign-in-password">
+            {t('common.sign_in.password_label')}
+          </label>
+          <input
+            id="sign-in-password"
+            className={styles.input}
+            type="password"
+            name="password"
+            autoComplete="current-password"
+            required
+            data-testid="sign-in-password"
+          />
+          {captcha !== null && <Captcha {...captcha} resetKey={state.attempt} onToken={setToken} />}
+          {token !== null && <input type="hidden" name="captcha_token" value={token} />}
+          {error}
+          <button
+            type="submit"
+            name="intent"
+            value="password"
+            className={styles.primary}
+            disabled={step1Disabled}
+            data-testid="sign-in-password-submit"
+          >
+            {t('common.sign_in.password_submit')}
+          </button>
+          <button
+            type="submit"
+            name="intent"
+            value="send"
+            formNoValidate
+            className={styles.secondary}
+            disabled={step1Disabled}
+            data-testid="sign-in-submit"
+          >
+            {t('common.sign_in.send_instead')}
+          </button>
+          <button
+            type="submit"
+            name="intent"
+            value="forgot"
+            formNoValidate
+            className={styles.textButton}
+            disabled={step1Disabled}
+            data-testid="sign-in-forgot"
+          >
+            {t('common.sign_in.forgot')}
+          </button>
+        </form>
+        <p className={styles.inviteRow}>
+          <button
+            type="button"
+            className={styles.textButton}
+            disabled={pending}
+            onClick={() => {
+              // The widget unmounts with step 1 and never clears its token; after Back a fresh one issues it.
+              setToken(null);
+              setInviteMode(true);
+            }}
+            data-testid="sign-in-invite-code"
+          >
+            {t('common.sign_in.invite_code_open')}
+          </button>
+        </p>
+      </>
     );
   }
 
   return (
-    <form action={action} className={styles.form}>
-      <p className={styles.text}>{t('common.sign_in.sent', { email: state.email })}</p>
-      <p className={styles.secondaryText} data-testid="sign-in-check-spam">
-        {t('common.sign_in.check_spam')}
-      </p>
-      <input type="hidden" name="email" value={state.email} />
-      <label className={styles.label} htmlFor="sign-in-code">
-        {t('common.sign_in.code_label')}
-      </label>
-      <input
-        id="sign-in-code"
-        className={`${styles.input} ${styles.code}`}
-        name="code"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        pattern="[0-9]{6}"
-        maxLength={6}
-        data-testid="sign-in-code"
-      />
-      {error}
-      <button
-        type="submit"
-        className={styles.primary}
-        disabled={pending}
-        data-testid="sign-in-code-submit"
-      >
-        {t('common.sign_in.code_submit')}
-      </button>
-      <button
-        type="submit"
-        name="intent"
-        value="change_email"
-        formNoValidate
-        className={styles.secondary}
-        disabled={pending}
-        data-testid="sign-in-change-email"
-      >
-        {t('common.sign_in.change_email')}
-      </button>
-    </form>
+    <>
+      {title}
+      <form action={action} className={styles.form}>
+        <p className={styles.text}>{t('common.sign_in.sent', { email: state.email })}</p>
+        <p className={styles.secondaryText} data-testid="sign-in-check-spam">
+          {t('common.sign_in.check_spam')}
+        </p>
+        <input type="hidden" name="email" value={state.email} />
+        <label className={styles.label} htmlFor="sign-in-code">
+          {t('common.sign_in.code_label')}
+        </label>
+        <input
+          id="sign-in-code"
+          className={`${styles.input} ${styles.code}`}
+          name="code"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="[0-9]{6}"
+          maxLength={6}
+          data-testid="sign-in-code"
+        />
+        {error}
+        <button
+          type="submit"
+          className={styles.primary}
+          disabled={pending}
+          data-testid="sign-in-code-submit"
+        >
+          {t('common.sign_in.code_submit')}
+        </button>
+        <button
+          type="submit"
+          name="intent"
+          value="change_email"
+          formNoValidate
+          className={styles.secondary}
+          disabled={pending}
+          data-testid="sign-in-change-email"
+        >
+          {t('common.sign_in.change_email')}
+        </button>
+      </form>
+    </>
   );
 }

@@ -9,9 +9,8 @@ import { defaultRunnerConfig } from './config';
 import { JobError } from './errors';
 import { getHandlers } from './handlers';
 import { kickJobRunner } from './kick';
+import { MAX_PAYLOAD_BYTES } from './payload-limit';
 import { assertPathsWellFormed } from './storage-path';
-
-const MAX_PAYLOAD_BYTES = 16384;
 
 export async function enqueueJob(
   db: SupabaseClient<Database>,

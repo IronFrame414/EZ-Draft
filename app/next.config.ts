@@ -17,11 +17,17 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@ezdraft/geometry'],
   // EZD-299a Build step 5 (vault/plans/EZD-299a.md Decided D-Build; Q-0626): one build number per build, inlined
   // into the browser and server bundles, so a save from an older app is refused (app/src/lib/app-version.ts).
-  env: { EZD_APP_BUILD: String(Math.floor(Date.now() / 1000)) },
+  // EZD-237 (vault/plans/EZD-237.md D-Version; Q-0664): the deploy's commit, which a benchmark run names.
+  env: {
+    EZD_APP_BUILD: String(Math.floor(Date.now() / 1000)),
+    EZD_APP_COMMIT: process.env.VERCEL_GIT_COMMIT_SHA ?? '',
+  },
   // EZD-007f Step 9 (vault/plans/EZD-007f.md F3): the confirm page's token_hash never leaves in a Referer.
   async headers() {
     return [
       { source: '/auth/confirm', headers: [{ key: 'Referrer-Policy', value: 'no-referrer' }] },
+      // EZD-105: the invite token is in the path; never sent on as a referrer.
+      { source: '/invite/:token', headers: [{ key: 'Referrer-Policy', value: 'no-referrer' }] },
       // EZD-013 Step 8 (vault/plans/EZD-013.md D11): the worker script is never cached, so updates arrive at once.
       {
         source: '/sw.js',

@@ -1,8 +1,9 @@
 // EZD-5602 T9, T10 (vault/plans/EZD-5602.md section 1 step 11, Decided "D-Reply", "D-Body", "D-Stubs", section 4;
 // AC-EZD-5602-2, -8, -11, -14). parseAssistantReply takes one JSON object { message, changes } (at most 100
 // changes, no roughOpeningMode anywhere inside them), optionally in one code fence; readAssistantBody takes one
-// multipart `request` part under 4,000,000 bytes, refuses a photo part for now, and keeps the last 20 turns.
+// multipart `request` part under 4,000,000 bytes, re-encodes an optional photo part, and keeps the last 20 turns.
 import { describe, expect, it } from 'vitest';
+import { ASSISTANT_RECORDINGS } from '../ai/test-harness/recordings/anthropic';
 import { parseAssistantReply, readAssistantBody } from './assistant';
 
 // D-Stubs reply texts.
@@ -62,7 +63,11 @@ describe('EZD-5602 assistant reply and body', () => {
         JSON.stringify({ message: 'The kitchen is 80 square feet.', changes: [], x: 1 }),
       ),
     ).toBeNull();
-    const hundred = Array.from({ length: 100 }, () => ({}));
+    const hundred = Array.from({ length: 100 }, () => ({
+      op: 'remove',
+      type: 'window',
+      ref: 'o1',
+    }));
     expect(
       parseAssistantReply(
         JSON.stringify({ message: 'The kitchen is 80 square feet.', changes: hundred }),
@@ -70,7 +75,15 @@ describe('EZD-5602 assistant reply and body', () => {
     ).toEqual({ message: 'The kitchen is 80 square feet.', changes: hundred });
     expect(
       parseAssistantReply(
-        JSON.stringify({ message: 'The kitchen is 80 square feet.', changes: [...hundred, {}] }),
+        JSON.stringify({
+          message: 'The kitchen is 80 square feet.',
+          changes: [...hundred, { op: 'remove', type: 'window', ref: 'o1' }],
+        }),
+      ),
+    ).toBeNull();
+    expect(
+      parseAssistantReply(
+        JSON.stringify({ message: 'The kitchen is 80 square feet.', changes: [{}] }),
       ),
     ).toBeNull();
     expect(
@@ -85,7 +98,11 @@ describe('EZD-5602 assistant reply and body', () => {
 
   it('T10 readAssistantBody: one multipart request part, the limits of D-Body, the last 20 turns kept', async () => {
     const ok = await readAssistantBody(withRequest(DEFAULT));
-    expect(ok).toEqual({ ok: true, input: { ...DEFAULT, floorId: FLOOR.toLowerCase() } });
+    expect(ok).toEqual({
+      ok: true,
+      input: { ...DEFAULT, floorId: FLOOR.toLowerCase() },
+      photo: null,
+    });
 
     const invalid = { ok: false, code: 'invalid_input' };
 
@@ -121,12 +138,14 @@ describe('EZD-5602 assistant reply and body', () => {
     photo.append('request', JSON.stringify(DEFAULT));
     photo.append(
       'photo',
-      new Blob([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], { type: 'image/png' }),
+      new Blob([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], {
+        type: 'image/png',
+      }),
       'p.png',
     );
     expect(await readAssistantBody(formRequest(photo))).toEqual({
       ok: false,
-      code: 'photo_not_supported',
+      code: 'photo_unreadable',
     });
 
     // request text `{`; an extra key; model haiku
@@ -139,6 +158,7 @@ describe('EZD-5602 assistant reply and body', () => {
     expect(await readAssistantBody(withRequest({ ...DEFAULT, prompt: long }))).toEqual({
       ok: true,
       input: { ...DEFAULT, prompt: long, floorId: FLOOR.toLowerCase() },
+      photo: null,
     });
     expect(await readAssistantBody(withRequest({ ...DEFAULT, prompt: long + 'p' }))).toEqual(
       invalid,
@@ -167,6 +187,7 @@ describe('EZD-5602 assistant reply and body', () => {
     expect(await readAssistantBody(withRequest({ ...DEFAULT, history: turns(22) }))).toEqual({
       ok: true,
       input: { ...DEFAULT, history: turns(22).slice(2), floorId: FLOOR.toLowerCase() },
+      photo: null,
     });
     expect(turns(22).slice(2)[0].text).toBe('t3');
 
@@ -174,5 +195,58 @@ describe('EZD-5602 assistant reply and body', () => {
     expect(await readAssistantBody(withRequest({ ...DEFAULT, selectedIds: uuids(1001) }))).toEqual(
       invalid,
     );
+  });
+});
+
+// EZD-5604a P1, P2 (vault/plans/EZD-5604a.md section 4, Decided "D-Parse", "D-Recordings"; AC-EZD-5604-1, -6).
+const replyText = (name: keyof typeof ASSISTANT_RECORDINGS): string => {
+  const json = ASSISTANT_RECORDINGS[name].exchanges[0]!.response.json as {
+    content: { text: string }[];
+  };
+  return json.content[0]!.text;
+};
+
+describe('EZD-5604a reply parse', () => {
+  it('P1 refuses a reply whole', () => {
+    expect(
+      parseAssistantReply(
+        JSON.stringify({
+          message: 'Done.',
+          changes: [
+            { op: 'remove', type: 'window', ref: 'o1' },
+            { op: 'update', type: 'wall', ref: 'w1', status: 'new' },
+          ],
+        }),
+      ),
+    ).toBeNull();
+    // JSON 1e400 parses to Infinity, which no number field takes.
+    expect(
+      parseAssistantReply(
+        '{"message":"Done.","changes":[{"op":"update","type":"window","ref":"o1","width":1e400}]}',
+      ),
+    ).toBeNull();
+  });
+
+  it('P2 recordings parse', () => {
+    expect(parseAssistantReply(replyText('add_door'))).toEqual({
+      message: "Added a 3' door on w2.",
+      changes: [{ op: 'add', type: 'door', ref: 'n1', hostWall: 'w2', center: { x: 100, y: 0 } }],
+    });
+    expect(parseAssistantReply(replyText('move_wall'))).toEqual({
+      message: 'Moved w1 12 inches north.',
+      changes: [
+        {
+          op: 'update',
+          type: 'wall',
+          ref: 'w1',
+          start: { x: 120, y: 108 },
+          end: { x: 0, y: 108 },
+        },
+      ],
+    });
+    expect(parseAssistantReply(replyText('delete_window'))).toEqual({
+      message: 'Removed window o1.',
+      changes: [{ op: 'remove', type: 'window', ref: 'o1' }],
+    });
   });
 });

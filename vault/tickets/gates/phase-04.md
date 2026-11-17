@@ -2,7 +2,7 @@
 
 PR: https://github.com/IronFrame414/EZ-Draft/pull/7
 Develop at PR: 26e9dffd2fafc161ca0ceeaa22f3c9f9c64d5d36
-Merged: no
+Merged: yes
 
 Gate: GATE PASS (full gate on develop 26e9dffd: unit 2012, node 1831, browser 393; no flagged security paths).
 Security review: PASS; Production-sensitive changes: PASS.

@@ -78,6 +78,17 @@ const calls: Call[] = [
       );
     },
   },
+  // EZD-126: the people route (names for the presence avatars).
+  {
+    route: 'GET /api/projects/<id>/people',
+    run: async () => {
+      const id = randomUUID();
+      return (await import('./projects/[id]/people/route')).GET(
+        get(`/api/projects/${id}/people?ids=${randomUUID()}`),
+        withParams(id),
+      );
+    },
+  },
   {
     route: 'POST /api/projects/<id>/checkpoints',
     run: async () => {
@@ -97,6 +108,20 @@ const calls: Call[] = [
         new Request(`${ORIGIN}/api/projects/${id}/plan-scale`, {
           method: 'PUT',
           body: JSON.stringify({ scale: 0.5 }),
+        }),
+        withParams(id),
+      );
+    },
+  },
+  // EZD-214: the phase view route.
+  {
+    route: 'PUT /api/projects/<id>/phase-default',
+    run: async () => {
+      const id = randomUUID();
+      return (await import('./projects/[id]/phase-default/route')).PUT(
+        new Request(`${ORIGIN}/api/projects/${id}/phase-default`, {
+          method: 'PUT',
+          body: JSON.stringify({ phase: 'existing' }),
         }),
         withParams(id),
       );

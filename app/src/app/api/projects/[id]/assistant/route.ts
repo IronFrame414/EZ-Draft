@@ -8,6 +8,7 @@ import { readAssistantBody, runAssistantPrompt } from '../../../../../server/ass
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { reportRouteFailure } from '../../../../../server/errors/route-failure';
 import { requireApiPermission, requirePermission } from '../../../../../server/permissions';
+import { endedSessionResponse } from '../../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,15 +35,20 @@ export async function POST(
       return fail(
         400,
         body.code,
-        body.code === 'photo_not_supported' ? 'error.invalid_input' : `error.${body.code}`,
+        body.code === 'photo_unreadable'
+          ? 'error.assistant_photo_unreadable'
+          : `error.${body.code}`,
       );
     }
 
     const answer = await runAssistantPrompt(createSessionClient(), p.ctx, id, body.input, {
       signal: request.signal,
+      photo: body.photo,
     });
     return Response.json(answer.body, { status: answer.status, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

@@ -9,20 +9,32 @@
 // EZD-294 Build step 6 (vault/plans/EZD-294.md Decided "loadModel numbers", "Saved number"; Q-0625 (a); Q-0629 (b)):
 // the load answers each key's highest number of live and deleted rows; a save answers each saved object's number.
 // EZD-219 Build step 5 (vault/plans/EZD-219.md section 3): the load answers the project's plan scale; `setPlanScale`.
+// EZD-214: the load answers the project's phase view (`phaseDefault`); `setPhaseDefault`.
+// EZD-234 Build (Q-0704 03-data-model row 3 "File references are checked on save"): one generic pass over every
+// source_file id the saved objects hold (`fileRefs`), read through the caller's client: each must name a row of this
+// project, of a kind the field allows, whose upload has completed; otherwise the object is refused `file_not_found`.
 import {
   CURRENT_SCHEMA_VERSION,
+  fileRefs,
   NO_NUMBERS,
   parseStoredObject,
   raiseNumberHighs,
   type ClosureOverride,
+  type FileRef,
+  type ModelObject,
   type ObjectIssue,
 } from '@ezdraft/geometry';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import type { LoadedObject, ModelLoad } from '../../lib/outbox/model-api';
+import { effectiveDefaults } from '../../lib/defaults/values';
+import { loadTenantDefaults, projectCopyOf } from '../defaults/defaults';
 import { planScaleFromSettings, type PlanScale } from '../../lib/plan/plan-scale';
+import { phaseViewOf, type PhaseView } from '../../lib/plan/phase-view';
 import type { Database, Json } from '../db/database.types';
+import { ipadDrawingOf } from '../../lib/profile/profile';
 import { can, type PermissionContext } from '../permissions';
+import { readSourceFileRefs, type StoredFileRef } from '../storage/source-files';
 
 export type ObjectChange =
   | { id: string; baseSeq: number; deleted: true }
@@ -37,7 +49,13 @@ export type ObjectChange =
 
 // EZD-299a Build step 7 (vault/plans/EZD-299a.md Decided D-Resolves): `resolves` names the caller's recorded
 // refused changes this save settles; the save then answers which of them it removed.
-export type SaveRequest = { lockEpoch: number; changes: ObjectChange[]; resolves?: string[] };
+// EZD-5605 (Q-0638 gap 11): `assistant: true` marks a save of an accepted Assistant change; only the literal true.
+export type SaveRequest = {
+  lockEpoch: number;
+  changes: ObjectChange[];
+  resolves?: string[];
+  assistant?: true;
+};
 
 export type SaveResult =
   | {
@@ -82,6 +100,7 @@ const requestSchema = z.strictObject({
   lockEpoch: z.number().int().min(0),
   changes: z.array(changeSchema).min(1),
   resolves: z.array(z.uuid()).min(1).optional(),
+  assistant: z.literal(true).optional(),
 });
 
 export function parseSaveRequest(body: unknown): SaveRequest | null {
@@ -137,6 +156,29 @@ export function closureOverrideCheck(
 // L-061: the most ids one stored-row read names.
 const OVERRIDE_READ_CHUNK = 100;
 
+// `files` is keyed by lower-case source_file id; a missing key is a row the caller cannot read or that does not exist.
+// One issue per object, in object order.
+export function fileRefCheck(
+  objects: readonly { id: string; refs: readonly FileRef[] }[],
+  files: ReadonlyMap<string, StoredFileRef>,
+  projectId: string,
+): ObjectIssue[] {
+  const invalid: ObjectIssue[] = [];
+  for (const { id, refs } of objects) {
+    const bad = refs.some((r) => {
+      const f = files.get(r.fileId.toLowerCase());
+      return (
+        f === undefined ||
+        f.projectId.toLowerCase() !== projectId.toLowerCase() ||
+        !f.uploaded ||
+        !r.kinds.includes(f.kind)
+      );
+    });
+    if (bad) invalid.push({ id, issue: 'file_not_found' });
+  }
+  return invalid;
+}
+
 export async function saveObjects(
   client: SupabaseClient<Database>,
   projectId: string,
@@ -146,6 +188,7 @@ export async function saveObjects(
   // EZD-202 Decided "Save check": every upserted object is parsed before the rpc; any issue refuses the whole
   // save, issues in change order. A parsed object is sent as parsed, at the current schema version.
   const invalid: ObjectIssue[] = [];
+  const parsedObjects: ModelObject[] = [];
   const checked = req.changes.map((c): ObjectChange => {
     if (c.deleted) return c;
     const parsed = parseStoredObject({
@@ -158,9 +201,20 @@ export async function saveObjects(
       invalid.push(parsed.issue);
       return c;
     }
+    parsedObjects.push(parsed.object);
     return { ...c, schemaVersion: CURRENT_SCHEMA_VERSION, data: parsed.object.data };
   });
   if (invalid.length > 0) return { ok: false, code: 'invalid_object', invalid };
+
+  // EZD-234: the file reference check, before the rpc.
+  const withRefs = parsedObjects
+    .map((o) => ({ id: o.id, refs: fileRefs(o) }))
+    .filter((o) => o.refs.length > 0);
+  if (withRefs.length > 0) {
+    const ids = [...new Set(withRefs.flatMap((o) => o.refs.map((r) => r.fileId.toLowerCase())))];
+    const bad = fileRefCheck(withRefs, await readSourceFileRefs(client, ids), projectId);
+    if (bad.length > 0) return { ok: false, code: 'invalid_object', invalid: bad };
+  }
 
   // EZD-205b Decided "saveObjects order": the stored rows of rooms with an override, read before the rpc.
   const rooms = checked.flatMap((c) =>
@@ -300,6 +354,25 @@ export async function setPlanScale(
   return { ok: true };
 }
 
+// EZD-214 (03 Q-0664 "View default"): the project's phase view through set_phase_default (definer; 42501,
+// P0002, 22023).
+export async function setPhaseDefault(
+  client: SupabaseClient<Database>,
+  projectId: string,
+  phase: PhaseView,
+): Promise<
+  { ok: true } | { ok: false; code: 'permission_denied' | 'project_not_found' | 'invalid_input' }
+> {
+  const { error } = await client.rpc('set_phase_default', { p_project: projectId, p_phase: phase });
+  if (error) {
+    if (error.code === '42501') return { ok: false, code: 'permission_denied' };
+    if (error.code === 'P0002') return { ok: false, code: 'project_not_found' };
+    if (error.code === '22023') return { ok: false, code: 'invalid_input' };
+    throw error;
+  }
+  return { ok: true };
+}
+
 // supabase/config.toml max_rows: the most rows one select returns.
 const LOAD_PAGE = 1000;
 
@@ -312,6 +385,13 @@ type ObjectRow = {
 };
 
 type NumberRow = { object_id: string; type: string; number: unknown; kind: string | null };
+
+// The lock_epoch of a read_edit_lock answer, 0 when there is none.
+function lockEpochOf(data: unknown): number {
+  const v = (data as { lock_epoch?: unknown } | null)?.lock_epoch;
+  const n = Number(v ?? 0);
+  return Number.isSafeInteger(n) && n >= 0 ? n : 0;
+}
 
 export async function loadModel(
   client: SupabaseClient<Database>,
@@ -346,18 +426,35 @@ export async function loadModel(
     return data as unknown as NumberRow[];
   };
 
-  const [project, lock, firstPage, firstDeleted] = await Promise.all([
+  // EZD-223: the viewer's own iPad drawing setting rides with the load for the Sketch tool.
+  const [project, lock, firstPage, firstDeleted, me, companyDefaults, lastSent] = await Promise.all([
     client
       .from('project')
-      .select('id, name, tenant_id, settings, customer!project_customer_fk(name)')
+      .select('id, name, tenant_id, settings, phase_default, customer!project_customer_fk(name)')
       .eq('id', projectId)
       .maybeSingle(),
-    client.from('edit_lock').select('lock_epoch').eq('project_id', projectId).maybeSingle(),
+    // EZD-125 (Q-0697 03 "every lock read"): through read_edit_lock, so opening a project applies an expired
+    // request first; a project out of scope (P0002) reads as no lock and the project read answers null.
+    client.rpc('read_edit_lock', { p_project: projectId }),
     page(null),
     deletedPage(null),
+    client.from('app_user').select('ipad_input_mode').eq('id', ctx.appUserId).maybeSingle(),
+    // EZD-116 (Q-0697 03): the company defaults ride with the load.
+    loadTenantDefaults(client),
+    // EZD-121 (Q-0700 05): the newest sent version's number, for the header label.
+    client
+      .from('model_version')
+      .select('version_no')
+      .eq('project_id', projectId)
+      .eq('is_sent', true)
+      .order('version_no', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
   if (project.error) throw project.error;
-  if (lock.error) throw lock.error;
+  if (lastSent.error) throw lastSent.error;
+  if (lock.error && lock.error.code !== 'P0002') throw lock.error;
+  if (me.error) throw me.error;
   if (project.data === null) return null;
 
   const rows = [...firstPage];
@@ -410,16 +507,21 @@ export async function loadModel(
       name: project.data.name,
       clientName: project.data.customer?.name ?? null,
       planScale: planScaleFromSettings(project.data.settings),
+      phaseDefault: phaseViewOf(project.data.phase_default),
+      // Absent before any send (the header reads "Working copy").
+      ...(lastSent.data?.version_no == null ? {} : { versionNo: lastSent.data.version_no }),
     },
     viewer: {
       appUserId: ctx.appUserId,
       tenantId: project.data.tenant_id,
       membershipId: ctx.membershipId,
       canEdit: can(ctx, 'edit_model', { projectId }),
+      ipadDrawing: ipadDrawingOf(me.data?.ipad_input_mode ?? null),
     },
-    lockEpoch: lock.data?.lock_epoch ?? 0,
+    lockEpoch: lockEpochOf(lock.data),
     objects,
     invalid,
     numberHighs,
+    defaults: effectiveDefaults(companyDefaults, projectCopyOf(project.data.settings)),
   };
 }

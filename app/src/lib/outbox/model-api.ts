@@ -6,18 +6,39 @@
 import type { NumberHighs, ObjectIssue } from '@ezdraft/geometry';
 import type { OutboxEntry } from './outbox';
 import type { PlanScale } from '../plan/plan-scale';
+import type { PhaseView } from '../plan/phase-view';
+import type { IpadDrawing } from '../profile/profile';
+import type { EffectiveDefaults } from '../defaults/values';
 
 export type ObjectValue = { type: string; schemaVersion: number; data: Record<string, unknown> };
 
 export type LoadedObject = ObjectValue & { id: string; updatedSeq: number };
 
 export type ModelLoad = {
-  project: { id: string; name: string; clientName: string | null; planScale: PlanScale };
-  viewer: { appUserId: string; tenantId: string; membershipId: string; canEdit: boolean };
+  // EZD-214: `phaseDefault` is the project's saved View (03 Q-0664); missing reads as Existing.
+  project: {
+    id: string;
+    name: string;
+    clientName: string | null;
+    planScale: PlanScale;
+    phaseDefault?: PhaseView;
+    // EZD-121 (Q-0700 05): the highest sent version number for the header; null or missing before any send.
+    versionNo?: number | null;
+  };
+  // EZD-223: `ipadDrawing` is the viewer's own iPad drawing setting (S15d, Q-0392); missing reads as finger.
+  viewer: {
+    appUserId: string;
+    tenantId: string;
+    membershipId: string;
+    canEdit: boolean;
+    ipadDrawing?: IpadDrawing;
+  };
   lockEpoch: number;
   objects: LoadedObject[];
   invalid: ObjectIssue[];
   numberHighs: NumberHighs;
+  // EZD-116 (Q-0697 03): the effective defaults: the project's copy over the company values over the registry.
+  defaults?: EffectiveDefaults;
 };
 
 export type ModelLoadResult =

@@ -3,7 +3,8 @@ name: CI
 #  - on every push to develop, so a red develop shows the same day (H7, Josh 2026-11-01)
 #  - on the phase PR (develop -> main), which branch protection requires ("gate")
 #  - by hand from the Actions tab (Run workflow)
-# Per-ticket checks run locally with `node scripts/gate.mjs`; a newer push cancels an older run.
+# Build v3 (2026-11-13): the gate is `node scripts/check.mjs` (app checks only), the same script the build loop runs locally.
+# A newer push cancels an older run.
 on:
   push:
     branches: [develop]
@@ -35,16 +36,12 @@ jobs:
           package-manager-cache: false
       - name: Install pnpm
         run: npm install -g pnpm@12.14.0
-      - name: Install browsers (once browser tests exist)
-        if: hashFiles('playwright.config.*') != ''
-        run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium webkit
-      - name: Record views from the last snapshot
-        # REMEDIATION-PLAN 2.14: the running records are not in git; CI reads the last committed snapshot.
-        run: node scripts/records.mjs views-from-snapshot
-      - name: Ledger check
-        run: node vault/tools/next_ticket.mjs --check
+      - name: Install dependencies and browsers
+        run: pnpm install --frozen-lockfile && pnpm --filter app exec playwright install --with-deps chromium webkit
       - name: Gate
-        run: node scripts/gate.mjs .
+        env:
+          EZD_LANE: '0'
+        run: node scripts/check.mjs .
       - name: Performance results
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -58,6 +55,6 @@ jobs:
         with:
           name: gate-logs
           path: |
-            gate-failures.log
-            gate.log
+            check-failures.log
+            check.log
           if-no-files-found: ignore

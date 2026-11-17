@@ -208,6 +208,14 @@ test.describe('EZD-207a plan canvas', () => {
     expect(await at(shot1, 48, 16)).toBe('#f6f7f9');
     expect(await frame(page).evaluate((el) => getComputedStyle(el).backgroundImage)).toBe('none');
 
+    // EZD-214: the Existing view hides New walls (09m row 2); the New eye is turned on so all three colours show.
+    await page.evaluate(() =>
+      (
+        window as unknown as {
+          __ezdraftPlan: { phase: { setEye(s: 'new', on: boolean): void } };
+        }
+      ).__ezdraftPlan.phase.setEye('new', true),
+    );
     await addWallsAndView(
       page,
       [
@@ -319,8 +327,8 @@ test.describe('EZD-207a plan canvas', () => {
     await signInAs(user.email);
     await openReady(page, ids.P1);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveAttribute(
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(2);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]').first()).toHaveAttribute(
       'data-rail-tool',
       'select',
     );
@@ -358,7 +366,7 @@ test.describe('EZD-207a plan canvas', () => {
     await expect(page.getByTestId('plan-input')).toHaveCount(0);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     const tools = page.locator('[data-shell-region="rail"] [data-rail-tool]');
-    await expect(tools).toHaveCount(6);
+    await expect(tools).toHaveCount(9);
     await expect(tools.first()).toBeDisabled();
     await expect(tools.last()).toBeDisabled();
     release();
@@ -401,7 +409,7 @@ test.describe('EZD-207a plan canvas', () => {
     await expect(planCanvas(page)).toHaveAttribute('data-plan-state', 'ready');
   });
 
-  test('EZD-207a B7 the editor header has only the Plan tab and the frame has no panels, only the disclaimer', async ({
+  test('EZD-207a B7 the editor header has only the Plan tab and the frame has the left panel and the inspector (EZD-218), only the disclaimer', async ({
     page,
     signInAs,
   }) => {
@@ -412,19 +420,20 @@ test.describe('EZD-207a plan canvas', () => {
     await expect(tabs).toHaveCount(1);
     await expect(tabs).toHaveText('Plan');
     await expect(tabs).toHaveAttribute('aria-current', 'page');
-    await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(0);
+    // EZD-218: the plan editor has its left panel (S03 Layout).
+    await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(1);
     await expect(page.locator('[data-shell-region="inspector"]')).toHaveCount(1);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="top"] [data-rail-tool]'),
-    ).toHaveCount(6);
+    ).toHaveCount(9);
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
     ).toHaveCount(1);
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
     ).toHaveAttribute('data-rail-tool', 'assistant');
-    await expect(page.locator('[data-status-item]')).toHaveCount(4);
+    await expect(page.locator('[data-status-item]')).toHaveCount(6);
     await expect(page.getByTestId('disclaimer')).toBeVisible();
   });
 

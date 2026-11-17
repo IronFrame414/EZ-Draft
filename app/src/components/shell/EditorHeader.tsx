@@ -19,7 +19,10 @@ export type EditorHeaderProps = {
   activeView: EditorView;
   views?: readonly EditorView[];
   onViewChange: (view: EditorView) => void;
+  // EZD-126 (S06 Layout; 04:26): presence avatars before the review pill, Stop editing between it and Share.
+  presence?: ReactNode;
   reviewPill?: ReactNode;
+  stopEditing?: ReactNode;
   share?: ReactNode;
   export?: ReactNode;
   issueSet?: ReactNode;
@@ -33,7 +36,9 @@ export const EditorHeader = memo(function EditorHeader({
   activeView,
   views = EDITOR_VIEWS,
   onViewChange,
+  presence,
   reviewPill,
+  stopEditing,
   share,
   export: exportSlot,
   issueSet,
@@ -84,7 +89,9 @@ export const EditorHeader = memo(function EditorHeader({
           );
         })}
       </nav>
+      {presence}
       {reviewPill}
+      {stopEditing}
       {share}
       {exportSlot}
       {issueSet}

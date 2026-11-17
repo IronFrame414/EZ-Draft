@@ -11,6 +11,7 @@ import {
   saveMyNotificationSettings,
 } from '../../../../server/notifications/settings';
 import { parseNotificationSettingsInput } from '../../../../lib/notifications/settings';
+import { endedSessionResponse } from '../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +32,8 @@ export async function GET(): Promise<Response> {
     const settings = await getMyNotificationSettings(client);
     return Response.json({ settings }, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }
@@ -64,6 +67,8 @@ export async function PUT(request: Request): Promise<Response> {
     const settings = await getMyNotificationSettings(client);
     return Response.json({ settings }, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

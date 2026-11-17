@@ -126,13 +126,14 @@ test('EZD-009 T20 docs: architecture section, env row, machine checks rows, runb
   );
 });
 
-test('EZD-009 T20 the secret key is named in app/src only by app/src/server/jobs/db.ts', () => {
+// EZD-105 added admin-auth.ts as the second holder; docs/architecture.md (SUPABASE_SECRET_KEY row) names exactly these two.
+test('EZD-009 T20 the secret key is named in app/src only by app/src/server/jobs/db.ts and auth/admin-auth.ts', () => {
   const src = path.join(root, 'app', 'src');
   const holders = walk(src)
     .filter((f) => /\.(ts|tsx|mjs|js)$/.test(f) && !/\.(test|spec)\.[tj]sx?$/.test(f))
     .filter((f) => readFileSync(f, 'utf8').includes('SUPABASE_SECRET_KEY'))
     .map((f) => path.relative(root, f).split(path.sep).join('/'));
-  assert.deepEqual(holders, ['app/src/server/jobs/db.ts']);
+  assert.deepEqual(holders.sort(), ['app/src/server/auth/admin-auth.ts', 'app/src/server/jobs/db.ts']);
 });
 
 test('EZD-009 T20 convention checks and committed database types pass', () => {

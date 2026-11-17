@@ -3,6 +3,8 @@
 // field", "Messages", "Failed banner"; section 3; S03 Controls — status bar; 09m; Q-0664; Q-0680 (b); 11 rule 4):
 // the plan's status bar items. Scale and Snap open popovers; Cursor and Zoom are readouts written through a ref
 // from the handle's listeners, never React state; a click on Zoom swaps in a typed-zoom field.
+// EZD-214 (S03 Controls — status bar "View"; board S03Plan footer; 05 Q-0664 "Views and permissions"; Q-0670 (b)):
+// the View control before Scale, for every viewer, and its own "Changes not saved" banner.
 import {
   useEffect,
   useId,
@@ -24,6 +26,8 @@ import touch from '../../styles/touch.module.css';
 import type { PlanCanvasHandle } from '../plan/controller';
 import { parseZoomPercent } from '../plan/view';
 import styles from './PlanStatus.module.css';
+import type { PhaseSetting } from './phase-setting';
+import { PHASE_VIEWS, type PhaseView } from '../../lib/plan/phase-view';
 import {
   PLAN_SCALE_LABELS,
   SNAP_INCREMENTS_IN,
@@ -141,9 +145,49 @@ function StatusPopover({
   );
 }
 
+const PHASE_LABELS: Readonly<Record<PhaseView, MessageKey>> = {
+  existing: 'office.phase.existing',
+  proposed: 'office.phase.proposed',
+};
+
+const segmentClass = `${styles.segmentButton} ${touch.hitArea}`;
+
+export function PhaseViewControl(props: { phase: PhaseSetting }): ReactElement {
+  const t = useT();
+  const { phase } = props;
+  const state = useSyncExternalStore(phase.subscribe, phase.get, phase.get);
+  return (
+    <div className={styles.item} data-status-item="">
+      <span className={styles.label} data-status-label="">
+        {t('office.phase.view')}
+      </span>
+      <div
+        className={styles.segment}
+        role="group"
+        aria-label={t('office.phase.group')}
+        data-testid="status-phase"
+      >
+        {PHASE_VIEWS.map((v) => (
+          <button
+            key={v}
+            type="button"
+            className={segmentClass}
+            aria-pressed={state.view === v}
+            data-value={v}
+            onClick={() => phase.setView(v)}
+          >
+            {t(PHASE_LABELS[v])}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function PlanStatusStart(props: {
   scale: ScaleSetting;
   snap: SnapSettingsStore;
+  phase?: PhaseSetting;
 }): ReactElement {
   const t = useT();
   const { scale: scaleSetting, snap } = props;
@@ -151,6 +195,7 @@ export function PlanStatusStart(props: {
   const settings = useSyncExternalStore(snap.subscribe, snap.get, snap.get);
   return (
     <>
+      {props.phase ? <PhaseViewControl phase={props.phase} /> : null}
       <StatusPopover
         testId="status-scale"
         label="office.status.scale"
@@ -353,6 +398,24 @@ export function PlanScaleFailedBanner(props: {
   return (
     <div data-testid="scale-save-failed-banner">
       <InlineError message="office.editor.save_failed" onRetry={() => props.scale.retry()} />
+    </div>
+  );
+}
+
+export function PhaseFailedBanner(props: {
+  phase: PhaseSetting;
+  sync: OutboxSync;
+}): ReactElement | null {
+  const failed = useSyncExternalStore(
+    props.phase.subscribe,
+    props.phase.failed,
+    props.phase.failed,
+  );
+  const status = useStore(props.sync, (s) => s.status);
+  if (!failed || status === 'error') return null;
+  return (
+    <div data-testid="phase-save-failed-banner">
+      <InlineError message="office.editor.save_failed" onRetry={() => props.phase.retry()} />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 // EZD-205b Build step 5 (vault/plans/EZD-205b.md section 3 `keepOutOfSquare`, Decided "Keep steps",
 // "nextRoomNumber"; 09j Keep out of square; Q-0568; Q-0570; P205a Create): Keep out of square stores who, when and
 // the gap on the room the gap closes. Returns new objects; never mutates its input.
-import { closureOverrideSchema, type ModelObject } from '../schema';
+import { closureOverrideSchema, newRoomAttributes, type ModelObject } from '../schema';
 import type { WallObject } from '../walls/wall';
 import { interiorPoint, pointInRing, sameBoundary } from './area';
 import { findClosures, type GapReport } from './closure';
@@ -84,7 +84,7 @@ export function keepOutOfSquare(
             geometry: { boundary: boundary() },
             status: 'existing',
             level,
-            attributes: { name: `Room ${nextRoomNumber(objects)}` },
+            attributes: newRoomAttributes(`Room ${nextRoomNumber(objects)}`),
             closureOverride,
           },
         },

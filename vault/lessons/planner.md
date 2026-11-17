@@ -438,7 +438,7 @@ Rule: for each input the plan lists empty, over-limit and malformed behaviour wi
 Check: grep for callers of each changed export and compare with the Files table.
 Plan check: each input row has empty, maximum and malformed cases.
 
-## L-053  areas: ci, tooling  seen: 2  status: ratified
+## L-053  areas: ci, tooling  seen: 3  status: ratified
 Phase 1 wrap, 2026-11-04 (category gate-red; EZD-110b, EZD-298, EZD-117a, EZD-323)
 Mistake: gate failures a plan could foresee: a client hook imported into a server component, a new counting SQL function against the cap-lock audit, ledger fixtures stale on a worktree behind develop.
 Cause: the plan did not name which gate parts the change can turn red.
@@ -498,7 +498,7 @@ Rule: for each step that reads, deletes, loads a module or calls a helper that c
 Check: the reviewer forces each throw in a test; the plan-checker looks for an outcome per failing call.
 Plan check: every I/O or import step has a stated outcome for an error other than not-found, and a guard fails closed.
 
-## L-060  areas: migrations, ui, testing  seen: 1  status: ratified
+## L-060  areas: migrations, ui, testing  seen: 2  status: ratified
 Tickets EZD-117a, EZD-117b, 2026-11-05
 Mistake: a new migration sorted before develop's newest, and new links and icon buttons were under the 44 px touch target.
 Cause: the plan named the migration by a fixed timestamp and listed the controls without the touch-target list.
@@ -584,8 +584,51 @@ L: re-validation should also re-check E-row line numbers and existing test title
 Name a dependency's seam by grepping the merged code for the exported name. Never take it from a dependency plan's summary, and cite the file:line.
 EZD-5602: a plan written before its dependency is built should give that dependency's pattern as the merged function to copy (checkAnthropicKey, anthropicListModels), not plan step numbers.
 
-## L-066  areas: tooling, tests, process  seen: 1  status: candidate
+## L-066  areas: tooling, tests, process  seen: 1  status: ratified
 Rule: A load-only flake fix is proved by 5 counting lane gates (another lane running a gate), and open flake fixes prove together, each the other's load (Josh Q-0748 (b), 2026-11-12). Never plan 10.
 Plan check: the D-Runs row of a flake ticket asks for 5 counting gates and cites Q-0748 (b).
 Rule: Before calling a failure a load flake, check its value across runs. A constant received value (EZD-207b B1/B3 at 8.7333 in every gate after EZD-213b) is a regression from a merge and holds the release (EZD-396); only a value that moves with load goes to the next phase under Q-0748 (a).
 Sources: Q-0748; EZD-393, EZD-396 (phase 4 release review 2026-11-12).
+
+## L-067  areas: testing, ui, api  seen: 1  status: ratified
+Ticket EZD-5603a, 2026-11-12
+Mistake: a browser spec's key-add `page.request.post` sent no origin header (403 from the EZD-346 same-origin gate), and a `page.route` stub never ran on the iPad WebKit project because the service worker controlled the page; both cost a gate round and two structural repairs.
+Cause: the plan's Tests rows described the request and the stub but not the harness requirements already met by other specs.
+Rule: a plan row for a Playwright spec that writes to /api names `appOriginHeaders()` (test-harness/e2e/same-origin.ts); a row that stubs with `page.route` and runs on the iPad project names `test.use({ serviceWorkers: 'block' })` (disabled-tool.spec.ts:67-72).
+Check: Plan check: grep the plan's B rows for `request.post`/`page.route` and confirm each names its header or service-worker line.
+When a plan changes what a dependency's function returns, list every existing toEqual on that result as a test-author edit, and check that a lint test's input form (static or dynamic import) is one the rule actually checks.
+
+## L-068  areas: testing, ui, api  seen: 1  status: candidate
+Tickets EZD-207a, EZD-299b, EZD-104, EZD-212a, EZD-213b, EZD-5603b (test-weak 22 findings, test-defect 14, test-missing 8, test-isolation 5 in phase 4), 2026-11-12
+Mistake: plan test rows named a behavior but not the input or literal that separates a correct build from a wrong one, so tests passed with the check deleted (sorted-only compare, `not display none`, one-sided counts, whitespace-stripped text, hex needles for bytea), copied a wrong plan value, or waited a fixed time instead of polling.
+Cause: rows said "checks X" without the value that fails when X is wrong, the negative case, or the wait condition.
+Rule: each Tests row names (a) the exact expected literal or value with its source, (b) one input a wrong build fails on (the control case, the absent-element case, the other-tenant or other-person case), and (c) for a browser or async row the condition to poll, never a fixed delay.
+Check: Plan check: for each T/B row, the plan-checker finds the literal, the failing input and, for browser rows, the poll condition; a row with only "checks" or "shows" is a gap.
+
+## L-069  areas: testing, data-model, ui  seen: 1  status: candidate
+Tickets EZD-294, EZD-299b, EZD-212c, EZD-211b, EZD-207a, EZD-203, EZD-210b (general-case 8, contract-gap 2, scope-missing 4), 2026-11-12
+Mistake: code and plan handled the test inputs only: a number trigger accepted values up to 2^53 (three security rounds), Esc and Delete mid-press or mid-entry left state behind, a resize during a pending start was lost, a server id was read from a stale in-memory row, and a default snap rounding broke a copied expected value.
+Cause: the contract listed the happy path and one failure, not the limits, the interleavings, or the rounding the plan's own defaults apply.
+Rule: for every value a plan stores or sends, the plan states the upper and lower bound and what happens past it; for every gesture or async step it lists cancel, repeat and state-change-while-pending cases, each with a test row; any expected number is computed with the plan's own default snap or rounding.
+Check: Plan check: the plan has a bounds line per stored number and a cancel/pending row per gesture; each expected coordinate or length shows the rounding applied.
+
+## L-070  areas: docs, tooling, testing  seen: 1  status: candidate
+Tickets EZD-204b, EZD-5601, EZD-323, EZD-212c, EZD-224, EZD-235, EZD-205a (scope-extra 5, docs 3), 2026-11-12
+Mistake: builds touched files outside the plan (formatter-only rewraps), left a header comment naming a removed constant, duplicated an exported constant as a literal, put a header line before the existing ones, built against a plan superseded by a split, and left docs lines that the new code contradicts (architecture.md policy text, "AI runs only in jobs").
+Cause: the Done-when did not name the grep for old names, a no-reformat rule, the plan version, or the docs lines the change makes false.
+Rule: a plan's Done-when lists (a) a grep that finds no old name, comment or literal, (b) "no change outside the Files table, including formatting", (c) the exported constants the code must import, (d) every docs/architecture.md or header-comment line the change makes false, as a Files row, and the builder starts from the plan commit named in the dispatch.
+Check: Plan check: the plan names the grep, the constants to import and the docs lines; a ticket with a split or re-plan names the base commit.
+
+## L-071  areas: ui, testing  seen: 1  status: candidate
+Tickets EZD-118, EZD-207b, EZD-221b, EZD-211b, EZD-213c (ui-mismatch 11), 2026-11-12
+Mistake: screens differed from the mockup in ways the checklist did not pin: touch targets of 37 px, disabled and enabled looking the same, footer text wrapping in a 540 px dialog, a font that the mockup sets in mono, a layered control covering a banner's Retry, a flex alignment tied in specificity.
+Cause: the visual checklist said "matches the mockup" instead of naming computed values at the plan's one viewport.
+Rule: each visual checklist row names the mockup element and the computed value to read (font family, size, min height 44 px on coarse pointer, white-space, justify-content, overlap with a named neighbour), and the plan states the CSS specificity rule or the state (disabled, error) to compare.
+Check: Plan check: each checklist row has an element, a property and a value, and disabled, error and wrapped-text states each have a row.
+
+## L-072  areas: security, api, data-model, migrations  seen: 1  status: candidate
+Tickets EZD-299b, EZD-224, EZD-294 (security 4), 2026-11-11
+Mistake: new routes, policies and triggers missed a guard that sibling objects already have: no membership header check on a read and delete route, an insert policy without `storage_request_from_server()` and the sign-upload check, no shared refusal helper or path guard trigger, a delete that ignored a newer refusal (`refusedAt`).
+Cause: the plan described the feature's own rules and did not list the guards its sibling routes, policies and triggers carry.
+Rule: a plan that adds a route, storage policy, trigger or delete names the sibling it copies and lists that sibling's guards one by one (membership header, server-only upload check, path guard, stale-write guard), or states why each is not needed.
+Check: Plan check: the plan names the sibling and a guard list; each guard has a test row (other person, other company, newer refusal).

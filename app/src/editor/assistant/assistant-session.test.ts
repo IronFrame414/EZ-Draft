@@ -116,6 +116,9 @@ describe('EZD-5603a assistant-session', () => {
       model: 'sonnet',
       phase: 'idle',
       profileOpen: false,
+      photo: null,
+      photoProblem: null,
+      photoPreparing: false,
     });
   });
 

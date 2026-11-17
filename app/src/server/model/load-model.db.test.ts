@@ -134,12 +134,14 @@ describe('EZD-120b loadModel', () => {
       name: project.name,
       clientName: 'Ann Lee',
       planScale: 0.5,
+      phaseDefault: 'existing',
     });
     expect(load?.viewer).toEqual({
       appUserId: editor.appUserId,
       tenantId: tenant,
       membershipId: editor.membershipId,
       canEdit: true,
+      ipadDrawing: 'finger',
     });
     expect(load?.lockEpoch).toBe(0);
     expect(load?.objects).toHaveLength(3);

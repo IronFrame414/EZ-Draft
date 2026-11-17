@@ -75,6 +75,12 @@ export const TOKENS: readonly {
   // S03dStates box select right to left; EZD-208b
   { name: '--ez-box-touch-stroke', value: 'oklch(0.5 0.12 160)', group: 'color' },
   { name: '--ez-box-touch-fill', value: 'oklch(0.72 0.12 160)', group: 'color' },
+  // S06 edit-lock banner, toast; EZD-126
+  { name: '--ez-lock-border', value: 'oklch(0.88 0.08 75)', group: 'color' },
+  { name: '--ez-lock-text', value: 'oklch(0.42 0.12 65)', group: 'color' },
+  { name: '--ez-lock-button-border', value: 'oklch(0.8 0.1 70)', group: 'color' },
+  { name: '--ez-green-border', value: 'oklch(0.85 0.08 150)', group: 'color' },
+  { name: '--ez-green-button-border', value: 'oklch(0.82 0.08 150)', group: 'color' },
   // S15 .tron; EZD-104
   { name: '--ez-row-selected', value: '#f5f7ff', group: 'color' },
   // S03c alert box, model list; EZD-5603a
@@ -82,4 +88,11 @@ export const TOKENS: readonly {
   { name: '--ez-amber-alert-border', value: 'oklch(0.87 0.07 75)', group: 'color' },
   { name: '--ez-shadow-picker', value: '0 12px 32px rgba(10,15,30,.16)', group: 'shadow' },
   { name: '--ez-radius-4', value: '4px', group: 'radius' },
+  // S03c photo error box; EZD-5603b
+  { name: '--ez-red-alert-border', value: 'oklch(0.85 0.06 28)', group: 'color' },
+  // S03c preview; EZD-5604b
+  { name: '--ez-preview-add-tint', value: 'oklch(0.95 0.03 262)', group: 'color' },
+  { name: '--ez-preview-remove', value: 'oklch(0.55 0.19 28)', group: 'color' },
+  { name: '--ez-preview-remove-tint', value: 'oklch(0.97 0.02 28)', group: 'color' },
+  { name: '--ez-radius-3', value: '3px', group: 'radius' },
 ];

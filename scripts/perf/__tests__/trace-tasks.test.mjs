@@ -3,6 +3,7 @@
 // plan's fixture F and D-Attr, D-Read, D-Split.
 // EZD-388 U7-U11 (vault/plans/EZD-388.md section 4): the iPad pan row counted by CPU time × scale.
 // EZD-392 M1-M5 (vault/plans/EZD-392.md section 4): the CPU time of the trace task around each named mark.
+// EZD-398 R1-R5 (vault/plans/EZD-398.md section 4): the iPad count matches with EZD-372's D-Match rule.
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
@@ -261,6 +262,54 @@ describe('EZD-388 count by CPU time', () => {
     assert.deepEqual(countByCpu([A, X], [{ at: 1000, ms: 60 }], 4, 1000), {
       counted: [{ at: 1000, ms: 60, cpu: 60, gc: 0, top: null }],
       waits: [],
+    });
+  });
+});
+
+describe('EZD-398 one match rule for the iPad count', () => {
+  test('EZD-398 R1 a 50 ms task whose slice is under 50 ms is a wait on the iPad count', () => {
+    assert.deepEqual(countByCpu([A, B50, Fb], [{ at: 202, ms: 50 }], 4, 1000), {
+      counted: [],
+      waits: [{ at: 202, ms: 50, cpu: 1, gc: 0, top: 'FireAnimationFrame' }],
+    });
+  });
+
+  test("EZD-398 R2 the iPad count's length floor is ms minus 3", () => {
+    assert.deepEqual(countByCpu([A, B47, Fb], [{ at: 202, ms: 50 }], 4, 1000), {
+      counted: [],
+      waits: [{ at: 202, ms: 50, cpu: 1, gc: 0, top: null }],
+    });
+    assert.deepEqual(countByCpu([A, B46, Fb], [{ at: 202, ms: 50 }], 4, 1000), {
+      counted: [{ at: 202, ms: 50, cpu: null, gc: null, top: null }],
+      waits: [],
+    });
+  });
+
+  test('EZD-398 R3 the iPad count keeps the 3 ms start window', () => {
+    assert.deepEqual(countByCpu([A, B50, Fb], [{ at: 206, ms: 50 }], 4, 1000), {
+      counted: [{ at: 206, ms: 50, cpu: null, gc: null, top: null }],
+      waits: [],
+    });
+  });
+
+  test('EZD-398 R4 a counted short slice is not counted again', () => {
+    const Bc = { ...B50, dur: 48000, tdur: 13000 };
+    assert.deepEqual(countByCpu([A, Bc, Fb], [{ at: 202, ms: 50 }], 4, 1000), {
+      counted: [{ at: 202, ms: 48, cpu: 13, gc: 0, top: null }],
+      waits: [],
+    });
+  });
+
+  test('EZD-398 R5 the two CI misses are waits', () => {
+    const C1 = { ...base, name: 'ThreadControllerImpl::RunTask', cat: 'toplevel', ph: 'X', ts: 5894900, dur: 48700, tdur: 2200 };
+    const C2 = { ...base, name: 'ThreadControllerImpl::RunTask', cat: 'toplevel', ph: 'X', ts: 4817500, dur: 50000, tdur: 2100 };
+    assert.deepEqual(countByCpu([A, C1], [{ at: 4895, ms: 51 }], 4, 8000), {
+      counted: [],
+      waits: [{ at: 4895, ms: 51, cpu: 2, gc: 0, top: null }],
+    });
+    assert.deepEqual(countByCpu([A, C2], [{ at: 3818, ms: 50 }], 4, 8000), {
+      counted: [],
+      waits: [{ at: 3818, ms: 50, cpu: 2, gc: 0, top: null }],
     });
   });
 });

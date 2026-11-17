@@ -6,16 +6,32 @@
 // EZD-212b (vault/plans/EZD-212b.md D8): `pickAt`, and a press on an object hands its drag to the drawing controller.
 // EZD-212c (vault/plans/EZD-212c.md step 6b, D14): Esc asks the drawing first while a handle or chip entry is open.
 // EZD-213b (vault/plans/EZD-213b.md step 7, D-Dblclick): a dblclick selects the smallest object and tells onDoubleClick.
+// EZD-6001 (vault/plans/EZD-6001.md D-Wire): picks come from the chosen floor; a switch empties the selection.
+// EZD-231: Measure on every viewer's rail (`editorRail`).
+// EZD-233 (S03 Context menu "Group"): a click, Shift-click, drag hand-over or box that takes a grouped object takes
+// its whole group.
+// EZD-218 (Q-0677 (a); AC-EZD-218-5): rooms are picked by a click, a box and Select all, but a press with no other
+// object under it still starts a box, even inside a room, and a room is never dragged. A room draws its outline.
 import type { Point } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { ModelStore } from '../model/model-store';
+import { chosenFloor, type FloorChoice } from '../floors/floors';
+import type { Objects } from '../model/patches';
 import { openFloorId } from '../plan/batches';
 import type { PlanCanvasHandle } from '../plan/controller';
-import { HOVER_CAPTURE_PX, type BodyLookup, type HoverPicker } from '../plan/hover';
+import {
+  HOVER_CAPTURE_PX,
+  type BodyLookup,
+  type HoverPicker,
+  type OutlineLookup,
+} from '../plan/hover';
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
 import { railMode, type DrawingController, type ToolKeyEvent } from '../tools/drawing-controller';
 import { DRAWING_RAIL_TOOLS } from '../tools/index';
+import { MEASURE_RAIL_TOOL } from '../tools/tool-defs';
 import { isTypingTarget } from '../typed-entry/typed-entry';
+import { expandGroups } from './groups';
+import type { PhaseFilter } from '../../lib/plan/phase-view';
 import { createPickIndex } from './pick-index';
 
 export const SELECT_RAIL_TOOL: RailTool = {
@@ -40,7 +56,8 @@ export type SelectionHandle = Pick<
   | 'setHoverPicker'
   | 'setBodyLookup'
   | 'setSelectedIds'
->;
+> &
+  Partial<Pick<PlanCanvasHandle, 'setOutlineLookup'>>;
 
 export type SelectionDeps = {
   handle: SelectionHandle;
@@ -51,6 +68,10 @@ export type SelectionDeps = {
     | null;
   setReceiver: (r: PlanPointerReceiver | null) => void;
   claim?: (event: PlanPointerEvent) => boolean;
+  // EZD-214 (Q-0671 (a)): what the phase view hides is not picked, and leaves the selection when it becomes hidden.
+  phase?: PhaseFilter & { subscribe(listener: () => void): () => void };
+  // EZD-6001 D-Wire: the floor the user chose; without it the lowest floor is picked from.
+  floors?: FloorChoice;
 };
 
 export type ReceiverSlots = {
@@ -78,6 +99,8 @@ type Press = {
   screen: Point;
   model: Point;
   candidates: string[];
+  // The candidates without rooms: these decide a drag hand-over or a box.
+  solid: string[];
   dragged: boolean;
   dragging: boolean;
 };
@@ -101,6 +124,7 @@ const noop = () => {};
 
 export function createSelectionController(deps: SelectionDeps): SelectionController {
   const { handle, store, drawing, setReceiver } = deps;
+  const phase = deps.phase ?? null;
   const index = createPickIndex();
   let ui: SelectionUi = { ids: [], selectMore: false };
   let cycle: { at: Point; i: number } | null = null;
@@ -132,6 +156,10 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     if (box !== null) setBox(null);
   };
 
+  // EZD-233: the ids with every member of their groups that the index holds.
+  const grouped = (ids: readonly string[]): string[] =>
+    expandGroups(store.getState().objects, ids).filter((id) => index.has(id));
+
   const click = (p: Press, shiftKey: boolean) => {
     const c = p.candidates;
     if (shiftKey || ui.selectMore) {
@@ -139,7 +167,12 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       if (c.length === 0) return;
       const first = c[0]!.toLowerCase();
       const selected = ui.ids.some((id) => id.toLowerCase() === first);
-      setUi(selected ? ui.ids.filter((id) => id.toLowerCase() !== first) : [...ui.ids, c[0]!]);
+      const group = new Set(grouped([c[0]!]).map((id) => id.toLowerCase()));
+      setUi(
+        selected
+          ? ui.ids.filter((id) => !group.has(id.toLowerCase()))
+          : grouped([...ui.ids, c[0]!]),
+      );
       return;
     }
     if (c.length === 0) {
@@ -151,20 +184,23 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       cycle !== null && distance(p.screen, cycle.at) <= SAME_SPOT_PX ? (cycle.i + 1) % c.length : 0;
     // Cycle first: setUi re-runs the hover picker, which reads it (R10, R12).
     cycle = { at: p.screen, i };
-    setUi([c[i]!]);
+    setUi(grouped([c[i]!]));
   };
 
   // D8: the drag moves the selection when a candidate is in it, else the first candidate alone.
   const handOver = (p: Press) => {
     if (drawing === null || !drawing.getUi().enabled || drawing.startDrag === undefined) return;
-    const c = p.candidates;
+    const c = p.solid;
     const inSelection = c.some((id) => ui.ids.some((s) => s.toLowerCase() === id.toLowerCase()));
     if (!inSelection) {
       cycle = null;
-      setUi([c[0]!]);
+      setUi(grouped([c[0]!]));
     }
     p.dragging = true;
-    drawing.startDrag(ui.ids, p.model);
+    drawing.startDrag(
+      ui.ids.filter((id) => !index.isRoom(id)),
+      p.model,
+    );
   };
 
   const boxMode = (from: Point, to: Point): SelectionBox['mode'] =>
@@ -175,10 +211,12 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     if (disposed) return;
     if (e.kind === 'down') {
       if (press !== null) dropPress();
+      const candidates = index.pick(e.model, tolerance());
       press = {
         screen: e.screen,
         model: e.model,
-        candidates: index.pick(e.model, tolerance()),
+        candidates,
+        solid: candidates.filter((id) => !index.isRoom(id)),
         dragged: false,
         dragging: false,
       };
@@ -200,9 +238,9 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       if (press === null) return;
       if (!press.dragged && distance(e.screen, press.screen) > SAME_SPOT_PX) {
         press.dragged = true;
-        if (press.candidates.length > 0) handOver(press);
+        if (press.solid.length > 0) handOver(press);
       }
-      if (press.dragged && press.candidates.length === 0) {
+      if (press.dragged && press.solid.length === 0) {
         setBox({ from: press.screen, to: e.screen, mode: boxMode(press.screen, e.screen) });
       }
       return;
@@ -216,7 +254,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
         click(p, e.shiftKey);
         return;
       }
-      if (p.candidates.length === 0) {
+      if (p.solid.length === 0) {
         const rect = {
           minX: Math.min(p.model.x, e.model.x),
           minY: Math.min(p.model.y, e.model.y),
@@ -224,7 +262,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
           maxY: Math.max(p.model.y, e.model.y),
         };
         cycle = null;
-        setUi(index.inRect(rect, boxMode(p.screen, e.screen)));
+        setUi(grouped(index.inRect(rect, boxMode(p.screen, e.screen))));
       }
       if (box !== null) setBox(null);
       return;
@@ -255,6 +293,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
   };
 
   const bodyLookup: BodyLookup = (id) => index.body(id);
+  const outlineLookup: OutlineLookup = (id) => index.outline(id);
 
   const clearSelection = () => {
     cycle = null;
@@ -303,9 +342,11 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     setUi(index.all());
   };
 
+  const floorOf = (o: Objects) => openFloorId(o, chosenFloor(deps.floors));
   const objects = store.getState().objects;
-  index.sync(objects, openFloorId(objects), []);
+  index.sync(objects, floorOf(objects), [], phase);
   handle.setBodyLookup(bodyLookup);
+  handle.setOutlineLookup?.(outlineLookup);
   handle.setHoverPicker(picker);
   handle.setHoverMode('select');
   setReceiver(receiver);
@@ -313,15 +354,40 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
   // R15: keep the index current, drop ids that left the floor or the model, then redraw (R12).
   const unsubscribe = store.subscribe((state, prev) => {
     if (disposed || state.objects === prev.objects) return;
-    const floor = openFloorId(state.objects);
+    const floor = floorOf(state.objects);
     const floorChanged = floor !== index.floorId;
-    index.sync(state.objects, floor, state.lastChangedIds);
+    index.sync(state.objects, floor, state.lastChangedIds, phase);
     const next = floorChanged ? [] : ui.ids.filter((id) => index.has(id));
     cycle = null;
     const changed = !sameIds(next, ui.ids);
     setUi(next);
     if (!changed) handle.setSelectedIds(ui.ids);
   });
+  const unsubscribePhase =
+    phase === null
+      ? noop
+      : phase.subscribe(() => {
+          if (disposed) return;
+          const now = store.getState().objects;
+          index.sync(now, floorOf(now), [], phase);
+          cycle = null;
+          setUi(ui.ids.filter((id) => index.has(id)));
+        });
+  // EZD-6001 D-Wire: a switch to another floor empties the selection, as a floor change in the model does.
+  const unsubscribeFloors =
+    deps.floors === undefined
+      ? noop
+      : deps.floors.subscribe(() => {
+          if (disposed) return;
+          const now = store.getState().objects;
+          const floor = floorOf(now);
+          if (floor === index.floorId) return;
+          index.sync(now, floor, [], phase);
+          cycle = null;
+          const changed = ui.ids.length > 0;
+          setUi([]);
+          if (!changed) handle.setSelectedIds(ui.ids);
+        });
 
   return {
     getUi: () => ui,
@@ -378,11 +444,14 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       if (disposed) return;
       disposed = true;
       unsubscribe();
+      unsubscribePhase();
+      unsubscribeFloors();
       press = null;
       box = null;
       handle.setSelectedIds([]);
       handle.setHoverPicker(null);
       handle.setBodyLookup(null);
+      handle.setOutlineLookup?.(null);
       setReceiver(null);
       uiListeners.clear();
       boxListeners.clear();
@@ -413,17 +482,27 @@ export function shareReceiver(set: (r: PlanPointerReceiver | null) => void): Rec
   };
 }
 
-const ALL_TOOLS: readonly RailTool[] = [SELECT_RAIL_TOOL, ...DRAWING_RAIL_TOOLS];
-const SELECT_ONLY: readonly RailTool[] = [SELECT_RAIL_TOOL];
+// EZD-231 (04 Tool rail; S06 Measure "Allowed in view only"): Measure ends the top group for every viewer.
+const ALL_TOOLS: readonly RailTool[] = [SELECT_RAIL_TOOL, ...DRAWING_RAIL_TOOLS, MEASURE_RAIL_TOOL];
+const SELECT_ONLY: readonly RailTool[] = [SELECT_RAIL_TOOL, MEASURE_RAIL_TOOL];
 
+// EZD-225 (S06:48, 100; Q-0697 decisions 05): the drawing tools a lock-denied viewer sees paused; Select and Measure
+// stay on (S06 States "selecting, panning, zooming, measuring ... allowed"; vault/build/assumptions.md EZD-231).
+export const PAUSED_TOOL_IDS: readonly string[] = DRAWING_RAIL_TOOLS.map((t) => t.id);
+
+// `canEdit` is "may edit now" (Edit model and holding the lock); `canEditModel` is the Edit model switch alone.
+// Without Edit model the drawing tools are hidden (Q-0214; Q-0697); with it but without the lock they show paused.
 export function editorRail(o: {
   editor: 'loading' | 'ready' | 'failed' | 'no-access' | 'not-found';
   canEdit: boolean;
+  canEditModel?: boolean;
   canvasFailed: boolean;
   controllerEnabled: boolean;
-}): { tools: readonly RailTool[]; disabled: boolean } | null {
+}): { tools: readonly RailTool[]; disabled: boolean; paused?: readonly string[] } | null {
   if (o.editor === 'loading') return { tools: ALL_TOOLS, disabled: true };
   if (o.editor !== 'ready') return null;
   if (o.canEdit) return { tools: ALL_TOOLS, disabled: railMode(o) === 'disabled' };
+  if (o.canEditModel === true)
+    return { tools: ALL_TOOLS, disabled: o.canvasFailed, paused: PAUSED_TOOL_IDS };
   return { tools: SELECT_ONLY, disabled: o.canvasFailed };
 }

@@ -153,7 +153,7 @@ export async function throttleTake(
     p_ip_key: ipKey as string,
   });
   const row = data?.[0];
-  if (error || !row) throw new Error('auth_throttle_unavailable');
+  if (error || !row) throw new Error('auth_throttle_unavailable', { cause: error ?? undefined });
   return {
     allowed: row.allowed,
     limitedBy: (row.limited_by ?? null) as ThrottleTake['limitedBy'],
@@ -173,5 +173,5 @@ export async function throttleSettle(
     p_attempt_id: attemptId as string,
     p_ip_attempt_id: ipAttemptId as string,
   });
-  if (error) throw new Error('auth_throttle_unavailable');
+  if (error) throw new Error('auth_throttle_unavailable', { cause: error });
 }

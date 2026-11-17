@@ -1,0 +1,141 @@
+/* EZD-301 (S01 Start from a file flow; board S01b column 2 note "File sources show a drop zone here"): the drop
+   zone, refusals and file list of the Upload step. Colors from tokens only; :hover only under (hover: hover). */
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 16px;
+  border: 1px dashed var(--ez-slate-300);
+  border-radius: var(--ez-radius-12);
+  background: var(--ez-surface-sunken);
+  text-align: center;
+  color: var(--ez-slate-500);
+  font-size: 12px;
+}
+
+.zoneOver {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt-tint);
+}
+
+.zoneTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ez-ink);
+}
+
+.browse {
+  position: relative;
+  margin-top: 4px;
+  padding: 8px 14px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font: 500 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+  cursor: pointer;
+}
+
+.input {
+  display: none;
+}
+
+.refused {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.refusal {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid var(--ez-amber-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-amber-banner);
+  font-size: 12px;
+  color: var(--ez-amber-text);
+}
+
+.refusalName {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  font-size: 13px;
+  color: var(--ez-ink);
+}
+
+.name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nameText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.size {
+  font-size: 11px;
+  color: var(--ez-slate-500);
+}
+
+.tag {
+  box-sizing: border-box;
+  min-height: var(--ez-touch-target);
+  padding: 0 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font: 400 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.empty {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ez-slate-400);
+}
+
+@media (hover: hover) {
+  .browse:hover {
+    background: var(--ez-hover);
+  }
+}

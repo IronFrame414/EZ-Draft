@@ -3,10 +3,13 @@
 // and rotation rows; AC-EZD-5602-1, -2, -5 to -12, -14): one Assistant prompt. The signed-in user's own key, one
 // call slot, the sent drawing (send-list.ts), one provider call inside the request, the cost and one usage row.
 // No job row, no operator key. Nothing is logged; no prompt, reply, key or body goes into an error or a report.
+// EZD-5604a Build step 2 (vault/plans/EZD-5604a.md Decided "D-Parse", "D-Prompt"; AC-EZD-5604-1, -6): each reply
+// change is an `assistantChangeSchema` change; one bad change refuses the whole reply.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { ModelObject } from '@ezdraft/geometry';
 import { z } from 'zod';
 import { MAX_CHANGES_PER_SAVE } from '../../lib/outbox/outbox';
+import { assistantChangeSchema, type AssistantChange } from '../../lib/assistant/changes';
 import {
   ASSISTANT_MODELS,
   assistantCostMicroUsd,
@@ -18,6 +21,7 @@ import { reportError } from '../errors/report';
 import { loadModel } from '../model/model';
 import type { PermissionContext } from '../permissions/context';
 import { AiKeyConfigError } from './key-crypto';
+import { stripPhoto } from './photo';
 import { buildSentDrawing, drawingTooLarge } from './send-list';
 import { loadUserAiKeyForCall, type UserAiKeyLoad } from './user-key';
 
@@ -37,7 +41,20 @@ export const ASSISTANT_SYSTEM_PROMPT =
   'the user has selected. Answer with one JSON object and nothing else: {"message": plain text for the user, ' +
   '"changes": a list of at most 100 changes}. A change adds, updates or removes a wall, door or window on the ' +
   'sent floor and uses only refs from the drawing. Leave changes empty when no change is asked for. Never use ' +
-  'Markdown, links or images.';
+  'Markdown, links or images. ' +
+  'Each change is one JSON object. Add a wall: {"op":"add","type":"wall","ref":"n1","start":{"x":0,"y":0},' +
+  '"end":{"x":120,"y":0}} with optional thicknessSide (left, right or center), thickness, height, bearing and ' +
+  'layers. Add a door or window: {"op":"add","type":"door","ref":"n2","hostWall":"w1","center":{"x":60,"y":0}} ' +
+  "with the center on the host wall's line and optional width, height, roughOpening {width, height}, sillHeight " +
+  '(windows only), swing and hand (doors only; left or right), impactRating (not_rated, impact_rated or shutter) ' +
+  "and shutterType. An add's ref is a new short name such as n1; later changes in this reply may use it as " +
+  'hostWall. Update: {"op":"update","type":"wall","ref":"w1"} plus only the fields that change: start and end ' +
+  "(move both ends by the same distance to move a wall; move one end along the wall's line to change its " +
+  'length), thickness, height, bearing, layers (keep the number of layers); for a door or window center (along ' +
+  'its own wall), width, height, roughOpening, sillHeight, swing, hand, impactRating, shutterType. Remove: ' +
+  '{"op":"remove","type":"window","ref":"o1"}. Set the status of a wall, door or window (existing, demo or ' +
+  'new): {"op":"set_status","ref":"w1","status":"demo"}. Name each ref in at most one change. Never write ' +
+  'status in an add or update, number or any other field.';
 
 type Env = Record<string, string | undefined>;
 
@@ -67,9 +84,10 @@ const inputSchema = z.strictObject({
   selectedIds: z.array(z.uuid()).max(ASSISTANT_SELECTED_MAX),
 });
 
+// EZD-5603b X2: `photo` is the stripped JPEG (Decided "Body order").
 type BodyResult =
-  | { ok: true; input: AssistantInput }
-  | { ok: false; code: 'invalid_input' | 'photo_not_supported' };
+  | { ok: true; input: AssistantInput; photo: Uint8Array | null }
+  | { ok: false; code: 'invalid_input' | 'photo_unreadable' };
 
 const INVALID: BodyResult = { ok: false, code: 'invalid_input' };
 
@@ -124,7 +142,6 @@ export async function readAssistantBody(request: Request): Promise<BodyResult> {
   if (form.getAll('request').length > 1 || form.getAll('photo').length > 1) return INVALID;
   const raw = form.get('request');
   if (typeof raw !== 'string') return INVALID;
-  if (form.has('photo')) return { ok: false, code: 'photo_not_supported' };
 
   let json: unknown;
   try {
@@ -135,8 +152,18 @@ export async function readAssistantBody(request: Request): Promise<BodyResult> {
   const parsed = inputSchema.safeParse(json);
   if (!parsed.success || !alternates(parsed.data.history)) return INVALID;
   const input = parsed.data;
+
+  let photo: Uint8Array | null = null;
+  const part = form.get('photo');
+  if (part !== null) {
+    if (!(part instanceof File)) return INVALID;
+    const stripped = await stripPhoto(new Uint8Array(await part.arrayBuffer()));
+    if (!stripped.ok) return { ok: false, code: 'photo_unreadable' };
+    photo = stripped.jpeg;
+  }
   return {
     ok: true,
+    photo,
     input: {
       prompt: input.prompt,
       history: input.history.slice(-ASSISTANT_HISTORY_MAX_TURNS),
@@ -147,14 +174,14 @@ export async function readAssistantBody(request: Request): Promise<BodyResult> {
   };
 }
 
-export type AssistantReply = { message: string; changes: unknown[] };
+export type AssistantReply = { message: string; changes: AssistantChange[] };
 
 // Copied unchanged from the FENCE of app/src/server/ai/client.ts (D-Reply).
 const FENCE = /^\s*```[a-zA-Z0-9_-]*[ \t]*\r?\n([\s\S]*?)\r?\n?```\s*$/;
 
 const replySchema = z.strictObject({
   message: z.string(),
-  changes: z.array(z.unknown()).max(MAX_CHANGES_PER_SAVE),
+  changes: z.array(assistantChangeSchema).max(MAX_CHANGES_PER_SAVE),
 });
 
 function holdsKey(value: unknown, key: string): boolean {
@@ -179,7 +206,7 @@ export function parseAssistantReply(text: string): AssistantReply | null {
 
 export type AssistantSuccess = {
   message: string;
-  changes: unknown[];
+  changes: AssistantChange[];
   refs: Record<string, string>;
   costMicroUsd: number;
   model: AssistantModel;
@@ -190,7 +217,13 @@ export type AssistantErrorBody = {
   costMicroUsd?: number;
 };
 
-export type AssistantDeps = { env?: Env; budgetMs?: number; signal?: AbortSignal };
+export type AssistantDeps = {
+  env?: Env;
+  budgetMs?: number;
+  signal?: AbortSignal;
+  // EZD-5603b X3: the stripped photo sent with this prompt only.
+  photo?: Uint8Array | null;
+};
 
 type Answer = { status: number; body: AssistantSuccess | AssistantErrorBody };
 
@@ -247,7 +280,7 @@ export async function runAssistantPrompt(
   const key = load.key;
 
   const taken = await client.rpc('take_ai_assistant_slot');
-  if (taken.error) throw new Error('take_ai_assistant_slot_failed');
+  if (taken.error) throw new Error('take_ai_assistant_slot_failed', { cause: taken.error });
   const slot = (taken.data as SlotRow[] | null)?.[0];
   if (slot?.refused === 'in_flight') return fail(429, 'assistant_busy');
   if (slot?.refused === 'rate_limited') return fail(429, 'assistant_rate_limited');
@@ -278,10 +311,19 @@ export async function runAssistantPrompt(
         })),
         {
           role: 'user' as const,
-          content: [
-            { type: 'text' as const, text: 'Drawing:\n' + json },
-            { type: 'text' as const, text: input.prompt },
-          ],
+          content: deps.photo
+            ? [
+                { type: 'text' as const, text: 'Drawing:\n' + json },
+                {
+                  type: 'image' as const,
+                  image: { mediaType: 'image/jpeg' as const, data: deps.photo },
+                },
+                { type: 'text' as const, text: input.prompt },
+              ]
+            : [
+                { type: 'text' as const, text: 'Drawing:\n' + json },
+                { type: 'text' as const, text: input.prompt },
+              ],
         },
       ],
     };

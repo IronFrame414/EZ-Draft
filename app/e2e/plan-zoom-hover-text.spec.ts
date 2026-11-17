@@ -148,7 +148,14 @@ async function addR1(page: Page): Promise<void> {
             },
             status: 'existing',
             level,
-            attributes: { name: 'Kitchen' },
+            attributes: {
+              name: 'Kitchen',
+              floorLevel: 0,
+              photos: [],
+              roomType: null,
+              floorFinish: '',
+              ceilingType: null,
+            },
             closureOverride: null,
           },
         },
@@ -384,11 +391,10 @@ test.describe('EZD-207b plan canvas', () => {
     expect(await page.evaluate(() => '__ezdraftEditor' in window)).toBe(false);
     await expect(stack(page)).toBeVisible();
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveAttribute(
-      'data-rail-tool',
-      'select',
-    );
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(2);
+    await expect(
+      page.locator('[data-shell-region="rail"] [data-rail-tool]').first(),
+    ).toHaveAttribute('data-rail-tool', 'select');
 
     await setViewAndWait(page, { x: -24, y: 24, ppi: 8 });
     await moveTo(page, 600, 210);

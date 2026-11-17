@@ -23,8 +23,18 @@ export const PRIVATE_EXECUTE: Record<ApiRole, readonly PrivateExecuteEntry[]> = 
     { fn: 'private.all_projects()', reason: POLICY_HELPER },
     { fn: 'private.api_request_gate()', reason: GATE },
     { fn: 'private.app_user_id()', reason: POLICY_HELPER },
+    {
+      fn: 'private.can_see_invite_link(uuid)',
+      reason:
+        'Called by list_users (security invoker) as the viewing member for canCopyLink: last sender or active Owner preset (EZD-105; Q-0706).',
+    },
     { fn: 'private.can_see_project(uuid)', reason: ONE_OFF },
     { fn: 'private.listed_project_ids()', reason: POLICY_HELPER },
+    {
+      fn: 'private.owner_password_refusal(uuid)',
+      reason:
+        'Called by list_users (security invoker) as the viewing member for canSetPassword; the same rule as owner_password_target (EZD-105b; Q-0096 P4).',
+    },
     { fn: 'private.realtime_can_receive(text)', reason: REALTIME_POLICY },
     { fn: 'private.realtime_can_track(text)', reason: REALTIME_POLICY },
     {

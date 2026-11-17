@@ -4,7 +4,8 @@ import type { MessageParams } from '../../lib/messages';
 
 export const TOAST_DEFAULT_MS = 5000;
 
-export type ToastTone = 'neutral';
+// EZD-126 (S06 toast): `success` is the green Available to edit toast.
+export type ToastTone = 'neutral' | 'success';
 export type ToastAction = { label: MessageKey; onPress: () => void };
 export type PlainToastOptions = {
   message: MessageKey;

@@ -5,6 +5,7 @@ import { requireApiSession } from '../../../../server/auth/session';
 import { reportRouteFailure } from '../../../../server/errors/route-failure';
 import { changePassword, setPassword } from '../../../../server/profile/password';
 import { parsePasswordRequest } from '../../../../lib/profile/profile';
+import { endedSessionResponse } from '../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +34,8 @@ export async function POST(request: Request): Promise<Response> {
     if (result.status === 200) return Response.json(result.body, { status: 200, headers });
     return fail(result.status, result.code);
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

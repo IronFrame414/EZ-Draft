@@ -11,10 +11,19 @@
 // EZD-211b Build step 6 (vault/plans/EZD-211b.md Decided "Space tap"): `onSpaceTap` listeners.
 // EZD-376 Build step 5 (vault/plans/EZD-376.md; Q-0692): a failed atlas also turns `atlasFailed()` on and tells its listeners once.
 // EZD-235 Build step 8 (vault/plans/EZD-235.md Decided "D-Plan"; 11 rule 2): room areas through the model's derived values.
-import type { DerivedStats, DrawingList, Point } from '@ezdraft/geometry';
+// EZD-214 (S03 Decisions; 09m Phase switch; 11 rules 2 and 4): the phase view's filter decides what is drawn and
+// hovered; a View or eye change rebuilds the drawing list once and resyncs the hover index in full.
+// EZD-6001 (vault/plans/EZD-6001.md D-Wire, D-Gone; Q-0509): the canvas draws the chosen floor; a switch redraws as a View change does.
+// EZD-224b Build step 7 (vault/plans/EZD-224b.md Decided "Capture rule"; Q-0667): `captureThumbnail` reads the
+// region as drawn through the root, with no fit, camera or redraw; nothing drawn gives null.
+import type { DerivedStats, DrawingList, ObjectStatus, Point } from '@ezdraft/geometry';
+import type { PhaseFilter } from '../../lib/plan/phase-view';
 import { DEFAULT_PLAN_SCALE, isPlanScale, type PlanScale } from '../../lib/plan/plan-scale';
+import type { CaptureSource, ThumbnailCapture } from '../../lib/thumbnail/thumbnail';
 import { createModelDerived, type ModelDerived } from '../derived/model-derived';
 import type { ModelStore } from '../model/model-store';
+import { chosenFloor, type FloorChoice } from '../floors/floors';
+import type { Objects } from '../model/patches';
 import { buildPlanBatches, drawingBounds, openFloorId, planDrawingList } from './batches';
 import { layoutText } from './glyph-atlas';
 import {
@@ -23,6 +32,7 @@ import {
   objectGeometry,
   pickWall,
   type BodyLookup,
+  type OutlineLookup,
   type HoverMode,
   type HoverPicker,
   type ObjectGeometry,
@@ -67,6 +77,7 @@ export type RenderRoot = {
   setCamera(frame: CameraFrame): void;
   invalidate(): void;
   stats(): { frames: number; drawCalls: number };
+  captureFrame(source: CaptureSource): Promise<ThumbnailCapture>;
   unmount(): void;
 };
 export type CreateRenderRoot = (canvas: HTMLCanvasElement, scene: PlanScene) => RenderRoot;
@@ -91,6 +102,8 @@ export type PlanCanvasHandle = {
   wallAt(screen: Point): string | null;
   setHoverPicker(picker: HoverPicker | null): void;
   setBodyLookup(lookup: BodyLookup | null): void;
+  // EZD-218 (Q-0676 (a)): a selected or hovered room draws its outline.
+  setOutlineLookup(lookup: OutlineLookup | null): void;
   setSelectedIds(ids: readonly string[]): void;
   getHoveredId(): string | null;
   getScale(): PlanScale;
@@ -99,6 +112,8 @@ export type PlanCanvasHandle = {
   setZoomPercent(percent: number): void;
   onCursorChange(listener: (model: Point | null) => void): () => void;
   onSpaceTap(listener: () => void): () => void;
+  // EZD-233: a right-click or long press on the canvas, at its region point.
+  onContextMenu(listener: (screen: Point, client: Point) => boolean): () => void;
 };
 
 export type PlanController = {
@@ -110,6 +125,7 @@ export type PlanController = {
   setRegionRect(rect: ClientRect): void;
   stats(): PlanStats;
   derivedStats(): DerivedStats;
+  captureThumbnail(): Promise<ThumbnailCapture | null>;
   atlasFailed(): boolean;
   subscribeAtlasFailed(listener: () => void): () => void;
   dispose(): void;
@@ -133,6 +149,12 @@ export function createPlanController(
     store: Pick<ModelStore, 'getState' | 'subscribe'>;
     scale?: PlanScale;
     derived?: ModelDerived;
+    phase?: PhaseFilter & {
+      subscribe(listener: () => void): () => void;
+      setEye?(status: ObjectStatus, on: boolean): void;
+    };
+    // EZD-6001 D-Wire: the floor the user chose; without it the lowest floor is drawn.
+    floors?: FloorChoice;
   },
   deps: {
     createRoot: CreateRenderRoot;
@@ -160,6 +182,7 @@ export function createPlanController(
   const listeners: Array<{ fn: (view: PlanView) => void }> = [];
   const cursorListeners: Array<{ fn: (model: Point | null) => void }> = [];
   const spaceTapListeners: Array<{ fn: () => void }> = [];
+  const contextMenuListeners: Array<{ fn: (screen: Point, client: Point) => boolean }> = [];
   let cursorScreen: Point | null = null;
   let list: DrawingList | null = null;
   let disposed = false;
@@ -175,6 +198,7 @@ export function createPlanController(
   let hoveredFromWall = false;
   let picker: HoverPicker | null = null;
   let bodyLookup: BodyLookup | null = null;
+  let outlineLookup: OutlineLookup | null = null;
   let selectedIds: ReadonlySet<string> = new Set();
   let selectionUploads = 0;
   const hover = createHoverIndex();
@@ -189,13 +213,22 @@ export function createPlanController(
 
   // The selection step: true when the selection drawing was created, replaced or removed, so a redraw is due.
   const selectionStep = (): boolean => {
-    const uploaded = scene.setSelection(objectGeometry(list, selectedIds, bodyLookup));
+    const uploaded = scene.setSelection(
+      objectGeometry(list, selectedIds, bodyLookup, outlineLookup),
+    );
     selectionUploads += uploaded;
     return uploaded > 0;
   };
 
+  const phase = o.phase ?? null;
+  const floorOf = (objects: Objects) => openFloorId(objects, chosenFloor(o.floors));
   const rebuild = (): number => {
-    list = planDrawingList(o.store.getState().objects, { roomAreaSqFt: derived.roomAreaSqFt });
+    list = planDrawingList(
+      o.store.getState().objects,
+      { roomAreaSqFt: derived.roomAreaSqFt },
+      phase,
+      chosenFloor(o.floors),
+    );
     derived.prune();
     bounds = drawingBounds(list);
     const before = scene.objectCount();
@@ -203,7 +236,8 @@ export function createPlanController(
     bufferUploads += uploaded;
     return uploaded > 0 || scene.objectCount() !== before ? 1 : 0;
   };
-  hover.sync(o.store.getState().objects, openFloorId(o.store.getState().objects), []);
+  let shownFloor = floorOf(o.store.getState().objects);
+  hover.sync(o.store.getState().objects, shownFloor, [], phase);
   rebuild();
 
   const tolerance = () => HOVER_CAPTURE_PX / view.ppi;
@@ -227,7 +261,7 @@ export function createPlanController(
     if (id === null) {
       uploaded = scene.setHighlight(NO_HIGHLIGHT);
     } else {
-      const g = objectGeometry(list, new Set([id.toLowerCase()]), bodyLookup);
+      const g = objectGeometry(list, new Set([id.toLowerCase()]), bodyLookup, outlineLookup);
       uploaded = scene.setHighlight(joined(g), g.segments);
     }
     highlightUploads += uploaded;
@@ -296,7 +330,8 @@ export function createPlanController(
 
   const unsubscribe = o.store.subscribe((state, prev) => {
     if (state.objects === prev.objects) return;
-    hover.sync(state.objects, openFloorId(state.objects), state.lastChangedIds);
+    shownFloor = floorOf(state.objects);
+    hover.sync(state.objects, shownFloor, state.lastChangedIds, phase);
     const rebuilt = rebuild() > 0;
     const selected = selectedIds.size > 0 ? selectionStep() : false;
     const texted = atlasSet ? textStep() : false;
@@ -306,6 +341,36 @@ export function createPlanController(
     const hoverChanged = updateHover(force);
     if (rebuilt || selected || texted || hoverChanged) redraw();
   });
+
+  // A View or eye change: one rebuild, the hover index in full (its filter version changed), then one redraw.
+  const refreshAll = () => {
+    const objects = o.store.getState().objects;
+    shownFloor = floorOf(objects);
+    hover.sync(objects, shownFloor, [], phase);
+    const rebuilt = rebuild() > 0;
+    const selected = selectedIds.size > 0 ? selectionStep() : false;
+    const texted = atlasSet ? textStep() : false;
+    const hoverChanged = updateHover(true);
+    if (rebuilt || selected || texted || hoverChanged) redraw();
+  };
+  const unsubscribePhase =
+    phase === null
+      ? () => {}
+      : phase.subscribe(() => {
+          if (disposed) return;
+          refreshAll();
+        });
+
+  // EZD-6001 D-Wire: a switch to another floor redraws as a View change does.
+  const unsubscribeFloors =
+    o.floors === undefined
+      ? () => {}
+      : o.floors.subscribe(() => {
+          if (disposed) return;
+          const next = floorOf(o.store.getState().objects);
+          if (next === shownFloor) return;
+          refreshAll();
+        });
 
   const zoomBy = (factor: number) => {
     const size = regionSize();
@@ -338,6 +403,14 @@ export function createPlanController(
         if (i >= 0) listeners.splice(i, 1);
       };
     },
+    onContextMenu(fn) {
+      const entry = { fn };
+      contextMenuListeners.push(entry);
+      return () => {
+        const i = contextMenuListeners.indexOf(entry);
+        if (i >= 0) contextMenuListeners.splice(i, 1);
+      };
+    },
     onSpaceTap(fn) {
       const entry = { fn };
       spaceTapListeners.push(entry);
@@ -352,6 +425,18 @@ export function createPlanController(
     zoomIn: () => zoomBy(ZOOM_STEP_FACTOR),
     zoomOut: () => zoomBy(1 / ZOOM_STEP_FACTOR),
     showObject(id) {
+      // EZD-214: Show on an object the phase view hides turns its status's eye on first (an eye override).
+      const value = [...o.store.getState().objects].find(
+        ([k]) => k.toLowerCase() === id.toLowerCase(),
+      );
+      const status = value?.[1].data.status;
+      if (
+        phase !== null &&
+        phase.setEye !== undefined &&
+        (status === 'existing' || status === 'demo' || status === 'new') &&
+        !phase.shown(status)
+      )
+        phase.setEye(status, true);
       if (list === null) return false;
       const want = id.toLowerCase();
       const objectBounds = drawingBounds({
@@ -379,6 +464,12 @@ export function createPlanController(
     },
     setBodyLookup(next) {
       bodyLookup = next;
+      const selected = selectionStep();
+      const hoverChanged = updateHover(true);
+      if (selected || hoverChanged) redraw();
+    },
+    setOutlineLookup(next) {
+      outlineLookup = next;
       const selected = selectionStep();
       const hoverChanged = updateHover(true);
       if (selected || hoverChanged) redraw();
@@ -501,6 +592,11 @@ export function createPlanController(
         onSpaceTap() {
           for (const l of [...spaceTapListeners]) l.fn();
         },
+        onContextMenu(screen, client) {
+          let opened = false;
+          for (const l of [...contextMenuListeners]) opened = l.fn(screen, client) || opened;
+          return opened;
+        },
       });
     },
     setCanvasRect(rect) {
@@ -544,9 +640,20 @@ export function createPlanController(
         selectionUploads,
       };
     },
+    async captureThumbnail() {
+      if (root === null || !ready) return null;
+      // Loaded on first use so the thumbnail rules stay out of the editor's first download (500,000 byte budget).
+      const { thumbnailSource } = await import('../../lib/thumbnail/thumbnail');
+      if (root === null || !ready) return null;
+      const source = thumbnailSource(canvasRect, regionRect);
+      if (source === null || scene.objectCount() === 0) return null;
+      return root.captureFrame(source);
+    },
     dispose() {
       disposed = true;
       unsubscribe();
+      unsubscribePhase();
+      unsubscribeFloors();
       input?.dispose();
       input = null;
       detachCanvas();

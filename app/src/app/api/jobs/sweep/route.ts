@@ -7,6 +7,7 @@ import { reportError } from '../../../../server/errors/report';
 import { rewrapStaleAiKeys } from '../../../../server/jobs/ai-key-rewrap';
 import { defaultJobHooks } from '../../../../server/jobs/default-hooks';
 import { runJobs } from '../../../../server/jobs/runner';
+import { sweepExpiredLocks } from '../../../../server/lock/sweep';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
@@ -35,6 +36,16 @@ export async function GET(request: Request): Promise<Response> {
     await rewrapStaleAiKeys();
   } catch {
     await reportError(new Error('ai_key_rewrap_failed'), {
+      source: 'job',
+      location: '/api/jobs/sweep',
+    });
+  }
+  // EZD-125 (Q-0697 decisions 03 "Auto release"): one pass of the edit lock auto release per sweep; a failure
+  // is reported by code and does not change the answer.
+  try {
+    await sweepExpiredLocks();
+  } catch {
+    await reportError(new Error('edit_lock_sweep_failed'), {
       source: 'job',
       location: '/api/jobs/sweep',
     });

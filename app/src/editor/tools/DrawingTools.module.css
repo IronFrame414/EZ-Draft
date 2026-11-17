@@ -5,7 +5,8 @@
    EZD-212b (vault/plans/EZD-212b.md D10; board S03dStates): the dashed Move preview.
    EZD-212c (vault/plans/EZD-212c.md D20; boards S03dWallSelected, S03dDoorSelected): resize handles, chip leaders
    and ticks, text chips.
-   EZD-213c D-Marker (vault/plans/EZD-213c.md): the pill is a button; the gap panel rules moved to ResolveGap.module.css. */
+   EZD-213c D-Marker (vault/plans/EZD-213c.md): the pill is a button; the gap panel rules moved to ResolveGap.module.css.
+   EZD-223 (S03 Sketch): the sketch strokes, solid like the plan's markup ink (vault/build/assumptions.md EZD-223). */
 
 .layer {
   position: absolute;
@@ -26,6 +27,14 @@
   fill: none;
   stroke: var(--ez-cobalt);
   stroke-width: 1.5px;
+}
+
+.sketch {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .preview {

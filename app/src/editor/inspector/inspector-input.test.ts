@@ -91,9 +91,10 @@ describe('EZD-213b inspector input', () => {
       not_door: 'error.invalid_input',
       not_window: 'error.invalid_input',
       not_shutter: 'error.invalid_input',
+      bearing_demo: 'office.edit.bearing_demo',
     };
     const reasons = Object.keys(expected) as InspectorEditReason[];
-    expect(reasons).toHaveLength(18);
+    expect(reasons).toHaveLength(19);
     for (const reason of reasons) {
       expect(refusalMessage('wallHeight', reason), reason).toBe(expected[reason]);
     }
@@ -184,6 +185,8 @@ describe('EZD-213b inspector input', () => {
     const P = 'office.inspector.';
     const expected: Record<string, string> = {
       empty: 'Select something on the plan to see its details here.',
+      // EZD-218 (Q-0679 (b); plan section 6).
+      room_in_rooms_tab: "Edit this room's details in the Rooms tab.",
       empty_hint: 'Shift-click or drag a box to select more than one.',
       empty_hint_touch: 'Tap Select more, or drag a box, to select more than one.',
       view_only: 'View only',

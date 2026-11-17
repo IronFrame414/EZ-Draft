@@ -7,6 +7,7 @@ import { createSessionClient } from '../../../../server/auth/supabase-server';
 import { deleteConflict } from '../../../../server/conflicts/conflicts';
 import { reportRouteFailure } from '../../../../server/errors/route-failure';
 import { requireApiPermission } from '../../../../server/permissions';
+import { endedSessionResponse } from '../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +41,8 @@ export async function DELETE(
     if (!removed) return fail(404, 'sync_conflict_not_found');
     return Response.json({ removed: true }, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

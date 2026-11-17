@@ -2,6 +2,7 @@
 // EZD-372: the 50 ms line (D-Match) and miss evidence (D-Miss).
 // EZD-388 (vault/plans/EZD-388.md D-Count): the iPad pan row counts the trace's own tasks by CPU time × 4 (Q-0737 (a)).
 // EZD-392 (vault/plans/EZD-392.md D-Mark): the CPU time of the trace task around each named user-timing mark (profiles.test.mjs N5).
+// EZD-398 (vault/plans/EZD-398.md D-One): matchTop holds EZD-372's D-Match rule for both attributeTasks and countByCpu.
 
 /** D-Anchor: the user-timing mark page-hooks.browser.js makes at pan-start (same literal there; an init script cannot import). */
 export const PAN_START_MARK = 'ezd-pan-start';
@@ -64,16 +65,14 @@ export function attributeTasks(events, tasks) {
   const thread = events.filter((e) => e.pid === anchor.pid && e.tid === anchor.tid);
   const top = topLevel(thread);
   return tasks.map((t) => {
-    const m = matchTop(
-      top.filter((e) => durOf(e) > 50000 || durOf(e) >= (t.ms - 3) * 1000),
-      anchor,
-      t,
-    );
+    const m = matchTop(top, anchor, t);
     return m === null ? none(t) : { at: t.at, ms: t.ms, ...taskDetail(thread, m) };
   });
 }
 
-function matchTop(long, anchor, t) {
+/** EZD-372 D-Match, EZD-398 D-One: the top-level task that starts within 3 ms of `t.at` and lasts over 50 ms or at least `t.ms` − 3 ms, nearest start first (ties: earlier ts); null when none. */
+function matchTop(top, anchor, t) {
+  const long = top.filter((e) => durOf(e) > 50000 || durOf(e) >= (t.ms - 3) * 1000);
   let match = null;
   let best = Infinity;
   for (const e of long) {
@@ -120,10 +119,9 @@ export function countByCpu(events, tasks, scale, panMs) {
     counted.push({ at: Math.round((e.ts - anchor.ts) / 1000), ms: Math.round(durOf(e) / 1000), ...taskDetail(thread, e) });
     seen.add(e);
   }
-  const long = top.filter((e) => durOf(e) > 50000);
   const waits = [];
   for (const t of tasks) {
-    const m = matchTop(long, anchor, t);
+    const m = matchTop(top, anchor, t);
     if (m === null) {
       counted.push({ at: t.at, ms: t.ms, cpu: null, gc: null, top: null });
     } else if (seen.has(m)) {

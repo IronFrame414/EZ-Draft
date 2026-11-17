@@ -23,6 +23,7 @@ function syncWith(state: Partial<SyncState>): OutboxSync {
   return {
     ...store,
     keepMine: vi.fn(async () => ({ kept: false })),
+    sendNow: vi.fn(async () => ({ kind: 'unsaved' as const })),
     enqueue: vi.fn(async () => {}),
     flush: vi.fn(async () => {}),
     retry: vi.fn(),

@@ -113,6 +113,7 @@ describe('EZD-213a inspector view', () => {
       sillHeight: null,
       impactRating: 'not_rated',
       shutterType: null,
+      status: 'existing',
     });
 
     const w = asOpening(view(houseObjects(), [uid(32)]));

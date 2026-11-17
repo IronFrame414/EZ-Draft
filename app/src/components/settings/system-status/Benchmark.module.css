@@ -1,0 +1,169 @@
+/* EZD-237 (vault/plans/EZD-237.md D-Card; S15i System status, states and iPad boards): the Benchmark card's own
+   parts. The card, head, table and pager use SystemStatus.module.css. Colors from tokens only; sizes in px. */
+
+.headRun {
+  margin-left: auto;
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 16px 6px;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+/* The running panel (S15i states "Benchmark running"). */
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-cobalt-tint);
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.step[data-state='current'] {
+  font-weight: 600;
+  color: var(--ez-cobalt);
+}
+
+.step[data-state='done'] {
+  color: var(--ez-ink);
+}
+
+.step[data-state='done'] svg {
+  color: var(--ez-green);
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--ez-slate-400);
+  border-radius: var(--ez-radius-999);
+}
+
+.elapsed {
+  margin-left: auto;
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.bar {
+  height: 4px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-border);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: var(--ez-cobalt);
+}
+
+.message {
+  font-size: 12px;
+  color: var(--ez-slate-700);
+}
+
+/* The editor plays in a same-origin frame at the window's size, shown scaled down; it never takes input. */
+.stage {
+  overflow: hidden;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-6);
+  background: var(--ez-canvas);
+  pointer-events: none;
+}
+
+.frame {
+  display: block;
+  border: 0;
+  transform-origin: 0 0;
+}
+
+.alert {
+  padding: 0 16px 10px;
+}
+
+.note {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ez-slate-500);
+  text-align: left;
+  padding: 0 12px 8px;
+  background: var(--ez-surface-sunken);
+  border-bottom: 1px solid var(--ez-border);
+}
+
+.num {
+  font-family: var(--ez-font-mono);
+  font-size: 13px;
+  color: var(--ez-slate-700);
+  white-space: nowrap;
+}
+
+.over {
+  font-weight: 600;
+  color: var(--ez-red-text);
+}
+
+.missed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-red-tint);
+  color: var(--ez-red-text);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.footFill {
+  flex: 1;
+}
+
+.empty {
+  padding: 16px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+/* S15i iPad: benchmark rows drop the Version column. */
+@media (width < 1280px) {
+  .version {
+    display: none;
+  }
+}

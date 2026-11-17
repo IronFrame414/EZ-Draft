@@ -2,8 +2,14 @@
 // "Paste point", "Duplicate", "Clipboard", "Selection after", "Tool active", "Permission", "Keys", "EditUi"; S03
 // Controls; Q-0630 rows 19-21, 36; Q-0640 row 117; Q-0647 (a)): Delete, Copy, Paste, Duplicate, Undo and Redo on
 // the open floor, outside React. Every command is one `applyEdit` (one undo step); the clipboard is in memory only.
-import type { Point } from '@ezdraft/geometry';
+// EZD-233 (S03 Context menu; vault/build/assumptions.md EZD-233): `run` applies one context menu command (Mirror,
+// Align, Group, Ungroup, Set status) built by the lazy context menu module, as one edit, and selects what it says.
+// EZD-6001 (vault/plans/EZD-6001.md D-Wire): "the open floor" is the floor the user chose.
+import type { Point, ObjectStatus } from '@ezdraft/geometry';
+import type { MessageKey } from '../../server/messages/catalog';
+import type { ArrangeContext, ArrangeResult } from './arrange-changes';
 import type { ModelStore } from '../model/model-store';
+import { chosenFloor, type FloorChoice } from '../floors/floors';
 import { openFloorId } from '../plan/batches';
 import type { PlanCanvasHandle } from '../plan/controller';
 import type { SelectionController } from '../selection/selection-controller';
@@ -27,6 +33,10 @@ export type EditDeps = {
   handle: Pick<PlanCanvasHandle, 'getCursor' | 'screenToModel' | 'getViewCenter'>;
   canEdit: boolean;
   newId?: () => string;
+  // EZD-214: the phase view's status for rooms an edit makes (05 Q-0664); Existing when not given.
+  newStatus?: () => ObjectStatus;
+  // EZD-6001 D-Wire: the floor the user chose; without it edits act on the lowest floor.
+  floors?: FloorChoice;
 };
 
 export type EditController = {
@@ -39,6 +49,8 @@ export type EditController = {
   copy(): void;
   paste(where: 'cursor' | 'center'): void;
   duplicate(where: 'cursor' | 'center'): void;
+  // EZD-233: null when done (or nothing to do), else the refusal to show.
+  run(build: (ctx: ArrangeContext) => ArrangeResult): MessageKey | null;
   dispose(): void;
 };
 
@@ -60,6 +72,7 @@ const sameUi = (a: EditUi, b: EditUi) =>
 export function createEditController(deps: EditDeps): EditController {
   const { store, selection, drawing, handle, canEdit } = deps;
   const newId = deps.newId ?? newObjectId;
+  const newStatus = deps.newStatus ?? (() => 'existing' as const);
 
   let disposed = false;
   let clip: readonly ClipItem[] = [];
@@ -132,9 +145,9 @@ export function createEditController(deps: EditDeps): EditController {
   const pasteItems = (items: readonly ClipItem[], at: Point | null) => {
     if (items.length === 0 || at === null) return;
     const { objects, numberHighs } = store.getState();
-    const level = openFloorId(objects);
+    const level = openFloorId(objects, chosenFloor(deps.floors));
     if (level === null) return;
-    const r = pasteChanges(objects, level, items, at, newId, numberHighs);
+    const r = pasteChanges(objects, level, items, at, newId, numberHighs, newStatus());
     if (r.changes.length === 0) return;
     store.applyEdit(r.changes);
     selection.select(r.ids);
@@ -159,9 +172,9 @@ export function createEditController(deps: EditDeps): EditController {
   function deleteSelection(): void {
     run(() => {
       const objects = store.getState().objects;
-      const level = openFloorId(objects);
+      const level = openFloorId(objects, chosenFloor(deps.floors));
       if (level === null) return;
-      const changes = deleteChanges(objects, level, selection.getUi().ids, newId);
+      const changes = deleteChanges(objects, level, selection.getUi().ids, newId, newStatus());
       if (changes.length === 0) return;
       store.applyEdit(changes);
       selection.clear();
@@ -171,7 +184,7 @@ export function createEditController(deps: EditDeps): EditController {
   function copy(): void {
     run(() => {
       const objects = store.getState().objects;
-      const level = openFloorId(objects);
+      const level = openFloorId(objects, chosenFloor(deps.floors));
       if (level === null) return;
       const items = copyItems(objects, level, selection.getUi().ids);
       if (items.length > 0) clip = items;
@@ -190,10 +203,36 @@ export function createEditController(deps: EditDeps): EditController {
     run(() => {
       endTool();
       const objects = store.getState().objects;
-      const level = openFloorId(objects);
+      const level = openFloorId(objects, chosenFloor(deps.floors));
       if (level === null) return;
       pasteItems(copyItems(objects, level, selection.getUi().ids), viewPoint('view'));
     });
+  }
+
+  function runBuild(build: (ctx: ArrangeContext) => ArrangeResult): MessageKey | null {
+    let refused: MessageKey | null = null;
+    run(() => {
+      endTool();
+      const { objects, numberHighs } = store.getState();
+      const level = openFloorId(objects, chosenFloor(deps.floors));
+      if (level === null) return;
+      const r = build({
+        objects,
+        level,
+        ids: selection.getUi().ids,
+        newId,
+        highs: numberHighs,
+        status: newStatus(),
+      });
+      if (!r.ok) {
+        refused = r.messageKey;
+        return;
+      }
+      if (r.changes.length === 0) return;
+      store.applyEdit(r.changes);
+      if (r.ids !== undefined) selection.select(r.ids);
+    });
+    return refused;
   }
 
   function keyDown(e: ToolKeyEvent): boolean {
@@ -236,6 +275,7 @@ export function createEditController(deps: EditDeps): EditController {
     copy,
     paste,
     duplicate,
+    run: runBuild,
     dispose() {
       if (disposed) return;
       disposed = true;

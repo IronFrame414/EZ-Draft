@@ -7,6 +7,7 @@ import { createSessionClient } from '../../../../server/auth/supabase-server';
 import { reportRouteFailure } from '../../../../server/errors/route-failure';
 import { countProjects, parseProjectSearch } from '../../../../server/projects/projects';
 import { requireApiPermission } from '../../../../server/permissions';
+import { endedSessionResponse } from '../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +26,8 @@ export async function GET(request: Request): Promise<Response> {
     const counts = await countProjects(createSessionClient(), search);
     return Response.json(counts, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

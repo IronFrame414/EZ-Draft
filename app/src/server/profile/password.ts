@@ -22,6 +22,7 @@ import {
 import type { Database } from '../db/database.types';
 import { reportError } from '../errors/report';
 import { reportRouteFailure } from '../errors/route-failure';
+import { sessionEnded } from '../auth/ended-session';
 import { hasPassword, sendPasswordEmail } from './profile';
 
 const ROUTE = '/api/profile/password';
@@ -85,7 +86,9 @@ async function takeSlot(
       throttleKey('email', email),
       ip === null ? null : throttleKey('ip', ip),
     );
-  } catch {
+  } catch (e) {
+    // EZD-421: an ended session is the route's 401, not a throttle fault.
+    if (await sessionEnded(e)) throw e;
     await report('auth_throttle_unavailable');
     return null;
   }
@@ -95,7 +98,8 @@ async function takeSlot(
 async function settle(client: SupabaseClient<Database>, slot: ThrottleTake): Promise<void> {
   try {
     await throttleSettle(client, slot.attemptId, slot.ipAttemptId);
-  } catch {
+  } catch (e) {
+    if (await sessionEnded(e)) throw e;
     await report('auth_throttle_unavailable');
   }
 }
@@ -211,6 +215,7 @@ export async function setPassword(
       const sent = await client.auth.reauthenticate();
       if (sent.error) {
         if (errorStatus(sent.error) === 429) return refuse(429, 'too_many_requests');
+        if (await sessionEnded(sent.error)) throw sent.error;
         await reportRouteFailure(sent.error, ROUTE);
         return refuse(500, 'db_unavailable');
       }
@@ -224,6 +229,7 @@ export async function setPassword(
       return refuse(400, 'code_invalid');
     }
     if (code === 'weak_password') return refuse(400, 'password_breached');
+    if (await sessionEnded(updated.error)) throw updated.error;
     await reportRouteFailure(updated.error, ROUTE);
     return refuse(500, 'db_unavailable');
   }

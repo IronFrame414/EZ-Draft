@@ -20,6 +20,7 @@ import {
   type Session,
 } from '../../../test-harness/rls/fixtures';
 import { SOURCE_FILE_KINDS } from '../../lib/storage/source-file-kinds';
+import { KIND_CONTENT_TYPES } from '../../lib/imports/upload-files';
 import {
   COST_FILE_KINDS,
   startSourceFileUpload,
@@ -151,7 +152,8 @@ describe('EZD-322 cost-record starts need See company costs (helper, db)', () =>
     const others = SOURCE_FILE_KINDS.filter((k) => !COST_FILE_KINDS.includes(k));
     expect(others).toHaveLength(8);
     for (const kind of others) {
-      const started = await start(sF, f, { kind });
+      // EZD-301 (Q-0517): each kind starts with a content type it takes.
+      const started = await start(sF, f, { kind, contentType: KIND_CONTENT_TYPES[kind][0] });
       expect(started.sourceFile.kind, kind).toBe(kind);
     }
   });

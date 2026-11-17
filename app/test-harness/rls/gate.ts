@@ -5,6 +5,14 @@
 export type GatedRpcCall = { fn: string; args: Record<string, unknown> };
 
 export const GATED_RPC_CALLS: GatedRpcCall[] = [
+  // EZD-111 (vault/plans/EZD-111.md Shared lists): the send functions (authenticated) and the client-link
+  // resolver (anon only).
+  {
+    fn: 'send_to_client',
+    args: { p_project: null, p_token_hash: null, p_note: null, p_expiry_days: null },
+  },
+  { fn: 'mark_sent_package_emailed', args: { p_sent_package: null } },
+  { fn: 'resolve_sent_package', args: { p_token_hash: null } },
   // EZD-5601 step 2 (vault/plans/EZD-5601.md): the user's own Anthropic key functions, authenticated only.
   { fn: 'get_my_ai_key', args: {} },
   {
@@ -27,6 +35,74 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'take_ai_assistant_slot', args: {} },
   { fn: 'release_ai_assistant_slot', args: { p_slot_id: null } },
   { fn: 'record_ai_usage', args: { p_model: null, p_cost_usd: null } },
+  // EZD-106 (vault/plans/EZD-106.md Part a): the Users page member writes, authenticated only.
+  {
+    fn: 'save_member',
+    args: {
+      p_membership_id: null,
+      p_role_id: null,
+      p_language: null,
+      p_granted: null,
+      p_ip: null,
+    },
+  },
+  { fn: 'deactivate_member', args: { p_membership_id: null, p_ip: null } },
+  { fn: 'reactivate_member', args: { p_membership_id: null, p_ip: null } },
+  { fn: 'remove_member', args: { p_membership_id: null, p_ip: null } },
+  // EZD-105b: the Owner-set password check and record, authenticated only.
+  { fn: 'owner_password_target', args: { p_membership_id: null } },
+  { fn: 'record_member_password_set', args: { p_membership_id: null, p_ip: null } },
+  // EZD-129 (S15 Decision 13; Q-0202): a member's Project access read and save, the project choices for its
+  // picker, and the wizard's Foreman candidates, authenticated only.
+  { fn: 'member_scope', args: { p_membership_id: null } },
+  {
+    fn: 'save_member_scope',
+    args: { p_membership_id: null, p_scope: null, p_project_ids: null, p_ip: null },
+  },
+  { fn: 'list_scope_projects', args: { p_search: '' } },
+  { fn: 'list_foreman_candidates', args: {} },
+  // EZD-107: the custom role reads and writes, authenticated only.
+  { fn: 'list_roles', args: {} },
+  { fn: 'create_role', args: { p_name: null, p_granted: null, p_ip: null } },
+  { fn: 'update_role', args: { p_role_id: null, p_name: null, p_granted: null, p_ip: null } },
+  { fn: 'delete_role', args: { p_role_id: null, p_ip: null } },
+  // EZD-105 (S15 Invite user; Q-0695 rows 61-63): the invite writes and the link read, authenticated only.
+  // accept_invite and invite_status are service_role only (the invitee has no session yet).
+  {
+    fn: 'create_invite',
+    args: {
+      p_email: null,
+      p_name: null,
+      p_role_id: null,
+      p_language: null,
+      p_scope: null,
+      p_secret: null,
+      p_token_sha256: null,
+      p_ip: null,
+    },
+  },
+  {
+    fn: 'resend_invite',
+    args: { p_membership_id: null, p_secret: null, p_token_sha256: null, p_ip: null },
+  },
+  { fn: 'cancel_invite', args: { p_membership_id: null, p_ip: null } },
+  { fn: 'invite_link_secret', args: { p_membership_id: null } },
+  // EZD-138 (Q-0216; Q-0695 row 61): the pending rows' link and code, authenticated only. invite_code_take is
+  // service_role only (the invitee has no session yet).
+  { fn: 'invite_links_for_viewer', args: { p_membership_ids: [] } },
+  // EZD-109 (vault/plans/EZD-109.md section 3): the default event sink's event_log writer, authenticated only.
+  // EZD-109 also gave the seven member and role writes above their trailing p_ip.
+  {
+    fn: 'log_event',
+    args: {
+      p_tenant_id: null,
+      p_action: null,
+      p_object_type: null,
+      p_object_id: null,
+      p_details: null,
+      p_ip: null,
+    },
+  },
   // EZD-108 E4 (vault/plans/EZD-108.md): the own-profile functions, authenticated only.
   { fn: 'update_my_profile', args: { p_language: 'en', p_ipad_input_mode: 'finger' } },
   { fn: 'current_user_has_password', args: {} },
@@ -79,6 +155,8 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     fn: 'update_tenant_identity',
     args: { p_name: 'x', p_license_no: null, p_contact: {}, p_set_logo: false, p_logo_path: null },
   },
+  // EZD-116: the Defaults write path, authenticated only.
+  { fn: 'update_tenant_defaults', args: { p_set: {}, p_remove: [] } },
   // EZD-113 section 3 (vault/plans/EZD-113.md): the customer list, authenticated only.
   { fn: 'list_customers', args: { p_search: '', p_archived: false, p_page: 1 } },
   // EZD-104 (vault/plans/EZD-104.md): the Users page functions, authenticated only.
@@ -94,6 +172,9 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   // EZD-117b section 3 (vault/plans/EZD-117b.md; E3): both take p_search from M3.
   { fn: 'list_projects', args: { p_sort: 'edited', p_search: '' } },
   { fn: 'count_projects', args: { p_search: '' } },
+  // EZD-128 (vault/plans/EZD-128.md Build step 14): the project switcher's recent list, authenticated only.
+  { fn: 'record_project_open', args: { p_project: '00000000-0000-4000-8000-000000000000' } },
+  { fn: 'list_recent_projects', args: { p_limit: 8 } },
   // EZD-118 section 3
   {
     fn: 'create_project',
@@ -138,10 +219,47 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
       p_version: '00000000-0000-4000-8000-000000000000',
     },
   },
+  // EZD-125 (Q-0697): the edit lock functions, authenticated only (sweep_edit_locks is service_role only).
+  {
+    fn: 'acquire_edit_lock',
+    args: { p_project: '00000000-0000-4000-8000-000000000000', p_device_id: null, p_ip: null },
+  },
+  {
+    fn: 'release_edit_lock',
+    args: {
+      p_project: '00000000-0000-4000-8000-000000000000',
+      p_reason: 'stop_editing',
+      p_lock_epoch: null,
+      p_ip: null,
+    },
+  },
+  {
+    fn: 'request_edit_lock',
+    args: { p_project: '00000000-0000-4000-8000-000000000000', p_minutes: 5, p_ip: null },
+  },
+  {
+    fn: 'cancel_edit_request',
+    args: { p_project: '00000000-0000-4000-8000-000000000000', p_ip: null },
+  },
+  {
+    fn: 'respond_edit_request',
+    args: {
+      p_project: '00000000-0000-4000-8000-000000000000',
+      p_request: '00000000-0000-4000-8000-000000000000',
+      p_response: 'keep',
+      p_ip: null,
+    },
+  },
+  { fn: 'read_edit_lock', args: { p_project: '00000000-0000-4000-8000-000000000000' } },
   // EZD-219 step 1 (vault/plans/EZD-219.md): the plan scale setter, authenticated only.
   {
     fn: 'set_plan_scale',
     args: { p_project: '00000000-0000-4000-8000-000000000000', p_scale: 0.5 },
+  },
+  // EZD-214: the phase view setter, authenticated only.
+  {
+    fn: 'set_phase_default',
+    args: { p_project: '00000000-0000-4000-8000-000000000000', p_phase: 'existing' },
   },
   // EZD-299a section 4 T17 (vault/plans/EZD-299a.md): the sync conflict functions, authenticated only.
   {
@@ -163,4 +281,12 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'create_benchmark_project', args: { p_changes: [] } },
   // EZD-135 section 3 (vault/plans/EZD-135.md): the System status backup function, authenticated only.
   { fn: 'system_backup_status', args: {} },
+  // EZD-237 section 3 C1 (vault/plans/EZD-237.md): the benchmark run functions, authenticated only.
+  { fn: 'record_benchmark_run', args: { p_device: {}, p_app_version: 'dev-0', p_results: {} } },
+  { fn: 'list_benchmark_runs', args: { p_page: 1 } },
+  // EZD-130: the Project settings write, authenticated only.
+  {
+    fn: 'update_project_settings',
+    args: { p_project: '00000000-0000-4000-8000-000000000000', p_changes: {} },
+  },
 ];

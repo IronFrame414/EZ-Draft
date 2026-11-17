@@ -27,7 +27,7 @@ describe('EZD-235 model derived', () => {
   const setup = (objects = twoRoomObjects()) => {
     const store = createModelStore({ objects });
     const d = createModelDerived(store);
-    const list = () => planDrawingList(store.getState().objects, { roomAreaSqFt: d.roomAreaSqFt });
+    const list = () => planDrawingList(store.getState().objects, { roomAreaSqFt: d.roomAreaSqFt }, null, null);
     return { store, d, list };
   };
 
@@ -58,7 +58,7 @@ describe('EZD-235 model derived', () => {
 
   test("EZD-235 M3 only the open floor's rooms are computed, and a change elsewhere computes nothing", () => {
     const bench = benchmarkObjects();
-    const open = openFloorId(bench)!.toLowerCase();
+    const open = openFloorId(bench, null)!.toLowerCase();
     const rooms = [...bench].filter(([, v]) => v.type === 'room');
     const levelOf = (v: ObjectValue) => String(v.data.level).toLowerCase();
     const [openId, openValue] = rooms.find(([, v]) => levelOf(v) === open)!;
@@ -129,7 +129,14 @@ describe('EZD-235 model derived', () => {
         geometry: { boundary: [p(0, 0), p(144, 0), p(144, 120), p(0, 120)] },
         status: 'existing',
         level: F1,
-        attributes: { name: 'Lone' },
+        attributes: {
+          name: 'Lone',
+          floorLevel: 0,
+          photos: [],
+          roomType: null,
+          floorFinish: '',
+          ceilingType: null,
+        },
         closureOverride: null,
       },
     };

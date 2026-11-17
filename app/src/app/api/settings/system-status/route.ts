@@ -10,6 +10,7 @@ import {
   loadJobFailures,
   loadWebhookFailures,
 } from '../../../../server/system-status/system-status';
+import { endedSessionResponse } from '../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +37,8 @@ export async function GET(request: Request): Promise<Response> {
     if (!result.ok) return fail(403, 'permission_denied', 'error.not_authorized');
     return Response.json(result.status, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

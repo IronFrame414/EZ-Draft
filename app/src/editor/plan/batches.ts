@@ -3,8 +3,15 @@
 // and kind (segments also per role), in draw order and status colour. No DOM.
 // EZD-204b Build step 6 (vault/plans/EZD-204b.md Decided "Colour"; AC-EZD-204-4): the `flagged` layer in error red.
 // EZD-235 Build step 7 (vault/plans/EZD-235.md Decided "D-Label"; 11 rule 2): `planDrawingList` passes `options` on.
+// EZD-214 (S03 Decisions; 09m Phase switch; Q-0668 (a)): an object whose status the phase view hides is left out of
+// the drawing list; a hidden opening then cuts nothing, so its wall is drawn whole.
+// EZD-729 (AC-EZD-729-1): a shown sink's supply and drain locations join the list while the Plumbing layer is
+// shown (PLUMBING_LOCATION_TYPE in the layer filter).
 import {
+  PLUMBING_LOCATION_TYPE,
   buildDrawingList,
+  plumbingLocationItems,
+  type FixtureObject,
   type DrawingListOptions,
   parseStoredObject,
   type DrawingLayer,
@@ -14,7 +21,9 @@ import {
   type Point,
 } from '@ezdraft/geometry';
 import { ShapeUtils, Vector2 } from 'three';
+import { objectShownBy, type PhaseFilter } from '../../lib/plan/phase-view';
 import type { Objects } from '../model/patches';
+import { resolveOpenFloor } from '../floors/floors';
 import { tokenRgb, type Rgb } from './color';
 import type { Bounds } from './view';
 
@@ -57,31 +66,31 @@ function parsedObjects(objects: Objects): ModelObject[] {
   return out;
 }
 
-function lowestFloor(parsed: readonly ModelObject[]): string | null {
-  let best: { id: string; order: number } | null = null;
-  for (const o of parsed) {
-    if (o.type !== 'floor') continue;
-    const order = o.data.order;
-    if (best === null || order < best.order || (order === best.order && o.id < best.id)) {
-      best = { id: o.id, order };
-    }
-  }
-  return best === null ? null : best.id;
+// EZD-6001 (vault/plans/EZD-6001.md D-Open; Q-0509; Q-0690 (a)): the open floor is the floor the user chose this
+// session when it is still a floor, else the lowest floor (by order, then id); null when there is no floor.
+export function openFloorId(objects: Objects, chosen: string | null): string | null {
+  return resolveOpenFloor(objects, chosen);
 }
 
-export function openFloorId(objects: Objects): string | null {
-  return lowestFloor(parsedObjects(objects));
-}
-
+// EZD-6001: the drawing list of the open floor (`chosen` as in `openFloorId`).
 export function planDrawingList(
   objects: Objects,
-  options: DrawingListOptions = {},
+  options: DrawingListOptions,
+  phase: PhaseFilter | null,
+  chosen: string | null,
 ): DrawingList | null {
   const parsed = parsedObjects(objects);
-  const level = lowestFloor(parsed);
+  const level = resolveOpenFloor(objects, chosen);
   if (level === null) return null;
-  return buildDrawingList(
-    { objects: parsed },
+  const shown =
+    phase === null
+      ? parsed
+      : parsed.filter((o) => {
+          const d = o.data as { status?: unknown; attributes?: { kind?: unknown } };
+          return objectShownBy(phase, o.type, d.status, d.attributes?.kind);
+        });
+  const list = buildDrawingList(
+    { objects: shown },
     {
       level,
       dimensionTextPt: PLAN_DIMENSION_TEXT_PT,
@@ -91,9 +100,22 @@ export function planDrawingList(
     [],
     options,
   );
+  const plumbing = shown.flatMap((o) =>
+    o.type === 'fixture' &&
+    o.data.level.toLowerCase() === level.toLowerCase() &&
+    objectShownBy(phase, PLUMBING_LOCATION_TYPE, o.data.status)
+      ? plumbingLocationItems(o as FixtureObject)
+      : [],
+  );
+  return plumbing.length === 0 ? list : { ...list, items: [...list.items, ...plumbing] };
 }
 
-function arcPoints(center: Point, radius: number, startAngle: number, endAngle: number): Point[] {
+export function arcPoints(
+  center: Point,
+  radius: number,
+  startAngle: number,
+  endAngle: number,
+): Point[] {
   let sweep = endAngle - startAngle;
   if (sweep <= 0) sweep += 360;
   const n = Math.max(1, Math.ceil(sweep / ARC_SEGMENT_DEG));

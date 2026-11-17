@@ -1,5 +1,7 @@
 'use client';
 // Tool rail: controlled, no state, CSS-only tooltip (vault/plans/EZD-012a.md Step 5; 04 Tool rail).
+// EZD-5605 (D-Tools off): with `only` set, every other tool is disabled (greyed) too.
+// EZD-225 (S06:48; S06 board line 93; Q-0697 decisions 05): the tools in `paused` are disabled and shown at 55%.
 import { Icon } from '../icon/Icon';
 import { useT } from '../../lib/messages';
 import type { RailEntry, RailTool } from './rail-types';
@@ -12,6 +14,8 @@ export function ToolRail({
   pressedIds,
   onSelect,
   disabled,
+  only,
+  paused,
 }: {
   top: RailEntry[];
   bottom: RailTool[];
@@ -19,6 +23,8 @@ export function ToolRail({
   pressedIds?: readonly string[];
   onSelect: (id: string) => void;
   disabled?: boolean;
+  only?: string;
+  paused?: readonly string[];
 }) {
   const t = useT();
   const renderTool = (tool: RailTool) => (
@@ -27,10 +33,11 @@ export function ToolRail({
         type="button"
         className={styles.tool}
         data-rail-tool={tool.id}
+        data-rail-paused={paused?.includes(tool.id) ? '' : undefined}
         aria-label={t(tool.label)}
         aria-keyshortcuts={tool.shortcut}
         aria-pressed={tool.id === activeId || (pressedIds ?? []).includes(tool.id)}
-        disabled={disabled}
+        disabled={disabled || paused?.includes(tool.id) || (!!only && tool.id !== only)}
         onClick={() => onSelect(tool.id)}
       >
         <Icon name={tool.icon} size={21} />

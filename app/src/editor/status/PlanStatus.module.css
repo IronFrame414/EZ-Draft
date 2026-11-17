@@ -158,3 +158,30 @@
     min-height: var(--ez-touch-target);
   }
 }
+
+/* EZD-214 (board S03Plan.dc.html:42-44,164 .ssg, .ssi, .ssion): the View control, a two-button segment; the
+   active button is white with ink text and the segment shadow. */
+.segment {
+  display: flex;
+  padding: 2px;
+  gap: 2px;
+  background: var(--ez-hover);
+  border-radius: var(--ez-radius-6);
+}
+
+.segmentButton {
+  border: 0;
+  background: transparent;
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  color: var(--ez-slate-500);
+  padding: 2px 8px;
+  border-radius: var(--ez-radius-4);
+  cursor: pointer;
+}
+
+.segmentButton[aria-pressed='true'] {
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  box-shadow: var(--ez-shadow-segment);
+}

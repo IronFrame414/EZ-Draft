@@ -152,13 +152,15 @@ test.describe('EZD-120c editor route', () => {
     await expect.poll(() => new URL(page.url()).pathname).toBe(`/projects/${ids.P1}`);
     await expect(page.getByText('bravo')).toBeVisible();
     await page.waitForTimeout(500);
+    // EZD-125 (04:90; AC-EZD-125-4): the open also takes the edit lock.
     expect(urls.map((u) => new URL(u).pathname)).toEqual([
       `/api/projects/${ids.P1}/model`,
+      `/api/projects/${ids.P1}/lock`,
       '/api/sync-conflicts',
     ]);
   });
 
-  test('EZD-120c B2 the editor shows the project, the client, the working copy, Saved and the Plan tab, with the drawing rail, the empty inspector and no left panel', async ({
+  test('EZD-120c B2 the editor shows the project, the client, the working copy, Saved and the Plan tab, with the drawing rail, the empty inspector and the left panel (EZD-218)', async ({
     page,
     signInAs,
   }) => {
@@ -170,16 +172,17 @@ test.describe('EZD-120c editor route', () => {
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="top"] [data-rail-tool]'),
-    ).toHaveCount(6);
+    ).toHaveCount(9);
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
     ).toHaveCount(1);
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
     ).toHaveAttribute('data-rail-tool', 'assistant');
-    await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(0);
+    // EZD-218: the plan editor has its left panel (S03 Layout).
+    await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(1);
     await expect(page.locator('[data-shell-region="inspector"]')).toHaveCount(1);
-    await expect(page.locator('[data-status-item]')).toHaveCount(4);
+    await expect(page.locator('[data-status-item]')).toHaveCount(6);
     await expect(page.getByTestId('plan-empty-hint')).toHaveText(
       'Draw walls with Wall (W) or Room rectangle (R).',
     );

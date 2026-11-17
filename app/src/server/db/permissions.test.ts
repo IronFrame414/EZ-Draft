@@ -190,21 +190,30 @@ describe('EZD-101 permission and role tables', () => {
     const before = (await rolesOf(tenantId)).find((r) => r.preset === 'owner');
 
     const refused = { code: 'P0001', message: 'preset_role_change_refused' };
+    // EZD-107: members have no update or delete policy on role (writes go through the definer functions),
+    // so a member's direct write matches no row; the service role still meets the guard.
     const clients: [string, ReturnType<typeof adminDb> | Session['serverDb']][] = [
       ['admin', adminDb()],
       ['member', session.serverDb],
     ];
     for (const [who, db] of clients) {
+      const expectRefused = (r: { error: unknown; data: unknown }, what: string) => {
+        if (who === 'admin') expect(r.error, `${who} ${what}`).toMatchObject(refused);
+        else {
+          expect(r.error, `${who} ${what}`).toBeNull();
+          expect(r.data, `${who} ${what}`).toEqual([]);
+        }
+      };
       const rename = await db.from('role').update({ name: 'Renamed' }).eq('id', ownerId).select();
-      expect(rename.error, `${who} rename`).toMatchObject(refused);
+      expectRefused(rename, 'rename');
       const reset = await db
         .from('role')
         .update({ default_permissions: ['view_projects'] })
         .eq('id', ownerId)
         .select();
-      expect(reset.error, `${who} default_permissions`).toMatchObject(refused);
+      expectRefused(reset, 'default_permissions');
       const del = await db.from('role').delete().eq('id', ownerId).select();
-      expect(del.error, `${who} delete`).toMatchObject(refused);
+      expectRefused(del, 'delete');
     }
 
     // A custom role cannot be turned into a preset.
@@ -235,8 +244,11 @@ describe('EZD-101 permission and role tables', () => {
     expect(after).toEqual(before);
 
     // A tenant delete cascades through the guard.
-    await sql`delete from public.membership where tenant_id = ${tenantId}::uuid`;
-    await sql`delete from public.tenant where id = ${tenantId}::uuid`;
+    // One transaction: EZD-106's last-holder guard passes a company delete when the tenant is gone at commit.
+    await sql.begin(async (tx) => {
+      await tx`delete from public.membership where tenant_id = ${tenantId}::uuid`;
+      await tx`delete from public.tenant where id = ${tenantId}::uuid`;
+    });
     const left = await sql`select 1 from public.role where tenant_id = ${tenantId}::uuid`;
     expect(left).toHaveLength(0);
   });
@@ -332,15 +344,20 @@ describe('EZD-101 permission and role tables', () => {
     });
 
     it('T8 custom role: create, isolation, delete, held role refused', async () => {
-      const created = await a.session.serverDb
-        .from('role')
-        .insert({
-          tenant_id: tenantA,
-          name: 'Kitchen lead',
-          default_permissions: ['view_projects', 'add_markup'],
-        })
-        .select()
-        .single();
+      // EZD-107: a member's direct insert is refused (no insert policy); the role is made by create_role.
+      const direct = await a.session.serverDb.from('role').insert({
+        tenant_id: tenantA,
+        name: 'Direct insert',
+        default_permissions: ['view_projects'],
+      });
+      expect(direct.error?.code).toBe(PRIVILEGE);
+      const made = await a.session.serverDb.rpc('create_role', {
+        p_name: 'Kitchen lead',
+        p_granted: ['view_projects', 'add_markup'],
+      });
+      expect(made.error).toBeNull();
+      const madeId = (made.data as { roleId: string }).roleId;
+      const created = await adminDb().from('role').select().eq('id', madeId).single();
       expect(created.error).toBeNull();
       const role = created.data as RoleRow & { tenant_id: string };
       expect(role.preset).toBeNull();
@@ -357,12 +374,12 @@ describe('EZD-101 permission and role tables', () => {
       // Held by a membership: the delete is refused by the foreign key.
       const other = await createMember({ tenantId: tenantA, scope: 'all' });
       await sql`update public.membership set role_id = ${role.id}::uuid where id = ${other.membershipId}::uuid`;
-      const held = await a.session.serverDb.from('role').delete().eq('id', role.id).select();
+      const held = await adminDb().from('role').delete().eq('id', role.id).select();
       expect(held.error?.code).toBe('23503');
 
       // Released: the delete removes one row.
       await sql`update public.membership set role_id = null where id = ${other.membershipId}::uuid`;
-      const gone = await a.session.serverDb.from('role').delete().eq('id', role.id).select();
+      const gone = await adminDb().from('role').delete().eq('id', role.id).select();
       expect(gone.error).toBeNull();
       expect(gone.data).toHaveLength(1);
     });

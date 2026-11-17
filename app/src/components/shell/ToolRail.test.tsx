@@ -183,10 +183,10 @@ describe('EZD-210b ToolRail disabled', () => {
     const off = render(
       <ToolRail top={drawing} bottom={[]} activeId={null} onSelect={fn} disabled />,
     );
-    expect(count(off, '<button')).toBe(5);
-    expect(count(off, 'disabled=""')).toBe(5);
+    expect(count(off, '<button')).toBe(7);
+    expect(count(off, 'disabled=""')).toBe(7);
     const on = render(<ToolRail top={drawing} bottom={[]} activeId={null} onSelect={fn} />);
-    expect(count(on, '<button')).toBe(5);
+    expect(count(on, '<button')).toBe(7);
     expect(count(on, 'disabled=""')).toBe(0);
     const css = squash(readFileSync(path.join(here, 'ToolRail.module.css'), 'utf8'));
     const rule = [...css.matchAll(/([^{}]*)\{([^{}]*)\}/g)].find(
@@ -235,5 +235,30 @@ describe('EZD-5603a ToolRail assistant toggle', () => {
     );
     expect(buttonFor(off, 'assistant')).toContain('aria-pressed="false"');
     expect(buttonFor(off, 'select')).toContain('aria-pressed="true"');
+  });
+});
+
+describe('EZD-225 ToolRail paused tools', () => {
+  it('EZD-225 U2 paused tools are disabled and marked; the others stay on', () => {
+    const html = render(
+      <ToolRail top={top} bottom={[help]} activeId="select" onSelect={fn} paused={['cabinets']} />,
+    );
+    const paused = buttonFor(html, 'cabinets');
+    expect(paused).toMatch(/data-rail-paused=""/);
+    expect(paused).toMatch(/disabled=""/);
+    for (const id of ['select', 'help']) {
+      expect(buttonFor(html, id)).not.toMatch(/data-rail-paused/);
+      expect(buttonFor(html, id)).not.toMatch(/disabled=""/);
+    }
+    const none = render(<ToolRail top={top} bottom={[help]} activeId="select" onSelect={fn} />);
+    expect(none).not.toMatch(/data-rail-paused/);
+  });
+
+  it('EZD-225 U2 CSS: a paused tool shows at 55% in its own colour (board S06 line 93)', () => {
+    const css = readFileSync(path.join(here, 'ToolRail.module.css'), 'utf8');
+    const rule = css.match(/\.tool\[data-rail-paused\]\s*\{([^}]*)\}/);
+    expect(rule).not.toBeNull();
+    expect(rule![1]).toMatch(/opacity:\s*0?\.55;/);
+    expect(rule![1]).toMatch(/color:\s*var\(--ez-slate-700\);/);
   });
 });

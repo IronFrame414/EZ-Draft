@@ -122,15 +122,22 @@ const byQueue = (a: OutboxEntry, b: OutboxEntry) =>
 
 // Decided "Batch": the oldest entry's project and lock generation, at most MAX_CHANGES_PER_SAVE; a delete of an
 // object the server never saved (baseSeq 0) is dropped, not sent (P120a parseSaveRequest).
+// EZD-6001 D-Batch (model_object_level_check (a)): within that project and lock generation, every floor upsert (new,
+// restored or renamed) comes first in its queue order, then the rest in queue order, before the limit applies; so a
+// floor is always saved before or with the objects that name it.
 export function pickBatch(entries: OutboxEntry[]): Batch | null {
   const sorted = [...entries].sort(byQueue);
   const first = sorted[0];
   if (first === undefined) return null;
+  const same = sorted.filter(
+    (e) => e.projectId === first.projectId && e.lockEpoch === first.lockEpoch,
+  );
+  const isFloor = (e: OutboxEntry) => e.value?.type === 'floor';
+  const ordered = [...same.filter(isFloor), ...same.filter((e) => !isFloor(e))];
   const send: OutboxEntry[] = [];
   const drop: OutboxEntry[] = [];
-  for (const e of sorted) {
+  for (const e of ordered) {
     if (send.length + drop.length >= MAX_CHANGES_PER_SAVE) break;
-    if (e.projectId !== first.projectId || e.lockEpoch !== first.lockEpoch) continue;
     if (e.value === null && e.baseSeq === 0) drop.push(e);
     else send.push(e);
   }

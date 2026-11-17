@@ -18,11 +18,11 @@ import {
   assistantShown,
   canSendPrompt,
   cutTurn,
-  failureFrom,
   historyFrom,
   type AssistantEntry,
   type AssistantUi,
 } from './assistant-ui';
+import { failureFrom } from './assistant-failure';
 
 const reply = (n: number, message = `m${n}`): AssistantEntry => ({
   kind: 'reply',
@@ -73,7 +73,11 @@ describe('EZD-5603a assistant-ui', () => {
       error: { code, message_key },
       ...extra,
     });
-    const failed = (messageKey: string, profileLink: boolean, costMicroUsd: number | null = null) => ({
+    const failed = (
+      messageKey: string,
+      profileLink: boolean,
+      costMicroUsd: number | null = null,
+    ) => ({
       kind: 'failed',
       messageKey,
       profileLink,
@@ -134,6 +138,9 @@ describe('EZD-5603a assistant-ui', () => {
       model: 'sonnet',
       phase: 'idle',
       profileOpen: false,
+      photo: null,
+      photoProblem: null,
+      photoPreparing: false,
       ...p,
     });
     expect(canSendPrompt(ui({ draft: '' }))).toBe(false);

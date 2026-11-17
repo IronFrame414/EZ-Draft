@@ -8,6 +8,7 @@ import { checkLogoObject, currentTenantId } from '../../../../../../server/compa
 import { reportRouteFailure } from '../../../../../../server/errors/route-failure';
 import { requireApiPermission } from '../../../../../../server/permissions';
 import { signedDownloadUrl } from '../../../../../../server/storage';
+import { endedSessionResponse } from '../../../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,6 +47,8 @@ export async function POST(request: Request): Promise<Response> {
       { status: 200, headers },
     );
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportRouteFailure(e, ROUTE);
     return fail(500, 'db_unavailable');
   }

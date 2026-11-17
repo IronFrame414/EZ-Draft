@@ -22,11 +22,13 @@ import {
   type PickState,
 } from '../tools/index';
 import { DOOR, baseObjects, F1, uid, withWalls } from '../tools/test-utils/fixtures';
+import { MEASURE_RAIL_TOOL } from '../tools/tool-defs';
 import {
   SAME_SPOT_PX,
   SELECT_RAIL_TOOL,
   createSelectionController,
   editorRail,
+  PAUSED_TOOL_IDS,
   shareReceiver,
   type SelectionBox,
   type SelectionDeps,
@@ -141,6 +143,8 @@ function fakeDrawing(o: {
       doorTarget: null,
       openingWidth: null,
       entry: null,
+      fixtureChoice: null,
+      utilities: null,
     }),
     keyDown: (e) => {
       keys.push(e);
@@ -366,7 +370,7 @@ describe('EZD-208a selection controller', () => {
       label: 'office.tool.select',
       shortcut: 'V',
     });
-    const all = [SELECT_RAIL_TOOL, ...DRAWING_RAIL_TOOLS];
+    const all = [SELECT_RAIL_TOOL, ...DRAWING_RAIL_TOOLS, MEASURE_RAIL_TOOL];
     const base = { canvasFailed: false, controllerEnabled: true };
     for (const canEdit of [true, false]) {
       const loading = editorRail({ ...base, editor: 'loading', canEdit });
@@ -384,6 +388,9 @@ describe('EZD-208a selection controller', () => {
       'room-rect',
       'door',
       'window',
+      'fixtures',
+      'sketch',
+      'measure',
     ]);
     expect(edit?.disabled).toBe(false);
     const off = editorRail({ ...base, editor: 'ready', canEdit: true, controllerEnabled: false });
@@ -391,11 +398,53 @@ describe('EZD-208a selection controller', () => {
     expect(off?.disabled).toBe(true);
 
     const view = editorRail({ ...base, editor: 'ready', canEdit: false });
-    expect(view?.tools).toEqual([SELECT_RAIL_TOOL]);
+    expect(view?.tools).toEqual([SELECT_RAIL_TOOL, MEASURE_RAIL_TOOL]);
     expect(view?.disabled).toBe(false);
     const failed = editorRail({ ...base, editor: 'ready', canEdit: false, canvasFailed: true });
-    expect(failed?.tools).toEqual([SELECT_RAIL_TOOL]);
+    expect(failed?.tools).toEqual([SELECT_RAIL_TOOL, MEASURE_RAIL_TOOL]);
     expect(failed?.disabled).toBe(true);
+  });
+
+  it('EZD-225 U1 editorRail: loading disabled, Edit model without the lock paused, no Edit model Select only', () => {
+    const all = [SELECT_RAIL_TOOL, ...DRAWING_RAIL_TOOLS, MEASURE_RAIL_TOOL];
+    const base = { canvasFailed: false, controllerEnabled: true };
+    const drawingIds = DRAWING_RAIL_TOOLS.map((t) => t.id);
+    // AC-EZD-225-1 (S03:139): while loading every tool is disabled, whoever the viewer is.
+    for (const canEditModel of [true, false]) {
+      const loading = editorRail({ ...base, editor: 'loading', canEdit: false, canEditModel });
+      expect(loading?.tools).toEqual(all);
+      expect(loading?.disabled).toBe(true);
+      expect(loading?.paused).toBeUndefined();
+    }
+    // AC-EZD-225-3 (S06:48; Q-0697 05): Edit model, lock held by someone else: every drawing tool shows paused;
+    // Select and Measure are not paused and the rail is not disabled.
+    const locked = editorRail({ ...base, editor: 'ready', canEdit: false, canEditModel: true });
+    expect(locked?.tools).toEqual(all);
+    expect(locked?.disabled).toBe(false);
+    expect(locked?.paused).toEqual(drawingIds);
+    expect(locked?.paused).not.toContain('select');
+    expect(locked?.paused).not.toContain('measure');
+    expect(PAUSED_TOOL_IDS).toEqual(drawingIds);
+    const lockedFailed = editorRail({
+      ...base,
+      editor: 'ready',
+      canEdit: false,
+      canEditModel: true,
+      canvasFailed: true,
+    });
+    expect(lockedFailed?.disabled).toBe(true);
+    // AC-EZD-225-2 (S03:145; Q-0630 row 9; Q-0214 hidden, not greyed): no drawing tool at all, nothing paused.
+    const view = editorRail({ ...base, editor: 'ready', canEdit: false, canEditModel: false });
+    expect(view?.tools).toEqual([SELECT_RAIL_TOOL, MEASURE_RAIL_TOOL]);
+    expect(view?.paused).toBeUndefined();
+    // The holder: every tool on, nothing paused (S06:78).
+    const holder = editorRail({ ...base, editor: 'ready', canEdit: true, canEditModel: true });
+    expect(holder?.tools).toEqual(all);
+    expect(holder?.disabled).toBe(false);
+    expect(holder?.paused).toBeUndefined();
+    expect(
+      editorRail({ ...base, editor: 'no-access', canEdit: false, canEditModel: true }),
+    ).toBeNull();
   });
 
   it('EZD-208a C10 shareReceiver', () => {

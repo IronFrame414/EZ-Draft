@@ -6,3 +6,4 @@
 *.dxf text eol=lf
 *.heic binary
 *.jpg binary
+vault/build/assumptions.md merge=union

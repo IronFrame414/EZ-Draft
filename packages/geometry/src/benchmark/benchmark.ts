@@ -5,6 +5,7 @@
 // windows carry the v4 opening fields at their upgrade values and `axis: null`.
 import {
   CURRENT_SCHEMA_VERSION,
+  newRoomAttributes,
   OBJECT_STATUSES,
   type OpeningData,
   type Point,
@@ -126,7 +127,7 @@ export function generateBenchmarkModel(): StoredObject[] {
           },
           status: 'existing',
           level,
-          attributes: { name: `Room ${roomNumber}` },
+          attributes: newRoomAttributes(`Room ${roomNumber}`),
           closureOverride: null,
         };
         push('room', data);

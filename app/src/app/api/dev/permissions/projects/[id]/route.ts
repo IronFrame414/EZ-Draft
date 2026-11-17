@@ -9,6 +9,7 @@ import { requireApiSession } from '../../../../../../server/auth/session';
 import { createSessionClient } from '../../../../../../server/auth/supabase-server';
 import { reportError } from '../../../../../../server/errors/report';
 import { requireApiPermission } from '../../../../../../server/permissions';
+import { endedSessionResponse } from '../../../../../../server/auth/ended-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,6 +60,8 @@ export async function PATCH(
     if (!data) return notFound();
     return Response.json({ project: { id: data.id, name: data.name } }, { status: 200, headers });
   } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
     await reportError(e, { source: 'function', location: 'api.dev.permissions' });
     return dbUnavailable();
   }

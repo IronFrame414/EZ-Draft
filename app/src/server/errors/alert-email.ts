@@ -3,10 +3,13 @@
 // From is EMAIL_FROM). No person presses Send, so there is no sender screen for the copy link of Q-0035;
 // sendEmail still returns the link and this module ignores it.
 // No acting user, so sentBy is null and no sender copy is sent (EZD-389, Q-0701).
+// EZD-135b (vault/plans/EZD-135b.md Decided "Email link"; Q-0069 (a)): job and webhook alerts open the
+// System status page.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../db/database.types';
 import { sendEmail, toSubjectLine } from '../email/send';
 import { getT } from '../messages/get-t';
+import { SYSTEM_STATUS_PATH } from '../../lib/system-status/system-status';
 import { alertRecipients, type AlertKind } from './alert-recipients';
 import { appOrigin } from './app-origin';
 import { captureToSentry } from './sentry';
@@ -34,6 +37,10 @@ export type AlertParams =
 function content(params: AlertParams, env: Env) {
   const t = getT('office', 'en');
   const openApp = { url: appOrigin(env), label: t('office.alert.open_app') };
+  const statusLink = {
+    url: appOrigin(env) + SYSTEM_STATUS_PATH,
+    label: t('office.alert.open_app'),
+  };
   if (params.kind === 'error') {
     const paragraphs = [
       t('office.alert.error.body', { source: params.source, location: params.location }),
@@ -61,7 +68,7 @@ function content(params: AlertParams, env: Env) {
           projectId: params.projectId ?? 'none',
         }),
       ],
-      link: openApp,
+      link: statusLink,
     };
   }
   return {
@@ -74,7 +81,7 @@ function content(params: AlertParams, env: Env) {
         status: params.status,
       }),
     ],
-    link: openApp,
+    link: statusLink,
   };
 }
 

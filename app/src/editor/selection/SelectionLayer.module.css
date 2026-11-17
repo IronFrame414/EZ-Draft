@@ -31,7 +31,11 @@
   stroke-dasharray: 6 4;
 }
 
+/* EZD-218 (vault/build/assumptions.md EZD-218): the bar keeps board S03dTablet's size; with the left panel the
+   iPad canvas is narrower than the bar, so it is drawn above the next panel instead of squeezing its buttons. */
 .bar {
+  position: relative;
+  z-index: 1;
   align-self: flex-start;
   margin: 14px 0 0 16px;
   display: flex;
@@ -46,6 +50,7 @@
 
 .button {
   box-sizing: border-box;
+  flex: none;
   width: 62px;
   height: 56px;
   display: flex;

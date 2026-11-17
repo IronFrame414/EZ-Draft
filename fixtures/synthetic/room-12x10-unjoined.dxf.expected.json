@@ -1,0 +1,38 @@
+{
+  "fixture": "room-12x10-unjoined.dxf",
+  "generatedBy": "scripts/fixtures/generate-unjoined.mjs",
+  "sources": [
+    "Ticket EZD-302 Done when: the synthetic fixture with one unjoined wall scores that wall below the others",
+    "Q-0066 (b), vault/plans/EZD-016b.md Depends on: EZD-302 writes the variant with the exported room, planDrawing and writeDxf",
+    "fixtures/synthetic/room-12x10.dxf.expected.json: every value not listed under change",
+    "08 Imports, Polycam Space scan: about 0.5 in tolerance"
+  ],
+  "units": "in",
+  "tolerances": {
+    "lengthIn": 0.015625,
+    "joinIn": 0.5
+  },
+  "change": {
+    "wall": "E",
+    "gapIn": 2,
+    "lines": {
+      "WALLS": [
+        [[144, 0], [144, 118]],
+        [[148.5, -4.5], [148.5, 118]]
+      ]
+    },
+    "replaces": [
+      [[144, 0], [144, 120]],
+      [[148.5, -4.5], [148.5, 124.5]]
+    ]
+  },
+  "semantic": {
+    "walls": [
+      { "side": "S", "interiorLengthIn": 144, "thicknessIn": 4.5, "joinedEnds": 2 },
+      { "side": "E", "interiorLengthIn": 118, "thicknessIn": 4.5, "joinedEnds": 1 },
+      { "side": "N", "interiorLengthIn": 144, "thicknessIn": 4.5, "joinedEnds": 2 },
+      { "side": "W", "interiorLengthIn": 120, "thicknessIn": 4.5, "joinedEnds": 2 }
+    ],
+    "unjoinedWall": "E"
+  }
+}

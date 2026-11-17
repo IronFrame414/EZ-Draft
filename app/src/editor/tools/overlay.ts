@@ -5,15 +5,19 @@
 // "Overlay writes").
 // EZD-212b (vault/plans/EZD-212b.md D9): the dashed Move preview path.
 // EZD-212c (vault/plans/EZD-212c.md D8): resize handles, wall chip leaders and ticks, chips and the size chip.
+// EZD-223 (S03 Sketch): the page's sketch strokes and the stroke being drawn, as one path.
+// EZD-231 (04 Tool rail Measure): the measure is the band; its distance chip sits 16 px above the band's middle.
 import {
   doorSymbol,
   formatChipDistance,
   formatLength,
   openingSpan,
+  sketchPoints,
   PLAN_DISPLAY_DENOMINATOR,
   wallFaceLines,
   type OpeningObject,
   type PickShape,
+  type SketchShape,
   type Point,
   type SnapKind,
 } from '@ezdraft/geometry';
@@ -78,8 +82,8 @@ export type SelectionElements = {
   size: ChipElements;
 };
 
-const n = (v: number): string => String(Math.round(v * 10) / 10);
-const xy = (p: Point): string => `${n(p.x)} ${n(p.y)}`;
+export const n = (v: number): string => String(Math.round(v * 10) / 10);
+export const xy = (p: Point): string => `${n(p.x)} ${n(p.y)}`;
 const add = (p: Point, u: Point, k: number): Point => ({ x: p.x + u.x * k, y: p.y + u.y * k });
 
 function unit(v: Point): Point {
@@ -370,11 +374,24 @@ export function previewPath(
   if (shapes.length === 0) return null;
   return shapes
     .map((s) =>
-      s.kind === 'quad'
+      s.kind !== 'bar'
         ? `M ${s.points.map((q) => xy(toScreen(q))).join(' L ')} Z`
         : `M ${xy(toScreen(s.from))} L ${xy(toScreen(s.to))}`,
     )
     .join(' ');
+}
+
+export function sketchPath(
+  shapes: readonly SketchShape[],
+  live: readonly Point[] | null,
+  toScreen: (p: Point) => Point,
+): string | null {
+  const runs = shapes.map((s) => sketchPoints(s));
+  if (live !== null && live.length > 0) runs.push([...live]);
+  const parts = runs
+    .filter((r) => r.length > 0)
+    .map((r) => `M ${r.map((p) => xy(toScreen(p))).join(' L ')}`);
+  return parts.length === 0 ? null : parts.join(' ');
 }
 
 export function createToolOverlay(
@@ -384,6 +401,8 @@ export function createToolOverlay(
     opening?: OpeningElements;
     preview?: OverlayElement;
     selection?: SelectionElements;
+    sketch?: OverlayElement;
+    measure?: ChipElements;
   },
   toScreen: (p: Point) => Point,
 ): { draw(frame: DrawingFrame | null): void } {
@@ -391,6 +410,24 @@ export function createToolOverlay(
     draw(frame) {
       if (els.opening !== undefined) drawOpening(els.opening, frame, toScreen);
       if (els.selection !== undefined) drawSelection(els.selection, frame, toScreen);
+      if (els.sketch !== undefined) {
+        const d = sketchPath(frame?.sketch?.shapes ?? [], frame?.sketch?.live ?? null, toScreen);
+        if (d === null) els.sketch.setAttribute('display', 'none');
+        else {
+          els.sketch.setAttribute('d', d);
+          els.sketch.removeAttribute('display');
+        }
+      }
+      if (els.measure !== undefined) {
+        const m = frame?.measure;
+        let place: ChipPlace | null = null;
+        if (m && frame.from !== null && frame.to !== null) {
+          const a = toScreen(frame.from);
+          const b = toScreen(frame.to);
+          place = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 - 16, text: m };
+        }
+        showChip(els.measure, place);
+      }
       if (els.preview !== undefined) {
         const d = previewPath(frame?.preview ?? [], toScreen);
         if (d === null) {

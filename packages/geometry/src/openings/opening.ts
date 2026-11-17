@@ -1,7 +1,7 @@
 // EZD-204a Build step 4 (vault/plans/EZD-204a.md section 1, Decided "createOpeningData", "autoRoughOpening",
 // "Flips", "isOpeningFlagged", "isVerticalLine / leftEndIsLow", "Hand meaning", "Swing meaning"; Q-0630 question 1
 // row 3, rows 4, 5, 6; Q-0633 G6; Q-0641 rows 1, 3; Q-0642 rows 2, 3; 03g): new openings, flips and the left end.
-import type { DoorSwing, ModelObject, OpeningData, Point } from '../schema';
+import type { DoorSwing, ModelObject, ObjectStatus, OpeningData, Point } from '../schema';
 import { coordsEqual } from '../tolerance';
 import type { WallLine, WallObject } from '../walls/wall';
 
@@ -26,6 +26,8 @@ export function createOpeningData(input: {
   host: WallObject;
   center: Point;
   swing?: DoorSwing;
+  // EZD-214: the phase view's status for a new opening; Existing when not given.
+  status?: ObjectStatus;
 }): OpeningData {
   const door = input.kind === 'door';
   const size = door ? DEFAULT_DOOR_SIZE : DEFAULT_WINDOW_SIZE;
@@ -35,7 +37,7 @@ export function createOpeningData(input: {
       hostWallId: input.host.id,
       axis: null,
     },
-    status: 'existing',
+    status: input.status ?? 'existing',
     level: input.host.data.level,
     attributes: {
       kind: input.kind,

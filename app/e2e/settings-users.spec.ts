@@ -316,18 +316,32 @@ test.describe('EZD-104 users table', () => {
     await addBulkMembers(t1, 54, prefix);
     await signInAs(v.email);
     await page.goto('/settings/users');
-    const main = page.locator('main[data-settings-page="users"]');
+    // EZD-106: every row has a More (…) button, so a 50-row page cannot show all its targets at once; each
+    // region is checked while it is in view.
     await expect(rows(page)).toHaveCount(50);
-    expect(await expectTouchTargets(page, main)).toBe(4);
+    expect(await expectTouchTargets(page, tid(page, 'users-search-box'))).toBe(1);
+    expect(await expectTouchTargets(page, tid(page, 'users-pager'))).toBe(2);
+    expect(await expectTouchTargets(page, rows(page).first())).toBe(1);
     await tid(page, 'users-next').click();
     await expect(rows(page)).toHaveCount(6);
     await tid(page, 'users-table').evaluate((el) => {
       el.scrollTop = el.scrollHeight;
     });
-    expect(await expectTouchTargets(page, main)).toBe(6);
+    // The invited row: Resend, Copy link and More.
+    expect(await expectTouchTargets(page, rows(page).last())).toBe(3);
+    expect(await expectTouchTargets(page, tid(page, 'users-pager'))).toBe(2);
     await rowOf(page, 'Zed Owner').click();
     await expect(tid(page, 'users-inspector-name')).toHaveText('Zed Owner');
-    expect(await expectTouchTargets(page, page.getByTestId('users-inspector'))).toBe(1);
+    expect(await expectTouchTargets(page, tid(page, 'users-inspector-head'))).toBe(1);
+    expect(await expectTouchTargets(page, tid(page, 'users-role-field'))).toBe(1);
+    expect(await expectTouchTargets(page, tid(page, 'users-language'))).toBe(2);
+    const groups = page.getByTestId('users-group');
+    const sizes = [7, 5, 5, 4, 6, 10];
+    for (let i = 0; i < sizes.length; i++) {
+      await groups.nth(i).scrollIntoViewIfNeeded();
+      expect(await expectTouchTargets(page, groups.nth(i))).toBe(sizes[i]);
+    }
+    expect(await expectTouchTargets(page, tid(page, 'users-inspector-footer'))).toBe(2);
 
     const t2 = await createTenant();
     const solo = await addUser(t2, { preset: 'owner', name: 'Solo Owner' });
@@ -335,7 +349,10 @@ test.describe('EZD-104 users table', () => {
     await soloSession.page.goto('/settings/users');
     await expect(soloSession.page.getByTestId('user-row')).toHaveCount(1);
     const soloMain = soloSession.page.locator('main[data-settings-page="users"]');
-    expect(await expectTouchTargets(soloSession.page, soloMain)).toBe(3);
+    // EZD-106: the row's More (…) button is the fourth. EZD-107: the Roles row adds the four preset cards
+    // and New role. EZD-105: the Invite user button after the search.
+    await expect(soloSession.page.getByTestId('role-new')).toBeVisible();
+    expect(await expectTouchTargets(soloSession.page, soloMain)).toBe(10);
   });
 
   test('B9 pager over 50 rows keeps the search', async ({ page, signInAs }) => {

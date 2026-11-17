@@ -18,6 +18,9 @@ export async function setPermissions(
     permission_key: key,
     granted: on.has(key),
   }));
-  await sql`delete from public.user_permission where membership_id = ${membershipId}::uuid`;
-  await sql`insert into public.user_permission ${sql(rows, 'tenant_id', 'membership_id', 'permission_key', 'granted')}`;
+  // One transaction: EZD-106's deferred last-holder guard sees the final rows, not the empty middle.
+  await sql.begin(async (tx) => {
+    await tx`delete from public.user_permission where membership_id = ${membershipId}::uuid`;
+    await tx`insert into public.user_permission ${tx(rows, 'tenant_id', 'membership_id', 'permission_key', 'granted')}`;
+  });
 }

@@ -33,7 +33,6 @@ export default async function SignInPage({
       <MessagesProvider language={language} messages={catalogFor('sign_in', language)}>
         <div className={styles.card} data-testid="sign-in-card">
           <LanguageSwitch language={language} />
-          <h1 className={styles.title}>{t('common.sign_in.title')}</h1>
           <SignInForm
             initialEmail={initialEmail}
             initialError={e === 'no_access' ? 'no_access' : null}

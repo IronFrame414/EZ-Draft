@@ -54,6 +54,7 @@ const INTERNAL = [
   'version.reverted',
   'cleanup.deleted',
   'room.closure_overridden',
+  'model.ai_change_accepted',
 ];
 const LOG_ONLY = ['catalog_item.created', 'detail.placed'];
 
@@ -64,7 +65,7 @@ const keysOfKind = (k: string) => keys().filter((n) => kindOf(n) === k);
 describe('EZD-022 event registry', () => {
   it('T1 registry holds every Hooks name @smoke', () => {
     expect(WEBHOOK).toHaveLength(12);
-    expect(INTERNAL).toHaveLength(35);
+    expect(INTERNAL).toHaveLength(36);
     for (const n of WEBHOOK) expect(kindOf(n), n).toBe('webhook');
     for (const n of INTERNAL) expect(kindOf(n), n).toBe('internal');
     for (const n of LOG_ONLY) expect(kindOf(n), n).toBe('log_only');

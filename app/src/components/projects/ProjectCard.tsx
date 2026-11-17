@@ -62,7 +62,10 @@ export function ProjectCard({ project }: { project: ProjectSummary }): ReactElem
         </span>
         <div className={styles.bottom}>
           <span className={styles.version} data-testid="project-card-version">
-            {t('office.projects.card.working_copy')}
+            {/* EZD-121 (S01 Data shown; Q-0700 05): "Version N" after a send, "Working copy" before. */}
+            {project.versionNo == null
+              ? t('office.projects.card.working_copy')
+              : t('office.projects.card.version', { n: project.versionNo })}
           </span>
           <span
             className={styles.open}

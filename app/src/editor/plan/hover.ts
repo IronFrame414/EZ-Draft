@@ -15,6 +15,7 @@ import {
   type WallObject,
   type WallSnapIndex,
 } from '@ezdraft/geometry';
+import { shownBy, type PhaseFilter } from '../../lib/plan/phase-view';
 import type { Objects } from '../model/patches';
 import { buildPlanBatches } from './batches';
 
@@ -29,6 +30,9 @@ export type HoverMode = 'wall' | 'select' | 'off';
 export type HoverPicker = (screen: Point) => string | null;
 
 export type BodyLookup = (id: string) => readonly Point[] | null;
+
+// EZD-218 (Q-0676 (a)): a room's boundary, drawn as lines with no fill when it is selected or hovered.
+export type OutlineLookup = (id: string) => readonly Point[] | null;
 
 export type ObjectGeometry = { fill: Float32Array; body: Float32Array; segments: Float32Array };
 
@@ -73,6 +77,7 @@ export function objectGeometry(
   list: DrawingList | null,
   ids: ReadonlySet<string>,
   bodyOf: BodyLookup | null,
+  outlineOf: OutlineLookup | null = null,
 ): ObjectGeometry {
   if (list === null || ids.size === 0) {
     return { fill: new Float32Array(0), body: new Float32Array(0), segments: new Float32Array(0) };
@@ -106,6 +111,17 @@ export function objectGeometry(
       }
     }
   }
+  if (outlineOf !== null) {
+    for (const id of ids) {
+      const ring = outlineOf(id);
+      if (ring === null) continue;
+      for (let i = 0; i < ring.length; i++) {
+        const a = ring[i]!;
+        const b = ring[(i + 1) % ring.length]!;
+        segments.push(a.x, a.y, 0, b.x, b.y, 0);
+      }
+    }
+  }
   return {
     fill: Float32Array.from(fill),
     body: Float32Array.from(body),
@@ -116,10 +132,21 @@ export function objectGeometry(
 export type HoverIndex = {
   readonly index: WallSnapIndex;
   readonly floorId: string | null;
-  sync(objects: Objects, floorId: string | null, changedIds: readonly string[]): number;
+  // EZD-214: a wall the phase view hides is not in the index; a new filter version resyncs in full.
+  sync(
+    objects: Objects,
+    floorId: string | null,
+    changedIds: readonly string[],
+    phase?: PhaseFilter | null,
+  ): number;
 };
 
-function wallOnFloor(id: string, objects: Objects, floorId: string | null): WallObject | null {
+function wallOnFloor(
+  id: string,
+  objects: Objects,
+  floorId: string | null,
+  phase: PhaseFilter | null,
+): WallObject | null {
   const value = objects.get(id);
   if (value === undefined || floorId === null) return null;
   const r = parseStoredObject({
@@ -129,12 +156,14 @@ function wallOnFloor(id: string, objects: Objects, floorId: string | null): Wall
     data: value.data,
   });
   if (!r.ok || r.object.type !== 'wall') return null;
+  if (!shownBy(phase, r.object.data.status)) return null;
   return r.object.data.level.toLowerCase() === floorId.toLowerCase() ? r.object : null;
 }
 
 export function createHoverIndex(): HoverIndex {
   let index = createWallSnapIndex([]);
   let floor: string | null = null;
+  let version: number | null = null;
   return {
     get index() {
       return index;
@@ -142,13 +171,15 @@ export function createHoverIndex(): HoverIndex {
     get floorId() {
       return floor;
     },
-    sync(objects, floorId, changedIds) {
-      if (floorId !== floor) {
+    sync(objects, floorId, changedIds, phase = null) {
+      const v = phase === null ? null : phase.version();
+      if (floorId !== floor || v !== version) {
         index = createWallSnapIndex([]);
         floor = floorId;
+        version = v;
         let count = 0;
         for (const id of objects.keys()) {
-          const w = wallOnFloor(id, objects, floorId);
+          const w = wallOnFloor(id, objects, floorId, phase);
           if (w !== null) {
             index.upsertWall(w);
             count += 1;
@@ -158,7 +189,7 @@ export function createHoverIndex(): HoverIndex {
       }
       let count = 0;
       for (const id of changedIds) {
-        const w = wallOnFloor(id, objects, floorId);
+        const w = wallOnFloor(id, objects, floorId, phase);
         if (w !== null) {
           index.upsertWall(w);
           count += 1;

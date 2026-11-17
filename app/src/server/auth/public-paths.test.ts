@@ -11,7 +11,7 @@ describe('EZD-007d public paths', () => {
     for (const p of ['/', '/projects', '/sign-in-x', '/auth', '/devx', '/settings/users']) {
       expect(isPublicPath(p), p).toBe(false);
     }
-    expect(PUBLIC_PATHS).toEqual(['/sign-in', '/auth/confirm', '/api', '/dev', '/terms']);
+    expect(PUBLIC_PATHS).toEqual(['/sign-in', '/auth/confirm', '/api', '/dev', '/terms', '/invite']);
   });
 });
 
@@ -22,6 +22,6 @@ describe('EZD-1707 public paths', () => {
     expect(isPublicPath('/terms/')).toBe(true);
     expect(isPublicPath('/termsx')).toBe(false);
     expect(isPublicPath('/term')).toBe(false);
-    expect(PUBLIC_PATHS).toEqual(['/sign-in', '/auth/confirm', '/api', '/dev', '/terms']);
+    expect(PUBLIC_PATHS).toEqual(['/sign-in', '/auth/confirm', '/api', '/dev', '/terms', '/invite']);
   });
 });

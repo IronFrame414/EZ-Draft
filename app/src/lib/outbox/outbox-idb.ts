@@ -89,13 +89,27 @@ export function createIdbOutboxStorage(actor: Actor): OutboxStorage {
       const tx = (await db()).transaction([OUTBOX, WORKING_COPY], 'readwrite');
       const outbox = tx.objectStore(OUTBOX);
       const mirror = tx.objectStore(WORKING_COPY);
+      // EZD-6001 D-Stamp (model_object_level_check (b)): a floor delete is stamped `now + 1`, also on an entry
+      // already queued, so it sorts after the deletes of the floor's objects queued by the same edit (`now`) and is
+      // never sent before them, whatever the ids and however the edit splits into saves.
       for (const c of changes) {
         const k = key(projectId, c.id);
         const old = (await outbox.get(k)) as OutboxEntry | undefined;
+        const saved = old ? undefined : await mirror.get(k);
+        const floorDelete =
+          c.value === null &&
+          (old ? old.value?.type === 'floor' : saved?.value?.type === 'floor');
         if (old) {
-          await outbox.put({ ...old, value: c.value, rev: old.rev + 1 }, k);
+          await outbox.put(
+            {
+              ...old,
+              value: c.value,
+              rev: old.rev + 1,
+              ...(floorDelete ? { queuedAt: now + 1 } : {}),
+            },
+            k,
+          );
         } else {
-          const saved = await mirror.get(k);
           await outbox.put(
             {
               projectId,
@@ -104,7 +118,7 @@ export function createIdbOutboxStorage(actor: Actor): OutboxStorage {
               lockEpoch,
               value: c.value,
               rev: 1,
-              queuedAt: now,
+              queuedAt: floorDelete ? now + 1 : now,
             },
             k,
           );

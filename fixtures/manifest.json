@@ -12,6 +12,18 @@
     "source": "EZD-016b (vault/plans/EZD-016b.md Steps 2-4)"
   },
   {
+    "id": "synthetic-room-unjoined-dxf",
+    "origin": "generated",
+    "kind": "polycam_dxf",
+    "status": "present",
+    "path": "fixtures/synthetic/room-12x10-unjoined.dxf",
+    "expected": "fixtures/synthetic/room-12x10-unjoined.dxf.expected.json",
+    "neededBy": ["EZD-302"],
+    "withoutIt": null,
+    "standIn": null,
+    "source": "EZD-302 (Q-0066 (b); scripts/fixtures/generate-unjoined.mjs)"
+  },
+  {
     "id": "synthetic-room-vector-pdf",
     "origin": "generated",
     "kind": "pdf",

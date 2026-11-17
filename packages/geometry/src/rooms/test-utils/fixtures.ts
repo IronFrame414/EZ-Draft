@@ -1,7 +1,12 @@
 // EZD-205a · test fixtures (vault/plans/EZD-205a.md section 3 "test helper" row; section 4). Walls are built with
 // `createWallData` (L-062). Nothing else is exported, apart from EZD-205b's `openChain` and `applyChanged`
 // (vault/plans/EZD-205b.md section 3 "test helper" rows).
-import type { ClosureOverride, ModelObject, Point } from '../../schema';
+import {
+  newRoomAttributes,
+  type ClosureOverride,
+  type ModelObject,
+  type Point,
+} from '../../schema';
 import { createWallData, type WallObject } from '../../walls/wall';
 import type { RoomObject } from '../sync';
 
@@ -69,7 +74,7 @@ export function roomObj(
       geometry: { boundary: boundary.map((p) => ({ x: p.x, y: p.y })) },
       status: 'existing',
       level,
-      attributes: { name },
+      attributes: newRoomAttributes(name),
       closureOverride,
     },
   };

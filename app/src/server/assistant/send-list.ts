@@ -4,6 +4,8 @@
 // floor's ref and order; each object is named by a ref (f1, w1, o1, r1), never its id. One hand-written projector
 // per object type copies the 'send' fields of SEND_CLASSIFICATION; a stored field added later is unclassified until
 // it is listed here (T2). No project, customer or client name is read.
+// EZD-234 Build (Q-0704; vault/build/assumptions.md EZD-234): the room's floor level and photo ids are not sent, and
+// the phase 10 types have a projector that sends nothing until a ticket decides what of them the assistant reads.
 import {
   roomAreaSqFt,
   type ModelObject,
@@ -84,6 +86,12 @@ export const SEND_CLASSIFICATION: Readonly<Record<string, 'send' | 'never'>> = {
   'room.status': 'send',
   'room.level': 'send',
   'room.attributes.name': 'send',
+  'room.attributes.floorLevel': 'never',
+  'room.attributes.photos[]': 'never',
+  // EZD-218: not on the Q-0637 send list (vault/build/assumptions.md EZD-218).
+  'room.attributes.roomType': 'never',
+  'room.attributes.floorFinish': 'never',
+  'room.attributes.ceilingType': 'never',
   'room.closureOverride.who': 'never',
   'room.closureOverride.when': 'never',
   'room.closureOverride.gap.x': 'never',
@@ -153,6 +161,8 @@ export type RefTable = { refOf(id: string): string | null };
 
 const point = (p: Point): Point => ({ x: p.x, y: p.y });
 
+const notSent = (): null => null;
+
 // A sent object always has a ref; the place among its type is the number after the ref's letter.
 const ownRef = (refs: RefTable, id: string) => refs.refOf(id) as string;
 
@@ -210,6 +220,28 @@ export const PROJECTORS: {
       areaSqFt: roomAreaSqFt(boundary),
     };
   },
+  engineer_note: notSent,
+  fixture: notSent,
+  utility_point: notSent,
+  pin: notSent,
+  tile_shower: notSent,
+  blocking: notSent,
+  hvac: notSent,
+  device: notSent,
+  access: notSent,
+  soffit: notSent,
+  chase: notSent,
+  group: notSent, // EZD-233: a group holds only member ids; nothing to send until a ticket decides
+  // EZD-402: cabinets are not sent until a ticket decides what of them the assistant reads.
+  cabinet_run: notSent,
+  cabinet_box: notSent,
+  cabinet_filler: notSent,
+  cabinet_panel: notSent,
+  cabinet_corner: notSent,
+  cabinet_shelf: notSent,
+  cabinet_trim: notSent,
+  // EZD-411: countertop pieces are not sent until a ticket decides what of them the assistant reads.
+  countertop_piece: notSent,
 };
 
 const LABEL_WORDS = new Set(ROOM_LABEL_WORDS.map((w) => w.toLowerCase()));

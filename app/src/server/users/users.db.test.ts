@@ -99,9 +99,9 @@ describe('EZD-104 list_users rows, order, counts, copy link', () => {
     const r = await listUsers(viewer);
     expect(ids).not.toBeNull();
     const id = ids!;
-    expect(r.rows.map((x) => x.membershipId)).toEqual([id.d, id.f, id.v, id.c]);
-    expect([r.active, r.invited, r.en, r.es, r.total]).toEqual([3, 1, 2, 2, 4]);
-    expect(r.rows.map((x) => x.membershipId)).not.toContain(id.x);
+    // EZD-106 (09n Status bar row 1): deactivated members are listed after the invited rows, not counted.
+    expect(r.rows.map((x) => x.membershipId)).toEqual([id.d, id.f, id.v, id.c, id.x]);
+    expect([r.active, r.invited, r.en, r.es, r.total]).toEqual([3, 1, 2, 2, 5]);
     expect(r.rows.map((x) => x.membershipId)).not.toContain(id.b);
 
     const f = r.rows[1];

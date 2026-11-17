@@ -1,5 +1,7 @@
 import type { CustomerEventField } from '../customers/customers';
+import type { LibraryKind } from '../libraries/libraries';
 import type { Language } from '../profile/profile';
+import type { PermissionKey } from '../permissions/catalog';
 
 export type EventKind = 'webhook' | 'internal' | 'log_only';
 
@@ -53,15 +55,48 @@ export const EVENTS = {
   'version.reverted': { kind: 'internal' },
   'cleanup.deleted': { kind: 'internal' },
   'room.closure_overridden': { kind: 'internal' },
+  // EZD-5605 (Q-0638 gap 11; S03c "Accepted changes are marked as AI in the event log"): an Assistant change the
+  // user accepted, saved through the objects route; ids and count only, never prompt or reply text.
+  'model.ai_change_accepted': { kind: 'internal' },
   // Canonical names: screen events that write the event log only (07 Hooks)
   'catalog_item.created': { kind: 'log_only' },
   'detail.placed': { kind: 'log_only' },
   'user.joined': { kind: 'log_only' },
   'tenant.updated': { kind: 'log_only' },
+  // EZD-116 (S15d Events emitted): Settings > Defaults saved; the keys whose stored value changed.
+  'tenant.defaults_updated': { kind: 'log_only' },
+  // EZD-125 (Q-0697 decisions 10): Cancel request; written as the event_log row by cancel_edit_request.
+  'lock.request_cancelled': { kind: 'log_only' },
   'customer.created': { kind: 'log_only' },
   'customer.updated': { kind: 'log_only' },
   'project.created': { kind: 'log_only' },
+  // EZD-130 (Q-0697 decisions 03): Project settings saved; the changed keys.
+  'project.updated': { kind: 'log_only' },
+  // EZD-301 (S01 Events emitted): the Upload step's files are stored and the import begins.
+  'import.started': { kind: 'log_only' },
   'user.language_changed': { kind: 'log_only' },
+  // EZD-106 (S15 Events emitted; Q-0706 decisions 03 row 50): the Users page member writes.
+  'user_permission.updated': { kind: 'log_only' },
+  'user.deactivated': { kind: 'log_only' },
+  'user.reactivated': { kind: 'log_only' },
+  'user.removed': { kind: 'log_only' },
+  // EZD-105 (S15 Events emitted; Q-0695 decisions 03 row 33): the invite writes.
+  'user.invited': { kind: 'log_only' },
+  'user.invite_resent': { kind: 'log_only' },
+  'user.invite_cancelled': { kind: 'log_only' },
+  // EZD-107 (S15 Events emitted; Q-0695 decisions 03 row 33): custom role writes.
+  'role.created': { kind: 'log_only' },
+  'role.updated': { kind: 'log_only' },
+  'role.deleted': { kind: 'log_only' },
+  // EZD-129 (S15 Decision 13; Q-0202; Q-0695 decisions 03 row 33): a member's Project access changed.
+  'user.scope_changed': { kind: 'log_only' },
+  // EZD-105b (Q-0096 P7; Q-0695 decisions 03 row 33): an Owner set a member's password. Written only as the
+  // event_log row inside record_member_password_set; never emitted.
+  'user.password_set': { kind: 'log_only' },
+  // EZD-131 (S15h Events emitted): Settings > Libraries writes.
+  'library.item_created': { kind: 'log_only' },
+  'library.item_updated': { kind: 'log_only' },
+  'library.item_deleted': { kind: 'log_only' },
 } as const satisfies Record<string, { kind: EventKind }>;
 
 export type EventName = keyof typeof EVENTS;
@@ -92,11 +127,17 @@ export interface EventPayloads {
   'lock.requested': Record<string, unknown>;
   'lock.auto_released': Record<string, unknown>;
   'lock.request_declined': Record<string, unknown>;
+  'lock.request_cancelled': Record<string, unknown>;
   'lock.conflict': Record<string, unknown>;
   // EZD-120a Build step 5: the ids of the objects one save wrote.
   'model.saved': { objectIds: string[] };
   'import.completed': Record<string, unknown>;
-  'import.ready': Record<string, unknown>;
+  // EZD-302: the import sessions one detection run wrote and what they hold (07 import.ready; S02 summary).
+  'import.ready': {
+    projectId: string;
+    importSessionIds: string[];
+    counts: { walls: number; openings: number; rooms: number };
+  };
   'reference.version_uploaded': Record<string, unknown>;
   'render.completed': Record<string, unknown>;
   'render.failed': Record<string, unknown>;
@@ -123,13 +164,56 @@ export interface EventPayloads {
   'version.reverted': Record<string, unknown>;
   'cleanup.deleted': Record<string, unknown>;
   'room.closure_overridden': { roomId: string; gapIn: number; userId: string };
+  'model.ai_change_accepted': { objectIds: string[]; count: number };
   'catalog_item.created': Record<string, unknown>;
   'detail.placed': Record<string, unknown>;
   'user.joined': { membershipId: string; appUserId: string; via: 'sign_in' | 'invite_link' };
   'tenant.updated': { fields: TenantField[] };
+  'tenant.defaults_updated': { keys: string[] };
   'customer.created': { customerId: string };
   'customer.updated': { customerId: string; fields: CustomerEventField[] };
   // EZD-118 Build step 8: no `ezbinderJobId` (Q-0190); `source` only `standalone` (Q-0398).
-  'project.created': { projectId: string; source: 'standalone' };
+  // EZD-301: `file` when the project starts from a file (S01 Events emitted).
+  'project.created': { projectId: string; source: 'standalone' | 'file' };
+  // EZD-130: field names (name, address, scope_of_work, type, customer_id) and per-project default keys.
+  'project.updated': { projectId: string; keys: string[] };
+  'import.started': { projectId: string; sourceFileIds: string[] };
   'user.language_changed': { appUserId: string; language: Language };
+  // EZD-106: one Save on the Users page inspector (S15: user id, changed permissions, role, actor).
+  'user_permission.updated': {
+    membershipId: string;
+    appUserId: string;
+    changedKeys: PermissionKey[];
+    roleId: string;
+    roleChanged: boolean;
+  };
+  'user.deactivated': { membershipId: string; appUserId: string };
+  'user.reactivated': { membershipId: string; appUserId: string };
+  'user.removed': { membershipId: string; appUserId: string };
+  // EZD-105: the invited membership (S15 Events emitted).
+  'user.invited': {
+    membershipId: string;
+    appUserId: string;
+    roleId: string;
+    scope: 'all' | 'listed';
+  };
+  'user.invite_resent': { membershipId: string; appUserId: string };
+  'user.invite_cancelled': { membershipId: string; appUserId: string };
+  'user.password_set': { membershipId: string; appUserId: string };
+  // EZD-107: the role and what changed (S15 Events emitted; event_log object role).
+  'role.created': { roleId: string; name: string };
+  'role.updated': { roleId: string; fields: ('name' | 'default_permissions')[] };
+  'role.deleted': { roleId: string; name: string };
+  'user.scope_changed': {
+    membershipId: string;
+    appUserId: string;
+    oldScope: 'all' | 'listed';
+    scope: 'all' | 'listed';
+    added: string[];
+    removed: string[];
+  };
+  // EZD-131: the library item and what changed.
+  'library.item_created': { itemId: string; kind: LibraryKind };
+  'library.item_updated': { itemId: string; kind: LibraryKind; fields: ('name' | 'data')[] };
+  'library.item_deleted': { itemId: string; kind: LibraryKind; name: string };
 }

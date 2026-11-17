@@ -216,9 +216,13 @@ describe('EZD-323 test-only database functions', () => {
       'app/src/server/jobs/ai-key-rewrap.ts',
       'app/src/server/jobs/db.ts',
       'app/src/server/jobs/default-hooks.ts',
+      // EZD-302: the import job reads the project's source files and writes import_session rows (service_role writes only).
+      'app/src/server/jobs/handlers/import.ts',
       'app/src/server/jobs/handlers/notification-email.ts',
       'app/src/server/jobs/queue.ts',
       'app/src/server/jobs/runner.ts',
+      // EZD-125: the sweep's edit lock pass (called from api/jobs/sweep/route.ts) runs sweep_edit_locks, granted to service_role only (Q-0697 decisions 03).
+      'app/src/server/lock/sweep.ts',
     ]);
   });
 });

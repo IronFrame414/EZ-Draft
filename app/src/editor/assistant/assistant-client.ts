@@ -2,7 +2,8 @@
 // lines"; P5602 section 3 route row; P5601 section 3): the panel's two server calls. Neither throws.
 import { ASSISTANT_MODELS, type AssistantModel } from '../../lib/assistant/cost';
 import type { AssistantInput, AssistantSuccess } from '../../server/assistant/assistant';
-import { failureFrom, type AssistantFailure } from './assistant-ui';
+import { failureFrom } from './assistant-failure';
+import type { AssistantFailure } from './assistant-ui';
 
 // C1
 export type AssistantCallResult =
@@ -46,15 +47,17 @@ function successFrom(body: unknown): AssistantSuccess | null {
   };
 }
 
-// C2: POST /api/projects/{id}/assistant with one FormData entry `request`.
+// C2: POST /api/projects/{id}/assistant with one FormData entry `request`, then (EZD-5603b C1) the optional
+// shrunk photo as `photo`.
 export async function postAssistantPrompt(
   projectId: string,
   input: AssistantInput,
-  o: { signal: AbortSignal; fetchImpl?: typeof fetch },
+  o: { signal: AbortSignal; fetchImpl?: typeof fetch; photo?: Blob | null },
 ): Promise<AssistantCallResult> {
   const fetchImpl = o.fetchImpl ?? globalThis.fetch;
   const form = new FormData();
   form.append('request', JSON.stringify(input));
+  if (o.photo) form.append('photo', new File([o.photo], 'photo.jpg', { type: 'image/jpeg' }));
   let response: Response;
   try {
     response = await fetchImpl(`/api/projects/${projectId}/assistant`, {

@@ -25,7 +25,28 @@
 // EZD-212c (vault/plans/EZD-212c.md D21): the drawing layer's tablet Cancel turns the tool off.
 // EZD-5603a Build step 12 (vault/plans/EZD-5603a.md Decided "Editor wiring", "Rail button"): for an editor, one
 // Assistant session per page load; its rail toggle opens the Assistant panel in the inspector place.
+// EZD-234 Build (11 Budgets editor download size): the conflict list panel loads through lazyModule when first opened.
+// EZD-218 (S03 Controls — left panel; AC-EZD-218-1 to -5): the left panel with Layers and Rooms for every viewer of
+// a ready plan. The layer store wraps the phase setting: the canvas draws what is shown, and selection picks what
+// is shown and not locked; the panel and the plan share one derived-values cache for room areas.
+// EZD-223 (S03 Sketch; Q-0392): the drawing controller reads the viewer's iPad drawing setting from the load.
+// EZD-233 (S03 Context menu; Inspector More; vault/build/assumptions.md EZD-233): for an editor, a right-click or long
+// press on the plan with no drawing tool on opens the context menu (an object under it that is not selected is
+// selected first, with its group); the inspector footer's More opens the More menu. Both load lazily.
+// EZD-6001 (vault/plans/EZD-6001.md D-Store, D-Wire, D-Mount; Q-0509; Q-0666): one floor view per session, given to
+// every controller and panel that reads the open floor; the Floor control is first in the status bar.
+// EZD-126 (S06 Controls; 11 rule 7; vault/build/assumptions.md EZD-126): the edit lock UI (banner, holder prompt,
+// toasts, Stop editing, View only, presence) loads as one lazy module on the first user input, then draws its
+// parts through `LockPart`; until it loads the save-failed banner shows as before.
+// EZD-224b Build step 10 (vault/plans/EZD-224b.md Decided "Dev hook"; Q-0681 (a)): `__ezdraftEditor.checkpoint()`
+// drains the outbox, then makes a checkpoint with the plan's thumbnail through a lazily loaded module.
+// EZD-225 (S03 States; S06:48, 78, 100; Q-0697 decisions 05): Edit model without the lock shows the drawing tools
+// paused with the note under the banner; a lock lost mid-session pauses the drawing controller and every edit path
+// reads `mayEdit`.
+// EZD-111 (vault/plans/EZD-111.md D-Entry, C2; Q-0700; Q-0701): with Send to client, the header Share button opens
+// the Send dialog (lazy). Its no-client link opens Project settings for the session, after the Send dialog closes.
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -35,17 +56,17 @@ import {
   type ReactNode,
 } from 'react';
 import { DeviceLayout } from '../components/device/DeviceLayout';
-import { EditorPhoneNotice } from '../components/phone/EditorPhoneNotice';
 import { EditorFrame } from '../components/shell/EditorFrame';
 import { EditorHeader } from '../components/shell/EditorHeader';
+import { HeaderButton } from '../components/shell/HeaderButton';
 import type { EditorView } from '../components/shell/editor-views';
 import { HeaderCard } from '../components/shell/HeaderCard';
 import { StatusBar } from '../components/shell/StatusBar';
 import { Wordmark } from '../components/shell/Wordmark';
 import { InlineError } from '../components/states/InlineError';
-import { NoAccess } from '../components/states/NoAccess';
 import { OfflineBanner } from '../components/states/OfflineBanner';
 import { Skeleton, SkeletonGroup } from '../components/states/Skeleton';
+import { StateButton } from '../components/states/StateButton';
 import { useToast } from '../components/states/ToastProvider';
 import { countForProject } from '../lib/conflicts/conflict-view';
 import { useCoarsePointer } from '../lib/device/useDeviceLayout';
@@ -53,8 +74,11 @@ import { useT } from '../lib/messages';
 import type { ObjectValue } from '../lib/outbox/model-api';
 import { DEFAULT_PLAN_SCALE, isPlanScale, savePlanScale } from '../lib/plan/plan-scale';
 import type { MessageKey } from '../server/messages/catalog';
-import { AssistantPanel } from './assistant/AssistantPanel';
-import { createAssistantSession, type AssistantSession } from './assistant/assistant-session';
+import type { AssistantSession } from './assistant/assistant-session';
+import { createAssistantLoader, type AssistantLoader } from './assistant/assistant-loader';
+import type { PreviewStore } from './assistant/preview-store';
+import { createRoutedStore } from './model/routed-store';
+import { newObjectId } from './tools/model-changes';
 import { assistantShown } from './assistant/assistant-ui';
 import {
   openEditorSession,
@@ -62,9 +86,17 @@ import {
   type OpenDeps,
   type OpenResult,
 } from './editor-session';
+import { hubResync } from './project-defaults';
+import { newerVersionNo, versionLabel } from './version-label';
+import { hubVersionSent } from './version-sent';
 import { createEditController, type EditController } from './edit/edit-controller';
+import { InspectorMore, InspectorStack } from './edit/InspectorMore';
+import type { EditMenuRequest, EditMenusProps } from '../lazy/edit-menu';
+import { expandGroups } from './selection/groups';
 import { EmptyPlanHint } from './EmptyPlanHint';
-import { InspectorPanel } from './inspector/InspectorPanel';
+import type { BenchmarkRunnerProps } from '../lazy/benchmark-runner';
+import { InspectorEmpty } from './inspector/InspectorEmpty';
+import type { InspectorPanelProps } from '../lazy/inspector-panel';
 import type { Change } from './model/patches';
 import {
   createPlanController,
@@ -73,15 +105,21 @@ import {
   type PlanStats,
 } from './plan/controller';
 import { openFloorId } from './plan/batches';
+import { createFloorView, type FloorView } from './floors/floors';
+import { FloorSwitcher } from './floors/FloorSwitcher';
 import { createGlyphAtlas } from './plan/glyph-atlas-canvas';
 import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
 import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
 import { createR3fRoot, webglContextsCreated } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
-import { ConflictBanner } from './conflicts/ConflictBanner';
-import { ConflictPanel } from './conflicts/ConflictPanel';
+import type { CheckpointOutcome } from './thumbnail/checkpoint';
+import type { ConflictPanelProps } from '../lazy/conflict-panel';
+import type { ConflictBannerProps } from './conflicts/ConflictBanner';
+import { lazyModule, type LazyModule } from '../lib/lazy/lazy-module';
 import { useConflictInputs } from './conflicts/use-conflicts';
-import { EditBar, SelectionLayer } from './selection/SelectionLayer';
+import { SelectionLayer } from './selection/SelectionLayer';
+import type { EditBarProps } from '../lazy/edit-bar';
+import type { LockPartName, LockUi } from '../lazy/lock-ui';
 import {
   createSelectionController,
   editorRail,
@@ -89,7 +127,17 @@ import {
   type SelectionController,
 } from './selection/selection-controller';
 import { SaveFailedBanner, SaveStateText } from './SaveStatus';
-import { PlanScaleFailedBanner, PlanStatusEnd, PlanStatusStart } from './status/PlanStatus';
+import {
+  PhaseFailedBanner,
+  PlanScaleFailedBanner,
+  PlanStatusEnd,
+  PlanStatusStart,
+} from './status/PlanStatus';
+import { createPhaseSetting, type PhaseSetting } from './status/phase-setting';
+import { createLayerSetting, type LayerSetting } from './layers/layer-setting';
+import { LeftPanel } from './layers/LeftPanel';
+import { createModelDerived, type ModelDerived } from './derived/model-derived';
+import { phaseViewOf, savePhaseView } from '../lib/plan/phase-view';
 import { createScaleSetting, deviceSnapSettings, type ScaleSetting } from './status/view-settings';
 import { createDrawingController, type DrawingController } from './tools/drawing-controller';
 import { DrawingLayer, DrawingRail } from './tools/DrawingTools';
@@ -103,16 +151,23 @@ export type ProjectEditorProps = {
   openDeps?: OpenDeps;
   onSession?: (session: EditorSession | null) => void;
   conflictsOpen?: boolean;
+  // EZD-237 (vault/plans/EZD-237.md D-Editor): `?benchmark=run`, opened in the Benchmark card's frame.
+  benchmark?: boolean;
+  // EZD-111: the viewer holds Send to client for this project (the page decides; the route checks again).
+  canSend?: boolean;
 };
 
 export type EditorTestHook = {
   objects(): Array<{ id: string } & ObjectValue>;
   edit(changes: Change[]): string[];
+  checkpoint(): Promise<CheckpointOutcome>;
 };
 
 type PlanTestHook = {
   handle: PlanCanvasHandle;
   stats(): PlanStats & { contexts: number };
+  // EZD-214: the phase view and the Phase eyes (EZD-218 drives setEye from Layers).
+  phase: PhaseSetting;
 };
 
 type SelectionTestHook = {
@@ -131,10 +186,15 @@ type CanvasState =
       selection: SelectionController;
       edit: EditController;
       scale: ScaleSetting;
-      assistant: AssistantSession | null;
+      phase: PhaseSetting;
+      layers: LayerSetting;
+      derived: ModelDerived;
+      assistant: AssistantLoader | null;
+      floors: FloorView;
     };
 
 const PLAN_VIEWS: EditorView[] = ['plan'];
+
 const noop = () => {};
 const noSubscribe = () => noop;
 
@@ -144,13 +204,28 @@ export function ProjectEditor({
   openDeps,
   onSession,
   conflictsOpen,
+  benchmark,
+  canSend = false,
 }: ProjectEditorProps): ReactElement {
   const t = useT();
+  // EZD-111: the Send dialog, and Project settings opened from its no-client message.
+  const [sendOpen, setSendOpen] = useState(false);
+  const [sendSettingsOpen, setSendSettingsOpen] = useState(false);
+  // EZD-121 (Q-0700 05): the newest sent version number from a send or a version.sent broadcast; the load's
+  // number until one arrives.
+  const [sentNo, setSentNo] = useState<number | null>(null);
+  const onSent = useCallback((n: number) => {
+    if (Number.isInteger(n) && n >= 1) setSentNo((cur) => newerVersionNo(cur, n));
+  }, []);
+  useEffect(() => hubVersionSent(projectId, onSent), [projectId, onSent]);
+  // EZD-301 (S02 Entry): the Upload files dialog, loaded with the edit menus' lazy module.
+  const [uploading, setUploading] = useState(false);
   const [state, setState] = useState<CanvasState>({ kind: 'loading' });
   const [attempt, setAttempt] = useState(0);
   const [canvasFailed, setCanvasFailed] = useState(false);
   const [canvasAttempt, setCanvasAttempt] = useState(0);
   const [listOpen, setListOpen] = useState(conflictsOpen === true);
+  const [menu, setMenu] = useState<EditMenuRequest | null>(null);
   const openDepsRef = useRef(openDeps);
   const onSessionRef = useRef(onSession);
   const messageRef = useRef<(key: MessageKey) => void>(noop);
@@ -166,7 +241,11 @@ export function ProjectEditor({
   useEffect(() => {
     let live = true;
     let dispose: (() => void) | null = null;
-    void openEditorSession(projectId, openDepsRef.current).then((result) => {
+    // EZD-116 (AC-EZD-116-8): the session re-reads the defaults on the project channel resync.
+    void openEditorSession(projectId, {
+      resync: hubResync,
+      ...openDepsRef.current,
+    }).then((result) => {
       if (!live) {
         if (result.kind === 'ready') result.session.dispose();
         return;
@@ -178,45 +257,87 @@ export function ProjectEditor({
           canEdit: result.session.model.viewer.canEdit,
           save: (s) => savePlanScale(projectId, s),
         });
+        // EZD-214 (03 Q-0664): the View starts from the project's phase_default; a view-only switch saves nothing.
+        const phase = createPhaseSetting({
+          view: phaseViewOf(result.session.model.project.phaseDefault),
+          canEdit: result.session.model.viewer.canEdit,
+          save: (v) => savePhaseView(projectId, v),
+        });
+        // EZD-5605 D-Who gets which store: the canvas and the editing controllers use the routed store, which is
+        // the model store except while an Assistant preview is adjusted.
+        const routed = createRoutedStore(result.session.store);
+        // The Assistant loader is made after the controllers, which read Adjust through it.
+        let assistant: AssistantLoader | null = null;
+        const layers = createLayerSetting(phase);
+        const derived = createModelDerived(routed);
+        const floors = createFloorView();
         const plan = createPlanController(
-          { store: result.session.store, scale: scale.get() },
+          { store: routed, scale: scale.get(), phase: layers, derived, floors },
           { createRoot: createR3fRoot, createAtlas: createGlyphAtlas },
         );
         const slots = shareReceiver(plan.handle.setPointerReceiver);
         const unsubscribeScale = scale.subscribe(() => plan.handle.setScale(scale.get()));
         const drawing = createDrawingController({
           handle: { ...plan.handle, setPointerReceiver: slots.drawing },
-          store: result.session.store,
+          store: routed,
           viewer: result.session.model.viewer,
           onMessage: (key) => messageRef.current(key),
           snapSettings: () => deviceSnapSettings.get(),
+          phase,
+          ipadDrawing: () => result.session.model.viewer.ipadDrawing ?? 'finger',
+          floors,
         });
         const selection = createSelectionController({
           handle: plan.handle,
-          store: result.session.store,
+          store: routed,
           drawing,
           setReceiver: slots.selection,
           claim: drawing.claimSelectPointer,
+          phase: layers.selectable,
+          floors,
         });
         drawing.attachSelection(selection);
         const edit = createEditController({
-          store: result.session.store,
+          store: routed,
           selection,
           drawing,
           handle: plan.handle,
           canEdit: result.session.model.viewer.canEdit,
+          newStatus: () => phase.newObjectStatus(),
+          floors,
         });
         // EZD-5603a Decided "Editor wiring": one Assistant session per page load, editors only.
         const sync = result.session.sync;
-        const assistant =
+        assistant =
           sync === null
             ? null
-            : createAssistantSession({
-                projectId,
-                sync,
-                getFloorId: () => openFloorId(result.session.store.getState().objects),
-                getSelectedIds: () => selection.getUi().ids,
-              });
+            : createAssistantLoader(
+                {
+                  projectId,
+                  sync,
+                  getFloorId: () =>
+                    openFloorId(
+                      result.session.store.getState().objects,
+                      floors.getState().chosenId,
+                    ),
+                  getSelectedIds: () => selection.getUi().ids,
+                  getNewStatus: () => phase.newObjectStatus(),
+                  // EZD-5604b D-Editor: the preview watches the open model store; nothing in it is saved.
+                  preview: {
+                    model: result.session.store,
+                    newId: newObjectId,
+                    adjust: {
+                      routed,
+                      selection,
+                      drawing,
+                      lockEpoch: result.session.model.lockEpoch,
+                      onMessage: (key) => messageRef.current(key),
+                    },
+                  },
+                },
+                // EZD-5604b: the session loads with the panel's lazy module on the first press.
+                () => assistantPanelModule.load(),
+              );
         dispose = () => {
           assistant?.dispose();
           drawing.attachSelection(null);
@@ -224,6 +345,7 @@ export function ProjectEditor({
           selection.dispose();
           unsubscribeScale();
           scale.dispose();
+          phase.dispose();
           drawing.dispose();
           plan.dispose();
           result.session.dispose();
@@ -238,7 +360,11 @@ export function ProjectEditor({
           selection,
           edit,
           scale,
+          phase,
+          layers,
+          derived,
           assistant,
+          floors,
         });
         return;
       }
@@ -257,16 +383,107 @@ export function ProjectEditor({
   const edit = state.kind === 'ready' ? state.edit : null;
   const coarse = useCoarsePointer();
   const scale = state.kind === 'ready' ? state.scale : null;
+  const phase = state.kind === 'ready' ? state.phase : null;
+  const layers = state.kind === 'ready' ? state.layers : null;
+  const derived = state.kind === 'ready' ? state.derived : null;
   const assistant = state.kind === 'ready' ? state.assistant : null;
+  const floors = state.kind === 'ready' ? state.floors : null;
+  // EZD-5604b: the session's preview store, made with the first reply that has changes.
+  const readPreview = () => assistant?.getPreview() ?? null;
+  const readSession = () => assistant?.getSession() ?? null;
+  const assistantSession = useSyncExternalStore(
+    assistant ? assistant.subscribe : noSubscribe,
+    readSession,
+    readSession,
+  );
+  const preview = useSyncExternalStore(
+    assistant ? assistant.subscribe : noSubscribe,
+    readPreview,
+    readPreview,
+  );
   // Only `open` is read here, so typing in the panel does not render the whole editor again (11 Performance).
-  const readAssistantOpen = () => assistant?.getUi().open ?? false;
+  const readAssistantOpen = () => assistant?.isOpen() ?? false;
   const assistantOpen = useSyncExternalStore(
     assistant ? assistant.subscribe : noSubscribe,
     readAssistantOpen,
     readAssistantOpen,
   );
   const sync = session?.sync ?? null;
+
+  // EZD-5605 D-Wire: Adjust is made by the Assistant session, which tells its listeners when Adjust starts or ends.
+  const readAdjusting = () => assistant?.getControls()?.adjust.getUi().adjusting ?? false;
+  const adjusting = useSyncExternalStore(
+    assistant ? assistant.subscribe : noSubscribe,
+    readAdjusting,
+    readAdjusting,
+  );
+
   const conflicts = useConflictInputs(session, projectId, listOpen);
+
+  const retry = () => {
+    setState({ kind: 'loading' });
+    setAttempt((n) => n + 1);
+  };
+
+  // EZD-126: the lock UI for this session, made once its module is there (at once when it already is). Start
+  // editing reopens through `retry`.
+  const [lock, setLock] = useState<{ m: typeof import('../lazy/lock-ui'); ui: LockUi } | null>(
+    null,
+  );
+  useEffect(() => {
+    if (session === null || plan === null) return;
+    let ui: LockUi | undefined;
+    let live = true;
+    const start = () => {
+      off();
+      lockUiModule.load().then((m) => {
+        if (!live) return;
+        ui = m.createLockUi(session, plan.captureThumbnail, retry, t('office.lock.someone'));
+        setLock({ m, ui });
+      }, noop);
+    };
+    // The first edit loads it too (a pan right after an edit then makes no React commit, 11 rule 4).
+    const offEdit = session.store.subscribe(start);
+    const off = () => {
+      offEdit();
+      removeEventListener('pointermove', start, true);
+      removeEventListener('pointerdown', start, true);
+    };
+    if (lockUiModule.peek()) start();
+    else {
+      addEventListener('pointermove', start, true);
+      addEventListener('pointerdown', start, true);
+    }
+    return () => {
+      live = false;
+      off();
+      ui?.dispose();
+      setLock(null);
+    };
+    // `retry` only sets state, so the one from the render that made the session is enough.
+  }, [session, plan, t]);
+  const part = (name: LockPartName) => lock && <lock.m.LockPart ui={lock.ui} part={name} />;
+
+  // EZD-225 (S03:17, 143; S06:78; vault/build/assumptions.md EZD-126): the lock UI saw the lock leave this viewer
+  // (Release, auto release, their other device, or someone else took it). From then on this editor edits nothing:
+  // the drawing controller pauses and every edit path below reads `mayEdit`. Start editing reopens the editor.
+  const readLockLost = () => {
+    const s = lock?.ui.store.getState();
+    return s !== undefined && s.loaded && !s.isHolder;
+  };
+  const lockLost = useSyncExternalStore(
+    lock ? lock.ui.store.subscribe : noSubscribe,
+    readLockLost,
+    readLockLost,
+  );
+  // May edit now: Edit model and holding the lock (`viewer.canEdit` is the hold at open, editor-session.ts).
+  const mayEdit = (session?.model.viewer.canEdit ?? false) && !lockLost;
+  useEffect(() => {
+    if (lockLost) drawing?.pause();
+  }, [lockLost, drawing]);
+
+  // EZD-130: a Project settings save (in the switcher) draws the header again with the new name and client.
+  useEffect(() => lock?.ui.switcher.onSaved(() => setLock({ ...lock })), [lock]);
 
   // D-Editor: each time the list opens (and at start with `conflictsOpen`), the list is read again.
   useEffect(() => {
@@ -274,31 +491,56 @@ export function ProjectEditor({
   }, [listOpen, session]);
 
   useEffect(() => {
-    if (session === null || sync === null || !devHooks) return;
+    if (session === null || sync === null || plan === null || !devHooks) return;
     const store = session.store;
     const hook: EditorTestHook = {
       objects: () => [...store.getState().objects].map(([id, value]) => ({ id, ...value })),
       edit: (changes) => store.applyEdit(changes),
+      checkpoint: async () => {
+        await sync.flush();
+        const { makeCheckpoint } = await import('./thumbnail/checkpoint');
+        return makeCheckpoint({ projectId, capture: () => plan.captureThumbnail() });
+      },
     };
     const w = window as unknown as { __ezdraftEditor?: EditorTestHook };
     w.__ezdraftEditor = hook;
     return () => {
       delete w.__ezdraftEditor;
     };
-  }, [session, sync, devHooks]);
+  }, [session, sync, plan, devHooks, projectId]);
 
   useEffect(() => {
-    if (plan === null || !devHooks) return;
+    if (plan === null || phase === null || !devHooks) return;
     const hook: PlanTestHook = {
       handle: plan.handle,
       stats: () => ({ ...plan.stats(), contexts: webglContextsCreated() }),
+      phase,
     };
     const w = window as unknown as { __ezdraftPlan?: PlanTestHook };
     w.__ezdraftPlan = hook;
     return () => {
       delete w.__ezdraftPlan;
     };
-  }, [plan, devHooks]);
+  }, [plan, phase, devHooks]);
+
+  const menuCanEdit = mayEdit;
+  useEffect(() => {
+    if (plan === null || selection === null || drawing === null || session === null) return;
+    if (!menuCanEdit) return;
+    return plan.handle.onContextMenu((screen, client) => {
+      if (drawing.getUi().tool !== null) return false;
+      // EZD-5605 (vault/build/assumptions.md): no edit menu while an Assistant preview is adjusted.
+      if (adjusting) return true;
+      const hit = selection.pickAt(plan.handle.screenToModel(screen))[0];
+      if (hit !== undefined) {
+        const lower = hit.toLowerCase();
+        if (!selection.getUi().ids.some((id) => id.toLowerCase() === lower))
+          selection.select(expandGroups(session.store.getState().objects, [hit]));
+      }
+      setMenu({ kind: 'canvas', at: client });
+      return true;
+    });
+  }, [plan, selection, drawing, session, menuCanEdit, adjusting]);
 
   useEffect(() => {
     if (selection === null || plan === null || !devHooks) return;
@@ -313,17 +555,24 @@ export function ProjectEditor({
     };
   }, [selection, plan, devHooks]);
 
-  const workingCopy = t('office.editor.working_copy');
+  const versionNo = newerVersionNo(session?.model.project.versionNo ?? null, sentNo);
+  const label = versionLabel({
+    lastSent: versionNo === null ? null : { kind: 'version', no: versionNo },
+  });
+  const versionText = t(label.key, label.params);
   const clientName = session?.model.project.clientName ?? null;
   const subtitle = useMemo(
-    () => [clientName, workingCopy, sync ? <SaveStateText sync={sync} /> : null],
-    [clientName, workingCopy, sync],
+    () => [
+      clientName,
+      <span key="version" data-testid="editor-version">
+        {versionText}
+      </span>,
+      sync ? <SaveStateText sync={sync} /> : null,
+    ],
+    [clientName, versionText, sync],
   );
 
-  const retry = () => {
-    setState({ kind: 'loading' });
-    setAttempt((n) => n + 1);
-  };
+  const closeMenu = useCallback(() => setMenu(null), []);
 
   const conflictCount = countForProject(conflicts.inputs, projectId);
   const header =
@@ -336,13 +585,49 @@ export function ProjectEditor({
         <EditorHeader
           projectsHref="/"
           projectName={session.model.project.name}
+          // EZD-128: the name opens the project switcher once the lock UI is there.
+          onProjectMenu={lock?.ui.switcher.toggle}
           subtitle={subtitle}
           activeView="plan"
           views={PLAN_VIEWS}
           onViewChange={noop}
+          presence={part('presence')}
+          stopEditing={part('stop')}
+          share={
+            canSend ? (
+              <HeaderButton icon="share" data-testid="header-share" onClick={() => setSendOpen(true)}>
+                {t('office.header.share')}
+              </HeaderButton>
+            ) : undefined
+          }
+          reviewPill={
+            menuCanEdit ? (
+              <StateButton
+                data-testid="editor-upload-files"
+                compact
+                onClick={() => setUploading(true)}
+              >
+                {t('office.upload.editor_button')}
+              </StateButton>
+            ) : undefined
+          }
         />
+        {part('switcher')}
+        {sendOpen || sendSettingsOpen ? (
+          <LazySend
+            projectId={projectId}
+            sync={sync}
+            sendOpen={sendOpen}
+            settings={sendSettingsOpen && lock ? lock.ui.switcher : null}
+            onCloseSend={() => setSendOpen(false)}
+            onSent={onSent}
+            onOpenSettings={() => setSendSettingsOpen(true)}
+            onCloseSettings={() => setSendSettingsOpen(false)}
+          />
+        ) : null}
         {conflictCount > 0 ? (
-          <ConflictBanner
+          <LazyNotice
+            name="ConflictBanner"
             count={conflictCount}
             projectName={session.model.project.name}
             othersSaved={conflicts.othersSaved}
@@ -354,6 +639,14 @@ export function ProjectEditor({
     );
 
   const showPlan = plan !== null && !canvasFailed;
+  const canEdit = mayEdit;
+  const spec = editorRail({
+    editor: state.kind,
+    canEdit,
+    canEditModel: session?.lock.canEditModel,
+    canvasFailed,
+    controllerEnabled: drawing?.getUi().enabled ?? false,
+  });
   let body: ReactNode = null;
   if (state.kind === 'loading') {
     body = (
@@ -364,7 +657,7 @@ export function ProjectEditor({
   } else if (state.kind === 'failed') {
     body = <InlineError message="office.editor.load_failed" onRetry={retry} />;
   } else if (state.kind === 'no-access') {
-    body = <NoAccess />;
+    body = <LazyNotice name="NoAccess" />;
   } else if (state.kind === 'not-found') {
     body = (
       <p className={styles.notice} data-testid="editor-not-found">
@@ -379,15 +672,27 @@ export function ProjectEditor({
     body = (
       <>
         {showPlan && coarse && selection !== null ? (
-          <EditBar selection={selection} edit={edit} />
+          <LazyEditBar
+            selection={selection}
+            edit={mayEdit ? edit : null}
+            clipboardOff={adjusting}
+          />
         ) : null}
+        {part('banner')}
+        {/* EZD-225 (Q-0740 (a), vault/build/assumptions.md EZD-225): the note under the banner. */}
+        {spec?.paused !== undefined ? part('paused') : null}
         {sync !== null ? (
           <>
             <OfflineBanner message="office.editor.offline" />
             {/* D-Editor: outdated rows exist only while the problem is app_outdated; they say Reload. */}
-            {conflicts.outdatedCount > 0 ? null : <SaveFailedBanner sync={sync} />}
+            {conflicts.outdatedCount > 0
+              ? null
+              : (part('save') ?? <SaveFailedBanner sync={sync} />)}
             {conflicts.outdatedCount > 0 || scale === null ? null : (
               <PlanScaleFailedBanner scale={scale} sync={sync} />
+            )}
+            {conflicts.outdatedCount > 0 || phase === null ? null : (
+              <PhaseFailedBanner phase={phase} sync={sync} />
             )}
           </>
         ) : null}
@@ -408,26 +713,20 @@ export function ProjectEditor({
       {body}
     </div>
   );
-  const canEdit = session?.model.viewer.canEdit ?? false;
-  const spec = editorRail({
-    editor: state.kind,
-    canEdit,
-    canvasFailed,
-    controllerEnabled: drawing?.getUi().enabled ?? false,
-  });
   const shown = assistant !== null && assistantShown({ canEdit, view: 'plan' }) ? assistant : null;
   const rail =
     spec === null ? null : (
       <DrawingRail
         drawing={drawing}
         selection={selection}
-        rail={spec}
+        // EZD-5605 D-Tools off (Q-0641 row 56-4): during Adjust every rail tool but Select is off, Assistant too.
+        rail={adjusting ? { ...spec, only: 'select' } : spec}
         assistant={shown !== null ? { open: assistantOpen, onToggle: shown.toggle } : null}
       />
     );
   const panel =
     session !== null && listOpen ? (
-      <ConflictPanel
+      <LazyConflictPanel
         session={session}
         projectId={projectId}
         inputs={conflicts.inputs}
@@ -440,6 +739,7 @@ export function ProjectEditor({
     <>
       <PlanInputSurface controller={plan} />
       <ZoomStack handle={plan.handle} />
+      {preview !== null ? <LazyPreviewLayer store={preview} handle={plan.handle} /> : null}
       {drawing !== null ? (
         <DrawingLayer
           controller={drawing}
@@ -448,28 +748,74 @@ export function ProjectEditor({
           onCancel={() => (selection !== null ? selection.selectTool() : drawing.selectTool(null))}
         />
       ) : null}
-      {selection !== null ? <SelectionLayer selection={selection} edit={edit} /> : null}
-      {session !== null ? <EmptyPlanHint store={session.store} canEdit={canEdit} /> : null}
+      {selection !== null ? (
+        <SelectionLayer selection={selection} edit={mayEdit ? edit : null} />
+      ) : null}
+      {session !== null ? (
+        <EmptyPlanHint store={session.store} canEdit={canEdit} floors={floors ?? undefined} />
+      ) : null}
+      {benchmark === true && session !== null && drawing !== null ? (
+        <LazyBenchmarkRunner
+          plan={plan}
+          drawing={drawing}
+          store={session.store}
+          canEdit={canEdit}
+        />
+      ) : null}
+      {session !== null && edit !== null && selection !== null && canEdit ? (
+        <LazyEditMenus
+          request={menu}
+          edit={edit}
+          selection={selection}
+          store={session.store}
+          onClose={closeMenu}
+          onMessage={(key) => messageRef.current(key)}
+          floors={floors ?? undefined}
+        />
+      ) : null}
       {stateArea}
       {panel}
+      {part('canvas')}
     </>
   ) : (
     <>
       {stateArea}
       {panel}
+      {part('canvas')}
     </>
   );
   // EZD-213b (vault/plans/EZD-213b.md D-Editor): the inspector aside for every viewer of a ready plan.
   const inspector =
     showPlan && session !== null && selection !== null ? (
-      <InspectorPanel
+      <InspectorStack>
+        <LazyInspectorPanel
+          store={session.store}
+          selection={selection}
+          canEdit={canEdit}
+          drawing={drawing}
+          newStatus={phase === null ? undefined : phase.newObjectStatus}
+          floors={floors ?? undefined}
+        />
+        <InspectorMore
+          selection={selection}
+          canEdit={canEdit}
+          onOpen={(at) => setMenu({ kind: 'more', at })}
+        />
+      </InspectorStack>
+    ) : null;
+  const leftPanel =
+    showPlan && session !== null && selection !== null && layers !== null && plan !== null ? (
+      <LeftPanel
         store={session.store}
+        layers={layers}
         selection={selection}
+        showObject={plan.handle.showObject}
         canEdit={canEdit}
-        drawing={drawing}
+        roomArea={derived?.roomAreaSqFt}
+        floors={floors ?? undefined}
       />
     ) : null;
-  const openAssistant = shown !== null && assistantOpen ? shown : null;
+  const openAssistant = shown !== null && assistantOpen ? assistantSession : null;
   const backdrop = showPlan ? (
     <PlanCanvas key={canvasAttempt} controller={plan} onFailed={() => setCanvasFailed(true)} />
   ) : undefined;
@@ -478,12 +824,21 @@ export function ProjectEditor({
     <DeviceLayout
       full={
         <EditorFrame
-          header={header}
+          header={
+            <>
+              {header}
+              {uploading ? (
+                <LazyUploadFiles projectId={projectId} onClose={() => setUploading(false)} />
+              ) : null}
+            </>
+          }
           rail={rail}
+          leftPanel={leftPanel ?? undefined}
+          leftPanelLabel={leftPanel === null ? undefined : 'office.shell.left_panel'}
           canvas={canvas}
           inspector={
             openAssistant !== null ? (
-              <AssistantPanel session={openAssistant} />
+              <LazyAssistantPanel session={openAssistant} preview={preview} />
             ) : (
               (inspector ?? undefined)
             )
@@ -498,8 +853,14 @@ export function ProjectEditor({
           statusBar={
             <StatusBar
               start={
-                showPlan && scale ? (
-                  <PlanStatusStart scale={scale} snap={deviceSnapSettings} />
+                showPlan && scale && phase ? (
+                  <>
+                    {session !== null && floors !== null ? (
+                      <FloorSwitcher store={session.store} floors={floors} canEdit={canEdit} />
+                    ) : null}
+                    <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
+                    {part('status')}
+                  </>
                 ) : undefined
               }
               end={showPlan ? <PlanStatusEnd handle={plan.handle} /> : undefined}
@@ -508,7 +869,175 @@ export function ProjectEditor({
           backdrop={backdrop}
         />
       }
-      phone={<EditorPhoneNotice />}
+      phone={<LazyNotice name="EditorPhoneNotice" />}
     />
   );
+}
+
+const conflictPanelModule = lazyModule(() => import('../lazy/conflict-panel'));
+
+// EZD-111 (11 Budgets; EZD-120c B11): the Send dialog and the Project settings dialog it opens load when Share is
+// first pressed.
+const sendDialogModule = lazyModule(() => import('../lazy/send-dialog'));
+
+function LazySend(props: {
+  projectId: string;
+  sync: EditorSession['sync'];
+  sendOpen: boolean;
+  settings: LockUi['switcher'] | null;
+  onCloseSend: () => void;
+  onSent: (versionNo: number) => void;
+  onOpenSettings: () => void;
+  onCloseSettings: () => void;
+}) {
+  const mod = useLazy(sendDialogModule);
+  if (!mod) return null;
+  const { settings } = props;
+  return (
+    <>
+      {props.sendOpen ? (
+        <mod.SendDialog
+          projectId={props.projectId}
+          sync={props.sync}
+          onClose={props.onCloseSend}
+          onSent={props.onSent}
+          onOpenProjectSettings={props.onOpenSettings}
+        />
+      ) : null}
+      {settings ? (
+        <mod.ProjectSettingsDialog
+          {...settings.settings()}
+          onClose={props.onCloseSettings}
+          onSaved={(s) => {
+            props.onCloseSettings();
+            settings.saved(s);
+          }}
+        />
+      ) : null}
+    </>
+  );
+}
+
+// EZD-126 (11 rule 7): the lock UI loads on the first pointer move or press, or the first edit (not on
+// pointerover, which a browser fires when the page changes under a resting mouse).
+const lockUiModule = lazyModule(() => import('../lazy/lock-ui'));
+
+// EZD-233: one hook for the lazy parts below. The module loads while `wanted`; nothing shows for the moment it
+// downloads, and a failed download is tried again the next time it is wanted.
+function useLazy<T>(module: LazyModule<T>, wanted = true): T | undefined {
+  const [mod, setMod] = useState(() => module.peek());
+  useEffect(() => {
+    if (mod || !wanted) return;
+    let live = true;
+    module.load().then(
+      (m) => {
+        if (live) setMod(m);
+      },
+      () => {},
+    );
+    return () => {
+      live = false;
+    };
+  }, [module, mod, wanted]);
+  return mod;
+}
+
+// EZD-5604b (11 Budgets; EZD-120c B11): the Assistant preview layer comes with the panel's lazy module, shown while
+// a preview is open.
+function LazyPreviewLayer(props: { store: PreviewStore; handle: PlanCanvasHandle }) {
+  const open = useSyncExternalStore(
+    props.store.subscribe,
+    () => props.store.getState().preview !== null,
+    () => props.store.getState().preview !== null,
+  );
+  const mod = useLazy(assistantPanelModule, open);
+  return mod ? <mod.PreviewLayer {...props} /> : null;
+}
+
+// EZD-214 (11 Budgets; EZD-120c B11): the inspector panel loads on the first press or key in the editor, or when
+// something is selected; until then the empty inspector is drawn from the entry.
+const inspectorModule = lazyModule(() => import('../lazy/inspector-panel'));
+
+function LazyInspectorPanel(props: InspectorPanelProps) {
+  const { selection } = props;
+  const selected = useSyncExternalStore(
+    selection.subscribe,
+    () => selection.getUi().ids.length > 0,
+    () => false,
+  );
+  // The first press or key fetches the module without a React commit (11 rule 4: a pan makes no commit).
+  useEffect(() => {
+    if (inspectorModule.peek() !== undefined) return;
+    const on = () => {
+      window.removeEventListener('pointerdown', on, true);
+      window.removeEventListener('keydown', on, true);
+      inspectorModule.load().catch(() => {});
+    };
+    window.addEventListener('pointerdown', on, true);
+    window.addEventListener('keydown', on, true);
+    return () => {
+      window.removeEventListener('pointerdown', on, true);
+      window.removeEventListener('keydown', on, true);
+    };
+  }, []);
+  const mod = useLazy(inspectorModule, selected) ?? inspectorModule.peek();
+  const coarse = useCoarsePointer();
+  return mod ? <mod.InspectorPanel {...props} /> : <InspectorEmpty coarse={coarse} />;
+}
+
+// EZD-233 (11 Budgets): the tablet edit bar loads on touch screens only.
+const editBarModule = lazyModule(() => import('../lazy/edit-bar'));
+
+function LazyEditBar(props: EditBarProps) {
+  const mod = useLazy(editBarModule);
+  return mod ? <mod.EditBar {...props} /> : null;
+}
+
+// EZD-233: the menus load when one first opens and then stay, so the Save as group dialog outlives its menu.
+const editMenuModule = lazyModule(() => import('../lazy/edit-menu'));
+
+function LazyUploadFiles(props: { projectId: string; onClose: () => void }) {
+  const mod = useLazy(editMenuModule);
+  return mod ? <mod.UploadFilesDialog {...props} /> : null;
+}
+
+function LazyEditMenus(props: EditMenusProps) {
+  const mod = useLazy(editMenuModule, props.request !== null);
+  return mod ? <mod.EditMenus {...props} /> : null;
+}
+
+// EZD-227 Build (11 Budgets; vault/build/assumptions.md EZD-227): the assistant panel loads when first opened, as the
+// conflict list does; nothing shows for the moment it downloads, and a failed download is tried again on next open.
+const assistantPanelModule = lazyModule(() => import('../lazy/assistant-panel'));
+
+function LazyAssistantPanel(props: { session: AssistantSession; preview: PreviewStore | null }) {
+  const mod = useLazy(assistantPanelModule);
+  return mod ? <mod.AssistantPanel {...props} /> : null;
+}
+
+// EZD-237: the benchmark runner loads only with `?benchmark=run` (the Benchmark card's frame).
+const benchmarkRunnerModule = lazyModule(() => import('../lazy/benchmark-runner'));
+
+function LazyBenchmarkRunner(props: BenchmarkRunnerProps) {
+  const mod = useLazy(benchmarkRunnerModule);
+  return mod ? <mod.BenchmarkRunner {...props} /> : null;
+}
+
+// EZD-126 (11 Budgets): the phone and no-access notices and the conflict banner load when shown; a ready desktop
+// editor with every change saved shows none of them.
+const noticesModule = lazyModule(() => import('../lazy/editor-notices'));
+
+function LazyNotice({
+  name,
+  ...props
+}: { name: 'NoAccess' | 'EditorPhoneNotice' | 'ConflictBanner' } & Partial<ConflictBannerProps>) {
+  const mod = useLazy(noticesModule);
+  const Notice = mod?.[name] as ((p: typeof props) => ReactNode) | undefined;
+  return Notice ? <Notice {...props} /> : null;
+}
+
+// Shows nothing until the panel code is there; a failed download is tried again when the list is next opened.
+function LazyConflictPanel(props: ConflictPanelProps) {
+  const mod = useLazy(conflictPanelModule);
+  return mod ? <mod.ConflictPanel {...props} /> : null;
 }

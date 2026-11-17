@@ -157,8 +157,8 @@ describe('EZD-213b inspector panel', () => {
     expect(textOf(html, 'inspector-layers-total')).toContain('Total');
     expect(attr(html, 'inspector-edit-layers', 'aria-pressed')).toBe('false');
     expect(textOf(html, 'inspector-status')).toContain('Existing');
-    expect(inner(html, 'inspector-status')).toContain('#ez-icon-lock');
-    expect(attr(html, 'inspector-status', 'aria-label')).toBe('Status, read only');
+    expect(startTag(html, 'inspector-status')).toMatch(/^<select/);
+    expect(attr(html, 'inspector-status-dot', 'data-status')).toBe('existing');
     expect(startTag(html, 'inspector-bearing')).toMatch(/^<input/);
     expect(attr(html, 'inspector-bearing', 'type')).toBe('checkbox');
     expect(startTag(html, 'inspector-bearing')).not.toMatch(/\schecked/);
@@ -197,7 +197,7 @@ describe('EZD-213b inspector panel', () => {
     expect(attr(a, 'inspector-rough-opening', 'value')).toBe(`3' 2" ${TIMES} 6' 10 1/2"`);
     expect(textOf(a, 'inspector-rough-opening-auto')).toBe('Auto');
     expect(attr(a, 'inspector-impact-not_rated', 'aria-checked')).toBe('true');
-    for (const id of ['inspector-sill', 'inspector-status', 'inspector-shutter-type']) {
+    for (const id of ['inspector-sill', 'inspector-shutter-type']) {
       expect(has(a, id), id).toBe(false);
     }
 
@@ -290,7 +290,7 @@ describe('EZD-213b inspector panel', () => {
     expect(attr(a, 'inspector-thickness', 'placeholder')).toBe('Mixed');
     expect(attr(a, 'inspector-height', 'value')).toBe(`8' 0"`);
     expect(textOf(a, 'inspector-layers-mixed')).toBe('Mixed');
-    for (const id of ['inspector-length', 'inspector-status', 'inspector-edit-layers']) {
+    for (const id of ['inspector-length', 'inspector-edit-layers']) {
       expect(has(a, id), id).toBe(false);
     }
 
@@ -325,7 +325,9 @@ describe('EZD-213b inspector panel', () => {
 
     const f = render(viewOf(houseObjects(), [uid(1), uid(30)]));
     expect(textOf(f, 'inspector-title')).toBe('2 objects selected');
-    for (const tag of ['<input', '<select', '<button']) expect(f, tag).not.toContain(tag);
+    for (const tag of ['<input', '<button']) expect(f, tag).not.toContain(tag);
+    expect(count(f, '<select')).toBe(1);
+    expect(startTag(f, 'inspector-status')).toMatch(/^<select/);
   });
 
   it('EZD-213b U7 view-only reads plain text', () => {

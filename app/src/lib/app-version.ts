@@ -20,3 +20,13 @@ export function isOlderBuild(header: string | null, current: number): boolean {
   if (header === null || !HEADER_PATTERN.test(header)) return true;
   return Number(header) < current;
 }
+
+// EZD-237 (vault/plans/EZD-237.md Decided D-Version; Q-0664 "app_version is the build commit"): the version a
+// benchmark run names. `next.config.ts` inlines EZD_APP_COMMIT (the deploy's commit) into both bundles; a 40-hex
+// commit is that commit, anything else (local and test builds) is `dev-<build number>`.
+const COMMIT_PATTERN = /^[0-9a-f]{40}$/;
+
+export function appVersion(): string {
+  const commit = process.env.EZD_APP_COMMIT;
+  return commit !== undefined && COMMIT_PATTERN.test(commit) ? commit : `dev-${appBuild()}`;
+}

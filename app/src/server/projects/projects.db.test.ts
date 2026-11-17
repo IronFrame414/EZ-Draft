@@ -181,6 +181,8 @@ describe('EZD-117a list and count projects', () => {
       status: 'draft',
       openItems: 5,
       hasThumbnail: false,
+      // EZD-121 (S01 Data shown; Q-0700 05): no send yet.
+      versionNo: null,
     });
     expect(p2?.clientName).toBeNull();
     expect(rpc).toHaveBeenCalledTimes(1);

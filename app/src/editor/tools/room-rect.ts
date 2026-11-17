@@ -51,7 +51,12 @@ function commit(
   const corners: Point[] = [copy(c), { x: o.x, y: c.y }, copy(o), { x: c.x, y: o.y }];
   const data: WallObject['data'][] = [];
   for (let i = 0; i < 4; i++) {
-    const r = createWallData({ start: corners[i]!, end: corners[(i + 1) % 4]!, level: ctx.level });
+    const r = createWallData({
+      start: corners[i]!,
+      end: corners[(i + 1) % 4]!,
+      level: ctx.level,
+      status: ctx.status,
+    });
     if (!r.ok) return step(kept);
     data.push(r.data);
   }

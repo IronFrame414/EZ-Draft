@@ -179,13 +179,10 @@ test('EZD-000 T6 (AC-EZD-000-1): CLAUDE.md still exists with its build rules (Q-
   const p = path.join(root, 'CLAUDE.md');
   assert.ok(existsSync(p), 'CLAUDE.md must exist');
   const md = readFileSync(p, 'utf8');
-  // The setup kit's heading is `## Rules (every agent)`; the plan text (written 2026-10-11) names the
-  // earlier wording `## Rules for every session and every agent`. Either proves the rules were kept.
-  assert.ok(
-    md.includes('## Rules (every agent)') || md.includes('## Rules for every session and every agent'),
-    'CLAUDE.md must keep its Rules section',
-  );
-  assert.ok(md.includes('## Conventions file'), 'CLAUDE.md must keep its Conventions file section');
+  // Build v3 (2026-11-13) rewrote CLAUDE.md: the rules are under `## Rules` and the code rule catalog
+  // (vault/spec/code-rules.json) replaces the old `## Conventions file` section.
+  assert.ok(/^## Rules\b/m.test(md), 'CLAUDE.md must keep its Rules section');
+  assert.ok(md.includes('vault/spec/code-rules.json'), 'CLAUDE.md must name the code rule catalog');
 });
 
 test('EZD-000 T26: root package.json has the gate scripts, pnpm pin and the four workspace globs', () => {

@@ -10,6 +10,7 @@ Test files shared by the app, the geometry package and the spikes (EZD-016b, `va
 | id | origin | kind | status | path | needed by | source |
 | --- | --- | --- | --- | --- | --- | --- |
 | `synthetic-room-dxf` | generated | polycam_dxf | present | `fixtures/synthetic/room-12x10.dxf` | EZD-029, EZD-302 | this ticket (EZD-016b) |
+| `synthetic-room-unjoined-dxf` | generated | polycam_dxf | present | `fixtures/synthetic/room-12x10-unjoined.dxf` | EZD-302 | EZD-302 (Q-0066 (b)): the synthetic room with the east wall stopped 2 in short of the north wall, written by `node scripts/fixtures/generate-unjoined.mjs` |
 | `synthetic-room-vector-pdf` | generated | pdf | present | `fixtures/synthetic/room-12x10-vector.pdf` | EZD-304, EZD-305 | this ticket (EZD-016b) |
 | `synthetic-room-glb` | generated | polycam_glb | present | `fixtures/synthetic/room-12x10-sloped.glb` | EZD-303 | this ticket (EZD-016b) |
 | `synthetic-room-scanned-pdf` | generated | pdf | present | `fixtures/synthetic/room-12x10-scanned.pdf` | EZD-305 | this ticket (EZD-016b) |

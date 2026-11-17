@@ -6,6 +6,8 @@ import {
   JOB_FAILURE_DAYS,
   SYSTEM_STATUS_PAGE_SIZE,
   SYSTEM_STATUS_PATH,
+  formatBytes,
+  formatStatusTime,
   parseStatusQuery,
 } from './system-status';
 
@@ -48,5 +50,31 @@ describe('EZD-135 system status helpers', () => {
     for (const input of bad) {
       expect(parseStatusQuery(new URLSearchParams(input)), input).toBeNull();
     }
+  });
+});
+
+// EZD-135b U1 (vault/plans/EZD-135b.md section 4; Decided "Times", "Sizes"). Expected values: Intl en-US short
+// month with the narrow spaces made plain (UTC 15:04 is 10:04 in New York on Nov 9, EST); sizes in decimal units
+// (11 Budgets "200 KB" held as 200,000 bytes, Q-0579), one decimal, rounding up to the next unit at 1000.
+describe('EZD-135b system status formatting', () => {
+  it('U1 (a) times in UTC and New York', () => {
+    expect(formatStatusTime('2026-11-09T15:04:00Z', 'UTC')).toBe('Nov 9, 2026, 3:04 PM');
+    expect(formatStatusTime('2026-11-09T15:04:00Z', 'America/New_York')).toBe(
+      'Nov 9, 2026, 10:04 AM',
+    );
+    expect(formatStatusTime('2026-01-02T00:30:00Z', 'UTC')).toBe('Jan 2, 2026, 12:30 AM');
+  });
+
+  it('U1 (b) sizes in decimal units', () => {
+    expect(formatBytes(0)).toBe('0 B');
+    expect(formatBytes(999)).toBe('999 B');
+    expect(formatBytes(1000)).toBe('1.0 KB');
+    expect(formatBytes(999949)).toBe('999.9 KB');
+    expect(formatBytes(999950)).toBe('1.0 MB');
+    expect(formatBytes(1234567)).toBe('1.2 MB');
+    expect(formatBytes(7340032)).toBe('7.3 MB');
+    expect(formatBytes(123456789)).toBe('123.5 MB');
+    expect(formatBytes(5000000000)).toBe('5.0 GB');
+    expect(formatBytes(1500000000000)).toBe('1.5 TB');
   });
 });

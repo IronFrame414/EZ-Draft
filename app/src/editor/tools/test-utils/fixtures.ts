@@ -2,6 +2,7 @@
 // patches.ts, `type ObjectValue` from model-api.ts and the tools index.
 import {
   CURRENT_SCHEMA_VERSION,
+  newRoomAttributes,
   NO_NUMBERS,
   createOpeningData,
   createWallData,
@@ -90,7 +91,7 @@ export function roomValue(
       geometry: { boundary: boundary.map((p) => ({ x: p.x, y: p.y })) },
       status: 'existing',
       level,
-      attributes: { name },
+      attributes: newRoomAttributes(name),
       closureOverride,
     },
   };

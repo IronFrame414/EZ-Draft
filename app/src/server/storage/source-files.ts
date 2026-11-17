@@ -13,6 +13,7 @@ import {
   type SourceFileKind,
 } from '../../lib/storage/source-file-kinds';
 import type { SignedUpload } from '../../lib/storage/upload';
+import { kindTakes } from '../../lib/imports/upload-files';
 import { can, loadPermissionContext } from '../permissions';
 import { createSignedUpload, statObject, StorageError, type DbClient } from './objects';
 
@@ -62,26 +63,30 @@ type ViewRow = {
 const CONTENT_TYPE_RE = /^[a-z0-9]+\/[a-z0-9.+-]+$/;
 const codePoints = (s: string) => Array.from(s).length;
 
-const startSchema = z.object({
-  projectId: z.uuid(),
-  kind: z.enum(SOURCE_FILE_KINDS),
-  originalName: z.string().refine((s) => codePoints(s) >= 1 && codePoints(s) <= 255),
-  contentType: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .max(127)
-    .regex(CONTENT_TYPE_RE)
-    .refine((v) => (SOURCE_CONTENT_TYPES as readonly string[]).includes(v)),
-  size: z.number().int().min(1).max(SOURCE_MAX_BYTES),
-  uploadedBy: z.uuid(),
-  supplierName: z
-    .string()
-    .refine((s) => codePoints(s) >= 1 && codePoints(s) <= 255)
-    .nullable()
-    .optional(),
-  supplierContactEmail: z.email().max(320).nullable().optional(),
-});
+const startSchema = z
+  .object({
+    projectId: z.uuid(),
+    kind: z.enum(SOURCE_FILE_KINDS),
+    originalName: z.string().refine((s) => codePoints(s) >= 1 && codePoints(s) <= 255),
+    contentType: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .max(127)
+      .regex(CONTENT_TYPE_RE)
+      .refine((v) => (SOURCE_CONTENT_TYPES as readonly string[]).includes(v)),
+    size: z.number().int().min(1).max(SOURCE_MAX_BYTES),
+    uploadedBy: z.uuid(),
+    supplierName: z
+      .string()
+      .refine((s) => codePoints(s) >= 1 && codePoints(s) <= 255)
+      .nullable()
+      .optional(),
+    supplierContactEmail: z.email().max(320).nullable().optional(),
+  })
+  // EZD-301 (Q-0517): each kind takes only its own content types (order reports PDF only, field measure files
+  // the photo types, Q-0513).
+  .refine((v) => kindTakes(v.kind, v.contentType));
 
 export function sourceFilePath(tenantId: string, projectId: string, sourceFileId: string): string {
   return `${tenantId}/${projectId}/${sourceFileId}`;
@@ -133,7 +138,7 @@ export async function startSourceFileUpload(
     .select('id, tenant_id')
     .eq('id', v.projectId)
     .maybeSingle();
-  if (project.error) throw new StorageError('storage_unavailable');
+  if (project.error) throw new StorageError('storage_unavailable', { cause: project.error });
   if (!project.data) throw new StorageError('project_not_found');
 
   const id = randomUUID();
@@ -176,7 +181,7 @@ export async function completeSourceFileUpload(
     .select(VIEW_COLUMNS)
     .eq('id', sourceFileId)
     .maybeSingle();
-  if (found.error) throw new StorageError('storage_unavailable');
+  if (found.error) throw new StorageError('storage_unavailable', { cause: found.error });
   if (!found.data) throw new StorageError('source_file_not_found');
   const row = toView(found.data);
   if (row.uploadedAt !== null) return row;
@@ -195,7 +200,9 @@ export async function completeSourceFileUpload(
   if (updated.error) {
     // No row under .single() (PGRST116): a concurrent complete stamped it first. Re-read the row by id and
     // return it when uploaded_at is set (Decided completeSourceFileUpload).
-    if (updated.error.code !== 'PGRST116') throw new StorageError('storage_unavailable');
+    if (updated.error.code !== 'PGRST116') {
+      throw new StorageError('storage_unavailable', { cause: updated.error });
+    }
     const again = await client
       .from('source_file')
       .select(VIEW_COLUMNS)
@@ -207,4 +214,87 @@ export async function completeSourceFileUpload(
     return toView(again.data);
   }
   return toView(updated.data);
+}
+
+// EZD-234 Build (Q-0704 03-data-model row 3 "File references are checked on save"): the rows of `ids` the caller's
+// client can read, keyed by lower-case id, in reads of at most READ_CHUNK ids. A row it cannot read is absent.
+export type StoredFileRef = { projectId: string; kind: string; uploaded: boolean };
+const READ_CHUNK = 100;
+
+export async function readSourceFileRefs(
+  client: DbClient,
+  ids: readonly string[],
+): Promise<Map<string, StoredFileRef>> {
+  const files = new Map<string, StoredFileRef>();
+  for (let i = 0; i < ids.length; i += READ_CHUNK) {
+    const { data, error } = await client
+      .from('source_file')
+      .select('id, project_id, kind, uploaded_at')
+      .in('id', ids.slice(i, i + READ_CHUNK));
+    if (error) throw error;
+    for (const row of data)
+      files.set(row.id.toLowerCase(), {
+        projectId: row.project_id,
+        kind: row.kind,
+        uploaded: row.uploaded_at !== null,
+      });
+  }
+  return files;
+}
+
+// EZD-302: the import job's read of its project's files. It runs with the secret key, so the tenant and project
+// filters stand in for RLS; a file of another tenant or project is absent.
+export type JobSourceFile = { id: string; kind: string; storagePath: string; uploaded: boolean };
+
+export async function readJobSourceFiles(
+  client: DbClient,
+  scope: { tenantId: string; projectId: string },
+  ids: readonly string[],
+): Promise<JobSourceFile[]> {
+  const out: JobSourceFile[] = [];
+  for (let i = 0; i < ids.length; i += READ_CHUNK) {
+    const { data, error } = await client
+      .from('source_file')
+      .select('id, kind, storage_path, uploaded_at')
+      .eq('tenant_id', scope.tenantId)
+      .eq('project_id', scope.projectId)
+      .in('id', ids.slice(i, i + READ_CHUNK));
+    if (error) throw error;
+    for (const row of data)
+      out.push({
+        id: row.id,
+        kind: row.kind,
+        storagePath: row.storage_path,
+        uploaded: row.uploaded_at !== null,
+      });
+  }
+  return out;
+}
+
+// EZD-307: Import review's read of its import's files, through the caller's client so RLS decides what is visible
+// (a file of another company or an unlisted project is absent). Keyed by lower-case id.
+export type ReviewSourceFile = { name: string; kind: string; storagePath: string; uploaded: boolean };
+
+export async function readReviewSourceFiles(
+  client: DbClient,
+  projectId: string,
+  ids: readonly string[],
+): Promise<Map<string, ReviewSourceFile>> {
+  const out = new Map<string, ReviewSourceFile>();
+  for (let i = 0; i < ids.length; i += READ_CHUNK) {
+    const { data, error } = await client
+      .from('source_file')
+      .select('id, kind, original_name, storage_path, uploaded_at')
+      .eq('project_id', projectId)
+      .in('id', ids.slice(i, i + READ_CHUNK));
+    if (error) throw error;
+    for (const row of data)
+      out.set(row.id.toLowerCase(), {
+        name: row.original_name,
+        kind: row.kind,
+        storagePath: row.storage_path,
+        uploaded: row.uploaded_at !== null,
+      });
+  }
+  return out;
 }

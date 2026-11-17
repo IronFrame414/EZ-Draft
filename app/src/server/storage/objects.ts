@@ -27,8 +27,9 @@ export type StorageErrorCode =
 export class StorageError extends Error {
   readonly code: StorageErrorCode;
 
-  constructor(code: StorageErrorCode) {
-    super(code);
+  // EZD-421: `cause` keeps a wrapped database error for the ended-session rule (server/auth/ended-session.ts).
+  constructor(code: StorageErrorCode, options?: { cause?: unknown }) {
+    super(code, options);
     this.name = 'StorageError';
     this.code = code;
   }

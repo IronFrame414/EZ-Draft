@@ -640,6 +640,11 @@ test('EZD-316 T12 record-develop: lists what changed since the record, records o
   assert.match(re.stdout, new RegExp(`RECORD OK develop ${D.slice(0, 7)}`));
   assert.equal(readFileSync(recordOf(home), 'utf8'), `${D}\n`);
 
+  // (i) record = develop, no sha: nothing to record, so no RECORD CHECK hint (Josh 2026-11-12, chat: "proposed changes approved").
+  const ri = runWith(dir, ops, 'record-develop');
+  assert.equal(ri.status, 0, ri.stdout + ri.stderr);
+  assert.deepEqual(lines(ri), [`RECORD LIST ${D.slice(0, 7)}..${D.slice(0, 7)}`, `RECORD OK: develop ${D.slice(0, 7)} is already recorded; nothing to do`]);
+
   // (g) an unreadable record file counts as no record.
   putRecord(home, 'abc\n');
   const rg = runWith(dir, ops, 'record-develop');

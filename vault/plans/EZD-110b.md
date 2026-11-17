@@ -190,4 +190,4 @@ Medium: browser-only logic (a single-flight store, a time formatter, a Radix pop
 - Risk: EZD-108 and this ticket both edit `EXPECTED_ICONS`; whichever merges second takes develop's list (section 4). Steps 7, 17, 21 and 22 edit files EZD-110a creates, so this part builds only after EZD-110a merges.
 
 ## 10. Open questions
-None. QP-1 answered by Q-0549 (b); Q-0550 (one version rule, T14 matrix) applied in D15, B2 and T14.
+None. The reset() display question is Q-0549 (b); Q-0550 (one version rule, T14 matrix) applied in D15, B2 and T14.

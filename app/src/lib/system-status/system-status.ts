@@ -43,3 +43,33 @@ export function parseStatusQuery(params: URLSearchParams): StatusQuery | null {
   }
   return { part, page };
 }
+
+// EZD-135b Build step 1 (vault/plans/EZD-135b.md Decided "Times", "Sizes"): the card time and size texts.
+const plain = (s: string) => s.replace(new RegExp('[\\u202f\\u00a0]', 'g'), ' ');
+
+export function formatStatusTime(iso: string, timeZone?: string): string {
+  return plain(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(new Date(iso)),
+  );
+}
+
+const UNITS = ['KB', 'MB', 'GB', 'TB'] as const;
+
+// Decimal units (1 KB = 1,000 bytes; 11 Budgets, Q-0579), one decimal from KB up.
+export function formatBytes(n: number): string {
+  if (n < 1000) return `${n} B`;
+  let v = n / 1000;
+  let i = 0;
+  while (i < UNITS.length - 1 && Number(v.toFixed(1)) >= 1000) {
+    v = v / 1000;
+    i += 1;
+  }
+  return `${v.toFixed(1)} ${UNITS[i]}`;
+}

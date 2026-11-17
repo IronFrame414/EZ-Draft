@@ -30,6 +30,9 @@ const view = (ui: Partial<AssistantUi> = {}) =>
         model: 'sonnet',
         phase: 'idle',
         profileOpen: false,
+        photo: null,
+        photoProblem: null,
+        photoPreparing: false,
         ...ui,
       }}
       onClose={noop}
@@ -38,6 +41,8 @@ const view = (ui: Partial<AssistantUi> = {}) =>
       onSend={noop}
       onOpenProfile={noop}
       onRetryKey={noop}
+      onAttachPhoto={noop}
+      onRemovePhoto={noop}
     />,
   );
 

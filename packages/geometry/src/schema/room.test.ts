@@ -10,7 +10,7 @@ import { parseStoredObject, type StoredObject } from './index';
 import v1 from './samples/v1.json';
 import v2 from './samples/v2.json';
 import v3 from './samples/v3.json';
-import v4 from './samples/v4.json';
+import v6 from './samples/v6.json';
 
 type Rec = Record<string, unknown>;
 type Doc = { objects: StoredObject[] };
@@ -76,24 +76,31 @@ describe('EZD-205a room schema', () => {
     const nullRoom = deepFreeze({ ...floor1Room(v2), data: null });
 
     const mRoom = migrateStoredObject(room);
-    expect(mRoom?.schema_version).toBe(4);
+    expect(mRoom?.schema_version).toBe(6);
     const d = mRoom?.data as Rec;
     const src = room.data as Rec;
     expect(d.status).toBe('existing');
     expect(d.closureOverride).toBeNull();
     expect(d.geometry).toEqual(src.geometry);
     expect(d.level).toEqual(src.level);
-    expect(d.attributes).toEqual(src.attributes);
+    expect(d.attributes).toEqual({
+      ...(src.attributes as Rec),
+      floorLevel: 0,
+      photos: [],
+      roomType: null,
+      floorFinish: '',
+      ceilingType: null,
+    });
 
     const mWall = migrateStoredObject(wall);
-    expect(mWall?.schema_version).toBe(4);
+    expect(mWall?.schema_version).toBe(6);
     expect(mWall?.data).toEqual(wall.data);
 
     const mNull = migrateStoredObject(nullRoom);
-    expect(mNull?.schema_version).toBe(4);
+    expect(mNull?.schema_version).toBe(6);
     expect(mNull?.data).toBeNull();
 
-    expect(objectsOf(v2).map((o) => migrateStoredObject(o))).toEqual(objectsOf(v4));
-    expect(objectsOf(v1).map((o) => migrateStoredObject(o))).toEqual(objectsOf(v4));
+    expect(objectsOf(v2).map((o) => migrateStoredObject(o))).toEqual(objectsOf(v6).slice(0, 16));
+    expect(objectsOf(v1).map((o) => migrateStoredObject(o))).toEqual(objectsOf(v6).slice(0, 16));
   });
 });
