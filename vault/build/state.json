@@ -358,7 +358,19 @@
     "EZD-224b",
     "EZD-308",
     "EZD-125",
-    "EZD-126"
+    "EZD-126",
+    "EZD-729",
+    "EZD-128",
+    "EZD-130",
+    "EZD-306",
+    "EZD-225",
+    "EZD-111",
+    "EZD-121",
+    "EZD-402",
+    "EZD-411",
+    "EZD-309",
+    "EZD-220",
+    "EZD-310"
   ],
   "seeded_done": 324,
   "merged": [
@@ -604,11 +616,116 @@
       "ts": "2026-11-17T00:06:45Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-729",
+      "title": "Plumbing locations",
+      "commit": "3fdd0d71",
+      "ts": "2026-11-17T01:39:02Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-128",
+      "title": "Project switcher",
+      "commit": "fb2b9f7e",
+      "ts": "2026-11-17T03:53:57Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-130",
+      "title": "Project settings dialog",
+      "commit": "306a5141",
+      "ts": "2026-11-17T05:12:43Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-306",
+      "title": "DXF conversion choice",
+      "commit": "ebb3fb8e",
+      "ts": "2026-11-17T06:23:16Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-225",
+      "title": "Editor states",
+      "commit": "13093e91",
+      "ts": "2026-11-17T07:01:02Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-111",
+      "title": "Send dialog with Copy link",
+      "commit": "c2b572ed",
+      "ts": "2026-11-17T07:53:05Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-121",
+      "title": "Sent versions and numbering",
+      "commit": "b4efce72",
+      "ts": "2026-11-17T08:40:03Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-402",
+      "title": "Cabinet object model",
+      "commit": "c4dfaffe",
+      "ts": "2026-11-17T09:18:17Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-411",
+      "title": "Countertop object model",
+      "commit": "53546ad5",
+      "ts": "2026-11-17T10:04:54Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-309",
+      "title": "Fix and delete",
+      "commit": "0366abeb",
+      "ts": "2026-11-17T13:31:43Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-220",
+      "title": "Existing-condition pins",
+      "commit": "5f51fad2",
+      "ts": "2026-11-17T19:38:22Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-310",
+      "title": "Typed vs scan conflicts",
+      "commit": "21174f75",
+      "ts": "2026-11-17T20:41:28Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
-  "set_aside": {},
+  "set_aside": {
+    "EZD-410": {
+      "title": "Cabinet flags and states",
+      "ts": "2026-11-17T13:21:15Z",
+      "reason": "check still red after 2 fix rounds (first try: builder timed out after 90 min with no commits)",
+      "detail": "  code: 'ECONNRESET'\n[WebServer] }\n[WebServer] Error: aborted\n[WebServer]     at ignore-listed frames {\n[WebServer]   code: 'ECONNRESET'\n[WebServer] }\n  1) [desktop] › e2e/editor.spec.ts:368:7 › EZD-120c editor route › EZD-120c B11 the editor route loads no code past the editor entry rules and stays within 500,000 compressed bytes \n    Error: expect(received).toBeLessThanOrEqual(expected)\n    Expected: <= 500000\n    Received:    500041\n      382 |     const size = await signedInJsSize(browser, state, url);\n      383 |     expect('error' in size).toBe(false);\n    > 384 |     expect('value' in size ? size.value : Infinity).toBeLessThanOrEqual(500_000);\n          |                                                     ^\n      385 |   });\n      386 | });\n      387 |\n        at /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-410/app/e2e/editor.spec.ts:384:53\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results/editor-EZD-120c-editor-rou-eb0ff-in-500-000-compressed-bytes-desktop/test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results/editor-EZD-120c-editor-rou-eb0ff-in-500-000-compressed-bytes-desktop/test-failed-3.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results/editor-EZD-120c-editor-rou-eb0ff-in-500-000-compressed-bytes-desktop/test-failed-2.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n    Error Context: test-results/editor-EZD-120c-editor-rou-eb0ff-in-500-000-compressed-bytes-desktop/error-context.md\n    Error Context: test-results/editor-EZD-120c-editor-rou-eb0ff-in-500-000-compressed-bytes-desktop/error-context.md\n    attachment #6: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results/editor-EZD-120c-editor-rou-eb0ff-in-500-000-compressed-bytes-desktop/trace.zip\n    Usage:\n        pnpm exec playwright show-trace test-results/editor-EZD-120c-editor-rou-eb0ff-in-500-000-compressed-bytes-desktop/trace.zip\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n  2) [desktop] › e2e/plan-canvas.spec.ts:440:7 › EZD-207a plan canvas › EZD-207a B8 the editor route loads no code past the editor entry rules and stays within 500,000 compressed bytes \n    Error: expect(received).toBeLessThanOrEqual(expected)\n    Expected: <= 500000\n    Received:    500041\n      454 |     const size = await signedInJsSize(browser, state, url);\n      455 |     expect('error' in size).toBe(false);\n    > 456 |     expect('value' in size ? size.value : Infinity).toBeLessThanOrEqual(500_000);\n          |                ",
+      "branch": "t/EZD-410",
+      "worktree": ".claude/worktrees/EZD-410"
+    }
+  },
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -618,7 +735,13 @@
     "EZD-116": 1,
     "EZD-216": 1,
     "EZD-215": 1,
-    "EZD-306": 1
+    "EZD-306": 1,
+    "EZD-122": 1,
+    "EZD-410": 1,
+    "EZD-222": 1,
+    "EZD-124": 1,
+    "EZD-312": 1,
+    "EZD-422": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -636,20 +759,44 @@
     "EZD-306": {
       "ts": "2026-11-17T00:39:41Z",
       "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-122": {
+      "ts": "2026-11-17T10:11:09Z",
+      "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-410": {
+      "ts": "2026-11-17T11:35:00Z",
+      "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-222": {
+      "ts": "2026-11-17T11:42:27Z",
+      "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-124": {
+      "ts": "2026-11-17T11:48:53Z",
+      "reason": "builder crashed (no result)"
+    },
+    "EZD-312": {
+      "ts": "2026-11-17T18:34:37Z",
+      "reason": "builder crashed (no result)"
+    },
+    "EZD-422": {
+      "ts": "2026-11-17T18:34:39Z",
+      "reason": "builder crashed (no result)"
     }
   },
   "running": {
-    "EZD-729": {
-      "lane": 2,
-      "title": "Plumbing locations",
-      "started": "2026-11-16T23:21:28Z",
-      "develop": "f465d586"
-    },
-    "EZD-225": {
+    "EZD-422": {
       "lane": 0,
-      "title": "Editor states",
-      "started": "2026-11-17T00:07:58Z",
-      "develop": "b6ffab28"
+      "title": "Fix: every fixture kind draws its own standard plan symbol, not the same box with diagonals",
+      "started": "2026-11-17T19:49:38Z",
+      "develop": "6a3aa070"
+    },
+    "EZD-134": {
+      "lane": 2,
+      "title": "App-shell cache and device storage",
+      "started": "2026-11-17T19:49:39Z",
+      "develop": "6a3aa070"
     }
   }
 }
