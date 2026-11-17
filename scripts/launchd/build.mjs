@@ -23,7 +23,10 @@ if (cmd === 'install') {
   mkdirSync(agents, { recursive: true }); mkdirSync(logDir, { recursive: true });
   lc('bootout', `gui/${uid}/${LABEL}`);
   writeFileSync(file, plist(LABEL, { program: [process.execPath, path.join(root, 'scripts/loop.mjs')], keepAlive: true, log: path.join(logDir, 'build.log') }));
-  const r = lc('bootstrap', `gui/${uid}`, file);
+  // Right after a bootout, launchd can still be tearing the old job down and answers "5: Input/output error";
+  // a retry a few seconds later loads it (seen on every restart, 2026-11-16).
+  let r = lc('bootstrap', `gui/${uid}`, file);
+  for (let i = 0; r.status !== 0 && i < 5; i++) { spawnSync('sleep', ['3']); r = lc('bootstrap', `gui/${uid}`, file); }
   console.log(`${LABEL}: ${r.status === 0 ? 'loaded' : `load failed: ${(r.stderr || r.stdout).trim()}`}`);
 } else if (cmd === 'uninstall') {
   lc('bootout', `gui/${uid}/${LABEL}`);
