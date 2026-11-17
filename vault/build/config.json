@@ -18,7 +18,8 @@
   "max_phase": 17,
   "lanes": [
     0,
-    1
+    1,
+    2
   ],
-  "lanes_note": "Josh 2026-11-17 14:50 ET: 2 lanes trial until about 2026-11-19 03:00 ET, then compare tickets per hour against 3 lanes (Nov 16-17) and 1 lane (Nov 13)"
+  "lanes_note": "Josh 2026-11-17: 3 lanes; the multi-lane trial ends Thursday 2026-11-19 06:00 ET, then compare tickets per hour against 1 lane (Nov 13)"
 }
