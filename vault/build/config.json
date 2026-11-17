@@ -15,5 +15,10 @@
     "app/src/server/messages/catalogs/es.ts"
   ],
   "footprint_lookahead": 25,
-  "max_phase": 17
+  "max_phase": 17,
+  "lanes": [
+    0,
+    1
+  ],
+  "lanes_note": "Josh 2026-11-17 14:50 ET: 2 lanes trial until about 2026-11-19 03:00 ET, then compare tickets per hour against 3 lanes (Nov 16-17) and 1 lane (Nov 13)"
 }
