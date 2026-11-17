@@ -254,6 +254,9 @@ export type DrawingController = {
   cancelEntry(): void;
   setFixtureChoice(choice: FixtureChoice): void;
   dismissUtilities(): void;
+  // EZD-225 (S03:143; S06:78): the lock went to someone else. What is half drawn or dragged ends as Escape ends
+  // it, nothing is committed, the tool becomes Select and every edit stays off for this controller's life.
+  pause(): void;
   dispose(): void;
 };
 
@@ -321,7 +324,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let loose: LooseObject[] = level === null ? [] : looseOn(objects, level);
   // EZD-227: the level's grab-bar blocking, which moves and is placed against the walls.
   let blockings: ModelObject[] = level === null ? [] : blockingsOn(objects, level);
-  const enabled = viewer.canEdit && level !== null;
+  // EZD-225: `let`, so `pause` can turn editing off when the lock is lost.
+  let enabled = viewer.canEdit && level !== null;
 
   let tool: ToolState | null = null;
   let touchPoint: Point | null = null;
@@ -358,7 +362,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   const computeBoxes = (): GapBox[] =>
     level === null
       ? []
-      : gapBoxes(objects, level, { canEdit: viewer.canEdit, drawingWallIds: drawingIds });
+      : gapBoxes(objects, level, {
+          canEdit: enabled,
+          drawingWallIds: drawingIds,
+        });
 
   let ui: DrawingUi = {
     enabled,
@@ -1662,6 +1669,17 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     cancelEntry,
     setFixtureChoice,
     dismissUtilities,
+    pause() {
+      if (disposed || !enabled) return;
+      // Measure is allowed in view only (S06 States), so it stays on; any other tool ends as Escape ends it.
+      if (tool?.id === 'measure') cancelEntry();
+      else selectTool(null);
+      enabled = false;
+      setUi({ pick: null, gapMessage: null, boxes: computeBoxes() });
+      ui = { ...ui, enabled };
+      syncReceiver();
+      for (const l of [...uiListeners]) l();
+    },
     dispose() {
       if (disposed) return;
       disposed = true;

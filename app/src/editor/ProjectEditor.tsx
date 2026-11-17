@@ -40,6 +40,9 @@
 // parts through `LockPart`; until it loads the save-failed banner shows as before.
 // EZD-224b Build step 10 (vault/plans/EZD-224b.md Decided "Dev hook"; Q-0681 (a)): `__ezdraftEditor.checkpoint()`
 // drains the outbox, then makes a checkpoint with the plan's thumbnail through a lazily loaded module.
+// EZD-225 (S03 States; S06:48, 78, 100; Q-0697 decisions 05): Edit model without the lock shows the drawing tools
+// paused with the note under the banner; a lock lost mid-session pauses the drawing controller and every edit path
+// reads `mayEdit`.
 import {
   useCallback,
   useEffect,
@@ -295,7 +298,10 @@ export function ProjectEditor({
                   projectId,
                   sync,
                   getFloorId: () =>
-                    openFloorId(result.session.store.getState().objects, floors.getState().chosenId),
+                    openFloorId(
+                      result.session.store.getState().objects,
+                      floors.getState().chosenId,
+                    ),
                   getSelectedIds: () => selection.getUi().ids,
                   getNewStatus: () => phase.newObjectStatus(),
                   // EZD-5604b D-Editor: the preview watches the open model store; nothing in it is saved.
@@ -403,7 +409,9 @@ export function ProjectEditor({
 
   // EZD-126: the lock UI for this session, made once its module is there (at once when it already is). Start
   // editing reopens through `retry`.
-  const [lock, setLock] = useState<{ m: typeof import('../lazy/lock-ui'); ui: LockUi } | null>(null);
+  const [lock, setLock] = useState<{ m: typeof import('../lazy/lock-ui'); ui: LockUi } | null>(
+    null,
+  );
   useEffect(() => {
     if (session === null || plan === null) return;
     let ui: LockUi | undefined;
@@ -437,6 +445,24 @@ export function ProjectEditor({
     // `retry` only sets state, so the one from the render that made the session is enough.
   }, [session, plan, t]);
   const part = (name: LockPartName) => lock && <lock.m.LockPart ui={lock.ui} part={name} />;
+
+  // EZD-225 (S03:17, 143; S06:78; vault/build/assumptions.md EZD-126): the lock UI saw the lock leave this viewer
+  // (Release, auto release, their other device, or someone else took it). From then on this editor edits nothing:
+  // the drawing controller pauses and every edit path below reads `mayEdit`. Start editing reopens the editor.
+  const readLockLost = () => {
+    const s = lock?.ui.store.getState();
+    return s !== undefined && s.loaded && !s.isHolder;
+  };
+  const lockLost = useSyncExternalStore(
+    lock ? lock.ui.store.subscribe : noSubscribe,
+    readLockLost,
+    readLockLost,
+  );
+  // May edit now: Edit model and holding the lock (`viewer.canEdit` is the hold at open, editor-session.ts).
+  const mayEdit = (session?.model.viewer.canEdit ?? false) && !lockLost;
+  useEffect(() => {
+    if (lockLost) drawing?.pause();
+  }, [lockLost, drawing]);
 
   // EZD-130: a Project settings save (in the switcher) draws the header again with the new name and client.
   useEffect(() => lock?.ui.switcher.onSaved(() => setLock({ ...lock })), [lock]);
@@ -479,7 +505,7 @@ export function ProjectEditor({
     };
   }, [plan, phase, devHooks]);
 
-  const menuCanEdit = session?.model.viewer.canEdit ?? false;
+  const menuCanEdit = mayEdit;
   useEffect(() => {
     if (plan === null || selection === null || drawing === null || session === null) return;
     if (!menuCanEdit) return;
@@ -519,7 +545,6 @@ export function ProjectEditor({
   );
 
   const closeMenu = useCallback(() => setMenu(null), []);
-
 
   const conflictCount = countForProject(conflicts.inputs, projectId);
   const header =
@@ -567,6 +592,14 @@ export function ProjectEditor({
     );
 
   const showPlan = plan !== null && !canvasFailed;
+  const canEdit = mayEdit;
+  const spec = editorRail({
+    editor: state.kind,
+    canEdit,
+    canEditModel: session?.lock.canEditModel,
+    canvasFailed,
+    controllerEnabled: drawing?.getUi().enabled ?? false,
+  });
   let body: ReactNode = null;
   if (state.kind === 'loading') {
     body = (
@@ -592,14 +625,22 @@ export function ProjectEditor({
     body = (
       <>
         {showPlan && coarse && selection !== null ? (
-          <LazyEditBar selection={selection} edit={edit} clipboardOff={adjusting} />
+          <LazyEditBar
+            selection={selection}
+            edit={mayEdit ? edit : null}
+            clipboardOff={adjusting}
+          />
         ) : null}
         {part('banner')}
+        {/* EZD-225 (Q-0740 (a), vault/build/assumptions.md EZD-225): the note under the banner. */}
+        {spec?.paused !== undefined ? part('paused') : null}
         {sync !== null ? (
           <>
             <OfflineBanner message="office.editor.offline" />
             {/* D-Editor: outdated rows exist only while the problem is app_outdated; they say Reload. */}
-            {conflicts.outdatedCount > 0 ? null : (part('save') ?? <SaveFailedBanner sync={sync} />)}
+            {conflicts.outdatedCount > 0
+              ? null
+              : (part('save') ?? <SaveFailedBanner sync={sync} />)}
             {conflicts.outdatedCount > 0 || scale === null ? null : (
               <PlanScaleFailedBanner scale={scale} sync={sync} />
             )}
@@ -625,13 +666,6 @@ export function ProjectEditor({
       {body}
     </div>
   );
-  const canEdit = session?.model.viewer.canEdit ?? false;
-  const spec = editorRail({
-    editor: state.kind,
-    canEdit,
-    canvasFailed,
-    controllerEnabled: drawing?.getUi().enabled ?? false,
-  });
   const shown = assistant !== null && assistantShown({ canEdit, view: 'plan' }) ? assistant : null;
   const rail =
     spec === null ? null : (
@@ -667,7 +701,9 @@ export function ProjectEditor({
           onCancel={() => (selection !== null ? selection.selectTool() : drawing.selectTool(null))}
         />
       ) : null}
-      {selection !== null ? <SelectionLayer selection={selection} edit={edit} /> : null}
+      {selection !== null ? (
+        <SelectionLayer selection={selection} edit={mayEdit ? edit : null} />
+      ) : null}
       {session !== null ? (
         <EmptyPlanHint store={session.store} canEdit={canEdit} floors={floors ?? undefined} />
       ) : null}

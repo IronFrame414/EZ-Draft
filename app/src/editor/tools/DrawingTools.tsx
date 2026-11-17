@@ -16,6 +16,7 @@
 // loaded through lazyModule on first use (11 rule 7), showing nothing until the code is there.
 // EZD-223 (S03 Sketch): the sketch strokes path; the Sketch tool shows no typed bar.
 // EZD-231 (04 Tool rail Measure): the measure distance chip; the Measure tool shows no typed bar.
+// EZD-225 (S06:48; Q-0697 decisions 05): the rail's paused tools for a viewer with Edit model but not the lock.
 import {
   useCallback,
   useEffect,
@@ -35,16 +36,22 @@ import type { PlanCanvasHandle } from '../plan/controller';
 import { ASSISTANT_RAIL_TOOL } from '../assistant/assistant-ui';
 import type { SelectionController } from '../selection/selection-controller';
 import { TypedEntryLayer } from '../typed-entry/TypedEntryLayer';
-import type { DrawingController, DrawingUi } from './drawing-controller';
+import type { DrawingController, DrawingFrame, DrawingUi } from './drawing-controller';
 import type { FixturesPanelProps, UtilitiesToMoveProps } from '../../lazy/fixtures-panel';
 import { fixturesModule } from './fixtures-module';
+import { lazyModule } from '../../lib/lazy/lazy-module';
 import { GapBoxes } from './GapBoxes';
-import { createToolOverlay } from './overlay';
 import { entryTool } from './selection-edit';
 import { DRAWING_TOOLS, type DrawingToolId } from './tool-defs';
 import styles from './DrawingTools.module.css';
 
 const noSubscribe = () => () => {};
+
+// EZD-225 (11 Budgets editor download size; 11 rule 7): the overlay code loads on the first pointer or key input in
+// the page, as the lock UI does. It draws only once a tool, a selection or a measure is on, which needs that input;
+// when it arrives it draws the current frame at once. No React state, so the first pan or box makes no commit.
+const overlayModule = lazyModule(() => import('./overlay'));
+const FIRST_INPUT = ['pointermove', 'pointerdown', 'keydown'] as const;
 
 // Loads the module on first render, then renders it; a failed load shows nothing and is tried again on the next mount.
 function useFixturesModule() {
@@ -78,7 +85,12 @@ function LazyUtilitiesToMove(props: UtilitiesToMoveProps) {
 export type DrawingRailProps = {
   drawing: DrawingController | null;
   selection: SelectionController | null;
-  rail: { tools: readonly RailTool[]; disabled: boolean; only?: string };
+  rail: {
+    tools: readonly RailTool[];
+    disabled: boolean;
+    only?: string;
+    paused?: readonly string[];
+  };
   assistant?: { open: boolean; onToggle: () => void } | null;
 };
 
@@ -101,6 +113,7 @@ export function DrawingRail({ drawing, selection, rail, assistant }: DrawingRail
       }}
       disabled={rail.disabled}
       only={rail.only}
+      paused={rail.paused}
     />
   );
 }
@@ -226,47 +239,64 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
       measureChip === null
     )
       return;
-    const overlay = createToolOverlay(
-      {
-        band,
-        marker,
-        opening: {
-          group,
-          span,
-          leaf,
-          arc,
-          dims,
-          ticks,
-          dot,
-          chips: [
-            { slot: leftSlot, button: leftChip },
-            { slot: rightSlot, button: rightChip },
-          ],
-        },
-        preview,
-        sketch: sketchRef.current ?? undefined,
-        measure: { slot: measureSlot, button: measureChip },
-        selection: {
-          handles: [handle0, handle1],
-          leaders,
-          ticks: chipTicks,
-          chips: [
-            { slot: selLeftSlot, button: selLeftChip },
-            { slot: selRightSlot, button: selRightChip },
-          ],
-          size: { slot: sizeSlot, button: sizeChip },
-        },
-      },
-      handle.modelToScreen,
-    );
-    const draw = overlay.draw;
-    draw(controller.getFrame());
-    const offFrame = controller.onFrame(draw);
+    let live = true;
+    let draw: ((frame: DrawingFrame | null) => void) | null = null;
+    let offFrame = () => {};
     const offCamera = handle.onCameraChange(() => {
-      draw(controller.getFrame());
+      draw?.(controller.getFrame());
       place();
     });
+    const begin = (m: typeof import('./overlay')) => {
+      if (!live) return;
+      draw = m.createToolOverlay(
+        {
+          band,
+          marker,
+          opening: {
+            group,
+            span,
+            leaf,
+            arc,
+            dims,
+            ticks,
+            dot,
+            chips: [
+              { slot: leftSlot, button: leftChip },
+              { slot: rightSlot, button: rightChip },
+            ],
+          },
+          preview,
+          sketch: sketchRef.current ?? undefined,
+          measure: { slot: measureSlot, button: measureChip },
+          selection: {
+            handles: [handle0, handle1],
+            leaders,
+            ticks: chipTicks,
+            chips: [
+              { slot: selLeftSlot, button: selLeftChip },
+              { slot: selRightSlot, button: selRightChip },
+            ],
+            size: { slot: sizeSlot, button: sizeChip },
+          },
+        },
+        handle.modelToScreen,
+      ).draw;
+      draw(controller.getFrame());
+      offFrame = controller.onFrame(draw);
+    };
+    const offInput = () => {
+      for (const name of FIRST_INPUT) removeEventListener(name, start, true);
+    };
+    function start() {
+      offInput();
+      overlayModule.load().then(begin, () => {});
+    }
+    const loaded = overlayModule.peek();
+    if (loaded) begin(loaded);
+    else for (const name of FIRST_INPUT) addEventListener(name, start, true);
     return () => {
+      live = false;
+      offInput();
       offFrame();
       offCamera();
     };

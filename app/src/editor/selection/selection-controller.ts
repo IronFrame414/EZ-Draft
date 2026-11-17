@@ -486,14 +486,23 @@ export function shareReceiver(set: (r: PlanPointerReceiver | null) => void): Rec
 const ALL_TOOLS: readonly RailTool[] = [SELECT_RAIL_TOOL, ...DRAWING_RAIL_TOOLS, MEASURE_RAIL_TOOL];
 const SELECT_ONLY: readonly RailTool[] = [SELECT_RAIL_TOOL, MEASURE_RAIL_TOOL];
 
+// EZD-225 (S06:48, 100; Q-0697 decisions 05): the drawing tools a lock-denied viewer sees paused; Select and Measure
+// stay on (S06 States "selecting, panning, zooming, measuring ... allowed"; vault/build/assumptions.md EZD-231).
+export const PAUSED_TOOL_IDS: readonly string[] = DRAWING_RAIL_TOOLS.map((t) => t.id);
+
+// `canEdit` is "may edit now" (Edit model and holding the lock); `canEditModel` is the Edit model switch alone.
+// Without Edit model the drawing tools are hidden (Q-0214; Q-0697); with it but without the lock they show paused.
 export function editorRail(o: {
   editor: 'loading' | 'ready' | 'failed' | 'no-access' | 'not-found';
   canEdit: boolean;
+  canEditModel?: boolean;
   canvasFailed: boolean;
   controllerEnabled: boolean;
-}): { tools: readonly RailTool[]; disabled: boolean } | null {
+}): { tools: readonly RailTool[]; disabled: boolean; paused?: readonly string[] } | null {
   if (o.editor === 'loading') return { tools: ALL_TOOLS, disabled: true };
   if (o.editor !== 'ready') return null;
   if (o.canEdit) return { tools: ALL_TOOLS, disabled: railMode(o) === 'disabled' };
+  if (o.canEditModel === true)
+    return { tools: ALL_TOOLS, disabled: o.canvasFailed, paused: PAUSED_TOOL_IDS };
   return { tools: SELECT_ONLY, disabled: o.canvasFailed };
 }

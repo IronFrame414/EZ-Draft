@@ -103,3 +103,10 @@
   display: inline-flex;
   flex: none;
 }
+
+/* EZD-225 (board S06 line 100): 13 px, #9aa3af (--ez-slate-300). */
+.pausedNote {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ez-slate-300);
+}

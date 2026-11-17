@@ -288,6 +288,8 @@ export const en = {
   'office.lock.stop_editing': 'Stop editing',
   'office.lock.someone': 'Someone',
   'office.lock.view_only': 'View only',
+  // EZD-225 (S06:48; board S06 line 100): the note beside the paused drawing tools.
+  'office.lock.tools_paused': 'Editing tools paused while view only',
   'office.lock.declined': '{name} kept editing. You can ask again.',
   'office.lock.presence_label': 'People in this project',
   'office.lock.presence_editing': '{name} · Editing',

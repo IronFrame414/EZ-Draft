@@ -287,7 +287,10 @@ export type LockPartName =
   | 'canvas'
   | 'status'
   // EZD-128: the project switcher's panel.
-  | 'switcher';
+  | 'switcher'
+  // EZD-225 (S06:48; board S06 line 100; Q-0740 (a), vault/build/assumptions.md EZD-225): the note under the banner
+  // while the drawing tools are paused; the editor asks for it only then.
+  | 'paused';
 
 export function LockPart({ ui, part }: { ui: LockUi; part: LockPartName }): ReactElement | null {
   const { store } = ui;
@@ -306,6 +309,8 @@ export function LockPart({ ui, part }: { ui: LockUi; part: LockPartName }): Reac
       return state.isHolder ? (
         <StopEditingButton busy={state.stopBusy} onStop={() => void store.stopEditing()} />
       ) : null;
+    case 'paused':
+      return <ToolsPausedNote />;
     case 'banner':
       return (
         <LockBanner
@@ -348,4 +353,13 @@ export function LockPart({ ui, part }: { ui: LockUi; part: LockPartName }): Reac
     case 'switcher':
       return <SwitcherPart switcher={ui.switcher} />;
   }
+}
+
+function ToolsPausedNote(): ReactElement {
+  const t = useT();
+  return (
+    <p className={styles.pausedNote} data-testid="tools-paused-note">
+      {t('office.lock.tools_paused')}
+    </p>
+  );
 }

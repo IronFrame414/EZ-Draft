@@ -59,6 +59,12 @@
   cursor: default;
 }
 
+/* EZD-225 (S06 board line 93, `opacity: .55`): a paused tool keeps its colours and shows at 55%. */
+.tool[data-rail-paused] {
+  color: var(--ez-slate-700);
+  opacity: 0.55;
+}
+
 .tool:focus-visible {
   outline: 2px solid var(--ez-cobalt);
   outline-offset: 2px;
