@@ -292,6 +292,42 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 202,
     note: 'EZD-301: project id and source file ids (no money)',
   },
+  // EZD-306: the layers of an uploaded DXF drawing (kind dxf). The row and object are made here; the answer is
+  // layer names only.
+  {
+    file: `${API}projects/[id]/source-files/[fileId]/layers/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/source-files/[fileId]/layers/route'),
+    request: async (env) => {
+      const fileId = randomUUID();
+      const storagePath = `${env.tenantId}/${env.projectId}/${fileId}`;
+      const dxf = new TextEncoder().encode('0\nSECTION\n2\nENTITIES\n0\nLINE\n8\nWALLS\n0\nENDSEC\n0\nEOF\n');
+      const { error: rowError } = await adminDb().from('source_file').insert({
+        id: fileId,
+        tenant_id: env.tenantId,
+        project_id: env.projectId,
+        kind: 'dxf',
+        storage_path: storagePath,
+        original_name: 'plan.dxf',
+        content_type: 'image/vnd.dxf',
+        size_bytes: dxf.length,
+        uploaded_at: new Date().toISOString(),
+      });
+      if (rowError) throw new Error(`source_file insert failed: ${rowError.message}`);
+      const { error } = await adminDb()
+        .storage.from('sources')
+        .upload(storagePath, dxf, { contentType: 'image/vnd.dxf' });
+      if (error) throw new Error(`upload failed: ${error.message}`);
+      return {
+        request: new Request(
+          `${BASE}/api/projects/${env.projectId}/source-files/${fileId}/layers`,
+        ),
+        params: { id: env.projectId, fileId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-306: layer names of a DXF drawing (no money)',
+  },
   {
     file: `${API}projects/[id]/imports/[jobId]/route.ts`,
     method: 'GET',

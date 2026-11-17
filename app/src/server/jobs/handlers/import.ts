@@ -7,9 +7,19 @@
 // query is filtered by the job's tenant and project. Safe to run twice: a source file that already has a session
 // for this job keeps it, and import.ready is emitted only by the run that wrote a session. An unreadable file
 // gives a failed session with a stable code (S02 States Error).
+// EZD-306 (S01 DXF: conversion choice; R26 R25): an architect or supplier DXF (kind dxf) named in dxfFiles is
+// detected the same way, from only the layers the user chose and with the role each was given; its session's
+// source_kind is dxf. A dxf file without a choice is a reference only and gets no session.
 import { z } from 'zod';
+import {
+  DXF_LAYER_NAME_MAX,
+  DXF_LAYER_ROLES,
+  DXF_LAYERS_MAX,
+  type DxfLayerChoice,
+} from '../../../lib/imports/dxf-layers';
 import { emit } from '../../events';
-import { detectPolycamDxf, type Detection } from '../polycam-dxf/detect';
+import { detectPolycamDxf, type Detection, type LayerMap } from '../polycam-dxf/detect';
+import { layerMapFromChoice } from '../polycam-dxf/layer-choice';
 import { DxfReadError, readDxf } from '../polycam-dxf/read-dxf';
 import { readObject } from '../../storage/objects';
 import { readJobSourceFiles } from '../../storage/source-files';
@@ -18,10 +28,25 @@ import { JobError } from '../errors';
 import type { JobHandler } from '../registry';
 
 // EZD-307: meshFileIds (Polycam GLBs of the same import) are not read here; Import review reads them from the payload.
-export type ImportPayload = { sourceFileIds: string[]; meshFileIds?: string[] };
+export type ImportDxfFile = { sourceFileId: string; layers: DxfLayerChoice[] };
+export type ImportPayload = {
+  sourceFileIds: string[];
+  meshFileIds?: string[];
+  dxfFiles?: ImportDxfFile[];
+};
 export type ImportResult = { importSessionIds: string[] };
 
 export const IMPORT_MAX_FILES = 20;
+
+export const dxfLayerChoiceSchema = z.strictObject({
+  name: z.string().min(1).max(DXF_LAYER_NAME_MAX),
+  role: z.enum(DXF_LAYER_ROLES),
+});
+
+export const importDxfFileSchema = z.strictObject({
+  sourceFileId: z.uuid(),
+  layers: z.array(dxfLayerChoiceSchema).min(1).max(DXF_LAYERS_MAX),
+});
 
 export type ImportCounts = { walls: number; openings: number; rooms: number };
 
@@ -38,6 +63,7 @@ export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
   payload: z.object({
     sourceFileIds: z.array(z.uuid()).min(1).max(IMPORT_MAX_FILES),
     meshFileIds: z.array(z.uuid()).max(IMPORT_MAX_FILES).optional(),
+    dxfFiles: z.array(importDxfFileSchema).max(IMPORT_MAX_FILES).optional(),
   }),
   result: z.object({ importSessionIds: z.array(z.uuid()) }),
   async run(ctx) {
@@ -48,14 +74,25 @@ export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
 
     const files = await readJobSourceFiles(db, { tenantId, projectId }, ctx.payload.sourceFileIds);
     const byId = new Map(files.map((f) => [f.id.toLowerCase(), f]));
-    const scans = ctx.payload.sourceFileIds
-      .map((id) => byId.get(id.toLowerCase()))
-      .filter((f): f is NonNullable<typeof f> => !!f && f.kind === 'polycam_dxf' && f.uploaded);
+    const choices = new Map(
+      (ctx.payload.dxfFiles ?? []).map((d) => [d.sourceFileId.toLowerCase(), d.layers]),
+    );
+    // Each file to detect, with the layer map it is read with (undefined: the Polycam layer names).
+    const scans: Array<{ file: (typeof files)[number]; sourceKind: 'scan' | 'dxf'; layerMap?: LayerMap }> = [];
+    for (const id of ctx.payload.sourceFileIds) {
+      const file = byId.get(id.toLowerCase());
+      if (!file || !file.uploaded) continue;
+      if (file.kind === 'polycam_dxf') scans.push({ file, sourceKind: 'scan' });
+      const chosen = choices.get(id.toLowerCase());
+      if (file.kind === 'dxf' && chosen) {
+        scans.push({ file, sourceKind: 'dxf', layerMap: layerMapFromChoice(chosen) });
+      }
+    }
 
     const ids: string[] = [];
     const written: string[] = [];
     const counts: ImportCounts = { walls: 0, openings: 0, rooms: 0 };
-    for (const file of scans) {
+    for (const { file, sourceKind, layerMap } of scans) {
       const { data: existing, error: existingError } = await db
         .from('import_session')
         .select('id, status')
@@ -80,7 +117,7 @@ export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
         row = { status: 'failed', items: [], summary: {}, error: 'source_missing' };
       } else {
         try {
-          const detection = detectPolycamDxf(readDxf(bytes));
+          const detection = detectPolycamDxf(readDxf(bytes), layerMap ? { layerMap } : {});
           const c = detectionCounts(detection);
           counts.walls += c.walls;
           counts.openings += c.openings;
@@ -99,7 +136,7 @@ export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
             project_id: projectId,
             source_file_id: file.id,
             job_id: ctx.job.id,
-            source_kind: 'scan',
+            source_kind: sourceKind,
             status: row.status,
             items: row.items as never,
             summary: row.summary as never,

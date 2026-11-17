@@ -3,10 +3,14 @@
 // upload, the browser sends the original bytes straight to Storage (uploadFile, EZD-132), and the app checks the
 // object and stamps the row. Then import.started. Files already sent are recorded in `done`, so a retry after a
 // failure sends only the rest. Browser only (fetch with the session cookie).
+// EZD-306 (S01 DXF: conversion choice "After upload, DXF only"): once the files are sent, each DXF drawing (kind
+// dxf) gets the conversion choice: its layers are read on the server and chooseLayers asks the user. The layers it
+// answers go with the import (dxfLayers); an empty answer, or no chooseLayers, keeps the drawing as reference only.
 import { uploadFile, type SignedUpload } from '../storage/upload';
+import type { DxfLayerChoice } from './dxf-layers';
 import type { UploadItem } from './upload-files';
 
-export type UploadFailure = 'not_authorized' | 'upload_failed' | 'import_failed';
+export type UploadFailure = 'not_authorized' | 'upload_failed' | 'layers_failed' | 'import_failed';
 
 export class ImportUploadError extends Error {
   readonly code: UploadFailure;
@@ -28,6 +32,8 @@ export type UploadRunOptions = {
   retryDelaysMs?: readonly number[];
   // EZD-307: called once the import has started, with the queued detection job (null when none was queued).
   onStarted?: (jobId: string | null) => void;
+  // EZD-306: asks the conversion choice of one DXF drawing; answers the layers to convert ([] = reference only).
+  chooseLayers?: (file: { name: string; layers: string[] }) => Promise<DxfLayerChoice[]>;
 };
 
 /** EZD-307 (S02 Entry points): Import review of one import. */
@@ -86,9 +92,21 @@ export async function uploadAndStartImport(
     opts.done.set(item.id, body.sourceFile.id);
   }
   const sourceFileIds = items.map((i) => opts.done.get(i.id) as string);
+  const dxfLayers: { sourceFileId: string; layers: DxfLayerChoice[] }[] = [];
+  for (const item of items) {
+    if (item.kind !== 'dxf' || !opts.chooseLayers) continue;
+    const sourceFileId = opts.done.get(item.id) as string;
+    const layers = await readLayers(fetchImpl, projectId, sourceFileId, item.name);
+    if (layers.length === 0) continue;
+    const chosen = await opts.chooseLayers({ name: item.name, layers });
+    if (chosen.length > 0) dxfLayers.push({ sourceFileId, layers: chosen });
+  }
   let res: Response;
   try {
-    res = await fetchImpl(`/api/projects/${projectId}/imports`, json({ sourceFileIds }));
+    res = await fetchImpl(
+      `/api/projects/${projectId}/imports`,
+      json(dxfLayers.length > 0 ? { sourceFileIds, dxfLayers } : { sourceFileIds }),
+    );
   } catch {
     throw new ImportUploadError('import_failed', null);
   }
@@ -98,4 +116,23 @@ export async function uploadAndStartImport(
     opts.onStarted(typeof body?.jobId === 'string' ? body.jobId : null);
   }
   return sourceFileIds;
+}
+
+async function readLayers(
+  fetchImpl: typeof fetch,
+  projectId: string,
+  sourceFileId: string,
+  name: string,
+): Promise<string[]> {
+  try {
+    const res = await fetchImpl(`/api/projects/${projectId}/source-files/${sourceFileId}/layers`, {
+      credentials: 'same-origin',
+    });
+    if (res.status !== 200) throw new Error('layers');
+    const body = (await res.json()) as { layers?: unknown };
+    if (!Array.isArray(body.layers)) throw new Error('layers');
+    return body.layers.filter((l): l is string => typeof l === 'string');
+  } catch {
+    throw new ImportUploadError('layers_failed', name);
+  }
 }

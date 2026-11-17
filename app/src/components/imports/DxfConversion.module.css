@@ -1,0 +1,66 @@
+/* EZD-306 (S01 DXF: conversion choice; Q-0760 built from the written spec in the style of the Upload step): the
+   three conversion choices and the layer checklist. Colors from tokens only. */
+.choices {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend {
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--ez-touch-target);
+  padding: 0 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  font-size: 13px;
+  color: var(--ez-ink);
+  cursor: pointer;
+}
+
+.choiceOn {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt-tint);
+}
+
+.layersTitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+
+.layerRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 160px;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px 4px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  font-size: 13px;
+  color: var(--ez-ink);
+}
+
+.layerName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.check {
+  width: 18px;
+  height: 18px;
+}

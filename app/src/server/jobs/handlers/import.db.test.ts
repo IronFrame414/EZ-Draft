@@ -244,6 +244,72 @@ describe('EZD-302 import job', () => {
     expect(data).toEqual([]);
   });
 
+  // EZD-306 AC-EZD-306-1 (S01 DXF: conversion choice; S02 Decisions "lists only items from the layers chosen for
+  // conversion"): the same synthetic room uploaded as an architect DXF (kind dxf). Choosing its WALLS and DOORS
+  // layers writes walls and the 1 door of the fixture (`semantic.door`; `entitiesByLayer`) and nothing from WINDOWS
+  // or ROOMS. Walls: the fixture's 4 (`semantic.walls`) plus 1, because without WINDOWS nothing spans the south
+  // wall's 36" window gap (`semantic.window` widthIn 36, more than the 0.5" tolerance), so that wall reads as two
+  // runs (detect.ts: a gap is bridged only when no wider than the tolerance or spanned by a door or window).
+  // A dxf drawing without a choice is reference only.
+  describe('EZD-306 DXF conversion choice', () => {
+    let drawing: SourceFileView;
+
+    beforeAll(async () => {
+      drawing = await send('dxf', 'image/vnd.dxf', 'architect.dxf', new Uint8Array(readFileSync(CLEAN)));
+    }, 60000);
+
+    it('AC-EZD-306-1: choosing two layers writes import review items only from those layers', async () => {
+      const payload = {
+        sourceFileIds: [drawing.id],
+        dxfFiles: [
+          {
+            sourceFileId: drawing.id,
+            layers: [
+              { name: 'WALLS', role: 'walls' },
+              { name: 'DOORS', role: 'doors' },
+            ],
+          },
+        ],
+      };
+      const jobId = await newJob([drawing.id]);
+      emitted.length = 0;
+      await expectSafeToRunTwice('import', { payload, job: jobFields(jobId) });
+
+      const { data: rows, error } = await adminDb()
+        .from('import_session')
+        .select('id, source_file_id, source_kind, status, items, summary')
+        .eq('job_id', jobId);
+      expect(error).toBeNull();
+      expect(rows).toHaveLength(1);
+      const row = rows![0] as Record<string, unknown> & {
+        items: Array<{ type: string; kind?: string; layer: string }>;
+      };
+      expect(row).toMatchObject({
+        source_file_id: drawing.id,
+        source_kind: 'dxf',
+        status: 'ready',
+        summary: { walls: expected.semantic.walls.length + 1, openings: 1, rooms: 0 },
+      });
+      const walls = row.items.filter((i) => i.type === 'wall');
+      const openings = row.items.filter((i) => i.type === 'opening');
+      expect(walls).toHaveLength(expected.semantic.walls.length + 1);
+      expect(openings.map((o) => o.kind)).toEqual(['door']);
+      expect(row.items.filter((i) => i.type === 'room')).toEqual([]);
+      expect(new Set(row.items.map((i) => i.layer))).toEqual(new Set(['WALLS', 'DOORS']));
+      expect(emitted.filter((e) => e.name === 'import.ready')).toHaveLength(1);
+    });
+
+    it('a dxf drawing kept as reference only gets no session', async () => {
+      const jobId = await newJob([drawing.id]);
+      await expectSafeToRunTwice('import', {
+        payload: { sourceFileIds: [drawing.id] },
+        job: jobFields(jobId),
+      });
+      const { data } = await adminDb().from('import_session').select('id').eq('job_id', jobId);
+      expect(data).toEqual([]);
+    });
+  });
+
   describeTenantIsolation('import_session', {
     makeRow: async (t, ctx) => {
       const id = randomUUID();

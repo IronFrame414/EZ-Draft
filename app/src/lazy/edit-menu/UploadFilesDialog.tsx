@@ -20,6 +20,7 @@ import { Icon } from '../../components/icon/Icon';
 import { StateButton } from '../../components/states/StateButton';
 import { useToast } from '../../components/states/ToastProvider';
 import { UploadStep } from '../../components/imports/UploadStep';
+import { useDxfConversion } from '../../components/imports/DxfConversion';
 
 export function UploadFilesDialog({
   projectId,
@@ -37,6 +38,8 @@ export function UploadFilesDialog({
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const done = useRef(new Map<string, string>());
+  // EZD-306: the conversion choice of each DXF drawing, asked after its upload.
+  const dxf = useDxfConversion();
 
   const send = async () => {
     setBusy(true);
@@ -50,6 +53,7 @@ export function UploadFilesDialog({
         onStarted: (id) => {
           started.jobId = id;
         },
+        chooseLayers: dxf.chooseLayers,
       });
       toast.show({ message: 'office.upload.done' });
       onClose();
@@ -65,7 +69,9 @@ export function UploadFilesDialog({
           ? t('office.upload.not_authorized', { name })
           : code === 'import_failed'
             ? t('office.upload.import_failed')
-            : t('office.upload.failed', { name }),
+            : code === 'layers_failed'
+              ? t('office.upload.layers_failed', { name })
+              : t('office.upload.failed', { name }),
       );
     }
     setBusy(false);
@@ -133,6 +139,7 @@ export function UploadFilesDialog({
               <Icon name="arrow_forward" size={18} />
             </StateButton>
           </div>
+          {dxf.dialog}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

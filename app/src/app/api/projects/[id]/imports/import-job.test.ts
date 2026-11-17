@@ -78,3 +78,103 @@ describe('EZD-302 import route queues detection', () => {
     expect(enqueueJob).not.toHaveBeenCalled();
   });
 });
+
+// EZD-306 (S01 DXF: conversion choice): the layers chosen for a DXF drawing (kind dxf) go into the job; a drawing
+// with no choice is reference only and queues nothing; a choice for a file that is not one of the import's dxf
+// drawings is refused before import.started.
+describe('EZD-306 import route carries the DXF layer choice', () => {
+  const layers = [
+    { name: 'WALLS', role: 'walls' },
+    { name: 'DOORS', role: 'doors' },
+  ];
+  const signedIn = () =>
+    vi.mocked(requireApiPermission).mockResolvedValueOnce({
+      session: { appUserId: U },
+      ctx: {},
+    } as never);
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('queues the drawing with its chosen layers', async () => {
+    signedIn();
+    vi.mocked(checkImportFiles).mockResolvedValueOnce({
+      ok: true,
+      tenantId: T,
+      scanIds: [],
+      dxfIds: [F2],
+    });
+    const res = await call({ sourceFileIds: [F2], dxfLayers: [{ sourceFileId: F2, layers }] });
+    expect(res.status).toBe(202);
+    expect(enqueueJob).toHaveBeenCalledWith(
+      {},
+      {
+        kind: 'import',
+        projectId: P,
+        payload: { sourceFileIds: [F2], dxfFiles: [{ sourceFileId: F2, layers }] },
+      },
+    );
+  });
+
+  it('a drawing kept as reference only queues nothing', async () => {
+    signedIn();
+    vi.mocked(checkImportFiles).mockResolvedValueOnce({
+      ok: true,
+      tenantId: T,
+      scanIds: [],
+      dxfIds: [F2],
+    });
+    expect((await call({ sourceFileIds: [F2] })).status).toBe(202);
+    expect(enqueueJob).not.toHaveBeenCalled();
+  });
+
+  it('a choice for a file that is not a dxf drawing of the import is 400 and starts nothing', async () => {
+    signedIn();
+    vi.mocked(checkImportFiles).mockResolvedValueOnce({
+      ok: true,
+      tenantId: T,
+      scanIds: [F1],
+      dxfIds: [],
+    });
+    const res = await call({ sourceFileIds: [F1], dxfLayers: [{ sourceFileId: F1, layers }] });
+    expect(res.status).toBe(400);
+    expect(emit).not.toHaveBeenCalled();
+    expect(enqueueJob).not.toHaveBeenCalled();
+  });
+
+  it('an empty layer list or an unknown role is 400', async () => {
+    signedIn();
+    expect(
+      (await call({ sourceFileIds: [F2], dxfLayers: [{ sourceFileId: F2, layers: [] }] })).status,
+    ).toBe(400);
+    signedIn();
+    expect(
+      (
+        await call({
+          sourceFileIds: [F2],
+          dxfLayers: [{ sourceFileId: F2, layers: [{ name: 'A', role: 'stairs' }] }],
+        })
+      ).status,
+    ).toBe(400);
+    expect(checkImportFiles).not.toHaveBeenCalled();
+  });
+
+  it('a choice too large for one job is 400 before import.started', async () => {
+    signedIn();
+    vi.mocked(checkImportFiles).mockResolvedValueOnce({
+      ok: true,
+      tenantId: T,
+      scanIds: [],
+      dxfIds: [F2],
+    });
+    // 100 layers of 255 characters is more than the job payload's 16384 bytes (jobs/payload-limit.ts MAX_PAYLOAD_BYTES).
+    const big = Array.from({ length: 100 }, (_, i) => ({
+      name: String(i).padStart(255, 'L'),
+      role: 'walls',
+    }));
+    const res = await call({ sourceFileIds: [F2], dxfLayers: [{ sourceFileId: F2, layers: big }] });
+    expect(res.status).toBe(400);
+    expect(emit).not.toHaveBeenCalled();
+  });
+});

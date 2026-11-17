@@ -200,3 +200,85 @@ test.describe('EZD-307 Import review', () => {
     await expect(tid(page, 'import-review-accept-room')).toBeDisabled();
   });
 });
+
+// EZD-306 (AC-EZD-306-1 "Choosing two layers writes import review items only from those layers"; S01 DXF:
+// conversion choice; S02 Decisions "lists only items from the layers chosen for conversion"). The synthetic room as
+// an architect DXF (tag DXF drawing): after upload the conversion choice lists its four entity layers (expected.json
+// `entitiesByLayer`); Convert some layers with only WALLS and DOORS checked gives a review of the walls and the one
+// door: the fixture's 4 walls plus 1, since without WINDOWS the south wall's 36" window gap is not bridged (see
+// import.db.test.ts), and 1 door; no window and no room.
+test.describe('EZD-306 DXF conversion choice', () => {
+  const CLEAN = path.join(repoRoot(), 'fixtures/synthetic/room-12x10.dxf');
+  let tenant = '';
+
+  test.afterAll(async () => {
+    try {
+      if (tenant) {
+        await harnessSql()`delete from public.job where tenant_id = ${tenant}::uuid`;
+        const rows = await harnessSql()<{ storage_path: string }[]>`
+          select storage_path from public.source_file where tenant_id = ${tenant}::uuid`;
+        if (rows.length > 0)
+          await adminDb()
+            .storage.from('sources')
+            .remove(rows.map((r) => r.storage_path));
+      }
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  test('EZD-306 choosing two layers gives review items only from those layers (AC-1)', async ({
+    page,
+    signInAs,
+  }) => {
+    test.setTimeout(180_000);
+    tenant = await createTenant();
+    const m = await createMember({ tenantId: tenant, scope: 'all' });
+    await setPermissions(tenant, m.membershipId, ['view_projects', 'create_projects', 'edit_model']);
+    await signInAs(m.email);
+    await page.goto('/');
+
+    await tid(page, 'projects-new').click();
+    await tid(page, 'projects-new-file').click();
+    await tid(page, 'new-project-type').selectOption({ label: 'Kitchen' });
+    await tid(page, 'new-project-address').fill('14 Layer Ln');
+    await tid(page, 'new-project-next').click();
+    await tid(page, 'upload-input').setInputFiles([CLEAN]);
+    await tid(page, 'upload-file-tag').selectOption('dxf');
+    await expect(tid(page, 'upload-file')).toHaveAttribute('data-kind', 'dxf');
+    await tid(page, 'new-project-create').click();
+
+    const dialog = tid(page, 'dxf-conversion');
+    await expect(dialog).toBeVisible({ timeout: 60_000 });
+    await expect(dialog).toContainText('Convert room-12x10.dxf');
+    const layers = tid(page, 'dxf-layer');
+    await expect(layers).toHaveCount(4);
+    expect(await layers.evaluateAll((els) => els.map((e) => e.getAttribute('data-layer')))).toEqual([
+      'DOORS',
+      'ROOMS',
+      'WALLS',
+      'WINDOWS',
+    ]);
+    await tid(page, 'dxf-conversion-some').check();
+    for (const name of ['ROOMS', 'WINDOWS']) {
+      await page.locator(`[data-testid=dxf-layer][data-layer=${name}] [data-testid=dxf-layer-check]`).uncheck();
+    }
+    await tid(page, 'dxf-conversion-continue').click();
+
+    await page.waitForURL(/\/projects\/[0-9a-f-]{36}\/import\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+    await expect(tid(page, 'import-review')).toHaveAttribute('data-status', 'ready', {
+      timeout: 90_000,
+    });
+    await expect(tid(page, 'review-item')).toHaveCount(6);
+    type Item = { type: string; kind?: string; layer: string };
+    const rows = await harnessSql()<{ items: Item[] }[]>`
+      select items from public.import_session where tenant_id = ${tenant}::uuid`;
+    expect(rows).toHaveLength(1);
+    const items = rows[0].items;
+    expect(new Set(items.map((i) => i.layer))).toEqual(new Set(['WALLS', 'DOORS']));
+    expect(items.filter((i) => i.type === 'wall')).toHaveLength(5);
+    expect(items.filter((i) => i.type === 'opening').map((i) => i.kind)).toEqual(['door']);
+    expect(items.filter((i) => i.type === 'room')).toHaveLength(0);
+  });
+});

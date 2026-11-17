@@ -4,11 +4,12 @@
 // EZD-302: scanIds are the Polycam floor plan DXFs among the files, the ones the import job detects.
 // EZD-307: meshIds are the Polycam meshes (GLB) among them, carried in the job payload so Import review can offer
 // Show 3D mesh for this import (S02 Show 3D mesh "Only when a GLB was uploaded").
+// EZD-306: dxfIds are the other DXF drawings (kind dxf) among them, the ones a conversion choice applies to.
 import type { DbClient } from '../storage';
 import { readSourceFileRefs } from '../storage/source-files';
 
 export type StartImportResult =
-  | { ok: true; tenantId: string; scanIds?: string[]; meshIds?: string[] }
+  | { ok: true; tenantId: string; scanIds?: string[]; meshIds?: string[]; dxfIds?: string[] }
   | { ok: false; code: 'project_not_found' | 'source_file_not_found' | 'upload_missing' };
 
 export async function checkImportFiles(
@@ -26,6 +27,7 @@ export async function checkImportFiles(
   const refs = await readSourceFileRefs(client, sourceFileIds);
   const scanIds: string[] = [];
   const meshIds: string[] = [];
+  const dxfIds: string[] = [];
   for (const id of sourceFileIds) {
     const ref = refs.get(id.toLowerCase());
     if (ref === undefined || ref.projectId !== projectId) {
@@ -34,6 +36,13 @@ export async function checkImportFiles(
     if (!ref.uploaded) return { ok: false, code: 'upload_missing' };
     if (ref.kind === 'polycam_dxf') scanIds.push(id);
     if (ref.kind === 'polycam_glb') meshIds.push(id);
+    if (ref.kind === 'dxf') dxfIds.push(id);
   }
-  return { ok: true, tenantId: project.data.tenant_id, scanIds, meshIds };
+  return {
+    ok: true,
+    tenantId: project.data.tenant_id,
+    scanIds,
+    meshIds,
+    ...(dxfIds.length > 0 ? { dxfIds } : {}),
+  };
 }

@@ -26,6 +26,7 @@ import {
   type UploadList,
 } from '../../lib/imports/upload-files';
 import { ImportUploadError, uploadAndStartImport } from '../../lib/imports/upload-client';
+import { useDxfConversion } from '../imports/DxfConversion';
 import {
   EMPTY_NEW_PROJECT,
   PROJECT_ADDRESS_MAX,
@@ -106,6 +107,8 @@ export function NewProjectDialog({
   );
   const [createdId, setCreatedId] = useState<string | null>(null);
   const done = useRef(new Map<string, string>());
+  // EZD-306: the conversion choice of each DXF drawing, asked after its upload.
+  const dxf = useDxfConversion();
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fromFile = source !== 'blank';
@@ -162,6 +165,7 @@ export function NewProjectDialog({
         onStarted: (id) => {
           started.jobId = id;
         },
+        chooseLayers: dxf.chooseLayers,
       });
       onCreated(projectId, started.jobId);
       return;
@@ -174,7 +178,9 @@ export function NewProjectDialog({
           ? t('office.upload.not_authorized', { name })
           : code === 'import_failed'
             ? t('office.upload.import_failed')
-            : t('office.upload.failed', { name }),
+            : code === 'layers_failed'
+              ? t('office.upload.layers_failed', { name })
+              : t('office.upload.failed', { name }),
       );
     }
     setBusy(false);
@@ -455,6 +461,7 @@ export function NewProjectDialog({
               }}
             />
           ) : null}
+          {dxf.dialog}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

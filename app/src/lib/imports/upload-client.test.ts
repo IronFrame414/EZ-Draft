@@ -152,3 +152,91 @@ describe('EZD-301 upload and start the import', () => {
     ).rejects.toMatchObject({ code: 'import_failed', fileName: null });
   });
 });
+
+// EZD-306 (S01 DXF: conversion choice "After upload, DXF only"): after the files are sent, each DXF drawing (kind
+// dxf) has its layers read and chooseLayers asked; the chosen layers go with the import. An empty answer keeps the
+// drawing as reference only; a layers read that fails names the file.
+describe('EZD-306 DXF conversion choice in the upload run', () => {
+  const drawing = (bytes: Uint8Array<ArrayBuffer>): UploadItem<Blob>[] =>
+    addFiles(
+      emptyUploadList<Blob>('dxf'),
+      [{ name: 'plan.dxf', size: bytes.length, file: new Blob([bytes]) }],
+      () => 'item-1',
+    ).items;
+  const ID = '00000001-0000-4000-8000-000000000000';
+  const LAYERS_URL = `/api/projects/${P}/source-files/${ID}/layers`;
+
+  const withLayers = (status = 200) => {
+    const h = harness();
+    const fetchImpl: typeof fetch = async (input, init) => {
+      if (String(input) === LAYERS_URL) {
+        h.calls.push({ method: 'GET', path: LAYERS_URL, body: null });
+        return Response.json({ layers: ['DOORS', 'WALLS', 'WINDOWS'] }, { status });
+      }
+      return h.fetchImpl(input, init);
+    };
+    return { ...h, fetchImpl };
+  };
+
+  it('asks the choice after the upload and sends the two chosen layers with the import', async () => {
+    const h = withLayers();
+    const list = drawing(new Uint8Array(randomBytes(300)));
+    expect(list[0].kind).toBe('dxf');
+    const asked: unknown[] = [];
+    await uploadAndStartImport(P, list, {
+      done: new Map(),
+      fetchImpl: h.fetchImpl,
+      retryDelaysMs: [],
+      chooseLayers: async (file) => {
+        asked.push(file);
+        return [
+          { name: 'WALLS', role: 'walls' },
+          { name: 'DOORS', role: 'doors' },
+        ];
+      },
+    });
+    expect(asked).toEqual([{ name: 'plan.dxf', layers: ['DOORS', 'WALLS', 'WINDOWS'] }]);
+    expect(h.calls.map((c) => c.path)).toEqual([
+      `/api/projects/${P}/source-files`,
+      `/api/source-files/${ID}/complete`,
+      LAYERS_URL,
+      `/api/projects/${P}/imports`,
+    ]);
+    expect(h.calls.at(-1)?.body).toEqual({
+      sourceFileIds: [ID],
+      dxfLayers: [
+        {
+          sourceFileId: ID,
+          layers: [
+            { name: 'WALLS', role: 'walls' },
+            { name: 'DOORS', role: 'doors' },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('Keep as reference only sends the drawing with no layer choice', async () => {
+    const h = withLayers();
+    await uploadAndStartImport(P, drawing(new Uint8Array(randomBytes(30))), {
+      done: new Map(),
+      fetchImpl: h.fetchImpl,
+      retryDelaysMs: [],
+      chooseLayers: async () => [],
+    });
+    expect(h.calls.at(-1)?.body).toEqual({ sourceFileIds: [ID] });
+  });
+
+  it('a failed layers read is layers_failed with the file name, and the import is not started', async () => {
+    const h = withLayers(500);
+    await expect(
+      uploadAndStartImport(P, drawing(new Uint8Array(randomBytes(30))), {
+        done: new Map(),
+        fetchImpl: h.fetchImpl,
+        retryDelaysMs: [],
+        chooseLayers: async () => [],
+      }),
+    ).rejects.toMatchObject({ code: 'layers_failed', fileName: 'plan.dxf' });
+    expect(h.calls.some((c) => c.path.endsWith('/imports'))).toBe(false);
+  });
+});

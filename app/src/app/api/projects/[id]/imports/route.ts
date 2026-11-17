@@ -8,6 +8,9 @@
 // EZD-307: the job payload also names the Polycam meshes (meshFileIds, only when there are any) so Import review can
 // offer Show 3D mesh, and the answer carries jobId (null when nothing was queued) so Continue to review opens
 // /projects/[id]/import/[jobId] (S02 Entry points).
+// EZD-306 (S01 DXF: conversion choice): dxfLayers carries the layers chosen for conversion of each DXF drawing (kind
+// dxf), with the role of each. A drawing it names is converted from those layers only; a drawing it leaves out is
+// kept as reference only. An entry for a file that is not one of this import's dxf drawings is 400.
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { endedSessionResponse } from '../../../../../server/auth/ended-session';
@@ -15,8 +18,13 @@ import { reportRouteFailure } from '../../../../../server/errors/route-failure';
 import { emit } from '../../../../../server/events';
 import { checkImportFiles } from '../../../../../server/imports/start-import';
 import { enqueueJob } from '../../../../../server/jobs/enqueue';
+import { MAX_PAYLOAD_BYTES } from '../../../../../server/jobs/payload-limit';
 // One import takes at most this many files (the wizard's list; no spec limit, see assumptions).
-import { IMPORT_MAX_FILES } from '../../../../../server/jobs/handlers/import';
+import {
+  IMPORT_MAX_FILES,
+  importDxfFileSchema,
+  type ImportPayload,
+} from '../../../../../server/jobs/handlers/import';
 import { requireApiPermission, requirePermission } from '../../../../../server/permissions';
 
 export const dynamic = 'force-dynamic';
@@ -33,6 +41,13 @@ const bodySchema = z.strictObject({
     .min(1)
     .max(IMPORT_MAX_FILES)
     .refine((ids) => new Set(ids.map((i) => i.toLowerCase())).size === ids.length),
+  dxfLayers: z
+    .array(importDxfFileSchema)
+    .max(IMPORT_MAX_FILES)
+    .refine(
+      (d) => new Set(d.map((f) => f.sourceFileId.toLowerCase())).size === d.length,
+    )
+    .optional(),
 });
 
 export async function POST(
@@ -49,26 +64,34 @@ export async function POST(
     const body = bodySchema.safeParse(await request.json().catch(() => null));
     if (!body.success) return fail(400, 'invalid_input');
     const { sourceFileIds } = body.data;
+    const dxfLayers = body.data.dxfLayers ?? [];
     const checked = await checkImportFiles(createSessionClient(), id, sourceFileIds);
     if (!checked.ok) {
       return checked.code === 'project_not_found'
         ? fail(404, 'project_not_found')
         : fail(400, checked.code, 'error.invalid_input');
     }
+    const dxfIds = new Set((checked.dxfIds ?? []).map((i) => i.toLowerCase()));
+    if (dxfLayers.some((d) => !dxfIds.has(d.sourceFileId.toLowerCase()))) {
+      return fail(400, 'invalid_input');
+    }
+    const detectIds = [...(checked.scanIds ?? []), ...dxfLayers.map((d) => d.sourceFileId)];
+    const meshIds = checked.meshIds ?? [];
+    const payload: ImportPayload = { sourceFileIds: detectIds };
+    if (meshIds.length > 0) payload.meshFileIds = meshIds;
+    if (dxfLayers.length > 0) payload.dxfFiles = dxfLayers;
+    // A layer choice too large for one job is refused before anything starts (enqueueJob's payload limit).
+    if (Buffer.byteLength(JSON.stringify(payload), 'utf8') > MAX_PAYLOAD_BYTES) {
+      return fail(400, 'too_many_layers', 'error.invalid_input');
+    }
     await emit(
       'import.started',
       { projectId: id, sourceFileIds },
       { tenantId: checked.tenantId, projectId: id, actorId: p.session.appUserId },
     );
-    const scanIds = checked.scanIds ?? [];
-    const meshIds = checked.meshIds ?? [];
     let jobId: string | null = null;
-    if (scanIds.length > 0) {
-      const job = await enqueueJob(createSessionClient(), {
-        kind: 'import',
-        projectId: id,
-        payload: meshIds.length > 0 ? { sourceFileIds: scanIds, meshFileIds: meshIds } : { sourceFileIds: scanIds },
-      });
+    if (detectIds.length > 0) {
+      const job = await enqueueJob(createSessionClient(), { kind: 'import', projectId: id, payload });
       jobId = job.id;
     }
     return Response.json({ projectId: id, sourceFileIds, jobId }, { status: 202, headers });
