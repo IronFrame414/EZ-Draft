@@ -91,8 +91,9 @@ function parseOnFloor(
     data: value.data,
   });
   if (!r.ok || r.object.type === 'floor') return null;
-  if (!objectShownBy(phase, r.object.type, (r.object.data as { status?: unknown }).status))
-    return null;
+  // EZD-729: the kind puts a water or drain point in the Plumbing layer.
+  const d = r.object.data as { status?: unknown; attributes?: { kind?: unknown } };
+  if (!objectShownBy(phase, r.object.type, d.status, d.attributes?.kind)) return null;
   return r.object.data.level.toLowerCase() === floorId.toLowerCase() ? r.object : null;
 }
 

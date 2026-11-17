@@ -7,7 +7,7 @@
 import type { ObjectStatus, Point } from '@ezdraft/geometry';
 import type { ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { MessagesProvider } from '../../lib/messages';
 import { catalogFor } from '../../server/messages/catalog';
 import { attr, elements, textOf } from '../../../test-harness/projects-markup';
@@ -15,7 +15,7 @@ import { eyeDefaults, type PhaseEyes } from '../../lib/plan/phase-view';
 import { createModelStore } from '../model/model-store';
 import { baseObjects, roomValue, uid } from '../tools/test-utils/fixtures';
 import { createLayerSetting, type LayerPhase } from './layer-setting';
-import { LeftPanel, type Tab } from './LeftPanel';
+import { LeftPanel, roomFieldsModule, type Tab } from './LeftPanel';
 import { roomAttributeChange } from './rooms';
 
 const pt = (x: number, y: number): Point => ({ x, y });
@@ -73,6 +73,11 @@ const one = (html: string, testId: string) => {
 };
 
 describe('EZD-218 left panel', () => {
+  // EZD-729: the room fields are a lazy part; loaded first, a static render shows them as the open panel does.
+  beforeAll(async () => {
+    await roomFieldsModule.load();
+  });
+
   it('AC-1 two text tabs, Layers and Rooms; Layers is open; no Versions tab', () => {
     const html = render(setup());
     expect(attr(one(html, 'left-panel').attrs, 'data-tab')).toBe('layers');
@@ -85,10 +90,9 @@ describe('EZD-218 left panel', () => {
     expect(html).not.toContain('Versions');
   });
 
-  it('AC-2 Phase rows Existing, Demo, New with their dots, an eye and a lock; no Overlays heading', () => {
+  it('AC-2 Phase rows Existing, Demo, New with their dots, an eye and a lock', () => {
     const html = render(setup());
     expect(html).toContain('>Phase<');
-    expect(html).not.toContain('Overlays');
     for (const [status, name] of [
       ['existing', 'Existing'],
       ['demo', 'Demo'],

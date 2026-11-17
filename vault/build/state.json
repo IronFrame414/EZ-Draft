@@ -608,7 +608,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -617,7 +617,8 @@
     "EZD-421": 1,
     "EZD-116": 1,
     "EZD-216": 1,
-    "EZD-215": 1
+    "EZD-215": 1,
+    "EZD-306": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -631,20 +632,24 @@
     "EZD-215": {
       "ts": "2026-11-16T17:47:03Z",
       "reason": "builder crashed (no result)"
+    },
+    "EZD-306": {
+      "ts": "2026-11-17T00:39:41Z",
+      "reason": "builder timed out after 90 min with no commits"
     }
   },
   "running": {
-    "EZD-306": {
-      "lane": 1,
-      "title": "DXF conversion choice",
-      "started": "2026-11-16T23:09:40Z",
-      "develop": "f465d586"
-    },
     "EZD-729": {
       "lane": 2,
       "title": "Plumbing locations",
       "started": "2026-11-16T23:21:28Z",
       "develop": "f465d586"
+    },
+    "EZD-225": {
+      "lane": 0,
+      "title": "Editor states",
+      "started": "2026-11-17T00:07:58Z",
+      "develop": "b6ffab28"
     }
   }
 }

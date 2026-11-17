@@ -6,23 +6,31 @@
 //
 // Membership: an object is in the Phase layer of its status; a room is also in Rooms. It is drawn only when every
 // layer it is in is shown, and can be selected only when none of its layers is locked.
-import type { ObjectStatus } from '@ezdraft/geometry';
+// EZD-729 (AC-EZD-729-1; S03 "Layers tab sections: Phase, Overlays, Rooms"; vault/build/assumptions.md EZD-729): the
+// Plumbing layer. A sink's derived supply and drain locations and every water or drain utility point are in it, as
+// well as in their Phase layer; its eye starts on and resets on reload.
+import { PLUMBING_LOCATION_TYPE, type ObjectStatus } from '@ezdraft/geometry';
 import type { PhaseEyes, PhaseFilter } from '../../lib/plan/phase-view';
 
-export const LAYER_IDS = ['existing', 'demo', 'new', 'rooms'] as const;
+export const LAYER_IDS = ['existing', 'demo', 'new', 'rooms', 'plumbing'] as const;
 
 export type LayerId = (typeof LAYER_IDS)[number];
 
 export type LayerLocks = Readonly<Record<LayerId, boolean>>;
 
-export type LayerState = Readonly<{ roomsEye: boolean; locks: LayerLocks }>;
+export type LayerState = Readonly<{ roomsEye: boolean; plumbingEye: boolean; locks: LayerLocks }>;
 
 const isStatus = (s: unknown): s is ObjectStatus => s === 'existing' || s === 'demo' || s === 'new';
 
-export function objectLayers(type: string, status: unknown): LayerId[] {
+const inPlumbing = (type: string, kind: unknown) =>
+  type === PLUMBING_LOCATION_TYPE || (type === 'utility_point' && (kind === 'water' || kind === 'drain'));
+
+// `kind` is the object's attributes.kind, when it has one.
+export function objectLayers(type: string, status: unknown, kind?: unknown): LayerId[] {
   const out: LayerId[] = [];
   if (isStatus(status)) out.push(status);
   if (type === 'room') out.push('rooms');
+  if (inPlumbing(type, kind)) out.push('plumbing');
   return out;
 }
 
@@ -31,12 +39,21 @@ export function objectVisible(
   roomsEye: boolean,
   type: string,
   status: unknown,
+  kind?: unknown,
+  plumbingEye = true,
 ): boolean {
-  return objectLayers(type, status).every((l) => (l === 'rooms' ? roomsEye : eyes[l]));
+  return objectLayers(type, status, kind).every((l) =>
+    l === 'rooms' ? roomsEye : l === 'plumbing' ? plumbingEye : eyes[l],
+  );
 }
 
-export function objectSelectable(locks: LayerLocks, type: string, status: unknown): boolean {
-  return objectLayers(type, status).every((l) => !locks[l]);
+export function objectSelectable(
+  locks: LayerLocks,
+  type: string,
+  status: unknown,
+  kind?: unknown,
+): boolean {
+  return objectLayers(type, status, kind).every((l) => !locks[l]);
 }
 
 type Listenable = { subscribe(listener: () => void): () => void };
@@ -53,6 +70,7 @@ export type LayerSetting = PhaseFilter &
     eyes(): PhaseEyes;
     setEye(status: ObjectStatus, on: boolean): void;
     setRoomsEye(on: boolean): void;
+    setPlumbingEye(on: boolean): void;
     setLock(layer: LayerId, on: boolean): void;
     // What selection reads: shown and not locked.
     readonly selectable: PhaseFilter & Listenable;
@@ -63,10 +81,11 @@ const UNLOCKED: LayerLocks = Object.freeze({
   demo: false,
   new: false,
   rooms: false,
+  plumbing: false,
 });
 
 export function createLayerSetting(phase: LayerPhase): LayerSetting {
-  let state: LayerState = Object.freeze({ roomsEye: true, locks: UNLOCKED });
+  let state: LayerState = Object.freeze({ roomsEye: true, plumbingEye: true, locks: UNLOCKED });
   let own = 0;
   const listeners = new Set<() => void>();
   const notify = () => {
@@ -87,8 +106,8 @@ export function createLayerSetting(phase: LayerPhase): LayerSetting {
       off();
     };
   };
-  const shownObject = (type: string, status: unknown) =>
-    objectVisible(phase.get().eyes, state.roomsEye, type, status);
+  const shownObject = (type: string, status: unknown, kind?: unknown) =>
+    objectVisible(phase.get().eyes, state.roomsEye, type, status, kind, state.plumbingEye);
   const shown = (status: unknown) => shownObject('', status);
 
   return {
@@ -101,18 +120,22 @@ export function createLayerSetting(phase: LayerPhase): LayerSetting {
     setEye: (status, on) => phase.setEye(status, on),
     setRoomsEye(on) {
       if (state.roomsEye === on) return;
-      change({ roomsEye: on, locks: state.locks });
+      change({ ...state, roomsEye: on });
+    },
+    setPlumbingEye(on) {
+      if (state.plumbingEye === on) return;
+      change({ ...state, plumbingEye: on });
     },
     setLock(layer, on) {
       if (state.locks[layer] === undefined || state.locks[layer] === on) return;
-      change({ roomsEye: state.roomsEye, locks: Object.freeze({ ...state.locks, [layer]: on }) });
+      change({ ...state, locks: Object.freeze({ ...state.locks, [layer]: on }) });
     },
     selectable: {
       version,
       subscribe,
       shown: (status) => shown(status) && objectSelectable(state.locks, '', status),
-      shownObject: (type, status) =>
-        shownObject(type, status) && objectSelectable(state.locks, type, status),
+      shownObject: (type, status, kind) =>
+        shownObject(type, status, kind) && objectSelectable(state.locks, type, status, kind),
     },
   };
 }

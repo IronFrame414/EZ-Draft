@@ -5,8 +5,13 @@
 // EZD-235 Build step 7 (vault/plans/EZD-235.md Decided "D-Label"; 11 rule 2): `planDrawingList` passes `options` on.
 // EZD-214 (S03 Decisions; 09m Phase switch; Q-0668 (a)): an object whose status the phase view hides is left out of
 // the drawing list; a hidden opening then cuts nothing, so its wall is drawn whole.
+// EZD-729 (AC-EZD-729-1): a shown sink's supply and drain locations join the list while the Plumbing layer is
+// shown (PLUMBING_LOCATION_TYPE in the layer filter).
 import {
+  PLUMBING_LOCATION_TYPE,
   buildDrawingList,
+  plumbingLocationItems,
+  type FixtureObject,
   type DrawingListOptions,
   parseStoredObject,
   type DrawingLayer,
@@ -80,8 +85,11 @@ export function planDrawingList(
   const shown =
     phase === null
       ? parsed
-      : parsed.filter((o) => objectShownBy(phase, o.type, (o.data as { status?: unknown }).status));
-  return buildDrawingList(
+      : parsed.filter((o) => {
+          const d = o.data as { status?: unknown; attributes?: { kind?: unknown } };
+          return objectShownBy(phase, o.type, d.status, d.attributes?.kind);
+        });
+  const list = buildDrawingList(
     { objects: shown },
     {
       level,
@@ -92,6 +100,14 @@ export function planDrawingList(
     [],
     options,
   );
+  const plumbing = shown.flatMap((o) =>
+    o.type === 'fixture' &&
+    o.data.level.toLowerCase() === level.toLowerCase() &&
+    objectShownBy(phase, PLUMBING_LOCATION_TYPE, o.data.status)
+      ? plumbingLocationItems(o as FixtureObject)
+      : [],
+  );
+  return plumbing.length === 0 ? list : { ...list, items: [...list.items, ...plumbing] };
 }
 
 export function arcPoints(

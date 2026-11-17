@@ -3,6 +3,7 @@
 // EZD-208a Build step 2 (vault/plans/EZD-208a.md section 3 G1-G6): exports the pick shapes.
 // EZD-212a Build step 9 (vault/plans/EZD-212a.md section 3): exports the moves core.
 // EZD-235 Build step 4 (vault/plans/EZD-235.md Decided "D-Where"; 11 rule 2): exports the derived values.
+// EZD-729 Build (AC-EZD-729-1): exports the plumbing locations.
 export * from './benchmark/benchmark';
 export * from './derived';
 export * from './drawing';
@@ -11,6 +12,7 @@ export * from './length';
 export * from './moves';
 export * from './numbers';
 export * from './openings';
+export * from './plumbing/locations';
 export * from './rooms';
 export * from './schema';
 export * from './selection';

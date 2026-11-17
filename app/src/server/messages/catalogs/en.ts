@@ -216,6 +216,8 @@ export const en = {
   'office.left_panel.layer.demo': 'Demo',
   'office.left_panel.layer.new': 'New',
   'office.left_panel.layer.rooms': 'Rooms',
+  'office.left_panel.section.overlays': 'Overlays',
+  'office.left_panel.layer.plumbing': 'Plumbing',
   'office.left_panel.show': 'Show {layer}',
   'office.left_panel.hide': 'Hide {layer}',
   'office.left_panel.lock': 'Lock {layer}',
