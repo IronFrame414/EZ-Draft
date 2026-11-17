@@ -370,7 +370,8 @@
     "EZD-411",
     "EZD-309",
     "EZD-220",
-    "EZD-310"
+    "EZD-310",
+    "EZD-311"
   ],
   "seeded_done": 324,
   "merged": [
@@ -712,6 +713,14 @@
       "ts": "2026-11-17T20:41:28Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-311",
+      "title": "Resolve the gap",
+      "commit": "c8963e9d",
+      "ts": "2026-11-17T22:19:04Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -725,7 +734,7 @@
     }
   },
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -796,12 +805,6 @@
       "title": "Fix: every fixture kind draws its own standard plan symbol, not the same box with diagonals",
       "started": "2026-11-17T19:49:38Z",
       "develop": "6a3aa070"
-    },
-    "EZD-311": {
-      "lane": 1,
-      "title": "Resolve the gap",
-      "started": "2026-11-17T20:42:08Z",
-      "develop": "e73101d6"
     }
   }
 }
