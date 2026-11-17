@@ -53,4 +53,5 @@ check-failures.log
 vault/build/claims.json
 vault/build/.claims.lock/
 vault/build/footprints.json
+vault/build/heartbeat.jsonl
 vault/build/*.tmp-*

@@ -13,6 +13,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { summarize, reportMarkdown } from './usage-report.mjs';
+import { lastBeat, resetReason, sample, startNote, writeBeat } from './loop/heartbeat.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -27,6 +28,7 @@ const P = {
   attention: path.join(B, 'ATTENTION.md'),
   report: path.join(B, 'trial-report.md'),
   footprints: path.join(B, 'footprints.json'),
+  heartbeat: path.join(B, 'heartbeat.jsonl'),
 };
 const DEFAULTS = {
   builder_model: 'claude-opus-5-5', builder_effort: 'medium',
@@ -62,7 +64,8 @@ function git(args, cwd = ROOT, opts = {}) {
   }
 }
 // Build files the loop writes and commits itself. A merge in the main checkout needs them unstaged.
-const BUILD_FILES = ['vault/build/state.json', 'vault/build/set-aside.md', 'vault/build/usage.jsonl', 'vault/build/loop.log', 'vault/build/trial-report.md'];
+const BUILD_FILES = ['vault/build/state.json', 'vault/build/set-aside.md', 'vault/build/usage.jsonl', 'vault/build/trial-report.md'];
+// loop.log is gitignored (*.log); listing it made every `git add` fail, so no build file was ever committed (2026-11-17).
 // A read-only checkout of develop for the footprint calls, so a claude session's git calls never touch the main
 // checkout's index while the loop commits there.
 function footprintTree() {
@@ -702,7 +705,16 @@ async function ensureFootprints(s, list) {
 // ---------- main ----------
 async function main() {
   const s = loadState();
+  // Heartbeat (2026-11-17): explain the gap since the last run, then record the machine's state every minute.
+  const first = sample();
+  const prev = lastBeat(P.heartbeat);
+  const gap = startNote(prev, { now: first.ts, boot: first.boot, reason: prev && prev.boot !== first.boot ? resetReason(prev.ts) : null });
+  if (gap) log(gap);
   log(`loop start (pid ${process.pid}; lanes ${laneList().join(', ')})`);
+  const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock');
+  const beat = () => { try { writeBeat(P.heartbeat, sample({ running: Object.keys(s.running), heavyLock })); } catch (e) { console.log(`heartbeat: ${e?.message || e}`); } };
+  writeBeat(P.heartbeat, { ...first, running: [] });
+  setInterval(beat, 60000);
   // Recovery: anything still marked running was interrupted by a restart.
   if (s.current) { s.running[s.current] = { lane: 0 }; delete s.current; }
   for (const id of Object.keys(s.running)) { log(`recovering: ${id} was interrupted; starting it fresh`); cleanupWorktree(id); }
