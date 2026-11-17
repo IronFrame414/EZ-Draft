@@ -343,6 +343,23 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-307: the made job is not an import, so not found; a review holds detected items and file names (no money)',
   },
   {
+    file: `${API}projects/[id]/imports/[jobId]/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/projects/[id]/imports/[jobId]/route'),
+    request: async (env) => {
+      const jobId = made(env, 'jobId');
+      return {
+        ...(await sendJson('PATCH', `/api/projects/${env.projectId}/imports/${jobId}`, {
+          mode: 'by_room',
+          changes: [{ item_id: 'w1', decision: 'accepted', fix: null }],
+        })()),
+        params: { id: env.projectId, jobId },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-309: the made job is not an import, so not found; review changes hold decisions and geometry (no money)',
+  },
+  {
     file: `${API}dev/permissions/projects/[id]/route.ts`,
     method: 'PATCH',
     load: () => import('../../src/app/api/dev/permissions/projects/[id]/route'),

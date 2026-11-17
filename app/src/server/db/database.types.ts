@@ -287,6 +287,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"import_review_item": {
+                  Row: {
+                    "created_at": string,"decision": string | null,"fix": Json | null,"id": string,"item_id": string,"job_id": string,"project_id": string,"tenant_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"decision"?: string | null,"fix"?: Json | null,"id"?: string,"item_id": string,"job_id": string,"project_id": string,"tenant_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"decision"?: string | null,"fix"?: Json | null,"id"?: string,"item_id"?: string,"job_id"?: string,"project_id"?: string,"tenant_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "import_review_item_job_id_fkey"
+      columns: ["job_id"]
+isOneToOne: false
+      referencedRelation: "job"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "import_review_item_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "import_review_item_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "import_review_item_updated_by_fkey"
+      columns: ["updated_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"import_session": {
                   Row: {
                     "created_at": string,"error": string | null,"id": string,"items": NonNullable<Json>,"job_id": string | null,"mode": string,"project_id": string,"source_file_id": string,"source_kind": string,"status": string,"summary": NonNullable<Json>,"tenant_id": string,"updated_at": string
@@ -1130,6 +1168,9 @@ isOneToOne: false
                            },
 "rewrap_my_ai_key":
 { Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean
+                           },
+"save_import_review":
+{ Args: { "p_changes": Json,"p_job": string,"p_mode": string,"p_project": string }; Returns: Json
                            },
 "save_member":
 { Args: { "p_granted": (string)[],"p_ip"?: unknown,"p_language": string,"p_membership_id": string,"p_role_id": string }; Returns: Json

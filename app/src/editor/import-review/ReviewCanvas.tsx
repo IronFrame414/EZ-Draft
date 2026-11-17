@@ -6,7 +6,15 @@
 // the page needs no WebGL until the mesh is shown. 100% zoom is the whole import fitted to the canvas. The mesh
 // view (lazy/mesh-view, the GLB read by EZD-303's reader) is a lazy module drawn on its own canvas over the plan
 // while Show 3D mesh is on; data-mesh reports the view's own `visible` (AC-EZD-307-2).
+// EZD-309 (S02 Controls Click item on canvas "Selects it; list and inspector sync; Smallest item under cursor
+// first", Hover item "Shows item name and confidence", Drag endpoint / edge (in Fix mode) "Moves wall ends or
+// opening edges with live dimensions; Snaps as in Plan editor", Esc "Cancels Fix"; "To check list row ... canvas
+// highlights it in blue and zooms to it"): items are drawn with their fixes; openings sit over walls and walls over
+// rooms, so a click takes the smallest item under the cursor. In Fix mode the selected item shows its handles; a
+// drag snaps with the Plan editor's rules and shows the length live, and is handed to onFix when released. Esc
+// cancels a drag in progress and leaves Fix mode. A selected item outside the view is brought to the centre.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
+import { formatLength, PLAN_DISPLAY_DENOMINATOR } from '@ezdraft/geometry';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import { lazyModule } from '../../lib/lazy/lazy-module';
@@ -14,8 +22,17 @@ import {
   isHighConfidence,
   itemExtents,
   type Decisions,
+  type Pt,
   type ReviewItem,
 } from '../../lib/imports/review';
+import {
+  applyFix,
+  dragHandle,
+  itemHandles,
+  liveLength,
+  snapHandle,
+  type ItemFix,
+} from '../../lib/imports/review-fix';
 import touch from '../../styles/touch.module.css';
 import zoomStyles from '../plan/ZoomStack.module.css';
 import { loadMesh } from './mesh-source';
@@ -50,8 +67,18 @@ export function itemState(
 type View = { zoom: number; panX: number; panY: number };
 
 export type ReviewCanvasProps = {
+  /** The items as they stand (fixes applied). */
   items: readonly ReviewItem[];
+  /** The detected items, for the fitted 100% view (a fix does not move the view). */
+  detected?: readonly ReviewItem[];
   selectedId: string | null;
+  onSelect?: (id: string) => void;
+  /** Fix mode on the selected item (EZD-309). */
+  fixing?: boolean;
+  onFix?: (id: string, fix: ItemFix) => void;
+  onExitFix?: () => void;
+  /** Hover text of an item: its name and confidence. */
+  hoverText?: (item: ReviewItem) => string;
   /** The high-confidence cutoff (%) of this review (company Defaults). */
   cutoff: number;
   /** Accept and reject decisions made in this review. */
@@ -62,9 +89,17 @@ export type ReviewCanvasProps = {
   onZoom: (percent: number) => void;
 };
 
+type Drag = { id: string; key: string; fix: ItemFix | null };
+
 export function ReviewCanvas({
   items: allItems,
+  detected,
   selectedId,
+  onSelect,
+  fixing = false,
+  onFix,
+  onExitFix,
+  hoverText,
   cutoff,
   decisions,
   meshUrl,
@@ -72,9 +107,16 @@ export function ReviewCanvas({
   onZoom,
 }: ReviewCanvasProps): ReactElement {
   const t = useT();
+  const [dragState, setHandleDrag] = useState<Drag | null>(null);
+  const handleDrag = fixing && dragState?.id === selectedId ? dragState : null;
+  const [hover, setHover] = useState<{ id: string; x: number; y: number } | null>(null);
+  // The items drawn: rejected ones left out, a handle drag in progress drawn where it is.
   const items = useMemo(
-    () => allItems.filter((i) => decisions[i.id] !== 'rejected'),
-    [allItems, decisions],
+    () =>
+      allItems
+        .filter((i) => decisions[i.id] !== 'rejected')
+        .map((i) => (handleDrag?.fix && i.id === handleDrag.id ? applyFix(i, handleDrag.fix) : i)),
+    [allItems, decisions, handleDrag],
   );
   const box = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -118,7 +160,8 @@ export function ReviewCanvas({
     };
   }, []);
 
-  const ext = useMemo(() => itemExtents(allItems), [allItems]);
+  const fitSource = detected ?? allItems;
+  const ext = useMemo(() => itemExtents(fitSource), [fitSource]);
   const fitScale = useMemo(() => {
     if (!ext || size.w === 0 || size.h === 0) return 1;
     const dx = Math.max(ext.maxX - ext.minX, 1);
@@ -129,6 +172,43 @@ export function ReviewCanvas({
   const cy = ext ? (ext.minY + ext.maxY) / 2 : 0;
   const k = fitScale * view.zoom;
   const transform = `translate(${size.w / 2 + view.panX} ${size.h / 2 + view.panY}) scale(${k} ${-k}) translate(${-cx} ${-cy})`;
+  const toScreen = (p: Pt) => ({
+    x: size.w / 2 + view.panX + (p.x - cx) * k,
+    y: size.h / 2 + view.panY - (p.y - cy) * k,
+  });
+  const toModel = (sx: number, sy: number): Pt => ({
+    x: (sx - size.w / 2 - view.panX) / k + cx,
+    y: -(sy - size.h / 2 - view.panY) / k + cy,
+  });
+
+  // Esc cancels a drag in progress and leaves Fix mode (S02 Esc "Cancels Fix").
+  useEffect(() => {
+    if (!fixing) return;
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setHandleDrag(null);
+      onExitFix?.();
+    };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [fixing, onExitFix]);
+
+  // A selected item outside the view is brought to the centre (S02 "canvas highlights it in blue and zooms to it").
+  const [seenSelected, setSeenSelected] = useState(selectedId);
+  if (seenSelected !== selectedId) {
+    setSeenSelected(selectedId);
+    const item = selectedId ? allItems.find((i) => i.id === selectedId) : undefined;
+    const e = item && size.w > 0 ? itemExtents([item]) : null;
+    if (e) {
+      const mx = (e.minX + e.maxX) / 2;
+      const my = (e.minY + e.maxY) / 2;
+      const sx = size.w / 2 + view.panX + (mx - cx) * k;
+      const sy = size.h / 2 + view.panY - (my - cy) * k;
+      if (sx < PAD_PX || sx > size.w - PAD_PX || sy < PAD_PX || sy > size.h - PAD_PX) {
+        setView({ ...view, panX: -(mx - cx) * k, panY: (my - cy) * k });
+      }
+    }
+  }
 
   // Zoom by `ratio` keeping the screen point (sx, sy) still; the centre when no point is given.
   const zoomBy = useCallback(
@@ -162,14 +242,58 @@ export function ReviewCanvas({
       (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
     }
   };
+  const local = (e: React.PointerEvent) => {
+    const rect = box.current?.getBoundingClientRect();
+    return { x: e.clientX - (rect?.left ?? 0), y: e.clientY - (rect?.top ?? 0) };
+  };
   const onPointerMove = (e: React.PointerEvent) => {
+    const hd = handleDrag;
+    if (hd) {
+      const item = allItems.find((i) => i.id === hd.id);
+      if (!item) return;
+      const p = local(e);
+      const snapped = snapHandle(allItems, item, hd.key, toModel(p.x, p.y), k);
+      setHandleDrag({ ...hd, fix: dragHandle(item, allItems, hd.key, snapped.point) });
+      return;
+    }
     const d = drag.current;
     if (!d) return;
     setView((v) => ({ ...v, panX: d.panX + e.clientX - d.x, panY: d.panY + e.clientY - d.y }));
   };
   const onPointerUp = () => {
     drag.current = null;
+    const hd = handleDrag;
+    if (hd) {
+      setHandleDrag(null);
+      if (hd.fix) onFix?.(hd.id, hd.fix);
+    }
   };
+  const startHandle = (e: React.PointerEvent, id: string, key: string) => {
+    if (e.button !== 0 || space.current) return;
+    e.stopPropagation();
+    setHandleDrag({ id, key, fix: null });
+    box.current?.setPointerCapture?.(e.pointerId);
+  };
+  const pick = (e: React.PointerEvent, id: string) => {
+    if (e.button !== 0 || space.current || handleDrag) return;
+    onSelect?.(id);
+  };
+  const hoverOn = (e: React.PointerEvent, id: string) => {
+    const p = local(e);
+    setHover({ id, x: p.x, y: p.y });
+  };
+  const hoverOff = () => setHover(null);
+  const hovered = hover ? items.find((i) => i.id === hover.id) : undefined;
+  const fixItem = fixing && selectedId ? items.find((i) => i.id === selectedId) : undefined;
+  const handles = fixItem ? itemHandles(fixItem, items) : [];
+  const live = handleDrag?.fix && fixItem ? liveLength(fixItem) : null;
+  const liveAt = (() => {
+    if (!fixItem || live === null) return null;
+    const hs = itemHandles(fixItem, items);
+    const a = toScreen(hs[0].point);
+    const b = toScreen(hs[hs.length - 1].point);
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  })();
 
   const walls = new Map(allItems.filter((i) => i.type === 'wall').map((w) => [w.id, w] as const));
 
@@ -185,7 +309,13 @@ export function ReviewCanvas({
         onPointerCancel={onPointerUp}
         onContextMenu={(e) => e.preventDefault()}
       >
-        <svg width={size.w} height={size.h} className={styles.svg} aria-hidden="true">
+        <svg
+          width={size.w}
+          height={size.h}
+          className={styles.svg}
+          aria-hidden="true"
+          data-fixing={fixing ? 'true' : 'false'}
+        >
           <g transform={transform}>
             {items.map((item) => {
               if (item.type !== 'room') return null;
@@ -200,6 +330,9 @@ export function ReviewCanvas({
                   points={item.boundary.map((p) => `${p.x},${p.y}`).join(' ')}
                   className={`${styles.underlay} ${state === 'accepted' ? '' : styles[state]}`}
                   vectorEffect="non-scaling-stroke"
+                  onPointerDown={(e) => pick(e, item.id)}
+                  onPointerMove={(e) => hoverOn(e, item.id)}
+                  onPointerLeave={hoverOff}
                 />
               );
             })}
@@ -227,23 +360,75 @@ export function ReviewCanvas({
                 b = { x: item.center.x + ux * h, y: item.center.y + uy * h };
               }
               return (
-                <line
-                  key={item.id}
-                  data-testid="review-item"
-                  data-id={item.id}
-                  data-state={state}
-                  data-decision={decisions[item.id] ?? 'none'}
-                  x1={a.x}
-                  y1={a.y}
-                  x2={b.x}
-                  y2={b.y}
-                  className={`${item.type === 'wall' ? styles.wall : styles.opening} ${styles[state]}`}
-                  vectorEffect="non-scaling-stroke"
-                />
+                <g key={item.id}>
+                  <line
+                    data-testid="review-item"
+                    data-id={item.id}
+                    data-state={state}
+                    data-decision={decisions[item.id] ?? 'none'}
+                    x1={a.x}
+                    y1={a.y}
+                    x2={b.x}
+                    y2={b.y}
+                    className={`${item.type === 'wall' ? styles.wall : styles.opening} ${styles[state]}`}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <line
+                    data-testid="review-hit"
+                    data-id={item.id}
+                    x1={a.x}
+                    y1={a.y}
+                    x2={b.x}
+                    y2={b.y}
+                    className={styles.hit}
+                    vectorEffect="non-scaling-stroke"
+                    onPointerDown={(e) => pick(e, item.id)}
+                    onPointerMove={(e) => hoverOn(e, item.id)}
+                    onPointerLeave={hoverOff}
+                  />
+                </g>
               );
             })}
           </g>
+          {handles.map((h) => {
+            const p = toScreen(h.point);
+            return (
+              <circle
+                key={h.key}
+                data-testid="review-handle"
+                data-key={h.key}
+                cx={p.x}
+                cy={p.y}
+                r={7}
+                className={styles.handle}
+                onPointerDown={(e) => startHandle(e, fixItem?.id ?? '', h.key)}
+              />
+            );
+          })}
         </svg>
+        {live !== null && liveAt ? (
+          <span
+            className={styles.liveDimension}
+            data-testid="review-live-dimension"
+            style={{ left: liveAt.x, top: liveAt.y }}
+          >
+            {formatLength(live, PLAN_DISPLAY_DENOMINATOR)}
+          </span>
+        ) : null}
+        {hovered && hover && hoverText && !handleDrag ? (
+          <span
+            className={styles.hover}
+            data-testid="review-hover"
+            style={{ left: hover.x + 12, top: hover.y + 12 }}
+          >
+            {hoverText(hovered)}
+          </span>
+        ) : null}
+        {fixing && fixItem ? (
+          <p className={styles.fixHint} data-testid="review-fix-hint">
+            {t('office.review.fix_hint')}
+          </p>
+        ) : null}
         {meshUrl ? (
           <canvas
             ref={meshCanvas}

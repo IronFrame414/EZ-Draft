@@ -8,9 +8,22 @@
 // EZD-308 (S15d High-confidence cutoff "Import items below it go to To check"; Round 24): the view carries the
 // company's cutoff, the effective Defaults value of high_confidence_cutoff, or 80 while it is Not set
 // (vault/build/assumptions.md EZD-308). The key is company-wide, not a per-project copy.
+// EZD-309 (Q-0215 "Detected items are saved until Finish or Cancel, even if the browser closes"; AC-EZD-309-2): the
+// view also carries what the reviewer has saved, the decisions and fixes from import_review_item and the mode from
+// import_session, so a reload restores them. saveImportReview writes one batch through save_import_review.
 import { z } from 'zod';
 import { effectiveValue } from '../../lib/defaults/values';
-import { reviewCutoff, type ReviewFile, type ReviewItem } from '../../lib/imports/review';
+import {
+  DEFAULT_REVIEW_MODE,
+  REVIEW_MODES,
+  reviewCutoff,
+  type Decision,
+  type ReviewFile,
+  type ReviewItem,
+  type ReviewMode,
+} from '../../lib/imports/review';
+import { parseFix, type ItemFix, type ReviewChange } from '../../lib/imports/review-fix';
+import type { Json } from '../db/database.types';
 import { loadTenantDefaults } from '../defaults/defaults';
 import { signedDownloadUrl, StorageError, type DbClient } from '../storage/objects';
 import { readReviewSourceFiles } from '../storage/source-files';
@@ -28,6 +41,12 @@ export type ImportReviewView = {
   meshUrl: string | null;
   /** The high-confidence cutoff (%) for this review: at or above it is high confidence. */
   cutoff: number;
+  /** Saved decisions by item id (EZD-309). */
+  decisions: Record<string, Decision>;
+  /** Saved fixes by item id (EZD-309). */
+  fixes: Record<string, ItemFix>;
+  /** The saved review mode (import_session.mode). */
+  mode: ReviewMode;
 };
 
 const pt = z.object({ x: z.number(), y: z.number() });
@@ -104,6 +123,9 @@ export async function readImportReview(
     projectName: project.data.name,
     cutoff: reviewCutoff(effectiveValue('high_confidence_cutoff', stored)),
     files: ordered.map((f) => ({ name: f.name, kind: f.kind })),
+    decisions: {},
+    fixes: {},
+    mode: DEFAULT_REVIEW_MODE,
   };
   const firstScan = ordered.find((f) => f.kind === 'polycam_dxf')?.name ?? null;
 
@@ -116,7 +138,7 @@ export async function readImportReview(
 
   const sessions = await client
     .from('import_session')
-    .select('id, source_file_id, status, items, created_at')
+    .select('id, source_file_id, status, items, mode, created_at')
     .eq('job_id', jobId)
     .eq('project_id', projectId)
     .order('created_at', { ascending: true });
@@ -139,6 +161,26 @@ export async function readImportReview(
     }
   }
 
+  const saved = await client
+    .from('import_review_item')
+    .select('item_id, decision, fix')
+    .eq('job_id', jobId)
+    .eq('project_id', projectId);
+  if (saved.error) throw saved.error;
+  const byId = new Map(items.map((i) => [i.id, i] as const));
+  const decisions: Record<string, Decision> = {};
+  const fixes: Record<string, ItemFix> = {};
+  for (const row of saved.data) {
+    const item = byId.get(row.item_id);
+    if (!item) continue;
+    if (row.decision === 'accepted' || row.decision === 'rejected')
+      decisions[item.id] = row.decision;
+    const fix = row.fix === null ? null : parseFix(item, row.fix);
+    if (fix) fixes[item.id] = fix;
+  }
+  const storedMode = sessions.data[0]?.mode;
+  const mode = REVIEW_MODES.find((m) => m === storedMode) ?? DEFAULT_REVIEW_MODE;
+
   let meshUrl: string | null = null;
   const mesh = ordered.find((f) => f.kind === 'polycam_glb' && f.uploaded);
   if (mesh) {
@@ -149,5 +191,43 @@ export async function readImportReview(
       if (!(e instanceof StorageError)) throw e;
     }
   }
-  return { ...base, status: 'ready', failedFile: null, items, meshUrl };
+  return { ...base, status: 'ready', failedFile: null, items, meshUrl, decisions, fixes, mode };
+}
+
+export type SaveReviewResult = 'saved' | 'locked' | 'closed';
+
+/** Thrown for the refusals of save_import_review the route answers with 403, 404 or 400. */
+export class ReviewSaveError extends Error {
+  constructor(readonly code: 'permission_denied' | 'not_found' | 'invalid_input') {
+    super(code);
+    this.name = 'ReviewSaveError';
+  }
+}
+
+/**
+ * One batch of review changes (EZD-309), through the caller's session client: save_import_review checks Edit
+ * model, project scope, the import and its items, and the edit lock (supabase/migrations/…_import_review_item).
+ */
+export async function saveImportReview(
+  client: DbClient,
+  projectId: string,
+  jobId: string,
+  batch: { mode: ReviewMode | null; changes: readonly ReviewChange[] },
+): Promise<SaveReviewResult> {
+  const { data, error } = await client.rpc('save_import_review', {
+    p_project: projectId,
+    p_job: jobId,
+    // The generated argument type is `string`; a null mode is the SQL null the function expects.
+    p_mode: batch.mode as string,
+    p_changes: batch.changes as unknown as Json,
+  });
+  if (error) {
+    if (error.code === '42501') throw new ReviewSaveError('permission_denied');
+    if (error.code === 'P0002') throw new ReviewSaveError('not_found');
+    if (error.code === '22023') throw new ReviewSaveError('invalid_input');
+    throw error;
+  }
+  const status = (data as { status?: unknown } | null)?.status;
+  if (status === 'saved' || status === 'locked' || status === 'closed') return status;
+  throw new Error('save_import_review: unexpected answer');
 }

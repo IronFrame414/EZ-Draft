@@ -5,6 +5,11 @@
 export type GatedRpcCall = { fn: string; args: Record<string, unknown> };
 
 export const GATED_RPC_CALLS: GatedRpcCall[] = [
+  // EZD-309: the import review's batched save (authenticated only).
+  {
+    fn: 'save_import_review',
+    args: { p_project: null, p_job: null, p_mode: null, p_changes: null },
+  },
   // EZD-111 (vault/plans/EZD-111.md Shared lists): the send functions (authenticated) and the client-link
   // resolver (anon only).
   {

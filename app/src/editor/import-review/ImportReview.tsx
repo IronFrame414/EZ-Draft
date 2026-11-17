@@ -13,7 +13,13 @@
 // (Q-0500 rule); Cancel import and Finish import show and stay disabled until EZD-313 builds them, Finish being
 // disabled anyway while any item is unresolved (S02 Controls). The fuller Loading, Error and Empty states are
 // EZD-314's; this screen shows a one-line message for each.
-import { useCallback, useEffect, useMemo, useState, type ReactElement } from 'react';
+// EZD-309 (S02 Controls Fix selected, Delete, Click item on canvas, Hover item, Esc, Ctrl/Cmd+Z; phase-03 EZD-309
+// "each review action is saved as a per-item change, batched every 2 seconds"; Q-0215; AC-EZD-309-1, -2): the
+// review state (decisions and fixes) starts from what the import has saved and has a session undo / redo history.
+// Fix selected turns Fix mode on for the selected item (drag its ends on the canvas; a drag accepts it with its
+// fix); Delete rejects it (it does not become model data). Each action, undo and redo marks the items it changed
+// and the review saver sends them every 2 seconds (and at once when the page hides), so a reload restores them.
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { HeaderCard } from '../../components/shell/HeaderCard';
 import { HeaderButton } from '../../components/shell/HeaderButton';
 import { Wordmark } from '../../components/shell/Wordmark';
@@ -43,7 +49,24 @@ import {
   type ReviewItem,
   type ReviewMode,
 } from '../../lib/imports/review';
+import {
+  changedIds,
+  changeFor,
+  commit,
+  fixedItems,
+  historyOf,
+  redo,
+  undo,
+  withDecision,
+  withDecisions,
+  withFix,
+  type Fixes,
+  type History,
+  type ItemFix,
+  type ReviewState,
+} from '../../lib/imports/review-fix';
 import type { MessageKey } from '../../server/messages/catalog';
+import { createReviewSaver, patchSender, type ReviewSaver } from './review-saver';
 import { ReviewCanvas } from './ReviewCanvas';
 import { readMeshUrl } from './mesh-source';
 import styles from './ImportReview.module.css';
@@ -61,6 +84,10 @@ export type ImportReviewData = {
   meshUrl: string | null;
   /** The company's high-confidence cutoff (%), from Defaults (server/imports/review.ts). */
   cutoff: number;
+  /** What the import has saved (EZD-309); missing in data from before it. */
+  decisions?: Decisions;
+  fixes?: Fixes;
+  mode?: ReviewMode;
 };
 
 type Load =
@@ -173,7 +200,7 @@ export function ImportReview({
         </div>
       </HeaderCard>
       {review?.status === 'ready' ? (
-        <ReadyBody review={review} />
+        <ReadyBody review={review} fetchImpl={fetchImpl} />
       ) : (
         <>
           <div className={styles.message} data-testid="import-review-message" role="status">
@@ -238,7 +265,11 @@ function ItemRow({
         onClick={() => onSelect(item.id)}
       >
         <span className={`${styles.dot} ${dotClass}`} />
-        <span className={decision === 'rejected' ? `${styles.rowLabel} ${styles.rowRejected}` : styles.rowLabel}>
+        <span
+          className={
+            decision === 'rejected' ? `${styles.rowLabel} ${styles.rowRejected}` : styles.rowLabel
+          }
+        >
           {itemLabel(item, items)}
         </span>
         <span className={styles.rowPct}>{item.confidence}%</span>
@@ -247,29 +278,108 @@ function ItemRow({
   );
 }
 
+const SAVE_REFUSED: Record<number, MessageKey> = {
+  403: 'error.not_authorized',
+  404: 'error.import_not_found',
+  409: 'error.lock_held',
+};
+
 export function ReadyBody({
   review,
-  initialMode = DEFAULT_REVIEW_MODE,
+  initialMode,
+  fetchImpl,
 }: {
   review: ImportReviewData;
   initialMode?: ReviewMode;
+  fetchImpl?: typeof fetch;
 }): ReactElement {
   const t = useT();
-  const { items, cutoff } = review;
-  const [mode, setMode] = useState<ReviewMode>(initialMode);
-  const [decisions, setDecisions] = useState<Decisions>({});
-  const summary = useMemo(() => reviewSummary(items, cutoff, decisions), [items, cutoff, decisions]);
+  const { items: detected, cutoff } = review;
+  const startMode = initialMode ?? review.mode ?? DEFAULT_REVIEW_MODE;
+  const [mode, setMode] = useState<ReviewMode>(startMode);
+  const [history, setHistory] = useState<History>(() =>
+    historyOf({ decisions: review.decisions ?? {}, fixes: review.fixes ?? {} }),
+  );
+  const { decisions, fixes } = history.present;
+  const items = useMemo(() => fixedItems(detected, fixes), [detected, fixes]);
+  const [fixing, setFixing] = useState(false);
+  const [saveError, setSaveError] = useState<MessageKey | null>(null);
+
+  // The save queue reads the latest state when it builds a batch.
+  const stateRef = useRef<ReviewState>(history.present);
+  useEffect(() => {
+    stateRef.current = history.present;
+  }, [history.present]);
+  const saver = useRef<ReviewSaver | null>(null);
+  useEffect(() => {
+    const s = createReviewSaver({
+      build: (ids, m) => ({ mode: m, changes: ids.map((id) => changeFor(stateRef.current, id)) }),
+      send: patchSender(review.projectId, review.jobId, fetchImpl ?? fetch),
+      onSaved: () => setSaveError(null),
+      onRetry: () => setSaveError('office.review.save_failed'),
+      onRefused: (status) => setSaveError(SAVE_REFUSED[status] ?? 'error.invalid_input'),
+    });
+    saver.current = s;
+    const hide = () => s.flushNow();
+    window.addEventListener('pagehide', hide);
+    return () => {
+      window.removeEventListener('pagehide', hide);
+      s.flushNow();
+      s.dispose();
+      saver.current = null;
+    };
+  }, [review.projectId, review.jobId, fetchImpl]);
+
+  const act = useCallback((next: (s: ReviewState) => ReviewState) => {
+    setHistory((h) => {
+      const after = commit(h, next(h.present));
+      if (after !== h) saver.current?.mark(changedIds(h.present, after.present));
+      return after;
+    });
+  }, []);
+  const travel = useCallback((step: (h: History) => History) => {
+    setHistory((h) => {
+      const after = step(h);
+      if (after !== h) saver.current?.mark(changedIds(h.present, after.present));
+      return after;
+    });
+  }, []);
+  const setDecisions = (f: (d: Decisions) => Decisions) =>
+    act((s) => withDecisions(s, f(s.decisions)));
+
+  // Ctrl/Cmd+Z undo, Ctrl/Cmd+Shift+Z redo (S02 "Undo / redo review actions; Session only").
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable))
+        return;
+      e.preventDefault();
+      travel(e.shiftKey ? redo : undo);
+    };
+    window.addEventListener('keydown', key);
+    return () => window.removeEventListener('keydown', key);
+  }, [travel]);
+  const summary = useMemo(
+    () => reviewSummary(items, cutoff, decisions),
+    [items, cutoff, decisions],
+  );
   const toCheck = useMemo(() => toCheckItems(items, cutoff, decisions), [items, cutoff, decisions]);
   const pending = useMemo(
     () => pendingHighConfidence(items, cutoff, decisions),
     [items, cutoff, decisions],
   );
   const groups = useMemo(() => roomGroups(items), [items]);
-  const [selectedId, setSelectedId] = useState<string | null>(() =>
-    initialMode === 'one_by_one'
-      ? firstUnresolved(items, {})
-      : (toCheckItems(items, cutoff)[0]?.id ?? null),
+  const [selectedId, setSelectedIdRaw] = useState<string | null>(() =>
+    startMode === 'one_by_one'
+      ? firstUnresolved(detected, review.decisions ?? {})
+      : (toCheckItems(detected, cutoff, review.decisions ?? {})[0]?.id ?? null),
   );
+  // A new selection leaves Fix mode.
+  const setSelectedId = (id: string | null) => {
+    if (selectedId !== id) setFixing(false);
+    setSelectedIdRaw(id);
+  };
   const [zoom, setZoom] = useState(100);
   const onZoom = useCallback((percent: number) => setZoom(percent), []);
   const freshMeshUrl = useCallback(
@@ -279,8 +389,10 @@ export function ReadyBody({
   const selected = items.find((i) => i.id === selectedId) ?? null;
 
   const chooseMode = (next: ReviewMode) => {
-    if (next === 'one_by_one' && next !== mode) setSelectedId(firstUnresolved(items, decisions));
+    if (next === mode) return;
+    if (next === 'one_by_one') setSelectedId(firstUnresolved(items, decisions));
     setMode(next);
+    saver.current?.mark([], next);
   };
   const acceptAll = () => setDecisions((d) => acceptHighConfidence(items, cutoff, d));
   const acceptGroup = (group: readonly ReviewItem[]) =>
@@ -290,6 +402,25 @@ export function ReadyBody({
     setDecisions((d) => decide(d, selected.id, decision));
     setSelectedId(stepItem(items, selected.id, 1));
   };
+  // Delete (S02 "Removes the detected item; it does not become model data"): in One by one the next item is
+  // selected, in the other modes the next item still to check.
+  const deleteSelected = () => {
+    if (!selected) return;
+    const id = selected.id;
+    act((s) => withDecision(s, id, 'rejected'));
+    if (mode === 'one_by_one') setSelectedId(stepItem(items, id, 1));
+    else {
+      const next = toCheckItems(items, cutoff, { ...decisions, [id]: 'rejected' })[0]?.id ?? null;
+      setSelectedId(next);
+    }
+  };
+  const onFix = useCallback((id: string, fix: ItemFix) => act((s) => withFix(s, id, fix)), [act]);
+  const exitFix = useCallback(() => setFixing(false), []);
+  const hoverText = useCallback(
+    (item: ReviewItem) =>
+      t('office.review.hover', { name: itemLabel(item, items), confidence: item.confidence }),
+    [t, items],
+  );
 
   if (items.length === 0) {
     return (
@@ -409,7 +540,29 @@ export function ReadyBody({
               <b data-count="fixtures">{a.fixtures}</b> {t('office.review.fixtures')}
             </p>
           </div>
+          {saveError ? (
+            <p className={styles.saveError} role="alert" data-testid="import-review-save-error">
+              {t(saveError)}
+            </p>
+          ) : null}
           <div className={styles.leftFoot}>
+            <div className={styles.leftFootActions}>
+              <HeaderButton
+                data-testid="import-review-fix"
+                aria-pressed={fixing}
+                disabled={!selected || decisions[selected.id] === 'rejected'}
+                onClick={() => setFixing((f) => !f)}
+              >
+                {t('office.review.fix')}
+              </HeaderButton>
+              <HeaderButton
+                data-testid="import-review-delete"
+                disabled={!selected || decisions[selected.id] === 'rejected'}
+                onClick={deleteSelected}
+              >
+                {t('office.review.delete')}
+              </HeaderButton>
+            </div>
             <HeaderButton
               variant="primary"
               className={styles.acceptN}
@@ -425,7 +578,13 @@ export function ReadyBody({
         <main className={styles.canvasCard}>
           <ReviewCanvas
             items={items}
+            detected={detected}
             selectedId={selectedId}
+            onSelect={setSelectedId}
+            fixing={fixing}
+            onFix={onFix}
+            onExitFix={exitFix}
+            hoverText={hoverText}
             cutoff={cutoff}
             decisions={decisions}
             meshUrl={review.meshUrl}
@@ -451,16 +610,18 @@ export function ReadyBody({
               {decisions[selected.id] ? (
                 <p className={styles.decision} data-testid="import-review-decision">
                   {t(
-                    decisions[selected.id] === 'accepted'
-                      ? 'office.review.decision_accepted'
-                      : 'office.review.decision_rejected',
+                    decisions[selected.id] === 'rejected'
+                      ? 'office.review.decision_rejected'
+                      : fixes[selected.id]
+                        ? 'office.review.decision_fixed'
+                        : 'office.review.decision_accepted',
                   )}
                 </p>
               ) : null}
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>{t('office.review.scan_reads')}</span>
                 <span className={styles.scanValue} data-testid="import-review-scan">
-                  {scanReads(selected)}
+                  {scanReads(detected.find((i) => i.id === selected.id) ?? selected)}
                 </span>
               </div>
             </div>

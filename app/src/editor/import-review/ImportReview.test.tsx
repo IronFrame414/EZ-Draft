@@ -203,7 +203,10 @@ describe('EZD-308 review modes', () => {
   it('AC-EZD-308-1: Accept N counts only the items at or above the company cutoff', () => {
     const at80 = one(render(<ReadyBody review={review()} />), 'import-review-accept-n');
     expect(textOf(at80.inner)).toBe('Accept 6');
-    const at91 = one(render(<ReadyBody review={review({ cutoff: 91 })} />), 'import-review-accept-n');
+    const at91 = one(
+      render(<ReadyBody review={review({ cutoff: 91 })} />),
+      'import-review-accept-n',
+    );
     expect(textOf(at91.inner)).toBe('Accept 3');
     // With 91 the door, window and room (90) go to To check with the east wall (70).
     const html = render(<ReadyBody review={review({ cutoff: 91 })} />);
@@ -241,5 +244,73 @@ describe('EZD-308 review modes', () => {
     expect(textOf(room.inner)).toContain('Room 1');
     expect(textOf(one(html, 'import-review-accept-room').inner)).toBe('Accept room');
     expect(elements(html, 'import-review-row')).toHaveLength(7);
+  });
+});
+
+// EZD-309 (AC-EZD-309-2 "reloading mid-review restores accepted and fixed items"; S02 Controls Fix selected,
+// Delete; board S02 footer "Fix selected", "Delete"): the body starts from what the import saved. The east wall
+// (70%, 118 in) saved as fixed to 120 in: its north end moved from (144, 118) to (144, 120). Fixing accepts it, so
+// nothing is left to check; the door saved as deleted is not drawn and not counted.
+describe('EZD-309 saved review state and Fix selected / Delete', () => {
+  const saved = review({
+    decisions: { w1: 'accepted', w2: 'accepted', d1: 'rejected' },
+    fixes: { w2: { geometry: { start: { x: 144, y: 120 }, end: { x: 144, y: 0 } } } },
+    mode: 'by_room',
+  });
+
+  it('AC-EZD-309-2: restores the saved mode, decisions and fixes', () => {
+    const html = render(<ReadyBody review={saved} />);
+    expect(attr(one(html, 'import-review-modes').attrs, 'data-mode')).toBe('by_room');
+    expect(textOf(one(html, 'import-review-summary').inner)).toBe(
+      '7 found · 6 high confidence · 0 to check',
+    );
+    expect(textOf(one(html, 'import-review-accepted').inner)).toBe(
+      'Accepted2 walls · 0 windows · 0 doors0 rooms · 0 fixtures + cabinets',
+    );
+    const drawn = elements(html, 'review-item');
+    const east = drawn.find((d) => attr(d.attrs, 'data-id') === 'w2');
+    expect(east && attr(east.attrs, 'y1')).toBe('120');
+    expect(east && attr(east.attrs, 'data-decision')).toBe('accepted');
+    expect(drawn.some((d) => attr(d.attrs, 'data-id') === 'd1')).toBe(false);
+    const rows = elements(html, 'import-review-row');
+    const door = rows.find((r) => attr(r.attrs, 'data-id') === 'd1');
+    expect(door && attr(door.attrs, 'data-decision')).toBe('rejected');
+  });
+
+  it('the inspector says Fixed for a fixed item and the scan value stays the scan’s', () => {
+    // Every item resolved, so One by one starts at the first item, the south wall, saved as fixed from 144 in to
+    // 150 in (its west end moved from (0, 0) to (-6, 0)).
+    const all = Object.fromEntries(ITEMS.map((i) => [i.id, 'accepted' as const]));
+    const html = render(
+      <ReadyBody
+        review={review({
+          decisions: all,
+          fixes: { w1: { geometry: { start: { x: 144, y: 0 }, end: { x: -6, y: 0 } } } },
+          mode: 'one_by_one',
+        })}
+      />,
+    );
+    const inspector = textOf(one(html, 'import-review-inspector').inner);
+    expect(inspector).toContain('South wall');
+    expect(textOf(one(html, 'import-review-decision').inner)).toBe('Fixed');
+    // Scan reads the detected 144 in, 12' 0" (the markup escapes the quote marks).
+    expect(textOf(one(html, 'import-review-scan').inner)).toBe('12&#x27; 0&quot;');
+    const south = elements(html, 'review-item').find((d) => attr(d.attrs, 'data-id') === 'w1');
+    expect(south && attr(south.attrs, 'x2')).toBe('-6');
+  });
+
+  it('shows Fix selected and Delete in the left footer, enabled with a selection', () => {
+    const html = render(<ReadyBody review={review()} />);
+    const fix = one(html, 'import-review-fix');
+    const del = one(html, 'import-review-delete');
+    expect(textOf(fix.inner)).toBe('Fix selected');
+    expect(textOf(del.inner)).toBe('Delete');
+    expect(fix.attrs).not.toContain('disabled');
+    expect(attr(fix.attrs, 'aria-pressed')).toBe('false');
+    expect(del.attrs).not.toContain('disabled');
+    // Nothing selected (nothing left to check): both wait for a selection.
+    const none = render(<ReadyBody review={saved} />);
+    expect(one(none, 'import-review-fix').attrs).toContain('disabled');
+    expect(one(none, 'import-review-delete').attrs).toContain('disabled');
   });
 });

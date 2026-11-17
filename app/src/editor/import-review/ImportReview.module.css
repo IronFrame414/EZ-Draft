@@ -308,6 +308,7 @@
 }
 
 .underlay {
+  cursor: pointer;
   fill: var(--ez-slate-300);
   fill-opacity: 0.25;
   stroke: none;
@@ -486,4 +487,67 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+/* EZD-309: canvas picking, hover, Fix mode handles and live length. */
+.hit {
+  stroke: transparent;
+  stroke-width: 14px;
+  fill: none;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.handle {
+  fill: var(--ez-surface);
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+  cursor: grab;
+}
+
+.liveDimension,
+.hover {
+  position: absolute;
+  transform: translate(-50%, -150%);
+  padding: 2px 8px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.hover {
+  transform: none;
+  background: var(--ez-ink);
+  font-family: inherit;
+}
+
+.fixHint {
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  font-size: 13px;
+}
+
+.leftFootActions {
+  display: flex;
+  gap: 8px;
+  margin-right: auto;
+}
+
+.saveError {
+  margin: 0;
+  padding: 8px 16px;
+  color: var(--ez-red-text);
+  background: var(--ez-red-tint);
+  font-size: 13px;
 }
