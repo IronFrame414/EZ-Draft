@@ -14,6 +14,7 @@ import { LOCK_EVENTS, type LockEvent, type LockEventSource } from '../lock/lock-
 import { lockController, stopEditing } from '../lock/session-lock';
 import { createLockUiStore, type LockUiStore } from './lock-ui-store';
 import type { LockUi } from './LockUi';
+import { sessionSwitcher } from '../switcher/ProjectSwitcher';
 
 // `capture` is the plan's thumbnail for Stop editing's checkpoint; `reopen` opens the editor again once Start
 // editing took the lock (it then saves with the lock's epoch); `someone` is t('office.lock.someone').
@@ -60,6 +61,8 @@ export function createLockUi(
     fetchPeople: (id, ids) => fetchPeople(id, ids),
   });
   const s = store;
+  // EZD-128 (Q-0697 decisions 04; Q-0698): the project switcher of this session, its leave with the same capture.
+  const switcher = sessionSwitcher(session, capture);
   const presence = () => s.setPresence(handle.presence().map((m) => m.appUserId));
   const offPresence = handle.onPresence(presence);
   presence();
@@ -68,7 +71,9 @@ export function createLockUi(
     toasts,
     sync: session.sync,
     staleKey: () => controller.staleSaveMessageKey(),
+    switcher,
     dispose() {
+      switcher.store.dispose();
       offPresence();
       s.dispose();
       handle.release();

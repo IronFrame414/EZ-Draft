@@ -12,6 +12,7 @@ import {
   createMember,
   createProjects,
   createTenant,
+  harnessSql,
 } from '../../../../../../test-harness/rls/fixtures';
 import {
   createSessionClient,
@@ -133,5 +134,62 @@ describe('EZD-120b model load route', () => {
     expect(ok.res.status).toBe(200);
     expect(ok.res.headers.get('cache-control')).toContain('no-store');
     expect((ok.json as { project: { id: string } }).project.id).toBe(projectA);
+  }, 120000);
+});
+
+// EZD-128 M1 (vault/plans/EZD-128.md section 4, Decided "Record at load"; Q-0697 decisions 04 "stored per
+// membership and project at editor load"; AC-EZD-128-2): a 200 load writes the viewer's recent row; a 404 (an
+// unknown id, or a project out of the member's scope) writes nothing.
+describe('EZD-128 model load records the open', () => {
+  let tenant = '';
+  let project = '';
+  let editorId = '';
+  let listedId = '';
+  let editorCookies: Map<string, string>;
+  let listedCookies: Map<string, string>;
+
+  const rows = async (membershipId: string) =>
+    (
+      await harnessSql()<{ project_id: string }[]>`select project_id from public.project_recent
+        where membership_id = ${membershipId}::uuid`
+    ).map((r) => r.project_id);
+
+  beforeAll(async () => {
+    tenant = await createTenant();
+    [project] = await createProjects(tenant, 1);
+    const editor = await createMember({ tenantId: tenant, scope: 'all' });
+    await setPermissions(tenant, editor.membershipId, ['view_projects', 'edit_model']);
+    const listed = await createMember({ tenantId: tenant, scope: 'listed', listed: [] });
+    await setPermissions(tenant, listed.membershipId, ['view_projects']);
+    editorId = editor.membershipId;
+    listedId = listed.membershipId;
+    editorCookies = await cookiesFor(editor.email);
+    listedCookies = await cookiesFor(listed.email);
+  }, 180000);
+
+  afterEach(() => {
+    state.store = new Map();
+    vi.resetModules();
+  });
+
+  afterAll(async () => {
+    await cleanup();
+    await closeHarness();
+  });
+
+  it('M1 a 200 load records the open; a 404 records nothing', async () => {
+    state.store = new Map(editorCookies);
+    const ok = await read(project);
+    expect(ok.res.status).toBe(200);
+    expect(await rows(editorId)).toEqual([project]);
+
+    const missing = await read(randomUUID());
+    expect(missing.res.status).toBe(404);
+    expect(await rows(editorId)).toEqual([project]);
+
+    state.store = new Map(listedCookies);
+    const out = await read(project);
+    expect(out.res.status).toBe(404);
+    expect(await rows(listedId)).toEqual([]);
   }, 120000);
 });

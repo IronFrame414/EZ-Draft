@@ -19,6 +19,7 @@ import { useStore } from 'zustand';
 import { SaveFailedBanner } from '../SaveStatus';
 import { formatClock } from '../save-state';
 import { HolderPrompt } from './HolderPrompt';
+import { SwitcherPart, type SessionSwitcher } from '../switcher/ProjectSwitcher';
 import type { LockLost, LockUiState, LockUiStore } from './lock-ui-store';
 import styles from './LockUi.module.css';
 
@@ -273,10 +274,20 @@ export type LockUi = {
   toasts: ToastStore;
   sync: OutboxSync | null;
   staleKey: () => MessageKey;
+  // EZD-128: the header project name's switcher (its leave runs Stop editing).
+  switcher: SessionSwitcher;
   dispose(): void;
 };
 
-export type LockPartName = 'presence' | 'stop' | 'banner' | 'save' | 'canvas' | 'status';
+export type LockPartName =
+  | 'presence'
+  | 'stop'
+  | 'banner'
+  | 'save'
+  | 'canvas'
+  | 'status'
+  // EZD-128: the project switcher's panel.
+  | 'switcher';
 
 export function LockPart({ ui, part }: { ui: LockUi; part: LockPartName }): ReactElement | null {
   const { store } = ui;
@@ -334,5 +345,7 @@ export function LockPart({ ui, part }: { ui: LockUi; part: LockPartName }): Reac
       );
     case 'status':
       return state.viewOnly ? <ViewOnlyStatus /> : null;
+    case 'switcher':
+      return <SwitcherPart switcher={ui.switcher} />;
   }
 }

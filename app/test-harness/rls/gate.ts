@@ -164,6 +164,9 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   // EZD-117b section 3 (vault/plans/EZD-117b.md; E3): both take p_search from M3.
   { fn: 'list_projects', args: { p_sort: 'edited', p_search: '' } },
   { fn: 'count_projects', args: { p_search: '' } },
+  // EZD-128 (vault/plans/EZD-128.md Build step 14): the project switcher's recent list, authenticated only.
+  { fn: 'record_project_open', args: { p_project: '00000000-0000-4000-8000-000000000000' } },
+  { fn: 'list_recent_projects', args: { p_limit: 8 } },
   // EZD-118 section 3
   {
     fn: 'create_project',

@@ -529,6 +529,8 @@ export function ProjectEditor({
         <EditorHeader
           projectsHref="/"
           projectName={session.model.project.name}
+          // EZD-128: the name opens the project switcher once the lock UI is there.
+          onProjectMenu={lock?.ui.switcher.toggle}
           subtitle={subtitle}
           activeView="plan"
           views={PLAN_VIEWS}
@@ -547,6 +549,7 @@ export function ProjectEditor({
             ) : undefined
           }
         />
+        {part('switcher')}
         {conflictCount > 0 ? (
           <LazyNotice
             name="ConflictBanner"

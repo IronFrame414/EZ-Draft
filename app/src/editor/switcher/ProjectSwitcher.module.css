@@ -1,0 +1,106 @@
+/* EZD-128 Build step 8 (vault/plans/EZD-128.md Decided "CSS"; 04 Frame; 11 Accessibility 44 px through
+   touch.target): the project switcher panel. Card as PlanStatus.module.css .popover; spacing in px (no spacing
+   tokens, L-013); colours, radii and shadow are tokens only. */
+.panel {
+  position: fixed;
+  width: 320px;
+  box-sizing: border-box;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  z-index: 90;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-popover);
+  font: 400 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.search {
+  height: 32px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  margin-bottom: 6px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font: inherit;
+  color: inherit;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-height: 40px;
+  box-sizing: border-box;
+  padding: 4px 10px;
+  border-radius: var(--ez-radius-8);
+  color: inherit;
+  text-decoration: none;
+}
+
+.item:hover,
+.item:focus-visible,
+.back:hover,
+.back:focus-visible {
+  background: var(--ez-hover);
+}
+
+.item[aria-disabled='true'],
+.back[aria-disabled='true'] {
+  cursor: default;
+}
+
+.itemName,
+.itemClient {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemName {
+  font-weight: 600;
+}
+
+.itemClient {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.line {
+  padding: 10px;
+  color: var(--ez-slate-500);
+}
+
+.back {
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
+  padding: 10px;
+  border-top: 1px solid var(--ez-divider);
+  color: inherit;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+}
+
+/* touch.target's 44 px loses to .item's own min-height (same specificity, later rule). */
+@media (any-pointer: coarse) {
+  .item {
+    min-height: var(--ez-touch-target);
+  }
+}

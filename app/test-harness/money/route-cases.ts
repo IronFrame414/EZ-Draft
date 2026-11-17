@@ -794,6 +794,14 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-117a: status tab counts only (no money)',
   },
   {
+    file: `${API}projects/recent/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/recent/route'),
+    request: get('/api/projects/recent'),
+    expectStatus: 200,
+    note: 'EZD-128: recent project names and clients only (no money)',
+  },
+  {
     file: `${API}projects/[id]/objects/route.ts`,
     method: 'POST',
     load: () => import('../../src/app/api/projects/[id]/objects/route'),

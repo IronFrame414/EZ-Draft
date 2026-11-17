@@ -621,6 +621,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"project_recent": {
+                  Row: {
+                    "membership_id": string,"opened_at": string,"project_id": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "membership_id": string,"opened_at"?: string,"project_id": string,"tenant_id": string
+                  }
+                  Update: {
+                    "membership_id"?: string,"opened_at"?: string,"project_id"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_recent_membership_id_tenant_id_fkey"
+      columns: ["membership_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "membership"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "project_recent_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "project_recent_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"role": {
                   Row: {
                     "created_at": string,"default_permissions": (string)[],"id": string,"name": string,"preset": string | null,"tenant_id": string,"updated_at": string
@@ -974,6 +1006,9 @@ isOneToOne: false
 "list_projects":
 { Args: { "p_after"?: Json,"p_search"?: string,"p_sort": string,"p_status"?: string }; Returns: Json
                            },
+"list_recent_projects":
+{ Args: { "p_exclude"?: string,"p_limit": number }; Returns: Json
+                           },
 "list_roles":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
@@ -1019,6 +1054,9 @@ isOneToOne: false
                            },
 "record_member_password_set":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
+                           },
+"record_project_open":
+{ Args: { "p_project": string }; Returns: undefined
                            },
 "record_sync_conflicts":
 { Args: { "p_changes": Json,"p_payload": Json,"p_project": string }; Returns: Json

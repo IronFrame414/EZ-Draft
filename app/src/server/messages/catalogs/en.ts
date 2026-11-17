@@ -251,6 +251,10 @@ export const en = {
   'office.editor.save_failed': 'Changes not saved',
   'office.editor.load_failed': "Couldn't load this project.",
   'office.editor.offline': 'Offline. Changes are saved on this device and will sync.',
+  // EZD-128 (Q-0698): the project switcher.
+  'office.switcher.label': 'Switch project',
+  'office.switcher.no_recent': 'No recent projects',
+  'office.switcher.back': 'Back to projects',
   // EZD-126 (S06 Controls; board S06; Q-0697 decisions 05; Q-0206): the edit lock UI. Board text is decided; the
   // rest is listed in vault/build/assumptions.md for Josh to confirm. English only (office).
   'office.lock.banner_holder': '{name} is editing since {time}',
