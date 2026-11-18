@@ -16,6 +16,9 @@
 // EZD-6001 (vault/plans/EZD-6001.md D-Wire, D-Gone; Q-0509): the canvas draws the chosen floor; a switch redraws as a View change does.
 // EZD-224b Build step 7 (vault/plans/EZD-224b.md Decided "Capture rule"; Q-0667): `captureThumbnail` reads the
 // region as drawn through the root, with no fit, camera or redraw; nothing drawn gives null.
+// EZD-229 (AC-EZD-229-1, -2; 11 Budgets; EZD-120c B11): the existing details and floor transitions are drawn through
+// the lazy room-fields module, loaded the first time the model has an existing detail or a room with a floor level
+// or finish set (two rooms can only differ then); once it loads, the plan is drawn again.
 import type { DerivedStats, DrawingList, ObjectStatus, Point } from '@ezdraft/geometry';
 import type { PhaseFilter } from '../../lib/plan/phase-view';
 import { DEFAULT_PLAN_SCALE, isPlanScale, type PlanScale } from '../../lib/plan/plan-scale';
@@ -24,6 +27,7 @@ import { createModelDerived, type ModelDerived } from '../derived/model-derived'
 import type { ModelStore } from '../model/model-store';
 import { chosenFloor, type FloorChoice } from '../floors/floors';
 import type { Objects } from '../model/patches';
+import { roomFieldsModule as planDetails } from '../layers/room-fields-module';
 import { buildPlanBatches, drawingBounds, openFloorId, planDrawingList } from './batches';
 import { layoutText } from './glyph-atlas';
 import {
@@ -144,6 +148,16 @@ function unmountQuietly(root: RenderRoot): void {
   }
 }
 
+// Whether anything needs the plan details: an existing detail, or a room whose floor level or finish is set (only
+// rooms have them; two rooms can only differ then).
+function needsPlanDetails(objects: Objects): boolean {
+  for (const v of objects.values()) {
+    const a = (v.data as { attributes?: { floorLevel?: number; floorFinish?: string } }).attributes;
+    if (/^(hvac|device|access|soffit|chase)$/.test(v.type) || a?.floorLevel || a?.floorFinish) return true;
+  }
+  return false;
+}
+
 export function createPlanController(
   o: {
     store: Pick<ModelStore, 'getState' | 'subscribe'>;
@@ -223,9 +237,12 @@ export function createPlanController(
   const phase = o.phase ?? null;
   const floorOf = (objects: Objects) => openFloorId(objects, chosenFloor(o.floors));
   const rebuild = (): number => {
+    const details = planDetails.peek();
+    if (!details && needsPlanDetails(o.store.getState().objects))
+      planDetails.load().then(() => disposed || refreshAll(), () => {});
     list = planDrawingList(
       o.store.getState().objects,
-      { roomAreaSqFt: derived.roomAreaSqFt },
+      { roomAreaSqFt: derived.roomAreaSqFt, extraItems: details?.planDetailItems },
       phase,
       chosenFloor(o.floors),
     );

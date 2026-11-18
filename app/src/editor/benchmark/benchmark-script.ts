@@ -3,7 +3,8 @@
 // benchmark project. Each step fits the plan, waits two frames, then plays 180 frames and records the time between
 // consecutive animation frames. The drag ends in cancel, so nothing is committed or saved. Memory is read once,
 // after the drag.
-import { benchmarkObjectId, type Point } from '@ezdraft/geometry';
+import { type Point } from '@ezdraft/geometry';
+import { benchmarkObjectId } from '@ezdraft/geometry/benchmark';
 import {
   BENCHMARK_STEP_FRAMES,
   BENCHMARK_STEPS,

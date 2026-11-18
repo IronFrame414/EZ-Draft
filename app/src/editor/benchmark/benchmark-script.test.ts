@@ -4,7 +4,7 @@
 // + 181) = 549 frames, fit 4 times, 180 intervals per step), D-Level (45 out, 45 back, twice), D-Pan (300 px:
 // panBy moves x by −300 / ppi), D-Zoom (factor 4 at the top of the sweep), D-Drag (36 in, ending in cancel at the
 // anchor), D-Wall (benchmark object 562, (1320, 960) to (1320, 1080)), D-Stats, D-Abort.
-import { generateBenchmarkModel } from '@ezdraft/geometry';
+import { generateBenchmarkModel } from '@ezdraft/geometry/benchmark';
 import { describe, expect, it, vi } from 'vitest';
 import type { PlanView } from '../plan/view';
 import type { PlanPointerEvent } from '../plan/input';

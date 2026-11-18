@@ -4,7 +4,8 @@
 // its store order, then the changes an older app build queued while the sync's problem is `app_outdated`.
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import type { ConflictListState } from '../../lib/conflicts/conflict-list';
-import { outdatedInputs, type ConflictViewInput } from '../../lib/conflicts/conflict-view';
+import { outdatedInputs } from '../../lib/conflicts/conflict-groups';
+import type { ConflictViewInput } from '../../lib/conflicts/conflict-view';
 import type { OutboxEntry } from '../../lib/outbox/outbox';
 import type { SyncState } from '../../lib/outbox/outbox-sync';
 import type { EditorSession } from '../editor-session';

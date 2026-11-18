@@ -19,7 +19,7 @@ import type { ModelStore } from '../model/model-store';
 import { openFloorId } from '../plan/batches';
 import type { SelectionController } from '../selection/selection-controller';
 import type { LayerId, LayerSetting } from './layer-setting';
-import { lazyModule } from '../../lib/lazy/lazy-module';
+import { roomFieldsModule } from './room-fields-module';
 import { roomRows, type RoomRow } from './rooms';
 import styles from './LeftPanel.module.css';
 
@@ -34,11 +34,15 @@ export type LeftPanelProps = {
   initialTab?: Tab;
   // EZD-6001 D-Wire: the floor the user chose; the Rooms tab lists its rooms. Without it the lowest floor.
   floors?: FloorChoice;
+  // EZD-229 (AC-EZD-229-5): the project a room photo is sent to; without it photos show but are not added.
+  projectId?: string;
 };
 
 export type Tab = 'layers' | 'rooms';
 
-export const roomFieldsModule = lazyModule(() => import('../../lazy/room-fields'));
+// EZD-229: the same lazy module also holds the plan marks of the existing details and floor transitions, which the
+// plan controller loads through this one handle (room-fields-module.ts).
+export { roomFieldsModule };
 
 const PHASE_ROWS: readonly ObjectStatus[] = ['existing', 'demo', 'new'];
 
@@ -147,6 +151,7 @@ export function LeftPanel({
   roomArea,
   initialTab = 'layers',
   floors,
+  projectId,
 }: LeftPanelProps): ReactElement {
   const chosen = useChosenFloor(floors);
   const t = useT();
@@ -260,7 +265,12 @@ export function LeftPanel({
           <RoomList rows={rows} selectedId={selectedId} onPick={pick}>
             {(row) =>
               fields === undefined ? null : (
-                <fields.RoomFields row={row} canEdit={canEdit} store={store} />
+                <fields.RoomFields
+                  row={row}
+                  canEdit={canEdit}
+                  store={store}
+                  {...(projectId !== undefined ? { projectId } : {})}
+                />
               )
             }
           </RoomList>

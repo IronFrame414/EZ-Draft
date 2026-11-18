@@ -9,6 +9,10 @@
 // EZD-233: a saved group is a fifth choice, placed by the drawing controller through `placeSavedGroup`.
 // EZD-220 (03f:16; Q-0704 03-data-model "pin ... status always existing"; AC-EZD-220-1): an existing-condition pin is a
 // sixth choice. A click places a pin of the chosen kind with no photo; it is Existing whatever the View.
+// EZD-229 (AC-EZD-229-2; Q-0704 03-data-model row 2; phase-02.md EZD-229 "as existing-status objects";
+// vault/build/assumptions.md EZD-229): an existing detail is a seventh choice: a supply or return register (hvac), a
+// smoke, CO or combination detector (device), an attic hatch (access), a soffit or a chase. A click places it at its
+// starting size centred on the click; it is Existing whatever the View.
 import {
   CURRENT_SCHEMA_VERSION,
   DEFAULT_PAN_SLOPE_IN_PER_FT,
@@ -51,7 +55,35 @@ export type FixtureChoice =
   | { type: 'blocking'; length: number | null; heightToCenter: number | null }
   // EZD-233 (R26; AC-EZD-233-2): a saved group from the panel's Saved section; a click places a copy of it.
   | { type: 'saved_group'; id: string; name: string; payload: SavedGroupPayload }
-  | { type: 'pin'; kind: PinKind };
+  | { type: 'pin'; kind: PinKind }
+  | { type: 'existing_detail'; detail: ExistingDetail };
+
+// EZD-229: the existing details, each named by the object type and kind it places.
+export const EXISTING_DETAILS = [
+  'supply',
+  'return',
+  'smoke_detector',
+  'co_detector',
+  'smoke_co_detector',
+  'attic_hatch',
+  'soffit',
+  'chase',
+] as const;
+export type ExistingDetail = (typeof EXISTING_DETAILS)[number];
+
+// Starting sizes, width x depth in inches, and the soffit's drop (vault/build/assumptions.md EZD-229).
+export const EXISTING_DETAIL_SIZES = {
+  supply: { width: 10, depth: 4 },
+  return: { width: 20, depth: 20 },
+  attic_hatch: { width: 22, depth: 30 },
+  soffit: { width: 24, depth: 24 },
+  chase: { width: 16, depth: 16 },
+} as const;
+export const SOFFIT_DROP_START_IN = 12;
+
+export function existingDetailChoice(detail: ExistingDetail): FixtureChoice {
+  return { type: 'existing_detail', detail };
+}
 
 // Grab-bar blocking starts with its length and height to centre empty: both are required and have no default
 // (Q-0704 09-calculations; 09q Blocking row 3).
@@ -118,6 +150,7 @@ export function placeFixture(
   if (choice.type === 'blocking') return placeBlockingChange(choice, at, ctx);
   if (choice.type === 'saved_group') return null;
   if (choice.type === 'pin') return placePin(choice.kind, at, ctx);
+  if (choice.type === 'existing_detail') return placeExistingDetail(choice.detail, at, ctx);
   const status = ctx.status ?? NEW_OBJECT_STATUS;
   const id = ctx.newId();
   const type =
@@ -232,6 +265,83 @@ function placePin(kind: PinKind, at: Point, ctx: { level: string; newId: () => s
     id,
     value: {
       type: 'pin',
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      data: parsed.object.data as unknown as Record<string, unknown>,
+    },
+  };
+}
+
+// EZD-229: the object type and data of an existing detail centred on the click, always Existing.
+export function existingDetailData(
+  detail: ExistingDetail,
+  at: Point,
+  level: string,
+): { type: 'hvac' | 'device' | 'access' | 'soffit' | 'chase'; data: Record<string, unknown> } {
+  const base = { status: 'existing', level };
+  const center = { x: at.x, y: at.y };
+  const axis = { x: 1, y: 0 };
+  const box = (width: number, depth: number) => [
+    { x: at.x - width / 2, y: at.y - depth / 2 },
+    { x: at.x + width / 2, y: at.y - depth / 2 },
+    { x: at.x + width / 2, y: at.y + depth / 2 },
+    { x: at.x - width / 2, y: at.y + depth / 2 },
+  ];
+  switch (detail) {
+    case 'supply':
+    case 'return':
+      return {
+        type: 'hvac',
+        data: {
+          ...base,
+          geometry: { center, axis },
+          attributes: { kind: detail, ...EXISTING_DETAIL_SIZES[detail] },
+        },
+      };
+    case 'attic_hatch':
+      return {
+        type: 'access',
+        data: {
+          ...base,
+          geometry: { center, axis },
+          attributes: { kind: detail, ...EXISTING_DETAIL_SIZES.attic_hatch },
+        },
+      };
+    case 'soffit': {
+      const s = EXISTING_DETAIL_SIZES.soffit;
+      return {
+        type: 'soffit',
+        data: {
+          ...base,
+          geometry: { boundary: box(s.width, s.depth) },
+          attributes: { dropHeight: SOFFIT_DROP_START_IN },
+        },
+      };
+    }
+    case 'chase': {
+      const s = EXISTING_DETAIL_SIZES.chase;
+      return {
+        type: 'chase',
+        data: { ...base, geometry: { boundary: box(s.width, s.depth) }, attributes: {} },
+      };
+    }
+    default:
+      return { type: 'device', data: { ...base, geometry: { point: center }, attributes: { kind: detail } } };
+  }
+}
+
+function placeExistingDetail(
+  detail: ExistingDetail,
+  at: Point,
+  ctx: { level: string; newId: () => string },
+): Change | null {
+  const id = ctx.newId();
+  const { type, data } = existingDetailData(detail, at, ctx.level);
+  const parsed = parseStoredObject({ id, type, schema_version: CURRENT_SCHEMA_VERSION, data });
+  if (!parsed.ok) return null;
+  return {
+    id,
+    value: {
+      type,
       schemaVersion: CURRENT_SCHEMA_VERSION,
       data: parsed.object.data as unknown as Record<string, unknown>,
     },

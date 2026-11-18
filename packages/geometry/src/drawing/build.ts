@@ -12,6 +12,9 @@
 // EZD-227 Build (AC-EZD-227-1; vault/build/assumptions.md EZD-227): blocking is its outline behind the face on its
 // side with both diagonals, 'beyond', in its status layer; on the `flagged` layer when it is on no wall.
 // EZD-226 Build (AC-EZD-226-1): a tile shower draws through fixtures/tile-shower-drawing.ts, with the fixtures.
+// EZD-229 (AC-EZD-229-1, -2; 11 Budgets; EZD-120c B11): `options.extraItems` adds items after the fixtures. The plan
+// passes the existing details and the floor transitions there from a lazy module (app/src/lazy/room-fields), so their
+// code is not in the editor's first download.
 import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
 import { doorSymbolInFrame } from '../openings/door-symbol';
 import { isVerticalLine } from '../openings/opening';
@@ -106,7 +109,11 @@ function pieces(f: Frame): [number, number][] {
   return out.filter(([a, b]) => !coordsEqual(a, b));
 }
 
-export type DrawingListOptions = { roomAreaSqFt?: (room: RoomObject) => number };
+export type DrawingListOptions = {
+  roomAreaSqFt?: (room: RoomObject) => number;
+  // EZD-229: more items for the objects of the level (the level's objects, the level id, the dimension text size).
+  extraItems?: (objects: readonly ModelObject[], level: string, textPt: number) => DrawingItem[];
+};
 
 export function buildDrawingList(
   document: ModelDocument,
@@ -369,6 +376,8 @@ export function buildDrawingList(
     }
   }
 
+  if (options.extraItems) fixtureItems.push(...options.extraItems(onFloor, level, v.dimensionTextPt));
+
   const omitted: OmittedObject[] = onFloor.flatMap((o) => {
     const reason = reasons.get(o.id);
     return reason === undefined ? [] : [{ id: o.id, reason }];
@@ -403,3 +412,4 @@ export function utilityMark(p: Point): [Point, Point, Point, Point] {
     { x: p.x, y: p.y - h },
   ];
 }
+

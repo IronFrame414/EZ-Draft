@@ -1,10 +1,7 @@
 // EZD-235b J1-J3 (vault/plans/EZD-235b.md section 4; AC-EZD-235-3): the probe job, the 500 ms room-area sum.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import {
-  CURRENT_SCHEMA_VERSION,
-  generateBenchmarkModel,
-  type StoredObject,
-} from '@ezdraft/geometry';
+import { CURRENT_SCHEMA_VERSION, type StoredObject } from '@ezdraft/geometry';
+import { generateBenchmarkModel } from '@ezdraft/geometry/benchmark';
 import { PROBE_JOB, PROBE_JOB_MS, PROBE_MAX_MS, probeRoomAreas } from './probe-job';
 
 const clock = (...values: number[]) => {

@@ -68,7 +68,7 @@ import { OfflineBanner } from '../components/states/OfflineBanner';
 import { Skeleton, SkeletonGroup } from '../components/states/Skeleton';
 import { StateButton } from '../components/states/StateButton';
 import { useToast } from '../components/states/ToastProvider';
-import { countForProject } from '../lib/conflicts/conflict-view';
+import { countForProject } from '../lib/conflicts/conflict-groups';
 import { useCoarsePointer } from '../lib/device/useDeviceLayout';
 import { useT } from '../lib/messages';
 import type { ObjectValue } from '../lib/outbox/model-api';
@@ -814,6 +814,7 @@ export function ProjectEditor({
         canEdit={canEdit}
         roomArea={derived?.roomAreaSqFt}
         floors={floors ?? undefined}
+        projectId={projectId}
       />
     ) : null;
   const openAssistant = shown !== null && assistantOpen ? assistantSession : null;

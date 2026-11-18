@@ -8,6 +8,8 @@
 // click takes walls, openings and fixtures as before (under the cursor, else within the tolerance), then the rooms
 // that hold the point, smallest first, so a repeated click cycles outward to the room and a wall keeps its capture
 // from inside a room. Box select and Select all take rooms.
+// EZD-229 (AC-EZD-229-2): the existing details pick too, each by the shape it shares with a fixture, room or utility
+// point.
 import {
   blockingPickShape,
   type BlockingObject,
@@ -46,6 +48,15 @@ function pinPickShape(o: PinObject): PickShape {
   const h = points[2].y - points[1].y;
   return { kind: 'quad', points, area: w * h };
 }
+
+// EZD-229: the objects that pick by their own shape, the existing details among them. A detail picks by the shape it
+// shares: a soffit or chase by its polygon as a room, a detector at its point as a utility point, a register or attic
+// hatch by its outline as a fixture (11 Budgets: one test and one shape-by-geometry fallthrough keep the editor's first
+// download small).
+type DetailObject = Extract<ModelObject, { type: 'hvac' | 'access' | 'device' | 'soffit' | 'chase' }>;
+type LooseObject = FixtureObject | UtilityPointObject | TileShowerObject | PinObject | DetailObject;
+const isLoose = (o: ModelObject): o is LooseObject =>
+  /^(fixture|utility_point|tile_shower|pin|hvac|access|device|soffit|chase)$/.test(o.type);
 
 export type PickIndex = {
   readonly floorId: string | null;
@@ -114,7 +125,7 @@ export function createPickIndex(): PickIndex {
   let entries = new Map<string, Entry>();
   let walls = new Map<string, WallObject>();
   let openings = new Map<string, OpeningObject | BlockingObject>();
-  let loose = new Map<string, FixtureObject | UtilityPointObject | TileShowerObject | PinObject>();
+  let loose = new Map<string, LooseObject>();
   let rooms = new Map<string, RoomObject>();
   let hostOf = new Map<string, string | null>();
   let byHost = new Map<string, Set<string>>();
@@ -138,13 +149,7 @@ export function createPickIndex(): PickIndex {
     dropOpening(key);
     if (object !== null && object.type === 'room') {
       rooms.set(key, object);
-    } else if (
-      object !== null &&
-      (object.type === 'fixture' ||
-        object.type === 'utility_point' ||
-        object.type === 'tile_shower' ||
-        object.type === 'pin')
-    ) {
+    } else if (object !== null && isLoose(object)) {
       loose.set(key, object);
     } else if (object !== null && object.type === 'wall') {
       walls.set(key, object);
@@ -178,15 +183,19 @@ export function createPickIndex(): PickIndex {
     }
     const free = loose.get(key);
     if (free !== undefined) {
+      // A fixture, register or hatch has neither a boundary nor a point; a utility point or detector has a point.
+      const g = free.data.geometry as { boundary?: unknown; point?: unknown };
       const shape =
-        free.type === 'fixture'
-          ? fixturePickShape(free)
-          : free.type === 'tile_shower'
-            ? tileShowerPickShape(free)
-            : free.type === 'pin'
-              ? pinPickShape(free)
-              : utilityPointPickShape(free);
-      return { id: free.id, shape, hosted: false };
+        free.type === 'tile_shower'
+          ? tileShowerPickShape(free)
+          : free.type === 'pin'
+            ? pinPickShape(free)
+            : g.boundary
+              ? roomPickShape(free as unknown as RoomObject)
+              : g.point
+                ? utilityPointPickShape(free as UtilityPointObject)
+                : fixturePickShape(free as FixtureObject);
+      return shape === null ? null : { id: free.id, shape, hosted: false };
     }
     const opening = openings.get(key);
     if (opening === undefined) return null;

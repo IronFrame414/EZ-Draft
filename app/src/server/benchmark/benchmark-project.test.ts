@@ -2,7 +2,7 @@
 // Expected values: Decided "`benchmarkChanges`" (exact key set, `base_seq` 0, `deleted` false, generator order)
 // and "`ensureBenchmarkProject`" steps (2) to (5) (one rpc; 42501 and P0002 refuse; any other error is thrown;
 // the reply is strict `{ project_id: uuid, created: boolean }`).
-import { generateBenchmarkModel } from '@ezdraft/geometry';
+import { generateBenchmarkModel } from '@ezdraft/geometry/benchmark';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { describe, expect, it } from 'vitest';
 import type { Database } from '../db/database.types';

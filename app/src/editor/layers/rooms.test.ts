@@ -9,6 +9,12 @@ import { createModelStore } from '../model/model-store';
 import type { Objects } from '../model/patches';
 import { baseObjects, F1, F2, roomValue, uid } from '../tools/test-utils/fixtures';
 import { roomAttributeChange, roomRows } from './rooms';
+import {
+  roomFloorAndPhotos,
+  roomFloorLevelChange,
+  roomPhotoChange,
+  roomTransitionRows,
+} from './room-transitions';
 
 const pt = (x: number, y: number): Point => ({ x, y });
 const rect = (x: number, y: number, w: number, h: number) => [
@@ -90,5 +96,76 @@ describe('EZD-218 room edits', () => {
   it('a room id in another case still finds its room', () => {
     const c = roomAttributeChange(objects(), uid(2).toUpperCase(), 'roomType', 'laundry');
     expect(c?.id).toBe(uid(2));
+  });
+});
+
+// EZD-229 (AC-EZD-229-1, -3, -4, -5; 09q Floor level rows 1-5, Transitions rows 1-2, 4; Q-0704 "Transitions are
+// derived, never stored"; "Room gains ... photos (source_file ids)"). Expected values from the 09q tables.
+describe('EZD-229 floor level, transitions and photos', () => {
+  // Kitchen and Family share the edge x = 150 with no wall (an open plan).
+  function openPlan() {
+    const o = baseObjects();
+    o.set(uid(1), roomValue(rect(0, 0, 150, 120), 'Kitchen', null));
+    o.set(uid(2), roomValue(rect(150, 0, 144, 120), 'Family', null));
+    return o;
+  }
+  const level = (o: Objects, text: string) => {
+    const c = roomFloorLevelChange(o, uid(1), text);
+    return c === null ? null : (c.value!.data as { attributes: { floorLevel: number } }).attributes.floorLevel;
+  };
+
+  it('AC-3 floor level stores any signed length to 1/16" by the halfway rule, with no limit', () => {
+    const o = openPlan();
+    expect(level(o, '0.7"')).toBe(0.6875);
+    expect(level(o, '0')).toBeNull(); // already 0: no change
+    expect(level(o, '−1/32"')).toBeNull(); // stores 0, the level it has
+    expect(level(o, '−3/32"')).toBe(-0.0625);
+    expect(level(o, '8"')).toBe(8);
+    expect(level(o, "-20'")).toBe(-240);
+    expect(level(o, 'high')).toBeNull();
+  });
+
+  it('AC-1 a 3/4" step shows on both rooms’ rows; AC-4 nothing is stored', () => {
+    const store = createModelStore({ objects: openPlan() });
+    const c = roomFloorLevelChange(store.getState().objects, uid(2), '3/4"');
+    store.applyEdit([c!]);
+    const before = structuredClone([...store.getState().objects]);
+    const now = store.getState().objects;
+    expect(roomTransitionRows(now, uid(1))).toEqual([
+      { otherRoomId: uid(2), otherRoomName: 'Family', step: '3/4"' },
+    ]);
+    expect(roomTransitionRows(now, uid(2))).toEqual([
+      { otherRoomId: uid(1), otherRoomName: 'Kitchen', step: '3/4"' },
+    ]);
+    expect(roomFloorAndPhotos(now, uid(2)).floorLevel).toBe(0.75);
+    expect([...store.getState().objects]).toEqual(before);
+    expect([...store.getState().objects.values()].some((v) => v.type === ('transition' as string))).toBe(
+      false,
+    );
+  });
+
+  it('AC-4 equal levels and finishes give none; a finish change gives one with no step', () => {
+    const o = openPlan();
+    expect(roomTransitionRows(o, uid(1))).toEqual([]);
+    const store = createModelStore({ objects: o });
+    store.applyEdit([roomAttributeChange(store.getState().objects, uid(1), 'floorFinish', 'Tile')!]);
+    store.applyEdit([roomAttributeChange(store.getState().objects, uid(2), 'floorFinish', 'Wood')!]);
+    expect(roomTransitionRows(store.getState().objects, uid(1))).toEqual([
+      { otherRoomId: uid(2), otherRoomName: 'Family', step: null },
+    ]);
+  });
+
+  it('AC-5 a finished photo upload is added to the room once', () => {
+    const o = openPlan();
+    const photo = '99999999-9999-4999-8999-999999999999';
+    const c = roomPhotoChange(o, uid(1), photo);
+    expect(c).not.toBeNull();
+    const r = parseStoredObject({ id: uid(1), type: 'room', schema_version: c!.value!.schemaVersion, data: c!.value!.data });
+    expect(r.ok && r.object.type === 'room' && r.object.data.attributes.photos).toEqual([photo]);
+    const store = createModelStore({ objects: o });
+    store.applyEdit([c!]);
+    expect(roomFloorAndPhotos(store.getState().objects, uid(1)).photos).toEqual([photo]);
+    expect(roomPhotoChange(store.getState().objects, uid(1), photo)).toBeNull();
+    expect(roomPhotoChange(o, uid(77), photo)).toBeNull();
   });
 });

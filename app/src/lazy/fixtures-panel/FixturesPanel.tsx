@@ -17,6 +17,9 @@
 // EZD-220 (03f:16; W3; AC-EZD-220-1; vault/build/assumptions.md EZD-220): a Pins section lists the six existing-condition
 // pin kinds; choosing one makes the next click place that pin. Pins show in the Existing view only (Q-0704), which its
 // hint says.
+// EZD-229 (AC-EZD-229-2; Q-0704; vault/build/assumptions.md EZD-229): an Existing details section lists the supply and
+// return registers, the three detectors, the attic hatch, the soffit and the chase; choosing one makes the next click
+// place it, Existing.
 import { useEffect, useState } from 'react';
 import {
   FIXTURE_KINDS,
@@ -37,6 +40,8 @@ import {
   blockingChoice,
   fixtureChoice,
   pinChoice,
+  EXISTING_DETAILS,
+  existingDetailChoice,
   SHOWER_BENCH_START,
   SHOWER_GLASS_LENGTH_START,
   tileShowerChoice,
@@ -65,6 +70,7 @@ export async function fetchSavedGroups(): Promise<SavedGroupEntry[]> {
 const kindKey = (kind: string) => `office.fixtures.kind.${kind}` as MessageKey;
 const utilityKey = (kind: UtilityKind) => `office.fixtures.utility.${kind}` as MessageKey;
 const pinKey = (kind: PinKind) => `office.pin.kind.${kind}` as MessageKey;
+const detailKey = (d: string) => `office.fixtures.detail.${d}` as MessageKey;
 const facingKey = (f: FixtureFacing) => `office.fixtures.facing.${f}` as MessageKey;
 
 // A length box that keeps what is typed and reports a parsed positive length, or null for anything else. It is keyed
@@ -233,6 +239,27 @@ export function FixturesPanel({
           })}
         </div>
         <p className={styles.hint}>{t('office.fixtures.pins_hint')}</p>
+      </div>
+      <div className={styles.section} data-testid="details-section">
+        <h3 className={styles.title}>{t('office.fixtures.section_details')}</h3>
+        <div className={styles.kinds}>
+          {EXISTING_DETAILS.map((d) => {
+            const on = choice.type === 'existing_detail' && choice.detail === d;
+            return (
+              <button
+                key={d}
+                type="button"
+                className={`${styles.kind} ${touch.hitArea}`}
+                aria-pressed={on}
+                data-testid={`detail-kind-${d}`}
+                onClick={() => onChoose(existingDetailChoice(d))}
+              >
+                {t(detailKey(d))}
+              </button>
+            );
+          })}
+        </div>
+        <p className={styles.hint}>{t('office.fixtures.details_hint')}</p>
       </div>
       <div className={styles.section}>
         <h3 className={styles.title}>{t('office.fixtures.section_showers')}</h3>

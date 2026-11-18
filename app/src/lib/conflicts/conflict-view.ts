@@ -9,10 +9,14 @@ import {
   wallLength,
 } from '@ezdraft/geometry';
 import type { IconName } from '../../components/icon/icon-names.generated';
-import type { LoadedObject } from '../outbox/model-api';
-import type { DeviceConflictReason, OutboxEntry } from '../outbox/outbox';
+import type { DeviceConflictReason } from '../outbox/outbox';
 import type { ConflictAction } from './conflict-list';
+import { groupOf } from './conflict-groups';
 import { objectLabel, type MineChange, type ObjectLabel, type SavedValue } from './conflicts';
+
+// EZD-229 (11 Budgets; EZD-120c B11): the count and the older-version rows the editor needs at open live in
+// conflict-groups.ts, so this module's row views load with the lazy conflict panel only.
+export { countForProject, outdatedInputs } from './conflict-groups';
 
 export const CONFLICT_PAGE_SIZE = 50;
 
@@ -252,15 +256,6 @@ export function conflictRowView(input: ConflictViewInput): ConflictRowView {
   };
 }
 
-const sameId = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
-
-const groupOf = (input: ConflictViewInput, openProjectId: string): ConflictGroupKind =>
-  input.reason === 'not_open'
-    ? 'not_open'
-    : sameId(input.projectId, openProjectId)
-      ? 'this'
-      : 'other';
-
 const GROUP_ORDER: readonly ConflictGroupKind[] = ['this', 'other', 'not_open'];
 
 // D-Groups.
@@ -282,54 +277,4 @@ export function groupConflicts(
       groups.push({ kind, count: all.length, rows: paged.map(conflictRowView) });
   }
   return { groups, total: inputs.length, more: inputs.length > limit };
-}
-
-export function countForProject(inputs: readonly ConflictViewInput[], projectId: string): number {
-  return inputs.filter((input) => groupOf(input, projectId) === 'this').length;
-}
-
-const keyCompare = (a: OutboxEntry, b: OutboxEntry) => {
-  const ka = `${a.projectId}/${a.id}`;
-  const kb = `${b.projectId}/${b.id}`;
-  return ka < kb ? -1 : ka > kb ? 1 : 0;
-};
-
-// D-Outdated: the changes an older app build queued, newest first.
-export function outdatedInputs(
-  entries: readonly OutboxEntry[],
-  openProjectId: string,
-  loaded: readonly LoadedObject[],
-): ConflictViewInput[] {
-  return [...entries]
-    .sort((a, b) => b.queuedAt - a.queuedAt || keyCompare(a, b))
-    .map((e) => {
-      const found = sameId(e.projectId, openProjectId)
-        ? loaded.find((o) => sameId(o.id, e.id))
-        : undefined;
-      const mine: MineChange =
-        e.value === null ? { deleted: true } : { deleted: false, ...e.value };
-      const saved: SavedValue | null =
-        found === undefined
-          ? null
-          : {
-              updatedSeq: found.updatedSeq,
-              deleted: false,
-              type: found.type,
-              schemaVersion: found.schemaVersion,
-              data: found.data,
-            };
-      return {
-        key: `outdated:${e.projectId}/${e.id}`,
-        projectId: e.projectId,
-        projectName: null,
-        objectId: e.id,
-        reason: 'outdated',
-        mine,
-        saved,
-        actions: ['reload'],
-        savedBy: null,
-        savedAt: null,
-        clientName: null,
-      };
-    });
 }

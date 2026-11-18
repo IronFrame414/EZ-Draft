@@ -570,3 +570,35 @@ describe('EZD-235 drawing list options', () => {
     expect(labels(buildDrawingList(fx(), V1, []), R1)[0]!.text).toBe('R1 \u00b7 120 SF');
   });
 });
+
+// EZD-229 (11 Budgets; EZD-120c B11): `options.extraItems` adds the caller's items for the level's objects after the
+// fixtures; the plan passes the existing details and floor transitions this way (app/src/lazy/room-fields).
+describe('EZD-229 extra items', () => {
+  it('T-229-H extraItems gets the level objects, the level and the dimension text size, and its items are drawn', () => {
+    const V = { level: F1, dimensionTextPt: 8, roomHatch: null, roomLabelPt: 10 } as DrawingView;
+    const doc: ModelDocument = {
+      objects: [
+        roomObj(R1, [P(0, 0), P(120, 0), P(120, 120), P(0, 120)], 'R1', F1) as ModelObject,
+        roomObj(uid(72), [P(0, 0), P(10, 0), P(10, 10)], 'Up', F2) as ModelObject,
+      ],
+    };
+    const calls: [string[], string, number][] = [];
+    const extra: DrawingItem = {
+      kind: 'line',
+      role: 'beyond',
+      layer: 'existing',
+      objectId: R1,
+      from: P(1, 1),
+      to: P(2, 2),
+    };
+    const list = buildDrawingList(doc, V, [], {
+      extraItems: (objects, level, textPt) => {
+        calls.push([objects.map((o) => o.id), level, textPt]);
+        return [extra];
+      },
+    });
+    expect(calls).toEqual([[[R1], F1.toLowerCase(), 8]]);
+    expect(list.items).toContainEqual(extra);
+    expect(buildDrawingList(doc, V).items).not.toContainEqual(extra);
+  });
+});
