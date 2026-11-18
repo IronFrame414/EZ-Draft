@@ -840,9 +840,18 @@
       "lane": 1
     }
   ],
-  "set_aside": {},
+  "set_aside": {
+    "EZD-222": {
+      "title": "Keyboard shortcuts and Help",
+      "ts": "2026-11-18T18:21:56Z",
+      "reason": "builder crashed (no result) (first try: builder timed out after 90 min with no commits)",
+      "detail": "\n",
+      "branch": "t/EZD-222",
+      "worktree": ".claude/worktrees/EZD-222"
+    }
+  },
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -921,6 +930,12 @@
       "title": "Vector PDF wall detection",
       "started": "2026-11-18T16:11:55Z",
       "develop": "3d0c21d6"
+    },
+    "EZD-410": {
+      "lane": 0,
+      "title": "Cabinet flags and states",
+      "started": "2026-11-18T18:09:40Z",
+      "develop": "502466a4"
     }
   }
 }
