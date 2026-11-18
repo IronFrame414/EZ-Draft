@@ -263,17 +263,8 @@ export type DrawingController = {
   dispose(): void;
 };
 
-export function railMode(o: {
-  editor: 'loading' | 'ready' | 'failed' | 'no-access' | 'not-found';
-  canEdit: boolean;
-  canvasFailed: boolean;
-  controllerEnabled: boolean;
-}): 'hidden' | 'disabled' | 'enabled' {
-  if (o.editor === 'loading') return 'disabled';
-  if (o.editor !== 'ready' || !o.canEdit) return 'hidden';
-  if (o.canvasFailed || !o.controllerEnabled) return 'disabled';
-  return 'enabled';
-}
+// EZD-423: the rail mode lives in rail-mode.ts so the editor entry reads it without this engine.
+export { railMode } from './rail-mode';
 
 type ToolState =
   | { id: 'wall'; state: WallChainState }
@@ -1526,6 +1517,9 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       }
       if (isOpeningTool(tool) || tool === null) emitFrame();
     });
+    // EZD-423: the editor attaches the selection when this engine loads, which may be after the first selection;
+    // what is already selected draws its frame at once.
+    if (next.getUi().ids.length > 0 && tool === null) emitFrame();
   }
 
   function claimSelectPointer(event: PlanPointerEvent): boolean {

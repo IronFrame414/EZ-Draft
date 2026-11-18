@@ -26,9 +26,9 @@ import {
   type OutlineLookup,
 } from '../plan/hover';
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
-import { railMode, type DrawingController, type ToolKeyEvent } from '../tools/drawing-controller';
-import { DRAWING_RAIL_TOOLS } from '../tools/index';
-import { CABINETS_RAIL_TOOL, MEASURE_RAIL_TOOL } from '../tools/tool-defs';
+import type { DrawingController, ToolKeyEvent } from '../tools/drawing-controller';
+import { railMode } from '../tools/rail-mode';
+import { CABINETS_RAIL_TOOL, DRAWING_RAIL_TOOLS, MEASURE_RAIL_TOOL } from '../tools/tool-defs';
 import { isTypingTarget } from '../typed-entry/typed-entry';
 import { expandGroups } from './groups';
 import type { PhaseFilter } from '../../lib/plan/phase-view';

@@ -41,7 +41,7 @@ import type { FixturesPanelProps, UtilitiesToMoveProps } from '../../lazy/fixtur
 import { fixturesModule } from './fixtures-module';
 import { lazyModule } from '../../lib/lazy/lazy-module';
 import { GapBoxes } from './GapBoxes';
-import { entryTool } from './selection-edit';
+import { entryTool } from './entry-tool';
 import { DRAWING_TOOLS, type DrawingToolId } from './tool-defs';
 import styles from './DrawingTools.module.css';
 

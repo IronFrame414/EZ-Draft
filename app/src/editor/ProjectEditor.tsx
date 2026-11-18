@@ -145,7 +145,8 @@ import { LeftPanel } from './layers/LeftPanel';
 import { createModelDerived, type ModelDerived } from './derived/model-derived';
 import { phaseViewOf, savePhaseView } from '../lib/plan/phase-view';
 import { createScaleSetting, deviceSnapSettings, type ScaleSetting } from './status/view-settings';
-import { createDrawingController, type DrawingController } from './tools/drawing-controller';
+import type { DrawingController } from './tools/drawing-controller';
+import { createDrawingShell } from './tools/drawing-shell';
 import { DrawingLayer, DrawingRail } from './tools/DrawingTools';
 import styles from './ProjectEditor.module.css';
 
@@ -285,16 +286,20 @@ export function ProjectEditor({
         );
         const slots = shareReceiver(plan.handle.setPointerReceiver);
         const unsubscribeScale = scale.subscribe(() => plan.handle.setScale(scale.get()));
-        const drawing = createDrawingController({
-          handle: { ...plan.handle, setPointerReceiver: slots.drawing },
-          store: routed,
-          viewer: result.session.model.viewer,
-          onMessage: (key) => messageRef.current(key),
-          snapSettings: () => deviceSnapSettings.get(),
-          phase,
-          ipadDrawing: () => result.session.model.viewer.ipadDrawing ?? 'finger',
-          floors,
-        });
+        // EZD-423: the drawing engine loads on the first input in the page or the first tool asked for.
+        const drawing = createDrawingShell(
+          {
+            handle: { ...plan.handle, setPointerReceiver: slots.drawing },
+            store: routed,
+            viewer: result.session.model.viewer,
+            onMessage: (key) => messageRef.current(key),
+            snapSettings: () => deviceSnapSettings.get(),
+            phase,
+            ipadDrawing: () => result.session.model.viewer.ipadDrawing ?? 'finger',
+            floors,
+          },
+          { load: () => drawingEngine.load(), inputs: window },
+        );
         const selection = createSelectionController({
           handle: plan.handle,
           store: routed,
@@ -909,6 +914,8 @@ export function ProjectEditor({
 }
 
 const conflictPanelModule = lazyModule(() => import('../lazy/conflict-panel'));
+// EZD-423 (11 Budgets editor download size): the drawing engine behind the entry's drawing shell.
+const drawingEngine = lazyModule(() => import('../lazy/drawing-engine'));
 
 // EZD-111 (11 Budgets; EZD-120c B11): the Send dialog and the Project settings dialog it opens load when Share is
 // first pressed.
