@@ -372,7 +372,8 @@
     "EZD-220",
     "EZD-310",
     "EZD-311",
-    "EZD-313"
+    "EZD-313",
+    "EZD-401"
   ],
   "seeded_done": 324,
   "merged": [
@@ -728,6 +729,14 @@
       "title": "Finish and cancel",
       "commit": "5b06567b",
       "ts": "2026-11-17T23:42:24Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-401",
+      "title": "Catalog items (minimal)",
+      "commit": "2328748f",
+      "ts": "2026-11-18T00:57:33Z",
       "kind": "ticket",
       "lane": 1
     }
