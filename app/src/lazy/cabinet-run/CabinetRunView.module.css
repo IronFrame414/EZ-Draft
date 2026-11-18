@@ -263,3 +263,27 @@
 .menuItem:hover {
   background: var(--ez-surface-sunken);
 }
+
+/* EZD-410 (S04 Validation "Hosted cabinet left off a wall after a wall move: red 'Not on a wall' flag"): the header
+   flag and the run's boxes are drawn red; a selected box stays marked by its heavier outline. */
+.notOnWall {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-red-tint);
+  color: var(--ez-red-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.box[data-flagged='true'] .outline,
+.box[data-flagged='true'] .face {
+  stroke: var(--ez-red);
+}
+
+.box[data-flagged='true'] .code {
+  fill: var(--ez-red-text);
+}

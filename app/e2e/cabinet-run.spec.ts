@@ -402,3 +402,107 @@ test.describe('EZD-405 Box editing on canvas', () => {
     expect(await chainWidths(page)).toEqual([3, 15, 24, 36, 18, 21]);
   });
 });
+
+// EZD-410 (AC-EZD-410-1 "A wall move that strands a cabinet flags it red"; S04 Validation "Hosted cabinet left off a
+// wall after a wall move: red 'Not on a wall' flag"). Board S04's run as above, its start on the wall line at (0,0).
+// The wall is moved 6" with the Move tool (as move.spec.ts B1); the run stays where it stands, off the wall.
+const resolved = (page: Page, prop: 'color' | 'stroke', token: string) =>
+  page.evaluate(
+    ([p, tk]) => {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      el.style.setProperty(p, `var(${tk})`);
+      document.querySelector('svg')!.appendChild(el);
+      const v = getComputedStyle(el).getPropertyValue(p);
+      el.remove();
+      return v;
+    },
+    [prop, token] as const,
+  );
+// Moves the pointer to a model point (the view clickPlan sets) without clicking.
+async function hoverPlan(page: Page, x: number, y: number) {
+  const region = await page.locator('[data-shell-region="canvas"]').boundingBox();
+  if (!region) throw new Error('canvas region has no box');
+  const s = await page.evaluate(
+    (p) => (window as unknown as Window2).__ezdraftPlan.handle.modelToScreen(p),
+    { x, y },
+  );
+  await page.mouse.move(region.x + s.x, region.y + s.y, { steps: 4 });
+}
+const wallStartY = (page: Page) =>
+  page.evaluate(() => {
+    const w = (window as unknown as Window2).__ezdraftEditor
+      .objects()
+      .find((o) => o.type === 'wall');
+    return (w?.data.geometry as { start: { y: number } } | undefined)?.start.y ?? null;
+  });
+
+test.describe('EZD-410 Cabinet flags and states', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  test('AC-EZD-410-1 moving the host wall 6" away flags the run red: Not on a wall; undo clears it', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids: project, user } = await fixtureS();
+    await signInAs(user.email);
+    await openReady(page, project.P1);
+    const ids = await seedRun(page);
+    await saved(page);
+
+    // On its wall: no flag, no box flagged.
+    await page.keyboard.press('c');
+    await expect(id(page, 'cabinet-run-name')).toHaveText('Back wall run');
+    await expect(id(page, 'cabinet-run-not-on-wall')).toHaveCount(0);
+    await expect(page.locator('[data-flagged="true"]')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(id(page, 'cabinet-run')).toHaveCount(0);
+
+    // Move the wall 6" off the run.
+    await page.keyboard.press('m');
+    await expect(tool(page, 'move')).toHaveAttribute('aria-pressed', 'true');
+    await clickPlan(page, 60, 0);
+    await expect.poll(() => planSelection(page)).toHaveLength(1);
+    await clickPlan(page, 60, 0);
+    await hoverPlan(page, 60, 40);
+    await page.keyboard.type('6"');
+    await page.keyboard.press('Enter');
+    await expect
+      .poll(async () => Math.abs((await wallStartY(page)) ?? 0), { timeout: 15_000 })
+      .toBeCloseTo(6, 9);
+    await saved(page);
+
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('c');
+    await expect(id(page, 'cabinet-run-name')).toHaveText('Back wall run');
+    const flag = id(page, 'cabinet-run-not-on-wall');
+    await expect(flag).toHaveText('Not on a wall');
+    // Red: the flag text and the boxes' outlines take the red tokens.
+    expect(await flag.evaluate((e) => getComputedStyle(e).color)).toBe(
+      await resolved(page, 'color', '--ez-red-text'),
+    );
+    const red = await resolved(page, 'stroke', '--ez-red');
+    for (const code of ['B15', 'SB36', 'W3030']) {
+      for (const v of ['plan', 'elevation'] as const) {
+        await expect(box(page, ids[code]!, v)).toHaveAttribute('data-flagged', 'true');
+        expect(
+          await box(page, ids[code]!, v)
+            .locator('rect')
+            .first()
+            .evaluate((e) => getComputedStyle(e).stroke),
+        ).toBe(red);
+      }
+    }
+
+    // Undo puts the wall back: the run is on it again.
+    await page.keyboard.press('ControlOrMeta+z');
+    await expect.poll(() => wallStartY(page)).toBe(0);
+    await expect(flag).toHaveCount(0);
+    await expect(page.locator('[data-flagged="true"]')).toHaveCount(0);
+  });
+});

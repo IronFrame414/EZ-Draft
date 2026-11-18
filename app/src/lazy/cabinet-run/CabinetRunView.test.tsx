@@ -14,7 +14,12 @@ import {
   modelObjects,
   type CabinetSelection,
 } from '../../editor/cabinets/cabinet-view';
-import { boardModel, CAB_FLOOR, cabId } from '../../editor/cabinets/test-utils/board-run';
+import {
+  boardModel,
+  boardModelWallMoved,
+  CAB_FLOOR,
+  cabId,
+} from '../../editor/cabinets/test-utils/board-run';
 import { CabinetRunScreen } from './CabinetRunView';
 
 const html = (ui: ReactElement) =>
@@ -68,10 +73,14 @@ describe('EZD-404 cabinet run screen', () => {
 
   it('AC-EZD-404-2: the chain reads 3", 15", 24", 36", 18", 21" and its widths add to the 117" run total', () => {
     const s = screen();
-    const chain = [...s.matchAll(/data-chain-id="[^"]+" data-width="([\d.]+)"/g)].map((m) => Number(m[1]));
+    const chain = [...s.matchAll(/data-chain-id="[^"]+" data-width="([\d.]+)"/g)].map((m) =>
+      Number(m[1]),
+    );
     expect(chain).toEqual([3, 15, 24, 36, 18, 21]);
     expect(chain.reduce((a, b) => a + b, 0)).toBe(117);
-    const labels = [...s.slice(s.indexOf('data-testid="cabinet-chain"')).matchAll(/<text[^>]*>([^<]+)<\/text>/g)]
+    const labels = [
+      ...s.slice(s.indexOf('data-testid="cabinet-chain"')).matchAll(/<text[^>]*>([^<]+)<\/text>/g),
+    ]
       .map((m) => m[1])
       .slice(0, 6);
     expect(labels).toEqual(['3"', '15"', '24"', '36"', '18"', '21"']);
@@ -84,7 +93,9 @@ describe('EZD-404 cabinet run screen', () => {
     expect(s).toContain('>Auto-fill run<');
     expect(s).toContain('>Plan<');
     expect(s).toContain('>Elevation A<');
-    expect([...s.matchAll(/data-height="(\w+)" data-size="([\d.]+)"/g)].map((m) => [m[1], Number(m[2])])).toEqual([
+    expect(
+      [...s.matchAll(/data-height="(\w+)" data-size="([\d.]+)"/g)].map((m) => [m[1], Number(m[2])]),
+    ).toEqual([
       ['base', 36],
       ['gap', 18],
       ['upper', 30],
@@ -94,12 +105,53 @@ describe('EZD-404 cabinet run screen', () => {
     expect(s).toContain('data-testid="cabinet-countertop"');
     // The SB36 face: a false drawer over two doors.
     const sb36 = s.slice(s.indexOf(`data-cabinet-id="${cabId(4)}" data-view="elevation"`));
-    const faces = [...sb36.slice(0, sb36.indexOf('</g>')).matchAll(/data-face="(\w+)"/g)].map((m) => m[1]);
+    const faces = [...sb36.slice(0, sb36.indexOf('</g>')).matchAll(/data-face="(\w+)"/g)].map(
+      (m) => m[1],
+    );
     expect(faces).toEqual(['false_drawer', 'door', 'door']);
   });
 
   it('a floor with no run shows the empty prompt', () => {
-    const s = html(<CabinetRunScreen view={null} selection={NO_CABINET_SELECTION} onInput={() => {}} />);
+    const s = html(
+      <CabinetRunScreen view={null} selection={NO_CABINET_SELECTION} onInput={() => {}} />,
+    );
     expect(s).toContain('Drag boxes or Auto-fill run');
+  });
+});
+
+// EZD-410 (AC-EZD-410-1 "A wall move that strands a cabinet flags it red"; S04 Validation "red 'Not on a wall' flag").
+describe('EZD-410 Not on a wall', () => {
+  const stranded = () =>
+    html(
+      <CabinetRunScreen
+        view={cabinetView(boardModelWallMoved({ x: 0, y: 6 }), CAB_FLOOR)}
+        selection={NO_CABINET_SELECTION}
+        onInput={() => {}}
+      />,
+    );
+  const flaggedIds = (s: string) =>
+    [...s.matchAll(/<g [^>]*data-flagged="true"[^>]*>/g)].map((m) => [
+      /data-view="(\w+)"/.exec(m[0])?.[1],
+      /data-cabinet-id="([^"]+)"/.exec(m[0])?.[1],
+    ]);
+
+  it('the run on its wall shows no flag and no box is flagged', () => {
+    const s = screen();
+    expect(s).not.toContain('data-testid="cabinet-run-not-on-wall"');
+    expect(flaggedIds(s)).toEqual([]);
+  });
+
+  it('AC-EZD-410-1: after the wall moves away the header flags "Not on a wall" and every box is flagged in both views', () => {
+    const s = stranded();
+    const flag = /<span[^>]*data-testid="cabinet-run-not-on-wall"[^>]*>(.*?)<\/span>/.exec(s);
+    expect(flag?.[1]).toContain('Not on a wall');
+    expect(flag?.[1]).toContain('#ez-icon-error');
+    const ids = [1, 2, 3, 4, 5, 6, 7, 8].map(cabId);
+    const got = flaggedIds(s);
+    for (const id of ids) {
+      expect(got).toContainEqual(['plan', id]);
+      expect(got).toContainEqual(['elevation', id]);
+    }
+    expect(got).toHaveLength(16);
   });
 });

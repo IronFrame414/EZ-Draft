@@ -9,6 +9,7 @@ import {
   cabinetElevationLetter,
   cabinetRowOf,
   insertAfterInCabinetRun,
+  isCabinetRunOffWall,
   isCabinetRunMember,
   moveInCabinetRow,
   reheightCabinetMember,
@@ -34,6 +35,9 @@ export type CabinetView = {
   letter: string;
   // The elevations that include this run (S04 Decisions "elevation picker"): a run stands on one wall, so one.
   elevations: string[];
+  // EZD-410 (S04 Validation "Hosted cabinet left off a wall after a wall move: red 'Not on a wall' flag"): the run no
+  // longer stands on its host wall, read from the model each time (cabinets/hosting.ts).
+  offWall: boolean;
 };
 
 // Every object of the model the screen can read, in model order; objects that do not parse are left out.
@@ -70,6 +74,7 @@ export function cabinetView(
     summary: cabinetRunSummary(run, objectLookup(objects)),
     letter,
     elevations: [letter],
+    offWall: isCabinetRunOffWall(run, objects),
   };
 }
 

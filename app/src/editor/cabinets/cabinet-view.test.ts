@@ -8,7 +8,7 @@ import {
   isCabinetSelected,
   modelObjects,
 } from './cabinet-view';
-import { boardModel, CAB_FLOOR, CAB_RUN, cabId } from './test-utils/board-run';
+import { boardModel, boardModelWallMoved, CAB_FLOOR, CAB_RUN, cabId } from './test-utils/board-run';
 
 describe('EZD-404 cabinet view', () => {
   it('opens the first run on the open floor with its layout, counts and elevation letter', () => {
@@ -24,7 +24,9 @@ describe('EZD-404 cabinet view', () => {
   });
 
   it('no run on the floor: nothing to open', () => {
-    expect(cabinetView(modelObjects(boardModel()), '22222222-2222-4222-8222-222222222222')).toBeNull();
+    expect(
+      cabinetView(modelObjects(boardModel()), '22222222-2222-4222-8222-222222222222'),
+    ).toBeNull();
     expect(cabinetView([], null)).toBeNull();
   });
 
@@ -39,5 +41,21 @@ describe('EZD-404 cabinet view', () => {
     const h = cabinetSelect(s, { type: 'hover', id: cabId(5) });
     expect(h).toEqual({ ids: [cabId(2)], hoveredId: cabId(5) });
     expect(cabinetSelect(h, { type: 'hover', id: cabId(5) })).toBe(h);
+  });
+});
+
+// EZD-410 (AC-EZD-410-1 "A wall move that strands a cabinet flags it red"; S04 Validation). The board run starts at
+// (0,0) on its 117 1/2" wall's line; a 6" move off it leaves the run standing where it was, off the wall.
+describe('EZD-410 run off its wall', () => {
+  it('the board run is on its wall', () => {
+    expect(cabinetView(modelObjects(boardModel()), CAB_FLOOR)?.offWall).toBe(false);
+  });
+
+  it('AC-EZD-410-1: after the wall moves 6" away the run reads off its wall', () => {
+    expect(cabinetView(boardModelWallMoved({ x: 0, y: 6 }), CAB_FLOOR)?.offWall).toBe(true);
+  });
+
+  it('a 12" slide along the wall line keeps it on (the wall still runs 12 .. 129 1/2 behind it)', () => {
+    expect(cabinetView(boardModelWallMoved({ x: 12, y: 0 }), CAB_FLOOR)?.offWall).toBe(false);
   });
 });

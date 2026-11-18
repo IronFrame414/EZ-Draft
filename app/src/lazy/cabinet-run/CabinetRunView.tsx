@@ -24,6 +24,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useStore } from 'zustand';
+import { Icon } from '../../components/icon/Icon';
 import {
   cabinetEdgeSteps,
   cabinetSteppedWidth,
@@ -377,6 +378,12 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
           {' · '}
           {t('office.cabinets.fillers', { count: summary.fillerCount })}
         </span>
+        {view.offWall ? (
+          <span className={styles.notOnWall} data-testid="cabinet-run-not-on-wall" role="status">
+            <Icon name="error" size={16} />
+            {t('office.cabinets.not_on_wall')}
+          </span>
+        ) : null}
         <label className={styles.picker}>
           <span className={styles.pickerLabel}>{t('office.cabinets.elevation_picker')}</span>
           <select data-testid="cabinet-elevation-picker" defaultValue={view.letter}>
@@ -560,7 +567,9 @@ function RunDrawing({
   const chainY = floorY + CHAIN_DROP;
   const height = chainY + 10;
 
+  // EZD-410: every box of a run left off its wall is drawn red in both views (S04 Validation).
   const state = (id: string) => ({
+    'data-flagged': view.offWall ? 'true' : undefined,
     'data-selected': isCabinetSelected(selection, id) ? 'true' : undefined,
     'data-hovered':
       selection.hoveredId !== null && selection.hoveredId.toLowerCase() === id.toLowerCase()

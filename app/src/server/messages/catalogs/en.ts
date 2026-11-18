@@ -1932,6 +1932,8 @@ export const en = {
   'office.cabinets.duplicate': 'Duplicate',
   'office.cabinets.delete': 'Delete',
   'office.cabinets.resize_edge': 'Drag to resize',
+  // EZD-410: S04 Validation's red flag on a run left off its wall.
+  'office.cabinets.not_on_wall': 'Not on a wall',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;
