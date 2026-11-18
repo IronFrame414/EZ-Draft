@@ -796,7 +796,7 @@
     }
   ],
   "set_aside": {},
-  "red_streak": 0,
+  "red_streak": 1,
   "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
@@ -813,7 +813,8 @@
     "EZD-124": 1,
     "EZD-312": 1,
     "EZD-134": 1,
-    "EZD-305": 1
+    "EZD-305": 1,
+    "EZD-403": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -863,14 +864,18 @@
     "EZD-305": {
       "ts": "2026-11-18T11:12:53Z",
       "reason": "builder crashed (no result)"
+    },
+    "EZD-403": {
+      "ts": "2026-11-18T13:04:15Z",
+      "reason": "check still red after 2 fix rounds"
     }
   },
   "running": {
-    "EZD-403": {
-      "lane": 1,
-      "title": "Cabinet library panel",
-      "started": "2026-11-18T10:57:02Z",
-      "develop": "6e84ac72"
+    "EZD-215": {
+      "lane": 0,
+      "title": "Bearing wall rule",
+      "started": "2026-11-18T11:13:45Z",
+      "develop": "919bdf6e"
     }
   }
 }
