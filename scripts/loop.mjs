@@ -16,6 +16,7 @@ import { summarize, reportMarkdown } from './usage-report.mjs';
 import { RESUME_PROMPT, describeExit, died, readLastEntry } from './loop/claude-exit.mjs';
 import { randomUUID } from 'node:crypto';
 import { lastBeat, resetReason, sample, startNote, writeBeat } from './loop/heartbeat.mjs';
+import { effectiveStatuses } from './loop/holds.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -86,14 +87,9 @@ function seedDone() {
   }
   return done;
 }
-function seedStatuses() {
-  const st = {};
-  for (const line of readFileSync(path.join(ROOT, 'vault/tickets/STATUS.md'), 'utf8').split('\n')) {
-    const c = line.split('|').map((s) => s.trim());
-    if (/^EZD-/.test(c[1] || '')) st[c[1]] = c[4];
-  }
-  return st;
-}
+// STATUS.md statuses with every hold in the tracked vault/build/holds.json forced to `blocked` (scripts/loop/holds.mjs), so a
+// regenerated STATUS.md can never release a held ticket.
+function seedStatuses() { return effectiveStatuses(ROOT); }
 // One state object in memory for every lane; saveState writes it. A change Josh makes to the file by hand (deleting a
 // set_aside entry or a retry) is taken in at the next scheduling pass (adoptHandEdits).
 let STATE = null;
