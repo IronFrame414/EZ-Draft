@@ -7411,7 +7411,8 @@
    "depends_on": [
     "EZD-402",
     "EZD-204a",
-    "EZD-204b"
+    "EZD-204b",
+    "EZD-423"
    ],
    "build_position": 181,
    "acs": [
@@ -22518,7 +22519,8 @@
    "priority": 1,
    "phase_file": "tickets/phases/phase-02.md",
    "depends_on": [
-    "EZD-234"
+    "EZD-234",
+    "EZD-423"
    ],
    "acs": [
     "AC-EZD-422-1",
@@ -22526,6 +22528,27 @@
     "AC-EZD-422-3"
    ],
    "acs_source": "josh-2026-11-17"
+  },
+  {
+   "id": "EZD-423",
+   "phase": 10,
+   "title": "Fix: the editor route is at its 500 KB download limit; move code out of the editor entry so tickets have room",
+   "depends_raw": "",
+   "spec_ref": "S11 Download size: editor before its lazy parts 500 KB; EZD-410 and EZD-422 set aside 2026-11-17 at 500,012 bytes",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-423-1",
+    "AC-EZD-423-2",
+    "AC-EZD-423-3"
+   ],
+   "acs_source": "loop-2026-11-18"
   }
  ],
  "recut_applied": "2026-10-20"
