@@ -378,7 +378,8 @@
     "EZD-124",
     "EZD-312",
     "EZD-137",
-    "EZD-404"
+    "EZD-404",
+    "EZD-304"
   ],
   "seeded_done": 324,
   "merged": [
@@ -784,6 +785,14 @@
       "ts": "2026-11-18T06:34:04Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-304",
+      "title": "PDF underlay and scale",
+      "commit": "ab7c7ff6",
+      "ts": "2026-11-18T08:54:07Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {
