@@ -34,6 +34,8 @@ One piece is held for agent work, not for you: the optional load calc method (EZ
 - (b) Your own list
 - (c) Keep the four. The bedroom, living-room, hallway and garage checks always say "Room type not set".
 
+**Josh's answer (2026-11-18): (a), "yes".** Recorded as Q-0762. EZD-611b and EZD-611c are released; EZD-620 adds the five new room types.
+
 ---
 
 ## 2. Plumbing and mechanical drawings: what goes on them?
@@ -52,6 +54,8 @@ One piece is held for agent work, not for you: the optional load calc method (EZ
 - (a) As above (recommended)
 - (b) As above, but you tell me what to change (for example, add an isometric view, or fill in the change-out forms)
 
+**Josh's answer (2026-11-18):** "why cant manual j be automated within ez draft?. plumbing and electric often need 2 pages or more. E-1 would be the layout with devices and symbols. E-2 if a second floor or location or detail is needed. then panel schedule and load calc. same goes for mechanical and plumbing". Recorded as Q-0763: each trade runs to as many sheets as it needs (E1.0 layout, E2.0 for a second floor, location or detail, then the panel schedule and load calc; plumbing and mechanical the same). The rest of (a) stands, since the reply did not change it, and you review it at the phase check. EZD-730 and EZD-731 are released. **Still open: Manual J in EZ Draft** (answered in chat 2026-11-18); EZD-732 waits on it.
+
 ---
 
 ## 3. Scope of work check: how does EZ Draft tell which trades your scope lists?
@@ -67,6 +71,8 @@ One piece is held for agent work, not for you: the optional load calc method (EZ
 - (a) Word lists, as a warning (recommended)
 - (b) Add Electrical, Plumbing and Mechanical tick boxes under Scope of work, and compare those instead
 
+**Josh's answer (2026-11-18): (b), "tick boxes".** Recorded as Q-0764. EZD-641 is released.
+
 ---
 
 ## 4. Which code edition does a new project get around the 12/31/26 switch?
@@ -81,6 +87,8 @@ One piece is held for agent work, not for you: the optional load calc method (EZ
 
 - (a) Go by the date the project is created (recommended)
 - (b) Add a "Permit application date" to the project; the edition follows it, and the creation date is used until you fill it in
+
+**Josh's answer (2026-11-18): (b), "application date".** Recorded as Q-0765. EZD-643 is released.
 
 ---
 
@@ -98,6 +106,8 @@ One piece is held for agent work, not for you: the optional load calc method (EZ
 - (b) One list that starts with values you send me (or the six on the drawing, if you confirm them)
 - (c) Two lists: appliance defaults, plus a separate common-loads list with its own starting set
 
+**Josh's answer (2026-11-18): "research common loads and use what is found. allow user to edit".** Recorded as Q-0766: one list, starting with researched values, editable. EZD-640 waits only for that research (agent work).
+
 ---
 
 ## 6. Commercial load calculation: keep it in v1?
@@ -112,6 +122,8 @@ One piece is held for agent work, not for you: the optional load calc method (EZ
 
 - (a) Move it out of v1 (to later) and retire EZD-642 for now (recommended)
 - (b) Keep it. Tell me the kind of job (for example, a small office in a house, or a duplex) and send one real calc of yours to use as the test example.
+
+**Josh's answer (2026-11-18): (a), "v2".** Recorded as Q-0767. EZD-642 is retired; commercial load calc is back on the not-in-v1 list.
 
 ---
 
@@ -128,6 +140,8 @@ One piece is held for agent work, not for you: the optional load calc method (EZ
 - (a) Add a tenth group, "Trim and beams", at the end (recommended)
 - (b) A "Beam finishes" sub-group under Paint
 
+**Josh's answer (2026-11-18): (a), "trim and beams works".** Recorded as Q-0768. EZD-516 is released.
+
 ---
 
 ## 8. Things the code rules ask about that EZ Draft can't draw
@@ -142,6 +156,8 @@ One piece is held for agent work, not for you: the optional load calc method (EZ
 
 - (a) Leave them out of v1 and list them as not checked (recommended)
 - (b) Tell me which to add (stairs first?). Each becomes a new drawing piece, and its rules wait for it.
+
+**Josh's reply (2026-11-18): "why cant they be drawn?"** Answered in chat 2026-11-18. Still open; holds nothing. Until Josh picks, the rules are listed as not checked.
 
 ---
 
@@ -158,3 +174,5 @@ These pieces have a written description in the spec but no drawing. Your answer 
 
 - (a) Build from the spec in the style of the nearest approved screen (recommended)
 - (b) Make drawings first for the ones you list. Those tickets would wait for the drawings.
+
+**Josh's answer (2026-11-18): (a), "yes".** Recorded as Q-0769.
