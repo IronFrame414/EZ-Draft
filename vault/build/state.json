@@ -386,7 +386,8 @@
     "EZD-422",
     "EZD-405",
     "EZD-305",
-    "EZD-127"
+    "EZD-127",
+    "EZD-410"
   ],
   "seeded_done": 324,
   "merged": [
@@ -856,6 +857,14 @@
       "ts": "2026-11-18T20:07:15Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-410",
+      "title": "Cabinet flags and states",
+      "commit": "01db437f",
+      "ts": "2026-11-18T21:03:17Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {
@@ -943,11 +952,11 @@
     }
   },
   "running": {
-    "EZD-410": {
-      "lane": 0,
-      "title": "Cabinet flags and states",
-      "started": "2026-11-18T18:09:40Z",
-      "develop": "502466a4"
+    "EZD-122": {
+      "lane": 1,
+      "title": "Versions panel",
+      "started": "2026-11-18T20:07:20Z",
+      "develop": "2e747e53"
     }
   }
 }
