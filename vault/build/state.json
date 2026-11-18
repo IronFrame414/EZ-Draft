@@ -375,7 +375,8 @@
     "EZD-313",
     "EZD-401",
     "EZD-229",
-    "EZD-124"
+    "EZD-124",
+    "EZD-312"
   ],
   "seeded_done": 324,
   "merged": [
@@ -757,6 +758,14 @@
       "ts": "2026-11-18T03:01:48Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-312",
+      "title": "Ceiling slope in review",
+      "commit": "eb3d3bf9",
+      "ts": "2026-11-18T04:34:19Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {
@@ -844,11 +853,17 @@
     }
   },
   "running": {
-    "EZD-312": {
-      "lane": 0,
-      "title": "Ceiling slope in review",
-      "started": "2026-11-18T02:13:46Z",
-      "develop": "67ea5943"
+    "EZD-137": {
+      "lane": 1,
+      "title": "Mark complete and Completed filter",
+      "started": "2026-11-18T03:02:54Z",
+      "develop": "54c7fa6a"
+    },
+    "EZD-404": {
+      "lane": 2,
+      "title": "Plan strip and elevation",
+      "started": "2026-11-18T03:02:55Z",
+      "develop": "54c7fa6a"
     }
   }
 }
