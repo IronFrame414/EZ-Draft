@@ -62,6 +62,7 @@ import {
 import { DeviceLayout } from '../components/device/DeviceLayout';
 import { EditorFrame } from '../components/shell/EditorFrame';
 import { EditorHeader } from '../components/shell/EditorHeader';
+import { EditorReview } from './review/EditorReview';
 import { HeaderButton } from '../components/shell/HeaderButton';
 import type { EditorView } from '../components/shell/editor-views';
 import { HeaderCard } from '../components/shell/HeaderCard';
@@ -623,16 +624,20 @@ export function ProjectEditor({
               </HeaderButton>
             ) : undefined
           }
+          // EZD-127: the review pill (every viewer), then Upload files for an editor (EZD-301).
           reviewPill={
-            menuCanEdit ? (
-              <StateButton
-                data-testid="editor-upload-files"
-                compact
-                onClick={() => setUploading(true)}
-              >
-                {t('office.upload.editor_button')}
-              </StateButton>
-            ) : undefined
+            <>
+              <EditorReview projectId={projectId} />
+              {menuCanEdit ? (
+                <StateButton
+                  data-testid="editor-upload-files"
+                  compact
+                  onClick={() => setUploading(true)}
+                >
+                  {t('office.upload.editor_button')}
+                </StateButton>
+              ) : null}
+            </>
           }
         />
         {part('switcher')}

@@ -495,3 +495,13 @@ The builder records here every choice the spec, decisions and mockups did not se
 | EZD-422 | Cooktop vs range | The cooktop is the four burners only (the countertop draws around it); the range is its outline and the four burners | AC-EZD-422-1 "range also its outline to the floor" |
 | EZD-422 | Hood "dashed outline" | Drawn as 3" dashes with 2" gaps in the same 'beyond' line weight as the other fixtures (AC-EZD-422-2 keeps the line weight; the plan canvas does not dash the 'hidden' role) | AC-EZD-422-1, -2 |
 | EZD-422 | Letters REF, DW, GD, W, D, WH | DM Mono at the dimension text size, centered on the fixture, along its axis and turned so they never read upside down; they draw in the drawing text colour, as dimension text does | AC-EZD-422-1; S03 Text |
+
+## EZD-127 (2026-11-18)
+
+| Ticket | Question | Choice | Source |
+| --- | --- | --- | --- |
+| EZD-127 | How later features register a review source | A review_item row per open thing (source = one of the seven 04 kinds, source_ref = the thing's id). The source feature calls private.add_review_item / private.resolve_review_item from its own server-side definer code; a trigger keeps project.open_items_count. No existing feature is wired in yet (sync conflicts, renders and the rest register in their own tickets) | 04 Header card row; phase-01 EZD-127 |
+| EZD-127 | Does a new or resolved review item change the card's "Edited" time | No: a change of the count alone keeps project.updated_at | S01 card "Edited" means an edit |
+| EZD-127 | What the review list shows | One line per source with open items, in the 04 row's order, with its count; lines are not links yet (each source adds its open action) | 04 Header card row |
+| EZD-127 | When the pill's count is read | When the editor opens (the stored count) and again each time the list opens; it does not follow live changes while the editor stays open | phase-01 EZD-127 "never counted across tables on page load" |
+| EZD-127 | Wording for Josh to confirm (not on a mockup) | List title "To review"; lines "Renders needing approval", "Unreviewed translations", "Field conflicts", "Field measurements", "Client comments", "Open code warnings", "Orphan flags"; "Loading…"; "Couldn't load the review list. Try again." with "Retry"; "Nothing to review" | CLAUDE.md rule 6; 04 Header card row |

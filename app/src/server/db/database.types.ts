@@ -717,6 +717,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"review_item": {
+                  Row: {
+                    "created_at": string,"id": string,"project_id": string,"resolved_at": string | null,"source": string,"source_ref": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"project_id": string,"resolved_at"?: string | null,"source": string,"source_ref": string,"tenant_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"project_id"?: string,"resolved_at"?: string | null,"source"?: string,"source_ref"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "review_item_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "review_item_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"role": {
                   Row: {
                     "created_at": string,"default_permissions": (string)[],"id": string,"name": string,"preset": string | null,"tenant_id": string,"updated_at": string

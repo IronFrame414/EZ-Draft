@@ -897,6 +897,16 @@ EZD-128 (vault/plans/EZD-128.md); 04 Header card; S01 Entry points; Q-0697 decis
 - **Leave.** A plain click on a row (`/projects/<id>`) or Back to projects (`/`) runs `leaveProject` first: a holder (`session.lock.holding`) runs EZD-125's `stopEditing(session, capture)` (drain, checkpoint, release, waited for), a viewer with a pending request cancels it, anyone else leaves at once; then `router.push`. A failure keeps the lock and shows `office.lock.stop_failed` with Retry in the panel. A modified click keeps the browser default (a new tab keeps this tab's lock).
 - **Test ids.** `project-switcher` (`role="dialog"`, `data-mode`, `data-list`, `data-leaving`), `project-switcher-search`, `project-switcher-loading`, `project-switcher-error`, `project-switcher-empty`, `project-switcher-no-match`, `project-switcher-item` (`data-project-id`), `project-switcher-item-name`, `project-switcher-item-client`, `project-switcher-leave-error`, `project-switcher-back`.
 
+### Review pill (EZD-127)
+
+EZD-127; 04 Header card "N to review" pill; phase-01 EZD-127; Q-0037 (b).
+
+- **Table.** `public.review_item` (`tenant_id`, `project_id`, `source` one of `render_approval`, `translation`, `field_conflict`, `field_measure`, `client_comment`, `code_warning`, `orphan_flag` (`REVIEW_SOURCES`, `app/src/lib/review/sources.ts`), `source_ref`, `created_at`, `resolved_at`; one open row per `(project_id, source, source_ref)`). RLS: the EZD-006 select policy and the API gate; no write policy, so members read only.
+- **Count.** The `review_item_recount` trigger (definer, project row locked first, EZD-321) writes the open rows' number to `project.open_items_count` on every insert, update and delete. `project_zz_open_items_guard` refuses a member's write of the count (42501) and keeps `updated_at` when only the count changed; `project_open_items_insert_guard` refuses a member's non-zero count on insert. The pill and the Projects card read only the column.
+- **Write path.** A source feature calls `private.add_review_item(project, source, ref)` (keeps an open one) and `private.resolve_review_item(project, source, ref)` from its own server-side definer code; neither is executable by an API role.
+- **Route.** `GET /api/projects/[id]/review` (View projects and project scope, `no-store`): 200 `{ count }`; with `?list=1` also `groups` (`{ source, count }` in `REVIEW_SOURCES` order). 404 `project_not_found`, 400 `invalid_input` for another `list`.
+- **Client.** `EditorReview` (`app/src/editor/review/`) in `EditorHeader`'s `reviewPill` slot, before Upload files: the count at editor open, the list (`ReviewList`, a portal placed below the pill) read when it opens. `ReviewPill` is hidden at 0. Test ids `review-pill` (`data-count`), `review-list` (`data-state`), `review-group` (`data-source`).
+
 ### Project settings (EZD-130)
 
 EZD-130; Q-0697 (decisions 03 "Defaults data", 10 "Phase 8 permissions"); Q-0699; Q-0202; Q-0400; Q-0399; 09o Copy at creation.

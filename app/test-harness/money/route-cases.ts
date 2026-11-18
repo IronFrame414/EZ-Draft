@@ -1273,6 +1273,17 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-126: names and initials of people in the project; 200 { people } (no money)',
   },
   {
+    file: `${API}projects/[id]/review/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/review/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/review?list=1`, { method: 'GET' }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-127: the review count and source groups; 200 { count, groups } (no money)',
+  },
+  {
     file: `${API}benchmark/project/route.ts`,
     method: 'POST',
     load: () => import('../../src/app/api/benchmark/project/route'),

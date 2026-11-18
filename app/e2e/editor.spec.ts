@@ -154,14 +154,17 @@ test.describe('EZD-120c editor route', () => {
     await page.waitForTimeout(500);
     // EZD-125 (04:90; AC-EZD-125-4): the open also takes the edit lock.
     // EZD-304 (S01 PDF: scale calibration): the plan also reads the project's PDFs once, for the underlay.
+    // EZD-127 (04 Header card review pill): the header reads the project's stored review count once.
     const paths = urls.map((u) => new URL(u).pathname);
     const pdfs = `/api/projects/${ids.P1}/source-files`;
-    expect(paths.filter((p) => p !== pdfs)).toEqual([
+    const review = `/api/projects/${ids.P1}/review`;
+    expect(paths.filter((p) => p !== pdfs && p !== review)).toEqual([
       `/api/projects/${ids.P1}/model`,
       `/api/projects/${ids.P1}/lock`,
       '/api/sync-conflicts',
     ]);
     expect(paths.filter((p) => p === pdfs)).toEqual([pdfs]);
+    expect(paths.filter((p) => p === review)).toEqual([review]);
   });
 
   test('EZD-120c B2 the editor shows the project, the client, the working copy, Saved and the Plan tab, with the drawing rail, the empty inspector and the left panel (EZD-218)', async ({

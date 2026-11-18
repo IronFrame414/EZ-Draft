@@ -1,0 +1,28 @@
+/* EZD-127 (04 Header card review pill; Q-0037 (b); mockups S14 and S20 `.rev`): padding 8 x 12, 13 px / 500,
+   radius 999, 7 px dot. Colours and radii are tokens only. */
+.pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+  font: 500 13px var(--ez-font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pill:focus-visible {
+  outline: 2px solid var(--ez-cobalt);
+  outline-offset: 2px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-amber);
+}
