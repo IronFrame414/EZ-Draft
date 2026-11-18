@@ -316,8 +316,13 @@ export function slopeText(s: { lowHeight: number; highHeight: number; pitchPer12
 
 export type ReviewFile = { name: string; kind: string };
 
-/** Status bar source: "Polycam Space · DXF + GLB" (board S02), "Polycam Space · DXF" without a mesh. */
+/**
+ * Status bar source: "Polycam Space · DXF + GLB" (board S02), "Polycam Space · DXF" without a mesh. EZD-305: an
+ * import from a PDF drawing alone reads "PDF" (wording for Josh to confirm, vault/build/assumptions.md EZD-305).
+ */
 export function sourceLine(files: readonly ReviewFile[]): string {
+  const scan = files.some((f) => f.kind === 'polycam_dxf' || f.kind === 'polycam_glb');
+  if (!scan && files.length > 0 && files.every((f) => f.kind === 'pdf')) return 'PDF';
   const hasMesh = files.some((f) => f.kind === 'polycam_glb');
   return hasMesh ? 'Polycam Space · DXF + GLB' : 'Polycam Space · DXF';
 }

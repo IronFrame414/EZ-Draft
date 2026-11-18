@@ -75,7 +75,12 @@ export async function POST(
     if (dxfLayers.some((d) => !dxfIds.has(d.sourceFileId.toLowerCase()))) {
       return fail(400, 'invalid_input');
     }
-    const detectIds = [...(checked.scanIds ?? []), ...dxfLayers.map((d) => d.sourceFileId)];
+    // EZD-305: a PDF drawing is detected too (S01 PDF: detect type).
+    const detectIds = [
+      ...(checked.scanIds ?? []),
+      ...dxfLayers.map((d) => d.sourceFileId),
+      ...(checked.pdfIds ?? []),
+    ];
     const meshIds = checked.meshIds ?? [];
     const payload: ImportPayload = { sourceFileIds: detectIds };
     if (meshIds.length > 0) payload.meshFileIds = meshIds;

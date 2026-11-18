@@ -112,6 +112,17 @@ test.describe('EZD-304 PDF underlay and scale', () => {
     await tid(page, 'pdf-scale-save').click();
     await expect(tid(page, 'pdf-scale')).toHaveCount(0, { timeout: 30_000 });
     await expect(tid(page, 'upload-files-dialog')).toHaveCount(0, { timeout: 60_000 });
+    // EZD-305 (S01 PDF: detect type, Continue to review): the PDF's walls are detected on the server and Import review
+    // opens; the fixture's 6 walls (app/src/server/jobs/pdf-walls/detect.test.ts). Back to Plan for the underlay.
+    await expect(page).toHaveURL(new RegExp(`/projects/${project}/import/`), { timeout: 60_000 });
+    await expect(tid(page, 'import-review')).toHaveAttribute('data-status', 'ready', {
+      timeout: 90_000,
+    });
+    await expect(tid(page, 'import-review-summary')).toContainText('6 found');
+    await page.goto(`/projects/${project}`);
+    await expect(tid(page, 'plan-canvas')).toHaveAttribute('data-plan-state', 'ready', {
+      timeout: 60_000,
+    });
 
     const rows = await harnessSql()<
       { id: string; kind: string; storage_path: string; scale_calibration: unknown }[]
@@ -174,6 +185,12 @@ test.describe('EZD-304 PDF underlay and scale', () => {
     await expect(tid(page, 'pdf-scale')).toBeVisible({ timeout: 60_000 });
     await tid(page, 'pdf-scale-skip').click();
     await expect(tid(page, 'upload-files-dialog')).toHaveCount(0, { timeout: 60_000 });
+    // EZD-305: the upload opens Import review (S01 Continue to review); the banner is in Plan.
+    await expect(page).toHaveURL(new RegExp(`/projects/${project}/import/`), { timeout: 60_000 });
+    await page.goto(`/projects/${project}`);
+    await expect(tid(page, 'plan-canvas')).toHaveAttribute('data-plan-state', 'ready', {
+      timeout: 60_000,
+    });
 
     await expect(tid(page, 'pdf-scale-banner')).toContainText(
       'later.pdf has no scale yet. Set it to trace over the PDF.',

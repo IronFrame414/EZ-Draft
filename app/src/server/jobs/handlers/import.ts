@@ -10,6 +10,9 @@
 // EZD-306 (S01 DXF: conversion choice; R26 R25): an architect or supplier DXF (kind dxf) named in dxfFiles is
 // detected the same way, from only the layers the user chose and with the role each was given; its session's
 // source_kind is dxf. A dxf file without a choice is a reference only and gets no session.
+// EZD-305 (S01 PDF: detect type; S02 States Empty): a PDF (kind pdf) is read on its calibrated page (page 1 without a
+// scale) and its wall lines detected (pdf-walls/detect); source_kind pdf. A scanned PDF has no lines, so its session is
+// ready with no items, which Import review shows as "Nothing detected" (EZD-314). A supplier PDF is not read here.
 import { z } from 'zod';
 import {
   DXF_LAYER_NAME_MAX,
@@ -21,8 +24,10 @@ import { emit } from '../../events';
 import { detectPolycamDxf, type Detection, type LayerMap } from '../polycam-dxf/detect';
 import { layerMapFromChoice } from '../polycam-dxf/layer-choice';
 import { DxfReadError, readDxf } from '../polycam-dxf/read-dxf';
+import { detectPdfWalls } from '../pdf-walls/detect';
+import { PdfReadError, readPdfPage } from '../pdf-walls/read-pdf';
 import { readObject } from '../../storage/objects';
-import { readJobSourceFiles } from '../../storage/source-files';
+import { readJobPdfCalibration, readJobSourceFiles } from '../../storage/source-files';
 import { createJobsDbClient } from '../db';
 import { JobError } from '../errors';
 import type { JobHandler } from '../registry';
@@ -58,6 +63,17 @@ export function detectionCounts(d: Detection): ImportCounts {
   return { walls: d.walls.length, openings: d.openings.length, rooms: d.rooms.length };
 }
 
+async function detectPdf(
+  db: ReturnType<typeof createJobsDbClient>,
+  scope: { tenantId: string; projectId: string },
+  sourceFileId: string,
+  bytes: Uint8Array,
+): Promise<Detection> {
+  const calibration = await readJobPdfCalibration(db, scope, sourceFileId);
+  const page = await readPdfPage(bytes, calibration?.page ?? 1);
+  return detectPdfWalls(page, calibration);
+}
+
 export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
   kind: 'import',
   payload: z.object({
@@ -78,11 +94,16 @@ export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
       (ctx.payload.dxfFiles ?? []).map((d) => [d.sourceFileId.toLowerCase(), d.layers]),
     );
     // Each file to detect, with the layer map it is read with (undefined: the Polycam layer names).
-    const scans: Array<{ file: (typeof files)[number]; sourceKind: 'scan' | 'dxf'; layerMap?: LayerMap }> = [];
+    const scans: Array<{
+      file: (typeof files)[number];
+      sourceKind: 'scan' | 'dxf' | 'pdf';
+      layerMap?: LayerMap;
+    }> = [];
     for (const id of ctx.payload.sourceFileIds) {
       const file = byId.get(id.toLowerCase());
       if (!file || !file.uploaded) continue;
       if (file.kind === 'polycam_dxf') scans.push({ file, sourceKind: 'scan' });
+      if (file.kind === 'pdf') scans.push({ file, sourceKind: 'pdf' });
       const chosen = choices.get(id.toLowerCase());
       if (file.kind === 'dxf' && chosen) {
         scans.push({ file, sourceKind: 'dxf', layerMap: layerMapFromChoice(chosen) });
@@ -117,14 +138,17 @@ export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
         row = { status: 'failed', items: [], summary: {}, error: 'source_missing' };
       } else {
         try {
-          const detection = detectPolycamDxf(readDxf(bytes), layerMap ? { layerMap } : {});
+          const detection =
+            sourceKind === 'pdf'
+              ? await detectPdf(db, { tenantId, projectId }, file.id, bytes)
+              : detectPolycamDxf(readDxf(bytes), layerMap ? { layerMap } : {});
           const c = detectionCounts(detection);
           counts.walls += c.walls;
           counts.openings += c.openings;
           counts.rooms += c.rooms;
           row = { status: 'ready', items: detectionItems(detection), summary: c, error: null };
         } catch (e) {
-          if (!(e instanceof DxfReadError)) throw e;
+          if (!(e instanceof DxfReadError) && !(e instanceof PdfReadError)) throw e;
           row = { status: 'failed', items: [], summary: {}, error: e.code };
         }
       }

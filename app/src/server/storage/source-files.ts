@@ -282,6 +282,24 @@ export async function readJobSourceFiles(
   return out;
 }
 
+// EZD-305: the import job's read of a PDF's stored scale (EZD-304), filtered by the job's tenant and project (the job
+// runs with the secret key). A missing file or a value that is not a calibration reads as no scale (Q-0203).
+export async function readJobPdfCalibration(
+  client: DbClient,
+  scope: { tenantId: string; projectId: string },
+  sourceFileId: string,
+): Promise<ScaleCalibration | null> {
+  const { data, error } = await client
+    .from('source_file')
+    .select('scale_calibration')
+    .eq('tenant_id', scope.tenantId)
+    .eq('project_id', scope.projectId)
+    .eq('id', sourceFileId)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? readCalibration(data.scale_calibration) : null;
+}
+
 // EZD-307: Import review's read of its import's files, through the caller's client so RLS decides what is visible
 // (a file of another company or an unlisted project is absent). Keyed by lower-case id.
 export type ReviewSourceFile = { name: string; kind: string; storagePath: string; uploaded: boolean };
