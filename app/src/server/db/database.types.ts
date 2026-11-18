@@ -661,14 +661,14 @@ isOneToOne: false
                   ]
                 },"project": {
                   Row: {
-                    "address": string,"archived_at": string | null,"client_name": string | null,"code_edition": string | null,"created_at": string,"customer_id": string | null,"ezbinder_job_id": string | null,"ezbinder_job_no": string | null,"id": string,"is_benchmark": boolean,"name": string,"open_items_count": number,"phase_default": string,"property_record_id": string | null,"scope_of_work": string | null,"settings": NonNullable<Json>,"status": string,"submittal_profile_id": string | null,"tenant_id": string,"thumbnail_path": string | null,"type": string,"updated_at": string
+                    "address": string,"archived_at": string | null,"client_name": string | null,"code_edition": string | null,"completed_at": string | null,"completed_from": string | null,"created_at": string,"customer_id": string | null,"ezbinder_job_id": string | null,"ezbinder_job_no": string | null,"id": string,"is_benchmark": boolean,"name": string,"open_items_count": number,"phase_default": string,"property_record_id": string | null,"scope_of_work": string | null,"settings": NonNullable<Json>,"status": string,"submittal_profile_id": string | null,"tenant_id": string,"thumbnail_path": string | null,"type": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address": string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"is_benchmark"?: boolean,"name": string,"open_items_count"?: number,"phase_default"?: string,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id": string,"thumbnail_path"?: string | null,"type": string,"updated_at"?: string
+                    "address": string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"completed_at"?: string | null,"completed_from"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"is_benchmark"?: boolean,"name": string,"open_items_count"?: number,"phase_default"?: string,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id": string,"thumbnail_path"?: string | null,"type": string,"updated_at"?: string
                   }
                   Update: {
-                    "address"?: string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"is_benchmark"?: boolean,"name"?: string,"open_items_count"?: number,"phase_default"?: string,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id"?: string,"thumbnail_path"?: string | null,"type"?: string,"updated_at"?: string
+                    "address"?: string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"completed_at"?: string | null,"completed_from"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"is_benchmark"?: boolean,"name"?: string,"open_items_count"?: number,"phase_default"?: string,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id"?: string,"thumbnail_path"?: string | null,"type"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -943,6 +943,9 @@ isOneToOne: false
 "cancel_invite":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
                            },
+"complete_project":
+{ Args: { "p_project": string }; Returns: Json
+                           },
 "count_projects":
 { Args: { "p_search"?: string }; Returns: Json
                            },
@@ -1197,6 +1200,9 @@ isOneToOne: false
                            },
 "rename_project":
 { Args: { "p_name": string,"p_project": string }; Returns: Json
+                           },
+"reopen_project":
+{ Args: { "p_project": string }; Returns: Json
                            },
 "request_edit_lock":
 { Args: { "p_ip"?: unknown,"p_minutes": number,"p_project": string }; Returns: Json

@@ -11,6 +11,9 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'archive_project', args: { p_project: null } },
   { fn: 'restore_project', args: { p_project: null } },
   { fn: 'delete_project', args: { p_project: null, p_confirm_name: null } },
+  // EZD-137: Mark complete and Reopen (authenticated only).
+  { fn: 'complete_project', args: { p_project: null } },
+  { fn: 'reopen_project', args: { p_project: null } },
   // EZD-313: Finish import and Cancel import (authenticated only).
   { fn: 'finish_import', args: { p_project: null, p_job: null, p_objects: null } },
   { fn: 'cancel_import', args: { p_project: null, p_job: null } },

@@ -85,6 +85,7 @@ const COUNTS: ProjectCounts = {
   permit_submitted: 1,
   approved: 1,
   in_build: 1,
+  complete: 0,
   archived: 0,
 };
 const OTHER: ProjectCounts = { ...COUNTS, all: 1, draft: 1 };

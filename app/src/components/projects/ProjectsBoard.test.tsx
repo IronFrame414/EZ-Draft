@@ -18,13 +18,13 @@ const READY: ProjectListState = {
   items: [],
   next: null,
   moreStatus: 'idle',
-  counts: { all: 6, draft: 2, client_review: 1, permit_submitted: 1, approved: 1, in_build: 1, archived: 3 },
+  counts: { all: 6, draft: 2, client_review: 1, permit_submitted: 1, approved: 1, in_build: 1, complete: 2, archived: 3 },
   countsStatus: 'ready',
   search: '',
 };
-// EZD-124 (Q-0702): Archived is the seventh tab, after In build.
-const TABS = ['all', 'draft', 'client_review', 'permit_submitted', 'approved', 'in_build', 'archived'];
-const LABELS = ['All', 'Draft', 'Client review', 'Permit submitted', 'Approved', 'In build', 'Archived'];
+// EZD-124 (Q-0702): Archived is the last tab. EZD-137 (Q-0702): Completed sits after In build, before Archived.
+const TABS = ['all', 'draft', 'client_review', 'permit_submitted', 'approved', 'in_build', 'complete', 'archived'];
+const LABELS = ['All', 'Draft', 'Client review', 'Permit submitted', 'Approved', 'In build', 'Completed', 'Archived'];
 
 const render = (state: ProjectListState) =>
   renderToStaticMarkup(
@@ -34,11 +34,11 @@ const render = (state: ProjectListState) =>
   );
 
 describe('EZD-117a projects board markup', () => {
-  it('U8 seven tabs with counts, the sort trigger, and the loading board', () => {
+  it('U8 eight tabs with counts, the sort trigger, and the loading board', () => {
     const html = render(READY);
     expect(textOf(elements(html, 'projects-title')[0].inner)).toBe('Projects');
     const tabs = TABS.flatMap((t) => elements(html, `projects-tab-${t}`));
-    expect(tabs).toHaveLength(7);
+    expect(tabs).toHaveLength(8);
     const positions = TABS.map((t) => html.indexOf(`data-testid="projects-tab-${t}"`));
     expect([...positions].sort((a, b) => a - b)).toEqual(positions);
     tabs.forEach((tab, i) => {
@@ -52,6 +52,7 @@ describe('EZD-117a projects board markup', () => {
       '1',
       '1',
       '1',
+      '2',
       '3',
     ]);
     const sort = elements(html, 'projects-sort');

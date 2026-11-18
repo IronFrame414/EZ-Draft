@@ -989,6 +989,8 @@ export const en = {
   'office.projects.status.permit_submitted': 'Permit submitted',
   'office.projects.status.approved': 'Approved',
   'office.projects.status.in_build': 'In build',
+  // EZD-137 (Q-0702): the Completed tab and the card pill.
+  'office.projects.status.complete': 'Completed',
   'office.projects.sort_label': 'Sort by {sort}',
   'office.projects.sort.edited': 'Last edited',
   'office.projects.sort.name': 'Name',
@@ -1022,6 +1024,9 @@ export const en = {
   'office.projects.menu.set_status': 'Set status',
   'office.projects.menu.archive': 'Archive',
   'office.projects.menu.restore': 'Restore',
+  // EZD-137 (Q-0191; Q-0702): Mark complete, and Reopen on a completed card.
+  'office.projects.menu.complete': 'Mark complete',
+  'office.projects.menu.reopen': 'Reopen',
   'office.projects.menu.delete': 'Delete',
   'office.projects.menu.failed': "That change didn't save. Try again.",
   'office.projects.delete.title': 'Delete {name}?',

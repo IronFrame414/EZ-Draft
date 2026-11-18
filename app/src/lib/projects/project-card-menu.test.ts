@@ -17,18 +17,21 @@ describe('EZD-124 project card menu rules', () => {
     expect(cardMenuItems({ canEdit: true, canDelete: true, archived: false })).toEqual([
       'rename',
       'status',
+      'complete',
       'archive',
       'delete',
     ]);
     expect(cardMenuItems({ canEdit: true, canDelete: true, archived: true })).toEqual([
       'rename',
       'status',
+      'complete',
       'restore',
       'delete',
     ]);
     expect(cardMenuItems({ canEdit: true, canDelete: false, archived: false })).toEqual([
       'rename',
       'status',
+      'complete',
     ]);
     expect(cardMenuItems({ canEdit: false, canDelete: true, archived: false })).toEqual([
       'archive',

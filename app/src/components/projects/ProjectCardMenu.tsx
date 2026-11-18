@@ -3,6 +3,7 @@
 // menu on a project card (EZD-108 `Menu`, which has no submenus, so Set status is a labelled group of the five
 // statuses), Rename inline, and the Delete dialog. Items the user lacks permission for are absent; with none the
 // button is absent too.
+// EZD-137 (Q-0191; Q-0702; Q-0700 decisions 10): Mark complete after Set status; a completed card offers Reopen.
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { useT } from '../../lib/messages';
 import {
@@ -21,6 +22,8 @@ import styles from './Projects.module.css';
 export type CardMenuHandlers = {
   onRename(): void;
   onStatus(status: ProjectStatus): void;
+  onComplete(): void;
+  onReopen(): void;
   onArchive(): void;
   onRestore(): void;
   onDelete(): void;
@@ -35,7 +38,12 @@ export function ProjectCardMenu({
   | ReactElement
   | null {
   const t = useT();
-  const items = cardMenuItems({ canEdit, canDelete, archived: project.archived === true });
+  const items = cardMenuItems({
+    canEdit,
+    canDelete,
+    archived: project.archived === true,
+    complete: project.status === 'complete',
+  });
   if (items.length === 0) return null;
   const item = `${styles.menuItem} ${touch.target}`;
   return (
@@ -68,6 +76,16 @@ export function ProjectCardMenu({
             </MenuItem>
           ))}
         </>
+      ) : null}
+      {items.includes('complete') ? (
+        <MenuItem testId="project-card-complete" className={item} onSelect={on.onComplete}>
+          {t('office.projects.menu.complete')}
+        </MenuItem>
+      ) : null}
+      {items.includes('reopen') ? (
+        <MenuItem testId="project-card-reopen" className={item} onSelect={on.onReopen}>
+          {t('office.projects.menu.reopen')}
+        </MenuItem>
       ) : null}
       {canEdit && canDelete ? <div role="separator" className={styles.menuDivider} /> : null}
       {items.includes('archive') ? (
@@ -173,6 +191,8 @@ export function ProjectCardWithMenu({
       onStatus={(s) => {
         if (s !== project.status) void run(config.api.setStatus(project.id, s));
       }}
+      onComplete={() => void run(config.api.setComplete(project.id, true))}
+      onReopen={() => void run(config.api.setComplete(project.id, false))}
       onArchive={() => void run(config.api.setArchived(project.id, true))}
       onRestore={() => void run(config.api.setArchived(project.id, false))}
       onDelete={() => setDeleting(true)}

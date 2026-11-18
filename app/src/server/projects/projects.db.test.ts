@@ -29,7 +29,7 @@ import {
 } from './projects';
 
 const typed = (s: Session) => s.serverDb as unknown as SupabaseClient<Database>;
-const D1 = { all: 6, draft: 2, client_review: 1, permit_submitted: 1, approved: 1, in_build: 1, archived: 1 };
+const D1 = { all: 6, draft: 2, client_review: 1, permit_submitted: 1, approved: 1, in_build: 1, complete: 0, archived: 1 };
 const ids = (a: string, b: string) => [a.toLowerCase(), b.toLowerCase()].sort();
 
 async function walk(s: Session, tab: ProjectTab, sort: ProjectSort) {
@@ -114,6 +114,7 @@ describe('EZD-117a list and count projects', () => {
       permit_submitted: 0,
       approved: 0,
       in_build: 1,
+      complete: 0,
       archived: 0,
     });
     expect(await list(listed, 'all', 'edited')).toEqual([P.P4, P.P3]);

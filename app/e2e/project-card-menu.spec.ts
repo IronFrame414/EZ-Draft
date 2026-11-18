@@ -53,9 +53,9 @@ test.describe('EZD-124 project card menu', () => {
     await signInAs(m.email);
     await page.goto('/');
     await expect(page.getByTestId('project-card')).toHaveCount(6);
-    await expect(counts(page)).toHaveText(['6', '2', '1', '1', '1', '1', '1']);
+    await expect(counts(page)).toHaveText(['6', '2', '1', '1', '1', '1', '0', '1']);
 
-    // The menu: Rename, Set status with the five statuses, Archive, Delete (no Complete).
+    // The menu: Rename, Set status with the five statuses, Mark complete (EZD-137), Archive, Delete.
     await openMenu(page, ids.P3);
     const menu = page.getByTestId('project-card-menu-items');
     await expect(menu.getByRole('menuitem')).toHaveText([
@@ -65,6 +65,7 @@ test.describe('EZD-124 project card menu', () => {
       'Permit submitted',
       'Approved',
       'In build',
+      'Mark complete',
       'Archive',
       'Delete',
     ]);
@@ -85,13 +86,13 @@ test.describe('EZD-124 project card menu', () => {
     await openMenu(page, ids.P3);
     await page.getByTestId('project-card-status-approved').click();
     await expect(wrapOf(page, ids.P3).getByTestId('project-card-status')).toHaveText('Approved');
-    await expect(counts(page)).toHaveText(['6', '1', '1', '1', '2', '1', '1']);
+    await expect(counts(page)).toHaveText(['6', '1', '1', '1', '2', '1', '0', '1']);
 
     // Archive: it leaves All and its status tab and appears under Archived.
     await openMenu(page, ids.P3);
     await page.getByTestId('project-card-archive').click();
     await expect(wrapOf(page, ids.P3)).toHaveCount(0);
-    await expect(counts(page)).toHaveText(['5', '1', '1', '1', '1', '1', '2']);
+    await expect(counts(page)).toHaveText(['5', '1', '1', '1', '1', '1', '0', '2']);
     await page.getByTestId('projects-tab-archived').click();
     await expect(page.getByTestId('project-card')).toHaveCount(2);
     await expect(wrapOf(page, ids.P3)).toHaveAttribute('data-archived', 'true');
@@ -101,7 +102,7 @@ test.describe('EZD-124 project card menu', () => {
     await expect(page.getByTestId('project-card-archive')).toHaveCount(0);
     await page.getByTestId('project-card-restore').click();
     await expect(wrapOf(page, ids.P3)).toHaveCount(0);
-    await expect(counts(page)).toHaveText(['6', '1', '1', '1', '2', '1', '1']);
+    await expect(counts(page)).toHaveText(['6', '1', '1', '1', '2', '1', '0', '1']);
     await page.getByTestId('projects-tab-all').click();
     await expect(wrapOf(page, ids.P3)).toHaveCount(1);
 
@@ -119,7 +120,7 @@ test.describe('EZD-124 project card menu', () => {
     await confirm.click();
     await expect(dialog).toHaveCount(0);
     await expect(wrapOf(page, ids.P1)).toHaveCount(0);
-    await expect(counts(page)).toHaveText(['5', '1', '1', '1', '1', '1', '1']);
+    await expect(counts(page)).toHaveText(['5', '1', '1', '1', '1', '1', '0', '1']);
     const gone = await harnessSql()`select 1 from public.project where id = ${ids.P1}::uuid`;
     expect(gone.length).toBe(0);
   });
@@ -139,6 +140,7 @@ test.describe('EZD-124 project card menu', () => {
       'Permit submitted',
       'Approved',
       'In build',
+      'Mark complete',
     ]);
     await page.keyboard.press('Escape');
 

@@ -132,6 +132,7 @@ describe('EZD-117b projects routes with q', () => {
       permit_submitted: 0,
       approved: 1,
       in_build: 0,
+      complete: 0,
       archived: 0,
     });
 

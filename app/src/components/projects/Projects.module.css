@@ -237,6 +237,12 @@
   color: var(--ez-slate-500);
 }
 
+/* EZD-137 (Q-0702): the Completed pill is grey like Draft. */
+.pill[data-status='complete'] {
+  background: var(--ez-hover);
+  color: var(--ez-slate-500);
+}
+
 .pill[data-status='client_review'] {
   background: var(--ez-cobalt-tint);
   color: var(--ez-cobalt-text);

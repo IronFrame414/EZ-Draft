@@ -17,7 +17,8 @@ import {
 } from '../test-harness/e2e/test';
 import { seedFixtureS } from '../test-harness/projects-fixture';
 
-// The seven tabs, in the order of PROJECT_TABS (projects.ts): All, then PROJECT_STATUSES, then Archived (EZD-124).
+// The eight tabs, in the order of PROJECT_TABS (projects.ts): All, then PROJECT_STATUSES, then Completed (EZD-137),
+// then Archived (EZD-124).
 const TAB_IDS = [
   'all',
   'draft',
@@ -25,6 +26,7 @@ const TAB_IDS = [
   'permit_submitted',
   'approved',
   'in_build',
+  'complete',
   'archived',
 ] as const;
 
@@ -55,11 +57,11 @@ test.describe('EZD-330 Projects page touch targets', () => {
     await page.goto('/');
 
     // EZD-124 (Q-0702): fixture S golf is archived, so the Archived tab counts 1.
-    await expect(page.getByTestId('projects-tab-count')).toHaveText(['6', '2', '1', '1', '1', '1', '1']);
-    // EZD-338 section 4 (T1 main): main holds 7 tabs (EZD-124 adds Archived), the sort trigger and 6 card links
+    await expect(page.getByTestId('projects-tab-count')).toHaveText(['6', '2', '1', '1', '1', '1', '0', '1']);
+    // EZD-338 section 4 (T1 main): main holds 8 tabs (EZD-124 adds Archived, EZD-137 Completed), the sort trigger and 6 card links
     // (EZD-120c step 8); no projects-new and no card menu for a viewer. Header and avatar menu are outside main
     // (EZD-117b plan section 3 'View wiring', 'Board states').
-    expect(await expectTouchTargets(page, page.locator('main'))).toBe(14);
+    expect(await expectTouchTargets(page, page.locator('main'))).toBe(15);
     // EZD-338 section 4 (T1 grid): each of the 6 card links passes the 44 px check and is inside the viewport.
     expect(await expectTouchTargets(page, page.getByTestId('projects-grid'))).toBe(6);
 
@@ -88,8 +90,9 @@ test.describe('EZD-330 Projects page touch targets', () => {
     await expect(page.getByTestId('projects-tab-count')).toHaveCount(0);
     // EZD-117b plan section 3 'Board states': countsStatus 'error' shows projects-error with InlineError Retry in main.
     await expect(page.getByTestId('projects-error')).toBeVisible();
-    // EZD-338 section 4 (T2 main): 7 tabs (EZD-124 adds Archived) + sort + 6 card links + Retry = 15.
-    expect(await expectTouchTargets(page, page.locator('main'))).toBe(15);
+    // EZD-338 section 4 (T2 main): 8 tabs (EZD-124 adds Archived, EZD-137 Completed) + sort + 6 card links + Retry
+    // = 16.
+    expect(await expectTouchTargets(page, page.locator('main'))).toBe(16);
     // EZD-338 section 4 (T2 grid): the 6 card links still pass the 44 px check.
     expect(await expectTouchTargets(page, page.getByTestId('projects-grid'))).toBe(6);
   });

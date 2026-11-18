@@ -13,18 +13,28 @@ export function deleteConfirmMatches(projectName: string, typed: string): boolea
   return t !== '' && t === projectName;
 }
 
-export type CardMenuItem = 'rename' | 'status' | 'archive' | 'restore' | 'delete';
+export type CardMenuItem =
+  | 'rename'
+  | 'status'
+  | 'complete'
+  | 'reopen'
+  | 'archive'
+  | 'restore'
+  | 'delete';
 
 // Items the user lacks permission for are absent (S01 Controls; Q-0700 decisions 10): Rename and Set status need
 // Edit model; Archive, Restore and Delete need Delete projects. Delete is offered at any time, even after a send
 // (Q-0201). An archived card offers Restore in place of Archive.
+// EZD-137 (Q-0191; Q-0702; Q-0700 decisions 10): Mark complete, or Reopen on a completed card, needs Edit model; a
+// completed card offers Reopen in place of Set status (assumptions EZD-137).
 export function cardMenuItems(p: {
   canEdit: boolean;
   canDelete: boolean;
   archived: boolean;
+  complete?: boolean;
 }): CardMenuItem[] {
   const items: CardMenuItem[] = [];
-  if (p.canEdit) items.push('rename', 'status');
+  if (p.canEdit) items.push('rename', ...(p.complete ? ['reopen' as const] : ['status' as const, 'complete' as const]));
   if (p.canDelete) items.push(p.archived ? 'restore' : 'archive', 'delete');
   return items;
 }
@@ -36,6 +46,7 @@ export type CardActionsApi = {
   rename(projectId: string, name: string): Promise<void>;
   setStatus(projectId: string, status: ProjectStatus): Promise<void>;
   setArchived(projectId: string, archived: boolean): Promise<void>;
+  setComplete(projectId: string, complete: boolean): Promise<void>;
   remove(projectId: string, confirmName: string): Promise<void>;
 };
 
@@ -60,6 +71,7 @@ export const cardActionsHttpApi: CardActionsApi = {
   rename: (id, name) => send(`/api/projects/${id}`, 'PATCH', { name }),
   setStatus: (id, status) => send(`/api/projects/${id}`, 'PATCH', { status }),
   setArchived: (id, archived) => send(`/api/projects/${id}`, 'PATCH', { archived }),
+  setComplete: (id, complete) => send(`/api/projects/${id}`, 'PATCH', { complete }),
   remove: (id, confirmName) =>
     send(`/api/projects/${id}/delete`, 'POST', { confirmName: normalizeDeleteConfirm(confirmName) }),
 };

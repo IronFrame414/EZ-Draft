@@ -13,15 +13,19 @@ export type CardChange =
   | { kind: 'rename'; name: string }
   | { kind: 'status'; status: ProjectStatus }
   | { kind: 'archive' }
-  | { kind: 'restore' };
+  | { kind: 'restore' }
+  // EZD-137 (Q-0191; Q-0700 decisions 03, 10): Mark complete and Reopen, Edit model.
+  | { kind: 'complete' }
+  | { kind: 'reopen' };
 
 const patchSchema = z.union([
   z.strictObject({ name: z.string().max(PROJECT_NAME_MAX * 2) }),
   z.strictObject({ status: z.enum(PROJECT_STATUSES) }),
   z.strictObject({ archived: z.boolean() }),
+  z.strictObject({ complete: z.boolean() }),
 ]);
 
-// The PATCH body: exactly one of { name }, { status } or { archived }. A name is trimmed and must not be blank.
+// The PATCH body: exactly one of { name }, { status }, { archived } or { complete }. A name is trimmed and must not be blank.
 export function parseCardChange(body: unknown): CardChange | null {
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) return null;
@@ -32,6 +36,7 @@ export function parseCardChange(body: unknown): CardChange | null {
     return { kind: 'rename', name };
   }
   if ('status' in d) return { kind: 'status', status: d.status };
+  if ('complete' in d) return d.complete ? { kind: 'complete' } : { kind: 'reopen' };
   return d.archived ? { kind: 'archive' } : { kind: 'restore' };
 }
 
@@ -75,7 +80,11 @@ export async function applyCardChange(
         ? await client.rpc('set_project_status', { p_project: projectId, p_status: change.status })
         : change.kind === 'archive'
           ? await client.rpc('archive_project', { p_project: projectId })
-          : await client.rpc('restore_project', { p_project: projectId });
+          : change.kind === 'restore'
+            ? await client.rpc('restore_project', { p_project: projectId })
+            : change.kind === 'complete'
+              ? await client.rpc('complete_project', { p_project: projectId })
+              : await client.rpc('reopen_project', { p_project: projectId });
   if (error) {
     const code = failure(error);
     if (code === null) throw error;

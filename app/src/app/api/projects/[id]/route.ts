@@ -3,7 +3,9 @@
 // projects), 404 (a malformed id or a project out of scope), 400 (bad JSON or body), 403 for the switch this
 // change needs (Rename and Set status: Edit model; Archive and Restore: Delete projects), then the definer
 // function through the session client, which checks all of it again and writes the event_log row.
-// Body: exactly one of { name }, { status } or { archived }. 200 { changed }.
+// Body: exactly one of { name }, { status }, { archived } or { complete }. 200 { changed }.
+// EZD-137 (Q-0191; Q-0700 decisions 10): { complete: true } is Mark complete, { complete: false } Reopen; both
+// need Edit model (no lock).
 import { z } from 'zod';
 import { createSessionClient } from '../../../../server/auth/supabase-server';
 import { endedSessionResponse } from '../../../../server/auth/ended-session';
@@ -36,7 +38,7 @@ export async function PATCH(request: Request, { params }: Ctx): Promise<Response
     const change = parseCardChange(raw);
     if (change === null) return fail(400, 'invalid_input');
     const needed =
-      change.kind === 'rename' || change.kind === 'status' ? 'edit_model' : 'delete_projects';
+      change.kind === 'archive' || change.kind === 'restore' ? 'delete_projects' : 'edit_model';
     const denied = requirePermission(p.ctx, needed, { projectId: id });
     if (denied) return denied;
 

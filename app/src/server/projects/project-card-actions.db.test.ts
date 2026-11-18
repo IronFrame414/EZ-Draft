@@ -186,6 +186,7 @@ describe('EZD-124 project card actions', () => {
       permit_submitted: 0,
       approved: 1,
       in_build: 0,
+      complete: 0,
       archived: 0,
     });
 
@@ -210,6 +211,7 @@ describe('EZD-124 project card actions', () => {
       permit_submitted: 0,
       approved: 0,
       in_build: 0,
+      complete: 0,
       archived: 1,
     });
     expect(await countProjects(typed(s), 'oak')).toEqual({
@@ -219,6 +221,7 @@ describe('EZD-124 project card actions', () => {
       permit_submitted: 0,
       approved: 0,
       in_build: 0,
+      complete: 0,
       archived: 1,
     });
     // Archiving twice changes nothing.

@@ -26,6 +26,7 @@ const api = {
   rename: async () => {},
   setStatus: async () => {},
   setArchived: async () => {},
+  setComplete: async () => {},
   remove: async () => {},
 };
 const config = (canEdit: boolean, canDelete: boolean): CardMenuConfig => ({
