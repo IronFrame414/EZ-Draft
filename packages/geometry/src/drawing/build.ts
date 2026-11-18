@@ -7,8 +7,8 @@
 // wall drawn where it stands on the `flagged` layer.
 // EZD-211a: door symbol from G/openings/door-symbol.ts.
 // EZD-235 Build step 5 (vault/plans/EZD-235.md Decided "D-Label"; 11 rule 2): the room label's area can be given through `options`.
-// EZD-234 Build (S03 Fixtures; mockup S03Plan REF box; Q-0705 boards wait): a fixture is its outline with both
-// diagonals, a utility point a diamond UTILITY_MARK_IN across each way, both in their status layer as 'beyond'.
+// EZD-234 Build (S03 Fixtures; mockup S03Plan REF box; Q-0705 boards wait): a fixture is its kind's plan symbol
+// (EZD-422, fixtures/fixture-symbol.ts), a utility point a diamond UTILITY_MARK_IN across each way, both in their status layer as 'beyond'.
 // EZD-227 Build (AC-EZD-227-1; vault/build/assumptions.md EZD-227): blocking is its outline behind the face on its
 // side with both diagonals, 'beyond', in its status layer; on the `flagged` layer when it is on no wall.
 // EZD-226 Build (AC-EZD-226-1): a tile shower draws through fixtures/tile-shower-drawing.ts, with the fixtures.
@@ -22,7 +22,8 @@ import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../
 import { doorSymbolInFrame } from '../openings/door-symbol';
 import { isVerticalLine } from '../openings/opening';
 import { coordsEqual, pointsEqual } from '../tolerance';
-import { fixtureOutline, type FixtureObject, type UtilityPointObject } from '../fixtures/fixtures';
+import type { FixtureObject, UtilityPointObject } from '../fixtures/fixtures';
+import { fixtureSymbolItems } from '../fixtures/fixture-symbol';
 import { tileShowerItems } from '../fixtures/tile-shower-drawing';
 import type { TileShowerObject } from '../fixtures/tile-shower';
 import { blockingOutline, type BlockingObject } from '../fixtures/blocking';
@@ -380,15 +381,12 @@ export function buildDrawingList(
       from,
       to,
     });
-    const ring =
-      o.type === 'fixture'
-        ? fixtureOutline((o as FixtureObject).data)
-        : utilityMark((o as UtilityPointObject).data.geometry.point);
-    for (let i = 0; i < 4; i++) fixtureItems.push(line(ring[i]!, ring[(i + 1) % 4]!));
     if (o.type === 'fixture') {
-      fixtureItems.push(line(ring[0], ring[2]));
-      fixtureItems.push(line(ring[1], ring[3]));
+      fixtureItems.push(...fixtureSymbolItems(o as FixtureObject, v.dimensionTextPt));
+      continue;
     }
+    const ring = utilityMark((o as UtilityPointObject).data.geometry.point);
+    for (let i = 0; i < 4; i++) fixtureItems.push(line(ring[i]!, ring[(i + 1) % 4]!));
   }
 
   if (options.extraItems) fixtureItems.push(...options.extraItems(onFloor, level, v.dimensionTextPt));

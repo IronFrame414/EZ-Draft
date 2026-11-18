@@ -2,3 +2,4 @@
 export * from './fixtures';
 export * from './tile-shower';
 export * from './blocking';
+export * from './fixture-symbol';
