@@ -1768,6 +1768,20 @@ export const en = {
   'office.review.open_plan': 'Open the plan',
   'office.plan.imported':
     'Import finished: {walls} walls, {windows} windows, {doors} doors, {rooms} rooms added.',
+  // EZD-401: the read-only catalog picker (S09 Decision 1 categories; S04 "Line: [Supplier] Shaker").
+  'office.catalog.categories': 'Categories',
+  'office.catalog.category.cabinets': 'Cabinets',
+  'office.catalog.category.countertops': 'Countertops',
+  'office.catalog.category.tile': 'Tile',
+  'office.catalog.category.plumbing_fixtures': 'Plumbing fixtures',
+  'office.catalog.category.lighting': 'Lighting',
+  'office.catalog.category.appliances': 'Appliances',
+  'office.catalog.category.hardware': 'Hardware',
+  'office.catalog.category.paint': 'Paint',
+  'office.catalog.category.windows_doors': 'Windows and doors',
+  'office.catalog.line': 'Line: {line}',
+  'office.catalog.empty': 'No items in this category yet.',
+  'office.catalog.load_failed': "Couldn't load the catalog. Try again.",
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

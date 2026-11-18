@@ -471,6 +471,15 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     },
     expectStatus: 200,
   },
+  // EZD-401: the read-only catalog picker list (no money fields).
+  {
+    file: `${API}catalog/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/catalog/route'),
+    request: get('/api/catalog'),
+    expectStatus: 200,
+    note: 'EZD-401: the company catalog; 200 { items } (no money)',
+  },
   // EZD-131: the Settings > Libraries routes. POST adds one abbreviation; PATCH edits it and DELETE removes it.
   {
     file: `${API}settings/libraries/route.ts`,

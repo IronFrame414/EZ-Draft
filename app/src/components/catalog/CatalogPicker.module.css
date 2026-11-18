@@ -1,0 +1,124 @@
+/* EZD-401 (S09 Layout; mockup S09Catalog): the read-only catalog picker, a category column beside the items.
+   Colors from tokens only; sizes from the mockup's category nav and card text. */
+
+.picker {
+  display: flex;
+  gap: 16px;
+  min-width: 0;
+  background: var(--ez-surface);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 168px;
+  flex: none;
+}
+
+.category {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: none;
+  font: 400 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.category:hover {
+  background: var(--ez-hover);
+}
+
+.on {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+  font-weight: 600;
+}
+
+.count {
+  font: 400 12px var(--ez-font-mono);
+  color: var(--ez-slate-400);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.empty {
+  margin: 8px 0;
+  font: 400 13px var(--ez-font-sans);
+  color: var(--ez-slate-500);
+}
+
+.line {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lineHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  font: 600 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  text-align: left;
+}
+
+.pickable {
+  cursor: pointer;
+  font: inherit;
+}
+
+.pickable:hover {
+  border-color: var(--ez-border-hover);
+  background: var(--ez-row-hover);
+}
+
+.code {
+  font: 600 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.name {
+  font: 400 12px var(--ez-font-sans);
+  color: var(--ez-slate-500);
+}
+
+.size {
+  font: 400 12px var(--ez-font-mono);
+  color: var(--ez-slate-500);
+}

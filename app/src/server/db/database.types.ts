@@ -137,6 +137,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"catalog_item": {
+                  Row: {
+                    "ai_confidence": NonNullable<Json>,"allowance_category": string | null,"brand": string | null,"category": string,"created_at": string,"depth": number | null,"finish": string | null,"height": number | null,"id": string,"install_specs": NonNullable<Json>,"is_standard_spec": boolean,"lead_time_days": number | null,"lead_time_text": string | null,"line": string | null,"markup_pct": number | null,"model": string | null,"name": string,"project_id": string | null,"sell_price": number | null,"sku": string | null,"source_url": string | null,"spec_sheet_path": string | null,"subcategory": string | null,"supplier": string | null,"tenant_id": string,"texture_path": string | null,"thumb_path": string | null,"unit_cost": number | null,"updated_at": string,"width": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "ai_confidence"?: NonNullable<Json>,"allowance_category"?: string | null,"brand"?: string | null,"category": string,"created_at"?: string,"depth"?: number | null,"finish"?: string | null,"height"?: number | null,"id"?: string,"install_specs"?: NonNullable<Json>,"is_standard_spec"?: boolean,"lead_time_days"?: number | null,"lead_time_text"?: string | null,"line"?: string | null,"markup_pct"?: number | null,"model"?: string | null,"name": string,"project_id"?: string | null,"sell_price"?: number | null,"sku"?: string | null,"source_url"?: string | null,"spec_sheet_path"?: string | null,"subcategory"?: string | null,"supplier"?: string | null,"tenant_id": string,"texture_path"?: string | null,"thumb_path"?: string | null,"unit_cost"?: number | null,"updated_at"?: string,"width"?: number | null
+                  }
+                  Update: {
+                    "ai_confidence"?: NonNullable<Json>,"allowance_category"?: string | null,"brand"?: string | null,"category"?: string,"created_at"?: string,"depth"?: number | null,"finish"?: string | null,"height"?: number | null,"id"?: string,"install_specs"?: NonNullable<Json>,"is_standard_spec"?: boolean,"lead_time_days"?: number | null,"lead_time_text"?: string | null,"line"?: string | null,"markup_pct"?: number | null,"model"?: string | null,"name"?: string,"project_id"?: string | null,"sell_price"?: number | null,"sku"?: string | null,"source_url"?: string | null,"spec_sheet_path"?: string | null,"subcategory"?: string | null,"supplier"?: string | null,"tenant_id"?: string,"texture_path"?: string | null,"thumb_path"?: string | null,"unit_cost"?: number | null,"updated_at"?: string,"width"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "catalog_item_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "catalog_item_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"customer": {
                   Row: {
                     "address": string | null,"archived_at": string | null,"created_at": string,"email": string,"id": string,"name": string,"phone": string | null,"tenant_id": string,"updated_at": string
