@@ -376,7 +376,8 @@
     "EZD-401",
     "EZD-229",
     "EZD-124",
-    "EZD-312"
+    "EZD-312",
+    "EZD-137"
   ],
   "seeded_done": 324,
   "merged": [
@@ -766,6 +767,14 @@
       "ts": "2026-11-18T04:34:19Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-137",
+      "title": "Mark complete and Completed filter",
+      "commit": "0e1b291f",
+      "ts": "2026-11-18T06:08:46Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -853,12 +862,6 @@
     }
   },
   "running": {
-    "EZD-137": {
-      "lane": 1,
-      "title": "Mark complete and Completed filter",
-      "started": "2026-11-18T03:02:54Z",
-      "develop": "54c7fa6a"
-    },
     "EZD-404": {
       "lane": 2,
       "title": "Plan strip and elevation",
