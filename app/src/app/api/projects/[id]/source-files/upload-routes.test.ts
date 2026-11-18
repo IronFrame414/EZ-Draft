@@ -19,6 +19,7 @@ vi.mock('../../../../../server/storage', async (orig) => ({
   ...(await orig<typeof import('../../../../../server/storage')>()),
   startSourceFileUpload: vi.fn(),
   completeSourceFileUpload: vi.fn(),
+  listProjectPdfs: vi.fn(),
 }));
 vi.mock('../../../../../server/events', () => ({ emit: vi.fn(async () => ({})) }));
 vi.mock('../../../../../server/imports/start-import', () => ({ checkImportFiles: vi.fn() }));
@@ -29,12 +30,13 @@ import { checkImportFiles } from '../../../../../server/imports/start-import';
 import { requireApiPermission, requirePermission } from '../../../../../server/permissions';
 import {
   completeSourceFileUpload,
+  listProjectPdfs,
   startSourceFileUpload,
   StorageError,
 } from '../../../../../server/storage';
 import { POST as complete } from '../../../source-files/[id]/complete/route';
 import { POST as startImport } from '../imports/route';
-import { POST as start } from './route';
+import { GET as listPdfs, POST as start } from './route';
 
 const P = '11111111-1111-4111-8111-111111111111';
 const F1 = '22222222-2222-4222-8222-222222222222';
@@ -227,5 +229,57 @@ describe('EZD-301 upload step routes', () => {
       expect.any(Error),
       '/api/projects/[id]/imports',
     );
+  });
+});
+
+// EZD-304 (S01 PDF: scale calibration; Q-0203): the project's PDFs with their scale, for the plan underlay. Expected:
+// 200 { pdfs } with no-store under See projects; 401 and 403 from the guard; 404 for a malformed id; the scope check's
+// answer; 500 after reportRouteFailure.
+describe('EZD-304 project PDFs', () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+  const callList = (id: string) =>
+    listPdfs(new Request(`http://localhost/api/projects/${id}/source-files`), {
+      params: Promise.resolve({ id }),
+    });
+
+  it('EZD-304 R1 list: 200 with the PDFs, else 401, 403, 404 or 500', async () => {
+    const pdfs = [
+      {
+        id: F1,
+        projectId: P,
+        originalName: 'plan.pdf',
+        scaleCalibration: null,
+        uploadedAt: '2026-11-18T00:00:00.000Z',
+      },
+    ];
+    guard.mockResolvedValueOnce(permitted());
+    vi.mocked(listProjectPdfs).mockResolvedValueOnce(pdfs);
+    const ok = await callList(P);
+    expect(ok.status).toBe(200);
+    expect(ok.headers.get('Cache-Control')).toBe('no-store');
+    expect(await ok.json()).toEqual({ pdfs });
+    expect(guard).toHaveBeenCalledWith('view_projects');
+    expect(scope).toHaveBeenCalledWith({}, 'view_projects', { projectId: P });
+    expect(listProjectPdfs).toHaveBeenCalledWith({}, P);
+
+    guard.mockResolvedValueOnce(new Response(null, { status: 401 }));
+    expect((await callList(P)).status).toBe(401);
+    guard.mockResolvedValueOnce(forbidden());
+    expect((await callList(P)).status).toBe(403);
+    guard.mockResolvedValueOnce(permitted());
+    const bad = await callList('nope');
+    expect(bad.status).toBe(404);
+    expect(await bad.json()).toEqual(err('project_not_found'));
+    guard.mockResolvedValueOnce(permitted());
+    scope.mockReturnValueOnce(forbidden());
+    expect((await callList(P)).status).toBe(403);
+    expect(listProjectPdfs).toHaveBeenCalledTimes(1);
+
+    guard.mockResolvedValueOnce(permitted());
+    vi.mocked(listProjectPdfs).mockRejectedValueOnce(new Error('down'));
+    expect((await callList(P)).status).toBe(500);
+    expect(reportRouteFailure).toHaveBeenCalledTimes(1);
   });
 });

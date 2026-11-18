@@ -47,7 +47,7 @@ import {
   type PlanInput,
   type PlanPointerReceiver,
 } from './input';
-import { createPlanScene, type PlanScene } from './scene';
+import { createPlanScene, type PlanScene, type PlanUnderlay } from './scene';
 import {
   MAX_ZOOM_PERCENT,
   MIN_ZOOM_PERCENT,
@@ -132,6 +132,9 @@ export type PlanController = {
   captureThumbnail(): Promise<ThumbnailCapture | null>;
   atlasFailed(): boolean;
   subscribeAtlasFailed(listener: () => void): () => void;
+  // EZD-304: the calibrated PDF page under the plan for tracing; null removes it.
+  setUnderlay(u: PlanUnderlay | null): void;
+  underlay(): PlanUnderlay['corners'] | null;
   dispose(): void;
 };
 
@@ -153,7 +156,8 @@ function unmountQuietly(root: RenderRoot): void {
 function needsPlanDetails(objects: Objects): boolean {
   for (const v of objects.values()) {
     const a = (v.data as { attributes?: { floorLevel?: number; floorFinish?: string } }).attributes;
-    if (/^(hvac|device|access|soffit|chase)$/.test(v.type) || a?.floorLevel || a?.floorFinish) return true;
+    if (/^(hvac|device|access|soffit|chase)$/.test(v.type) || a?.floorLevel || a?.floorFinish)
+      return true;
   }
   return false;
 }
@@ -215,6 +219,7 @@ export function createPlanController(
   let outlineLookup: OutlineLookup | null = null;
   let selectedIds: ReadonlySet<string> = new Set();
   let selectionUploads = 0;
+  let underlayCorners: { x: number; y: number }[] | null = null;
   const hover = createHoverIndex();
   const NO_HIGHLIGHT = new Float32Array(0);
 
@@ -239,7 +244,10 @@ export function createPlanController(
   const rebuild = (): number => {
     const details = planDetails.peek();
     if (!details && needsPlanDetails(o.store.getState().objects))
-      planDetails.load().then(() => disposed || refreshAll(), () => {});
+      planDetails.load().then(
+        () => disposed || refreshAll(),
+        () => {},
+      );
     list = planDrawingList(
       o.store.getState().objects,
       { roomAreaSqFt: derived.roomAreaSqFt, extraItems: details?.planDetailItems },
@@ -645,6 +653,31 @@ export function createPlanController(
         if (i >= 0) atlasFailedListeners.splice(i, 1);
       };
     },
+    setUnderlay(u) {
+      if (disposed) return;
+      scene.setUnderlay(u);
+      underlayCorners = u === null ? null : u.corners.map((c) => ({ x: c.x, y: c.y }));
+      // An empty plan shows the whole page, so tracing can start (fit as Fit does, on the page instead).
+      const size = regionSize();
+      if (u !== null && bounds === null && size !== null) {
+        const xs = u.corners.map((c) => c.x);
+        const ys = u.corners.map((c) => c.y);
+        setView(
+          fitView(
+            {
+              minX: Math.min(...xs),
+              minY: Math.min(...ys),
+              maxX: Math.max(...xs),
+              maxY: Math.max(...ys),
+            },
+            size,
+            zoom100(),
+          ),
+        );
+      }
+      redraw();
+    },
+    underlay: () => (underlayCorners === null ? null : underlayCorners.map((c) => ({ ...c }))),
     derivedStats: () => derived.stats(),
     stats() {
       const s = root !== null && ready ? root.stats() : { frames: 0, drawCalls: 0 };

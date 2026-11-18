@@ -153,11 +153,15 @@ test.describe('EZD-120c editor route', () => {
     await expect(page.getByText('bravo')).toBeVisible();
     await page.waitForTimeout(500);
     // EZD-125 (04:90; AC-EZD-125-4): the open also takes the edit lock.
-    expect(urls.map((u) => new URL(u).pathname)).toEqual([
+    // EZD-304 (S01 PDF: scale calibration): the plan also reads the project's PDFs once, for the underlay.
+    const paths = urls.map((u) => new URL(u).pathname);
+    const pdfs = `/api/projects/${ids.P1}/source-files`;
+    expect(paths.filter((p) => p !== pdfs)).toEqual([
       `/api/projects/${ids.P1}/model`,
       `/api/projects/${ids.P1}/lock`,
       '/api/sync-conflicts',
     ]);
+    expect(paths.filter((p) => p === pdfs)).toEqual([pdfs]);
   });
 
   test('EZD-120c B2 the editor shows the project, the client, the working copy, Saved and the Plan tab, with the drawing rail, the empty inspector and the left panel (EZD-218)', async ({

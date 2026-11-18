@@ -245,6 +245,12 @@ EZD-029 (vault/plans/EZD-029.md Steps 2-8); 02 Stack DXF in/out; 08 Imports, Arc
 - **Node built-ins** (for EZD-020 and EZD-913): neither installed package imports a Node built-in (`require` or `import` of any `module.builtinModules` name, scanned in the installed files).
 - **Writer** (for EZD-913 and EZD-911): writes `$ACADVER` `AC1021`, `$INSUNITS` 1, named layers, LINE, ARC, closed LWPOLYLINE, TEXT and a SOLID HATCH, read back in full by the parser, including the layer `Z-MARKUP-WP`. Recorded only (`spikes/EZD-029-dxf/src/write-room.mjs`): every written entity carries a handle (group 5); a LINE written with a colour carries group 62, and one written with a line weight carries no group 370. Not written or read back, only seen in the package's API: `addBlock` and `addInsert`, `addLinearDim`, `addPaperSpace` and 82 predefined hatch patterns besides SOLID; EZD-913 and EZD-911 prove what they use.
 
+### PDF underlay and scale (EZD-304)
+
+- **Where pdf.js runs:** in the browser only through the lazy module `app/src/lazy/pdf-underlay/` (`openPdfPage`, `drawUnderlay`, the set-scale dialog and the plan's `PdfUnderlayPart` with the no-scale banner), loaded by `lazyModule` only when a project has a PDF or one is uploaded; the editor itself keeps only the PDF list read (11 Budgets), with its worker `app/src/workers/pdf.worker.ts`; job handlers may import it for detection (EZD-305).
+- **Stored scale:** `source_file.scale_calibration` (kind `pdf` only) is `{ page, a, b, lengthIn }`: the two clicked points in PDF page points (user space, y up) and the typed distance in inches; read and checked by `app/src/lib/imports/scale-calibration.ts` (`scaleCalibrationSchema`, `measureIn`, `underlayQuad`). Written by `POST /api/source-files/[id]/scale` (Edit model), read with a signed link by its `GET` (See projects); `GET /api/projects/[id]/source-files` lists the project's PDFs.
+- **Underlay:** the newest calibrated PDF's page, drawn with its longest side at 4,096 px, is one textured quad in the plan scene (`PlanScene.setUnderlay`, render order 0.5, 50% opacity, never picked); the first calibration point is the plan origin and the page lies as drawn (image right east, image up north, so a page's /Rotate is kept).
+
 ### Drawing list (EZD-238)
 
 EZD-238 (vault/plans/EZD-238.md); 02 PDF out; 09h; Q-0507; Q-0508; Q-0574; Q-0575.

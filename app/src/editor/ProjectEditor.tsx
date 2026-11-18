@@ -47,6 +47,8 @@
 // and the status bar shows its View "Plan + elevation A" before Scale.
 // EZD-111 (vault/plans/EZD-111.md D-Entry, C2; Q-0700; Q-0701): with Send to client, the header Share button opens
 // the Send dialog (lazy). Its no-client link opens Project settings for the session, after the Send dialog closes.
+// EZD-304 (S01 PDF: scale calibration; Q-0203): the project's newest calibrated PDF lies under the plan for tracing;
+// for an editor, a PDF with no scale shows a banner with Set scale. An upload from the header reads it again.
 import {
   useCallback,
   useEffect,
@@ -113,6 +115,7 @@ import { FloorSwitcher } from './floors/FloorSwitcher';
 import { createGlyphAtlas } from './plan/glyph-atlas-canvas';
 import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
 import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
+import { usePdfUnderlay } from './plan/PdfUnderlay';
 import { createR3fRoot, webglContextsCreated } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
 import type { CheckpointOutcome } from './thumbnail/checkpoint';
@@ -171,6 +174,8 @@ type PlanTestHook = {
   stats(): PlanStats & { contexts: number };
   // EZD-214: the phase view and the Phase eyes (EZD-218 drives setEye from Layers).
   phase: PhaseSetting;
+  // EZD-304: the plan positions of the PDF underlay's corners, or null.
+  underlay(): ReturnType<PlanController['underlay']>;
 };
 
 type SelectionTestHook = {
@@ -492,6 +497,7 @@ export function ProjectEditor({
   useEffect(() => {
     if (lockLost) drawing?.pause();
   }, [lockLost, drawing]);
+  const pdfUnderlay = usePdfUnderlay({ projectId, plan, canEdit: mayEdit });
 
   // EZD-130: a Project settings save (in the switcher) draws the header again with the new name and client.
   useEffect(() => lock?.ui.switcher.onSaved(() => setLock({ ...lock })), [lock]);
@@ -526,6 +532,7 @@ export function ProjectEditor({
       handle: plan.handle,
       stats: () => ({ ...plan.stats(), contexts: webglContextsCreated() }),
       phase,
+      underlay: () => plan.underlay(),
     };
     const w = window as unknown as { __ezdraftPlan?: PlanTestHook };
     w.__ezdraftPlan = hook;
@@ -711,6 +718,7 @@ export function ProjectEditor({
           <InlineError message="office.plan.canvas_failed" onRetry={retryCanvas} />
         ) : null}
         {showPlan ? <PlanTextFailedBanner controller={plan} /> : null}
+        {showPlan ? pdfUnderlay.part : null}
       </>
     );
   }
@@ -845,7 +853,13 @@ export function ProjectEditor({
             <>
               {header}
               {uploading ? (
-                <LazyUploadFiles projectId={projectId} onClose={() => setUploading(false)} />
+                <LazyUploadFiles
+                  projectId={projectId}
+                  onClose={() => {
+                    setUploading(false);
+                    pdfUnderlay.refresh();
+                  }}
+                />
               ) : null}
             </>
           }

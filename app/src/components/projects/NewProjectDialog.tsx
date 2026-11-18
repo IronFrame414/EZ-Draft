@@ -27,6 +27,7 @@ import {
 } from '../../lib/imports/upload-files';
 import { ImportUploadError, uploadAndStartImport } from '../../lib/imports/upload-client';
 import { useDxfConversion } from '../imports/DxfConversion';
+import { useScaleCalibration } from '../imports/ScaleCalibration';
 import {
   EMPTY_NEW_PROJECT,
   PROJECT_ADDRESS_MAX,
@@ -109,6 +110,8 @@ export function NewProjectDialog({
   const done = useRef(new Map<string, string>());
   // EZD-306: the conversion choice of each DXF drawing, asked after its upload.
   const dxf = useDxfConversion();
+  // EZD-304: the set-scale step of each PDF, after its upload.
+  const scale = useScaleCalibration();
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fromFile = source !== 'blank';
@@ -166,6 +169,7 @@ export function NewProjectDialog({
           started.jobId = id;
         },
         chooseLayers: dxf.chooseLayers,
+        setScale: scale.setScale,
       });
       onCreated(projectId, started.jobId);
       return;
@@ -462,6 +466,7 @@ export function NewProjectDialog({
             />
           ) : null}
           {dxf.dialog}
+          {scale.dialog}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

@@ -9,7 +9,7 @@ import { createSessionClient } from '../../../../../server/auth/supabase-server'
 import { endedSessionResponse } from '../../../../../server/auth/ended-session';
 import { reportRouteFailure } from '../../../../../server/errors/route-failure';
 import { requireApiPermission, requirePermission } from '../../../../../server/permissions';
-import { startSourceFileUpload, StorageError } from '../../../../../server/storage';
+import { listProjectPdfs, startSourceFileUpload, StorageError } from '../../../../../server/storage';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,6 +57,27 @@ export async function POST(
       }
       throw e;
     }
+  } catch (e) {
+    const ended = await endedSessionResponse(e);
+    if (ended) return ended;
+    await reportRouteFailure(e, ROUTE);
+    return fail(500, 'db_unavailable');
+  }
+}
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+): Promise<Response> {
+  try {
+    const { id } = await params;
+    const p = await requireApiPermission('view_projects');
+    if (p instanceof Response) return p;
+    if (!z.uuid().safeParse(id).success) return fail(404, 'project_not_found');
+    const denied = requirePermission(p.ctx, 'view_projects', { projectId: id });
+    if (denied) return denied;
+    const pdfs = await listProjectPdfs(createSessionClient(), id);
+    return Response.json({ pdfs }, { status: 200, headers });
   } catch (e) {
     const ended = await endedSessionResponse(e);
     if (ended) return ended;

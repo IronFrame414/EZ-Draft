@@ -292,6 +292,46 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 202,
     note: 'EZD-301: project id and source file ids (no money)',
   },
+  // EZD-304: the scale of the PDF uploaded above (kind pdf, finished): the project's PDFs, then set and read its
+  // scale. Answers are source_file ids, names, the calibration and a signed link (no money).
+  {
+    file: `${API}projects/[id]/source-files/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/source-files/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/source-files`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-304: the project PDFs with their scale (no money)',
+  },
+  {
+    file: `${API}source-files/[id]/scale/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/source-files/[id]/scale/route'),
+    request: async (env) => {
+      const id = made(env, 'uploadStepFileId');
+      return {
+        ...(await sendJson('POST', `/api/source-files/${id}/scale`, {
+          scaleCalibration: { page: 1, a: [504, 300], b: [720, 300], lengthIn: 144 },
+        })()),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-304: the PDF scale (no money)',
+  },
+  {
+    file: `${API}source-files/[id]/scale/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/source-files/[id]/scale/route'),
+    request: async (env) => {
+      const id = made(env, 'uploadStepFileId');
+      return { request: new Request(`${BASE}/api/source-files/${id}/scale`), params: { id } };
+    },
+    expectStatus: 200,
+    note: 'EZD-304: the PDF scale and a signed link (no money)',
+  },
   // EZD-220: the thumbnail link of an uploaded pin photo (kind photo). The row and object are made here; the answer
   // is the signed link only.
   {

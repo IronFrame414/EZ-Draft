@@ -14,6 +14,11 @@ import {
 } from '../../lib/storage/source-file-kinds';
 import type { SignedUpload } from '../../lib/storage/upload';
 import { kindTakes } from '../../lib/imports/upload-files';
+import {
+  readCalibration,
+  scaleCalibrationSchema,
+  type ScaleCalibration,
+} from '../../lib/imports/scale-calibration';
 import { can, loadPermissionContext } from '../permissions';
 import {
   createSignedUpload,
@@ -321,4 +326,103 @@ export async function signPhotoLink(client: DbClient, sourceFileId: string): Pro
     throw new StorageError('source_file_not_found');
   }
   return signedDownloadUrl(client, { bucket: 'sources', path: data.storage_path });
+}
+
+// EZD-304 (S01 PDF: scale calibration "After upload, PDF only ... Stored in source_file.scale_calibration"; Q-0203
+// "the scale can be added later"): the scale of one uploaded PDF (kind pdf; a supplier PDF is a cost file and is not
+// traced, vault/build/assumptions.md EZD-304), through the caller's client so RLS decides (another company's file or
+// an unlisted project is not found). The value is checked before any write; the original itself never changes.
+export type PdfScaleView = {
+  id: string;
+  projectId: string;
+  originalName: string;
+  scaleCalibration: ScaleCalibration | null;
+  uploadedAt: string;
+};
+
+const PDF_SCALE_COLUMNS = 'id, project_id, kind, original_name, scale_calibration, uploaded_at';
+
+type PdfScaleRow = {
+  id: string;
+  project_id: string;
+  kind: string;
+  original_name: string;
+  scale_calibration: unknown;
+  uploaded_at: string | null;
+};
+
+function toPdfScaleView(row: PdfScaleRow): PdfScaleView {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    originalName: row.original_name,
+    scaleCalibration: readCalibration(row.scale_calibration),
+    uploadedAt: row.uploaded_at as string,
+  };
+}
+
+async function findPdf(
+  client: DbClient,
+  sourceFileId: string,
+): Promise<PdfScaleRow & { storage_path: string }> {
+  if (!z.uuid().safeParse(sourceFileId).success) throw new StorageError('source_file_not_found');
+  const { data, error } = await client
+    .from('source_file')
+    .select(`${PDF_SCALE_COLUMNS}, storage_path`)
+    .eq('id', sourceFileId)
+    .maybeSingle();
+  if (error) throw new StorageError('storage_unavailable', { cause: error });
+  if (!data || data.kind !== 'pdf' || data.uploaded_at === null) {
+    throw new StorageError('source_file_not_found');
+  }
+  return data;
+}
+
+export async function setPdfScale(
+  client: DbClient,
+  sourceFileId: string,
+  calibration: unknown,
+): Promise<PdfScaleView> {
+  const parsed = scaleCalibrationSchema.safeParse(calibration);
+  if (!parsed.success) throw new StorageError('invalid_input');
+  await findPdf(client, sourceFileId);
+  const { data, error } = await client
+    .from('source_file')
+    .update({ scale_calibration: parsed.data })
+    .eq('id', sourceFileId)
+    .select(PDF_SCALE_COLUMNS)
+    .maybeSingle();
+  if (error) throw new StorageError('storage_unavailable', { cause: error });
+  // No row back: the update policy refused the caller.
+  if (!data) throw new StorageError('source_file_not_found');
+  return toPdfScaleView(data);
+}
+
+/** The PDF's scale and a short-lived link to its original, for the set-scale step and the plan underlay. */
+export async function readPdfScale(
+  client: DbClient,
+  sourceFileId: string,
+): Promise<PdfScaleView & { url: string }> {
+  const row = await findPdf(client, sourceFileId);
+  const url = await signedDownloadUrl(client, { bucket: 'sources', path: row.storage_path });
+  return { ...toPdfScaleView(row), url };
+}
+
+/** The project's uploaded PDFs (kind pdf), newest first; the plan underlay is the newest (assumptions EZD-304). */
+export async function listProjectPdfs(
+  client: DbClient,
+  projectId: string,
+): Promise<PdfScaleView[]> {
+  if (!z.uuid().safeParse(projectId).success) throw new StorageError('project_not_found');
+  const { data, error } = await client
+    .from('source_file')
+    .select(PDF_SCALE_COLUMNS)
+    .eq('project_id', projectId)
+    .eq('kind', 'pdf')
+    .not('uploaded_at', 'is', null)
+    .order('uploaded_at', { ascending: false })
+    .order('id', { ascending: true })
+    .limit(READ_CHUNK);
+  if (error) throw new StorageError('storage_unavailable', { cause: error });
+  return data.map(toPdfScaleView);
 }
