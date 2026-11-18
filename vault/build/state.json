@@ -377,7 +377,8 @@
     "EZD-229",
     "EZD-124",
     "EZD-312",
-    "EZD-137"
+    "EZD-137",
+    "EZD-404"
   ],
   "seeded_done": 324,
   "merged": [
@@ -775,6 +776,14 @@
       "ts": "2026-11-18T06:08:46Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-404",
+      "title": "Plan strip and elevation",
+      "commit": "c7e18055",
+      "ts": "2026-11-18T06:34:04Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -861,12 +870,5 @@
       "reason": "builder timed out after 90 min with no commits"
     }
   },
-  "running": {
-    "EZD-404": {
-      "lane": 2,
-      "title": "Plan strip and elevation",
-      "started": "2026-11-18T03:02:55Z",
-      "develop": "54c7fa6a"
-    }
-  }
+  "running": {}
 }
