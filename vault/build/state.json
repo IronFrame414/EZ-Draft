@@ -384,7 +384,8 @@
     "EZD-314",
     "EZD-423",
     "EZD-422",
-    "EZD-405"
+    "EZD-405",
+    "EZD-305"
   ],
   "seeded_done": 324,
   "merged": [
@@ -838,6 +839,14 @@
       "ts": "2026-11-18T18:08:59Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-305",
+      "title": "Vector PDF wall detection",
+      "commit": "29403669",
+      "ts": "2026-11-18T18:49:58Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -851,7 +860,7 @@
     }
   },
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -925,12 +934,6 @@
     }
   },
   "running": {
-    "EZD-305": {
-      "lane": 2,
-      "title": "Vector PDF wall detection",
-      "started": "2026-11-18T16:11:55Z",
-      "develop": "3d0c21d6"
-    },
     "EZD-410": {
       "lane": 0,
       "title": "Cabinet flags and states",
