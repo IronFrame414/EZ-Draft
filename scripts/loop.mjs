@@ -13,6 +13,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { summarize, reportMarkdown } from './usage-report.mjs';
+import { RESUME_PROMPT, describeExit, died, readLastEntry } from './loop/claude-exit.mjs';
+import { randomUUID } from 'node:crypto';
 import { lastBeat, resetReason, sample, startNote, writeBeat } from './loop/heartbeat.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 
@@ -207,9 +209,26 @@ function laneEnv(lane, cwd, ticket) {
   if (String(lane ?? 0) !== '0') env.SUPABASE_WORKDIR = path.join(cwd, '.lanes', `lane${lane}`); else delete env.SUPABASE_WORKDIR;
   return env;
 }
-function runClaude({ cwd, prompt, model, effort, name, resume, timeoutMin, readOnly, lane = 0, ticket }) {
+// A run that dies (no result, no timeout, no limit) is logged with its exit code, signal and last transcript entry,
+// and a writing run is resumed once in the same session, so its work goes on (2026-11-18).
+async function runClaude(opts) {
+  const sessionId = opts.resume ? null : randomUUID();
+  const r = await runClaudeOnce({ ...opts, sessionId });
+  if (!died(r)) return r;
+  const sid = opts.resume || sessionId;
+  const last = readLastEntry(opts.cwd, sid);
+  log(`CLAUDE DIED ${opts.name}: ${describeExit(r)}; session ${sid}; last entry: ${last || 'no transcript'}${r.text.trim() ? `; output: ${r.text.trim().slice(-300).replace(/\s+/g, ' ')}` : ''}`);
+  const left = opts.timeoutMin - r.secs / 60;
+  if (opts.readOnly || !last || left < 10) return { ...r, died: [describeExit(r)] };
+  log(`${opts.name}: resuming session ${sid} once (${Math.round(left)} min left)`);
+  const again = await runClaudeOnce({ ...opts, prompt: RESUME_PROMPT, resume: sid, sessionId: null, timeoutMin: left });
+  if (died(again)) log(`CLAUDE DIED again ${opts.name}: ${describeExit(again)}; last entry: ${readLastEntry(opts.cwd, sid) || 'no transcript'}`);
+  return { ...again, secs: r.secs + again.secs, died: [describeExit(r), ...(died(again) ? [describeExit(again)] : [])], recovered: !died(again) };
+}
+function runClaudeOnce({ cwd, prompt, model, effort, name, resume, sessionId, timeoutMin, readOnly, lane = 0, ticket }) {
   const args = ['-p', prompt, '--output-format', 'json', '--model', model, '--effort', effort, '--name', name];
   if (resume) args.push('--resume', resume);
+  if (sessionId) args.push('--session-id', sessionId);
   if (readOnly) {
     args.push('--permission-mode', 'dontAsk',
       '--allowedTools', 'Read', 'Grep', 'Glob', 'Bash(git diff:*)', 'Bash(git log:*)', 'Bash(git show:*)',
@@ -225,11 +244,11 @@ function runClaude({ cwd, prompt, model, effort, name, resume, timeoutMin, readO
     p.stdout.on('data', (d) => { out += d; });
     p.stderr.on('data', (d) => { err += d; });
     const timer = setTimeout(() => { p.kill('SIGTERM'); setTimeout(() => p.kill('SIGKILL'), 10000); }, timeoutMin * 60000);
-    p.on('close', (code) => {
+    p.on('close', (code, signal) => {
       clearTimeout(timer);
       const res = parseResult(out);
-      const text = String(res?.result ?? '') + '\n' + err.slice(-2000);
-      resolve({ code, res, text, secs: Math.round((Date.now() - started) / 1000),
+      const text = String(res?.result ?? '') + '\n' + err.slice(-2000) + (res ? '' : out.slice(-1000));
+      resolve({ code, signal, res, text, secs: Math.round((Date.now() - started) / 1000),
         timedOut: Date.now() - started >= timeoutMin * 60000 - 1000,
         limited: /(hit your|usage limit|weekly limit|rate limit|limit reached|resets \d)/i.test(text) && (res?.is_error || code !== 0) });
     });
@@ -249,6 +268,7 @@ function recordUsage(ticket, role, requested, r) {
     cost_usd: Number(r.res?.total_cost_usd ?? 0) || 0, fable_usd: 0, opus_usd: 0, sonnet_usd: 0, haiku_usd: 0,
     input_tokens: 0, output_tokens: 0, cache_read_tokens: 0, cache_write_tokens: 0, fable_tokens: 0,
     turns: r.res?.num_turns ?? null, duration_s: r.secs, session_id: r.res?.session_id ?? null,
+    exit_code: r.code ?? null, signal: r.signal ?? null, died: r.died ?? undefined, recovered: r.recovered ?? undefined,
     outcome: r.limited ? 'limit' : r.timedOut ? 'timeout' : (r.res?.is_error || r.code !== 0) ? 'error' : 'ok' };
   for (const [m, v] of Object.entries(mu)) {
     const usd = Number(v?.costUSD ?? 0) || 0;
