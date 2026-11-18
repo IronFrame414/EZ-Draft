@@ -380,7 +380,8 @@
     "EZD-137",
     "EZD-404",
     "EZD-304",
-    "EZD-215"
+    "EZD-215",
+    "EZD-314"
   ],
   "seeded_done": 324,
   "merged": [
@@ -802,6 +803,14 @@
       "ts": "2026-11-18T14:17:44Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-314",
+      "title": "Import states",
+      "commit": "7cab0190",
+      "ts": "2026-11-18T15:06:34Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -879,5 +888,12 @@
       "reason": "check still red after 2 fix rounds"
     }
   },
-  "running": {}
+  "running": {
+    "EZD-423": {
+      "lane": 0,
+      "title": "Fix: the editor route is at its 500 KB download limit; move code out of the editor entry so tickets have room",
+      "started": "2026-11-18T14:19:30Z",
+      "develop": "dafeed1e"
+    }
+  }
 }
