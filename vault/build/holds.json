@@ -162,14 +162,6 @@
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
-      "ticket": "EZD-640",
-      "title": "Common loads list",
-      "reason": "Added 2026-10-20 in the re-cut for Q-0181 (Q-0218). Blocked 2026-11-18: Josh answered Q-0766 (researched common loads, editable); waits on that research being written into the spec (agent work, rule 2), not on Josh.|",
-      "question": "Q-0181, Q-0218, Q-0766",
-      "kind": "held",
-      "since": "2026-11-18 (moved from STATUS.md)"
-    },
-    {
       "ticket": "EZD-732",
       "title": "Mechanical calculations",
       "reason": "Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). Blocked 2026-11-18: Q-0763 settled the sheets; waits on Josh about Manual J in EZ Draft (vault/questions/phases-18-27-for-josh.md question 2 follow-up).|",
