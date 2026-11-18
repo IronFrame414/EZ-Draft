@@ -387,7 +387,8 @@
     "EZD-405",
     "EZD-305",
     "EZD-127",
-    "EZD-410"
+    "EZD-410",
+    "EZD-406"
   ],
   "seeded_done": 324,
   "merged": [
@@ -865,6 +866,14 @@
       "ts": "2026-11-18T21:03:17Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-406",
+      "title": "Box inspector",
+      "commit": "c50262f7",
+      "ts": "2026-11-18T23:36:38Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {
@@ -875,18 +884,10 @@
       "detail": "\n",
       "branch": "t/EZD-222",
       "worktree": ".claude/worktrees/EZD-222"
-    },
-    "EZD-122": {
-      "title": "Versions panel",
-      "ts": "2026-11-18T22:06:50Z",
-      "reason": "check still red after 2 fix rounds (first try: builder timed out after 90 min with no commits)",
-      "detail": "cting trace data of a different context than the active one is not supported. Skipping injection.\nEZD-423 editor route compressed JavaScript: 477096 bytes\n  ✘  197 [desktop] › e2e/net-guard.spec.ts:14:7 › EZD-021 net guard in browser tests › EZD-021 T14 (a) a page request to a live host fails the test (60ms)\n  ✘  198 [desktop] › e2e/net-guard.spec.ts:22:9 › EZD-021 net guard in browser tests › server log › EZD-021 T14 (b) a line in the server guard log fails the test (4ms)\n  ✘  200 [desktop] › e2e/net-guard.spec.ts:40:7 › EZD-159 net guard blocks page WebSockets › EZD-159 T7 a page WebSocket to a live host fails the test (118ms)\n  ✘  176 [desktop] › e2e/jobs.spec.ts:33:7 › EZD-009 background jobs › EZD-009 done when: a test job runs, reports progress and result, and the UI stays usable (1.0m)\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] Error: aborted\n[WebServer]     at ignore-listed frames {\n[WebServer]   code: 'ECONNRESET'\n[WebServer] }\n[WebServer] Error: aborted\n[WebServer]     at ignore-listed frames {\n[WebServer]   code: 'ECONNRESET'\n[WebServer] }\n  1) [desktop] › e2e/jobs.spec.ts:33:7 › EZD-009 background jobs › EZD-009 done when: a test job runs, reports progress and result, and the UI stays usable \n    Test timeout of 60000ms exceeded.\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n    Error Context: test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/error-context.md\n    Error Context: test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/error-context.md\n    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/trace.zip\n    Usage:\n        pnpm exec playwright show-trace test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/trace.zip\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n  1 failed\n    [desktop] › e2e/jobs.spec.ts:33:7 › EZD-009 background jobs › EZD-009 done when: a test job runs, reports progress and result, and the UI stays usable \n  7 did not run\n  528 passed (4.6m)\n[ELIFECYCLE] Command failed with exit code 1.\nError: \nERR_PNPM_RECURSIVE_RUN_FIRST_FAIL\n  × \"pnpm recursive run\" failed in /Users/josh/Projects/ezdraft/.claude/\n  │ worktrees/EZD-122/app\n",
-      "branch": "t/EZD-122",
-      "worktree": ".claude/worktrees/EZD-122"
     }
   },
-  "red_streak": 1,
-  "push_pending": false,
+  "red_streak": 0,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -897,7 +898,6 @@
     "EZD-216": 1,
     "EZD-215": 1,
     "EZD-306": 1,
-    "EZD-122": 1,
     "EZD-222": 1,
     "EZD-124": 1,
     "EZD-312": 1,
@@ -959,5 +959,12 @@
       "reason": "check still red after 2 fix rounds"
     }
   },
-  "running": {}
+  "running": {
+    "EZD-501": {
+      "lane": 1,
+      "title": "Ceiling data per room",
+      "started": "2026-11-18T22:08:07Z",
+      "develop": "e5e1df81"
+    }
+  }
 }
