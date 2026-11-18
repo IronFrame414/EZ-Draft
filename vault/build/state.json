@@ -381,7 +381,8 @@
     "EZD-404",
     "EZD-304",
     "EZD-215",
-    "EZD-314"
+    "EZD-314",
+    "EZD-423"
   ],
   "seeded_done": 324,
   "merged": [
@@ -811,6 +812,14 @@
       "ts": "2026-11-18T15:06:34Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-423",
+      "title": "Fix: the editor route is at its 500 KB download limit; move code out of the editor entry so tickets have room",
+      "commit": "7e03ce3a",
+      "ts": "2026-11-18T16:10:57Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {},
@@ -888,12 +897,5 @@
       "reason": "check still red after 2 fix rounds"
     }
   },
-  "running": {
-    "EZD-423": {
-      "lane": 0,
-      "title": "Fix: the editor route is at its 500 KB download limit; move code out of the editor entry so tickets have room",
-      "started": "2026-11-18T14:19:30Z",
-      "develop": "dafeed1e"
-    }
-  }
+  "running": {}
 }
