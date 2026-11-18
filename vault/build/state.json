@@ -373,7 +373,8 @@
     "EZD-310",
     "EZD-311",
     "EZD-313",
-    "EZD-401"
+    "EZD-401",
+    "EZD-229"
   ],
   "seeded_done": 324,
   "merged": [
@@ -739,6 +740,14 @@
       "ts": "2026-11-18T00:57:33Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-229",
+      "title": "Existing-condition details",
+      "commit": "1e4fae9f",
+      "ts": "2026-11-18T02:13:40Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {
@@ -826,11 +835,11 @@
     }
   },
   "running": {
-    "EZD-229": {
-      "lane": 0,
-      "title": "Existing-condition details",
-      "started": "2026-11-17T23:16:03Z",
-      "develop": "4f625607"
+    "EZD-124": {
+      "lane": 1,
+      "title": "Project card menu",
+      "started": "2026-11-18T00:57:38Z",
+      "develop": "dc8569ab"
     }
   }
 }
