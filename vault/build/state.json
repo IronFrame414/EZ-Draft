@@ -382,7 +382,8 @@
     "EZD-304",
     "EZD-215",
     "EZD-314",
-    "EZD-423"
+    "EZD-423",
+    "EZD-422"
   ],
   "seeded_done": 324,
   "merged": [
@@ -820,6 +821,14 @@
       "ts": "2026-11-18T16:10:57Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-422",
+      "title": "Fix: every fixture kind draws its own standard plan symbol, not the same box with diagonals",
+      "commit": "8af52232",
+      "ts": "2026-11-18T16:59:32Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {},
@@ -897,5 +906,18 @@
       "reason": "check still red after 2 fix rounds"
     }
   },
-  "running": {}
+  "running": {
+    "EZD-405": {
+      "lane": 1,
+      "title": "Box editing on canvas",
+      "started": "2026-11-18T16:11:54Z",
+      "develop": "3d0c21d6"
+    },
+    "EZD-305": {
+      "lane": 2,
+      "title": "Vector PDF wall detection",
+      "started": "2026-11-18T16:11:55Z",
+      "develop": "3d0c21d6"
+    }
+  }
 }
