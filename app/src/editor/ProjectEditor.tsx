@@ -43,6 +43,8 @@
 // EZD-225 (S03 States; S06:48, 78, 100; Q-0697 decisions 05): Edit model without the lock shows the drawing tools
 // paused with the note under the banner; a lock lost mid-session pauses the drawing controller and every edit path
 // reads `mayEdit`.
+// EZD-404 (S04 Layout; AC-EZD-404-1): while the Cabinets tool is on, the cabinet run screen (lazy) covers the plan
+// and the status bar shows its View "Plan + elevation A" before Scale.
 // EZD-111 (vault/plans/EZD-111.md D-Entry, C2; Q-0700; Q-0701): with Send to client, the header Share button opens
 // the Send dialog (lazy). Its no-client link opens Project settings for the session, after the Send dialog closes.
 import {
@@ -95,6 +97,7 @@ import type { EditMenuRequest, EditMenusProps } from '../lazy/edit-menu';
 import { expandGroups } from './selection/groups';
 import { EmptyPlanHint } from './EmptyPlanHint';
 import type { BenchmarkRunnerProps } from '../lazy/benchmark-runner';
+import type { CabinetRunViewProps } from '../lazy/cabinet-run';
 import { InspectorEmpty } from './inspector/InspectorEmpty';
 import type { InspectorPanelProps } from '../lazy/inspector-panel';
 import type { Change } from './model/patches';
@@ -418,6 +421,14 @@ export function ProjectEditor({
     readAdjusting,
   );
 
+  // EZD-404: the cabinet run screen is shown while the Cabinets tool is on.
+  const readCabinets = () => drawing?.getUi().tool === 'cabinets';
+  const cabinetsOn = useSyncExternalStore(
+    drawing ? drawing.subscribe : noSubscribe,
+    readCabinets,
+    readCabinets,
+  );
+
   const conflicts = useConflictInputs(session, projectId, listOpen);
 
   const retry = () => {
@@ -674,7 +685,7 @@ export function ProjectEditor({
         {showPlan && coarse && selection !== null ? (
           <LazyEditBar
             selection={selection}
-            edit={mayEdit ? edit : null}
+            edit={mayEdit && !cabinetsOn ? edit : null}
             clipboardOff={adjusting}
           />
         ) : null}
@@ -738,7 +749,7 @@ export function ProjectEditor({
   const canvas = showPlan ? (
     <>
       <PlanInputSurface controller={plan} />
-      <ZoomStack handle={plan.handle} />
+      {cabinetsOn ? null : <ZoomStack handle={plan.handle} />}
       {preview !== null ? <LazyPreviewLayer store={preview} handle={plan.handle} /> : null}
       {drawing !== null ? (
         <DrawingLayer
@@ -749,7 +760,8 @@ export function ProjectEditor({
         />
       ) : null}
       {selection !== null ? (
-        <SelectionLayer selection={selection} edit={mayEdit ? edit : null} />
+        // EZD-404: under the cabinet screen the plan's edit keys (Delete, copy, paste, undo) are off.
+        <SelectionLayer selection={selection} edit={mayEdit && !cabinetsOn ? edit : null} />
       ) : null}
       {session !== null ? (
         <EmptyPlanHint store={session.store} canEdit={canEdit} floors={floors ?? undefined} />
@@ -772,6 +784,9 @@ export function ProjectEditor({
           onMessage={(key) => messageRef.current(key)}
           floors={floors ?? undefined}
         />
+      ) : null}
+      {cabinetsOn && session !== null ? (
+        <LazyCabinetRun store={session.store} floors={floors ?? undefined} />
       ) : null}
       {stateArea}
       {panel}
@@ -859,6 +874,9 @@ export function ProjectEditor({
                   <>
                     {session !== null && floors !== null ? (
                       <FloorSwitcher store={session.store} floors={floors} canEdit={canEdit} />
+                    ) : null}
+                    {cabinetsOn && session !== null ? (
+                      <LazyCabinetStatus store={session.store} floors={floors ?? undefined} />
                     ) : null}
                     <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
                     {part('status')}
@@ -1023,6 +1041,19 @@ const benchmarkRunnerModule = lazyModule(() => import('../lazy/benchmark-runner'
 function LazyBenchmarkRunner(props: BenchmarkRunnerProps) {
   const mod = useLazy(benchmarkRunnerModule);
   return mod ? <mod.BenchmarkRunner {...props} /> : null;
+}
+
+// EZD-404 (11 Budgets; 11 rule 7): the cabinet run screen loads when the Cabinets tool is first turned on.
+const cabinetRunModule = lazyModule(() => import('../lazy/cabinet-run'));
+
+function LazyCabinetRun(props: CabinetRunViewProps) {
+  const mod = useLazy(cabinetRunModule);
+  return mod ? <mod.CabinetRunView {...props} /> : null;
+}
+
+function LazyCabinetStatus(props: CabinetRunViewProps) {
+  const mod = useLazy(cabinetRunModule);
+  return mod ? <mod.CabinetRunStatus {...props} /> : null;
 }
 
 // EZD-126 (11 Budgets): the phone and no-access notices and the conflict banner load when shown; a ready desktop

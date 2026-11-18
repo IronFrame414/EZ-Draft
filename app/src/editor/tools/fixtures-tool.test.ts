@@ -233,7 +233,8 @@ describe('EZD-234 Fixtures tool', () => {
     expect(controller.getUi().tool).toBeNull();
     const base = { canvasFailed: false, controllerEnabled: true };
     const view = editorRail({ ...base, editor: 'ready', canEdit: false });
-    expect(view?.tools.map((t) => t.id)).toEqual(['select', 'measure']);
+    // EZD-404: Cabinets is on a viewer's rail too (S04 Permissions "View projects: view runs").
+    expect(view?.tools.map((t) => t.id)).toEqual(['select', 'cabinets', 'measure']);
     const edit = editorRail({ ...base, editor: 'ready', canEdit: true });
     expect(edit?.tools.find((t) => t.id === 'fixtures')).toMatchObject({ shortcut: 'F' });
     const loading = editorRail({ ...base, editor: 'loading', canEdit: false });

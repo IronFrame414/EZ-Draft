@@ -5,10 +5,12 @@
 // EZD-235 Build step 4 (vault/plans/EZD-235.md Decided "D-Where"; 11 rule 2): exports the derived values.
 // EZD-729 Build (AC-EZD-729-1): exports the plumbing locations.
 // EZD-402 (AC-EZD-402-1): exports the cabinet run totals.
+// EZD-404 (AC-EZD-404-2): exports the cabinet run plan strip and elevation layout.
 // EZD-411 (AC-EZD-411-1): exports the countertop piece measures.
 // EZD-229 (11 Budgets; EZD-120c B11): the benchmark model is its own entry, `@ezdraft/geometry/benchmark`, so the
 // editor's first download does not carry the 3,000-object generator that only the lazy benchmark runner, the server
 // and the dev pages use.
+export * from './cabinets/elevation';
 export * from './cabinets/run';
 export * from './countertops/piece';
 export * from './derived';

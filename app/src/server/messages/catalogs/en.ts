@@ -1844,6 +1844,17 @@ export const en = {
   'office.catalog.line': 'Line: {line}',
   'office.catalog.empty': 'No items in this category yet.',
   'office.catalog.load_failed': "Couldn't load the catalog. Try again.",
+  // EZD-404 (board S04Cabinets; S04 Layout, States; vault/build/assumptions.md EZD-404 wording): the cabinet run screen.
+  'office.cabinets.region': 'Cabinet run',
+  'office.cabinets.boxes': { one: '{count} box', other: '{count} boxes' },
+  'office.cabinets.fillers': { one: '{count} filler', other: '{count} fillers' },
+  'office.cabinets.elevation_picker': 'Elevation',
+  'office.cabinets.auto_fill': 'Auto-fill run',
+  'office.cabinets.plan': 'Plan',
+  'office.cabinets.elevation': 'Elevation {letter}',
+  'office.cabinets.empty': 'Drag boxes or Auto-fill run',
+  'office.cabinets.status_view': 'View',
+  'office.cabinets.status_view_value': 'Plan + elevation {letter}',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

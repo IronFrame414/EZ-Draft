@@ -17,8 +17,16 @@ import {
 } from '../typed-entry/typed-entry';
 
 export type DrawingToolId =
-  'wall' | 'room-rect' | 'door' | 'window' | 'move' | 'fixtures' | 'sketch' | 'measure';
-export type TypedDrawingToolId = Exclude<DrawingToolId, 'fixtures' | 'sketch' | 'measure'>;
+  | 'wall'
+  | 'room-rect'
+  | 'door'
+  | 'window'
+  | 'move'
+  | 'fixtures'
+  | 'sketch'
+  | 'measure'
+  | 'cabinets';
+export type TypedDrawingToolId = Exclude<DrawingToolId, 'fixtures' | 'sketch' | 'measure' | 'cabinets'>;
 
 export const WIDTH_FIELD: TypedLengthField = {
   id: 'width',
@@ -129,6 +137,17 @@ export const MEASURE_RAIL_TOOL: RailTool = {
   icon: 'straighten',
   label: 'office.tool.measure',
   shortcut: 'Shift+L',
+};
+
+// EZD-404 (S04 Entry points "Cabinets (C) tool on the rail"; S04 Permissions "View projects: view runs, plan strip,
+// elevation"; board S04 rail, after Window): opens the cabinet run screen. Like Measure it is on every viewer's rail
+// and never paused, so it is not one of the drawing tools.
+export const CABINETS_RAIL_TOOL: RailTool = {
+  kind: 'tool',
+  id: 'cabinets',
+  icon: 'kitchen',
+  label: 'office.tool.cabinets',
+  shortcut: 'C',
 };
 
 // `at` is the snapped model point; `enter` and `escape` arrive only when the typed layer did not handle them.

@@ -1,0 +1,185 @@
+/* EZD-404 (board S04Cabinets canvas): the cabinet run screen over the plan: the run header bar, then the plan strip
+   and the elevation drawn as one SVG on the canvas. Selected boxes are drawn blue (S04 "Selected box drawn blue"). */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 24px;
+  background: var(--ez-canvas);
+  pointer-events: auto;
+  overflow: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ez-ink);
+}
+
+.counts {
+  font-family: var(--ez-font-mono);
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.pickerLabel {
+  font-size: 12px;
+}
+
+.grow {
+  flex: 1;
+}
+
+.autoFill {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.autoFill:disabled {
+  color: var(--ez-slate-400);
+}
+
+.empty {
+  margin: auto;
+  font-size: 15px;
+  color: var(--ez-slate-500);
+}
+
+.drawing {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.sectionLabel {
+  font-family: var(--ez-font-mono);
+  font-size: 3.5px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  fill: var(--ez-slate-500);
+}
+
+.wall {
+  fill: var(--ez-ink);
+}
+
+.box {
+  cursor: pointer;
+}
+
+/* An upper in the plan strip lies over the base boxes: it is drawn (and marked when picked in the elevation) but
+   never takes the pointer, so a click or hover there reaches the base box under it (AC-EZD-404-1). */
+.upperPlan {
+  pointer-events: none;
+}
+
+.outline {
+  fill: var(--ez-surface);
+  stroke: var(--ez-slate-700);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.dashed {
+  fill: transparent;
+  stroke-dasharray: 3 3;
+}
+
+.face {
+  fill: transparent;
+  stroke: var(--ez-slate-450);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.code {
+  font-family: var(--ez-font-mono);
+  font-size: 3px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  fill: var(--ez-slate-700);
+  pointer-events: none;
+}
+
+.box[data-hovered='true'] .outline {
+  stroke: var(--ez-cobalt);
+}
+
+.box[data-selected='true'] .outline {
+  fill: var(--ez-cobalt-tint);
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+}
+
+.box[data-selected='true'] .face {
+  stroke: var(--ez-cobalt);
+}
+
+.box[data-selected='true'] .code {
+  fill: var(--ez-cobalt-text);
+  font-weight: 600;
+}
+
+.window {
+  fill: var(--ez-surface);
+  stroke: var(--ez-slate-700);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.toeKick {
+  fill: var(--ez-surface-sunken);
+}
+
+.countertop {
+  fill: var(--ez-surface-sunken);
+  stroke: var(--ez-slate-700);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.floor,
+.dim {
+  stroke: var(--ez-slate-500);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.dimText,
+.heightText {
+  font-family: var(--ez-font-mono);
+  font-size: 3px;
+  fill: var(--ez-slate-700);
+}
+
+.dimText {
+  text-anchor: middle;
+}
+
