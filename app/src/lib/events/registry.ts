@@ -72,6 +72,13 @@ export const EVENTS = {
   'project.created': { kind: 'log_only' },
   // EZD-130 (Q-0697 decisions 03): Project settings saved; the changed keys.
   'project.updated': { kind: 'log_only' },
+  // EZD-124 (Q-0708; Q-0700 decisions 03): the card menu's writes. Written only as the event_log row inside each
+  // definer function (project.deleted in the delete's own transaction); never emitted.
+  'project.renamed': { kind: 'log_only' },
+  'project.status_changed': { kind: 'log_only' },
+  'project.archived': { kind: 'log_only' },
+  'project.restored': { kind: 'log_only' },
+  'project.deleted': { kind: 'log_only' },
   // EZD-301 (S01 Events emitted): the Upload step's files are stored and the import begins.
   'import.started': { kind: 'log_only' },
   'user.language_changed': { kind: 'log_only' },
@@ -186,6 +193,11 @@ export interface EventPayloads {
   'project.created': { projectId: string; source: 'standalone' | 'file' };
   // EZD-130: field names (name, address, scope_of_work, type, customer_id) and per-project default keys.
   'project.updated': { projectId: string; keys: string[] };
+  'project.renamed': { projectId: string; from: string; to: string };
+  'project.status_changed': { projectId: string; from: string; to: string };
+  'project.archived': { projectId: string };
+  'project.restored': { projectId: string };
+  'project.deleted': { projectId: string; name: string };
   'import.started': { projectId: string; sourceFileIds: string[] };
   'user.language_changed': { appUserId: string; language: Language };
   // EZD-106: one Save on the Users page inspector (S15: user id, changed permissions, role, actor).

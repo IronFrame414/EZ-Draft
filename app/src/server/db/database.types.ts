@@ -931,6 +931,9 @@ isOneToOne: false
 "acquire_edit_lock":
 { Args: { "p_device_id": string,"p_ip"?: unknown,"p_project": string }; Returns: Json
                            },
+"archive_project":
+{ Args: { "p_project": string }; Returns: Json
+                           },
 "cancel_edit_request":
 { Args: { "p_ip"?: unknown,"p_project": string }; Returns: Json
                            },
@@ -986,6 +989,9 @@ isOneToOne: false
                            },
 "delete_my_sync_conflict":
 { Args: { "p_id": string }; Returns: boolean
+                           },
+"delete_project":
+{ Args: { "p_confirm_name": string,"p_project": string }; Returns: Json
                            },
 "delete_role":
 { Args: { "p_ip"?: unknown,"p_role_id": string }; Returns: Json
@@ -1111,6 +1117,11 @@ isOneToOne: false
 "list_notifications":
 { Args: { "p_before_created_at": string,"p_before_id": string }; Returns: Json
                            },
+"list_project_purge_files":
+{ Args: { "p_limit": number,"p_project": string,"p_tenant": string }; Returns: {
+              "bucket_id": string,"name": string
+            }[]
+                           },
 "list_projects":
 { Args: { "p_after"?: Json,"p_search"?: string,"p_sort": string,"p_status"?: string }; Returns: Json
                            },
@@ -1184,6 +1195,9 @@ isOneToOne: false
 "remove_member":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
                            },
+"rename_project":
+{ Args: { "p_name": string,"p_project": string }; Returns: Json
+                           },
 "request_edit_lock":
 { Args: { "p_ip"?: unknown,"p_minutes": number,"p_project": string }; Returns: Json
                            },
@@ -1197,6 +1211,9 @@ isOneToOne: false
                            },
 "respond_edit_request":
 { Args: { "p_ip"?: unknown,"p_project": string,"p_request": string,"p_response": string }; Returns: Json
+                           },
+"restore_project":
+{ Args: { "p_project": string }; Returns: Json
                            },
 "rewrap_my_ai_key":
 { Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean
@@ -1236,6 +1253,9 @@ isOneToOne: false
                            },
 "set_plan_scale":
 { Args: { "p_project": string,"p_scale": number }; Returns: number
+                           },
+"set_project_status":
+{ Args: { "p_project": string,"p_status": string }; Returns: Json
                            },
 "sign_in_throttle_settle":
 { Args: { "p_attempt_id": string,"p_ip_attempt_id": string }; Returns: undefined

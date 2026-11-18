@@ -264,6 +264,19 @@ describe('EZD-109 event log sink', () => {
     }
   });
 
+  it('EZD-124 the card menu events are written in their definer function transaction (Q-0708)', async () => {
+    const { EVENT_LOG } = await import('./event-log');
+    for (const name of [
+      'project.renamed',
+      'project.status_changed',
+      'project.archived',
+      'project.restored',
+      'project.deleted',
+    ] as const) {
+      expect(EVENT_LOG[name].mode, name).toBe('transaction');
+    }
+  });
+
   it('U8 the event log sink is a default sink once', async () => {
     const { defaultSinks, eventLogSink } = await import('./index');
     expect(defaultSinks).toContain(eventLogSink);

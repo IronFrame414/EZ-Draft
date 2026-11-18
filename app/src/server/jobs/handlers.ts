@@ -4,9 +4,11 @@
 // EZD-021 Step 5 adds ai_read, production included.
 // EZD-110a Step 12 adds notification_email, production included.
 // EZD-302 adds import (Polycam DXF detection), production included.
+// EZD-124 adds project_purge (a deleted project's files), production included.
 import { aiReadHandler } from './handlers/ai-read';
 import { importHandler } from './handlers/import';
 import { notificationEmailHandler } from './handlers/notification-email';
+import { projectPurgeHandler } from './handlers/project-purge';
 import { testJobHandler } from './handlers/test-job';
 import type { JobHandlers } from './registry';
 
@@ -16,11 +18,13 @@ export function getHandlers(): JobHandlers {
       ai_read: aiReadHandler,
       import: importHandler,
       notification_email: notificationEmailHandler,
+      project_purge: projectPurgeHandler,
     };
   return {
     ai_read: aiReadHandler,
     import: importHandler,
     notification_email: notificationEmailHandler,
+    project_purge: projectPurgeHandler,
     test: testJobHandler,
   };
 }

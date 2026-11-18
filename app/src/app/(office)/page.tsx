@@ -40,6 +40,10 @@ export default async function ProjectsPage(): Promise<ReactElement> {
   const canCreate = ctx !== 'failed' && can(ctx, 'create_projects');
   // EZD-301 (S02 Permissions): starting from a file also needs Edit model (every import review action does).
   const canImport = ctx !== 'failed' && can(ctx, 'create_projects') && can(ctx, 'edit_model');
+  // EZD-124 (Q-0700 decisions 10): the card menu's Rename and Set status need Edit model; Archive, Restore and
+  // Delete need Delete projects.
+  const canEdit = ctx !== 'failed' && can(ctx, 'edit_model');
+  const canDelete = ctx !== 'failed' && can(ctx, 'delete_projects');
   const account = {
     ...(await loadProjectsAccount(createSessionClient(), session)),
     showSettings,
@@ -49,7 +53,13 @@ export default async function ProjectsPage(): Promise<ReactElement> {
       <StateHost>
         <div className={styles.page}>
           {allowed ? (
-            <ProjectsView account={account} canCreate={canCreate} canImport={canImport} />
+            <ProjectsView
+              account={account}
+              canCreate={canCreate}
+              canImport={canImport}
+              canEdit={canEdit}
+              canDelete={canDelete}
+            />
           ) : (
             <ProjectsNoAccessView account={account} />
           )}

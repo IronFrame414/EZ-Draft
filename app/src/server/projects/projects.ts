@@ -79,6 +79,7 @@ export function decodeCursor(s: string): ProjectCursor | null {
   return parsed.success ? parsed.data : null;
 }
 
+// EZD-124: `archived` is a tab, not a status; list_projects reads it as archived projects only.
 const isTab = (v: string): v is ProjectTab => (PROJECT_TABS as readonly string[]).includes(v);
 const isSort = (v: string): v is ProjectSort => (PROJECT_SORTS as readonly string[]).includes(v);
 
@@ -120,6 +121,7 @@ const pageSchema = z.object({
       openItems: z.number().int().nonnegative(),
       hasThumbnail: z.boolean(),
       versionNo: z.number().int().positive().nullable(),
+      archived: z.boolean(),
     }),
   ),
   next: cursorSchema.nullable(),
@@ -132,6 +134,7 @@ const countsSchema = z.strictObject({
   permit_submitted: z.number().int().nonnegative(),
   approved: z.number().int().nonnegative(),
   in_build: z.number().int().nonnegative(),
+  archived: z.number().int().nonnegative(),
 });
 
 export async function listProjects(

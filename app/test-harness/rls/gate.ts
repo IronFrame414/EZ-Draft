@@ -5,6 +5,12 @@
 export type GatedRpcCall = { fn: string; args: Record<string, unknown> };
 
 export const GATED_RPC_CALLS: GatedRpcCall[] = [
+  // EZD-124: the project card menu (authenticated only).
+  { fn: 'rename_project', args: { p_project: null, p_name: null } },
+  { fn: 'set_project_status', args: { p_project: null, p_status: null } },
+  { fn: 'archive_project', args: { p_project: null } },
+  { fn: 'restore_project', args: { p_project: null } },
+  { fn: 'delete_project', args: { p_project: null, p_confirm_name: null } },
   // EZD-313: Finish import and Cancel import (authenticated only).
   { fn: 'finish_import', args: { p_project: null, p_job: null, p_objects: null } },
   { fn: 'cancel_import', args: { p_project: null, p_job: null } },

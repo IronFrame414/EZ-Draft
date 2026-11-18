@@ -65,6 +65,7 @@ describe('EZD-117b list and count projects with a search', () => {
       permit_submitted: 0,
       approved: 0,
       in_build: 0,
+      archived: 0,
     });
     expect(await counts(owner, { p_search: 'bath' })).toEqual({
       all: 3,
@@ -73,6 +74,7 @@ describe('EZD-117b list and count projects with a search', () => {
       permit_submitted: 0,
       approved: 1,
       in_build: 0,
+      archived: 0,
     });
     expect(
       await names(owner, { p_sort: 'edited', p_status: 'draft', p_search: 'hendricks' }),
@@ -90,6 +92,7 @@ describe('EZD-117b list and count projects with a search', () => {
       permit_submitted: 0,
       approved: 0,
       in_build: 0,
+      archived: 0,
     });
   });
 });

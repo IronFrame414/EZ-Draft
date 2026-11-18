@@ -496,3 +496,138 @@
   color: var(--ez-cobalt-text);
   pointer-events: none;
 }
+
+/* EZD-124 (S01 Card overflow menu; Q-0702): the three-dot menu over the card's top right, shown on hover or focus
+   (always on touch screens), and the Delete dialog. */
+.cardWrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardWrap > .card {
+  flex: 1;
+}
+
+.cardMenu {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.cardMenuButton {
+  box-sizing: border-box;
+  /* 11 Accessibility "at least 44 px" on every pointer, like the other Projects page controls. */
+  min-width: var(--ez-touch-target);
+  min-height: var(--ez-touch-target);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  cursor: pointer;
+  box-shadow: var(--ez-shadow-card);
+}
+
+@media (hover: hover) {
+  .cardWrap .cardMenuButton {
+    opacity: 0;
+  }
+
+  .cardWrap:hover .cardMenuButton,
+  .cardWrap:focus-within .cardMenuButton,
+  .cardMenuButton[aria-expanded='true'] {
+    opacity: 1;
+  }
+}
+
+.menuLabel {
+  padding: 8px 12px 4px;
+  font: 600 12px var(--ez-font-sans);
+  color: var(--ez-slate-500);
+}
+
+.menuDivider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--ez-border);
+}
+
+.menuItemDanger {
+  color: var(--ez-red-text);
+}
+
+.renameInput {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--ez-touch-target);
+  padding: 6px 10px;
+  border: 1px solid var(--ez-cobalt);
+  border-radius: var(--ez-radius-8);
+  font: 600 15px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.deleteOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--ez-overlay);
+}
+
+.deleteContent {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 101;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  width: min(460px, calc(100vw - 32px));
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-14);
+  background: var(--ez-surface);
+  box-shadow: var(--ez-shadow-dialog);
+  color: var(--ez-ink);
+}
+
+.deleteTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.deleteMessage {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ez-slate-500);
+}
+
+.deleteLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font: 600 13px var(--ez-font-sans);
+}
+
+.deleteInput {
+  box-sizing: border-box;
+  min-height: var(--ez-touch-target);
+  padding: 8px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  font: 400 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.deleteActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

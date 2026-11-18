@@ -14,6 +14,7 @@ const COUNTS = {
   permit_submitted: 0,
   approved: 0,
   in_build: 0,
+  archived: 0,
 };
 
 function mockClient() {

@@ -138,6 +138,12 @@ export const EVENT_LOG: EventLogRules = {
     mode: 'sink',
     object: (e) => ({ type: 'project', id: e.payload.projectId }),
   },
+  // EZD-124 (Q-0708; Q-0700 decisions 03): written by the card menu's definer functions in their transaction.
+  'project.renamed': TRANSACTION,
+  'project.status_changed': TRANSACTION,
+  'project.archived': TRANSACTION,
+  'project.restored': TRANSACTION,
+  'project.deleted': TRANSACTION,
   'import.started': {
     mode: 'sink',
     object: (e) => ({ type: 'project', id: e.payload.projectId }),

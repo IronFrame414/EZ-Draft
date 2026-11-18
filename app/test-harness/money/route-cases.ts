@@ -1154,6 +1154,46 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-130: Project settings save; 200 ProjectSettings (no money)',
   },
   {
+    file: `${API}projects/[id]/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/projects/[id]/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}`, {
+        method: 'PATCH',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ status: 'draft' }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-124: the card menu Rename, Set status, Archive, Restore; 200 { changed } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/delete/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/delete/route'),
+    request: async (env) => {
+      // Its own project, so the shared one stays for the other cases.
+      const { data, error } = await adminDb()
+        .from('project')
+        .insert({ tenant_id: env.tenantId, name: 'Money delete case', address: '1 Money St', type: 'kitchen' })
+        .select('id')
+        .single();
+      if (error || !data) throw new Error(`money delete case project: ${error?.message}`);
+      const id = (data as { id: string }).id;
+      return {
+        request: new Request(`${BASE}/api/projects/${id}/delete`, {
+          method: 'POST',
+          headers: JSON_HEADERS,
+          body: JSON.stringify({ confirmName: 'Money delete case' }),
+        }),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-124: Delete a project; 200 { deleted: true } (no money)',
+  },
+  {
     file: `${API}projects/[id]/model/route.ts`,
     method: 'GET',
     load: () => import('../../src/app/api/projects/[id]/model/route'),
