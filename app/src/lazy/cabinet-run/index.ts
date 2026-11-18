@@ -2,3 +2,6 @@
 // first turned on.
 export { CabinetRunScreen, CabinetRunStatus, CabinetRunView } from './CabinetRunView';
 export type { CabinetRunScreenProps, CabinetRunViewProps } from './CabinetRunView';
+// EZD-406: the box inspector, from the same module.
+export { BoxInspectorScreen, CabinetInspector } from './BoxInspector';
+export type { BoxInspectorScreenProps, CabinetInspectorProps } from './BoxInspector';

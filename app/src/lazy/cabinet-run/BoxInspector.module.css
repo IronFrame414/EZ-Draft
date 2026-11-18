@@ -1,0 +1,305 @@
+/* EZD-406 (board S04Cabinets inspector; S04 Layout "Inspector 336px"; the S03d inspector style, as
+   editor/inspector/InspectorPanel.module.css): the box inspector. Colours and radii are tokens. */
+
+.panel {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  color: var(--ez-ink);
+}
+
+.header {
+  padding: 18px 18px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--ez-radius-999);
+  font: 500 12px var(--ez-font-sans);
+  background: var(--ez-surface-sunken);
+  color: var(--ez-slate-500);
+}
+
+.pill_new {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.pill_demo {
+  color: var(--ez-red);
+}
+
+.pill_existing {
+  color: var(--ez-slate-500);
+}
+
+.pillSelect {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.grid3 {
+  padding: 0 18px 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.input,
+.select {
+  font: 400 14px var(--ez-font-mono);
+  color: var(--ez-ink);
+  padding: 9px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--ez-surface);
+}
+
+.readOnly {
+  padding: 9px 10px;
+  border: 1px dashed var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  font: 400 14px var(--ez-font-mono);
+  color: var(--ez-ink);
+  background: var(--ez-group-band);
+}
+
+.refused {
+  font-size: 12px;
+  color: var(--ez-red);
+}
+
+.section {
+  border-top: 1px solid var(--ez-divider);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.head {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+
+.segmented {
+  display: flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface-sunken);
+}
+
+.segment {
+  flex: 1;
+  height: 30px;
+  border: 0;
+  border-radius: var(--ez-radius-6);
+  background: transparent;
+  color: var(--ez-slate-500);
+  font: 500 13px var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.segment[aria-pressed='true'] {
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.rowLabel {
+  color: var(--ez-ink);
+}
+
+.value {
+  color: var(--ez-slate-500);
+  text-align: right;
+}
+
+.linkValue {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: 400 14px var(--ez-font-mono);
+  color: var(--ez-slate-500);
+  text-align: right;
+  cursor: pointer;
+}
+
+.linkValue:hover {
+  color: var(--ez-cobalt-text);
+}
+
+.inlineSelect {
+  border: 0;
+  background: transparent;
+  font: 400 14px var(--ez-font-sans);
+  color: var(--ez-slate-500);
+  text-align: right;
+  max-width: 60%;
+}
+
+.mono {
+  font-family: var(--ez-font-mono);
+}
+
+.hint {
+  margin: 0;
+  padding: 18px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.section .hint {
+  padding: 0;
+}
+
+.swapList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.swapItem {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: 400 13px var(--ez-font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+
+.swapItem:hover {
+  background: var(--ez-surface-sunken);
+}
+
+.size {
+  font: 400 12px var(--ez-font-mono);
+  color: var(--ez-slate-500);
+}
+
+.grow {
+  flex: 1;
+}
+
+.footer {
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.footerButton {
+  height: 40px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: 600 14px var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.footerButton[aria-expanded='true'] {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.footerButton:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.pickerLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  background: var(--ez-surface);
+}
+
+.pickerHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.close {
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  color: var(--ez-slate-500);
+  cursor: pointer;
+}

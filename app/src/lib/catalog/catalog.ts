@@ -49,6 +49,9 @@ export type CatalogItem = {
   depth: number | null;
   height: number | null;
   finish: string | null;
+  // EZD-406: the company cost, sent only to a member with See company costs (absent otherwise; null when the item
+  // has none on record).
+  unitCost?: number | null;
 };
 
 export type CatalogLineGroup = { line: string | null; items: CatalogItem[] };

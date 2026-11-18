@@ -45,6 +45,8 @@
 // reads `mayEdit`.
 // EZD-404 (S04 Layout; AC-EZD-404-1): while the Cabinets tool is on, the cabinet run screen (lazy) covers the plan
 // and the status bar shows its View "Plan + elevation A" before Scale.
+// EZD-406 (S04 Layout "Inspector 336px: selected box"): while it is on, the inspector place holds the box inspector
+// (lazy, same module), which reads the box selected on the drawing through one small selection store per session.
 // EZD-111 (vault/plans/EZD-111.md D-Entry, C2; Q-0700; Q-0701): with Send to client, the header Share button opens
 // the Send dialog (lazy). Its no-client link opens Project settings for the session, after the Send dialog closes.
 // EZD-304 (S01 PDF: scale calibration; Q-0203): the project's newest calibrated PDF lies under the plan for tracing;
@@ -100,7 +102,8 @@ import type { EditMenuRequest, EditMenusProps } from '../lazy/edit-menu';
 import { expandGroups } from './selection/groups';
 import { EmptyPlanHint } from './EmptyPlanHint';
 import type { BenchmarkRunnerProps } from '../lazy/benchmark-runner';
-import type { CabinetRunViewProps } from '../lazy/cabinet-run';
+import type { CabinetInspectorProps, CabinetRunViewProps } from '../lazy/cabinet-run';
+import { createCabinetSelectionStore } from './cabinets/cabinet-selection-store';
 import { InspectorEmpty } from './inspector/InspectorEmpty';
 import type { InspectorPanelProps } from '../lazy/inspector-panel';
 import type { Change } from './model/patches';
@@ -439,6 +442,16 @@ export function ProjectEditor({
     readCabinets,
     readCabinets,
   );
+  const sessionStore = session?.store ?? null;
+  // A new model session starts with no cabinet selected.
+  const cabinetSelection = useMemo(
+    () => (sessionStore === null ? null : createCabinetSelectionStore()),
+    [sessionStore],
+  );
+  // Leaving the Cabinets tool drops its selection, as the screen's own selection did before EZD-406.
+  useEffect(() => {
+    if (!cabinetsOn) cabinetSelection?.getState().send({ type: 'set', ids: [] });
+  }, [cabinetsOn, cabinetSelection]);
 
   const conflicts = useConflictInputs(session, projectId, listOpen);
 
@@ -805,7 +818,12 @@ export function ProjectEditor({
       ) : null}
       {cabinetsOn && session !== null ? (
         // EZD-405: boxes are edited here with Edit model and the lock.
-        <LazyCabinetRun store={session.store} floors={floors ?? undefined} canEdit={mayEdit} />
+        <LazyCabinetRun
+          store={session.store}
+          floors={floors ?? undefined}
+          canEdit={mayEdit}
+          selectionStore={cabinetSelection ?? undefined}
+        />
       ) : null}
       {stateArea}
       {panel}
@@ -820,7 +838,14 @@ export function ProjectEditor({
   );
   // EZD-213b (vault/plans/EZD-213b.md D-Editor): the inspector aside for every viewer of a ready plan.
   const inspector =
-    showPlan && session !== null && selection !== null ? (
+    showPlan && cabinetsOn && session !== null && cabinetSelection !== null ? (
+      <LazyCabinetInspector
+        store={session.store}
+        selectionStore={cabinetSelection}
+        floors={floors ?? undefined}
+        canEdit={mayEdit}
+      />
+    ) : showPlan && session !== null && selection !== null ? (
       <InspectorStack>
         <LazyInspectorPanel
           store={session.store}
@@ -1076,6 +1101,11 @@ const cabinetRunModule = lazyModule(() => import('../lazy/cabinet-run'));
 function LazyCabinetRun(props: CabinetRunViewProps) {
   const mod = useLazy(cabinetRunModule);
   return mod ? <mod.CabinetRunView {...props} /> : null;
+}
+
+function LazyCabinetInspector(props: CabinetInspectorProps) {
+  const mod = useLazy(cabinetRunModule);
+  return mod ? <mod.CabinetInspector {...props} /> : null;
 }
 
 function LazyCabinetStatus(props: CabinetRunViewProps) {

@@ -3,6 +3,8 @@
 // Each test makes its own company (never tenant 1) with fixture S and its own member. Board S04's back wall run (a 3"
 // filler, B15, DW24, SB36, B18, B21 = 117"; two uppers) on a 117 1/2" wall is seeded through the editor hook. Helpers
 // are copies of measure.spec.ts. No import.meta or __dirname (L-017).
+// EZD-406 (S04 Controls (inspector); AC-EZD-406-1, -2): the box inspector, with the company's R23 Generic line and
+// one priced Shaker sink base in its catalog.
 import { CURRENT_SCHEMA_VERSION, createWallData } from '@ezdraft/geometry';
 import type { Locator, Page } from '@playwright/test';
 import {
@@ -11,6 +13,7 @@ import {
   createMember,
   createTenant,
   expect,
+  harnessSql,
   setPermissions,
   test,
 } from '../test-harness/e2e/test';
@@ -504,5 +507,93 @@ test.describe('EZD-410 Cabinet flags and states', () => {
     await expect.poll(() => wallStartY(page)).toBe(0);
     await expect(flag).toHaveCount(0);
     await expect(page.locator('[data-flagged="true"]')).toHaveCount(0);
+  });
+});
+
+test.describe('EZD-406 Box inspector', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  async function withCatalog(permissions: string[]) {
+    const tenant = await createTenant();
+    const project = await seedFixtureS(tenant);
+    const user = await createMember({ tenantId: tenant, scope: 'all', listed: [] });
+    await setPermissions(tenant, user.membershipId, permissions as never);
+    await harnessSql()`select private.seed_catalog_generic_line(${tenant}::uuid)`;
+    await harnessSql()`insert into public.catalog_item
+      (tenant_id, category, subcategory, line, name, brand, model, width, depth, height, finish, unit_cost)
+      values (${tenant}::uuid, 'cabinets', 'sink_base', 'Shaker', 'Sink base', 'Supplier', 'SB36-SH',
+              36, 24, 34.5, 'Shaker, Midnight', 1.25)`;
+    return { project, user };
+  }
+
+  test('AC-EZD-406-1, -2 the inspector shows the box; swap keeps its run position; cost with See company costs', async ({
+    page,
+    signInAs,
+  }) => {
+    const { project, user } = await withCatalog([...EDITOR, 'see_company_costs']);
+    await signInAs(user.email);
+    await openReady(page, project.P1);
+    const ids = await seedRun(page);
+    await saved(page);
+
+    await page.keyboard.press('c');
+    await box(page, ids.SB36, 'elevation').click();
+    await expect(id(page, 'box-inspector-title')).toHaveText('SB36 · Sink base');
+    await expect(id(page, 'box-inspector-position')).toHaveText('Box 3 of 5 in back wall run');
+    await expect(id(page, 'box-inspector-width')).toHaveValue('36"');
+    await expect(id(page, 'box-inspector-height')).toHaveValue('34 1/2"');
+
+    const runOrder = () =>
+      page.evaluate(() => {
+        const run = (window as unknown as Window2).__ezdraftEditor
+          .objects()
+          .find((o) => o.type === 'cabinet_run');
+        return (run?.data.attributes as { base: string[] }).base;
+      });
+    const before = await runOrder();
+
+    await id(page, 'box-inspector-swap').click();
+    await id(page, 'box-inspector-swap-list')
+      .locator('[data-testid="box-inspector-swap-item"]', { hasText: 'SB36-SH' })
+      .click();
+    await expect(id(page, 'box-inspector-title')).toHaveText('SB36-SH · Sink base');
+    // AC-EZD-406-1: same place in the run.
+    await expect(id(page, 'box-inspector-position')).toHaveText('Box 3 of 5 in back wall run');
+    expect(await runOrder()).toEqual(before);
+    await expect.poll(() => selectedIn(page, 'elevation')).toEqual([ids.SB36]);
+    await expect(id(page, 'box-inspector-item')).toHaveText('[Supplier] SB36-SH');
+    // AC-EZD-406-2: with See company costs the Cost row shows.
+    await expect(id(page, 'box-inspector-cost')).toHaveText('$1.25 · internal');
+    await saved(page);
+
+    // A typed width updates the code, as on the canvas (B15 to B18).
+    await box(page, ids.B15, 'elevation').click();
+    await id(page, 'box-inspector-width').fill('18');
+    await id(page, 'box-inspector-width').press('Enter');
+    await expect(id(page, 'box-inspector-title')).toHaveText('B18 · Base');
+  });
+
+  test('AC-EZD-406-2 without See company costs the Cost row is absent', async ({ page, signInAs }) => {
+    const { project, user } = await withCatalog(EDITOR);
+    await signInAs(user.email);
+    await openReady(page, project.P1);
+    const ids = await seedRun(page);
+    await saved(page);
+
+    await page.keyboard.press('c');
+    await box(page, ids.SB36, 'elevation').click();
+    await id(page, 'box-inspector-swap').click();
+    await id(page, 'box-inspector-swap-list')
+      .locator('[data-testid="box-inspector-swap-item"]', { hasText: 'SB36-SH' })
+      .click();
+    await expect(id(page, 'box-inspector-item')).toHaveText('[Supplier] SB36-SH');
+    await expect(id(page, 'box-inspector-cost')).toHaveCount(0);
+    await expect(id(page, 'box-inspector')).not.toContainText('internal');
   });
 });

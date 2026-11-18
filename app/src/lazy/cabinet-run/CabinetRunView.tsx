@@ -10,11 +10,13 @@
 // "Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z"; S04 Permissions "Edit model: place, drag, resize, swap, delete boxes ... Also
 // requires the edit lock"; AC-EZD-405-1; vault/build/assumptions.md EZD-405): with Edit model and the lock, boxes are
 // edited on the drawing. A drag shows its result live and is one edit (one undo step) when the pointer is let go.
+// EZD-406 (S04 Controls "Click box | ... inspector shows it", "Right-click box | Context menu: Swap box, ..."): the
+// selection lives in a small store shared with the box inspector (`selectionStore`; a screen without one keeps its
+// own), and the context menu's Swap box opens the inspector's compatible list.
 import {
   useCallback,
   useEffect,
   useMemo,
-  useReducer,
   useRef,
   useState,
   type FormEvent,
@@ -42,14 +44,16 @@ import type { FloorChoice } from '../../editor/floors/floors';
 import { useChosenFloor } from '../../editor/floors/use-chosen-floor';
 import { openFloorId } from '../../editor/plan/batches';
 import {
-  NO_CABINET_SELECTION,
+  createCabinetSelectionStore,
+  type CabinetSelectionStore,
+} from '../../editor/cabinets/cabinet-selection-store';
+import {
   cabinetDeleteChanges,
   cabinetDropIndex,
   cabinetDuplicateChanges,
   cabinetHeightChanges,
   cabinetReorderChanges,
   cabinetResizeChanges,
-  cabinetSelect,
   cabinetView,
   isCabinetSelected,
   modelObjects,
@@ -65,11 +69,19 @@ export type CabinetRunViewProps = {
   // EZD-405: Edit model and holding the lock; without it the screen only reads.
   canEdit?: boolean;
   newId?: () => string;
+  // EZD-406: the selection shared with the box inspector.
+  selectionStore?: CabinetSelectionStore;
 };
 
 const inches = (n: number) => `${formatInches(n)}"`;
 
-function useCabinetModel(store: ModelStore, floors?: FloorChoice) {
+// The shared selection store, or one of the screen's own when none is given.
+export function useCabinetSelectionStore(given?: CabinetSelectionStore): CabinetSelectionStore {
+  const [own] = useState(createCabinetSelectionStore);
+  return given ?? own;
+}
+
+export function useCabinetModel(store: ModelStore, floors?: FloorChoice) {
   const chosen = useChosenFloor(floors);
   const objects = useStore(store, (s) => s.objects);
   const floorId = useMemo(
@@ -110,9 +122,12 @@ export function CabinetRunView({
   floors,
   canEdit = false,
   newId,
+  selectionStore,
 }: CabinetRunViewProps): ReactElement {
   const { objects, parsed, floorId, view } = useCabinetModel(store, floors);
-  const [selection, send] = useReducer(cabinetSelect, NO_CABINET_SELECTION);
+  const selStore = useCabinetSelectionStore(selectionStore);
+  const selection = useStore(selStore, (s) => s.selection);
+  const send = selStore.getState().send;
   const [drag, setDrag] = useState<Drag | null>(null);
   const [entry, setEntry] = useState<CabinetEntry | null>(null);
   const [menu, setMenu] = useState<Menu | null>(null);
@@ -145,7 +160,7 @@ export function CabinetRunView({
   const deleteSelected = useCallback(() => {
     if (view === null || selection.ids.length === 0) return;
     if (apply(cabinetDeleteChanges(view, selection.ids)).length > 0) send({ type: 'set', ids: [] });
-  }, [view, selection.ids, apply]);
+  }, [view, selection.ids, apply, send]);
 
   const duplicate = useCallback(
     (ids: readonly string[]) => {
@@ -153,7 +168,7 @@ export function CabinetRunView({
       const r = cabinetDuplicateChanges(view, parsed, ids, newId ?? (() => crypto.randomUUID()));
       if (apply(r.changes).length > 0) send({ type: 'set', ids: r.ids });
     },
-    [view, parsed, newId, apply],
+    [view, parsed, newId, apply, send],
   );
 
   // Esc cancels a drag, then closes the menu or the typed entry, then clears the selection; with nothing left it
@@ -185,7 +200,7 @@ export function CabinetRunView({
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [drag, menu, entry, selection.ids.length, canEdit, deleteSelected, store]);
+  }, [drag, menu, entry, selection.ids.length, canEdit, deleteSelected, store, send]);
 
   const edit: CabinetEditHandlers | undefined =
     !canEdit || view === null
@@ -271,6 +286,11 @@ export function CabinetRunView({
           ? {
               x: menu.x,
               y: menu.y,
+              onSwap: () => {
+                setMenu(null);
+                send({ type: 'click', id: menu.id });
+                selStore.getState().openSwap(menu.id);
+              },
               onDuplicate: () => {
                 setMenu(null);
                 duplicate(menuIds);
@@ -314,7 +334,14 @@ export type CabinetEditHandlers = {
   isDragging: boolean;
 };
 
-export type CabinetMenuProps = { x: number; y: number; onDuplicate(): void; onDelete(): void };
+export type CabinetMenuProps = {
+  x: number;
+  y: number;
+  // EZD-406: opens the box inspector's Swap box list for the box under the pointer.
+  onSwap?: () => void;
+  onDuplicate(): void;
+  onDelete(): void;
+};
 
 export type CabinetRunScreenProps = {
   view: CabinetView | null;
@@ -424,6 +451,16 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
           data-testid="cabinet-menu"
           style={{ left: menu.x, top: menu.y }}
         >
+          {menu.onSwap !== undefined ? (
+            <button
+              type="button"
+              role="menuitem"
+              className={styles.menuItem}
+              onClick={menu.onSwap}
+            >
+              {t('office.cabinets.swap')}
+            </button>
+          ) : null}
           <button
             type="button"
             role="menuitem"
