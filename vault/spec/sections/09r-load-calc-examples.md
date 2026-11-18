@@ -1,6 +1,6 @@
 # Worked examples · load calc optional method (220.83), cases 1, 3, 4 and Table 220.55 (phase 20)
 
-Added for EZD-615 (Q-0761). 09a is frozen word for word by the spec split check (`scripts/spec/split.test.mjs`, Q-0218), so these examples sit here and read with 09a. The rules are in decisions 09-calculations-and-rules, row Q-0761. The arithmetic was recomputed exactly by the calc-auditor (agent) on 2026-11-18.
+Added for EZD-615 (Q-0761). 09a is frozen word for word by the spec split check (`scripts/spec/split.test.mjs`, Q-0218), so these examples sit here and read with 09a. The rules are in decisions 09-calculations-and-rules, row Q-0761. The calc-auditor (agent) recomputed every number exactly on 2026-11-18. It also flagged that the pool contents and the Table 220.55 rows beyond the one-range row are not in the vault. This session settled them from published summaries as agent work (only design and UI go to Josh). Q-0761 records the choices.
 
 **Source quality.** Like 09a, these follow published summaries and one published worked example, not the code book (KNOWN-LIMITS item 2). Every line they use shows the "not yet verified" tag. The sources:
 - 220.83 pool and the 8 kVA / 40% split: ckelectricandsons.com/code/220-83; evchargeright.com/blog/nec-220-83-existing-homes; necmastery.com/blog/master-section-22083-nec-2023-calculate-electrical-service; code-check-rules O-02, O-03; catalog NE4-137.
@@ -17,7 +17,7 @@ Added for EZD-615 (Q-0761). 09a is frozen word for word by the spec split check 
 - **(A) No new heating or cooling**: existing heating and existing cooling both go in the pool at nameplate. This is the conservative reading.
 - **(B) New heating or cooling is installed**: the larger of heating or cooling goes at 100%, outside the pool. No heating or cooling goes in the pool.
 - **New circuits** other than heating, cooling and EV join the pool (O-02: "existing plus new loads").
-- **EV charger**: at 100%, outside the pool. Its value is the larger of nameplate or 7,200 VA under the 2023 NEC, and nameplate under the 2020 NEC (NE4-008).
+- **EV charger**: at 100%, outside the pool. Its value is the larger of nameplate or 7,200 VA under the 2023 NEC, and nameplate under the 2020 NEC (NE4-008). The engine takes the NEC edition as an input, and fixtures 4b and 4b-2020 test both. Which edition a project uses before EZD-613 follows the existing EZD-608 and EZD-613 rows in vault/build/assumptions.md.
 
 ### Toggle fixture: the 09a house under 220.83(A)
 
@@ -109,6 +109,7 @@ This uses the standard method exactly as in 09a, on the subpanel's loads only. T
 - **Note 1**: a range over 12 kW, up to 27 kW, raises column C by 5% for each kW over 12. A fraction of a kW rounds half up to whole kW (a choice, recorded in Q-0761).
 - **Note 4**: a counter-mounted cooktop and up to two wall ovens in the same room count as one range, rated at the sum of their nameplates. One wall oven or one cooktop alone counts at nameplate.
 - **Columns A and B** are not used. Their values were not confirmed from a source, and column C is the value used for every appliance over 1¾ kW. A cooking appliance of 1¾ kW or less counts at nameplate.
+- **Order of the rules**: first, a cooktop and up to two wall ovens in one room become one range (Note 4). Next, when the dwelling then has exactly one cooking item and it is a wall oven or cooktop on its own, it counts at nameplate (Note 4). Otherwise every item over 1¾ kW takes column C by the count of items, with Note 1 when a single range is over 12 kW.
 - **Errors**: more than 5 cooking appliances, or a range over 27 kW, gives the calc error naming the range line.
 
 | # | Cooking setup | Line VA |
@@ -119,3 +120,4 @@ This uses the standard method exactly as in 09a, on the subpanel's loads only. T
 | R4 | two ranges, each not over 12 kW | 11,000 |
 | R5 | one wall oven 4.8 kW alone | 4,800 (nameplate) |
 | R6 | one 27 kW range | 15 kW over: 8,000 × 175% = 14,000 |
+| R7 | cooktop 7.2 kW in the kitchen + wall oven 4.8 kW in another room | 2 items, column C: 11,000 |
