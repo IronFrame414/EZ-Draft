@@ -799,7 +799,8 @@ export function ProjectEditor({
         />
       ) : null}
       {cabinetsOn && session !== null ? (
-        <LazyCabinetRun store={session.store} floors={floors ?? undefined} />
+        // EZD-405: boxes are edited here with Edit model and the lock.
+        <LazyCabinetRun store={session.store} floors={floors ?? undefined} canEdit={mayEdit} />
       ) : null}
       {stateArea}
       {panel}

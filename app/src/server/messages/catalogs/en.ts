@@ -1909,6 +1909,15 @@ export const en = {
   'office.cabinets.empty': 'Drag boxes or Auto-fill run',
   'office.cabinets.status_view': 'View',
   'office.cabinets.status_view_value': 'Plan + elevation {letter}',
+  // EZD-405: box editing on the canvas (vault/build/assumptions.md EZD-405, wording for Josh to confirm).
+  'office.cabinets.width': 'Width',
+  'office.cabinets.height_base': 'Base height',
+  'office.cabinets.height_upper': 'Upper height',
+  'office.cabinets.entry_refused': 'Type a size above 0, e.g. 18 or 1\' 6"',
+  'office.cabinets.menu': 'Box actions',
+  'office.cabinets.duplicate': 'Duplicate',
+  'office.cabinets.delete': 'Delete',
+  'office.cabinets.resize_edge': 'Drag to resize',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

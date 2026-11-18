@@ -6,6 +6,7 @@
 // EZD-729 Build (AC-EZD-729-1): exports the plumbing locations.
 // EZD-402 (AC-EZD-402-1): exports the cabinet run totals.
 // EZD-404 (AC-EZD-404-2): exports the cabinet run plan strip and elevation layout.
+// EZD-405 (AC-EZD-405-1): exports the cabinet box edits (resize with code update, reorder, delete, duplicate).
 // EZD-411 (AC-EZD-411-1): exports the countertop piece measures.
 // EZD-215 (AC-EZD-215-1, -2): exports the bearing wall rule.
 // EZD-229 (11 Budgets; EZD-120c B11): the benchmark model is its own entry, `@ezdraft/geometry/benchmark`, so the
@@ -13,6 +14,7 @@
 // and the dev pages use.
 export * from './cabinets/elevation';
 export * from './cabinets/run';
+export * from './cabinets/edit';
 export * from './countertops/piece';
 export * from './derived';
 export * from './drawing';

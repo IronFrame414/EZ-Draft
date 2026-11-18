@@ -31,7 +31,12 @@ type Obj = { id: string; type: string; data: Record<string, unknown> };
 type View = { x: number; y: number; ppi: number };
 type Window2 = {
   __ezdraftEditor: { objects(): Obj[]; edit(changes: unknown[]): string[] };
-  __ezdraftPlan: { handle: { setView(v: View): void; modelToScreen(p: { x: number; y: number }): { x: number; y: number } } };
+  __ezdraftPlan: {
+    handle: {
+      setView(v: View): void;
+      modelToScreen(p: { x: number; y: number }): { x: number; y: number };
+    };
+  };
   __ezdraftSelection: { ids(): string[] };
 };
 
@@ -60,29 +65,49 @@ async function clickPlan(page: Page, x: number, y: number) {
   );
   const region = await page.locator('[data-shell-region="canvas"]').boundingBox();
   if (!region) throw new Error('canvas region has no box');
-  const s = await page.evaluate((p) => (window as unknown as Window2).__ezdraftPlan.handle.modelToScreen(p), { x, y });
+  const s = await page.evaluate(
+    (p) => (window as unknown as Window2).__ezdraftPlan.handle.modelToScreen(p),
+    { x, y },
+  );
   await page.mouse.move(region.x + s.x, region.y + s.y);
   await page.mouse.click(region.x + s.x, region.y + s.y);
 }
 const planSelection = (page: Page) =>
   page.evaluate(() => (window as unknown as Window2).__ezdraftSelection.ids());
 const countOf = (page: Page, type: string) =>
-  page.evaluate((t) => (window as unknown as Window2).__ezdraftEditor.objects().filter((o) => o.type === t).length, type);
+  page.evaluate(
+    (t) =>
+      (window as unknown as Window2).__ezdraftEditor.objects().filter((o) => o.type === t).length,
+    type,
+  );
 
 const CODES = ['F3', 'B15', 'DW24', 'SB36', 'B18', 'B21', 'W1530', 'W3030'];
 
 // Seeds the wall and the run; returns the member ids by code.
 async function seedRun(page: Page): Promise<Record<string, string>> {
   const level = await page.evaluate(() => {
-    const floor = (window as unknown as Window2).__ezdraftEditor.objects().find((x) => x.type === 'floor');
+    const floor = (window as unknown as Window2).__ezdraftEditor
+      .objects()
+      .find((x) => x.type === 'floor');
     if (!floor) throw new Error('no floor');
     return floor.id;
   });
-  const made = createWallData({ start: { x: 0, y: 0 }, end: { x: 117.5, y: 0 }, level, thicknessSide: 'right' });
+  const made = createWallData({
+    start: { x: 0, y: 0 },
+    end: { x: 117.5, y: 0 },
+    level,
+    thicknessSide: 'right',
+  });
   if (!made.ok) throw new Error('wall data');
   const wallId = crypto.randomUUID();
-  const ids: Record<string, string> = Object.fromEntries(CODES.map((c) => [c, crypto.randomUUID()]));
-  const v = (type: string, data: Record<string, unknown>) => ({ type, schemaVersion: CURRENT_SCHEMA_VERSION, data });
+  const ids: Record<string, string> = Object.fromEntries(
+    CODES.map((c) => [c, crypto.randomUUID()]),
+  );
+  const v = (type: string, data: Record<string, unknown>) => ({
+    type,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data,
+  });
   const attrs = { catalogItemId: null, finish: null };
   const boxData = (code: string, boxType: string, width: number, faceLayout: string) => ({
     status: 'new',
@@ -111,7 +136,10 @@ async function seedRun(page: Page): Promise<Record<string, string>> {
     },
     { id: ids.B15, value: v('cabinet_box', boxData('B15', 'base', 15, 'drawer_door_1')) },
     { id: ids.DW24, value: v('cabinet_box', boxData('DW24', 'appliance_panel', 24, 'panel')) },
-    { id: ids.SB36, value: v('cabinet_box', boxData('SB36', 'sink_base', 36, 'false_drawer_doors_2')) },
+    {
+      id: ids.SB36,
+      value: v('cabinet_box', boxData('SB36', 'sink_base', 36, 'false_drawer_doors_2')),
+    },
     { id: ids.B18, value: v('cabinet_box', boxData('B18', 'base', 18, 'drawer_door_1')) },
     { id: ids.B21, value: v('cabinet_box', boxData('B21', 'base', 21, 'drawer_door_1')) },
     { id: ids.W1530, value: v('cabinet_box', boxData('W1530', 'wall', 15, 'door_1')) },
@@ -129,7 +157,10 @@ async function seedRun(page: Page): Promise<Record<string, string>> {
       }),
     },
   ];
-  const done = await page.evaluate((c) => (window as unknown as Window2).__ezdraftEditor.edit(c), changes);
+  const done = await page.evaluate(
+    (c) => (window as unknown as Window2).__ezdraftEditor.edit(c),
+    changes,
+  );
   expect(done.length).toBeGreaterThan(0);
   return ids;
 }
@@ -226,7 +257,10 @@ test.describe('EZD-404 Plan strip and elevation', () => {
     expect(await countOf(page, 'cabinet_run')).toBe(1);
   });
 
-  test('a view-only user opens the cabinet run screen from the rail', async ({ page, signInAs }) => {
+  test('a view-only user opens the cabinet run screen from the rail', async ({
+    page,
+    signInAs,
+  }) => {
     const { tenant, ids: project, user } = await fixtureS();
     await signInAs(user.email);
     await openReady(page, project.P1);
@@ -241,5 +275,130 @@ test.describe('EZD-404 Plan strip and elevation', () => {
     await expect(id(page, 'cabinet-run-name')).toHaveText('Back wall run');
     await box(page, ids.B15, 'elevation').click();
     await expect.poll(() => selectedIn(page, 'plan')).toEqual([ids.B15]);
+  });
+});
+
+// EZD-405 (AC-EZD-405-1 "Dragging a B15 edge one step relabels it B18"; S04 Controls "Drag box side edge | Resizes width
+// in the run increment (3") | Code updates (e.g. B15 to B18)", "Shift+click box", "Drag box | Reorders within the run",
+// "Chain dimension text | Click to type an exact width", "Delete / Backspace", "Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z"). Board
+// S04's run as above; the drawing is in inches, so B15's elevation box is 15" wide on screen and one step is a fifth of it.
+const objOf = (page: Page, objectId: string) =>
+  page.evaluate(
+    (i) =>
+      (window as unknown as Window2).__ezdraftEditor.objects().find((o) => o.id === i)?.data
+        .attributes ?? null,
+    objectId,
+  ) as Promise<{ code: string; width: number } | null>;
+const chainWidths = (page: Page) =>
+  page
+    .locator('[data-chain-id]')
+    .evaluateAll((els) => els.map((e) => Number(e.getAttribute('data-width'))));
+
+test.describe('EZD-405 Box editing on canvas', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  test('AC-EZD-405-1 dragging the B15 right edge one 3" step relabels it B18; undo and redo', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids: project, user } = await fixtureS();
+    await signInAs(user.email);
+    await openReady(page, project.P1);
+    const ids = await seedRun(page);
+    await saved(page);
+    await page.keyboard.press('c');
+    await expect(id(page, 'cabinet-run-name')).toHaveText('Back wall run');
+
+    const b15 = await box(page, ids.B15, 'elevation').boundingBox();
+    const edge = await page.locator(`[data-edge-of="${ids.B15}"][data-edge="right"]`).boundingBox();
+    if (!b15 || !edge) throw new Error('B15 has no box');
+    const step = (b15.width / 15) * 3;
+    const y = edge.y + edge.height / 2;
+    await page.mouse.move(edge.x + edge.width / 2, y);
+    await page.mouse.down();
+    await page.mouse.move(edge.x + edge.width / 2 + step / 2, y, { steps: 4 });
+    await page.mouse.move(edge.x + edge.width / 2 + step, y, { steps: 4 });
+    // Live while dragging: the plan strip already reads B18.
+    await expect(box(page, ids.B15, 'plan').locator('text')).toHaveText('B18');
+    await page.mouse.up();
+
+    await expect(box(page, ids.B15, 'plan').locator('text')).toHaveText('B18');
+    await expect.poll(() => objOf(page, ids.B15)).toMatchObject({ code: 'B18', width: 18 });
+    expect(await chainWidths(page)).toEqual([3, 18, 24, 36, 18, 21]);
+    await expect.poll(() => selectedIn(page, 'elevation')).toEqual([ids.B15]);
+    await saved(page);
+
+    await page.keyboard.press('ControlOrMeta+z');
+    await expect.poll(() => objOf(page, ids.B15)).toMatchObject({ code: 'B15', width: 15 });
+    expect(await chainWidths(page)).toEqual([3, 15, 24, 36, 18, 21]);
+    await page.keyboard.press('ControlOrMeta+Shift+z');
+    await expect.poll(() => objOf(page, ids.B15)).toMatchObject({ code: 'B18', width: 18 });
+    await saved(page);
+    // Saved: the relabelled box comes back after a reload.
+    await page.reload();
+    await openReady(page, project.P1);
+    expect(await objOf(page, ids.B15)).toMatchObject({ code: 'B18', width: 18 });
+  });
+
+  test('typed chain width, drag to reorder, Shift+click and Delete', async ({ page, signInAs }) => {
+    const { ids: project, user } = await fixtureS();
+    await signInAs(user.email);
+    await openReady(page, project.P1);
+    const ids = await seedRun(page);
+    await saved(page);
+    await page.keyboard.press('c');
+    await expect(id(page, 'cabinet-run-name')).toHaveText('Back wall run');
+
+    // The 21" chain text: type 24 and Enter; B21 becomes B24.
+    await page.locator(`[data-chain-id="${ids.B21}"] text`).click();
+    await expect(id(page, 'cabinet-dim-input')).toBeFocused();
+    await id(page, 'cabinet-dim-input').fill('24');
+    await page.keyboard.press('Enter');
+    await expect.poll(() => objOf(page, ids.B21)).toMatchObject({ code: 'B24', width: 24 });
+    await expect(id(page, 'cabinet-dim-entry')).toHaveCount(0);
+
+    // B15 dragged onto the middle of SB36's right half lands after SB36; the others shift.
+    const b15 = await box(page, ids.B15, 'elevation').boundingBox();
+    const sb36 = await box(page, ids.SB36, 'elevation').boundingBox();
+    if (!b15 || !sb36) throw new Error('no boxes');
+    await page.mouse.move(b15.x + b15.width / 2, b15.y + b15.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(sb36.x + sb36.width * 0.8, b15.y + b15.height / 2, { steps: 8 });
+    await page.mouse.up();
+    await expect.poll(() => chainWidths(page)).toEqual([3, 24, 36, 15, 18, 24]);
+
+    // Shift+click takes two boxes; Delete removes both, and the run total drops by 33".
+    await box(page, ids.B15, 'elevation').click();
+    await box(page, ids.B18, 'elevation').click({ modifiers: ['Shift'] });
+    await expect.poll(() => selectedIn(page, 'elevation')).toEqual([ids.B15, ids.B18]);
+    await page.keyboard.press('Delete');
+    await expect.poll(() => chainWidths(page)).toEqual([3, 24, 36, 24]);
+    await expect(id(page, 'cabinet-run-counts')).toHaveText('3 boxes · 1 filler');
+    await page.keyboard.press('ControlOrMeta+z');
+    await expect.poll(() => chainWidths(page)).toEqual([3, 24, 36, 15, 18, 24]);
+    await saved(page);
+  });
+
+  test('a view-only user gets no edge handles and no edits', async ({ page, signInAs }) => {
+    const { tenant, ids: project, user } = await fixtureS();
+    await signInAs(user.email);
+    await openReady(page, project.P1);
+    const ids = await seedRun(page);
+    await saved(page);
+    await setPermissions(tenant, user.membershipId, VIEWER as never);
+    await page.reload();
+    await openReady(page, project.P1);
+    await tool(page, 'cabinets').click();
+    await expect(id(page, 'cabinet-run-name')).toHaveText('Back wall run');
+    await expect(page.locator('[data-edge]')).toHaveCount(0);
+    await box(page, ids.B15, 'elevation').click();
+    await page.keyboard.press('Delete');
+    expect(await chainWidths(page)).toEqual([3, 15, 24, 36, 18, 21]);
   });
 });

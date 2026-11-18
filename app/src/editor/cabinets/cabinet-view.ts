@@ -4,17 +4,28 @@
 // React, no DOM. One selection is read by both the plan strip and the elevation, so a box picked in either is the
 // box marked in both.
 import {
+  CABINET_COUNTERTOP_THICKNESS,
+  CURRENT_SCHEMA_VERSION,
   cabinetElevationLetter,
+  cabinetRowOf,
+  insertAfterInCabinetRun,
+  isCabinetRunMember,
+  moveInCabinetRow,
+  reheightCabinetMember,
+  removeFromCabinetRun,
+  resizeCabinetMember,
   cabinetRunLayout,
   cabinetRunSummary,
   objectLookup,
   parseStoredObject,
   type CabinetRun,
   type CabinetRunLayout,
+  type CabinetRunMember,
   type CabinetRunSummary,
+  type CabinetRow,
   type ModelObject,
 } from '@ezdraft/geometry';
-import type { Objects } from '../model/patches';
+import type { Change, Objects } from '../model/patches';
 
 export type CabinetView = {
   run: CabinetRun;
@@ -29,7 +40,12 @@ export type CabinetView = {
 export function modelObjects(objects: Objects): ModelObject[] {
   const out: ModelObject[] = [];
   for (const [id, v] of objects) {
-    const r = parseStoredObject({ id, type: v.type, schema_version: v.schemaVersion, data: v.data });
+    const r = parseStoredObject({
+      id,
+      type: v.type,
+      schema_version: v.schemaVersion,
+      data: v.data,
+    });
     if (r.ok) out.push(r.object);
   }
   return out;
@@ -37,7 +53,10 @@ export function modelObjects(objects: Objects): ModelObject[] {
 
 // The run the screen opens: the first run on the open floor (the Runs tab, EZD-403, picks another); null when the
 // floor has none. `floorId` null reads every floor.
-export function cabinetView(objects: readonly ModelObject[], floorId: string | null): CabinetView | null {
+export function cabinetView(
+  objects: readonly ModelObject[],
+  floorId: string | null,
+): CabinetView | null {
   const want = floorId?.toLowerCase() ?? null;
   const run = objects.find(
     (o): o is CabinetRun =>
@@ -54,20 +73,34 @@ export function cabinetView(objects: readonly ModelObject[], floorId: string | n
   };
 }
 
-export type CabinetSelection = { readonly ids: readonly string[]; readonly hoveredId: string | null };
+export type CabinetSelection = {
+  readonly ids: readonly string[];
+  readonly hoveredId: string | null;
+};
 
 export const NO_CABINET_SELECTION: CabinetSelection = { ids: [], hoveredId: null };
 
 export type CabinetSelectionInput =
-  | { type: 'click'; id: string | null }
+  | { type: 'click'; id: string | null; shift?: boolean }
+  | { type: 'set'; ids: readonly string[] }
   | { type: 'hover'; id: string | null }
   | { type: 'escape' };
 
-// A click on a box selects that box alone; a click off every box or Esc clears; hover marks one box.
+// A click on a box selects that box alone; Shift+click adds it to the selection or takes it out (S04 "Shift+click
+// box | Adds to selection for bulk edit", EZD-405); a click off every box or Esc clears; hover marks one box. `set`
+// is the selection an edit leaves (the copies after Duplicate, nothing after Delete).
 export function cabinetSelect(s: CabinetSelection, i: CabinetSelectionInput): CabinetSelection {
   switch (i.type) {
     case 'click':
-      return { ...s, ids: i.id === null ? [] : [i.id] };
+      if (i.id === null) return i.shift === true ? s : { ...s, ids: [] };
+      if (i.shift === true) {
+        const key = i.id.toLowerCase();
+        const has = s.ids.some((x) => x.toLowerCase() === key);
+        return { ...s, ids: has ? s.ids.filter((x) => x.toLowerCase() !== key) : [...s.ids, i.id] };
+      }
+      return { ...s, ids: [i.id] };
+    case 'set':
+      return { ...s, ids: [...i.ids] };
     case 'hover':
       return s.hoveredId === i.id ? s : { ...s, hoveredId: i.id };
     case 'escape':
@@ -77,3 +110,107 @@ export function cabinetSelect(s: CabinetSelection, i: CabinetSelectionInput): Ca
 
 export const isCabinetSelected = (s: CabinetSelection, id: string): boolean =>
   s.ids.some((x) => x.toLowerCase() === id.toLowerCase());
+
+// EZD-405 (S04 Controls "Drag box side edge", "Drag box", "Chain dimension text | Click to type an exact width",
+// "Height dimension text | Click to type upper height, ... base height", "Delete / Backspace", "Right-click box |
+// ... Duplicate, Delete"; AC-EZD-405-1; vault/build/assumptions.md EZD-405): the screen's edits as model changes.
+// Each builder's changes are one `applyEdit`, so one undo step. A builder returns [] when nothing changes.
+
+const objectChange = (o: ModelObject): Change => ({
+  id: o.id,
+  value: {
+    type: o.type,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: o.data as unknown as Record<string, unknown>,
+  },
+});
+
+const memberOf = (objects: readonly ModelObject[], id: string): CabinetRunMember | null => {
+  const key = id.toLowerCase();
+  const o = objects.find((x) => x.id.toLowerCase() === key);
+  return o !== undefined && isCabinetRunMember(o) ? o : null;
+};
+
+const inRun = (view: CabinetView, id: string) => cabinetRowOf(view.run, id) !== null;
+
+// A member of the run at a new width; its code follows the width (B15 to B18).
+export function cabinetResizeChanges(
+  view: CabinetView,
+  objects: readonly ModelObject[],
+  id: string,
+  width: number,
+): Change[] {
+  const m = inRun(view, id) ? memberOf(objects, id) : null;
+  const next = m === null ? null : resizeCabinetMember(m, width);
+  return next === null ? [] : [objectChange(next)];
+}
+
+// A member moved to place `toIndex` of its row; the others shift.
+export function cabinetReorderChanges(view: CabinetView, id: string, toIndex: number): Change[] {
+  const run = moveInCabinetRow(view.run, id, toIndex);
+  return run === null ? [] : [objectChange(run)];
+}
+
+// Where a member dragged to `x` (inches along the run) lands in its row: after every other member of the row whose
+// middle is left of `x`.
+export function cabinetDropIndex(view: CabinetView, id: string, x: number): number | null {
+  const row = cabinetRowOf(view.run, id);
+  if (row === null) return null;
+  const key = id.toLowerCase();
+  const slots = view.layout[row].filter((s) => s.id.toLowerCase() !== key);
+  return slots.filter((s) => s.x + s.width / 2 < x).length;
+}
+
+// The run's members among `ids` removed, and the run without them.
+export function cabinetDeleteChanges(view: CabinetView, ids: readonly string[]): Change[] {
+  const gone = ids.filter((id) => inRun(view, id));
+  const run = removeFromCabinetRun(view.run, gone);
+  if (run === null) return [];
+  return [...gone.map((id) => ({ id, value: null })), objectChange(run)];
+}
+
+// A copy of each of the run's members among `ids`, each right after its original; `ids` of the result are the copies.
+export function cabinetDuplicateChanges(
+  view: CabinetView,
+  objects: readonly ModelObject[],
+  ids: readonly string[],
+  newId: () => string,
+): { changes: Change[]; ids: string[] } {
+  let run = view.run;
+  const changes: Change[] = [];
+  const made: string[] = [];
+  for (const id of ids) {
+    const m = inRun(view, id) ? memberOf(objects, id) : null;
+    if (m === null) continue;
+    const copyId = newId();
+    const next = insertAfterInCabinetRun(run, m.id, copyId);
+    if (next === null) continue;
+    run = next;
+    changes.push(objectChange({ ...m, id: copyId } as ModelObject));
+    made.push(copyId);
+  }
+  if (made.length === 0) return { changes: [], ids: [] };
+  return { changes: [...changes, objectChange(run)], ids: made };
+}
+
+// A typed height dimension: Upper sets every box of the upper row to that height; Base is the countertop's top, so
+// the row's counter-height members take it less the countertop's 1 1/2". Tall boxes keep theirs. The gap between
+// the countertop and the uppers is not stored (EZD-404), so it is not typed.
+export function cabinetHeightChanges(
+  view: CabinetView,
+  objects: readonly ModelObject[],
+  kind: 'base' | 'upper',
+  size: number,
+): Change[] {
+  const row: CabinetRow = kind;
+  const height = kind === 'base' ? size - CABINET_COUNTERTOP_THICKNESS : size;
+  if (!(height > 0)) return [];
+  const changes: Change[] = [];
+  for (const slot of view.layout[row]) {
+    if (slot.boxType === 'tall') continue;
+    const m = memberOf(objects, slot.id);
+    const next = m === null ? null : reheightCabinetMember(m, height);
+    if (next !== null) changes.push(objectChange(next));
+  }
+  return changes;
+}
