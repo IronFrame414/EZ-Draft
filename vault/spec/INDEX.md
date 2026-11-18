@@ -85,6 +85,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
   - [09o · Edit lock and Defaults: worked examples](sections/09o-edit-lock-and-defaults-examples.md) — Q-0697
   - [09p · Versions, sends, cleanup and the project card: worked examples](sections/09p-versions-and-cleanup-examples.md) — Q-0700
   - [09q · Fixtures, existing conditions, tile shower, blocking and bearing walls: worked examples](sections/09q-existing-conditions-examples.md) — Q-0704
+  - [09r · Load calc optional method, cases 1, 3, 4 and Table 220.55: worked examples](sections/09r-load-calc-examples.md) — Q-0761
 - [Permissions and settings](sections/10-permissions-and-settings.md)
 - [Non-functional requirements](sections/11-non-functional-requirements.md)
 - [Build phases and acceptance tests](sections/12-build-phases-and-acceptance-tests.md)
