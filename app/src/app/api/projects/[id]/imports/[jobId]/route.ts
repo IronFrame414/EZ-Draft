@@ -3,6 +3,7 @@
 // Order, as GET /api/jobs/[id]: 401, 403 without View projects, 404 for a malformed id, 403 for a project outside
 // a listed member's projects, 404 for an import RLS hides or that is not this project's, then 200. Any other
 // failure is 500 after reportRouteFailure.
+// EZD-314: the 200 also carries canEdit (Edit model on this project) and viewerId (the caller's app user id).
 // EZD-309 PATCH (S02 Permissions "Edit model: required for every accept, fix, delete"; phase-03 EZD-309 "each review
 // action is saved as a per-item change, batched every 2 seconds"): one batch of review changes. Order: 401, 403
 // without Edit model, 404 for a malformed id, 403 for a project outside the member's list, 400 for a body outside
@@ -49,7 +50,13 @@ export async function GET(
     if (denied) return denied;
     const review = await readImportReview(createSessionClient(), id, jobId);
     if (!review) return notFound();
-    return Response.json({ review }, { status: 200, headers });
+    // EZD-314 (S02 States Locked / view-only, Permission-denied): whether the viewer may change the import (Edit
+    // model on this project) and who the viewer is, so the page can tell a lock another user holds.
+    const viewer = {
+      canEdit: requirePermission(p.ctx, 'edit_model', { projectId: id }) === null,
+      viewerId: p.session.appUserId,
+    };
+    return Response.json({ review: { ...review, ...viewer } }, { status: 200, headers });
   } catch (e) {
     const ended = await endedSessionResponse(e);
     if (ended) return ended;

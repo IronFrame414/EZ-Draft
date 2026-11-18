@@ -15,6 +15,8 @@ export const en = {
   'error.not_authorized': "You don't have permission to do that.",
   'error.import_not_found': "That import isn't available.",
   'error.import_closed': 'This import is already finished or cancelled.',
+  // EZD-314: Retry of an import that is detecting or has not failed.
+  'error.import_not_failed': "This import hasn't failed, so there's nothing to retry.",
   // EZD-313: Finish import refusals.
   'error.import_not_ready': 'This import is not ready to finish yet.',
   'error.import_unresolved': 'Resolve every item and room gap before you finish the import.',
@@ -1002,6 +1004,8 @@ export const en = {
   'office.projects.card.version': 'Version {n}',
   'office.projects.card.to_review': '{count} to review',
   'office.projects.card.nothing_to_review': 'Nothing to review',
+  // EZD-314 (S01 States "Import in progress: card shows Importing in place of the open-items indicator").
+  'office.projects.card.importing': 'Importing',
   'office.projects.card.place': '{client} · {address}',
   'office.projects.search_label': 'Search projects',
   'office.projects.search_placeholder': 'Search client, address or project',
@@ -1196,6 +1200,17 @@ export const en = {
   'office.review.failed': "Couldn't read {name}.",
   'office.review.empty': 'Nothing detected. Trace over the underlay in the Plan editor',
   'office.review.not_found': "That import isn't available.",
+  // EZD-314: import states (S02 States Loading, Error, Permission-denied; Validation bearing walls).
+  'office.review.detecting_count': {
+    one: 'Detecting items… {count} item found so far',
+    other: 'Detecting items… {count} items found so far',
+  },
+  'office.review.retry': 'Retry',
+  'office.review.retrying': 'Retrying…',
+  'office.review.retry_failed': "Couldn't start the retry. Try again.",
+  'office.review.read_only': 'You can view this import but not change it',
+  'office.review.bearing': 'Bearing',
+  'office.review.open_plan_editor': 'Open the Plan editor',
   'office.review.modes': 'Review mode',
   'office.review.mode_one_by_one': 'One by one',
   'office.review.mode_accept_fix': 'Accept + fix',

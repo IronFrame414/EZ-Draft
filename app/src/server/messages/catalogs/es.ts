@@ -20,6 +20,8 @@ export const es = {
   'error.not_authorized': 'No tienes permiso para hacer eso.',
   'error.import_not_found': 'Esa importación no está disponible.',
   'error.import_closed': 'Esta importación ya se terminó o se canceló.',
+  // EZD-314: Retry of an import that is detecting or has not failed.
+  'error.import_not_failed': 'Esta importación no falló, así que no hay nada que reintentar.',
   // EZD-313: Finish import refusals.
   'error.import_not_ready': 'Esta importación todavía no está lista para terminar.',
   'error.import_unresolved':

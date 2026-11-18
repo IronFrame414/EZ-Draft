@@ -672,3 +672,60 @@
   background: var(--ez-red-tint);
   font-size: 13px;
 }
+
+/* EZD-314: import states. The lock banner and the read-only note sit under the header, as the close error does. */
+.lockRow {
+  flex: none;
+  margin: 8px 16px 0;
+}
+
+.readOnlyNote {
+  flex: none;
+  margin: 8px 16px 0;
+  padding: 8px 12px;
+  border-radius: var(--ez-radius-8);
+  color: var(--ez-amber-text);
+  background: var(--ez-amber-tint);
+  font-size: 13px;
+}
+
+.retryError {
+  display: block;
+  margin-top: 8px;
+  color: var(--ez-red-text);
+  font-size: 13px;
+}
+
+/* A wall the import read as bearing (S02 Validation "flagged"). */
+.bearingFlag {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ez-red-tint);
+  color: var(--ez-red-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Disables Resolve the gap's buttons in a read-only review without changing its layout. */
+.plainFieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+/* The page message with Retry under it, centred together in the body. */
+.messageBox {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.messageActions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 24px;
+}

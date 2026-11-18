@@ -118,17 +118,30 @@ function CardInner({
               ? t('office.projects.card.working_copy')
               : t('office.projects.card.version', { n: project.versionNo })}
           </span>
-          <span
-            className={styles.open}
-            data-testid="project-card-open"
-            data-open-items={project.openItems}
-            data-has-items={hasItems ? 'true' : 'false'}
-          >
-            <span className={styles.dot} />
-            {hasItems
-              ? t('office.projects.card.to_review', { count: project.openItems })
-              : t('office.projects.card.nothing_to_review')}
-          </span>
+          {project.importing === true ? (
+            // EZD-314 (S01 States "Import in progress: card shows Importing in place of the open-items
+            // indicator"; AC-EZD-314-5).
+            <span
+              className={styles.open}
+              data-testid="project-card-importing"
+              data-has-items="true"
+            >
+              <span className={styles.dot} />
+              {t('office.projects.card.importing')}
+            </span>
+          ) : (
+            <span
+              className={styles.open}
+              data-testid="project-card-open"
+              data-open-items={project.openItems}
+              data-has-items={hasItems ? 'true' : 'false'}
+            >
+              <span className={styles.dot} />
+              {hasItems
+                ? t('office.projects.card.to_review', { count: project.openItems })
+                : t('office.projects.card.nothing_to_review')}
+            </span>
+          )}
         </div>
       </div>
     </>

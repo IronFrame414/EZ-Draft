@@ -136,6 +136,9 @@ export function importObjects(
           ...made.data.attributes,
           layers,
           thickness: layers.reduce((s, l) => s + l.thickness, 0),
+          // EZD-314 (S02 Validation "Bearing walls detected or marked: flagged; later removal is blocked without
+          // engineer"): a wall the import read as bearing is a bearing wall in the model (EZD-215's rule).
+          ...(item.bearing === true ? { bearing: true } : {}),
         },
       };
     } else if (item.type === 'opening') {

@@ -1221,6 +1221,9 @@ isOneToOne: false
 "restore_project":
 { Args: { "p_project": string }; Returns: Json
                            },
+"retry_import":
+{ Args: { "p_job": string,"p_project": string }; Returns: Json
+                           },
 "rewrap_my_ai_key":
 { Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean
                            },

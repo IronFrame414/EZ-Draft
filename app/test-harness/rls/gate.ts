@@ -17,6 +17,8 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   // EZD-313: Finish import and Cancel import (authenticated only).
   { fn: 'finish_import', args: { p_project: null, p_job: null, p_objects: null } },
   { fn: 'cancel_import', args: { p_project: null, p_job: null } },
+  // EZD-314: Retry of a failed import (authenticated only).
+  { fn: 'retry_import', args: { p_project: null, p_job: null } },
   // EZD-309: the import review's batched save (authenticated only).
   {
     fn: 'save_import_review',

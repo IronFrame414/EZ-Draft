@@ -40,6 +40,8 @@ export type ProjectSummary = {
   versionNo?: number | null;
   // EZD-124 (Q-0201): archived_at is set; such a card sits under Archived and offers Restore.
   archived?: boolean;
+  // EZD-314 (S01 States "Import in progress"): an import of the project is detecting or in review.
+  importing?: boolean;
 };
 
 export function projectThumbnailSrc(projectId: string): string {

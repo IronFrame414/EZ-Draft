@@ -34,6 +34,14 @@
 // refusal shows its message under the header. A finished or cancelled import shows a closed message.
 // EZD-312 (S02 Decisions "Ceiling slope items are fixed in the inspector with the same three inputs as Round 1";
 // AC-EZD-312-1): a selected ceiling slope shows its three inputs (CeilingSlope.tsx); each fix is a review action.
+// EZD-314 (S02 States Loading "progress with item count so far", Error "message with file name and Retry; Cancel
+// import stays available", Locked / view-only "all edit controls disabled; lock banner shows who and since when,
+// with Request edit", Permission-denied "read-only with a note"; Validation "Bearing walls detected or marked:
+// flagged"; AC-EZD-314-1 to -4, -6): detecting shows the items found so far; a failed import shows the file and
+// Retry, which puts the import back on the queue and reads it again until detection ends; while another user holds
+// the edit lock the editor's lock banner shows with Request edit (review-lock.ts); without Edit model the note
+// shows. Either way the review is read-only: every review action, Finish import and Cancel import are disabled and
+// nothing is saved. A wall the import read as bearing carries a Bearing flag in its row and in the inspector.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { ConfirmDialog } from '../../components/states/ConfirmDialog';
 import type { ConfirmChoice, ConfirmRequest } from '../../components/states/confirm-controller';
@@ -42,6 +50,7 @@ import { HeaderButton } from '../../components/shell/HeaderButton';
 import { Wordmark } from '../../components/shell/Wordmark';
 import { StatusBar, StatusItem } from '../../components/shell/StatusBar';
 import headerStyles from '../../components/shell/EditorHeader.module.css';
+import buttonStyles from '../../components/shell/HeaderButton.module.css';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import {
@@ -111,6 +120,9 @@ import { importedQuery, type ImportedCounts } from '../plan/imported';
 import { gapSizeText, type GapBox } from '../tools/gap';
 import { useCoarsePointer } from '../../lib/device/useDeviceLayout';
 import { amount, ConflictList, TypedField } from './TypedConflicts';
+import { LockBanner } from '../lock-ui/LockUi';
+import { useOnline } from '../../lib/network';
+import { useReviewLock } from './review-lock';
 
 export const POLL_MS = 1500;
 
@@ -131,6 +143,12 @@ export type ImportReviewData = {
   decisions?: Decisions;
   fixes?: Fixes;
   mode?: ReviewMode;
+  /** EZD-314: items found so far while detecting. */
+  detectedCount?: number;
+  /** EZD-314: the viewer has Edit model on this project (missing: true, as before EZD-314). */
+  canEdit?: boolean;
+  /** EZD-314: the viewer's app user id, to tell a lock another user holds. */
+  viewerId?: string;
 };
 
 type Load =
@@ -144,6 +162,7 @@ const CLOSE_REFUSALS: readonly MessageKey[] = [
   'error.import_not_ready',
   'error.import_unresolved',
   'error.import_closed',
+  'error.import_not_failed',
   'error.lock_held',
   'error.not_authorized',
   'error.invalid_input',
@@ -164,14 +183,15 @@ type Imported = ImportedCounts;
 export const planAfterFinish = (projectId: string, c: Imported): string =>
   `/projects/${projectId}?imported=${importedQuery(c)}`;
 
-async function refusalOf(res: Response): Promise<MessageKey> {
+async function refusalOf(
+  res: Response,
+  fallback: MessageKey = 'office.review.close_failed',
+): Promise<MessageKey> {
   const body = (await res.json().catch(() => null)) as {
     error?: { message_key?: unknown };
   } | null;
   const key = body?.error?.message_key;
-  return (CLOSE_REFUSALS as readonly unknown[]).includes(key)
-    ? (key as MessageKey)
-    : 'office.review.close_failed';
+  return (CLOSE_REFUSALS as readonly unknown[]).includes(key) ? (key as MessageKey) : fallback;
 }
 
 export function ImportReview({
@@ -202,6 +222,10 @@ export function ImportReview({
   const [confirming, setConfirming] = useState(false);
   // The dialog answers once per opening (its Action also closes it, which reports cancel after confirm).
   const answered = useRef(false);
+  // EZD-314: each Retry that put the import back on the queue starts the reads again.
+  const [reads, setReads] = useState(0);
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<MessageKey | null>(null);
 
   useEffect(() => {
     let stopped = false;
@@ -239,13 +263,44 @@ export function ImportReview({
       stopped = true;
       if (timer) clearTimeout(timer);
     };
-  }, [projectId, jobId, fetchImpl, pollMs]);
+  }, [projectId, jobId, fetchImpl, pollMs, reads]);
 
   const review = load.kind === 'loaded' ? load.review : null;
   const files = review?.files ?? [];
   const closed = review?.status === 'finished' || review?.status === 'cancelled';
-  const finishDisabled = blocked || review?.status !== 'ready' || busy !== null;
-  const cancelDisabled = review === null || closed || busy !== null;
+  const canEdit = review?.canEdit ?? true;
+  const lock = useReviewLock({ projectId, viewerId: review?.viewerId, canEdit, fetchImpl });
+  const offline = !useOnline();
+  const readOnly = !canEdit || lock.locked;
+  const finishDisabled = blocked || review?.status !== 'ready' || busy !== null || readOnly;
+  const cancelDisabled = review === null || closed || busy !== null || readOnly;
+
+  const retry = async () => {
+    if (retrying || readOnly) return;
+    setRetrying(true);
+    setRetryError(null);
+    try {
+      const res = await (fetchImpl ?? fetch)(`/api/projects/${projectId}/imports/${jobId}/retry`, {
+        method: 'POST',
+        credentials: 'same-origin',
+      });
+      if (!res.ok) {
+        setRetryError(await refusalOf(res, 'office.review.retry_failed'));
+        return;
+      }
+      await res.text().catch(() => '');
+      setLoad((l) =>
+        l.kind === 'loaded'
+          ? { kind: 'loaded', review: { ...l.review, status: 'detecting', detectedCount: 0 } }
+          : l,
+      );
+      setReads((n) => n + 1);
+    } catch {
+      setRetryError('office.review.retry_failed');
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   const post = (action: 'finish' | 'cancel') =>
     (fetchImpl ?? fetch)(`/api/projects/${projectId}/imports/${jobId}/${action}`, {
@@ -375,34 +430,81 @@ export function ImportReview({
       {confirming ? (
         <ConfirmDialog request={CANCEL_REQUEST} onChoose={(c) => void chooseCancel(c)} />
       ) : null}
+      {review !== null && !closed && lock.banner.banner !== null ? (
+        <div className={styles.lockRow}>
+          <LockBanner
+            state={lock.banner}
+            offline={offline}
+            onRequest={lock.requestEdit}
+            onCancel={lock.cancelRequest}
+          />
+        </div>
+      ) : null}
+      {review !== null && !closed && !canEdit ? (
+        <div className={styles.readOnlyNote} data-testid="import-review-read-only" role="note">
+          {t('office.review.read_only')}
+        </div>
+      ) : null}
       {review?.status === 'ready' ? (
         <ReadyBody
           review={review}
           fetchImpl={fetchImpl}
           onBlocked={setBlocked}
           onControl={setControl}
+          readOnly={readOnly}
         />
       ) : (
         <>
-          <div className={styles.message} data-testid="import-review-message" role="status">
-            {load.kind === 'not_found' ? (
-              t('office.review.not_found')
-            ) : closed ? (
-              <>
-                {t(
-                  review.status === 'finished'
-                    ? 'office.review.closed_finished'
-                    : 'office.review.closed_cancelled',
-                )}{' '}
-                <a href={`/projects/${projectId}`} data-testid="import-review-open-plan">
-                  {t('office.review.open_plan')}
-                </a>
-              </>
-            ) : review?.status === 'failed' ? (
-              t('office.review.failed', { name: review.failedFile ?? '' })
-            ) : (
-              t('office.review.detecting')
-            )}
+          <div className={styles.messageBox}>
+            <div className={styles.message} data-testid="import-review-message" role="status">
+              {load.kind === 'not_found' ? (
+                t('office.review.not_found')
+              ) : closed ? (
+                <>
+                  {t(
+                    review.status === 'finished'
+                      ? 'office.review.closed_finished'
+                      : 'office.review.closed_cancelled',
+                  )}{' '}
+                  <a href={`/projects/${projectId}`} data-testid="import-review-open-plan">
+                    {t('office.review.open_plan')}
+                  </a>
+                </>
+              ) : review?.status === 'failed' ? (
+                <span data-testid="import-review-failed">
+                  {t('office.review.failed', { name: review.failedFile ?? '' })}
+                </span>
+              ) : review !== null && (review.detectedCount ?? 0) > 0 ? (
+                <span data-testid="import-review-detecting" data-count={review.detectedCount}>
+                  {t('office.review.detecting_count', { count: review.detectedCount ?? 0 })}
+                </span>
+              ) : (
+                <span data-testid="import-review-detecting" data-count={0}>
+                  {t('office.review.detecting')}
+                </span>
+              )}
+            </div>
+            {review?.status === 'failed' ? (
+              <div className={styles.messageActions}>
+                <HeaderButton
+                  data-testid="import-review-retry"
+                  disabled={retrying || readOnly}
+                  aria-busy={retrying}
+                  onClick={() => void retry()}
+                >
+                  {retrying ? t('office.review.retrying') : t('office.review.retry')}
+                </HeaderButton>
+                {retryError ? (
+                  <span
+                    className={styles.retryError}
+                    role="alert"
+                    data-testid="import-review-retry-error"
+                  >
+                    {t(retryError)}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
           </div>
           <StatusBar />
         </>
@@ -439,6 +541,7 @@ function ItemRow({
   decision: Decision | undefined;
   onSelect: (id: string) => void;
 }): ReactElement {
+  const t = useT();
   const dotClass =
     dot === 'selected'
       ? styles.dotSelected
@@ -466,6 +569,11 @@ function ItemRow({
         >
           {itemLabel(item, items)}
         </span>
+        {item.type === 'wall' && item.bearing === true ? (
+          <span className={styles.bearingFlag} data-testid="import-review-row-bearing">
+            {t('office.review.bearing')}
+          </span>
+        ) : null}
         <span className={styles.rowPct}>{item.confidence}%</span>
       </button>
     </li>
@@ -508,8 +616,11 @@ export function ReadyBody({
   onBlocked,
   onControl,
   readCeiling,
+  readOnly = false,
 }: {
   review: ImportReviewData;
+  /** EZD-314: another user holds the edit lock, or the viewer lacks Edit model: no review action, nothing saved. */
+  readOnly?: boolean;
   initialMode?: ReviewMode;
   fetchImpl?: typeof fetch;
   /** EZD-312: reads the mesh ceiling for From mesh (tests pass a stub); the import's GLB by default. */
@@ -558,7 +669,12 @@ export function ReadyBody({
     };
   }, [review.projectId, review.jobId, fetchImpl, onControl]);
 
+  const readOnlyRef = useRef(readOnly);
+  useEffect(() => {
+    readOnlyRef.current = readOnly;
+  }, [readOnly]);
   const act = useCallback((next: (s: ReviewState) => ReviewState) => {
+    if (readOnlyRef.current) return;
     setHistory((h) => {
       const after = commit(h, next(h.present));
       if (after !== h) saver.current?.mark(changedIds(h.present, after.present));
@@ -566,6 +682,7 @@ export function ReadyBody({
     });
   }, []);
   const travel = useCallback((step: (h: History) => History) => {
+    if (readOnlyRef.current) return;
     setHistory((h) => {
       const after = step(h);
       if (after !== h) saver.current?.mark(changedIds(h.present, after.present));
@@ -712,7 +829,7 @@ export function ReadyBody({
     if (next === mode) return;
     if (next === 'one_by_one') setSelectedId(firstUnresolved(items, decisions));
     setMode(next);
-    saver.current?.mark([], next);
+    if (!readOnly) saver.current?.mark([], next);
   };
   const acceptAll = () => setDecisions((d) => acceptHighConfidence(items, cutoff, d));
   const acceptGroup = (group: readonly ReviewItem[]) =>
@@ -743,10 +860,23 @@ export function ReadyBody({
   );
 
   if (items.length === 0) {
+    // EZD-314 (S02 States Empty "with a button to open the Plan editor with the underlay"): Plan shows the
+    // project's PDF underlay (EZD-304), so the button opens the project.
     return (
       <>
-        <div className={styles.message} data-testid="import-review-message" role="status">
-          {t('office.review.empty')}
+        <div className={styles.messageBox}>
+          <div className={styles.message} data-testid="import-review-message" role="status">
+            {t('office.review.empty')}
+          </div>
+          <div className={styles.messageActions}>
+            <a
+              className={`${buttonStyles.button} ${buttonStyles.primary}`}
+              href={`/projects/${review.projectId}`}
+              data-testid="import-review-open-plan-editor"
+            >
+              {t('office.review.open_plan_editor')}
+            </a>
+          </div>
         </div>
         <StatusBar />
       </>
@@ -837,7 +967,7 @@ export function ReadyBody({
                         type="button"
                         className={styles.groupAccept}
                         data-testid="import-review-accept-room"
-                        disabled={groupPending === 0}
+                        disabled={readOnly || groupPending === 0}
                         onClick={() => acceptGroup(g.items)}
                       >
                         {t('office.review.accept_room')}
@@ -870,7 +1000,7 @@ export function ReadyBody({
               <HeaderButton
                 data-testid="import-review-fix"
                 aria-pressed={fixing}
-                disabled={!selected || decisions[selected.id] === 'rejected'}
+                disabled={readOnly || !selected || decisions[selected.id] === 'rejected'}
                 onClick={() => {
                   setPicking(null);
                   setFixing((f) => !f);
@@ -880,7 +1010,7 @@ export function ReadyBody({
               </HeaderButton>
               <HeaderButton
                 data-testid="import-review-delete"
-                disabled={!selected || decisions[selected.id] === 'rejected'}
+                disabled={readOnly || !selected || decisions[selected.id] === 'rejected'}
                 onClick={deleteSelected}
               >
                 {t('office.review.delete')}
@@ -891,7 +1021,7 @@ export function ReadyBody({
               className={styles.acceptN}
               data-testid="import-review-accept-n"
               data-count={pending.length}
-              disabled={pending.length === 0}
+              disabled={readOnly || pending.length === 0}
               onClick={acceptAll}
             >
               {t('office.review.accept_n', { count: pending.length })}
@@ -903,9 +1033,9 @@ export function ReadyBody({
             items={items}
             detected={detected}
             selectedId={selectedId}
-            onSelect={picking ? pickWall : setSelectedId}
-            picking={picking !== null}
-            fixing={fixing}
+            onSelect={picking && !readOnly ? pickWall : setSelectedId}
+            picking={picking !== null && !readOnly}
+            fixing={fixing && !readOnly}
             onFix={onFix}
             onExitFix={exitFix}
             hoverText={hoverText}
@@ -928,6 +1058,14 @@ export function ReadyBody({
             <div className={styles.inspectorHead}>
               <div className={styles.headRow}>
                 <h2 className={styles.itemName}>{itemLabel(selected, items)}</h2>
+                {selected.type === 'wall' && selected.bearing === true ? (
+                  <span
+                    className={styles.bearingFlag}
+                    data-testid="import-review-inspector-bearing"
+                  >
+                    {t('office.review.bearing')}
+                  </span>
+                ) : null}
                 {isOverTolerance(
                   detected.find((i) => i.id === selected.id) ?? selected,
                   fixes,
@@ -961,12 +1099,13 @@ export function ReadyBody({
                   item={selected}
                   detected={
                     detected.find(
-                      (i): i is typeof selected => i.id === selected.id && i.type === 'ceiling_slope',
+                      (i): i is typeof selected =>
+                        i.id === selected.id && i.type === 'ceiling_slope',
                     ) ?? selected
                   }
                   fix={fixes[selected.id] as CeilingSlopeFix | undefined}
                   hasMesh={review.meshUrl !== null}
-                  disabled={decisions[selected.id] === 'rejected'}
+                  disabled={readOnly || decisions[selected.id] === 'rejected'}
                   readMesh={readSlopeCeiling}
                   onFix={(fix) => onFix(selected.id, fix)}
                 />
@@ -983,7 +1122,7 @@ export function ReadyBody({
                   item={selected}
                   typed={typedOf(fixes[selected.id])}
                   scan={scanReads(detected.find((i) => i.id === selected.id) ?? selected)}
-                  disabled={decisions[selected.id] === 'rejected'}
+                  disabled={readOnly || decisions[selected.id] === 'rejected'}
                   onCommit={commitTyped}
                 />
               )}
@@ -995,19 +1134,21 @@ export function ReadyBody({
           )}
           {selected ? <ConflictList conflicts={conflicts} items={items} onZoom={zoomTo} /> : null}
           {shownGap ? (
-            <ResolveGap
-              box={reviewGapBox(shownGap)}
-              picking={picking !== null}
-              alert={gapAlert}
-              coarse={coarse}
-              onPick={startPick}
-              onKeep={keepRoom}
-              pickHint={coarse ? 'office.review.gap_pick_hint_touch' : undefined}
-              onBack={() => {
-                setPicking(null);
-                setGapAlert(null);
-              }}
-            />
+            <fieldset className={styles.plainFieldset} disabled={readOnly}>
+              <ResolveGap
+                box={reviewGapBox(shownGap)}
+                picking={picking !== null}
+                alert={gapAlert}
+                coarse={coarse}
+                onPick={startPick}
+                onKeep={keepRoom}
+                pickHint={coarse ? 'office.review.gap_pick_hint_touch' : undefined}
+                onBack={() => {
+                  setPicking(null);
+                  setGapAlert(null);
+                }}
+              />
+            </fieldset>
           ) : null}
           {mode === 'one_by_one' ? (
             <div className={styles.inspectorFoot} data-testid="import-review-step">
@@ -1033,7 +1174,7 @@ export function ReadyBody({
               <div className={styles.stepper}>
                 <HeaderButton
                   data-testid="import-review-reject"
-                  disabled={!selected}
+                  disabled={readOnly || !selected}
                   onClick={() => decideSelected('rejected')}
                 >
                   {t('office.review.reject_item')}
@@ -1041,7 +1182,7 @@ export function ReadyBody({
                 <HeaderButton
                   variant="primary"
                   data-testid="import-review-accept"
-                  disabled={!selected}
+                  disabled={readOnly || !selected}
                   onClick={() => decideSelected('accepted')}
                 >
                   {t('office.review.accept_item')}

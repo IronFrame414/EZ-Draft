@@ -123,6 +123,8 @@ const pageSchema = z.object({
       hasThumbnail: z.boolean(),
       versionNo: z.number().int().positive().nullable(),
       archived: z.boolean(),
+      // EZD-314: list_projects (…_add_project_importing.sql) reads an import in progress.
+      importing: z.boolean().optional(),
     }),
   ),
   next: cursorSchema.nullable(),

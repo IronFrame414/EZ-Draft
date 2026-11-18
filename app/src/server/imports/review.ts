@@ -11,6 +11,9 @@
 // EZD-309 (Q-0215 "Detected items are saved until Finish or Cancel, even if the browser closes"; AC-EZD-309-2): the
 // view also carries what the reviewer has saved, the decisions and fixes from import_review_item and the mode from
 // import_session, so a reload restores them. saveImportReview writes one batch through save_import_review.
+// EZD-314 (S02 States Loading "progress with item count so far", Error "Retry"; Validation "Bearing walls detected
+// or marked: flagged"): while detecting, detectedCount is the items of the files already read (each file is one
+// session, written as it is read); a wall item keeps its bearing flag; retryImport runs retry_import.
 import { z } from 'zod';
 import { effectiveValue } from '../../lib/defaults/values';
 import {
@@ -51,6 +54,8 @@ export type ImportReviewView = {
   fixes: Record<string, ItemFix>;
   /** The saved review mode (import_session.mode). */
   mode: ReviewMode;
+  /** EZD-314 (S02 States Loading "progress with item count so far"): items found by the files already read. */
+  detectedCount: number;
 };
 
 const pt = z.object({ x: z.number(), y: z.number() });
@@ -65,6 +70,8 @@ const itemSchema = z.discriminatedUnion('type', [
     confidence,
     geometry: z.object({ start: pt, end: pt }),
     thickness: z.number().nullable(),
+    // EZD-314: a wall the import read as bearing keeps its flag (S02 Validation); absent is not bearing.
+    bearing: z.boolean().optional(),
   }),
   z.object({
     id: z.string(),
@@ -146,11 +153,31 @@ export async function readImportReview(
     decisions: {},
     fixes: {},
     mode: DEFAULT_REVIEW_MODE,
+    detectedCount: 0,
   };
   const firstScan = ordered.find((f) => f.kind === 'polycam_dxf')?.name ?? null;
 
   if (job.data.status === 'queued' || job.data.status === 'running') {
-    return { ...base, status: 'detecting', failedFile: null, items: [], meshUrl: null };
+    // EZD-314: the job writes one session per file as it reads it, so the files read so far give the count.
+    const done = await client
+      .from('import_session')
+      .select('items')
+      .eq('job_id', jobId)
+      .eq('project_id', projectId)
+      .eq('status', 'ready');
+    if (done.error) throw done.error;
+    const detectedCount = done.data.reduce(
+      (n, s) => n + (Array.isArray(s.items) ? s.items.length : 0),
+      0,
+    );
+    return {
+      ...base,
+      status: 'detecting',
+      failedFile: null,
+      items: [],
+      meshUrl: null,
+      detectedCount,
+    };
   }
   if (job.data.status === 'failed') {
     return { ...base, status: 'failed', failedFile: firstScan, items: [], meshUrl: null };
@@ -174,7 +201,17 @@ export async function readImportReview(
     return { ...base, status: 'failed', failedFile: name, items: [], meshUrl: null };
   }
   if (sessions.data.some((s) => s.status === 'detecting')) {
-    return { ...base, status: 'detecting', failedFile: null, items: [], meshUrl: null };
+    const detectedCount = sessions.data
+      .filter((s) => s.status === 'ready')
+      .reduce((n, s) => n + (Array.isArray(s.items) ? s.items.length : 0), 0);
+    return {
+      ...base,
+      status: 'detecting',
+      failedFile: null,
+      items: [],
+      meshUrl: null,
+      detectedCount,
+    };
   }
 
   const items: ReviewItem[] = [];
@@ -255,4 +292,34 @@ export async function saveImportReview(
   const status = (data as { status?: unknown } | null)?.status;
   if (status === 'saved' || status === 'locked' || status === 'closed') return status;
   throw new Error('save_import_review: unexpected answer');
+}
+
+export type RetryImportResult = 'queued' | 'busy' | 'not_failed' | 'locked' | 'closed';
+
+/**
+ * EZD-314 (S02 States Error "Retry"): puts a failed import back on the queue, through the caller's session client:
+ * retry_import checks Edit model, project scope, the import and the edit lock (supabase/migrations/…_retry_import).
+ * The caller starts the runner when the answer is queued.
+ */
+export async function retryImport(
+  client: DbClient,
+  projectId: string,
+  jobId: string,
+): Promise<RetryImportResult> {
+  const { data, error } = await client.rpc('retry_import', { p_project: projectId, p_job: jobId });
+  if (error) {
+    if (error.code === '42501') throw new ReviewSaveError('permission_denied');
+    if (error.code === 'P0002') throw new ReviewSaveError('not_found');
+    throw error;
+  }
+  const status = (data as { status?: unknown } | null)?.status;
+  if (
+    status === 'queued' ||
+    status === 'busy' ||
+    status === 'not_failed' ||
+    status === 'locked' ||
+    status === 'closed'
+  )
+    return status;
+  throw new Error('retry_import: unexpected answer');
 }

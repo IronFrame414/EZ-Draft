@@ -187,6 +187,8 @@ describe('EZD-117a list and count projects', () => {
       versionNo: null,
       // EZD-124 (Q-0201): an active project.
       archived: false,
+      // EZD-314 (S01 States "Import in progress"): no import in progress.
+      importing: false,
     });
     expect(p2?.clientName).toBeNull();
     expect(rpc).toHaveBeenCalledTimes(1);

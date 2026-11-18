@@ -21,6 +21,8 @@ export type ReviewWall = {
   confidence: number;
   geometry: { start: Pt; end: Pt };
   thickness: number | null;
+  /** EZD-314 (S02 Validation "Bearing walls detected or marked: flagged"): the import read the wall as bearing. */
+  bearing?: boolean;
 };
 
 export type ReviewOpening = {
