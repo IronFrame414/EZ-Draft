@@ -13,6 +13,7 @@
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import type { Page } from '@playwright/test';
+import type postgres from 'postgres';
 import {
   adminDb,
   cleanup,
@@ -730,5 +731,148 @@ test.describe('EZD-311 Resolve the gap', () => {
     });
     await expect(tid(page, 'review-gap')).toHaveCount(0);
     await expect(finish).toHaveAttribute('data-blocked', 'false');
+  });
+});
+
+// EZD-312 (AC-EZD-312-1 "A slope item saves by each of the three inputs"; S02 Decisions "Ceiling slope items are
+// fixed in the inspector with the same three inputs as Round 1: heights at points (low/high wall), pitch, or the
+// value read from the mesh"; board S02 "Ceiling slope, east"). Detection does not yet write slope items
+// (vault/build/assumptions.md EZD-312), so the test adds one to the import's items for the detected room. Values
+// from fixtures/synthetic/room-12x10-sloped.glb.expected.json (west wall 96 in, east wall 144 in, 4/12 over the
+// 144 in room), worked by hand: heights 8' and 12' give 4/12; pitch 6 from 8' rises 6 × 144 ÷ 12 = 72 in to 14'.
+// The scan values 95, 140 and 3.75 read 7' 11", 11' 8" and 3.8/12.
+test.describe('EZD-312 Ceiling slope in review', () => {
+  let tenant = '';
+
+  test.afterAll(async () => {
+    try {
+      if (tenant) {
+        await harnessSql()`delete from public.job where tenant_id = ${tenant}::uuid`;
+        const rows = await harnessSql()<{ storage_path: string }[]>`
+          select storage_path from public.source_file where tenant_id = ${tenant}::uuid`;
+        if (rows.length > 0)
+          await adminDb()
+            .storage.from('sources')
+            .remove(rows.map((r) => r.storage_path));
+      }
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  test('EZD-312 a slope item saves by heights, by pitch and from the mesh (AC-1)', async ({
+    page,
+    signInAs,
+  }) => {
+    test.setTimeout(240_000);
+    tenant = await createTenant();
+    const m = await createMember({ tenantId: tenant, scope: 'all' });
+    await setPermissions(tenant, m.membershipId, [
+      'view_projects',
+      'create_projects',
+      'edit_model',
+    ]);
+    await signInAs(m.email);
+    await page.goto('/');
+
+    await tid(page, 'projects-new').click();
+    await tid(page, 'projects-new-file').click();
+    await tid(page, 'new-project-type').selectOption({ label: 'Kitchen' });
+    await tid(page, 'new-project-address').fill('20 Slope Ln');
+    await tid(page, 'new-project-next').click();
+    await tid(page, 'upload-input').setInputFiles([DXF, GLB]);
+    await expect(tid(page, 'upload-file')).toHaveCount(2);
+    await tid(page, 'new-project-create').click();
+    await page.waitForURL(/\/projects\/[0-9a-f-]{36}\/import\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+    const jobId = page.url().split('/').at(-1) as string;
+    const ready = () =>
+      expect(tid(page, 'import-review')).toHaveAttribute('data-status', 'ready', {
+        timeout: 90_000,
+      });
+    await ready();
+
+    const [room] = await harnessSql()<{ id: string }[]>`
+      select e ->> 'id' as id from public.import_session s, jsonb_array_elements(s.items) e
+      where s.job_id = ${jobId}::uuid and e ->> 'type' = 'room'`;
+    const slope = {
+      id: 's1',
+      type: 'ceiling_slope',
+      number: 1,
+      confidence: 47,
+      roomId: room.id,
+      lowSide: 'west',
+      highSide: 'east',
+      run: 144,
+      lowHeight: 95,
+      highHeight: 140,
+      pitchPer12: 3.75,
+    };
+    const sql = harnessSql();
+    const added = await sql`
+      update public.import_session
+      set items = items || ${sql.json([slope] as unknown as postgres.JSONValue)}::jsonb
+      where job_id = ${jobId}::uuid`;
+    expect(added.count).toBe(1);
+    await page.reload();
+    await ready();
+
+    const row = page.locator('[data-testid=import-review-row][data-id="s1"]');
+    await expect(row).toHaveText('Ceiling slope, east47%');
+    await page.locator('[data-testid=import-review-mode][data-mode=one_by_one]').click();
+    await row.click();
+    const inspector = tid(page, 'import-review-inspector');
+    await expect(inspector).toContainText('Ceiling · existing · 47% confidence');
+    await expect(tid(page, 'import-review-scan')).toHaveText(`7' 11" to 11' 8" · 3.8/12`);
+    const section = tid(page, 'import-review-slope');
+    const now = tid(page, 'import-review-slope-now');
+    const inputButton = (i: string) =>
+      page.locator(`[data-testid=import-review-slope-input][data-input=${i}]`);
+
+    const savedInput = async () =>
+      (
+        await harnessSql()<{ fix: { input?: string } | null }[]>`
+          select fix from public.import_review_item where job_id = ${jobId}::uuid and item_id = 's1'`
+      )[0]?.fix?.input ?? null;
+    const reloadAndSelect = async () => {
+      await page.reload();
+      await ready();
+      await expect(tid(page, 'import-review-modes')).toHaveAttribute('data-mode', 'one_by_one');
+      await row.click();
+      await expect(row).toHaveAttribute('data-decision', 'accepted');
+    };
+
+    // Heights at points: low (west) and high (east) wall.
+    await expect(inputButton('points')).toHaveAttribute('aria-pressed', 'true');
+    await tid(page, 'import-review-slope-high').fill(`12'`);
+    await tid(page, 'import-review-slope-low').fill(`8'`);
+    await tid(page, 'import-review-slope-low').press('Enter');
+    await expect(now).toHaveText(`8' 0" to 12' 0" · 4/12`);
+    await expect(section).toHaveAttribute('data-input', 'points');
+    await expect.poll(savedInput, { timeout: 15_000 }).toBe('points');
+    await reloadAndSelect();
+    await expect(section).toHaveAttribute('data-input', 'points');
+    await expect(now).toHaveText(`8' 0" to 12' 0" · 4/12`);
+
+    // Pitch: the low wall and the rise per 12.
+    await inputButton('pitch').click();
+    await tid(page, 'import-review-slope-pitch').fill('6');
+    await tid(page, 'import-review-slope-pitch').press('Enter');
+    await expect(now).toHaveText(`8' 0" to 14' 0" · 6/12`);
+    await expect(section).toHaveAttribute('data-input', 'pitch');
+    await expect.poll(savedInput, { timeout: 15_000 }).toBe('pitch');
+    await reloadAndSelect();
+    await expect(section).toHaveAttribute('data-input', 'pitch');
+    await expect(now).toHaveText(`8' 0" to 14' 0" · 6/12`);
+
+    // The value read from the mesh (the import's GLB).
+    await inputButton('mesh').click();
+    await tid(page, 'import-review-slope-read').click();
+    await expect(now).toHaveText(`8' 0" to 12' 0" · 4/12`, { timeout: 30_000 });
+    await expect(section).toHaveAttribute('data-input', 'mesh');
+    await expect.poll(savedInput, { timeout: 15_000 }).toBe('mesh');
+    await reloadAndSelect();
+    await expect(section).toHaveAttribute('data-input', 'mesh');
+    await expect(now).toHaveText(`8' 0" to 12' 0" · 4/12`);
   });
 });

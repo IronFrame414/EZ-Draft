@@ -2,7 +2,8 @@
 // 900 s (SIGNED_DOWNLOAD_SECONDS), and the review stops reading the import once it is ready, so every load asks the
 // review route again for a fresh link instead of using the one read when the review opened. A retry after a failed
 // load therefore uses a new link too.
-import type { GlbMesh } from '../../lib/imports/polycam-glb/read-glb';
+import { readCeiling, type CeilingReading } from '../../lib/imports/polycam-glb/ceiling';
+import { readGlb, type GlbMesh } from '../../lib/imports/polycam-glb/read-glb';
 
 /** The import's current mesh link from GET /api/projects/[id]/imports/[jobId]; null without a GLB. */
 export async function readMeshUrl(
@@ -30,4 +31,23 @@ export async function loadMesh(deps: {
   const url = await deps.meshUrl();
   if (!url) throw new Error('no mesh');
   return deps.fetchGlb(url);
+}
+
+/**
+ * EZD-312 (S02 Decisions "the value read from the mesh"): the import's mesh ceiling for a ceiling slope item, read
+ * from a fresh link (lib/imports/polycam-glb/ceiling.ts); null when the mesh has no ceiling.
+ */
+export async function readMeshCeiling(deps: {
+  meshUrl: () => Promise<string | null>;
+  fetchImpl?: typeof fetch;
+}): Promise<CeilingReading | null> {
+  const mesh = await loadMesh({
+    meshUrl: deps.meshUrl,
+    fetchGlb: async (url) => {
+      const res = await (deps.fetchImpl ?? fetch)(url);
+      if (!res.ok) throw new Error(`mesh download failed: ${res.status}`);
+      return readGlb(new Uint8Array(await res.arrayBuffer()));
+    },
+  });
+  return readCeiling(mesh);
 }

@@ -32,6 +32,8 @@
 // queue still holds, then POSTs finish and opens Plan with the counts (?imported=walls.windows.doors.rooms, shown
 // by editor/plan/ImportedNotice.tsx). Cancel import asks to confirm, POSTs cancel and returns to the project. A
 // refusal shows its message under the header. A finished or cancelled import shows a closed message.
+// EZD-312 (S02 Decisions "Ceiling slope items are fixed in the inspector with the same three inputs as Round 1";
+// AC-EZD-312-1): a selected ceiling slope shows its three inputs (CeilingSlope.tsx); each fix is a review action.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { ConfirmDialog } from '../../components/states/ConfirmDialog';
 import type { ConfirmChoice, ConfirmRequest } from '../../components/states/confirm-controller';
@@ -84,7 +86,10 @@ import {
 import type { MessageKey } from '../../server/messages/catalog';
 import { createReviewSaver, patchSender, type ReviewSaver } from './review-saver';
 import { ReviewCanvas } from './ReviewCanvas';
-import { readMeshUrl } from './mesh-source';
+import { readMeshCeiling, readMeshUrl } from './mesh-source';
+import { CeilingSlopeFields } from './CeilingSlope';
+import type { CeilingSlopeFix } from '../../lib/imports/ceiling-slope';
+import type { CeilingReading } from '../../lib/imports/polycam-glb/ceiling';
 import styles from './ImportReview.module.css';
 import {
   isOverTolerance,
@@ -502,10 +507,13 @@ export function ReadyBody({
   fetchImpl,
   onBlocked,
   onControl,
+  readCeiling,
 }: {
   review: ImportReviewData;
   initialMode?: ReviewMode;
   fetchImpl?: typeof fetch;
+  /** EZD-312: reads the mesh ceiling for From mesh (tests pass a stub); the import's GLB by default. */
+  readCeiling?: () => Promise<CeilingReading | null>;
   /** EZD-311: whether Finish import is blocked, each time it changes. */
   onBlocked?: (blocked: boolean) => void;
   /** EZD-313: the save queue's flush and dispose, for Finish and Cancel (null when it goes). */
@@ -614,6 +622,10 @@ export function ReadyBody({
     [review.projectId, review.jobId],
   );
   const selected = items.find((i) => i.id === selectedId) ?? null;
+  const readSlopeCeiling = useCallback(
+    () => (readCeiling ? readCeiling() : readMeshCeiling({ meshUrl: freshMeshUrl })),
+    [readCeiling, freshMeshUrl],
+  );
 
   // EZD-310: typed or laser values and the conflicts they create (lib/imports/review-conflicts.ts).
   const tolerance = reviewTolerance(review.tolerance);
@@ -943,7 +955,22 @@ export function ReadyBody({
                   )}
                 </p>
               ) : null}
-              {selected.type === 'room' ? (
+              {selected.type === 'ceiling_slope' ? (
+                <CeilingSlopeFields
+                  key={selected.id}
+                  item={selected}
+                  detected={
+                    detected.find(
+                      (i): i is typeof selected => i.id === selected.id && i.type === 'ceiling_slope',
+                    ) ?? selected
+                  }
+                  fix={fixes[selected.id] as CeilingSlopeFix | undefined}
+                  hasMesh={review.meshUrl !== null}
+                  disabled={decisions[selected.id] === 'rejected'}
+                  readMesh={readSlopeCeiling}
+                  onFix={(fix) => onFix(selected.id, fix)}
+                />
+              ) : selected.type === 'room' ? (
                 <div className={styles.field}>
                   <span className={styles.fieldLabel}>{t('office.review.scan_reads')}</span>
                   <span className={styles.scanValue} data-testid="import-review-scan">

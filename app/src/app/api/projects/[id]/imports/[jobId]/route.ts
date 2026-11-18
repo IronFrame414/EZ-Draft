@@ -18,6 +18,11 @@ import {
   saveImportReview,
 } from '../../../../../../server/imports/review';
 import { REVIEW_MODES } from '../../../../../../lib/imports/review';
+import {
+  MAX_CEILING_IN,
+  MAX_PITCH,
+  SLOPE_INPUTS,
+} from '../../../../../../lib/imports/ceiling-slope';
 import { requireApiPermission, requirePermission } from '../../../../../../server/permissions';
 
 export const dynamic = 'force-dynamic';
@@ -77,6 +82,15 @@ const fixSchema = z.union([
     .object({
       boundary: z.array(pt).min(1).max(200),
       keep: z.object({ gap: pt }).strict().optional(),
+    })
+    .strict(),
+  // EZD-312: a ceiling slope fixed by heights at points, pitch, or the mesh (lib/imports/ceiling-slope.ts).
+  z
+    .object({
+      input: z.enum(SLOPE_INPUTS),
+      lowHeight: z.number().finite().positive().max(MAX_CEILING_IN),
+      highHeight: z.number().finite().positive().max(MAX_CEILING_IN),
+      pitchPer12: z.number().finite().min(0).max(MAX_PITCH),
     })
     .strict(),
 ]);

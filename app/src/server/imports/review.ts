@@ -55,6 +55,7 @@ export type ImportReviewView = {
 
 const pt = z.object({ x: z.number(), y: z.number() });
 const confidence = z.number().min(0).max(100);
+const side = z.enum(['north', 'east', 'south', 'west']);
 const itemSchema = z.discriminatedUnion('type', [
   z.object({
     id: z.string(),
@@ -83,6 +84,20 @@ const itemSchema = z.discriminatedUnion('type', [
     boundary: z.array(pt),
     closed: z.boolean(),
     areaSqIn: z.number(),
+  }),
+  // EZD-312: a ceiling slope read for a room (lib/imports/review.ts ReviewCeilingSlope).
+  z.object({
+    id: z.string(),
+    type: z.literal('ceiling_slope'),
+    number: z.number().int(),
+    confidence,
+    roomId: z.string().nullable(),
+    lowSide: side,
+    highSide: side,
+    run: z.number().nonnegative(),
+    lowHeight: z.number().positive(),
+    highHeight: z.number().positive(),
+    pitchPer12: z.number().nonnegative(),
   }),
 ]);
 

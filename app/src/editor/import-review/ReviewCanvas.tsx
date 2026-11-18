@@ -363,7 +363,8 @@ export function ReviewCanvas({
               );
             })}
             {items.map((item) => {
-              if (item.type === 'room') return null;
+              // EZD-312: a ceiling slope has no plan line; it is chosen from the list and fixed in the inspector.
+              if (item.type === 'room' || item.type === 'ceiling_slope') return null;
               const state = itemState(item, selectedId, cutoff, decisions);
               let a = { x: 0, y: 0 };
               let b = { x: 0, y: 0 };

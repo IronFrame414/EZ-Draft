@@ -9,6 +9,9 @@
 // off a wall (hostWallId null; it shows flagged in Plan). A room kept out of square carries its closure override.
 // Each object is checked with the stored-object reader before finish_import writes them all in one transaction
 // with one checkpoint (supabase/migrations/…_create_finish_cancel_import.sql).
+// EZD-312: a ceiling slope is not an object of its own. An accepted slope that rises (pitch above 0) sets its room's
+// ceiling type to single slope (Q-0664 room ceiling type); its heights and pitch wait for the room's ceiling data
+// (EZD-501, phase 5; vault/build/assumptions.md EZD-312).
 import {
   autoRoughOpening,
   createWallData,
@@ -103,11 +106,19 @@ export function importObjects(
     newId: () => string;
   },
 ): { objects: Stored[]; overridden: { roomId: string; gapIn: number }[] } | null {
-  const ids = new Map(items.map((i) => [i.id, ctx.newId()] as const));
+  const sloped = new Set(
+    items.flatMap((i) =>
+      i.type === 'ceiling_slope' && i.pitchPer12 > 0 && i.roomId !== null ? [i.roomId] : [],
+    ),
+  );
+  const built = items.filter(
+    (i): i is Exclude<ReviewItem, { type: 'ceiling_slope' }> => i.type !== 'ceiling_slope',
+  );
+  const ids = new Map(built.map((i) => [i.id, ctx.newId()] as const));
   const objects: Stored[] = [];
   const overridden: { roomId: string; gapIn: number }[] = [];
   let roomNumber = ctx.firstRoomNumber;
-  for (const item of items) {
+  for (const item of built) {
     const id = ids.get(item.id)!;
     let data: WallData | OpeningData | RoomData;
     if (item.type === 'wall') {
@@ -163,7 +174,10 @@ export function importObjects(
         geometry: { boundary: item.boundary.map((p) => ({ x: p.x, y: p.y })) },
         status: 'existing',
         level: ctx.level,
-        attributes: newRoomAttributes(`Room ${roomNumber}`),
+        attributes: {
+          ...newRoomAttributes(`Room ${roomNumber}`),
+          ceilingType: sloped.has(item.id) ? 'single_slope' : null,
+        },
         closureOverride: keep
           ? { who: ctx.appUserId, when: ctx.now, gap: { x: keep.gap.x, y: keep.gap.y } }
           : null,
@@ -188,6 +202,7 @@ export function importedCounts(items: readonly ReviewItem[]): ImportedCounts {
   for (const i of items) {
     if (i.type === 'wall') c.walls += 1;
     else if (i.type === 'room') c.rooms += 1;
+    else if (i.type === 'ceiling_slope') continue;
     else if (i.kind === 'door') c.doors += 1;
     else c.windows += 1;
   }

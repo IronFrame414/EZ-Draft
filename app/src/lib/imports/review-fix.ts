@@ -15,6 +15,7 @@ import {
   type SnapKind,
   type WallObject,
 } from '@ezdraft/geometry';
+import { parseSlopeFix, type CeilingSlopeFix } from './ceiling-slope';
 import type { Decision, Decisions, Pt, ReviewItem, ReviewOpening, ReviewWall } from './review';
 
 // EZD-310: `typed` is the typed or laser value (in) that set the fix (lib/imports/review-conflicts.ts).
@@ -22,7 +23,8 @@ export type WallFix = { geometry: { start: Pt; end: Pt }; typed?: number };
 export type OpeningFix = { center: Pt; width: number; typed?: number };
 // EZD-311: `keep` is Keep the room out of square, with the gap vector (in) it accepted (lib/imports/review-conflicts.ts).
 export type RoomFix = { boundary: Pt[]; keep?: { gap: Pt } };
-export type ItemFix = WallFix | OpeningFix | RoomFix;
+// EZD-312: a ceiling slope's fix records the input that set it (lib/imports/ceiling-slope.ts).
+export type ItemFix = WallFix | OpeningFix | RoomFix | CeilingSlopeFix;
 export type Fixes = Readonly<Record<string, ItemFix>>;
 
 const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);
@@ -47,6 +49,7 @@ export function parseFix(item: ReviewItem, raw: unknown): ItemFix | null {
     if (finite(r.typed) && r.typed > 0) opening.typed = r.typed;
     return opening;
   }
+  if (item.type === 'ceiling_slope') return parseSlopeFix(r);
   if (
     !Array.isArray(r.boundary) ||
     r.boundary.length !== item.boundary.length ||
@@ -79,6 +82,10 @@ export function applyFix(item: ReviewItem, fix: ItemFix | undefined): ReviewItem
   if (item.type === 'opening') {
     const o = f as OpeningFix;
     return { ...item, center: o.center, width: o.width };
+  }
+  if (item.type === 'ceiling_slope') {
+    const c = f as CeilingSlopeFix;
+    return { ...item, lowHeight: c.lowHeight, highHeight: c.highHeight, pitchPer12: c.pitchPer12 };
   }
   const { boundary, keep } = f as RoomFix;
   const room = { ...item, boundary, areaSqIn: item.closed ? polygonArea(boundary) : item.areaSqIn };
@@ -143,6 +150,8 @@ export function itemHandles(item: ReviewItem, items: readonly ReviewItem[]): Han
       { key: 'edge1', point: b },
     ];
   }
+  // EZD-312: a ceiling slope has no plan handle; it is fixed in the inspector.
+  if (item.type === 'ceiling_slope') return [];
   return item.boundary.map((p, i) => ({ key: `corner${i}`, point: p }));
 }
 
@@ -178,6 +187,10 @@ export function dragHandle(
       center: { x: (fixed.x + moved.x) / 2, y: (fixed.y + moved.y) / 2 },
       width: Math.abs(t),
     };
+  }
+  if (item.type === 'ceiling_slope') {
+    const { lowHeight, highHeight, pitchPer12 } = item;
+    return { input: 'points', lowHeight, highHeight, pitchPer12 };
   }
   const i = Number(key.replace('corner', ''));
   const boundary = item.boundary.map((p, n) => (n === i ? copy(to) : copy(p)));
