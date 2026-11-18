@@ -206,14 +206,14 @@ describe('EZD-234 phase 10 schema step', () => {
     expect(ok(withData('blocking', (d) => delete d.attributes.heightToCenter))).toBe(false);
   });
 
-  it('AC-4 fileRefs names every source_file id: room photos and a pin photo as photos, the letter with no kind yet', () => {
+  it('AC-4 fileRefs names every source_file id: room photos and a pin photo as photos, the letter as engineer_letter', () => {
     const photo = crypto.randomUUID();
     const room = parsed(withData('room', (d) => (d.attributes.photos = [photo])));
     expect(fileRefs(room)).toEqual([{ fileId: photo, kinds: ['photo'] }]);
     const pin = parsed(withData('pin', (d) => (d.attributes.photoFileId = photo)));
     expect(fileRefs(pin)).toEqual([{ fileId: photo, kinds: ['photo'] }]);
     const note = parsed(withData('engineer_note', (d) => (d.attributes.fileId = photo)));
-    expect(fileRefs(note)).toEqual([{ fileId: photo, kinds: [] }]);
+    expect(fileRefs(note)).toEqual([{ fileId: photo, kinds: ['engineer_letter'] }]);
     for (const o of V5) {
       const p = parsed(structuredClone(o));
       expect(fileRefs(p), o.type).toEqual([]);

@@ -1,7 +1,8 @@
 // EZD-214 (AC-EZD-214-4, -5; 05 Q-0664 "Status on objects"; S03 Decisions "Demo is set per object"; S03 Inspector
 // "Bearing wall cannot be set to Demo without engineer prompt"; Q-0630 row 9; Q-0669 (a)). Expected values: Q-0664
 // (a Status select Existing / Demo / New on walls, doors and windows; bulk shares Status, Mixed when they differ, one
-// undo step), "set per object" (no cascade to hosted openings), and the EZD-233 bearing refusal message. Real model
+// undo step), "set per object" (no cascade to hosted openings), and EZD-215 (Q-0704: a bearing wall set to Demo adds
+// its engineer note, which replaces the EZD-233 refusal). Real model
 // store over the EZD-213a fixtures; no browser, no live service.
 import type { ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -78,15 +79,27 @@ describe('EZD-214 inspector Status', () => {
     expect([...o.keys()].length).toBe(houseObjects().size);
   });
 
-  it('a bearing wall is not set to Demo; nothing in the selection changes', () => {
-    const store = createModelStore({ objects: houseObjects() });
+  // EZD-215 (09-calculations Q-0704 overrides S03:116; AC-EZD-215-2): allowed; one note for the bearing wall only,
+  // in the same undo step.
+  it('EZD-215 a bearing wall set to Demo adds one engineer note in the same undo step', () => {
+    const store = createModelStore({ objects: houseObjects(), newId: idSeq(950) });
     commitInspectorEdits({ store, ids: [uid(1)], newId: idSeq(900) }, [
       { field: 'wallBearing', value: true },
     ]);
     const r = setStatus(store, [uid(5), uid(1)], 'demo');
-    expect(r).toEqual({ ok: false, messageKey: 'office.edit.bearing_demo' });
-    expect(statusOf(store.getState().objects, uid(5))).toBe('existing');
-    expect(setStatus(store, [uid(1)], 'new')).toEqual({ ok: true, changed: 1 });
+    expect(r).toEqual({ ok: true, changed: 2 });
+    const o = store.getState().objects;
+    expect(statusOf(o, uid(5))).toBe('demo');
+    expect(statusOf(o, uid(1))).toBe('demo');
+    const notes = [...o.values()].filter((v) => v.type === 'engineer_note');
+    expect(notes.map((n) => n.data.attributes)).toEqual([
+      expect.objectContaining({ wallId: uid(1), action: 'demo', letterOnFile: false }),
+    ]);
+    store.undo();
+    expect([...store.getState().objects.values()].some((v) => v.type === 'engineer_note')).toBe(
+      false,
+    );
+    expect(statusOf(store.getState().objects, uid(1))).toBe('existing');
   });
 
   it('AC-4 bulk Status reads Mixed when the selection differs, else the shared value', () => {

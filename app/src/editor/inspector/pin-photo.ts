@@ -5,6 +5,7 @@
 // the pin take the photo id, as an ordinary model edit (so it queues in the outbox offline), and the save check never
 // sees an unfinished upload. A failure keeps the pin as it is; `attempt` remembers how far it got, so Retry sends
 // only what is left. The thumbnail is a short-lived link signed from the file row. Browser only.
+// EZD-215 (AC-EZD-215-4): `opts.kind` sends the same way as another source_file kind (the engineer letter).
 import { CURRENT_SCHEMA_VERSION, parseStoredObject, type PinData } from '@ezdraft/geometry';
 import { checkFile, kindTakes } from '../../lib/imports/upload-files';
 import type { SourceContentType } from '../../lib/storage/source-file-kinds';
@@ -53,7 +54,11 @@ export async function uploadPinPhoto(
   projectId: string,
   file: { name: string; blob: Blob; contentType: SourceContentType },
   attempt: { current: PhotoAttempt },
-  opts: { fetchImpl?: typeof fetch; retryDelaysMs?: readonly number[] } = {},
+  opts: {
+    fetchImpl?: typeof fetch;
+    retryDelaysMs?: readonly number[];
+    kind?: 'photo' | 'engineer_letter';
+  } = {},
 ): Promise<string> {
   const fetchImpl = opts.fetchImpl ?? fetch;
   if (attempt.current === null) {
@@ -62,7 +67,7 @@ export async function uploadPinPhoto(
       started = await fetchImpl(
         `/api/projects/${encodeURIComponent(projectId)}/source-files`,
         post({
-          kind: 'photo',
+          kind: opts.kind ?? 'photo',
           originalName: file.name,
           contentType: file.contentType,
           size: file.blob.size,

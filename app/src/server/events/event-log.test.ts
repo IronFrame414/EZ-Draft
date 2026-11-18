@@ -244,6 +244,13 @@ describe('EZD-109 event log sink', () => {
       type: 'model_object',
       id: C,
     });
+    // EZD-215 (07 Q-0708): the row is on the wall; the note and file ids are in the details.
+    for (const name of ['wall.engineer_required', 'wall.engineer_note_attached'] as const) {
+      expect(objectOf(event(name, { wallId: C, noteId: U, fileId: null })), name).toEqual({
+        type: 'model_object',
+        id: C,
+      });
+    }
     expect(objectOf(event('user.language_changed', { appUserId: U, language: 'es' }))).toEqual({
       type: 'app_user',
       id: U,

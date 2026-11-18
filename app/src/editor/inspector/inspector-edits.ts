@@ -3,8 +3,9 @@
 // changes"; 04 Q-0630 row 20; Q-0645 (a)): one inspector field committed over the whole selection as one Change[] for
 // one applyEdit (one undo step). Pure.
 // EZD-214 (05 Q-0664 "Status on objects"; S03 Decisions "Demo is set per object"; Q-0669 (a)): `status` sets each
-// selected wall, door or window's status, one change per object, no cascade and no room reconcile; a bearing wall
-// is not set to Demo (S03 Inspector; the EZD-233 Set status rule).
+// selected wall, door or window's status, one change per object, no cascade and no room reconcile.
+// EZD-215 (09-calculations Q-0704 overrides S03:116): a bearing wall is set to Demo like any other; the model store
+// adds its "Engineer required" note in the same edit.
 import {
   COMPARISON_TOLERANCE_IN,
   parseStoredObject,
@@ -81,8 +82,7 @@ export type InspectorEditReason =
   | 'join_lost'
   | 'not_on_wall'
   | 'past_corner'
-  | 'overlap'
-  | 'bearing_demo';
+  | 'overlap';
 
 export type InspectorEditResult =
   { ok: true; changes: Change[] } | { ok: false; reason: InspectorEditReason; id: string };
@@ -282,8 +282,6 @@ function statusEditChanges(
     const obj = stored.find((o) => lower(o.id) === id);
     if (obj === undefined) return { ok: false, reason: 'not_found', id };
     if (obj.type === 'wall') {
-      if (status === 'demo' && obj.data.attributes.bearing)
-        return { ok: false, reason: 'bearing_demo', id };
       if (obj.data.status !== status)
         changes.push(wallStatusChange({ ...obj, data: { ...obj.data, status } }));
     } else if (obj.type === 'opening') {

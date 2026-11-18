@@ -602,3 +602,50 @@ describe('EZD-229 extra items', () => {
     expect(buildDrawingList(doc, V).items).not.toContainEqual(extra);
   });
 });
+
+// EZD-215 (AC-EZD-215-3; S03:154; Q-0708). Expected values: the note's line (the wall's line at the time) and an
+// equilateral triangle of side ENGINEER_MARK_IN = 12" centred on its midpoint (60, 0): corners (54, -2*sqrt(3)),
+// (66, -2*sqrt(3)), (60, 4*sqrt(3)); h = 6*sqrt(3), centroid at h/3 above the base.
+describe('EZD-215 engineer note', () => {
+  const V = { level: F1, dimensionTextPt: 8, roomHatch: null, roomLabelPt: 10 } as DrawingView;
+  const note = (letterOnFile: boolean, level = F1): ModelObject => ({
+    id: uid(80),
+    type: 'engineer_note',
+    data: {
+      geometry: { start: P(0, 0), end: P(120, 0) },
+      status: 'existing',
+      level,
+      attributes: {
+        wallId: W1,
+        action: 'delete',
+        engineerName: letterOnFile ? 'A. Engineer' : '',
+        approvedText: letterOnFile ? 'Header 2-2x12' : '',
+        fileId: null,
+        letterOnFile,
+      },
+    },
+  });
+
+  it('T-215-1 a note with no letter on file draws its line and triangle on the flagged layer', () => {
+    const items = buildDrawingList({ objects: [note(false)] }, V).items;
+    expect(items.every((i) => i.layer === 'flagged' && i.objectId === uid(80))).toBe(true);
+    expect(items[0]).toMatchObject({ kind: 'line', role: 'hidden', from: P(0, 0), to: P(120, 0) });
+    const r3 = Math.sqrt(3);
+    const corners = [P(54, -2 * r3), P(66, -2 * r3), P(60, 4 * r3)];
+    const tri = items.slice(1);
+    expect(tri).toHaveLength(3);
+    tri.forEach((t, i) => {
+      if (t.kind !== 'line') throw new Error('line');
+      expect(t.role).toBe('cut');
+      expect(t.from.x).toBeCloseTo(corners[i]!.x, 12);
+      expect(t.from.y).toBeCloseTo(corners[i]!.y, 12);
+      expect(t.to.x).toBeCloseTo(corners[(i + 1) % 3]!.x, 12);
+      expect(t.to.y).toBeCloseTo(corners[(i + 1) % 3]!.y, 12);
+    });
+  });
+
+  it('T-215-2 a note with the letter on file, or on another floor, draws nothing', () => {
+    expect(buildDrawingList({ objects: [note(true)] }, V).items).toEqual([]);
+    expect(buildDrawingList({ objects: [note(false, F2)] }, V).items).toEqual([]);
+  });
+});

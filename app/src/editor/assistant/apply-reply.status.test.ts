@@ -1,6 +1,7 @@
 // EZD-214 (AC-EZD-214-8, -1; 05 Q-0664 "AI commands"; Q-0638; Q-0474). Expected values: Q-0664 (set_status {ref,
 // status} previewed as an update; AI remove stays the Delete key), S03 Status bar "View" (Proposed: new objects are
-// New), S03 Inspector (a bearing wall is not set to Demo) and EZD-5604a C2 (status on an update is refused).
+// New), 09-calculations Q-0704 (a bearing wall set to Demo carries its engineer note; EZD-215) and EZD-5604a C2
+// (status on an update is refused).
 import {
   CURRENT_SCHEMA_VERSION,
   NO_NUMBERS,
@@ -120,15 +121,37 @@ describe('EZD-214 assistant set_status', () => {
     ).toEqual({ ok: false, reason: 'duplicate_ref' });
   });
 
-  it('a bearing wall is not set to Demo', () => {
+  // EZD-215 (09-calculations Q-0704 overrides S03:116; AC-EZD-215-1, -2): allowed, with one "Engineer required"
+  // note in the same change set, so AI Accept saves it with the wall.
+  const bearingRoom = () => {
     const objects = room();
     const v = objects.get(uid(1))!;
     const attrs = v.data.attributes as Record<string, unknown>;
     objects.set(uid(1), { ...v, data: { ...v.data, attributes: { ...attrs, bearing: true } } });
-    expect(run([{ op: 'set_status', ref: 'w1', status: 'demo' }], { objects })).toEqual({
-      ok: false,
-      reason: 'invalid_value',
-    });
+    return objects;
+  };
+  const notesIn = (p: OkPreview) =>
+    p.changes.flatMap((c) =>
+      c.value?.type === 'engineer_note'
+        ? [c.value.data.attributes as { wallId: string; action: string; letterOnFile: boolean }]
+        : [],
+    );
+
+  it('EZD-215 a bearing wall set to Demo is previewed with its engineer note', () => {
+    const p = ok(
+      run([{ op: 'set_status', ref: 'w1', status: 'demo' }], { objects: bearingRoom() }),
+    );
+    expect(statusIn(p, uid(1))).toBe('demo');
+    expect(notesIn(p)).toEqual([
+      expect.objectContaining({ wallId: uid(1), action: 'demo', letterOnFile: false }),
+    ]);
+    expect(p.added).toHaveLength(1);
+  });
+
+  it('EZD-215 an AI remove of a bearing wall acts as the Delete key and adds its note', () => {
+    const p = ok(run([{ op: 'remove', type: 'wall', ref: 'w1' }], { objects: bearingRoom() }));
+    expect(p.removed.map((id) => id.toLowerCase())).toContain(uid(1));
+    expect(notesIn(p)).toEqual([expect.objectContaining({ wallId: uid(1), action: 'delete' })]);
   });
 
   it('AC-8 an AI remove still acts as the Delete key', () => {

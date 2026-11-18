@@ -10,10 +10,16 @@
 // from inside a room. Box select and Select all take rooms.
 // EZD-229 (AC-EZD-229-2): the existing details pick too, each by the shape it shares with a fixture, room or utility
 // point.
+// EZD-215 (AC-EZD-215-3, -4): an engineer note whose letter is not on file picks by the box around its triangle, so a
+// note left by a deleted wall can be selected and its form opened; a note with the letter on file is not drawn and
+// does not pick.
 import {
   blockingPickShape,
   type BlockingObject,
   createSpatialIndex,
+  engineerMark,
+  engineerMarkCenter,
+  engineerRequired,
   fixturePickShape,
   openingPickShape,
   roomPickShape,
@@ -49,14 +55,34 @@ function pinPickShape(o: PinObject): PickShape {
   return { kind: 'quad', points, area: w * h };
 }
 
+// EZD-215: the box around the note's triangle.
+type NoteObject = Extract<ModelObject, { type: 'engineer_note' }>;
+function notePickShape(o: NoteObject): PickShape | null {
+  if (!engineerRequired(o.data)) return null;
+  const [a, b, c] = engineerMark(engineerMarkCenter(o.data.geometry));
+  const points: [Point, Point, Point, Point] = [
+    { x: a.x, y: a.y },
+    { x: b.x, y: a.y },
+    { x: b.x, y: c.y },
+    { x: a.x, y: c.y },
+  ];
+  return { kind: 'quad', points, area: (b.x - a.x) * (c.y - a.y) };
+}
+
 // EZD-229: the objects that pick by their own shape, the existing details among them. A detail picks by the shape it
 // shares: a soffit or chase by its polygon as a room, a detector at its point as a utility point, a register or attic
 // hatch by its outline as a fixture (11 Budgets: one test and one shape-by-geometry fallthrough keep the editor's first
 // download small).
 type DetailObject = Extract<ModelObject, { type: 'hvac' | 'access' | 'device' | 'soffit' | 'chase' }>;
-type LooseObject = FixtureObject | UtilityPointObject | TileShowerObject | PinObject | DetailObject;
+type LooseObject =
+  | FixtureObject
+  | UtilityPointObject
+  | TileShowerObject
+  | PinObject
+  | DetailObject
+  | NoteObject;
 const isLoose = (o: ModelObject): o is LooseObject =>
-  /^(fixture|utility_point|tile_shower|pin|hvac|access|device|soffit|chase)$/.test(o.type);
+  /^(fixture|utility_point|tile_shower|pin|hvac|access|device|soffit|chase|engineer_note)$/.test(o.type);
 
 export type PickIndex = {
   readonly floorId: string | null;
@@ -186,7 +212,9 @@ export function createPickIndex(): PickIndex {
       // A fixture, register or hatch has neither a boundary nor a point; a utility point or detector has a point.
       const g = free.data.geometry as { boundary?: unknown; point?: unknown };
       const shape =
-        free.type === 'tile_shower'
+        free.type === 'engineer_note'
+          ? notePickShape(free)
+          : free.type === 'tile_shower'
           ? tileShowerPickShape(free)
           : free.type === 'pin'
             ? pinPickShape(free)

@@ -113,6 +113,15 @@ export const EVENT_LOG: EventLogRules = {
   },
   // EZD-5605 (S03c "Accepted changes are marked as AI in the event log"): written under the saving member.
   'model.ai_change_accepted': SINK,
+  // EZD-215 (07 Q-0708 "each writes an event_log row"): written after the save under the saving member, on the wall.
+  'wall.engineer_required': {
+    mode: 'sink',
+    object: (e) => ({ type: 'model_object', id: e.payload.wallId }),
+  },
+  'wall.engineer_note_attached': {
+    mode: 'sink',
+    object: (e) => ({ type: 'model_object', id: e.payload.wallId }),
+  },
   'catalog_item.created': SINK,
   'detail.placed': SINK,
   // Written by link_app_user and accept_invite in the acceptance transaction.

@@ -148,9 +148,10 @@ describe('EZD-322 cost-record starts need See company costs (helper, db)', () =>
     expect(order.upload.token.length).toBeGreaterThan(0);
   });
 
-  it('EZD-322 D1 (c) the eight other kinds start for a member without See company costs', async () => {
+  // EZD-215: engineer_letter is the ninth (Q-0704 row 3).
+  it('EZD-322 D1 (c) the nine other kinds start for a member without See company costs', async () => {
     const others = SOURCE_FILE_KINDS.filter((k) => !COST_FILE_KINDS.includes(k));
-    expect(others).toHaveLength(8);
+    expect(others).toHaveLength(9);
     for (const kind of others) {
       // EZD-301 (Q-0517): each kind starts with a content type it takes.
       const started = await start(sF, f, { kind, contentType: KIND_CONTENT_TYPES[kind][0] });

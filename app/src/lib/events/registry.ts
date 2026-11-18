@@ -58,6 +58,10 @@ export const EVENTS = {
   // EZD-5605 (Q-0638 gap 11; S03c "Accepted changes are marked as AI in the event log"): an Assistant change the
   // user accepted, saved through the objects route; ids and count only, never prompt or reply text.
   'model.ai_change_accepted': { kind: 'internal' },
+  // EZD-215 (07 Q-0708; phase-02.md:33): a saved "Engineer required" note is new, or its "Engineer letter on file"
+  // was ticked.
+  'wall.engineer_required': { kind: 'internal' },
+  'wall.engineer_note_attached': { kind: 'internal' },
   // Canonical names: screen events that write the event log only (07 Hooks)
   'catalog_item.created': { kind: 'log_only' },
   'detail.placed': { kind: 'log_only' },
@@ -181,6 +185,9 @@ export interface EventPayloads {
   'cleanup.deleted': Record<string, unknown>;
   'room.closure_overridden': { roomId: string; gapIn: number; userId: string };
   'model.ai_change_accepted': { objectIds: string[]; count: number };
+  // EZD-215 (07 Q-0708): fileId null when the note has no letter.
+  'wall.engineer_required': { wallId: string; noteId: string; fileId: string | null };
+  'wall.engineer_note_attached': { wallId: string; noteId: string; fileId: string | null };
   'catalog_item.created': Record<string, unknown>;
   'detail.placed': Record<string, unknown>;
   'user.joined': { membershipId: string; appUserId: string; via: 'sign_in' | 'invite_link' };

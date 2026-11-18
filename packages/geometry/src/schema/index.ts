@@ -168,11 +168,12 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
 };
 
 // A source_file id held in an object, with the source_file kinds that field accepts. An empty `kinds` refuses
-// every id: the engineer letter's own kind arrives with EZD-215 (Q-0704 row 3).
+// every id. EZD-215 (Q-0704 row 3): the engineer letter takes its own kind, engineer_letter.
 export type FileRef = { fileId: string; kinds: readonly string[] };
 
 const none = (): FileRef[] => [];
 const PHOTO_KINDS = ['photo'] as const;
+const LETTER_KINDS = ['engineer_letter'] as const;
 
 // Mapped over every type, so a new type cannot be added without saying which file ids it holds.
 const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
@@ -181,7 +182,7 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   opening: none,
   room: (d) => d.attributes.photos.map((fileId) => ({ fileId, kinds: PHOTO_KINDS })),
   engineer_note: (d) =>
-    d.attributes.fileId === null ? [] : [{ fileId: d.attributes.fileId, kinds: [] }],
+    d.attributes.fileId === null ? [] : [{ fileId: d.attributes.fileId, kinds: LETTER_KINDS }],
   fixture: none,
   utility_point: none,
   pin: (d) =>

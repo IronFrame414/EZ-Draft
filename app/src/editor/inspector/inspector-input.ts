@@ -96,8 +96,6 @@ export function refusalMessage(
       return `office.inspector.error.${reason}`;
     case 'invalid_input':
       return 'office.length.refused';
-    case 'bearing_demo':
-      return 'office.edit.bearing_demo';
     case 'not_found':
     case 'not_applicable':
     case 'not_shared':

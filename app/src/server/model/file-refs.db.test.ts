@@ -150,7 +150,7 @@ describe('EZD-234 file references on save (database)', () => {
     }
   });
 
-  it('room photos are checked the same way; an engineer letter is refused until its kind exists', async () => {
+  it('room photos are checked the same way; an engineer letter takes only an uploaded engineer_letter (EZD-215)', async () => {
     const good = await sourceFile(tenant, project, 'photo', true);
     const bad = await sourceFile(tenant, project2, 'photo', true);
     const room = (photos: string[]) =>
@@ -189,5 +189,19 @@ describe('EZD-234 file references on save (database)', () => {
       invalid: [{ id: n.id, issue: 'file_not_found' }],
     });
     expect((await save([upsert('engineer_note', noteData(level, null))])).ok).toBe(true);
+    // EZD-215 (Q-0704 row 3; AC-EZD-215-4): the letter's own kind, once uploaded, in this project.
+    const own = await sourceFile(tenant, project, 'engineer_letter', true);
+    expect((await save([upsert('engineer_note', noteData(level, own))])).ok).toBe(true);
+    for (const fileId of [
+      await sourceFile(tenant, project, 'engineer_letter', false),
+      await sourceFile(tenant, project2, 'engineer_letter', true),
+    ]) {
+      const m = upsert('engineer_note', noteData(level, fileId));
+      expect(await save([m]), fileId).toEqual({
+        ok: false,
+        code: 'invalid_object',
+        invalid: [{ id: m.id, issue: 'file_not_found' }],
+      });
+    }
   });
 });

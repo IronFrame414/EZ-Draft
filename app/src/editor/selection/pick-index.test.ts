@@ -148,3 +148,37 @@ describe('EZD-208a pick index', () => {
     expect(index.floorId).toBe(F2);
   });
 });
+
+// EZD-215 (AC-EZD-215-3, -4). Expected values: the note's triangle (side 12", centred on the midpoint (60, 0) of its
+// line) spans x 54 to 66, y -2*sqrt(3) to 4*sqrt(3); a note with the letter on file is not drawn, so it does not pick.
+describe('EZD-215 engineer note picks', () => {
+  const note = (letterOnFile: boolean): ObjectValue => ({
+    type: 'engineer_note',
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: {
+      geometry: { start: { x: 0, y: 0 }, end: { x: 120, y: 0 } },
+      status: 'existing',
+      level: F1,
+      attributes: {
+        wallId: uid(1),
+        action: 'delete',
+        engineerName: letterOnFile ? 'A. Engineer' : '',
+        approvedText: letterOnFile ? 'Header' : '',
+        fileId: null,
+        letterOnFile,
+      },
+    },
+  });
+
+  it('a note picks by the box around its triangle; with the letter on file it does not', () => {
+    const o = new Map(baseObjects()).set(uid(900), note(false));
+    const index = createPickIndex();
+    expect(index.sync(o, F1, [])).toBe(1);
+    expect(index.pick({ x: 60, y: 0 }, 0.5)).toEqual([uid(900)]);
+    expect(index.pick({ x: 60, y: 7.5 }, 0.5)).toEqual([]);
+    expect(index.pick({ x: 10, y: 0 }, 0.5)).toEqual([]);
+    const cleared = new Map(o).set(uid(900), note(true));
+    index.sync(cleared, F1, [uid(900)]);
+    expect(index.all()).toEqual([]);
+  });
+});

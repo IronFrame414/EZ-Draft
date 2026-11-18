@@ -7,6 +7,7 @@
 // EZD-402 (AC-EZD-402-1): exports the cabinet run totals.
 // EZD-404 (AC-EZD-404-2): exports the cabinet run plan strip and elevation layout.
 // EZD-411 (AC-EZD-411-1): exports the countertop piece measures.
+// EZD-215 (AC-EZD-215-1, -2): exports the bearing wall rule.
 // EZD-229 (11 Budgets; EZD-120c B11): the benchmark model is its own entry, `@ezdraft/geometry/benchmark`, so the
 // editor's first download does not carry the 3,000-object generator that only the lazy benchmark runner, the server
 // and the dev pages use.
@@ -22,6 +23,7 @@ export * from './numbers';
 export * from './openings';
 export * from './plumbing/locations';
 export * from './rooms';
+export * from './rules/bearing';
 export * from './schema';
 export * from './selection';
 export * from './sketch';

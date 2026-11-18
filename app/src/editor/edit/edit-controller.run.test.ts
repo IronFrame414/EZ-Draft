@@ -3,7 +3,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import { createModelStore } from '../model/model-store';
-import { groupChanges, mirrorChanges, statusChanges } from './arrange-changes';
+import { groupChanges, mirrorChanges } from './arrange-changes';
 import { createEditController, type EditDeps } from './edit-controller';
 import { ROOM, idSeq, p, uid, dataOf, withOpenings } from './test-utils/fixtures';
 
@@ -88,14 +88,11 @@ describe('EZD-233 edit controller run', () => {
     expect(s.selection.select).toHaveBeenLastCalledWith([uid(1), uid(2)]);
     expect(s.store.getState().objects.get(uid(100))?.type).toBe('group');
 
-    const w1 = ROOM.get(uid(1))!;
-    const attrs = (w1.data as { attributes: Record<string, unknown> }).attributes;
-    const bearing = new Map(ROOM).set(uid(1), {
-      ...w1,
-      data: { ...w1.data, attributes: { ...attrs, bearing: true } },
-    });
-    const b = make({ objects: bearing, selected: [uid(1)] });
-    expect(b.edit.run((c) => statusChanges(c, 'demo'))).toBe('office.edit.bearing_demo');
+    // EZD-215 (Q-0704): Set status Demo on a bearing wall is no longer refused, so a command that refuses stands in.
+    const b = make({ selected: [uid(1)] });
+    expect(b.edit.run(() => ({ ok: false, messageKey: 'office.tools.move.failed' }))).toBe(
+      'office.tools.move.failed',
+    );
     expect(b.onCommit).not.toHaveBeenCalled();
   });
 

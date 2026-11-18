@@ -15,6 +15,9 @@
 // EZD-229 (AC-EZD-229-1, -2; 11 Budgets; EZD-120c B11): `options.extraItems` adds items after the fixtures. The plan
 // passes the existing details and the floor transitions there from a lazy module (app/src/lazy/room-fields), so their
 // code is not in the editor's first download.
+// EZD-215 (AC-EZD-215-3; S03:154 "flagged with 'Engineer required'"; Q-0708): an engineer note whose letter is not on
+// file is the wall's line at the time, 'hidden', with a triangle ENGINEER_MARK_IN a side at its middle, on the
+// `flagged` layer; once the letter is on file it draws nothing.
 import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
 import { doorSymbolInFrame } from '../openings/door-symbol';
 import { isVerticalLine } from '../openings/opening';
@@ -24,6 +27,7 @@ import { tileShowerItems } from '../fixtures/tile-shower-drawing';
 import type { TileShowerObject } from '../fixtures/tile-shower';
 import { blockingOutline, type BlockingObject } from '../fixtures/blocking';
 import { wallFaceOffsets } from '../walls/wall';
+import { engineerRequired } from '../rules/bearing';
 import { formatRoomLabel, interiorPoint, roomAreaSqFt } from '../rooms/area';
 import type { RoomObject } from '../rooms/sync';
 import { hatchSegments } from './hatch';
@@ -263,6 +267,17 @@ export function buildDrawingList(
     if (a.kind === 'door') flaggedItems.push(...doorItems(base, f, 0, w, a.hand!, a.swing!));
   }
 
+  for (const o of onFloor) {
+    if (o.type !== 'engineer_note' || !engineerRequired(o.data)) continue;
+    const base = { layer: 'flagged' as const, objectId: o.id };
+    const { start, end } = o.data.geometry;
+    if (!pointsEqual(start, end))
+      flaggedItems.push({ ...base, kind: 'line', role: 'hidden', from: start, to: end });
+    const t = engineerMark(engineerMarkCenter(o.data.geometry));
+    for (let i = 0; i < 3; i++)
+      flaggedItems.push({ ...base, kind: 'line', role: 'cut', from: t[i]!, to: t[(i + 1) % 3]! });
+  }
+
   const dimItems: DrawingItem[] = [];
   const dimOmitted: OmittedObject[] = [];
   const font = DRAWING_FONTS['dm-mono-400'];
@@ -413,3 +428,22 @@ export function utilityMark(p: Point): [Point, Point, Point, Point] {
   ];
 }
 
+
+// EZD-215: the engineer note's triangle, its side in model inches (a 1'-0" mark, as UTILITY_MARK_IN is 6").
+export const ENGINEER_MARK_IN = 12;
+
+export const engineerMarkCenter = (line: { start: Point; end: Point }): Point => ({
+  x: (line.start.x + line.end.x) / 2,
+  y: (line.start.y + line.end.y) / 2,
+});
+
+// The triangle's corners, point up, centred on `c` (its centroid): bottom left, bottom right, top.
+export function engineerMark(c: Point): [Point, Point, Point] {
+  const h = (ENGINEER_MARK_IN * Math.sqrt(3)) / 2;
+  const half = ENGINEER_MARK_IN / 2;
+  return [
+    { x: c.x - half, y: c.y - h / 3 },
+    { x: c.x + half, y: c.y - h / 3 },
+    { x: c.x, y: c.y + (2 * h) / 3 },
+  ];
+}
