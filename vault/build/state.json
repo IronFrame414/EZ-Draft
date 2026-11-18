@@ -383,7 +383,8 @@
     "EZD-215",
     "EZD-314",
     "EZD-423",
-    "EZD-422"
+    "EZD-422",
+    "EZD-405"
   ],
   "seeded_done": 324,
   "merged": [
@@ -829,6 +830,14 @@
       "ts": "2026-11-18T16:59:32Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-405",
+      "title": "Box editing on canvas",
+      "commit": "154f6896",
+      "ts": "2026-11-18T18:08:59Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -907,12 +916,6 @@
     }
   },
   "running": {
-    "EZD-405": {
-      "lane": 1,
-      "title": "Box editing on canvas",
-      "started": "2026-11-18T16:11:54Z",
-      "develop": "3d0c21d6"
-    },
     "EZD-305": {
       "lane": 2,
       "title": "Vector PDF wall detection",
