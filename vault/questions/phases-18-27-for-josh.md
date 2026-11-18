@@ -16,7 +16,7 @@ Everything else in these phases was settled from the spec, your decisions and th
 
 Nine things need you. Questions 1 to 7 each hold a few pieces of work; the rest of every phase builds without waiting. Questions 8 and 9 hold nothing.
 
-One piece is held for agent work, not for you: the optional load calc method (EZD-615) needs worked examples with known answers before it can be tested. An agent will write them from published sources.
+One piece is held for agent work, not for you: the optional load calc method (EZD-615) needs worked examples with known answers before it can be tested. That is proposed as a separate agent task: write the examples from published sources and record them as a decision. It waits for that work, not for you.
 
 ---
 
@@ -75,7 +75,7 @@ One piece is held for agent work, not for you: the optional load calc method (EZ
 
 **Why you're being asked:** it decides which code your checks use for jobs you apply for around the switch date.
 
-**What waits on it:** only the 8th Edition setting (EZD-643). The 9th Edition setting (EZD-613) builds now.
+**What waits on it:** only the 8th Edition setting (EZD-643). The 9th Edition setting (EZD-613) builds now. Until you answer, projects are not locked to an edition: they show the company default (9th) and get their real edition from your answer.
 
 **My recommendation: (a).** There's nothing extra to type. For the odd job that slips past the date, you change it by hand.
 
