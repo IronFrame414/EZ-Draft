@@ -379,7 +379,8 @@
     "EZD-312",
     "EZD-137",
     "EZD-404",
-    "EZD-304"
+    "EZD-304",
+    "EZD-215"
   ],
   "seeded_done": 324,
   "merged": [
@@ -793,11 +794,19 @@
       "ts": "2026-11-18T08:54:07Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-215",
+      "title": "Bearing wall rule",
+      "commit": "3f4f053b",
+      "ts": "2026-11-18T14:17:44Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {},
-  "red_streak": 1,
-  "push_pending": false,
+  "red_streak": 0,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -870,12 +879,5 @@
       "reason": "check still red after 2 fix rounds"
     }
   },
-  "running": {
-    "EZD-215": {
-      "lane": 0,
-      "title": "Bearing wall rule",
-      "started": "2026-11-18T11:13:45Z",
-      "develop": "919bdf6e"
-    }
-  }
+  "running": {}
 }
