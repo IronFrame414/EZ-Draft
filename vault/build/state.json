@@ -374,7 +374,8 @@
     "EZD-311",
     "EZD-313",
     "EZD-401",
-    "EZD-229"
+    "EZD-229",
+    "EZD-124"
   ],
   "seeded_done": 324,
   "merged": [
@@ -748,6 +749,14 @@
       "ts": "2026-11-18T02:13:40Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-124",
+      "title": "Project card menu",
+      "commit": "ac94591c",
+      "ts": "2026-11-18T03:01:48Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -835,11 +844,11 @@
     }
   },
   "running": {
-    "EZD-124": {
-      "lane": 1,
-      "title": "Project card menu",
-      "started": "2026-11-18T00:57:38Z",
-      "develop": "dc8569ab"
+    "EZD-312": {
+      "lane": 0,
+      "title": "Ceiling slope in review",
+      "started": "2026-11-18T02:13:46Z",
+      "develop": "67ea5943"
     }
   }
 }
