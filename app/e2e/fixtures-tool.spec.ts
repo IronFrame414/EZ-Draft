@@ -104,7 +104,7 @@ test.describe('EZD-234 Fixtures tool', () => {
     );
     const panel = id(page, 'fixtures-panel');
     await expect(panel).toBeVisible();
-    await expect(panel.getByRole('button')).toHaveCount(34); // EZD-229: plus the eight existing details. EZD-220: plus the six pin kinds. EZD-227: plus Grab-bar blocking. EZD-226: plus Tile shower
+    await expect(panel.getByRole('button')).toHaveCount(38); // EZD-731: plus the four mechanical kinds. EZD-229: plus the eight existing details. EZD-220: plus the six pin kinds. EZD-227: plus Grab-bar blocking. EZD-226: plus Tile shower
     // EZD-233 (Q-0704 "EZD-233 adds that"): the Saved section, empty for a new company.
     await expect(id(page, 'saved-groups-empty')).toBeVisible();
 

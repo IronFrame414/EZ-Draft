@@ -268,6 +268,20 @@ export function LeftPanel({
                 onEye={() => layers.setPlumbingEye(!layerState.plumbingEye)}
               />
             </div>
+            <div
+              className={`${styles.row} ${layerState.mechanicalEye ? '' : styles.off}`}
+              data-testid="layer-row-mechanical"
+            >
+              <Icon name="autorenew" size={18} />
+              <span className={styles.name}>{t('office.left_panel.layer.mechanical')}</span>
+              <LayerControls
+                layer="mechanical"
+                name={t('office.left_panel.layer.mechanical')}
+                on={layerState.mechanicalEye}
+                layers={layers}
+                onEye={() => layers.setMechanicalEye(!layerState.mechanicalEye)}
+              />
+            </div>
           </div>
           <div
             className={`${styles.row} ${styles.sectionRow} ${layerState.roomsEye ? '' : styles.off}`}

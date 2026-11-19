@@ -20,6 +20,8 @@
 // EZD-229 (AC-EZD-229-2; Q-0704; vault/build/assumptions.md EZD-229): an Existing details section lists the supply and
 // return registers, the three detectors, the attic hatch, the soffit and the chase; choosing one makes the next click
 // place it, Existing.
+// EZD-731 (AC-EZD-731-1; vault/build/assumptions.md EZD-731): a Mechanical section lists the air handler, the condenser
+// and the supply and return registers; choosing one makes the next click place it with the View's status.
 import { useEffect, useState } from 'react';
 import {
   FIXTURE_KINDS,
@@ -42,6 +44,8 @@ import {
   pinChoice,
   EXISTING_DETAILS,
   existingDetailChoice,
+  MECHANICAL_KINDS,
+  mechanicalChoice,
   SHOWER_BENCH_START,
   SHOWER_GLASS_LENGTH_START,
   tileShowerChoice,
@@ -71,6 +75,7 @@ const kindKey = (kind: string) => `office.fixtures.kind.${kind}` as MessageKey;
 const utilityKey = (kind: UtilityKind) => `office.fixtures.utility.${kind}` as MessageKey;
 const pinKey = (kind: PinKind) => `office.pin.kind.${kind}` as MessageKey;
 const detailKey = (d: string) => `office.fixtures.detail.${d}` as MessageKey;
+const mechanicalKey = (k: string) => `office.fixtures.mechanical.${k}` as MessageKey;
 const facingKey = (f: FixtureFacing) => `office.fixtures.facing.${f}` as MessageKey;
 
 // A length box that keeps what is typed and reports a parsed positive length, or null for anything else. It is keyed
@@ -260,6 +265,26 @@ export function FixturesPanel({
           })}
         </div>
         <p className={styles.hint}>{t('office.fixtures.details_hint')}</p>
+      </div>
+      <div className={styles.section} data-testid="mechanical-section">
+        <h3 className={styles.title}>{t('office.fixtures.section_mechanical')}</h3>
+        <div className={styles.kinds}>
+          {MECHANICAL_KINDS.map((k) => {
+            const on = choice.type === 'mechanical' && choice.kind === k;
+            return (
+              <button
+                key={k}
+                type="button"
+                className={`${styles.kind} ${touch.hitArea}`}
+                aria-pressed={on}
+                data-testid={`mechanical-kind-${k}`}
+                onClick={() => onChoose(mechanicalChoice(k))}
+              >
+                {t(mechanicalKey(k))}
+              </button>
+            );
+          })}
+        </div>
       </div>
       <div className={styles.section}>
         <h3 className={styles.title}>{t('office.fixtures.section_showers')}</h3>

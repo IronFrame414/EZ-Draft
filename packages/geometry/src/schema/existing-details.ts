@@ -1,6 +1,8 @@
 // EZD-234 Build (Q-0704 03-data-model row 2; 03f Existing-condition pins Rounds 1-2; phase-02.md EZD-229): the
 // existing-detail types under the names later phases extend, so those phases only add enum values.
 // - hvac: supply or return register (EZD-512 adds exhaust fan), a rectangle like a fixture.
+//   EZD-731 (AC-EZD-731-1; phase-07 EZD-731; vault/research/R-012.md recommendation 5; Q-0763): the mechanical
+//   equipment, air handler and condenser, join as kinds; added enum values only, so the version stays.
 // - device: the electrical device type (EZD-507, 03f:13); phase 10 has the detectors only (R3-126).
 // - access: attic hatch (EZD-507 adds access panel), a rectangle like a fixture.
 // - soffit: a polygon; `dropHeight` is measured down from the room's ceiling height.
@@ -16,7 +18,8 @@ import {
 
 const rectGeometry = z.strictObject({ center: pointSchema, axis: unitVectorSchema });
 
-export const HVAC_KINDS = ['supply', 'return'] as const;
+export const HVAC_KINDS = ['supply', 'return', 'air_handler', 'condenser'] as const;
+export type HvacKind = (typeof HVAC_KINDS)[number];
 export const hvacDataSchema = z.strictObject({
   geometry: rectGeometry,
   status: objectStatusSchema,

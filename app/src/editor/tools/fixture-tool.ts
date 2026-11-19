@@ -13,11 +13,15 @@
 // vault/build/assumptions.md EZD-229): an existing detail is a seventh choice: a supply or return register (hvac), a
 // smoke, CO or combination detector (device), an attic hatch (access), a soffit or a chase. A click places it at its
 // starting size centred on the click; it is Existing whatever the View.
+// EZD-731 (AC-EZD-731-1; phase-07 EZD-731; vault/research/R-012.md recommendation 5; vault/build/assumptions.md
+// EZD-731): mechanical equipment and registers are an eighth choice: an air handler, a condenser, a supply or a return
+// register (all `hvac`). A click places it at its starting size centred on the click, with the View's status.
 import {
   CURRENT_SCHEMA_VERSION,
   DEFAULT_PAN_SLOPE_IN_PER_FT,
   parseStoredObject,
   type FixtureKind,
+  type HvacKind,
   type ModelObject,
   type ObjectStatus,
   type PinKind,
@@ -56,7 +60,8 @@ export type FixtureChoice =
   // EZD-233 (R26; AC-EZD-233-2): a saved group from the panel's Saved section; a click places a copy of it.
   | { type: 'saved_group'; id: string; name: string; payload: SavedGroupPayload }
   | { type: 'pin'; kind: PinKind }
-  | { type: 'existing_detail'; detail: ExistingDetail };
+  | { type: 'existing_detail'; detail: ExistingDetail }
+  | { type: 'mechanical'; kind: HvacKind };
 
 // EZD-229: the existing details, each named by the object type and kind it places.
 export const EXISTING_DETAILS = [
@@ -80,6 +85,20 @@ export const EXISTING_DETAIL_SIZES = {
   chase: { width: 16, depth: 16 },
 } as const;
 export const SOFFIT_DROP_START_IN = 12;
+
+// EZD-731: the mechanical kinds in panel order, equipment first, and their starting sizes, width x depth in inches
+// (registers as the existing ones; vault/build/assumptions.md EZD-731).
+export const MECHANICAL_KINDS = ['air_handler', 'condenser', 'supply', 'return'] as const satisfies readonly HvacKind[];
+export const MECHANICAL_SIZES: Readonly<Record<HvacKind, { width: number; depth: number }>> = {
+  air_handler: { width: 22, depth: 22 },
+  condenser: { width: 30, depth: 30 },
+  supply: EXISTING_DETAIL_SIZES.supply,
+  return: EXISTING_DETAIL_SIZES.return,
+};
+
+export function mechanicalChoice(kind: HvacKind): FixtureChoice {
+  return { type: 'mechanical', kind };
+}
 
 export function existingDetailChoice(detail: ExistingDetail): FixtureChoice {
   return { type: 'existing_detail', detail };
@@ -151,6 +170,7 @@ export function placeFixture(
   if (choice.type === 'saved_group') return null;
   if (choice.type === 'pin') return placePin(choice.kind, at, ctx);
   if (choice.type === 'existing_detail') return placeExistingDetail(choice.detail, at, ctx);
+  if (choice.type === 'mechanical') return placeMechanical(choice.kind, at, ctx);
   const status = ctx.status ?? NEW_OBJECT_STATUS;
   const id = ctx.newId();
   const type =
@@ -342,6 +362,40 @@ function placeExistingDetail(
     id,
     value: {
       type,
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      data: parsed.object.data as unknown as Record<string, unknown>,
+    },
+  };
+}
+
+// EZD-731: the hvac object a click places for a mechanical kind, centred on the click, with the View's status.
+export function mechanicalData(
+  kind: HvacKind,
+  at: Point,
+  level: string,
+  status: ObjectStatus,
+): Record<string, unknown> {
+  return {
+    geometry: { center: { x: at.x, y: at.y }, axis: { x: 1, y: 0 } },
+    status,
+    level,
+    attributes: { kind, ...MECHANICAL_SIZES[kind] },
+  };
+}
+
+function placeMechanical(
+  kind: HvacKind,
+  at: Point,
+  ctx: { level: string; newId: () => string; status?: ObjectStatus },
+): Change | null {
+  const id = ctx.newId();
+  const data = mechanicalData(kind, at, ctx.level, ctx.status ?? NEW_OBJECT_STATUS);
+  const parsed = parseStoredObject({ id, type: 'hvac', schema_version: CURRENT_SCHEMA_VERSION, data });
+  if (!parsed.ok) return null;
+  return {
+    id,
+    value: {
+      type: 'hvac',
       schemaVersion: CURRENT_SCHEMA_VERSION,
       data: parsed.object.data as unknown as Record<string, unknown>,
     },

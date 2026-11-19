@@ -21,10 +21,15 @@ export const DETECTOR_TEXT = {
   smoke_co_detector: 'S/CO',
 } as const;
 
+// EZD-731 (AC-EZD-731-1; vault/build/assumptions.md EZD-731): the letters inside a piece of mechanical equipment's
+// outline.
+export const EQUIPMENT_TEXT = { air_handler: 'AH', condenser: 'CU' } as const;
+
 // EZD-229 (Q-0704 03-data-model row 2; vault/build/assumptions.md EZD-229): the plan marks of the existing details, in
 // their status layer. A supply register is its outline with both diagonals, a return its outline with one; an attic
 // hatch is a hidden outline with both diagonals (it is overhead); a detector is a circle with its letters; a soffit is
 // its hidden outline; a chase is its outline.
+// EZD-731: an air handler or a condenser is its outline with its letters at the centre.
 export function existingDetailItems(
   objects: readonly ModelObject[],
   textPt: number,
@@ -51,7 +56,21 @@ export function existingDetailItems(
     const ringItems = (ring: readonly Point[], role: 'beyond' | 'hidden') => {
       for (let i = 0; i < ring.length; i++) out.push(line(role, ring[i]!, ring[(i + 1) % ring.length]!));
     };
-    if (o.type === 'hvac' || o.type === 'access') {
+    if (o.type === 'hvac' && (o.data.attributes.kind === 'air_handler' || o.data.attributes.kind === 'condenser')) {
+      ringItems(fixtureOutline(o.data), 'beyond');
+      const text = EQUIPMENT_TEXT[o.data.attributes.kind];
+      out.push({
+        ...base,
+        kind: 'text',
+        text,
+        font: 'dm-mono-400',
+        sizePt: textPt,
+        widthPt: measureTextPt(font, text, textPt),
+        at: { x: o.data.geometry.center.x, y: o.data.geometry.center.y },
+        rotationDeg: 0,
+        align: 'center',
+      });
+    } else if (o.type === 'hvac' || o.type === 'access') {
       const ring = fixtureOutline(o.data);
       const role = o.type === 'access' ? 'hidden' : 'beyond';
       ringItems(ring, role);

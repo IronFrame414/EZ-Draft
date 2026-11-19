@@ -41,6 +41,7 @@ const UNLOCKED: LayerLocks = {
   new: false,
   rooms: false,
   plumbing: false,
+  mechanical: false,
 };
 
 function phase(): LayerPhase {
