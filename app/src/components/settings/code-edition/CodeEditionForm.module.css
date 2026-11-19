@@ -1,0 +1,131 @@
+/* EZD-613 (board S15gCode): Settings > Code edition. Colors from tokens only (C10); no :hover. */
+.form {
+  padding: 14px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+.box {
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.boxTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+.select {
+  box-sizing: border-box;
+  height: 38px;
+  width: 100%;
+  padding: 0 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: inherit;
+  font-size: 14px;
+}
+.select:disabled {
+  background: var(--ez-surface-sunken);
+  color: var(--ez-slate-500);
+}
+.ruleSets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ruleSet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--ez-ink);
+}
+.ruleSet svg {
+  color: var(--ez-cobalt);
+}
+.note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ez-slate-500);
+}
+.switchRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.switchText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ez-ink);
+}
+.switchHint {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ez-slate-500);
+}
+.switch {
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 20px;
+  border: 0;
+  padding: 0;
+  border-radius: 999px;
+  background: var(--ez-border);
+  cursor: pointer;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ez-surface);
+}
+.switch[aria-checked='true'] {
+  background: var(--ez-cobalt);
+}
+.switch[aria-checked='true']::after {
+  left: 16px;
+}
+.switch:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.info {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.info svg {
+  flex: none;
+  color: var(--ez-slate-500);
+}
+.saveButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

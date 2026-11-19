@@ -182,6 +182,8 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   },
   // EZD-116: the Defaults write path, authenticated only.
   { fn: 'update_tenant_defaults', args: { p_set: {}, p_remove: [] } },
+  // EZD-613: the Code edition write path, authenticated only.
+  { fn: 'update_tenant_code_edition', args: { p_code_edition: null, p_optional_load_calc: null } },
   // EZD-113 section 3 (vault/plans/EZD-113.md): the customer list, authenticated only.
   { fn: 'list_customers', args: { p_search: '', p_archived: false, p_page: 1 } },
   // EZD-104 (vault/plans/EZD-104.md): the Users page functions, authenticated only.

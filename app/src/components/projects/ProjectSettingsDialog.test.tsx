@@ -20,6 +20,7 @@ const read = (can: ProjectSettings['can'], contact = false): ProjectSettings => 
     ? { id: 'c1', name: 'Ann Lee', email: 'ann@example.com', phone: '555-0100' }
     : { id: 'c1', name: 'Ann Lee' },
   defaults: { waste_tile: 10, waste_lvp: null, overhang_standard: 1.5 },
+  codeEdition: { own: null, effective: 'fbc9_nec2023' },
   can,
 });
 const NONE = { details: false, client: false, typeAndDefaults: false };
@@ -108,10 +109,15 @@ describe('EZD-130 ProjectSettingsContent', () => {
     expect(textOf(one(picker, 'project-settings-customer-contact').inner)).toBe('ann@example.com · 555-0100');
   });
 
-  it('AC-5: no Code edition and no Submittal profile', () => {
-    const html = render(read(ALL, true), true).toLowerCase();
-    expect(html).not.toContain('code edition');
-    expect(html).not.toContain('submittal');
+  it('AC-5: no Submittal profile; EZD-613 (S15g Decision 2): the Code edition, a select with Edit model', () => {
+    const html = render(read(ALL, true), true);
+    expect(html.toLowerCase()).not.toContain('submittal');
+    const select = one(html, 'project-settings-code-edition');
+    expect(select.tag).toBe('select');
+    expect(select.inner).toContain('FBC 9th ed. · NEC 2023');
+    const plain = render(read(NONE), false);
+    expect(isText(plain, 'project-settings-code-edition')).toBe(true);
+    expect(textOf(one(plain, 'project-settings-code-edition').inner)).toBe('FBC 9th ed. · NEC 2023');
   });
 
   it('AC-6: a failed save shows the Try again message with Save still there; load states', () => {

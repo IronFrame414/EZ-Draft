@@ -69,6 +69,8 @@ export const EVENTS = {
   'tenant.updated': { kind: 'log_only' },
   // EZD-116 (S15d Events emitted): Settings > Defaults saved; the keys whose stored value changed.
   'tenant.defaults_updated': { kind: 'log_only' },
+  // EZD-613 (S15g Events emitted): Settings > Code edition saved; what changed.
+  'tenant.code_edition_updated': { kind: 'log_only' },
   // EZD-125 (Q-0697 decisions 10): Cancel request; written as the event_log row by cancel_edit_request.
   'lock.request_cancelled': { kind: 'log_only' },
   'customer.created': { kind: 'log_only' },
@@ -195,6 +197,7 @@ export interface EventPayloads {
   'user.joined': { membershipId: string; appUserId: string; via: 'sign_in' | 'invite_link' };
   'tenant.updated': { fields: TenantField[] };
   'tenant.defaults_updated': { keys: string[] };
+  'tenant.code_edition_updated': { keys: ('code_edition' | 'optional_load_calc')[] };
   'customer.created': { customerId: string };
   'customer.updated': { customerId: string; fields: CustomerEventField[] };
   // EZD-118 Build step 8: no `ezbinderJobId` (Q-0190); `source` only `standalone` (Q-0398).

@@ -64,7 +64,7 @@ export type SelectionDeps = {
   store: Pick<ModelStore, 'getState' | 'subscribe'>;
   drawing:
     | (Pick<DrawingController, 'getUi' | 'keyDown' | 'selectTool'> &
-        Partial<Pick<DrawingController, 'startDrag' | 'dragPointer'>>)
+        Partial<Pick<DrawingController, 'startDrag' | 'dragPointer' | 'subscribe'>>)
     | null;
   setReceiver: (r: PlanPointerReceiver | null) => void;
   claim?: (event: PlanPointerEvent) => boolean;
@@ -300,6 +300,25 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     setUi([]);
   };
 
+  // EZD-613: Esc while the drawing engine still loads is held and answered when it loads, so the tool may turn
+  // off after keyDown returns. Until the tool next changes, a change to no tool clears the selection, as an Esc
+  // the engine answered at once does (EZD-208b B7).
+  let offEscapeWait: (() => void) | null = null;
+  const stopEscapeWait = () => {
+    offEscapeWait?.();
+    offEscapeWait = null;
+  };
+  const waitForEscape = (tool: unknown) => {
+    if (drawing === null || drawing.subscribe === undefined) return;
+    stopEscapeWait();
+    offEscapeWait = drawing.subscribe(() => {
+      const now = drawing.getUi().tool;
+      if (now === tool) return;
+      stopEscapeWait();
+      if (now === null) clearSelection();
+    });
+  };
+
   const escape = (e: ToolKeyEvent): boolean => {
     if (press !== null && box !== null) {
       dropPress();
@@ -309,7 +328,9 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       const before = drawing.getUi();
       if (before.tool !== null || before.pick !== null || before.entry !== null) {
         const r = drawing.keyDown(e);
-        if (before.tool !== null && drawing.getUi().tool === null) clearSelection();
+        const after = drawing.getUi();
+        if (before.tool !== null && after.tool === null) clearSelection();
+        else if (before.tool !== null && after.tool === before.tool) waitForEscape(after.tool);
         return r;
       }
     }
@@ -445,6 +466,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     dispose() {
       if (disposed) return;
       disposed = true;
+      stopEscapeWait();
       unsubscribe();
       unsubscribePhase();
       unsubscribeFloors();

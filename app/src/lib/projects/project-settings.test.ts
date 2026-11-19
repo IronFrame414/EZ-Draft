@@ -20,6 +20,7 @@ const base: ProjectSettings = {
     overhang_standard: 1.5,
     countertop_increment: 0.5,
   },
+  codeEdition: { own: null, effective: 'fbc9_nec2023' },
   can: { details: true, client: false, typeAndDefaults: true },
 };
 
@@ -98,6 +99,16 @@ describe('EZD-130 Project settings draft and body', () => {
       fields: { waste_tile: 'office.project_settings.default_required' },
     });
     expect(withDefault('waste_lvp', '')).toEqual({ ok: true, body: { lockEpoch: 1 } });
+  });
+
+  it('EZD-613 (AC-EZD-613-1): the code edition is sent only when it differs from the edition the project runs', () => {
+    const d = draftOf(base);
+    expect(d.codeEdition).toBe('fbc9_nec2023');
+    // Opening and saving never fixes the project to the company default.
+    expect(toPatchBody(base, d, editor, null)).toEqual({ ok: true, body: {} });
+    const own = { ...base, codeEdition: { own: 'fbc9_nec2023' as const, effective: 'fbc9_nec2023' as const } };
+    expect(draftOf(own).codeEdition).toBe('fbc9_nec2023');
+    expect(toPatchBody(own, draftOf(own), editor, null)).toEqual({ ok: true, body: {} });
   });
 
   it('a failed save names its message; field errors go on their rows (AC-6)', () => {

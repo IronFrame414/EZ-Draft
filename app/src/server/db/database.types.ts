@@ -1339,6 +1339,11 @@ isOneToOne: false
 "update_role":
 { Args: { "p_granted": (string)[],"p_ip"?: unknown,"p_name": string,"p_role_id": string }; Returns: Json
                            },
+"update_tenant_code_edition":
+{ Args: { "p_code_edition": string,"p_optional_load_calc": boolean }; Returns: {
+              "changed": (string)[],"code_edition": string,"tenant_defaults": Json,"tenant_id": string
+            }[]
+                           },
 "update_tenant_defaults":
 { Args: { "p_remove": (string)[],"p_set": Json }; Returns: {
               "changed": (string)[],"tenant_defaults": Json,"tenant_id": string

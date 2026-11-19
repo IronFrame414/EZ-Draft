@@ -3,10 +3,12 @@
 // project" below, Save and Cancel; Q-0697 decisions 03, 10; Q-0202; Q-0400; Q-0399; Q-0396; AC-EZD-130-3..6):
 // Project settings, opened from the project switcher in the editor and loaded with app/src/lazy/project-settings.
 // Fields this member may not change are plain text; with nothing to change there is no Save. Type and the
-// defaults also need this tab to hold the edit lock. No Code edition or Submittal profile (Q-0399). A failed
+// defaults also need this tab to hold the edit lock. No Submittal profile (Q-0399). EZD-613 (S15g Decision 2):
+// the project's own Code edition, changed with Edit model like the name. A failed
 // save keeps the dialog open with a Try again message; a save hands the new settings to `onSaved`.
 import { Dialog } from 'radix-ui';
 import { useEffect, useState, type ReactElement, type ReactNode } from 'react';
+import { CODE_EDITIONS, editionLabel, isCodeEdition } from '../../lib/code-edition/editions';
 import { defaultRow } from '../../lib/defaults/registry';
 import { useT } from '../../lib/messages';
 import { useOnline } from '../../lib/network';
@@ -327,6 +329,28 @@ export function ProjectSettingsContent({
             text('project-settings-scope', draft.scopeOfWork)
           )}
           {fieldError('scopeOfWork')}
+        </label>
+        <label className={styles.field}>
+          {t('office.project_settings.code_edition')}
+          {editable.details ? (
+            <select
+              data-testid="project-settings-code-edition"
+              className={`${styles.input} ${touch.target}`}
+              value={draft.codeEdition}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (isCodeEdition(v)) set({ codeEdition: v });
+              }}
+            >
+              {CODE_EDITIONS.map((e) => (
+                <option key={e} value={e}>
+                  {t(editionLabel(e))}
+                </option>
+              ))}
+            </select>
+          ) : (
+            text('project-settings-code-edition', t(editionLabel(draft.codeEdition)))
+          )}
         </label>
         <section className={styles.block} data-testid="project-settings-defaults">
           <div className={styles.blockHead}>

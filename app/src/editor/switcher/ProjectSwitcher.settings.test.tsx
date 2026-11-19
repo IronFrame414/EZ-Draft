@@ -69,6 +69,7 @@ describe('EZD-130 Project settings in the project switcher', () => {
       project: { id: 'p', name: 'Bravo kitchen', address: 'a', type: 'kitchen', scopeOfWork: '' },
       client: null,
       defaults: {},
+      codeEdition: { own: null, effective: 'fbc9_nec2023' },
       can: { details: true, client: false, typeAndDefaults: true },
     });
     expect(session.model.project.name).toBe('Bravo kitchen');
@@ -80,6 +81,7 @@ describe('EZD-130 Project settings in the project switcher', () => {
       project: { id: 'p', name: 'X', address: 'a', type: 'kitchen', scopeOfWork: '' },
       client: { id: 'c', name: 'Ann Lee' },
       defaults: {},
+      codeEdition: { own: null, effective: 'fbc9_nec2023' },
       can: { details: true, client: false, typeAndDefaults: true },
     });
     expect(seen).toHaveBeenCalledTimes(1);

@@ -128,6 +128,10 @@ export const EVENT_LOG: EventLogRules = {
   'user.joined': TRANSACTION,
   'tenant.updated': { mode: 'sink', object: (e) => ({ type: 'tenant', id: e.tenantId }) },
   'tenant.defaults_updated': { mode: 'sink', object: (e) => ({ type: 'tenant', id: e.tenantId }) },
+  'tenant.code_edition_updated': {
+    mode: 'sink',
+    object: (e) => ({ type: 'tenant', id: e.tenantId }),
+  },
   // EZD-125 (Q-0697 decisions 10): written by cancel_edit_request in the lock transaction.
   'lock.request_cancelled': TRANSACTION,
   'customer.created': {
