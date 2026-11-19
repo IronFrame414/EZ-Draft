@@ -400,7 +400,8 @@
     "EZD-731",
     "EZD-408",
     "EZD-419",
-    "EZD-712"
+    "EZD-712",
+    "EZD-502"
   ],
   "seeded_done": 324,
   "merged": [
@@ -982,6 +983,14 @@
       "ts": "2026-11-19T09:49:04Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-502",
+      "title": "RCP view and ceiling rail",
+      "commit": "115693bd",
+      "ts": "2026-11-19T10:47:44Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {
@@ -1068,11 +1077,11 @@
     }
   },
   "running": {
-    "EZD-502": {
-      "lane": 0,
-      "title": "RCP view and ceiling rail",
-      "started": "2026-11-19T09:23:30Z",
-      "develop": "c103dbe1"
+    "EZD-701": {
+      "lane": 1,
+      "title": "Sheet model and default set",
+      "started": "2026-11-19T09:51:07Z",
+      "develop": "daaee0a8"
     }
   }
 }
