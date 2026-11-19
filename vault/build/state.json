@@ -391,7 +391,8 @@
     "EZD-406",
     "EZD-501",
     "EZD-409",
-    "EZD-730"
+    "EZD-730",
+    "EZD-122"
   ],
   "seeded_done": 324,
   "merged": [
@@ -901,6 +902,14 @@
       "ts": "2026-11-19T02:54:33Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-122",
+      "title": "Versions panel",
+      "commit": "c0fad6a5",
+      "ts": "2026-11-19T03:22:28Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {
@@ -987,11 +996,11 @@
     }
   },
   "running": {
-    "EZD-122": {
-      "lane": 0,
-      "title": "Versions panel",
-      "started": "2026-11-19T00:02:19Z",
-      "develop": "8eb99292"
+    "EZD-733": {
+      "lane": 1,
+      "title": "Tile layout",
+      "started": "2026-11-19T02:54:38Z",
+      "develop": "1ec73668"
     }
   }
 }
