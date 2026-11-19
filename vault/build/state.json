@@ -397,7 +397,8 @@
     "EZD-733",
     "EZD-613",
     "EZD-407",
-    "EZD-731"
+    "EZD-731",
+    "EZD-408"
   ],
   "seeded_done": 324,
   "merged": [
@@ -955,6 +956,14 @@
       "ts": "2026-11-19T07:45:31Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-408",
+      "title": "Auto-fill run",
+      "commit": "dfd7b482",
+      "ts": "2026-11-19T08:40:29Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {
@@ -1046,12 +1055,6 @@
       "title": "Submittal profiles",
       "started": "2026-11-19T06:23:49Z",
       "develop": "c902b61a"
-    },
-    "EZD-408": {
-      "lane": 0,
-      "title": "Auto-fill run",
-      "started": "2026-11-19T07:14:12Z",
-      "develop": "c351ab05"
     }
   }
 }
