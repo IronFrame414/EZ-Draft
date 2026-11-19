@@ -1003,7 +1003,7 @@
       "worktree": ".claude/worktrees/EZD-222"
     }
   },
-  "red_streak": 0,
+  "red_streak": 1,
   "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
@@ -1022,7 +1022,8 @@
     "EZD-305": 1,
     "EZD-403": 1,
     "EZD-701": 1,
-    "EZD-123": 1
+    "EZD-123": 1,
+    "EZD-424": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1084,14 +1085,24 @@
     "EZD-123": {
       "ts": "2026-11-19T14:42:00Z",
       "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-424": {
+      "ts": "2026-11-19T18:31:05Z",
+      "reason": "check still red after 2 fix rounds"
     }
   },
   "running": {
-    "EZD-424": {
-      "lane": 0,
-      "title": "Fix: a long default department on Sheet presets squeezes the disclaimer out of the settings status bar",
-      "started": "2026-11-19T11:31:17Z",
-      "develop": "5e08120e"
+    "EZD-412": {
+      "lane": 1,
+      "title": "Trace and Draw outline",
+      "started": "2026-11-19T14:42:51Z",
+      "develop": "803ae102"
+    },
+    "EZD-1009": {
+      "lane": 2,
+      "title": "Design options data",
+      "started": "2026-11-19T14:42:52Z",
+      "develop": "803ae102"
     }
   }
 }
