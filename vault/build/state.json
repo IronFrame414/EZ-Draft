@@ -389,7 +389,8 @@
     "EZD-127",
     "EZD-410",
     "EZD-406",
-    "EZD-501"
+    "EZD-501",
+    "EZD-409"
   ],
   "seeded_done": 324,
   "merged": [
@@ -883,6 +884,14 @@
       "ts": "2026-11-19T00:01:16Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-409",
+      "title": "Cabinet schedule",
+      "commit": "f86eecd0",
+      "ts": "2026-11-19T00:59:50Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -968,5 +977,18 @@
       "reason": "check still red after 2 fix rounds"
     }
   },
-  "running": {}
+  "running": {
+    "EZD-122": {
+      "lane": 0,
+      "title": "Versions panel",
+      "started": "2026-11-19T00:02:19Z",
+      "develop": "8eb99292"
+    },
+    "EZD-730": {
+      "lane": 2,
+      "title": "Plumbing diagram and calculations",
+      "started": "2026-11-19T00:02:22Z",
+      "develop": "8eb99292"
+    }
+  }
 }
