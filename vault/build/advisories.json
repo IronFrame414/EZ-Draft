@@ -1,0 +1,7 @@
+{
+  "_readme": "Security advisories the build loop has turned into fix tickets (scripts/loop/advisories.mjs). An advisory listed here never makes another ticket. Delete an entry to have the next audit ticket it again.",
+  "seen": {
+    "GHSA-mfr8-8qww-v76h": { "ticket": "EZD-424", "module": "next", "severity": "moderate", "since": "2026-11-19" },
+    "GHSA-vc7v-qv4w-wrv8": { "ticket": "EZD-424", "module": "next", "severity": "moderate", "since": "2026-11-19" }
+  }
+}

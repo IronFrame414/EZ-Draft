@@ -16,6 +16,7 @@ import { summarize, reportMarkdown } from './usage-report.mjs';
 import { RESUME_PROMPT, describeExit, died, readLastEntry } from './loop/claude-exit.mjs';
 import { randomUUID } from 'node:crypto';
 import { lastBeat, resetReason, sample, startNote, writeBeat } from './loop/heartbeat.mjs';
+import { TRACK as SECURITY_TRACK, readSeen, recordFixTicket, runAudit, unseen } from './loop/advisories.mjs';
 import { effectiveStatuses } from './loop/holds.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 
@@ -47,6 +48,9 @@ const DEFAULTS = {
   gate_from_phase: 13,
   // Josh 2026-11-16: only phases that are ready build. A ticket in a phase rank above max_phase never starts.
   max_phase: 999,
+  // Josh 2026-11-19: security is handled as the app is built. pnpm audit runs this often; a new advisory becomes a fix
+  // ticket at the front of the line (scripts/loop/advisories.mjs).
+  advisory_check_hours: 6,
 };
 const SECURITY_PATHS = /(supabase\/migrations|\/server\/|rls|auth|permission|share|price|money|cost|webhook|invite|role)/i;
 
@@ -153,9 +157,10 @@ const phaseRank = (p) => (Number(p) === 56 ? 5.5 : Number(p));
 // Lower-rank tickets that keep a ticket of rank r from starting under the phase gate (empty when r is below the gate).
 function gateBlockers(t, s, c = cfg(), statuses = seedStatuses()) {
   const r = phaseRank(t.phase);
-  if (!(r >= c.gate_from_phase)) return [];
+  // A security fix ticket is never held by the phase gate and never holds it (advisories.mjs).
+  if (t.track === SECURITY_TRACK || !(r >= c.gate_from_phase)) return [];
   const done = new Set(s.done);
-  return tickets().filter((x) => phaseRank(x.phase) < r && !done.has(x.id)
+  return tickets().filter((x) => phaseRank(x.phase) < r && !done.has(x.id) && x.track !== SECURITY_TRACK
     && !c.skip_tracks.includes(x.track) && !c.skip_statuses.includes(statuses[x.id]));
 }
 // candidates(): eligible apart from the phase gate. pickNext: the first candidate the gate lets through.
@@ -171,7 +176,8 @@ function candidates(s, c, statuses) {
     && (t.depends_on || []).every((d) => done.has(d)));
   const retried = (t) => (s.retries?.[t.id] ? 1 : 0);
   const rank = (t) => { const i = (c.priority || []).indexOf(t.id); return i < 0 ? 1e9 : i; };
-  list.sort((a, b) => (rank(a) - rank(b)) || (retried(a) - retried(b)) || (phaseRank(a.phase) - phaseRank(b.phase)) || ((a.build_position ?? 1e9) - (b.build_position ?? 1e9)) || a.id.localeCompare(b.id));
+  const sec = (t) => (t.track === SECURITY_TRACK ? 0 : 1);
+  list.sort((a, b) => (sec(a) - sec(b)) || (rank(a) - rank(b)) || (retried(a) - retried(b)) || (phaseRank(a.phase) - phaseRank(b.phase)) || ((a.build_position ?? 1e9) - (b.build_position ?? 1e9)) || a.id.localeCompare(b.id));
   return list;
 }
 // Every candidate the phase gate lets through, in build order. A running ticket counts as not done for the gate.
@@ -636,6 +642,23 @@ function commitBuildFiles(msg) {
   const cm = git(['commit', '-q', '-m', `docs(build): ${msg}`, '--', ...files]);
   if (!cm.ok) { git(['reset', '-q', '--', ...files]); log(`build files not committed (${cm.err.slice(0, 160)}); next time`); }
 }
+// Security advisories (Josh 2026-11-19): every advisory_check_hours, pnpm audit; anything new becomes one fix ticket at
+// the front of the line, committed by pathspec so nothing is left staged for the next squash merge. A failed audit
+// (registry down, no network) is logged and tried again next time; it never stops the loop or sets a ticket aside.
+function checkAdvisories(s, c) {
+  const due = Date.parse(s.advisories_checked_at || 0) + Number(c.advisory_check_hours || 6) * 3600000;
+  if (Date.now() < due) return;
+  s.advisories_checked_at = now(); saveState(s);
+  const a = runAudit(ROOT);
+  if (!a.ok) { log(`advisory check failed (will try again in ${c.advisory_check_hours} h): ${a.error}`); return; }
+  const fresh = unseen(a.list, readSeen(ROOT));
+  if (!fresh.length) { log(`advisory check: ${a.list.length} known advisor${a.list.length === 1 ? 'y' : 'ies'}, none new`); return; }
+  const r = recordFixTicket(ROOT, fresh, now().slice(0, 10));
+  const cm = git(['commit', '-q', '-m', `chore(tickets): ${r.id} security fix for ${fresh.map((x) => x.id).join(', ')} (build loop advisory check)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`, '--', ...r.files]);
+  if (!cm.ok) { log(`advisory ticket ${r.id} written but not committed: ${cm.err.slice(0, 200)}`); return; }
+  s.push_pending = true; saveState(s);
+  log(`SECURITY ${r.id}: ${fresh.length} new advisor${fresh.length === 1 ? 'y' : 'ies'} (${fresh.map((x) => `${x.module} ${x.severity} ${x.id}`).join('; ')}); queued first`);
+}
 function writeTrialReport(s) {
   const rows = readFileSync(P.usage, 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l));
   writeFileSync(P.report, reportMarkdown(rows, s));
@@ -762,6 +785,7 @@ async function main() {
       continue;
     }
     if (s.sleep_until) { delete s.sleep_until; delete s.next_probe; saveState(s); }
+    try { checkAdvisories(s, c); } catch (e) { log(`advisory check error: ${e?.message || e}`); }
     if (!active.size) push(s);
     if (s.red_streak >= c.red_streak_guard) {
       if (active.size) { note(`red streak of ${s.red_streak}: no new starts until the ${active.size} running ticket(s) finish`); await idle(60000); continue; }
