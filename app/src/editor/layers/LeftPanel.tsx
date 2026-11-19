@@ -10,6 +10,9 @@
 // EZD-122 (Q-0673 (c) "Layers and Rooms only until EZD-122"; S03 "tabs Layers, Rooms, Versions"; board S20; S20 Entry
 // points; AC-EZD-122-2, -8): the Versions tab, shown when the editor passes its content. The editor may hold the
 // tab (`tab`, `onTab`), so the header's version text can open Versions.
+// EZD-502 (S05 Entry points "left panel segment Ceiling or Both"; S05 Controls "Floor / Ceiling / Both segment ...
+// Available in view only"; board S05Ceiling left panel; AC-EZD-502-1): the segment tops the panel for every viewer;
+// on Ceiling or Both the floor tabs give way to the ceiling sections, which arrive with EZD-503, EZD-508 to EZD-510.
 import type { FloorChoice } from '../floors/floors';
 import { useChosenFloor } from '../floors/use-chosen-floor';
 import type { ObjectStatus, RoomObject } from '@ezdraft/geometry';
@@ -27,6 +30,7 @@ import touch from '../../styles/touch.module.css';
 import type { ModelStore } from '../model/model-store';
 import { openFloorId } from '../plan/batches';
 import type { SelectionController } from '../selection/selection-controller';
+import { PLAN_SURFACES, type SurfaceSetting } from '../ceiling/surface';
 import type { LayerId, LayerSetting } from './layer-setting';
 import { roomFieldsModule } from './room-fields-module';
 import { roomRows, type RoomRow } from './rooms';
@@ -50,7 +54,12 @@ export type LeftPanelProps = {
   onTab?: (tab: Tab) => void;
   // EZD-122: the Versions tab's content; without it there is no Versions tab.
   versions?: ReactNode;
+  // EZD-502: the plan's surface; without it there is no Floor / Ceiling / Both segment.
+  surface?: SurfaceSetting;
 };
+
+const noSubscribe = () => () => {};
+const floorShown = () => 'floor' as const;
 
 export type Tab = 'layers' | 'rooms' | 'versions';
 
@@ -169,9 +178,15 @@ export function LeftPanel({
   tab: heldTab,
   onTab,
   versions,
+  surface,
 }: LeftPanelProps): ReactElement {
   const chosen = useChosenFloor(floors);
   const t = useT();
+  const shownSurface = useSyncExternalStore(
+    surface ? surface.subscribe : noSubscribe,
+    surface ? () => surface.get().surface : floorShown,
+    surface ? () => surface.get().surface : floorShown,
+  );
   const [ownTab, setOwnTab] = useState<Tab>(initialTab);
   const tab = heldTab ?? ownTab;
   const objects = useSyncExternalStore(
@@ -214,8 +229,40 @@ export function LeftPanel({
     </button>
   );
 
+  const segment =
+    surface === undefined ? null : (
+      <div
+        className={styles.tabs}
+        role="group"
+        aria-label={t('office.ceiling.surface.group')}
+        data-testid="surface-segment"
+      >
+        {PLAN_SURFACES.map((s) => (
+          <button
+            key={s}
+            type="button"
+            aria-pressed={shownSurface === s}
+            className={`${styles.seg} ${shownSurface === s ? styles.segOn : ''} ${touch.target}`}
+            data-testid={`surface-${s}`}
+            onClick={() => surface.setSurface(s)}
+          >
+            {t(`office.ceiling.surface.${s}`)}
+          </button>
+        ))}
+      </div>
+    );
+
+  if (shownSurface !== 'floor')
+    return (
+      <div className={styles.panel} data-testid="left-panel" data-surface={shownSurface}>
+        {segment}
+        <div className={styles.body} data-testid="left-panel-ceiling" />
+      </div>
+    );
+
   return (
-    <div className={styles.panel} data-testid="left-panel" data-tab={tab}>
+    <div className={styles.panel} data-testid="left-panel" data-tab={tab} data-surface="floor">
+      {segment}
       <div className={styles.tabs} role="tablist" aria-label={t('office.left_panel.tabs')}>
         {tabButton('layers', 'office.left_panel.tab.layers')}
         {tabButton('rooms', 'office.left_panel.tab.rooms')}

@@ -1,0 +1,23 @@
+/* EZD-502 (board S05Ceiling legend chip at the canvas's bottom left): a white chip with the switch-zone line sample.
+   Colours and radius are tokens; lengths are plain px. */
+.legend {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  font: 400 12px var(--ez-font-sans);
+  color: var(--ez-slate-500);
+  pointer-events: none;
+}
+
+.zone {
+  width: 18px;
+  border-top: 1.5px dashed var(--ez-cobalt);
+}

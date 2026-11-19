@@ -192,7 +192,7 @@ test.describe('EZD-225 editor states', () => {
     await expect(tid(V.page, 'lock-banner')).toBeVisible();
     await expect(tid(V.page, 'lock-request-edit')).toHaveCount(0);
     // Hidden, not greyed (Q-0214; Q-0697 decisions 05): Select, Cabinets (EZD-404, view only) and Measure, nothing paused, no note.
-    await expect(rail(V.page).locator('[data-rail="top"] [data-rail-tool]')).toHaveCount(3);
+    await expect(rail(V.page).locator('[data-rail="top"] [data-rail-tool]')).toHaveCount(4);
     await expect(tool(V.page, 'select')).toBeEnabled();
     await expect(tool(V.page, 'measure')).toBeEnabled();
     for (const id of DRAWING) await expect(tool(V.page, id)).toHaveCount(0);

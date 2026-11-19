@@ -19,7 +19,11 @@
 // EZD-229 (AC-EZD-229-1, -2; 11 Budgets; EZD-120c B11): the existing details and floor transitions are drawn through
 // the lazy room-fields module, loaded the first time the model has an existing detail or a room with a floor level
 // or finish set (two rooms can only differ then); once it loads, the plan is drawn again.
+// EZD-502 (S05 Controls "Floor / Ceiling / Both segment"; AC-EZD-502-1): `setSurface` draws the RCP, or the RCP over the
+// greyed floor plan, through the view the lazy RCP module builds from the floor list; a switch redraws as a View change
+// does. Bounds stay the floor plan's, so Fit is the same on every surface. `drawn()` reports the surface and batches.
 import type { DerivedStats, DrawingList, ObjectStatus, Point } from '@ezdraft/geometry';
+import type { PlanSurface } from '../ceiling/surface';
 import type { PhaseFilter } from '../../lib/plan/phase-view';
 import { DEFAULT_PLAN_SCALE, isPlanScale, type PlanScale } from '../../lib/plan/plan-scale';
 import type { CaptureSource, ThumbnailCapture } from '../../lib/thumbnail/thumbnail';
@@ -28,7 +32,13 @@ import type { ModelStore } from '../model/model-store';
 import { chosenFloor, type FloorChoice } from '../floors/floors';
 import type { Objects } from '../model/patches';
 import { roomFieldsModule as planDetails } from '../layers/room-fields-module';
-import { buildPlanBatches, drawingBounds, openFloorId, planDrawingList } from './batches';
+import {
+  buildPlanBatches,
+  drawingBounds,
+  openFloorId,
+  planDrawingList,
+  type PlanBatch,
+} from './batches';
 import { layoutText } from './glyph-atlas';
 import {
   HOVER_CAPTURE_PX,
@@ -135,8 +145,20 @@ export type PlanController = {
   // EZD-304: the calibrated PDF page under the plan for tracing; null removes it.
   setUnderlay(u: PlanUnderlay | null): void;
   underlay(): PlanUnderlay['corners'] | null;
+  // EZD-502: the surface drawn; `view` builds a ceiling surface's drawing (the lazy RCP module), null for Floor.
+  setSurface(surface: PlanSurface, view: SurfaceViewBuilder | null): void;
+  drawn(): {
+    surface: PlanSurface;
+    batches: Array<{ key: string; color: PlanBatch['color']; order: number }>;
+  };
   dispose(): void;
 };
+
+export type SurfaceViewBuilder = (
+  floor: DrawingList | null,
+  objects: Objects,
+  surface: Exclude<PlanSurface, 'floor'>,
+) => { list: DrawingList | null; batches: PlanBatch[] };
 
 async function reportDefault(error: unknown): Promise<void> {
   const { captureBrowserError } = await import('../../lib/errors/capture');
@@ -239,6 +261,10 @@ export function createPlanController(
     return uploaded > 0;
   };
 
+  let surface: PlanSurface = 'floor';
+  let surfaceView: SurfaceViewBuilder | null = null;
+  let drawnBatches: PlanBatch[] = [];
+
   const phase = o.phase ?? null;
   const floorOf = (objects: Objects) => openFloorId(objects, chosenFloor(o.floors));
   const rebuild = (): number => {
@@ -248,16 +274,27 @@ export function createPlanController(
         () => disposed || refreshAll(),
         () => {},
       );
-    list = planDrawingList(
-      o.store.getState().objects,
+    const objects = o.store.getState().objects;
+    const floor = planDrawingList(
+      objects,
       { roomAreaSqFt: derived.roomAreaSqFt, extraItems: details?.planDetailItems },
       phase,
       chosenFloor(o.floors),
     );
     derived.prune();
-    bounds = drawingBounds(list);
+    bounds = drawingBounds(floor);
+    let batches: PlanBatch[];
+    if (surface === 'floor' || surfaceView === null) {
+      list = floor;
+      batches = buildPlanBatches(floor);
+    } else {
+      const v = surfaceView(floor, objects, surface);
+      list = v.list;
+      batches = v.batches;
+    }
+    drawnBatches = batches;
     const before = scene.objectCount();
-    const uploaded = scene.setBatches(buildPlanBatches(list));
+    const uploaded = scene.setBatches(batches);
     bufferUploads += uploaded;
     return uploaded > 0 || scene.objectCount() !== before ? 1 : 0;
   };
@@ -678,6 +715,17 @@ export function createPlanController(
       redraw();
     },
     underlay: () => (underlayCorners === null ? null : underlayCorners.map((c) => ({ ...c }))),
+    setSurface(next, build) {
+      const view = next === 'floor' ? null : build;
+      if (next === surface && view === surfaceView) return;
+      surface = next;
+      surfaceView = view;
+      if (!disposed) refreshAll();
+    },
+    drawn: () => ({
+      surface: surfaceView === null ? 'floor' : surface,
+      batches: drawnBatches.map((b) => ({ key: b.key, color: { ...b.color }, order: b.order })),
+    }),
     derivedStats: () => derived.stats(),
     stats() {
       const s = root !== null && ready ? root.stats() : { frames: 0, drawCalls: 0 };

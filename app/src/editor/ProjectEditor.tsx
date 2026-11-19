@@ -153,6 +153,14 @@ import {
 import { createPhaseSetting, type PhaseSetting } from './status/phase-setting';
 import { createLayerSetting, type LayerSetting } from './layers/layer-setting';
 import { LeftPanel, type Tab as LeftTab } from './layers/LeftPanel';
+import { createSurfaceSetting } from './ceiling/surface';
+import { rcpModule } from './ceiling/rcp-module';
+import {
+  CeilingLegend,
+  CeilingViewStatus,
+  JoistsStatus,
+  useCeilingKeys,
+} from './ceiling/CeilingParts';
 import type { RoutedStore } from './model/routed-store';
 import type {
   VersionInspectorProps,
@@ -204,6 +212,8 @@ type PlanTestHook = {
   phase: PhaseSetting;
   // EZD-304: the plan positions of the PDF underlay's corners, or null.
   underlay(): ReturnType<PlanController['underlay']>;
+  // EZD-502: the surface drawn and its batches.
+  drawn(): ReturnType<PlanController['drawn']>;
 };
 
 type SelectionTestHook = {
@@ -589,6 +599,34 @@ export function ProjectEditor({
   );
   const viewing = view.viewing;
   const [leftTab, setLeftTab] = useState<LeftTab>('layers');
+  // EZD-502 (S05 Entry points; AC-EZD-502-1): the plan's surface for this page; Ceiling and Both draw through the lazy
+  // RCP module, and a switch away from Floor ends any standard tool (the cabinet screen too).
+  const [surface] = useState(createSurfaceSetting);
+  const shownSurface = useSyncExternalStore(
+    surface.subscribe,
+    () => surface.get().surface,
+    () => surface.get().surface,
+  );
+  useEffect(() => {
+    if (plan === null) return;
+    if (shownSurface === 'floor') {
+      plan.setSurface('floor', null);
+      return;
+    }
+    selection?.selectTool();
+    let live = true;
+    rcpModule.load().then(
+      (m) => {
+        if (live) plan.setSurface(shownSurface, m.rcpView);
+      },
+      () => {},
+    );
+    return () => {
+      live = false;
+    };
+  }, [plan, selection, shownSurface]);
+  const ceilingSelect = useCallback(() => selection?.selectTool(), [selection]);
+  useCeilingKeys(surface, ceilingSelect);
   const [versionRows, setVersionRows] = useState<VersionRow[] | null>(null);
   const [versionsFailed, setVersionsFailed] = useState(false);
   const [reverting, setReverting] = useState(false);
@@ -664,6 +702,7 @@ export function ProjectEditor({
       stats: () => ({ ...plan.stats(), contexts: webglContextsCreated() }),
       phase,
       underlay: () => plan.underlay(),
+      drawn: () => plan.drawn(),
     };
     const w = window as unknown as { __ezdraftPlan?: PlanTestHook };
     w.__ezdraftPlan = hook;
@@ -929,6 +968,7 @@ export function ProjectEditor({
         // EZD-5605 D-Tools off (Q-0641 row 56-4): during Adjust every rail tool but Select is off, Assistant too.
         rail={adjusting ? { ...spec, only: 'select' } : spec}
         assistant={shown !== null ? { open: assistantOpen, onToggle: shown.toggle } : null}
+        surface={surface}
       />
     );
   const panel =
@@ -946,6 +986,7 @@ export function ProjectEditor({
     <>
       <PlanInputSurface controller={plan} />
       {cabinetsOn ? null : <ZoomStack handle={plan.handle} />}
+      {shownSurface === 'floor' ? null : <CeilingLegend />}
       {preview !== null ? <LazyPreviewLayer store={preview} handle={plan.handle} /> : null}
       {versionView !== null && viewing !== null ? (
         <LazyDiffLayer view={versionView} handle={plan.handle} floors={floors} />
@@ -1057,6 +1098,7 @@ export function ProjectEditor({
         projectId={projectId}
         tab={leftTab}
         onTab={setLeftTab}
+        surface={surface}
         versions={
           versionView !== null ? (
             <LazyVersions
@@ -1125,7 +1167,9 @@ export function ProjectEditor({
                     {cabinetsOn && session !== null ? (
                       <LazyCabinetStatus store={session.store} floors={floors ?? undefined} />
                     ) : null}
+                    {shownSurface === 'floor' ? null : <CeilingViewStatus />}
                     <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
+                    {shownSurface === 'floor' ? null : <JoistsStatus />}
                     {part('status')}
                     {leftTab === 'versions' || viewing !== null ? (
                       <LazyVersionsStatus

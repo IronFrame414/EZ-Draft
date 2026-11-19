@@ -17,6 +17,8 @@
 // EZD-223 (S03 Sketch): the sketch strokes path; the Sketch tool shows no typed bar.
 // EZD-231 (04 Tool rail Measure): the measure distance chip; the Measure tool shows no typed bar.
 // EZD-225 (S06:48; Q-0697 decisions 05): the rail's paused tools for a viewer with Edit model but not the lock.
+// EZD-502 (S05 Entry points; S05 Layout; AC-EZD-502-1): the Ceiling tool ends the standard rail's top group for every
+// viewer and switches to Ceiling; on Ceiling or Both the rail is the ceiling rail, whose tool is the surface's own.
 import {
   useCallback,
   useEffect,
@@ -34,6 +36,12 @@ import { useT } from '../../lib/messages';
 import touch from '../../styles/touch.module.css';
 import type { PlanCanvasHandle } from '../plan/controller';
 import { ASSISTANT_RAIL_TOOL } from '../assistant/assistant-ui';
+import {
+  CEILING_RAIL_TOOL,
+  ceilingRail,
+  type CeilingToolId,
+  type SurfaceSetting,
+} from '../ceiling/surface';
 import type { SelectionController } from '../selection/selection-controller';
 import { TypedEntryLayer } from '../typed-entry/TypedEntryLayer';
 import type { DrawingController, DrawingFrame, DrawingUi } from './drawing-controller';
@@ -92,23 +100,59 @@ export type DrawingRailProps = {
     paused?: readonly string[];
   };
   assistant?: { open: boolean; onToggle: () => void } | null;
+  // EZD-502: the plan's surface; without it there is no Ceiling tool.
+  surface?: SurfaceSetting | null;
 };
 
-export function DrawingRail({ drawing, selection, rail, assistant }: DrawingRailProps) {
+const floorSurface = () => null;
+
+export function DrawingRail({ drawing, selection, rail, assistant, surface }: DrawingRailProps) {
   const ui = useSyncExternalStore<DrawingUi | null>(
     drawing ? drawing.subscribe : noSubscribe,
     () => drawing?.getUi() ?? null,
     () => drawing?.getUi() ?? null,
   );
+  const shown = useSyncExternalStore(
+    surface ? surface.subscribe : noSubscribe,
+    surface ? surface.get : floorSurface,
+    surface ? surface.get : floorSurface,
+  );
+  const bottom = assistant ? [ASSISTANT_RAIL_TOOL] : [];
+  const pressedIds = assistant ? (assistant.open ? ['assistant'] : []) : undefined;
+  const select = rail.tools.find((t) => t.id === 'select');
+  if (surface && shown !== null && shown.surface !== 'floor' && select !== undefined) {
+    const ceiling = ceilingRail(select, rail);
+    return (
+      <ToolRail
+        top={ceiling.top}
+        bottom={bottom}
+        activeId={shown.tool ?? 'select'}
+        pressedIds={pressedIds}
+        onSelect={(id) => {
+          if (assistant && id === 'assistant') assistant.onToggle();
+          else if (id === 'select') {
+            surface.setTool(null);
+            selection?.selectTool();
+          } else surface.setTool(id as CeilingToolId);
+        }}
+        disabled={ceiling.disabled}
+        only={ceiling.only}
+        paused={ceiling.paused}
+      />
+    );
+  }
   return (
     <ToolRail
-      top={[...rail.tools]}
-      bottom={assistant ? [ASSISTANT_RAIL_TOOL] : []}
+      top={surface ? [...rail.tools, CEILING_RAIL_TOOL] : [...rail.tools]}
+      bottom={bottom}
       activeId={ui?.tool ?? 'select'}
-      pressedIds={assistant ? (assistant.open ? ['assistant'] : []) : undefined}
+      pressedIds={pressedIds}
       onSelect={(id) => {
         if (assistant && id === 'assistant') assistant.onToggle();
-        else if (id === 'select') selection?.selectTool();
+        else if (surface && id === CEILING_RAIL_TOOL.id) {
+          selection?.selectTool();
+          surface.setSurface('ceiling');
+        } else if (id === 'select') selection?.selectTool();
         else drawing?.selectTool(id as DrawingToolId);
       }}
       disabled={rail.disabled}

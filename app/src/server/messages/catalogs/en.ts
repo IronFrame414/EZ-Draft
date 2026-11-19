@@ -2186,6 +2186,28 @@ export const en = {
   'office.cabinets.run.mixed': 'Mixed',
   'office.cabinets.run.pick_countertop': 'Pick a countertop',
   'office.cabinets.run.pick_finish': 'Pick a cabinet finish',
+  // EZD-502 (S05 Layout, Entry points, Controls; board S05Ceiling; vault/build/assumptions.md EZD-502).
+  'office.tool.ceiling': 'Ceiling',
+  'office.ceiling.tool.ceiling_type': 'Ceiling type',
+  'office.ceiling.tool.beam': 'Beam',
+  'office.ceiling.tool.recessed_light': 'Recessed light',
+  'office.ceiling.tool.ceiling_fan': 'Ceiling fan',
+  'office.ceiling.tool.act_grid': 'Acoustical grid',
+  'office.ceiling.tool.hvac': 'HVAC diffuser or return',
+  'office.ceiling.tool.detector': 'Smoke or CO detector',
+  'office.ceiling.tool.low_voltage': 'Speaker or low voltage',
+  'office.ceiling.tool.access_panel': 'Access panel',
+  'office.ceiling.tool.soffit': 'Soffit, tray, coffer',
+  'office.ceiling.tool.tag': 'Height and material tag',
+  'office.ceiling.surface.group': 'Floor or ceiling',
+  'office.ceiling.surface.floor': 'Floor',
+  'office.ceiling.surface.ceiling': 'Ceiling',
+  'office.ceiling.surface.both': 'Both',
+  'office.ceiling.status.view': 'View',
+  'office.ceiling.status.rcp': 'Reflected ceiling plan',
+  'office.ceiling.status.joists': 'Joists',
+  'office.ceiling.status.joists_unknown': 'unknown · beam clash checks off',
+  'office.ceiling.legend.switch_zone': 'Switch zone',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;
