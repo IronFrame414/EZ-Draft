@@ -240,6 +240,14 @@
       "question": "Q-0777",
       "kind": "held",
       "since": "2026-11-18"
+    },
+    {
+      "ticket": "EZD-425",
+      "title": "Fix: security advisories in glob, minimatch, next; move to the patched versions",
+      "reason": "Held 2026-11-19 by Josh: analyze and trial the upgrade first so the next attempt passes; released when vault/plans/EZD-425.md is written and the trial gate is green.",
+      "question": "",
+      "kind": "held",
+      "since": "2026-11-19"
     }
   ]
 }
