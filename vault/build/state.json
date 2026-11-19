@@ -392,7 +392,8 @@
     "EZD-501",
     "EZD-409",
     "EZD-730",
-    "EZD-122"
+    "EZD-122",
+    "EZD-139"
   ],
   "seeded_done": 324,
   "merged": [
@@ -910,6 +911,14 @@
       "ts": "2026-11-19T03:22:28Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-139",
+      "title": "Visual diff of an old version",
+      "commit": "f5722474",
+      "ts": "2026-11-19T04:14:28Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {
@@ -1001,6 +1010,12 @@
       "title": "Tile layout",
       "started": "2026-11-19T02:54:38Z",
       "develop": "1ec73668"
+    },
+    "EZD-613": {
+      "lane": 2,
+      "title": "Code edition settings",
+      "started": "2026-11-19T03:23:15Z",
+      "develop": "113bf41b"
     }
   }
 }
