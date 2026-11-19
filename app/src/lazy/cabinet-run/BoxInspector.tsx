@@ -38,7 +38,9 @@ import {
   type BoxInspectorView,
   type CabinetMemberKind,
 } from '../../editor/cabinets/box-inspector';
+import { isRunSelected } from '../../editor/cabinets/run-inspector';
 import { useCabinetModel } from './CabinetRunView';
+import { RunInspector } from './RunInspector';
 import {
   CabinetScheduleView,
   loadPermissions as fetchMemberPermissions,
@@ -69,9 +71,10 @@ export const fetchCatalog: CatalogLoad = async () => {
   return ((await res.json()) as { items: CatalogItem[] }).items;
 };
 
-type CatalogState = { kind: 'loading' } | { kind: 'error' } | { kind: 'ready'; items: CatalogItem[] };
+export type CatalogState =
+  { kind: 'loading' } | { kind: 'error' } | { kind: 'ready'; items: CatalogItem[] };
 
-function useCatalog(load: CatalogLoad): CatalogState {
+export function useCatalog(load: CatalogLoad): CatalogState {
   const [state, setState] = useState<CatalogState>({ kind: 'loading' });
   useEffect(() => {
     let live = true;
@@ -103,6 +106,18 @@ export function CabinetInspector({
     (changes: Change[]) => (changes.length === 0 ? [] : store.applyEdit(changes)),
     [store],
   );
+  // EZD-419: the run itself selected (a click on its name) shows the run inspector.
+  if (isRunSelected(view, ids))
+    return (
+      <RunInspector
+        view={view!}
+        objects={parsed}
+        catalog={catalog}
+        canEdit={canEdit}
+        canExport={canExport}
+        onChanges={apply}
+      />
+    );
   const one = view !== null && ids.length === 1 ? boxInspectorView(view, parsed, ids[0]!) : null;
   return (
     <BoxInspectorScreen
@@ -114,7 +129,9 @@ export function CabinetInspector({
       canEdit={canEdit}
       canExport={canExport}
       swapOpen={one !== null && swapFor !== null && swapFor.toLowerCase() === one.id.toLowerCase()}
-      onSwapOpen={(open) => selectionStore.getState().openSwap(open && one !== null ? one.id : null)}
+      onSwapOpen={(open) =>
+        selectionStore.getState().openSwap(open && one !== null ? one.id : null)
+      }
       onChanges={apply}
     />
   );
@@ -461,7 +478,9 @@ function BoxPanel({
             items={items}
             initialCategory="cabinets"
             onPick={(i) => {
-              onChanges(boxEditChanges(view, objects, box.id, { field: 'catalogItemId', value: i.id }));
+              onChanges(
+                boxEditChanges(view, objects, box.id, { field: 'catalogItemId', value: i.id }),
+              );
               setPicking(false);
             }}
           />

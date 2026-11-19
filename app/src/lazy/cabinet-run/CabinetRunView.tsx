@@ -80,6 +80,7 @@ import {
   type CabinetSelectionInput,
   type CabinetView,
 } from '../../editor/cabinets/cabinet-view';
+import { isRunSelected } from '../../editor/cabinets/run-inspector';
 import styles from './CabinetRunView.module.css';
 
 export type CabinetRunViewProps = {
@@ -529,6 +530,7 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
     );
   }
   const { summary } = view;
+  const runSelected = isRunSelected(view, selection.ids);
   const openMenu =
     edit === undefined
       ? undefined
@@ -544,9 +546,17 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
       aria-label={t('office.cabinets.region')}
     >
       <header className={styles.header} data-testid="cabinet-run-header">
-        <span className={styles.name} data-testid="cabinet-run-name">
+        {/* EZD-419: a click on the run name selects the run; the inspector shows the run (S03 inspector). */}
+        <button
+          type="button"
+          className={styles.name}
+          data-testid="cabinet-run-name"
+          aria-pressed={runSelected}
+          title={t('office.cabinets.run.select')}
+          onClick={() => onInput({ type: 'click', id: view.run.id })}
+        >
           {summary.name}
-        </span>
+        </button>
         <span className={styles.counts} data-testid="cabinet-run-counts">
           {t('office.cabinets.boxes', { count: summary.boxCount })}
           {' · '}

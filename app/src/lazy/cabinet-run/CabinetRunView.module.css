@@ -25,6 +25,20 @@
   font-size: 15px;
   font-weight: 600;
   color: var(--ez-ink);
+  /* EZD-419: the run name is a button that selects the run. */
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  padding: 2px 6px;
+  margin: -2px -6px;
+  background: transparent;
+  font-family: var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.name:hover,
+.name[aria-pressed='true'] {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
 }
 
 .counts {

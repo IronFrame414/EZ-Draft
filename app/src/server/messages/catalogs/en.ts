@@ -2095,6 +2095,16 @@ export const en = {
   'office.cabinets.schedule_empty': 'No cabinets in this project yet.',
   'office.cabinets.schedule_export': 'Export CSV',
   'office.cabinets.schedule_file': 'Cabinet schedule.csv',
+  // EZD-419 (board S03Plan; vault/build/assumptions.md EZD-419 wording): the run inspector.
+  'office.cabinets.run.select': 'Select the run',
+  'office.cabinets.run.end_panels': { one: '{count} end panel', other: '{count} end panels' },
+  'office.cabinets.run.panels': { one: '{count} panel', other: '{count} panels' },
+  'office.cabinets.run.selections': 'Client selections',
+  'office.cabinets.run.countertop': 'Countertop',
+  'office.cabinets.run.cabinet_finish': 'Cabinet finish',
+  'office.cabinets.run.mixed': 'Mixed',
+  'office.cabinets.run.pick_countertop': 'Pick a countertop',
+  'office.cabinets.run.pick_finish': 'Pick a cabinet finish',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;
