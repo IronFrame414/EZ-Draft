@@ -399,7 +399,8 @@
     "EZD-407",
     "EZD-731",
     "EZD-408",
-    "EZD-419"
+    "EZD-419",
+    "EZD-712"
   ],
   "seeded_done": 324,
   "merged": [
@@ -973,6 +974,14 @@
       "ts": "2026-11-19T09:23:25Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-712",
+      "title": "Submittal profiles",
+      "commit": "e939ceed",
+      "ts": "2026-11-19T09:49:04Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1059,11 +1068,11 @@
     }
   },
   "running": {
-    "EZD-712": {
-      "lane": 2,
-      "title": "Submittal profiles",
-      "started": "2026-11-19T06:23:49Z",
-      "develop": "c902b61a"
+    "EZD-502": {
+      "lane": 0,
+      "title": "RCP view and ceiling rail",
+      "started": "2026-11-19T09:23:30Z",
+      "develop": "c103dbe1"
     }
   }
 }
