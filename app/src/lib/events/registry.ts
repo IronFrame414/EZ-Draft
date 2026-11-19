@@ -73,6 +73,10 @@ export const EVENTS = {
   'tenant.code_edition_updated': { kind: 'log_only' },
   // EZD-125 (Q-0697 decisions 10): Cancel request; written as the event_log row by cancel_edit_request.
   'lock.request_cancelled': { kind: 'log_only' },
+  // EZD-712 (S15c Events emitted): Settings > Sheet presets.
+  'submittal_profile.created': { kind: 'log_only' },
+  'submittal_profile.updated': { kind: 'log_only' },
+  'submittal_profile.deleted': { kind: 'log_only' },
   'customer.created': { kind: 'log_only' },
   'customer.updated': { kind: 'log_only' },
   'project.created': { kind: 'log_only' },
@@ -198,6 +202,12 @@ export interface EventPayloads {
   'tenant.updated': { fields: TenantField[] };
   'tenant.defaults_updated': { keys: string[] };
   'tenant.code_edition_updated': { keys: ('code_edition' | 'optional_load_calc')[] };
+  // EZD-712: `sourceId` is the profile copied (New profile copies the default; Duplicate the chosen one).
+  'submittal_profile.created': { profileId: string; sourceId: string | null };
+  // EZD-712: the changed columns, plus `is_default` (Set as default) and `archived_at` (Archive or restore).
+  'submittal_profile.updated': { profileId: string; fields: string[] };
+  // EZD-712: `movedProjects` is how many projects moved to the default.
+  'submittal_profile.deleted': { profileId: string; movedProjects: number };
   'customer.created': { customerId: string };
   'customer.updated': { customerId: string; fields: CustomerEventField[] };
   // EZD-118 Build step 8: no `ezbinderJobId` (Q-0190); `source` only `standalone` (Q-0398).

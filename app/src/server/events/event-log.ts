@@ -23,7 +23,8 @@ export type EventObjectType =
   | 'app_user'
   | 'membership'
   | 'role'
-  | 'library_item';
+  | 'library_item'
+  | 'submittal_profile';
 
 export type EventLogObject = { type: EventObjectType; id: string };
 
@@ -134,6 +135,19 @@ export const EVENT_LOG: EventLogRules = {
   },
   // EZD-125 (Q-0697 decisions 10): written by cancel_edit_request in the lock transaction.
   'lock.request_cancelled': TRANSACTION,
+  // EZD-712 (S15c Events emitted): Settings > Sheet presets.
+  'submittal_profile.created': {
+    mode: 'sink',
+    object: (e) => ({ type: 'submittal_profile', id: e.payload.profileId }),
+  },
+  'submittal_profile.updated': {
+    mode: 'sink',
+    object: (e) => ({ type: 'submittal_profile', id: e.payload.profileId }),
+  },
+  'submittal_profile.deleted': {
+    mode: 'sink',
+    object: (e) => ({ type: 'submittal_profile', id: e.payload.profileId }),
+  },
   'customer.created': {
     mode: 'sink',
     object: (e) => ({ type: 'customer', id: e.payload.customerId }),

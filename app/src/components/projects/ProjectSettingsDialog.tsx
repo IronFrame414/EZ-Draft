@@ -3,9 +3,12 @@
 // project" below, Save and Cancel; Q-0697 decisions 03, 10; Q-0202; Q-0400; Q-0399; Q-0396; AC-EZD-130-3..6):
 // Project settings, opened from the project switcher in the editor and loaded with app/src/lazy/project-settings.
 // Fields this member may not change are plain text; with nothing to change there is no Save. Type and the
-// defaults also need this tab to hold the edit lock. No Submittal profile (Q-0399). EZD-613 (S15g Decision 2):
-// the project's own Code edition, changed with Edit model like the name. A failed
+// defaults also need this tab to hold the edit lock. EZD-613 (S15g Decision 2): the project's own Code edition,
+// changed with Edit model like the name. EZD-712 (S15c Decision 2; Q-0399 lifted): the project's Submittal
+// profile, an active profile of the company, changed with Edit model through its own route; holders of
+// settings_sheet_presets get a link to Settings > Sheet presets. A failed
 // save keeps the dialog open with a Try again message; a save hands the new settings to `onSaved`.
+import Link from 'next/link';
 import { Dialog } from 'radix-ui';
 import { useEffect, useState, type ReactElement, type ReactNode } from 'react';
 import { CODE_EDITIONS, editionLabel, isCodeEdition } from '../../lib/code-edition/editions';
@@ -24,6 +27,7 @@ import {
   type ProjectSettings,
   type ProjectSettingsDraft,
 } from '../../lib/projects/project-settings';
+import type { ProjectProfileAnswer } from '../../lib/submittal-profiles/profiles';
 import type { MessageKey } from '../../server/messages/catalog';
 import touch from '../../styles/touch.module.css';
 import { Icon } from '../icon/Icon';
@@ -52,6 +56,7 @@ export type Load =
   | { status: 'ready'; settings: ProjectSettings };
 
 const settingsUrl = (id: string) => `/api/projects/${encodeURIComponent(id)}/settings`;
+const profileUrl = (id: string) => `/api/projects/${encodeURIComponent(id)}/submittal-profile`;
 
 export function ProjectSettingsDialog({
   projectId,
@@ -70,16 +75,23 @@ export function ProjectSettingsDialog({
   const [fields, setFields] = useState<FieldErrors>({});
   const [error, setError] = useState<MessageKey | null>(null);
   const [busy, setBusy] = useState(false);
+  const [profile, setProfile] = useState<ProjectProfileAnswer | null>(null);
+  const [profileId, setProfileId] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
-    doFetch(settingsUrl(projectId), { credentials: 'same-origin', cache: 'no-store' })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(String(res.status));
-        const settings = (await res.json()) as ProjectSettings;
+    const read = async <T,>(url: string): Promise<T> => {
+      const res = await doFetch(url, { credentials: 'same-origin', cache: 'no-store' });
+      if (!res.ok) throw new Error(String(res.status));
+      return (await res.json()) as T;
+    };
+    Promise.all([read<ProjectSettings>(settingsUrl(projectId)), read<ProjectProfileAnswer>(profileUrl(projectId))])
+      .then(([settings, prof]) => {
         if (!live) return;
         setLoad({ status: 'ready', settings });
         setDraft(draftOf(settings));
+        setProfile(prof);
+        setProfileId(prof.profileId);
       })
       .catch(() => {
         if (live) setLoad({ status: 'failed' });
@@ -103,6 +115,23 @@ export function ProjectSettingsDialog({
     setError(null);
     setBusy(true);
     try {
+      // EZD-712: the profile first, through its own route; a refusal keeps the dialog open.
+      if (editable.details && profile && profileId !== null && profileId !== profile.profileId) {
+        const res = await doFetch(profileUrl(projectId), {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ profileId }),
+        });
+        if (!res.ok) {
+          setError(
+            res.status === 400 ? 'office.project_settings.profile_unavailable' : 'office.project_settings.save_failed',
+          );
+          setBusy(false);
+          return;
+        }
+        setProfile({ ...profile, profileId });
+      }
       const res = await doFetch(settingsUrl(projectId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -147,6 +176,9 @@ export function ProjectSettingsDialog({
             error={error}
             busy={busy}
             online={online}
+            profile={profile}
+            profileId={profileId}
+            onProfile={setProfileId}
             onDraft={(patch) => setDraft((d) => (d ? { ...d, ...patch } : d))}
             onRetry={() => {
               setLoad({ status: 'loading' });
@@ -181,6 +213,10 @@ export type ProjectSettingsContentProps = {
   error: MessageKey | null;
   busy: boolean;
   online: boolean;
+  // EZD-712: the project's submittal profile and the company's choices (absent: the field is not shown).
+  profile?: ProjectProfileAnswer | null;
+  profileId?: string | null;
+  onProfile?: (id: string) => void;
   onDraft: (patch: Partial<ProjectSettingsDraft>) => void;
   onRetry: () => void;
   onSave: () => void;
@@ -199,6 +235,9 @@ export function ProjectSettingsContent({
   error,
   busy,
   online,
+  profile = null,
+  profileId = null,
+  onProfile,
   onDraft: set,
   onRetry,
   onSave,
@@ -352,6 +391,41 @@ export function ProjectSettingsContent({
             text('project-settings-code-edition', t(editionLabel(draft.codeEdition)))
           )}
         </label>
+        {profile ? (
+          <div className={styles.field}>
+            <label className={styles.field}>
+              {t('office.project_settings.submittal_profile')}
+              {editable.details && profile.profiles.length > 0 ? (
+                <select
+                  data-testid="project-settings-submittal-profile"
+                  className={`${styles.input} ${touch.target}`}
+                  value={profileId ?? ''}
+                  onChange={(e) => onProfile?.(e.target.value)}
+                >
+                  {profileId === null ? <option value="">{t('office.project_settings.profile_none')}</option> : null}
+                  {profile.profiles.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.isDefault
+                        ? t('office.project_settings.profile_default', { name: p.department })
+                        : p.department}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                text(
+                  'project-settings-submittal-profile',
+                  profile.profiles.find((p) => p.id === profileId)?.department ??
+                    t('office.project_settings.profile_none'),
+                )
+              )}
+            </label>
+            {profile.canManage ? (
+              <Link className={styles.hint} href="/settings/sheet-presets" data-testid="project-settings-sheet-presets-link">
+                {t('office.project_settings.profile_manage')}
+              </Link>
+            ) : null}
+          </div>
+        ) : null}
         <section className={styles.block} data-testid="project-settings-defaults">
           <div className={styles.blockHead}>
             <span className={styles.blockTitle}>{t('office.project_settings.defaults_title')}</span>

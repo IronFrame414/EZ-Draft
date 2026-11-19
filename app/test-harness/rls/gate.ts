@@ -184,6 +184,16 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'update_tenant_defaults', args: { p_set: {}, p_remove: [] } },
   // EZD-613: the Code edition write path, authenticated only.
   { fn: 'update_tenant_code_edition', args: { p_code_edition: null, p_optional_load_calc: null } },
+  // EZD-712: the Sheet presets (submittal profile) write paths, authenticated only.
+  { fn: 'create_submittal_profile', args: { p_department: 'Gate', p_source: null } },
+  { fn: 'update_submittal_profile', args: { p_id: '00000000-0000-0000-0000-000000000000', p_changes: {} } },
+  { fn: 'set_default_submittal_profile', args: { p_id: '00000000-0000-0000-0000-000000000000' } },
+  { fn: 'archive_submittal_profile', args: { p_id: '00000000-0000-0000-0000-000000000000', p_archived: true } },
+  { fn: 'delete_submittal_profile', args: { p_id: '00000000-0000-0000-0000-000000000000' } },
+  {
+    fn: 'set_project_submittal_profile',
+    args: { p_project: '00000000-0000-0000-0000-000000000000', p_profile: '00000000-0000-0000-0000-000000000000' },
+  },
   // EZD-113 section 3 (vault/plans/EZD-113.md): the customer list, authenticated only.
   { fn: 'list_customers', args: { p_search: '', p_archived: false, p_page: 1 } },
   // EZD-104 (vault/plans/EZD-104.md): the Users page functions, authenticated only.

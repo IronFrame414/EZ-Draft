@@ -73,3 +73,7 @@ from generate_series(1, 200) as i;
 -- EZD-401 (R23): the generic cabinet line for every seeded company (the migration seeds only companies that
 -- exist when it runs; locally that is none).
 select private.seed_catalog_generic_line(id) from public.tenant;
+
+-- EZD-712 (S15c; AC-EZD-712-1): the default submittal profile for every seeded company (the migration seeds only
+-- companies that exist when it runs).
+select private.seed_submittal_profile(id) from public.tenant;

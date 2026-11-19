@@ -584,6 +584,81 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     },
     expectStatus: 200,
   },
+  // EZD-712: Settings > Sheet presets. The case company has no profile, so POST makes its first one, the
+  // default; PATCH renames it; DELETE of the default is refused (409 profile_is_default).
+  {
+    file: `${API}settings/sheet-presets/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/sheet-presets/route'),
+    request: get('/api/settings/sheet-presets'),
+    expectStatus: 200,
+    note: 'EZD-712: the company submittal profiles; 200 { profiles } (no money)',
+  },
+  {
+    file: `${API}settings/sheet-presets/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/settings/sheet-presets/route'),
+    request: sendJson('POST', '/api/settings/sheet-presets', { department: 'Palm Beach County' }),
+    expectStatus: 201,
+    after: (body, env) => env.created.set('submittalProfileId', field(body, 'profile', 'id')),
+    note: 'EZD-712: New profile; 201 { profile } (no money)',
+  },
+  {
+    file: `${API}settings/sheet-presets/[id]/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/settings/sheet-presets/[id]/route'),
+    request: async (env) => {
+      const id = made(env, 'submittalProfileId');
+      return {
+        ...(await sendJson('PATCH', `/api/settings/sheet-presets/${id}`, {
+          fields: { department: 'Palm Beach County Building' },
+        })()),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-712: the inspector Save; 200 { profile } (no money)',
+  },
+  {
+    file: `${API}settings/sheet-presets/[id]/route.ts`,
+    method: 'DELETE',
+    load: () => import('../../src/app/api/settings/sheet-presets/[id]/route'),
+    request: async (env) => {
+      const id = made(env, 'submittalProfileId');
+      return {
+        request: new Request(`${BASE}/api/settings/sheet-presets/${id}`, { method: 'DELETE' }),
+        params: { id },
+      };
+    },
+    expectStatus: 409,
+    note: 'EZD-712: the default cannot be deleted; 409 profile_is_default (no money)',
+  },
+  // EZD-712: the project's submittal profile in Project settings. The case company has its first profile from the
+  // sheet-presets POST above.
+  {
+    file: `${API}projects/[id]/submittal-profile/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/submittal-profile/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/submittal-profile`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-712: the project profile and the choices; 200 { profileId, profiles, canManage } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/submittal-profile/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/projects/[id]/submittal-profile/route'),
+    request: async (env) => ({
+      ...(await sendJson('PATCH', `/api/projects/${env.projectId}/submittal-profile`, {
+        profileId: made(env, 'submittalProfileId'),
+      })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-712: Project settings picks the profile; 200 { profileId } (no money)',
+  },
   // EZD-233: the Plan editor's saved groups; POST saves one lavatory as a group.
   {
     file: `${API}saved-groups/route.ts`,

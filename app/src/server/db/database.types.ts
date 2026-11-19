@@ -678,6 +678,12 @@ isOneToOne: false
       referencedRelation: "customer"
       referencedColumns: ["id","tenant_id"]
     },{
+      foreignKeyName: "project_submittal_profile_fkey"
+      columns: ["submittal_profile_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "submittal_profile"
+      referencedColumns: ["id","tenant_id"]
+    },{
       foreignKeyName: "project_tenant_id_fkey"
       columns: ["tenant_id"]
 isOneToOne: false
@@ -847,6 +853,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"submittal_profile": {
+                  Row: {
+                    "archived_at": string | null,"bookmarks": boolean,"created_at": string,"department": string,"export_unsigned": boolean,"file_split": string,"flatten": boolean,"id": string,"is_default": boolean,"max_file_mb": number | null,"min_scale_in_per_ft": number | null,"naming_max_length": number | null,"naming_template": string,"naming_upper": boolean,"required_notes": (string)[],"resubmittal_mode": string,"revision_naming": string,"sheet_size": string,"signer": string,"stamp_box_height_in": number,"stamp_box_position": string,"stamp_box_width_in": number,"submittal_type": string,"tenant_id": string,"toc_sheet": boolean,"transmittal": boolean,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"bookmarks"?: boolean,"created_at"?: string,"department": string,"export_unsigned"?: boolean,"file_split"?: string,"flatten"?: boolean,"id"?: string,"is_default"?: boolean,"max_file_mb"?: number | null,"min_scale_in_per_ft"?: number | null,"naming_max_length"?: number | null,"naming_template"?: string,"naming_upper"?: boolean,"required_notes"?: (string)[],"resubmittal_mode"?: string,"revision_naming"?: string,"sheet_size"?: string,"signer"?: string,"stamp_box_height_in"?: number,"stamp_box_position"?: string,"stamp_box_width_in"?: number,"submittal_type"?: string,"tenant_id": string,"toc_sheet"?: boolean,"transmittal"?: boolean,"updated_at"?: string
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"bookmarks"?: boolean,"created_at"?: string,"department"?: string,"export_unsigned"?: boolean,"file_split"?: string,"flatten"?: boolean,"id"?: string,"is_default"?: boolean,"max_file_mb"?: number | null,"min_scale_in_per_ft"?: number | null,"naming_max_length"?: number | null,"naming_template"?: string,"naming_upper"?: boolean,"required_notes"?: (string)[],"resubmittal_mode"?: string,"revision_naming"?: string,"sheet_size"?: string,"signer"?: string,"stamp_box_height_in"?: number,"stamp_box_position"?: string,"stamp_box_width_in"?: number,"submittal_type"?: string,"tenant_id"?: string,"toc_sheet"?: boolean,"transmittal"?: boolean,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "submittal_profile_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"sync_conflict": {
                   Row: {
                     "base_seq": number,"created_at": string,"data": Json | null,"deleted": boolean,"id": string,"object_id": string,"project_id": string,"reason": string,"schema_version": number | null,"tenant_id": string,"type": string | null,"updated_at": string,"user_id": string
@@ -960,6 +986,9 @@ isOneToOne: false
 "archive_project":
 { Args: { "p_project": string }; Returns: Json
                            },
+"archive_submittal_profile":
+{ Args: { "p_archived": boolean,"p_id": string }; Returns: boolean
+                           },
 "cancel_edit_request":
 { Args: { "p_ip"?: unknown,"p_project": string }; Returns: Json
                            },
@@ -997,6 +1026,42 @@ isOneToOne: false
 "create_role":
 { Args: { "p_granted": (string)[],"p_ip"?: unknown,"p_name": string }; Returns: Json
                            },
+"create_submittal_profile":
+{ Args: { "p_department": string,"p_source"?: string }; Returns: {
+              "archived_at": string | null,
+"bookmarks": boolean,
+"created_at": string,
+"department": string,
+"export_unsigned": boolean,
+"file_split": string,
+"flatten": boolean,
+"id": string,
+"is_default": boolean,
+"max_file_mb": number | null,
+"min_scale_in_per_ft": number | null,
+"naming_max_length": number | null,
+"naming_template": string,
+"naming_upper": boolean,
+"required_notes": (string)[],
+"resubmittal_mode": string,
+"revision_naming": string,
+"sheet_size": string,
+"signer": string,
+"stamp_box_height_in": number,
+"stamp_box_position": string,
+"stamp_box_width_in": number,
+"submittal_type": string,
+"tenant_id": string,
+"toc_sheet": boolean,
+"transmittal": boolean,
+"updated_at": string
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "submittal_profile"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
 "current_app_user_id":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -1024,6 +1089,9 @@ isOneToOne: false
                            },
 "delete_role":
 { Args: { "p_ip"?: unknown,"p_role_id": string }; Returns: Json
+                           },
+"delete_submittal_profile":
+{ Args: { "p_id": string }; Returns: number
                            },
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
@@ -1289,6 +1357,9 @@ isOneToOne: false
 "set_checkpoint_thumbnail":
 { Args: { "p_project": string,"p_version": string }; Returns: string
                            },
+"set_default_submittal_profile":
+{ Args: { "p_id": string }; Returns: string
+                           },
 "set_phase_default":
 { Args: { "p_phase": string,"p_project": string }; Returns: string
                            },
@@ -1297,6 +1368,9 @@ isOneToOne: false
                            },
 "set_project_status":
 { Args: { "p_project": string,"p_status": string }; Returns: Json
+                           },
+"set_project_submittal_profile":
+{ Args: { "p_profile": string,"p_project": string }; Returns: boolean
                            },
 "sign_in_throttle_settle":
 { Args: { "p_attempt_id": string,"p_ip_attempt_id": string }; Returns: undefined
@@ -1338,6 +1412,9 @@ isOneToOne: false
                            },
 "update_role":
 { Args: { "p_granted": (string)[],"p_ip"?: unknown,"p_name": string,"p_role_id": string }; Returns: Json
+                           },
+"update_submittal_profile":
+{ Args: { "p_changes": Json,"p_id": string }; Returns: Json
                            },
 "update_tenant_code_edition":
 { Args: { "p_code_edition": string,"p_optional_load_calc": boolean }; Returns: {
