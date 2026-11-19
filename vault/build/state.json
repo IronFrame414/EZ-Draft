@@ -1024,7 +1024,8 @@
     "EZD-701": 1,
     "EZD-123": 1,
     "EZD-424": 1,
-    "EZD-412": 1
+    "EZD-412": 1,
+    "EZD-1009": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1094,20 +1095,24 @@
     "EZD-412": {
       "ts": "2026-11-19T19:37:39Z",
       "reason": "check still red after 2 fix rounds"
+    },
+    "EZD-1009": {
+      "ts": "2026-11-19T20:56:15Z",
+      "reason": "check red after a review fix"
     }
   },
   "running": {
-    "EZD-1009": {
-      "lane": 2,
-      "title": "Design options data",
-      "started": "2026-11-19T14:42:52Z",
-      "develop": "803ae102"
-    },
     "EZD-424": {
       "lane": 0,
       "title": "Fix: a long default department on Sheet presets squeezes the disclaimer out of the settings status bar",
       "started": "2026-11-19T18:31:35Z",
       "develop": "0812d8f2"
+    },
+    "EZD-503": {
+      "lane": 1,
+      "title": "Ceiling type editor",
+      "started": "2026-11-19T19:38:19Z",
+      "develop": "4177157b"
     }
   }
 }
