@@ -295,7 +295,121 @@ describe('EZD-122 Versions panel', () => {
       })) as unknown as typeof fetch;
     const view = createVersionView({ projectId: 'p', routed, base, reset: () => {}, fetchImpl });
     await view.open(row({}));
-    expect(view.getState()).toEqual({ viewing: null, opening: null, failed: true });
+    expect(view.getState()).toEqual({
+      viewing: null,
+      opening: null,
+      failed: true,
+      objects: null,
+      diff: null,
+      showChanges: true,
+    });
     expect(routed.getState().objects).toBe(base.getState().objects);
+  });
+});
+
+// EZD-139 S1-S3 (AC-EZD-139-1 to -4). Expected values: Q-0703 (status-bar chip "N changed · N removed · N added
+// since"; Show changes switch, on by default), examples 09p "Visual diff" rows 1-4 and Q-0700 05 (by object id;
+// computed in the browser; changes neither version).
+describe('EZD-139 visual diff of an old version', () => {
+  const wall = (x: number) => ({ type: 'wall', schemaVersion: 1, data: { x } });
+  const fetchOf = (objects: { id: string; type: string; schemaVersion: number; data: unknown }[]) =>
+    (async () =>
+      new Response(JSON.stringify({ version: { id: 'v1', objects }, invalid: [] }), {
+        status: 200,
+      })) as unknown as typeof fetch;
+
+  it('S1 opening an old version with a moved wall: 1 changed; a removed and an added wall count too; neither version changes', async () => {
+    const base = createModelStore({
+      objects: new Map([
+        ['w4', wall(6)],
+        ['w9', wall(9)],
+      ]),
+    });
+    const working = base.getState().objects;
+    const routed = createRoutedStore(base);
+    const view = createVersionView({
+      projectId: 'p',
+      routed,
+      base,
+      reset: () => {},
+      fetchImpl: fetchOf([
+        { id: 'w4', ...wall(0) },
+        { id: 'w5', ...wall(5) },
+      ]),
+    });
+    await view.open(row({ cause: 'stop_editing' }));
+    const s = view.getState();
+    expect(s.diff).toEqual({ changed: ['w4'], removed: ['w5'], added: ['w9'] });
+    expect(s.showChanges).toBe(true);
+    // Neither version changes.
+    expect(base.getState().objects).toBe(working);
+    expect(base.getState().objects.get('w4')).toEqual(wall(6));
+    expect(routed.getState().objects.get('w4')).toEqual(wall(0));
+    expect([...routed.getState().objects.keys()].sort()).toEqual(['w4', 'w5']);
+
+    // A change to the working copy while the version is open reads the diff again.
+    base.applyRemote([{ id: 'w4', value: wall(0) }] as never);
+    expect(view.getState().diff).toEqual({ changed: [], removed: ['w5'], added: ['w9'] });
+
+    view.setShowChanges(false);
+    expect(view.getState().showChanges).toBe(false);
+    view.back();
+    expect(view.getState()).toMatchObject({ viewing: null, diff: null, objects: null, showChanges: true });
+  });
+
+  it('S2 an identical old version: zero counts', async () => {
+    const base = createModelStore({ objects: new Map([['w4', wall(0)]]) });
+    const view = createVersionView({
+      projectId: 'p',
+      routed: createRoutedStore(base),
+      base,
+      reset: () => {},
+      fetchImpl: fetchOf([{ id: 'w4', ...wall(0) }]),
+    });
+    await view.open(row({ cause: 'stop_editing' }));
+    expect(view.getState().diff).toEqual({ changed: [], removed: [], added: [] });
+    const h = html(
+      <VersionsStatus
+        rows={[]}
+        viewing={view.getState().viewing}
+        onBack={() => {}}
+        diff={view.getState().diff}
+        showChanges
+        timeZone={UTC}
+      />,
+    );
+    expect(textOf(elements(h, 'versions-diff-counts')[0]!.inner)).toBe(
+      '0 changed · 0 removed · 0 added since',
+    );
+  });
+
+  it('S3 the status bar chip and the Show changes switch, on by default (Q-0703)', () => {
+    const viewing = row({ cause: 'stop_editing' });
+    const status = (o: { showChanges?: boolean; withDiff?: boolean; viewing?: VersionRow | null }) =>
+      html(
+        <VersionsStatus
+          rows={[]}
+          viewing={o.viewing === undefined ? viewing : o.viewing}
+          onBack={() => {}}
+          diff={o.withDiff === false ? null : { changed: ['a'], removed: ['b', 'c'], added: [] }}
+          {...(o.showChanges === undefined ? {} : { showChanges: o.showChanges })}
+          timeZone={UTC}
+        />,
+      );
+    const h = status({});
+    expect(textOf(elements(h, 'versions-diff-counts')[0]!.inner)).toBe(
+      '1 changed · 2 removed · 0 added since',
+    );
+    const sw = elements(h, 'versions-show-changes')[0]!;
+    expect(sw.attrs).toContain('role="switch"');
+    expect(sw.attrs).toContain('aria-checked="true"');
+    expect(textOf(sw.inner)).toBe('Show changes');
+    expect(elements(status({ showChanges: false }), 'versions-show-changes')[0]!.attrs).toContain(
+      'aria-checked="false"',
+    );
+    // No version open: no chip and no switch.
+    const idle = status({ viewing: null });
+    expect(elements(idle, 'versions-diff-counts')).toHaveLength(0);
+    expect(elements(idle, 'versions-show-changes')).toHaveLength(0);
   });
 });

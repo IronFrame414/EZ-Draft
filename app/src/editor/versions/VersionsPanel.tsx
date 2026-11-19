@@ -21,6 +21,10 @@ import {
   type Text,
 } from './versions-list';
 import styles from './VersionsPanel.module.css';
+import type { VersionDiff } from './version-diff';
+
+// EZD-139: the diff layer loads with this module, when the Versions tab or a version first shows.
+export { DiffLayer } from './DiffLayer';
 
 type TFn = ReturnType<typeof useT>;
 
@@ -40,6 +44,10 @@ export type VersionsPanelProps = {
   onOpen: (row: VersionRow) => void;
   onBack: () => void;
   timeZone?: string;
+  // EZD-139 (Q-0703): the open version's diff against the working copy and the Show changes switch.
+  diff?: VersionDiff | null;
+  showChanges?: boolean;
+  onShowChanges?: (on: boolean) => void;
 };
 
 function Row({
@@ -307,15 +315,23 @@ export type VersionsStatusProps = {
   viewing: VersionRow | null;
   onBack: () => void;
   timeZone?: string;
+  // EZD-139 (Q-0703): the open version's diff against the working copy and the Show changes switch.
+  diff?: VersionDiff | null;
+  showChanges?: boolean;
+  onShowChanges?: (on: boolean) => void;
 };
 
 // The status bar while the Versions tab is open or a version is shown: "Viewing <label> · read-only" with Back to
-// working copy, then "Sent N · Snapshots N · Working N".
+// working copy, then "Sent N · Snapshots N · Working N". EZD-139 (Q-0703): while a version is open, the chip
+// "N changed · N removed · N added since" and the Show changes switch, on by default.
 export function VersionsStatus({
   rows,
   viewing,
   onBack,
   timeZone,
+  diff = null,
+  showChanges = true,
+  onShowChanges,
 }: VersionsStatusProps): ReactElement {
   const t = useT();
   const counts = rows === null ? null : groupVersions(rows).counts;
@@ -334,6 +350,28 @@ export function VersionsStatus({
           >
             {t('office.versions.back')}
           </button>
+          {diff === null ? null : (
+            <>
+              <span className={styles.diffChip} data-testid="versions-diff-counts">
+                {t('office.versions.diff_counts', {
+                  changed: diff.changed.length,
+                  removed: diff.removed.length,
+                  added: diff.added.length,
+                })}
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={showChanges}
+                className={`${styles.diffSwitch} ${touch.hitArea}`}
+                data-testid="versions-show-changes"
+                onClick={() => onShowChanges?.(!showChanges)}
+              >
+                <span className={styles.diffKnob} aria-hidden="true" />
+                <span>{t('office.versions.show_changes')}</span>
+              </button>
+            </>
+          )}
         </>
       )}
       {counts === null ? null : (

@@ -3,16 +3,23 @@
 // (EZD-5605) at a copy of them that takes no edits; the editor then shows its EZD-225 read-only state (no edit paths,
 // paused rail). Back to working copy points the routed store at the model store again. Every listener of the routed
 // store is told once, with every id whose value differs between the two.
+// EZD-139 (Q-0220; Q-0700 05; Q-0703; AC-EZD-139-1 to -3): while a version is open, its diff against the working copy
+// (version-diff.ts), read again when the working copy changes, and the Show changes switch, on by default.
 import { fetchVersion, type VersionRow } from '../../lib/versions/versions';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import { createModelStore, type ModelState, type ModelStore } from '../model/model-store';
 import type { RoutedStore } from '../model/routed-store';
+import { versionDiff, type VersionDiff } from './version-diff';
 
 export type VersionViewState = {
   viewing: VersionRow | null;
   // The row being read, before it shows.
   opening: string | null;
   failed: boolean;
+  // EZD-139: the open version's objects and its diff against the working copy; null when none is open.
+  objects: ModelState['objects'] | null;
+  diff: VersionDiff | null;
+  showChanges: boolean;
 };
 
 export type VersionView = {
@@ -20,10 +27,18 @@ export type VersionView = {
   subscribe(l: () => void): () => void;
   open(row: VersionRow): Promise<void>;
   back(): void;
+  setShowChanges(on: boolean): void;
   dispose(): void;
 };
 
-const IDLE: VersionViewState = { viewing: null, opening: null, failed: false };
+const IDLE: VersionViewState = {
+  viewing: null,
+  opening: null,
+  failed: false,
+  objects: null,
+  diff: null,
+  showChanges: true,
+};
 
 // A model store that takes no edits: every edit path answers no changed ids.
 export function readOnlyStore(objects: Map<string, ObjectValue>, base: ModelState): ModelStore {
@@ -58,6 +73,7 @@ export function createVersionView(o: {
   let state = IDLE;
   let disposed = false;
   let ask = 0;
+  let unwatch: (() => void) | null = null;
   const listeners = new Set<() => void>();
   const set = (next: VersionViewState) => {
     state = next;
@@ -88,15 +104,38 @@ export function createVersionView(o: {
       for (const obj of r.body.objects)
         objects.set(obj.id, { type: obj.type, schemaVersion: obj.schemaVersion, data: obj.data });
       route(readOnlyStore(objects, o.base.getState()));
-      set({ viewing: row, opening: null, failed: false });
+      // The working copy can still change (a remote edit): the diff follows it.
+      unwatch?.();
+      let seen = o.base.getState().objects;
+      unwatch = o.base.subscribe((s) => {
+        if (s.objects === seen || state.objects === null) return;
+        seen = s.objects;
+        set({ ...state, diff: versionDiff(state.objects, seen) });
+      });
+      set({
+        viewing: row,
+        opening: null,
+        failed: false,
+        objects,
+        diff: versionDiff(objects, seen),
+        showChanges: true,
+      });
     },
     back() {
       ask++;
+      unwatch?.();
+      unwatch = null;
       if (state.viewing !== null) route(null);
       set(IDLE);
     },
+    setShowChanges(on) {
+      if (state.viewing === null || state.showChanges === on) return;
+      set({ ...state, showChanges: on });
+    },
     dispose() {
       disposed = true;
+      unwatch?.();
+      unwatch = null;
       listeners.clear();
     },
   };

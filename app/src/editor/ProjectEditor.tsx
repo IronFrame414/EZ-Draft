@@ -56,6 +56,8 @@
 // row opens that version read-only (version-view.ts): every edit path reads `mayEdit`, which is false while a version
 // shows, so the rail shows the EZD-225 paused state. Revert drains the outbox, posts, then reopens the editor (a new
 // store, so undo is cleared); a version.reverted from someone else reopens it too.
+// EZD-139 (Q-0220; Q-0700 05; Q-0703): while a version is open, the diff layer outlines what changed since (amber)
+// and what was removed since (red dashed) over the canvas, and the status bar shows its counts and Show changes.
 import {
   useCallback,
   useEffect,
@@ -159,6 +161,7 @@ import type {
 } from './versions/VersionsPanel';
 import { versionTitle } from './versions/versions-list';
 import { createVersionView, type VersionView, type VersionViewState } from './versions/version-view';
+import type { DiffLayerProps } from './versions/DiffLayer';
 import { hubVersionEvents } from './versions/version-events';
 import {
   fetchVersions,
@@ -232,7 +235,14 @@ const PLAN_VIEWS: EditorView[] = ['plan'];
 
 const noop = () => {};
 const noSubscribe = () => noop;
-const NOT_VIEWING: VersionViewState = { viewing: null, opening: null, failed: false };
+const NOT_VIEWING: VersionViewState = {
+  viewing: null,
+  opening: null,
+  failed: false,
+  objects: null,
+  diff: null,
+  showChanges: true,
+};
 
 export function ProjectEditor({
   projectId,
@@ -915,6 +925,9 @@ export function ProjectEditor({
       <PlanInputSurface controller={plan} />
       {cabinetsOn ? null : <ZoomStack handle={plan.handle} />}
       {preview !== null ? <LazyPreviewLayer store={preview} handle={plan.handle} /> : null}
+      {versionView !== null && viewing !== null ? (
+        <LazyDiffLayer view={versionView} handle={plan.handle} floors={floors} />
+      ) : null}
       {drawing !== null ? (
         <DrawingLayer
           controller={drawing}
@@ -1095,6 +1108,9 @@ export function ProjectEditor({
                         rows={versionRows}
                         viewing={viewing}
                         onBack={versionView?.back ?? noop}
+                        diff={view.diff}
+                        showChanges={view.showChanges}
+                        onShowChanges={versionView?.setShowChanges ?? noop}
                       />
                     ) : null}
                   </>
@@ -1216,6 +1232,11 @@ function LazyVersionInspector(props: VersionInspectorProps) {
 function LazyVersionsStatus(props: VersionsStatusProps) {
   const mod = useLazy(versionsModule);
   return mod ? <mod.VersionsStatus {...props} /> : null;
+}
+
+function LazyDiffLayer(props: DiffLayerProps) {
+  const mod = useLazy(versionsModule);
+  return mod ? <mod.DiffLayer {...props} /> : null;
 }
 
 // EZD-5604b (11 Budgets; EZD-120c B11): the Assistant preview layer comes with the panel's lazy module, shown while

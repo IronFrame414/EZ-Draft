@@ -2005,6 +2005,9 @@ export const en = {
   'office.versions.counts': 'Sent {sent} · Snapshots {snapshots} · Working {working}',
   'office.versions.viewing': 'Viewing {label} · read-only',
   'office.versions.back': 'Back to working copy',
+  // EZD-139 (Q-0703): the visual diff chip and its switch.
+  'office.versions.diff_counts': '{changed} changed · {removed} removed · {added} added since',
+  'office.versions.show_changes': 'Show changes',
   'office.versions.open_failed': "Couldn't open that version. Try again.",
   'office.versions.load_failed': "Couldn't load versions. Try again.",
   'office.versions.action_failed': "Couldn't do that. Try again.",
