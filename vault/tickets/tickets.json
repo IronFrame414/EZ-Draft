@@ -10217,7 +10217,11 @@
    ],
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
-    "EZD-717"
+    "EZD-717",
+    "EZD-719",
+    "EZD-704",
+    "EZD-232",
+    "EZD-706"
    ],
    "build_position": 258,
    "acs": [
@@ -10228,7 +10232,9 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/05-screens.md",
-    "spec/decisions/05-screens.md#Q-0200"
+    "spec/decisions/05-screens.md#Q-0200",
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190"
    ]
   },
   {
@@ -10260,7 +10266,11 @@
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/13b-round-26.md",
-    "spec/decisions/05-screens.md#Q-0199"
+    "spec/decisions/05-screens.md#Q-0199",
+    "spec/decisions/05-screens.md#Q-0700",
+    "spec/decisions/05-screens.md#Q-0701",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0701",
+    "spec/decisions/05-screens.md#Q-0200"
    ]
   },
   {
@@ -10279,7 +10289,11 @@
    "depends_on": [
     "EZD-701",
     "EZD-418",
-    "EZD-726"
+    "EZD-726",
+    "EZD-703",
+    "EZD-710",
+    "EZD-413",
+    "EZD-417"
    ],
    "build_position": 260,
    "acs": [
@@ -10369,7 +10383,8 @@
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
     "EZD-715",
-    "EZD-713"
+    "EZD-713",
+    "EZD-721"
    ],
    "build_position": 261,
    "acs": [
@@ -10397,7 +10412,8 @@
    ],
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
-    "EZD-716"
+    "EZD-716",
+    "EZD-717"
    ],
    "build_position": 262,
    "acs": [
@@ -10427,7 +10443,9 @@
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
     "EZD-717",
-    "EZD-612"
+    "EZD-612",
+    "EZD-718",
+    "EZD-724"
    ],
    "build_position": 263,
    "acs": [
@@ -10486,7 +10504,8 @@
    "depends_on": [
     "EZD-712",
     "EZD-713",
-    "EZD-715"
+    "EZD-715",
+    "EZD-716"
    ],
    "build_position": 264,
    "acs": [
@@ -10545,7 +10564,13 @@
     "EZD-202",
     "EZD-012a",
     "EZD-012b",
-    "EZD-012c"
+    "EZD-012c",
+    "EZD-120c",
+    "EZD-207a",
+    "EZD-238",
+    "EZD-225",
+    "EZD-231",
+    "EZD-612"
    ],
    "build_position": 268,
    "acs": [
@@ -10554,7 +10579,9 @@
    "acs_source": "done-when",
    "spec_phase": 8,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/03-data-model.md#Q-0704"
    ]
   },
   {
@@ -10571,7 +10598,8 @@
    ],
    "phase_file": "tickets/phases/phase-08.md",
    "depends_on": [
-    "EZD-801"
+    "EZD-801",
+    "EZD-116"
    ],
    "build_position": 269,
    "acs": [
@@ -10600,7 +10628,13 @@
    "phase_file": "tickets/phases/phase-08.md",
    "depends_on": [
     "EZD-801",
-    "EZD-201"
+    "EZD-201",
+    "EZD-206",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-209",
+    "EZD-217",
+    "EZD-233"
    ],
    "build_position": 270,
    "acs": [
@@ -10611,7 +10645,9 @@
    "acs_source": "done-when",
    "spec_phase": 8,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0630",
+    "spec/decisions/09-calculations-and-rules.md#Q-0207"
    ]
   },
   {
@@ -10641,7 +10677,8 @@
    "spec_phase": 8,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/09-calculations-and-rules.md"
+    "spec/decisions/09-calculations-and-rules.md",
+    "spec/decisions/13b-round-26.md"
    ]
   },
   {
@@ -10658,7 +10695,8 @@
    ],
    "phase_file": "tickets/phases/phase-08.md",
    "depends_on": [
-    "EZD-803"
+    "EZD-803",
+    "EZD-216"
    ],
    "build_position": 272,
    "acs": [
@@ -10667,7 +10705,10 @@
    "acs_source": "done-when",
    "spec_phase": 8,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0207",
+    "spec/decisions/09-calculations-and-rules.md#Q-0664",
+    "spec/decisions/03-data-model.md#Q-0667"
    ]
   },
   {
@@ -10724,7 +10765,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0207"
    ]
   },
   {
@@ -10769,7 +10811,9 @@
    ],
    "phase_file": "tickets/phases/phase-08.md",
    "depends_on": [
-    "EZD-805"
+    "EZD-805",
+    "EZD-116",
+    "EZD-806"
    ],
    "build_position": 277,
    "acs": [
@@ -10780,7 +10824,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0664"
    ]
   },
   {
@@ -10800,7 +10845,10 @@
    "depends_on": [
     "EZD-809",
     "EZD-702a",
-    "EZD-702b"
+    "EZD-702b",
+    "EZD-703",
+    "EZD-704",
+    "EZD-705"
    ],
    "build_position": 278,
    "acs": [
@@ -10809,7 +10857,9 @@
    "acs_source": "done-when",
    "spec_phase": 8,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0664",
+    "spec/decisions/13b-round-26.md"
    ]
   },
   {
@@ -10831,7 +10881,9 @@
     "EZD-802",
     "EZD-207a",
     "EZD-207b",
-    "EZD-207c"
+    "EZD-207c",
+    "EZD-704",
+    "EZD-810"
    ],
    "build_position": 279,
    "acs": [
@@ -10867,7 +10919,9 @@
    "acs_source": "done-when",
    "spec_phase": 8,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0760"
    ]
   },
   {
@@ -10884,7 +10938,9 @@
    ],
    "phase_file": "tickets/phases/phase-08.md",
    "depends_on": [
-    "EZD-803"
+    "EZD-803",
+    "EZD-207a",
+    "EZD-806"
    ],
    "build_position": 281,
    "acs": [
@@ -10917,7 +10973,9 @@
    "depends_on": [
     "EZD-801",
     "EZD-415",
-    "EZD-817"
+    "EZD-817",
+    "EZD-802",
+    "EZD-806"
    ],
    "build_position": 282,
    "acs": [
@@ -10945,7 +11003,8 @@
    "phase_file": "tickets/phases/phase-08.md",
    "depends_on": [
     "EZD-810",
-    "EZD-721"
+    "EZD-721",
+    "EZD-736"
    ],
    "build_position": 283,
    "acs": [
@@ -10955,7 +11014,9 @@
    "spec_phase": 8,
    "decisions": [
     "spec/decisions/08-import-and-export.md",
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/08-import-and-export.md#Q-0209"
    ]
   },
   {
@@ -10983,7 +11044,8 @@
    "acs_source": "done-when",
    "spec_phase": 8,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0630"
    ]
   },
   {
@@ -11001,7 +11063,8 @@
    "phase_file": "tickets/phases/phase-08.md",
    "depends_on": [
     "EZD-801",
-    "EZD-131"
+    "EZD-131",
+    "EZD-804"
    ],
    "build_position": 275,
    "acs": [
@@ -14417,7 +14480,10 @@
    ],
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
-    "EZD-401"
+    "EZD-401",
+    "EZD-116",
+    "EZD-516",
+    "EZD-020"
    ],
    "build_position": 285,
    "acs": [
@@ -14428,7 +14494,9 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/05-screens.md#Q-0768",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214"
    ]
   },
   {
@@ -14446,7 +14514,15 @@
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
     "EZD-1601",
-    "EZD-234"
+    "EZD-234",
+    "EZD-1616",
+    "EZD-403",
+    "EZD-402",
+    "EZD-404",
+    "EZD-211a",
+    "EZD-126",
+    "EZD-413",
+    "EZD-607"
    ],
    "build_position": 286,
    "acs": [
@@ -14455,7 +14531,9 @@
    "acs_source": "done-when",
    "spec_phase": 16,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/03-data-model.md#Q-0664",
+    "spec/decisions/03-data-model.md#Q-0704"
    ]
   },
   {
@@ -14475,7 +14553,8 @@
    "depends_on": [
     "EZD-1601",
     "EZD-009",
-    "EZD-021"
+    "EZD-021",
+    "EZD-132"
    ],
    "build_position": 287,
    "acs": [
@@ -14484,7 +14563,9 @@
    "acs_source": "done-when",
    "spec_phase": 16,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0059",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0077"
    ]
   },
   {
@@ -14515,7 +14596,10 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0059",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0077",
+    "spec/decisions/05-screens.md#Q-0637"
    ]
   },
   {
@@ -14544,7 +14628,9 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0561",
+    "spec/decisions/09-calculations-and-rules.md#Q-0704"
    ]
   },
   {
@@ -14562,7 +14648,8 @@
    ],
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
-    "EZD-1605"
+    "EZD-1605",
+    "EZD-1602"
    ],
    "build_position": 290,
    "acs": [
@@ -14572,7 +14659,8 @@
    "spec_phase": 16,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/05-screens.md#Q-0192"
+    "spec/decisions/05-screens.md#Q-0192",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0708"
    ]
   },
   {
@@ -14600,7 +14688,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0708"
    ]
   },
   {
@@ -14618,7 +14707,9 @@
    ],
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
-    "EZD-1607"
+    "EZD-1607",
+    "EZD-1602",
+    "EZD-1610"
    ],
    "build_position": 294,
    "acs": [
@@ -14627,7 +14718,10 @@
    "acs_source": "done-when",
    "spec_phase": 16,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0059",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0708"
    ]
   },
   {
@@ -14672,7 +14766,12 @@
    ],
    "phase_file": "tickets/phases/phase-16.md",
    "depends_on": [
-    "EZD-1601"
+    "EZD-1601",
+    "EZD-1602",
+    "EZD-1606",
+    "EZD-126",
+    "EZD-134",
+    "EZD-1401"
    ],
    "build_position": 291,
    "acs": [
@@ -14681,7 +14780,9 @@
    "acs_source": "done-when",
    "spec_phase": 16,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0501"
    ]
   },
   {
@@ -14929,7 +15030,9 @@
    "spec_phase": 16,
    "decisions": [
     "spec/decisions/04-app-shell-and-global-ui.md",
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0038",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0122"
    ]
   },
   {
@@ -17342,7 +17445,9 @@
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
     "EZD-715",
-    "EZD-118"
+    "EZD-118",
+    "EZD-717",
+    "EZD-721"
    ],
    "build_position": 265,
    "acs": [
@@ -17351,7 +17456,9 @@
    "acs_source": "done-when",
    "spec_phase": 7,
    "decisions": [
-    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190"
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
+    "spec/decisions/05-screens.md#Q-0700",
+    "spec/decisions/13b-round-26.md"
    ]
   },
   {
@@ -17370,7 +17477,10 @@
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
     "EZD-715",
-    "EZD-717"
+    "EZD-717",
+    "EZD-721",
+    "EZD-723",
+    "EZD-735"
    ],
    "build_position": 266,
    "acs": [
@@ -17426,8 +17536,9 @@
     "EZD-701",
     "EZD-715",
     "EZD-730",
-    "EZD-732",
-    "EZD-733"
+    "EZD-733",
+    "EZD-731",
+    "EZD-727"
    ],
    "build_position": 267,
    "acs": [
