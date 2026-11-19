@@ -258,6 +258,16 @@ export const en = {
   'office.left_panel.add_photo': 'Add photo',
   'office.left_panel.photo_alt': '{room} photo',
   'office.left_panel.photo_failed': 'Photo not uploaded.',
+  // EZD-733: the room's floor tile (vault/build/assumptions.md EZD-733, wording for Josh to confirm).
+  'office.left_panel.field.floor_tile': 'Floor tile',
+  'office.left_panel.no_floor_tile': 'None',
+  'office.left_panel.add_floor_tile': 'Add floor tile',
+  'office.left_panel.floor_tile.pattern': 'Tile pattern',
+  'office.left_panel.floor_tile.width': 'Tile width',
+  'office.left_panel.floor_tile.height': 'Tile height',
+  'office.left_panel.floor_tile.joint': 'Joint',
+  'office.left_panel.floor_tile.start_left': 'Start from left',
+  'office.left_panel.floor_tile.start_bottom': 'Start from bottom',
   'office.left_panel.field.ceiling_type': 'Ceiling type',
   'office.left_panel.not_set': 'Not set',
   'office.left_panel.room_type.kitchen': 'Kitchen',
@@ -335,8 +345,7 @@ export const en = {
     'Your edit lock was released because a request went unanswered. Changes not yet saved stay on this device.',
   'office.lock.other_device_released':
     'Your edit lock was released from your other device or tab. Changes not yet saved stay on this device.',
-  'office.lock.released':
-    'Your edit lock was released. Changes not yet saved stay on this device.',
+  'office.lock.released': 'Your edit lock was released. Changes not yet saved stay on this device.',
   'office.lock.action_failed': "Couldn't reach the server. Try again.",
   'office.lock.stop_failed': "Couldn't stop editing. You still hold the lock.",
   'office.plan.canvas_failed': "Couldn't show the plan.",
@@ -991,9 +1000,11 @@ export const en = {
   'office.benchmark.empty': 'No benchmark runs yet.',
   'office.benchmark.device': '{system} · {browser}',
   'office.benchmark.other': 'Other',
-  'office.benchmark.load_failed': "Couldn't load the benchmark runs. Check your connection and try again.",
+  'office.benchmark.load_failed':
+    "Couldn't load the benchmark runs. Check your connection and try again.",
   'office.benchmark.start_failed': "Couldn't open the benchmark project. Try again.",
-  'office.benchmark.save_failed': "Couldn't save the benchmark run. Check your connection and try again.",
+  'office.benchmark.save_failed':
+    "Couldn't save the benchmark run. Check your connection and try again.",
   'office.benchmark.not_benchmark': "This isn't the benchmark project.",
   'office.benchmark.plan_not_ready': "The plan didn't finish loading, so the benchmark didn't run.",
   'office.benchmark.failed': 'The benchmark stopped before it finished. Try again.',
@@ -1861,7 +1872,8 @@ export const en = {
     "Your latest changes aren't saved yet, so nothing was sent. Try again once they save.",
   'office.send.email_subject': '{company} sent you a design to review: {project}',
   'office.send.email_greeting': 'Hello {client},',
-  'office.send.email_body': '{company} sent you the design for {project}. Open it with the link below.',
+  'office.send.email_body':
+    '{company} sent you the design for {project}. Open it with the link below.',
   'office.send.email_link': 'Open the design',
   // EZD-313: Finish import and Cancel import (S02 Controls; Decisions "opens 03 Plan with a short notice of the
   // counts imported").
@@ -1889,7 +1901,7 @@ export const en = {
   'office.review.slope_no_mesh': 'No 3D mesh was uploaded with this import.',
   'office.review.slope_read_failed': "Couldn't read the ceiling from the mesh. Try again.",
   'office.review.slope_refused_no_ceiling': 'The mesh has no ceiling to read.',
-  'office.review.slope_refused_height': 'Enter a height above 0 and up to 200\'.',
+  'office.review.slope_refused_height': "Enter a height above 0 and up to 200'.",
   'office.review.slope_refused_order': 'The high wall must be at least as tall as the low wall.',
   'office.review.slope_refused_pitch': 'Enter a pitch from 0 to 24 per 12.',
   'office.review.slope_side_north': 'north',
@@ -1934,11 +1946,29 @@ export const en = {
   'office.cabinets.resize_edge': 'Drag to resize',
   // EZD-410: S04 Validation's red flag on a run left off its wall.
   'office.cabinets.not_on_wall': 'Not on a wall',
+  // EZD-733: the wall tile bar and the tile start point (vault/build/assumptions.md EZD-733, wording for Josh to confirm).
+  'office.cabinets.tile.title': 'Wall tile',
+  'office.cabinets.tile.add': 'Add wall tile',
+  'office.cabinets.tile.pattern': 'Pattern',
+  'office.cabinets.tile.pattern.straight': 'Straight',
+  'office.cabinets.tile.pattern.diagonal': 'Diagonal',
+  'office.cabinets.tile.pattern.herringbone': 'Herringbone',
+  'office.cabinets.tile.width': 'Tile width',
+  'office.cabinets.tile.height': 'Tile height',
+  'office.cabinets.tile.joint': 'Joint',
+  'office.cabinets.tile.start_left': 'Start from left',
+  'office.cabinets.tile.start_height': 'Start height',
+  'office.cabinets.tile.set_height': 'Tile to',
+  'office.cabinets.tile.start_drag': 'Drag to move the tile start point',
+  'office.cabinets.tile.too_many': 'Too many tiles to draw at this size',
   // EZD-406: the box inspector (board S04Cabinets words; others listed in vault/build/assumptions.md EZD-406).
   'office.cabinets.inspector.position': 'Box {n} of {of} in {run}',
   'office.cabinets.inspector.status': 'Status',
   'office.cabinets.inspector.empty': 'Select a box to see its size, face and catalog item.',
-  'office.cabinets.inspector.selected': { one: '{count} box selected', other: '{count} boxes selected' },
+  'office.cabinets.inspector.selected': {
+    one: '{count} box selected',
+    other: '{count} boxes selected',
+  },
   'office.cabinets.depth': 'Depth',
   'office.cabinets.height': 'Height',
   'office.cabinets.type.base': 'Base',

@@ -3,7 +3,12 @@
 // EZD-404): where each member of a cabinet run stands in the plan strip and the elevation. Positions run along the
 // run's axis from its start (x, inches); heights are from the floor (y up, inches). The chain is the base row's widths
 // in order, walked from the same list as `cabinetRunTotal`, so it adds to the run total. Nothing is rounded (03g).
-import type { CabinetFaceLayout, CabinetRow, ModelObject, Point } from '../schema';
+// EZD-733 (AC-EZD-733-1 "Changing the start point moves the cuts on the elevation"; vault/build/assumptions.md
+// EZD-733): the tile layout on the face of the host wall the run stands against, drawn in the elevation's x and y.
+import type { CabinetFaceLayout, CabinetRow, ModelObject, Point, TileWallSide } from '../schema';
+import { tileLayoutRegion, tileSpecOf, wallTileLayout, type TileLayoutObject } from '../tile/hosts';
+import { COMPARISON_TOLERANCE_IN } from '../tolerance';
+import { tilePieces, type TilePiece, type TileSpec } from '../tile/layout';
 import {
   cabinetRowMembers,
   cabinetRunTotal,
@@ -24,7 +29,13 @@ export type CabinetSlotKind = 'box' | 'filler' | 'panel' | 'corner' | 'shelf';
 export type CabinetFaceKind = 'door' | 'drawer' | 'false_drawer' | 'panel';
 
 // One face on the elevation, in the same x and y as its slot.
-export type CabinetFace = { kind: CabinetFaceKind; x: number; y: number; width: number; height: number };
+export type CabinetFace = {
+  kind: CabinetFaceKind;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
 
 export type CabinetSlot = {
   id: string;
@@ -58,6 +69,22 @@ export type CabinetRunLayout = {
   windows: CabinetWindow[];
   // The host wall's extent along the run axis, from the run start; null for a run off every wall.
   wall: { from: number; to: number } | null;
+  // EZD-733: the face of the host wall the run stands against, and its tile layout; null for a run off every wall.
+  face: CabinetWallFace | null;
+  tile: CabinetTile | null;
+};
+
+// The host wall face in the elevation: x = offset + along * (distance along the wall from its start point).
+export type CabinetWallFace = { wallId: string; side: TileWallSide; offset: number; along: 1 | -1 };
+
+// A tile layout in the elevation's x and y: its pieces (cut ones marked) and its start point.
+export type CabinetTile = {
+  id: string;
+  spec: TileSpec;
+  pieces: TilePiece[];
+  tooMany: boolean;
+  start: Point;
+  height: number;
 };
 
 const lower = (s: string) => s.toLowerCase();
@@ -87,7 +114,13 @@ export function cabinetFaces(
   width: number,
   height: number,
 ): CabinetFace[] {
-  const face = (kind: CabinetFaceKind, fx: number, y: number, w: number, h: number): CabinetFace => ({
+  const face = (
+    kind: CabinetFaceKind,
+    fx: number,
+    y: number,
+    w: number,
+    h: number,
+  ): CabinetFace => ({
     kind,
     x: fx,
     y,
@@ -99,9 +132,12 @@ export function cabinetFaces(
       ? [face('door', x, bottom, width, h)]
       : [face('door', x, bottom, width / 2, h), face('door', x + width / 2, bottom, width / 2, h)];
   const drawer = Math.min(CABINET_DRAWER_FACE_HEIGHT, height / 2);
-  const topDrawer = (kind: CabinetFaceKind) => face(kind, x, bottom + height - drawer, width, drawer);
+  const topDrawer = (kind: CabinetFaceKind) =>
+    face(kind, x, bottom + height - drawer, width, drawer);
   const stack = (n: number) =>
-    Array.from({ length: n }, (_, i) => face('drawer', x, bottom + (height * i) / n, width, height / n));
+    Array.from({ length: n }, (_, i) =>
+      face('drawer', x, bottom + (height * i) / n, width, height / n),
+    );
   switch (layout) {
     case 'door_1':
       return doors(1, height);
@@ -167,7 +203,10 @@ const isTall = (s: CabinetSlot) => s.boxType === 'tall';
 
 // The run's plan strip and elevation. `objects` is the model (or the open floor): members, trim, the host wall and
 // its windows are read from it.
-export function cabinetRunLayout(run: CabinetRun, objects: readonly ModelObject[]): CabinetRunLayout {
+export function cabinetRunLayout(
+  run: CabinetRun,
+  objects: readonly ModelObject[],
+): CabinetRunLayout {
   const lookup = objectLookup(objects);
   const runId = lower(run.id);
   const toeKickTrim = objects.find(
@@ -210,20 +249,39 @@ export function cabinetRunLayout(run: CabinetRun, objects: readonly ModelObject[
 
   const { start, axis, hostWallId } = run.data.geometry;
   let wall: CabinetRunLayout['wall'] = null;
+  let face: CabinetWallFace | null = null;
+  let tile: CabinetTile | null = null;
   const windows: CabinetWindow[] = [];
   const host = hostWallId === null ? null : lookup(hostWallId);
   if (host !== null && host.type === 'wall') {
     const a = dot(sub(host.data.geometry.start, start), axis);
     const b = dot(sub(host.data.geometry.end, start), axis);
     wall = { from: Math.min(a, b), to: Math.max(a, b) };
+    face = wallFace(
+      host.id,
+      host.data.geometry.start,
+      host.data.geometry.end,
+      host.data.attributes.thicknessSide,
+      start,
+      axis,
+    );
+    const layout = wallTileLayout(objects, host.id, face.side);
+    if (layout !== null) tile = elevationTile(layout, objects, face);
     const hostKey = lower(host.id);
     for (const o of objects) {
       if (o.type !== 'opening' || o.data.attributes.kind !== 'window') continue;
-      if (o.data.geometry.hostWallId === null || lower(o.data.geometry.hostWallId) !== hostKey) continue;
+      if (o.data.geometry.hostWallId === null || lower(o.data.geometry.hostWallId) !== hostKey)
+        continue;
       const at = dot(sub(o.data.geometry.center, start), axis);
       const w = o.data.attributes.width;
       const bottom = o.data.attributes.sillHeight;
-      windows.push({ id: o.id, x: at - w / 2, width: w, bottom, top: bottom + o.data.attributes.height });
+      windows.push({
+        id: o.id,
+        x: at - w / 2,
+        width: w,
+        bottom,
+        top: bottom + o.data.attributes.height,
+      });
     }
   }
 
@@ -237,8 +295,78 @@ export function cabinetRunLayout(run: CabinetRun, objects: readonly ModelObject[
     heights,
     windows,
     wall,
+    face,
+    tile,
   };
 }
+
+// The face of the wall the run stands against (walking the wall start to end, left is the left normal), and how a
+// distance along the wall maps to the run's x. A run started off the wall's line stands on the face on that side; one
+// started on the line (the drawn finished face, Q-0559) stands on the side away from the wall's thickness.
+function wallFace(
+  wallId: string,
+  wallStart: Point,
+  wallEnd: Point,
+  thicknessSide: 'left' | 'right' | 'center',
+  runStart: Point,
+  axis: Point,
+): CabinetWallFace {
+  const len = Math.hypot(wallEnd.x - wallStart.x, wallEnd.y - wallStart.y);
+  const d =
+    len > 0 ? { x: (wallEnd.x - wallStart.x) / len, y: (wallEnd.y - wallStart.y) / len } : axis;
+  const left = { x: -d.y, y: d.x };
+  const across = dot(sub(runStart, wallStart), left);
+  const side: TileWallSide =
+    across > COMPARISON_TOLERANCE_IN
+      ? 'left'
+      : across < -COMPARISON_TOLERANCE_IN
+        ? 'right'
+        : thicknessSide === 'left'
+          ? 'right'
+          : 'left';
+  return {
+    wallId,
+    side,
+    offset: dot(sub(wallStart, runStart), axis),
+    along: dot(d, axis) >= 0 ? 1 : -1,
+  };
+}
+
+const toElevation = (face: CabinetWallFace, p: Point): Point => ({
+  x: face.offset + face.along * p.x,
+  y: p.y,
+});
+
+function elevationTile(
+  t: TileLayoutObject,
+  objects: readonly ModelObject[],
+  face: CabinetWallFace,
+): CabinetTile | null {
+  const region = tileLayoutRegion(t, objects);
+  if (region === null || t.data.geometry.host.kind !== 'wall') return null;
+  // Laid out in the elevation's own x and y, so the start point is the lower-left corner of a whole tile as the
+  // elevation shows it, whichever way the wall was drawn (a mirrored layout would start one joint off).
+  const start = toElevation(face, t.data.geometry.start);
+  const r = tilePieces(
+    region.map((q) => toElevation(face, q)),
+    tileSpecOf(t),
+    start,
+  );
+  return {
+    id: t.id,
+    spec: { ...t.data.attributes },
+    pieces: r.pieces,
+    tooMany: r.tooMany,
+    start,
+    height: t.data.geometry.host.height,
+  };
+}
+
+// The wall-frame start point for a start point typed or dragged in the elevation's x and y.
+export const wallStartFromElevation = (face: CabinetWallFace, p: Point): Point => ({
+  x: (p.x - face.offset) * face.along,
+  y: p.y,
+});
 
 // R24: an interior elevation for every wall that hosts a cabinet run. Letters go A, B, C ... in the order the walls'
 // first runs appear in the model; a run off every wall has an elevation of its own (assumptions.md EZD-404).

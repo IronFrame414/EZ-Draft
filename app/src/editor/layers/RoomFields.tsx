@@ -6,7 +6,17 @@
 // attach piece"; 09q Floor level, Transitions; vault/build/assumptions.md EZD-229): the fields also show the floor
 // level (any signed length, refused with the length message when it is not one), the room's transitions to the rooms
 // next to it, and its photos, attached through the pin photo upload with the same file checks.
-import { CEILING_TYPES, ROOM_TYPES } from '@ezdraft/geometry';
+// EZD-733 (phase-07 EZD-733; S19 "Tile pattern select | Straight / diagonal / herringbone"; Q-0769 no board, in the
+// style of these fields; vault/build/assumptions.md EZD-733): the room's floor tile: Add floor tile, then pattern, tile
+// size, joint and the start point from the room's left and bottom edges. The plan draws the pieces and their cuts.
+import {
+  CEILING_TYPES,
+  parseLength,
+  ROOM_TYPES,
+  TILE_PATTERNS,
+  type TilePattern,
+} from '@ezdraft/geometry';
+import { formatInches } from '../../lib/catalog/catalog';
 import { parseSignedLength } from './floor-transitions';
 import {
   useEffect,
@@ -26,7 +36,15 @@ import {
 } from '../inspector/pin-photo';
 import { pinUploadOf, type PinUploadState as Upload } from '../inspector/pin-uploads';
 import type { ModelStore } from '../model/model-store';
-import { roomAttributeChange, type RoomField, type RoomRow } from './rooms';
+import {
+  floorTileAddChange,
+  floorTileChange,
+  floorTileRow,
+  roomAttributeChange,
+  type FloorTileEdit,
+  type RoomField,
+  type RoomRow,
+} from './rooms';
 import {
   floorLevelText,
   roomFloorAndPhotos,
@@ -269,6 +287,163 @@ function RoomPhotos({
   );
 }
 
+const inchText = (n: number) => `${formatInches(n)}"`;
+
+const TILE_PATTERN_KEYS = {
+  straight: 'office.cabinets.tile.pattern.straight',
+  diagonal: 'office.cabinets.tile.pattern.diagonal',
+  herringbone: 'office.cabinets.tile.pattern.herringbone',
+} as const satisfies Record<TilePattern, MessageKey>;
+
+// EZD-733: the floor tile fields; read only without Edit model.
+function FloorTile({
+  row,
+  canEdit,
+  store,
+}: {
+  row: RoomRow;
+  canEdit: boolean;
+  store: Pick<ModelStore, 'getState' | 'applyEdit'>;
+}) {
+  const t = useT();
+  const [refused, setRefused] = useState(false);
+  const tile = floorTileRow(store.getState().objects, row.id);
+  const edit = (e: FloorTileEdit): boolean => {
+    if (!canEdit) return false;
+    const change = floorTileChange(store.getState().objects, row.id, e);
+    if (change !== null) store.applyEdit([change]);
+    return true;
+  };
+  const length = (
+    testId: string,
+    key: MessageKey,
+    value: number,
+    zero: boolean,
+    set: (n: number) => FloorTileEdit,
+  ) => (
+    <label className={styles.field}>
+      <span>{t(key)}</span>
+      {canEdit ? (
+        <RoomText
+          testId={testId}
+          label={t(key)}
+          value={inchText(value)}
+          onCommit={(v) => {
+            const r = parseLength(v, zero ? 'other' : 'positive');
+            const ok = r.ok && r.inches >= 0;
+            setRefused(!ok);
+            if (!ok) return false;
+            edit(set(r.inches));
+          }}
+        />
+      ) : (
+        <span className={styles.plain} data-testid={testId}>
+          {inchText(value)}
+        </span>
+      )}
+    </label>
+  );
+  if (tile === null) {
+    return (
+      <div className={styles.field} data-testid="room-floor-tile">
+        <span>{t('office.left_panel.field.floor_tile')}</span>
+        {canEdit ? (
+          <button
+            type="button"
+            className={photoStyles.button}
+            data-testid="room-floor-tile-add"
+            onClick={() => {
+              const change = floorTileAddChange(store.getState().objects, row.id, () =>
+                crypto.randomUUID(),
+              );
+              if (change !== null) store.applyEdit([change]);
+            }}
+          >
+            {t('office.left_panel.add_floor_tile')}
+          </button>
+        ) : (
+          <span className={styles.plain} data-testid="room-floor-tile-none">
+            {t('office.left_panel.no_floor_tile')}
+          </span>
+        )}
+      </div>
+    );
+  }
+  return (
+    <div className={styles.fields} data-testid="room-floor-tile" data-tile-id={tile.id}>
+      <label className={styles.field}>
+        <span>{t('office.left_panel.floor_tile.pattern')}</span>
+        {canEdit ? (
+          <select
+            className={styles.select}
+            data-testid="room-floor-tile-pattern"
+            value={tile.pattern}
+            onChange={(e) => edit({ pattern: e.target.value as TilePattern })}
+          >
+            {TILE_PATTERNS.map((p) => (
+              <option key={p} value={p}>
+                {t(TILE_PATTERN_KEYS[p])}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span className={styles.plain} data-testid="room-floor-tile-pattern">
+            {t(TILE_PATTERN_KEYS[tile.pattern])}
+          </span>
+        )}
+      </label>
+      {length(
+        'room-floor-tile-width',
+        'office.left_panel.floor_tile.width',
+        tile.tileWidth,
+        false,
+        (n) => ({
+          tileWidth: n,
+        }),
+      )}
+      {length(
+        'room-floor-tile-height',
+        'office.left_panel.floor_tile.height',
+        tile.tileHeight,
+        false,
+        (n) => ({
+          tileHeight: n,
+        }),
+      )}
+      {length(
+        'room-floor-tile-joint',
+        'office.left_panel.floor_tile.joint',
+        tile.joint,
+        true,
+        (n) => ({
+          joint: n,
+        }),
+      )}
+      {length(
+        'room-floor-tile-start-left',
+        'office.left_panel.floor_tile.start_left',
+        tile.fromLeft,
+        true,
+        (n) => ({
+          fromLeft: n,
+        }),
+      )}
+      {length(
+        'room-floor-tile-start-bottom',
+        'office.left_panel.floor_tile.start_bottom',
+        tile.fromBottom,
+        true,
+        (n) => ({ fromBottom: n }),
+      )}
+      {refused ? (
+        <p className={photoStyles.error} data-testid="room-floor-tile-refused" role="alert">
+          {t('office.length.refused')}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 export function RoomFields({
   row,
   canEdit,
@@ -422,6 +597,7 @@ export function RoomFields({
         </select>,
         ceilingText(row.ceilingType),
       )}
+      <FloorTile row={row} canEdit={canEdit} store={store} />
       <RoomPhotos
         row={row}
         photos={photos}

@@ -18,7 +18,11 @@
 // EZD-215 (AC-EZD-215-3; S03:154 "flagged with 'Engineer required'"; Q-0708): an engineer note whose letter is not on
 // file is the wall's line at the time, 'hidden', with a triangle ENGINEER_MARK_IN a side at its middle, on the
 // `flagged` layer; once the letter is on file it draws nothing.
+// EZD-733 (phase-07 EZD-733 "visible cuts on the plan"; AC-EZD-733-1; vault/build/assumptions.md EZD-733): a floor
+// tile layout draws one hatch over its room, the outline of every piece (cut pieces are the ones the room's edge
+// trims), 'beyond', in the layout's status layer; a layout whose room is gone is omitted as host_not_found.
 import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
+import { tileLayoutPieces, type TileLayoutObject } from '../tile/hosts';
 import { doorSymbolInFrame } from '../openings/door-symbol';
 import { isVerticalLine } from '../openings/opening';
 import { coordsEqual, pointsEqual } from '../tolerance';
@@ -198,6 +202,30 @@ export function buildDrawingList(
         segments: hatchSegments(boundary, v.roomHatch.angleDeg, v.roomHatch.spacingIn),
       });
     }
+  }
+
+  for (const o of onFloor) {
+    if (o.type !== 'tile_layout') continue;
+    const host = o.data.geometry.host;
+    if (host.kind !== 'floor') continue;
+    const t = o as TileLayoutObject;
+    const room = rooms.find((r) => r.id.toLowerCase() === host.roomId.toLowerCase());
+    const tiles = room === undefined ? null : tileLayoutPieces(t, [room]);
+    if (room === undefined || tiles === null) {
+      reasons.set(t.id, 'host_not_found');
+      continue;
+    }
+    const segments = tiles.pieces.flatMap((piece) =>
+      piece.points.map((from, i) => ({ from, to: piece.points[(i + 1) % piece.points.length]! })),
+    );
+    roomHatches.push({
+      kind: 'hatch',
+      role: 'beyond',
+      layer: t.data.status,
+      objectId: t.id,
+      boundary: room.data.geometry.boundary.map((p) => ({ x: p.x, y: p.y })),
+      segments,
+    });
   }
 
   const wallFills: DrawingItem[] = [];
@@ -389,7 +417,8 @@ export function buildDrawingList(
     for (let i = 0; i < 4; i++) fixtureItems.push(line(ring[i]!, ring[(i + 1) % 4]!));
   }
 
-  if (options.extraItems) fixtureItems.push(...options.extraItems(onFloor, level, v.dimensionTextPt));
+  if (options.extraItems)
+    fixtureItems.push(...options.extraItems(onFloor, level, v.dimensionTextPt));
 
   const omitted: OmittedObject[] = onFloor.flatMap((o) => {
     const reason = reasons.get(o.id);
@@ -425,7 +454,6 @@ export function utilityMark(p: Point): [Point, Point, Point, Point] {
     { x: p.x, y: p.y - h },
   ];
 }
-
 
 // EZD-215: the engineer note's triangle, its side in model inches (a 1'-0" mark, as UTILITY_MARK_IN is 6").
 export const ENGINEER_MARK_IN = 12;

@@ -650,3 +650,41 @@ describe('EZD-215 engineer note', () => {
     expect(buildDrawingList({ objects: [note(false, F2)] }, V).items).toEqual([]);
   });
 });
+
+// EZD-733 (phase-07 EZD-733 "visible cuts on the plan"): a floor tile layout is one hatch over its room, each piece's
+// outline. Hand figures: a 36" x 24" room in 12" tiles butted from its corner is 3 x 2 = 6 whole tiles, 6 x 4 = 24
+// edges; started 6" in, columns run -6, 6, 18, 30 (four, the end two 6" cuts) and rows -6, 6, 18 (three, both ends
+// cut), 4 x 3 = 12 pieces, 48 edges.
+describe('EZD-733 floor tile on the plan', () => {
+  const V = { level: F1, dimensionTextPt: 8, roomHatch: null, roomLabelPt: 10 } as DrawingView;
+  const room = roomObj(R1, [P(0, 0), P(36, 0), P(36, 24), P(0, 24)], 'Bath');
+  const tile = (start: Point, roomId = R1): ModelObject => ({
+    id: uid(90),
+    type: 'tile_layout',
+    data: {
+      geometry: { host: { kind: 'floor', roomId }, start },
+      status: 'new',
+      level: F1,
+      attributes: { pattern: 'straight', tileWidth: 12, tileHeight: 12, joint: 0 },
+    },
+  });
+  const hatchOf = (l: DrawingList) =>
+    l.items.filter((i): i is HatchItem => i.kind === 'hatch' && i.objectId === uid(90));
+
+  it('draws every piece in the layout status layer; moving the start moves the cut lines', () => {
+    const a = hatchOf(buildDrawingList({ objects: [room, tile(P(0, 0))] }, V));
+    expect(a).toHaveLength(1);
+    expect(a[0]).toMatchObject({ layer: 'new', role: 'beyond' });
+    expect(a[0]!.segments).toHaveLength(24);
+    const b = hatchOf(buildDrawingList({ objects: [room, tile(P(6, 6))] }, V));
+    expect(b[0]!.segments).toHaveLength(48);
+    expect(b[0]!.segments.some((s) => s.from.x === 6 && s.to.x === 6)).toBe(true);
+    expect(a[0]!.segments.some((s) => s.from.x === 6 && s.to.x === 6)).toBe(false);
+  });
+
+  it('a layout whose room is gone is omitted as host_not_found', () => {
+    const gone = buildDrawingList({ objects: [tile(P(0, 0), uid(91))] }, V);
+    expect(hatchOf(gone)).toEqual([]);
+    expect(gone.omitted).toContainEqual({ id: uid(90), reason: 'host_not_found' });
+  });
+});

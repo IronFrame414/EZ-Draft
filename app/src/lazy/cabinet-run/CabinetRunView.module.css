@@ -183,7 +183,6 @@
   text-anchor: middle;
 }
 
-
 /* EZD-405: box editing. The side-edge handles take the resize cursor (S04 "Drag box side edge"); typable dimension
    text takes the pointer; the typed entry sits under the header; the context menu at the right-click. */
 .edge {
@@ -286,4 +285,82 @@
 
 .box[data-flagged='true'] .code {
   fill: var(--ez-red-text);
+}
+
+/* EZD-733: the wall tile bar and the tile on the elevation, in the style of the typed entry and the drawing. */
+.tileBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.tileTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ez-ink);
+}
+
+.tileInput {
+  width: 72px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-family: var(--ez-font-mono);
+  font-size: 13px;
+}
+
+.tileInput[aria-invalid='true'] {
+  border-color: var(--ez-red);
+}
+
+.tileSelect {
+  height: 32px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-size: 13px;
+}
+
+.tileButton {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.tilePiece {
+  fill: none;
+  stroke: var(--ez-slate-400);
+  stroke-width: 0.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.tileCut {
+  fill: var(--ez-surface-sunken);
+  stroke: var(--ez-slate-500);
+  stroke-width: 0.75px;
+  stroke-dasharray: 3 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.tileStart {
+  fill: var(--ez-surface);
+  stroke: var(--ez-ink);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.tileStart[data-draggable='true'] {
+  cursor: move;
 }

@@ -12,6 +12,8 @@ import {
   cabinetSelect,
   cabinetView,
   modelObjects,
+  wallTileAddChanges,
+  wallTileChanges,
   type CabinetSelection,
 } from '../../editor/cabinets/cabinet-view';
 import {
@@ -153,5 +155,55 @@ describe('EZD-410 Not on a wall', () => {
       expect(got).toContainEqual(['elevation', id]);
     }
     expect(got).toHaveLength(16);
+  });
+});
+
+// EZD-733 (AC-EZD-733-1 "Changing the start point moves the cuts on the elevation"). Board wall 117 1/2"; the default
+// 12" x 24" tile with a 1/8" joint from the left end: columns every 12 1/8", the tenth from 109.125" cut at the wall end;
+// started 6" from the left the first piece, 0" to 5 7/8", is cut. Rows are 24 1/8" apart, so the fourth row
+// (72.375" + 24" > 96") is cut along its top; the checks read the bottom row (from the floor) only.
+describe('EZD-733 wall tile on the cabinet elevation', () => {
+  const tiled = (fromLeft: number | null) => {
+    const objects = new Map(boardModel());
+    const v0 = cabinetView(modelObjects(objects), CAB_FLOOR)!;
+    const [add] = wallTileAddChanges(v0, () => 'e0000000-0000-4000-8000-000000000001');
+    objects.set(add!.id, add!.value!);
+    if (fromLeft !== null) {
+      const v1 = cabinetView(modelObjects(objects), CAB_FLOOR)!;
+      const [c] = wallTileChanges(v1, modelObjects(objects), { startFromLeft: fromLeft });
+      objects.set(c!.id, c!.value!);
+    }
+    return cabinetView(modelObjects(objects), CAB_FLOOR);
+  };
+  const cutStarts = (s: string) =>
+    [...s.matchAll(/<polygon [^>]*data-tile-cut="true"[^>]*>/g)]
+      .filter((m) => /data-y0="0"/.test(m[0]))
+      .map((m) => Number(/data-x0="([^"]+)"/.exec(m[0])?.[1]))
+      .filter((x, i, a) => a.indexOf(x) === i)
+      .sort((a, b) => a - b);
+
+  it('with no tile the bar offers Add wall tile (off without Edit model) and nothing is drawn', () => {
+    const s = screen();
+    expect(s).toContain('data-testid="cabinet-tile-bar"');
+    expect(s).toMatch(/<button[^>]*data-testid="cabinet-tile-add"[^>]*disabled=""/);
+    expect(s).toContain('Add wall tile');
+    expect(s).not.toContain('data-testid="cabinet-tile"');
+  });
+
+  it('AC-EZD-733-1: the elevation draws the tile; moving the start 6" from the left moves the cut pieces', () => {
+    const a = html(
+      <CabinetRunScreen view={tiled(null)} selection={NO_CABINET_SELECTION} onInput={() => {}} />,
+    );
+    expect(a).toContain('data-testid="cabinet-tile"');
+    expect(cutStarts(a)).toContain(109.125);
+    expect(cutStarts(a)).not.toContain(0);
+    const b = html(
+      <CabinetRunScreen view={tiled(6)} selection={NO_CABINET_SELECTION} onInput={() => {}} />,
+    );
+    expect(cutStarts(b)).toContain(0);
+    expect(cutStarts(b)).not.toContain(109.125);
+    expect(b).toMatch(/data-testid="cabinet-tile-start-left"[^>]*value="6""/);
+    expect(b).toContain('Herringbone');
+    expect(b).toContain('data-testid="cabinet-tile-start"');
   });
 });

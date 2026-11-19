@@ -8,7 +8,13 @@ import { describe, expect, it } from 'vitest';
 import { createModelStore } from '../model/model-store';
 import type { Objects } from '../model/patches';
 import { baseObjects, F1, F2, roomValue, uid } from '../tools/test-utils/fixtures';
-import { roomAttributeChange, roomRows } from './rooms';
+import {
+  floorTileAddChange,
+  floorTileChange,
+  floorTileRow,
+  roomAttributeChange,
+  roomRows,
+} from './rooms';
 import {
   roomFloorAndPhotos,
   roomFloorLevelChange,
@@ -111,7 +117,9 @@ describe('EZD-229 floor level, transitions and photos', () => {
   }
   const level = (o: Objects, text: string) => {
     const c = roomFloorLevelChange(o, uid(1), text);
-    return c === null ? null : (c.value!.data as { attributes: { floorLevel: number } }).attributes.floorLevel;
+    return c === null
+      ? null
+      : (c.value!.data as { attributes: { floorLevel: number } }).attributes.floorLevel;
   };
 
   it('AC-3 floor level stores any signed length to 1/16" by the halfway rule, with no limit', () => {
@@ -139,17 +147,21 @@ describe('EZD-229 floor level, transitions and photos', () => {
     ]);
     expect(roomFloorAndPhotos(now, uid(2)).floorLevel).toBe(0.75);
     expect([...store.getState().objects]).toEqual(before);
-    expect([...store.getState().objects.values()].some((v) => v.type === ('transition' as string))).toBe(
-      false,
-    );
+    expect(
+      [...store.getState().objects.values()].some((v) => v.type === ('transition' as string)),
+    ).toBe(false);
   });
 
   it('AC-4 equal levels and finishes give none; a finish change gives one with no step', () => {
     const o = openPlan();
     expect(roomTransitionRows(o, uid(1))).toEqual([]);
     const store = createModelStore({ objects: o });
-    store.applyEdit([roomAttributeChange(store.getState().objects, uid(1), 'floorFinish', 'Tile')!]);
-    store.applyEdit([roomAttributeChange(store.getState().objects, uid(2), 'floorFinish', 'Wood')!]);
+    store.applyEdit([
+      roomAttributeChange(store.getState().objects, uid(1), 'floorFinish', 'Tile')!,
+    ]);
+    store.applyEdit([
+      roomAttributeChange(store.getState().objects, uid(2), 'floorFinish', 'Wood')!,
+    ]);
     expect(roomTransitionRows(store.getState().objects, uid(1))).toEqual([
       { otherRoomId: uid(2), otherRoomName: 'Family', step: null },
     ]);
@@ -160,12 +172,70 @@ describe('EZD-229 floor level, transitions and photos', () => {
     const photo = '99999999-9999-4999-8999-999999999999';
     const c = roomPhotoChange(o, uid(1), photo);
     expect(c).not.toBeNull();
-    const r = parseStoredObject({ id: uid(1), type: 'room', schema_version: c!.value!.schemaVersion, data: c!.value!.data });
+    const r = parseStoredObject({
+      id: uid(1),
+      type: 'room',
+      schema_version: c!.value!.schemaVersion,
+      data: c!.value!.data,
+    });
     expect(r.ok && r.object.type === 'room' && r.object.data.attributes.photos).toEqual([photo]);
     const store = createModelStore({ objects: o });
     store.applyEdit([c!]);
     expect(roomFloorAndPhotos(store.getState().objects, uid(1)).photos).toEqual([photo]);
     expect(roomPhotoChange(store.getState().objects, uid(1), photo)).toBeNull();
     expect(roomPhotoChange(o, uid(77), photo)).toBeNull();
+  });
+});
+
+// EZD-733 (phase-07 EZD-733 "Tile pattern, start point ... stored in the model"; vault/build/assumptions.md EZD-733):
+// the Laundry (150, 0)-(294, 120) gets the default floor tile at its lower left corner; a start 6" from the left is
+// x = 150 + 6 = 156.
+describe('EZD-733 floor tile', () => {
+  const ids = () => 'f0000000-0000-4000-8000-000000000001';
+  it('Add lays 12" x 24" straight tile, 1/8" joint, from the room corner; a second Add does nothing', () => {
+    const o = objects();
+    const add = floorTileAddChange(o, uid(2), ids)!;
+    expect(add.value!.type).toBe('tile_layout');
+    const data = add.value!.data as { geometry: { host: unknown; start: Point }; level: string };
+    expect(data.geometry).toEqual({ host: { kind: 'floor', roomId: uid(2) }, start: pt(150, 0) });
+    expect(data.level).toBe(F1);
+    o.set(add.id, add.value!);
+    expect(floorTileRow(o, uid(2))).toEqual({
+      id: ids(),
+      pattern: 'straight',
+      tileWidth: 12,
+      tileHeight: 24,
+      joint: 0.125,
+      fromLeft: 0,
+      fromBottom: 0,
+    });
+    expect(floorTileAddChange(o, uid(2), ids)).toBeNull();
+    expect(floorTileRow(o, uid(1))).toBeNull();
+  });
+
+  it('a typed start moves the start point; refused sizes and no-change edits give no change; one undo step', () => {
+    const store = createModelStore({ objects: objects() });
+    const add = floorTileAddChange(store.getState().objects, uid(2), ids)!;
+    store.applyEdit([add]);
+    const c = floorTileChange(store.getState().objects, uid(2), {
+      fromLeft: 6,
+      pattern: 'diagonal',
+    })!;
+    expect((c.value!.data as { geometry: { start: Point } }).geometry.start).toEqual(pt(156, 0));
+    store.applyEdit([c]);
+    expect(floorTileRow(store.getState().objects, uid(2))).toMatchObject({
+      fromLeft: 6,
+      pattern: 'diagonal',
+    });
+    store.undo();
+    expect(floorTileRow(store.getState().objects, uid(2))).toMatchObject({
+      fromLeft: 0,
+      pattern: 'straight',
+    });
+    const o = store.getState().objects;
+    expect(floorTileChange(o, uid(2), { tileWidth: 0 })).toBeNull();
+    expect(floorTileChange(o, uid(2), { joint: -0.125 })).toBeNull();
+    expect(floorTileChange(o, uid(2), { pattern: 'straight' })).toBeNull();
+    expect(floorTileChange(o, uid(9), { fromLeft: 1 })).toBeNull();
   });
 });

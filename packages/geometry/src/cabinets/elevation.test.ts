@@ -9,6 +9,7 @@ import {
   cabinetElevationLetter,
   cabinetFaces,
   cabinetRunLayout,
+  wallStartFromElevation,
 } from './elevation';
 import { cabinetRunTotal, objectLookup, type CabinetRun } from './run';
 
@@ -48,7 +49,15 @@ const filler = (width: number, scribe: number, height = 34.5): ModelObject => ({
   data: {
     status: 'new',
     level: LEVEL,
-    attributes: { code: `F${width}`, width, depth: 24, height, scribe, catalogItemId: null, finish: null },
+    attributes: {
+      code: `F${width}`,
+      width,
+      depth: 24,
+      height,
+      scribe,
+      catalogItemId: null,
+      finish: null,
+    },
   },
 });
 const wall = (x0: number, x1: number): ModelObject => ({
@@ -80,7 +89,11 @@ const run = (
   id: nextId(),
   type: 'cabinet_run',
   data: {
-    geometry: { hostWallId: o.hostWallId ?? null, start: o.start ?? { x: 0, y: 0 }, axis: { x: 1, y: 0 } },
+    geometry: {
+      hostWallId: o.hostWallId ?? null,
+      start: o.start ?? { x: 0, y: 0 },
+      axis: { x: 1, y: 0 },
+    },
     level: LEVEL,
     attributes: {
       name: 'Back wall run',
@@ -215,5 +228,114 @@ describe('EZD-404 cabinet run layout', () => {
     expect(cabinetElevationLetter(a, objects)).toBe('A');
     expect(cabinetElevationLetter(b, objects)).toBe('B');
     expect(cabinetElevationLetter(c, objects)).toBe('A');
+  });
+});
+
+// EZD-733 (AC-EZD-733-1 "Changing the start point moves the cuts on the elevation"). Hand figures: a 120" wall in 12"
+// tiles to 48" is 120 / 12 = 10 columns by 48 / 12 = 4 rows, no cuts from a start at the wall's end; started 6" along
+// there are 11 columns, the end two 6" wide, so 2 x 4 = 8 cut pieces at x 0-6" and 114-120".
+const tileOn = (
+  wallId: string,
+  side: 'left' | 'right',
+  start: { x: number; y: number },
+): ModelObject => ({
+  id: nextId(),
+  type: 'tile_layout',
+  data: {
+    geometry: { host: { kind: 'wall', wallId, side, height: 48 }, start },
+    status: 'new',
+    level: LEVEL,
+    attributes: { pattern: 'straight', tileWidth: 12, tileHeight: 12, joint: 0 },
+  },
+});
+const cutSpans = (pieces: { points: { x: number }[]; cut: boolean }[]) =>
+  [
+    ...new Set(
+      pieces
+        .filter((p) => p.cut)
+        .map(
+          (p) =>
+            `${Math.min(...p.points.map((q) => q.x))}-${Math.max(...p.points.map((q) => q.x))}`,
+        ),
+    ),
+  ].sort();
+
+describe('EZD-733 wall tile on the elevation', () => {
+  it('AC-EZD-733-1: changing the start point moves the cuts on the elevation', () => {
+    const w = wall(0, 120);
+    const r = run([], [], { hostWallId: w.id, start: { x: 0, y: 2.25 } });
+    const at0 = cabinetRunLayout(r, [w, r, tileOn(w.id, 'left', { x: 0, y: 0 })]);
+    expect(at0.tile?.pieces).toHaveLength(40);
+    expect(cutSpans(at0.tile!.pieces)).toEqual([]);
+    const at6 = cabinetRunLayout(r, [w, r, tileOn(w.id, 'left', { x: 6, y: 0 })]);
+    expect(at6.tile?.pieces).toHaveLength(44);
+    expect(at6.tile!.pieces.filter((p) => p.cut)).toHaveLength(8);
+    expect(cutSpans(at6.tile!.pieces)).toEqual(['0-6', '114-120']);
+    expect(at6.tile?.start).toEqual({ x: 6, y: 0 });
+  });
+
+  it('a wall drawn the other way: 4" from its start is 116" in the elevation, cuts 0-8" and 116-120"', () => {
+    // Wall from x 120 to 0; the run on its left face (y -2.25) runs +x. Along the wall the columns start at
+    // 4 - 12 = -8, so the first is cut to 0-4" (elevation 116-120") and the last, 112-124", to 112-120" (0-8").
+    const w = wall(120, 0);
+    const r = run([], [], { hostWallId: w.id, start: { x: 0, y: -2.25 } });
+    const layout = cabinetRunLayout(r, [w, r, tileOn(w.id, 'left', { x: 4, y: 0 })]);
+    expect(layout.face).toEqual({ wallId: w.id, side: 'left', offset: 120, along: -1 });
+    expect(cutSpans(layout.tile!.pieces)).toEqual(['0-8', '116-120']);
+    expect(layout.tile?.start).toEqual({ x: 116, y: 0 });
+    expect(wallStartFromElevation(layout.face!, { x: 116, y: 0 })).toEqual({ x: 4, y: 0 });
+  });
+
+  it('a wall drawn the other way with a 1/8" joint: the first tile spans 0-12" from the left end, as for a wall drawn left to right', () => {
+    // 120" wall, 12" tile, 1/8" joint, start 0" from the left in the elevation: columns at 0, 12.125, 24.25 ... in
+    // both directions, the first whole piece 0" to 12", the tenth from 9 x 12.125 = 109.125" cut at 120".
+    const spans = (o: ModelObject[], r: CabinetRun) =>
+      cabinetRunLayout(r, o)
+        .tile!.pieces.filter((p) => Math.min(...p.points.map((q) => q.y)) === 0)
+        .map((p) => [
+          Math.min(...p.points.map((q) => q.x)),
+          Math.max(...p.points.map((q) => q.x)),
+          p.cut,
+        ])
+        .sort((a, b) => (a[0] as number) - (b[0] as number));
+    const jointed = (wallId: string, start: { x: number; y: number }): ModelObject => {
+      const t = tileOn(wallId, 'left', start);
+      return t.type === 'tile_layout'
+        ? { ...t, data: { ...t.data, attributes: { ...t.data.attributes, joint: 0.125 } } }
+        : t;
+    };
+    const back = wall(120, 0);
+    const rb = run([], [], { hostWallId: back.id, start: { x: 0, y: -2.25 } });
+    // Start 0" from the left in the elevation is 120" along this wall from its start (x 120 to 0).
+    const reversed = spans([back, rb, jointed(back.id, { x: 120, y: 0 })], rb);
+    const fwd = wall(0, 120);
+    const rf = run([], [], { hostWallId: fwd.id, start: { x: 0, y: 2.25 } });
+    const forward = spans([fwd, rf, jointed(fwd.id, { x: 0, y: 0 })], rf);
+    expect(reversed[0]).toEqual([0, 12, false]);
+    expect(reversed[reversed.length - 1]).toEqual([109.125, 120, true]);
+    expect(reversed).toHaveLength(10);
+    expect(reversed).toEqual(forward);
+  });
+
+  it('a run started on the wall line stands on the face away from the thickness (Q-0559)', () => {
+    const w = wall(0, 120); // thickness to the right, so the room face is the left
+    const r = run([], [], { hostWallId: w.id, start: { x: 0, y: 0 } });
+    expect(cabinetRunLayout(r, [w, r]).face?.side).toBe('left');
+    const flipped = {
+      ...w,
+      data: {
+        ...w.data,
+        attributes: { ...(w.data as { attributes: object }).attributes, thicknessSide: 'left' },
+      },
+    } as ModelObject;
+    expect(cabinetRunLayout(r, [flipped, r]).face?.side).toBe('right');
+  });
+
+  it('tile on the other face of the wall, or no host wall, is not drawn', () => {
+    const w = wall(0, 120);
+    const r = run([], [], { hostWallId: w.id, start: { x: 0, y: 2.25 } });
+    expect(cabinetRunLayout(r, [w, r, tileOn(w.id, 'right', { x: 0, y: 0 })]).tile).toBeNull();
+    const off = run([]);
+    expect(cabinetRunLayout(off, [w, off, tileOn(w.id, 'left', { x: 0, y: 0 })]).tile).toBeNull();
   });
 });

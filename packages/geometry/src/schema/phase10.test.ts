@@ -55,11 +55,15 @@ describe('EZD-234 phase 10 schema step', () => {
   it('AC-4 one step: version 5 adds every phase 10 type; v5.json parses whole', () => {
     expect(CURRENT_SCHEMA_VERSION).toBe(7);
     for (const t of PHASE_10_TYPES) expect(OBJECT_TYPES).toContain(t);
-    expect(OBJECT_TYPES).toHaveLength(24); // EZD-233: plus group; EZD-402: plus the seven cabinet types; EZD-411: plus countertop_piece
+    expect(OBJECT_TYPES).toHaveLength(25); // EZD-233: plus group; EZD-402: plus the seven cabinet types; EZD-411: plus countertop_piece; EZD-733: plus tile_layout
     // EZD-402: v5.json holds every type up to group; the cabinet types are new at version 6 (end of v6.json).
-    // EZD-411: so is countertop_piece.
+    // EZD-411: so is countertop_piece. EZD-733: and tile_layout.
     expect(new Set(V5.map((o) => o.type))).toEqual(
-      new Set(OBJECT_TYPES.filter((t) => !t.startsWith('cabinet_') && t !== 'countertop_piece')),
+      new Set(
+        OBJECT_TYPES.filter(
+          (t) => !t.startsWith('cabinet_') && t !== 'countertop_piece' && t !== 'tile_layout',
+        ),
+      ),
     );
     expect(new Set(objectsOf(v6).map((o) => o.type))).toEqual(new Set(OBJECT_TYPES));
     expect(parseModelDocument(structuredClone(v5)).ok).toBe(true);

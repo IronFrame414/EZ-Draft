@@ -6,6 +6,12 @@
 import {
   CABINET_COUNTERTOP_THICKNESS,
   CURRENT_SCHEMA_VERSION,
+  DEFAULT_TILE_HEIGHT,
+  DEFAULT_TILE_JOINT,
+  DEFAULT_TILE_WIDTH,
+  DEFAULT_WALL_TILE_HEIGHT,
+  wallStartFromElevation,
+  type TilePattern,
   cabinetElevationLetter,
   cabinetRowOf,
   insertAfterInCabinetRun,
@@ -218,4 +224,96 @@ export function cabinetHeightChanges(
     if (next !== null) changes.push(objectChange(next));
   }
   return changes;
+}
+
+// EZD-733 (AC-EZD-733-1 "Changing the start point moves the cuts on the elevation"; phase-07 EZD-733; S19 "Tile pattern
+// select"; vault/build/assumptions.md EZD-733): the wall tile on the face the run stands against. Add lays the default
+// tile from the wall's left end in this elevation at the floor; an edit changes one or more fields. The start point is
+// typed in the elevation: from the wall's left end as drawn, and up from the floor. Each is one undo step.
+export type WallTileEdit = {
+  pattern?: TilePattern;
+  tileWidth?: number;
+  tileHeight?: number;
+  joint?: number;
+  // From the wall's left end in the elevation, and up from the floor.
+  startFromLeft?: number;
+  startHeight?: number;
+  // The set height the tile runs to.
+  height?: number;
+};
+
+// The tile start point as the screen shows it: from the wall's left end, and up from the floor.
+export function wallTileStart(view: CabinetView): { fromLeft: number; height: number } | null {
+  const { tile, wall } = view.layout;
+  if (tile === null || wall === null) return null;
+  return { fromLeft: tile.start.x - wall.from, height: tile.start.y };
+}
+
+export function wallTileAddChanges(view: CabinetView, newId: () => string): Change[] {
+  const { face, wall, tile } = view.layout;
+  if (face === null || wall === null || tile !== null) return [];
+  return [
+    objectChange({
+      id: newId(),
+      type: 'tile_layout',
+      data: {
+        geometry: {
+          host: {
+            kind: 'wall',
+            wallId: face.wallId,
+            side: face.side,
+            height: DEFAULT_WALL_TILE_HEIGHT,
+          },
+          start: wallStartFromElevation(face, { x: wall.from, y: 0 }),
+        },
+        status: 'new',
+        level: view.run.data.level,
+        attributes: {
+          pattern: 'straight',
+          tileWidth: DEFAULT_TILE_WIDTH,
+          tileHeight: DEFAULT_TILE_HEIGHT,
+          joint: DEFAULT_TILE_JOINT,
+        },
+      },
+    }),
+  ];
+}
+
+export function wallTileChanges(
+  view: CabinetView,
+  objects: readonly ModelObject[],
+  e: WallTileEdit,
+): Change[] {
+  const { face, wall, tile } = view.layout;
+  if (face === null || wall === null || tile === null) return [];
+  const key = tile.id.toLowerCase();
+  const o = objects.find((x) => x.id.toLowerCase() === key);
+  if (o === undefined || o.type !== 'tile_layout' || o.data.geometry.host.kind !== 'wall')
+    return [];
+  const positive = (n: number | undefined) => n === undefined || n > 0;
+  if (!positive(e.tileWidth) || !positive(e.tileHeight) || !positive(e.height)) return [];
+  if (e.joint !== undefined && !(e.joint >= 0)) return [];
+  const a = o.data.attributes;
+  const host = o.data.geometry.host;
+  const start =
+    e.startFromLeft === undefined && e.startHeight === undefined
+      ? o.data.geometry.start
+      : wallStartFromElevation(face, {
+          x: wall.from + (e.startFromLeft ?? tile.start.x - wall.from),
+          y: e.startHeight ?? tile.start.y,
+        });
+  const next: ModelObject = {
+    ...o,
+    data: {
+      ...o.data,
+      geometry: { host: { ...host, height: e.height ?? host.height }, start },
+      attributes: {
+        pattern: e.pattern ?? a.pattern,
+        tileWidth: e.tileWidth ?? a.tileWidth,
+        tileHeight: e.tileHeight ?? a.tileHeight,
+        joint: e.joint ?? a.joint,
+      },
+    },
+  };
+  return JSON.stringify(next.data) === JSON.stringify(o.data) ? [] : [objectChange(next)];
 }

@@ -13,6 +13,11 @@
 // EZD-406 (S04 Controls "Click box | ... inspector shows it", "Right-click box | Context menu: Swap box, ..."): the
 // selection lives in a small store shared with the box inspector (`selectionStore`; a screen without one keeps its
 // own), and the context menu's Swap box opens the inspector's compatible list.
+// EZD-733 (AC-EZD-733-1 "Changing the start point moves the cuts on the elevation"; phase-07 EZD-733; S19 "Tile pattern
+// select | Straight / diagonal / herringbone"; Q-0769 no board, built in the style of this screen; vault/build/
+// assumptions.md EZD-733): the wall tile bar under the header (Add wall tile, then pattern, tile size, joint, start
+// point and set height) and the tile drawn behind the elevation, cut pieces shaded and dashed. The start point is
+// typed in the bar or dragged on the elevation; each change is one undo step. Edits need Edit model and the lock.
 import {
   useCallback,
   useEffect,
@@ -31,8 +36,10 @@ import {
   cabinetEdgeSteps,
   cabinetSteppedWidth,
   parseLength,
+  TILE_PATTERNS,
   type CabinetSlot,
   type ModelObject,
+  type TilePattern,
 } from '@ezdraft/geometry';
 import { StatusItem } from '../../components/shell/StatusBar';
 import { useT } from '../../lib/messages';
@@ -57,6 +64,10 @@ import {
   cabinetView,
   isCabinetSelected,
   modelObjects,
+  wallTileAddChanges,
+  wallTileChanges,
+  wallTileStart,
+  type WallTileEdit,
   type CabinetSelection,
   type CabinetSelectionInput,
   type CabinetView,
@@ -267,11 +278,20 @@ export function CabinetRunView({
     return true;
   };
 
+  const tile: CabinetTileHandlers | undefined =
+    !canEdit || view === null
+      ? undefined
+      : {
+          add: () => apply(wallTileAddChanges(view, newId ?? (() => crypto.randomUUID()))),
+          edit: (e) => apply(wallTileChanges(view, parsed, e)).length > 0,
+        };
+
   const menuIds =
     menu === null ? [] : isCabinetSelected(selection, menu.id) ? selection.ids : [menu.id];
   return (
     <CabinetRunScreen
       view={shown}
+      tile={tile}
       selection={selection}
       onInput={(i) => {
         if (i.type === 'click') setMenu(null);
@@ -334,6 +354,13 @@ export type CabinetEditHandlers = {
   isDragging: boolean;
 };
 
+// EZD-733: the wall tile edits; absent without Edit model and the lock. `edit` is false when nothing changed or the
+// value was refused.
+export type CabinetTileHandlers = {
+  add(): void;
+  edit(e: WallTileEdit): boolean;
+};
+
 export type CabinetMenuProps = {
   x: number;
   y: number;
@@ -353,6 +380,7 @@ export type CabinetRunScreenProps = {
   onEntry?: (text: string) => boolean;
   onEntryClose?: () => void;
   menu?: CabinetMenuProps | null;
+  tile?: CabinetTileHandlers;
 };
 
 export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
@@ -365,6 +393,7 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
     onEntry,
     onEntryClose,
     menu = null,
+    tile,
   } = props;
   const t = useT();
   const sectionRef = useRef<HTMLElement>(null);
@@ -436,12 +465,14 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
           onClose={onEntryClose}
         />
       ) : null}
+      {view.layout.face !== null ? <WallTileBar view={view} tile={tile} /> : null}
       <RunDrawing
         view={view}
         selection={selection}
         onInput={onInput}
         edit={edit}
         onMenu={openMenu}
+        tile={tile}
       />
       {menu !== null ? (
         <div
@@ -452,12 +483,7 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
           style={{ left: menu.x, top: menu.y }}
         >
           {menu.onSwap !== undefined ? (
-            <button
-              type="button"
-              role="menuitem"
-              className={styles.menuItem}
-              onClick={menu.onSwap}
-            >
+            <button type="button" role="menuitem" className={styles.menuItem} onClick={menu.onSwap}>
               {t('office.cabinets.swap')}
             </button>
           ) : null}
@@ -475,6 +501,162 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
         </div>
       ) : null}
     </section>
+  );
+}
+
+const PATTERN_KEYS = {
+  straight: 'office.cabinets.tile.pattern.straight',
+  diagonal: 'office.cabinets.tile.pattern.diagonal',
+  herringbone: 'office.cabinets.tile.pattern.herringbone',
+} as const satisfies Record<TilePattern, string>;
+
+// One typed length of the tile bar: Enter or leaving the field takes it; a refused value is marked and kept.
+function TileLength({
+  label,
+  testId,
+  value,
+  zero,
+  disabled,
+  onValue,
+}: {
+  label: string;
+  testId: string;
+  value: number;
+  zero: boolean;
+  disabled: boolean;
+  onValue: (inches: number) => boolean;
+}): ReactElement {
+  const [refused, setRefused] = useState(false);
+  const take = (input: HTMLInputElement) => {
+    if (input.value === inches(value)) return;
+    const r = parseLength(input.value, zero ? 'other' : 'positive');
+    const ok = r.ok && (zero ? r.inches >= 0 : true) && onValue(r.inches);
+    setRefused(!ok && !(r.ok && r.inches === value));
+  };
+  return (
+    <label className={styles.entryLabel}>
+      {label}
+      <input
+        key={value}
+        className={styles.tileInput}
+        data-testid={testId}
+        defaultValue={inches(value)}
+        disabled={disabled}
+        aria-invalid={refused ? 'true' : undefined}
+        onBlur={(e) => take(e.currentTarget)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            take(e.currentTarget);
+          }
+        }}
+      />
+    </label>
+  );
+}
+
+function WallTileBar({
+  view,
+  tile,
+}: {
+  view: CabinetView;
+  tile?: CabinetTileHandlers;
+}): ReactElement {
+  const t = useT();
+  const layout = view.layout.tile;
+  const start = wallTileStart(view);
+  const disabled = tile === undefined;
+  if (layout === null || start === null) {
+    return (
+      <div className={styles.tileBar} data-testid="cabinet-tile-bar">
+        <span className={styles.tileTitle}>{t('office.cabinets.tile.title')}</span>
+        <button
+          type="button"
+          className={styles.tileButton}
+          data-testid="cabinet-tile-add"
+          disabled={disabled}
+          onClick={() => tile?.add()}
+        >
+          {t('office.cabinets.tile.add')}
+        </button>
+      </div>
+    );
+  }
+  const a = layout.spec;
+  const edit = (e: WallTileEdit) => tile?.edit(e) ?? false;
+  return (
+    <div className={styles.tileBar} data-testid="cabinet-tile-bar">
+      <span className={styles.tileTitle}>{t('office.cabinets.tile.title')}</span>
+      <label className={styles.entryLabel}>
+        {t('office.cabinets.tile.pattern')}
+        <select
+          className={styles.tileSelect}
+          data-testid="cabinet-tile-pattern"
+          value={a.pattern}
+          disabled={disabled}
+          onChange={(e) => edit({ pattern: e.currentTarget.value as TilePattern })}
+        >
+          {TILE_PATTERNS.map((p) => (
+            <option key={p} value={p}>
+              {t(PATTERN_KEYS[p])}
+            </option>
+          ))}
+        </select>
+      </label>
+      <TileLength
+        label={t('office.cabinets.tile.width')}
+        testId="cabinet-tile-width"
+        value={a.tileWidth}
+        zero={false}
+        disabled={disabled}
+        onValue={(n) => edit({ tileWidth: n })}
+      />
+      <TileLength
+        label={t('office.cabinets.tile.height')}
+        testId="cabinet-tile-height"
+        value={a.tileHeight}
+        zero={false}
+        disabled={disabled}
+        onValue={(n) => edit({ tileHeight: n })}
+      />
+      <TileLength
+        label={t('office.cabinets.tile.joint')}
+        testId="cabinet-tile-joint"
+        value={a.joint}
+        zero
+        disabled={disabled}
+        onValue={(n) => edit({ joint: n })}
+      />
+      <TileLength
+        label={t('office.cabinets.tile.start_left')}
+        testId="cabinet-tile-start-left"
+        value={start.fromLeft}
+        zero
+        disabled={disabled}
+        onValue={(n) => edit({ startFromLeft: n })}
+      />
+      <TileLength
+        label={t('office.cabinets.tile.start_height')}
+        testId="cabinet-tile-start-height"
+        value={start.height}
+        zero
+        disabled={disabled}
+        onValue={(n) => edit({ startHeight: n })}
+      />
+      <TileLength
+        label={t('office.cabinets.tile.set_height')}
+        testId="cabinet-tile-set-height"
+        value={layout.height}
+        zero={false}
+        disabled={disabled}
+        onValue={(n) => edit({ height: n })}
+      />
+      {layout.tooMany ? (
+        <span className={styles.entryRefused} role="status" data-testid="cabinet-tile-too-many">
+          {t('office.cabinets.tile.too_many')}
+        </span>
+      ) : null}
+    </div>
   );
 }
 
@@ -556,7 +738,8 @@ function RunDrawing({
   onInput,
   edit,
   onMenu,
-}: Pick<CabinetRunScreenProps, 'selection' | 'onInput' | 'edit'> & {
+  tile,
+}: Pick<CabinetRunScreenProps, 'selection' | 'onInput' | 'edit' | 'tile'> & {
   view: CabinetView;
   onMenu?: (id: string, clientX: number, clientY: number) => void;
 }): ReactElement {
@@ -564,12 +747,16 @@ function RunDrawing({
   const svgRef = useRef<SVGSVGElement>(null);
   // Set when a drag ends as an edit, so the click the browser sends after it changes nothing.
   const swallow = useRef(false);
-  const toX = (e: { clientX: number; clientY: number }): number => {
+  const toPoint = (e: { clientX: number; clientY: number }): { x: number; y: number } => {
     const svg = svgRef.current;
     const m = svg?.getScreenCTM();
-    if (svg === null || m === null || m === undefined) return 0;
-    return new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()).x;
+    if (svg === null || m === null || m === undefined) return { x: 0, y: 0 };
+    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+    return { x: p.x, y: p.y };
   };
+  const toX = (e: { clientX: number; clientY: number }): number => toPoint(e).x;
+  // EZD-733: the tile start point while it is dragged, in the elevation's x and height above the floor.
+  const [tileDrag, setTileDrag] = useState<{ x: number; h: number } | null>(null);
   const capture = (pointerId: number) => {
     try {
       svgRef.current?.setPointerCapture(pointerId);
@@ -598,8 +785,15 @@ function RunDrawing({
     ...all.map((s) => s.top),
     ...heights.map((h) => h.to),
     ...windows.map((w) => w.top),
+    layout.tile?.height ?? 0,
   );
   const yAt = (h: number) => elevTop + (topH - h);
+  // A pointer on the elevation as a tile start point, to the 1/16" storage grain (Q-0207), never below the floor.
+  const sixteenth = (n: number) => Math.round(n * 16) / 16;
+  const tileAt = (e: { clientX: number; clientY: number }) => {
+    const p = toPoint(e);
+    return { x: sixteenth(p.x), h: Math.max(0, sixteenth(elevTop + topH - p.y)) };
+  };
   const floorY = yAt(0);
   const chainY = floorY + CHAIN_DROP;
   const height = chainY + 10;
@@ -760,14 +954,28 @@ function RunDrawing({
         onInput({ type: 'click', id: null, shift: e.shiftKey });
       }}
       onPointerMove={(e) => {
+        if (tileDrag !== null) {
+          setTileDrag(tileAt(e));
+          return;
+        }
         if (edit?.isDragging !== true) return;
         if (edit.move(toX(e))) capture(e.pointerId);
       }}
       onPointerUp={(e) => {
+        if (tileDrag !== null) {
+          const p = tileAt(e);
+          setTileDrag(null);
+          swallow.current = true;
+          if (wall !== null) tile?.edit({ startFromLeft: p.x - wall.from, startHeight: p.h });
+          return;
+        }
         if (edit?.isDragging !== true) return;
         swallow.current = edit.end(toX(e));
       }}
-      onPointerCancel={() => edit?.cancel()}
+      onPointerCancel={() => {
+        setTileDrag(null);
+        edit?.cancel();
+      }}
     >
       <text x={leftEnd} y={planTop - 4} className={styles.sectionLabel}>
         {t('office.cabinets.plan')}
@@ -791,6 +999,20 @@ function RunDrawing({
         {t('office.cabinets.elevation', { letter: view.letter })}
       </text>
       <g data-testid="cabinet-elevation">
+        {layout.tile !== null ? (
+          <g data-testid="cabinet-tile" data-tile-id={layout.tile.id}>
+            {layout.tile.pieces.map((p, i) => (
+              <polygon
+                key={i}
+                points={p.points.map((q) => `${q.x},${yAt(q.y)}`).join(' ')}
+                className={p.cut ? styles.tileCut : styles.tilePiece}
+                data-tile-cut={p.cut ? 'true' : 'false'}
+                data-x0={Math.min(...p.points.map((q) => q.x))}
+                data-y0={Math.min(...p.points.map((q) => q.y))}
+              />
+            ))}
+          </g>
+        ) : null}
         {windows.map((w) => (
           <g key={w.id} data-window-id={w.id}>
             <rect
@@ -833,6 +1055,29 @@ function RunDrawing({
         {base.map(elevBox)}
         {upper.map(elevBox)}
         <line x1={leftEnd - 2} x2={farRight + 4} y1={floorY} y2={floorY} className={styles.floor} />
+        {layout.tile !== null ? (
+          <circle
+            cx={tileDrag?.x ?? layout.tile.start.x}
+            cy={yAt(tileDrag?.h ?? layout.tile.start.y)}
+            r={2}
+            className={styles.tileStart}
+            data-testid="cabinet-tile-start"
+            data-draggable={tile !== undefined ? 'true' : undefined}
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={
+              tile === undefined
+                ? undefined
+                : (e) => {
+                    if (e.button !== 0) return;
+                    e.stopPropagation();
+                    capture(e.pointerId);
+                    setTileDrag(tileAt(e));
+                  }
+            }
+          >
+            <title>{t('office.cabinets.tile.start_drag')}</title>
+          </circle>
+        ) : null}
       </g>
 
       <g data-testid="cabinet-chain">

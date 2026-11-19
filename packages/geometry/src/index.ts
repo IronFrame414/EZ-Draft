@@ -10,6 +10,7 @@
 // EZD-405 (AC-EZD-405-1): exports the cabinet box edits (resize with code update, reorder, delete, duplicate).
 // EZD-411 (AC-EZD-411-1): exports the countertop piece measures.
 // EZD-215 (AC-EZD-215-1, -2): exports the bearing wall rule.
+// EZD-733 (AC-EZD-733-1): exports the tile layout pieces and cuts.
 // EZD-229 (11 Budgets; EZD-120c B11): the benchmark model is its own entry, `@ezdraft/geometry/benchmark`, so the
 // editor's first download does not carry the 3,000-object generator that only the lazy benchmark runner, the server
 // and the dev pages use.
@@ -33,6 +34,7 @@ export * from './schema';
 export * from './selection';
 export * from './sketch';
 export * from './snap/index';
+export * from './tile';
 export * from './tolerance';
 export * from './walls';
 export * from './turn';
