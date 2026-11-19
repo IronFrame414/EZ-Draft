@@ -388,7 +388,8 @@
     "EZD-305",
     "EZD-127",
     "EZD-410",
-    "EZD-406"
+    "EZD-406",
+    "EZD-501"
   ],
   "seeded_done": 324,
   "merged": [
@@ -874,6 +875,14 @@
       "ts": "2026-11-18T23:36:38Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-501",
+      "title": "Ceiling data per room",
+      "commit": "b1ff1cc1",
+      "ts": "2026-11-19T00:01:16Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -959,12 +968,5 @@
       "reason": "check still red after 2 fix rounds"
     }
   },
-  "running": {
-    "EZD-501": {
-      "lane": 1,
-      "title": "Ceiling data per room",
-      "started": "2026-11-18T22:08:07Z",
-      "develop": "e5e1df81"
-    }
-  }
+  "running": {}
 }
