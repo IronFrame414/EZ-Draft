@@ -11849,7 +11849,10 @@
     "EZD-020",
     "EZD-235",
     "EZD-030",
-    "EZD-235b"
+    "EZD-235b",
+    "EZD-214",
+    "EZD-6001",
+    "EZD-234"
    ],
    "build_position": 295,
    "acs": [
@@ -11861,7 +11864,13 @@
    "spec_phase": 10,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/02-product-overview.md"
+    "spec/decisions/02-product-overview.md",
+    "spec/decisions/05-screens.md#Q-0500",
+    "spec/decisions/03-data-model.md#Q-0664",
+    "spec/decisions/09-calculations-and-rules.md#Q-0704",
+    "spec/decisions/09-calculations-and-rules.md#Q-0630",
+    "spec/decisions/11-non-functional-requirements.md#Q-0454",
+    "spec/decisions/11-non-functional-requirements.md#Q-0293"
    ]
   },
   {
@@ -11880,7 +11889,9 @@
    "depends_on": [
     "EZD-1001a",
     "EZD-504",
-    "EZD-505"
+    "EZD-505",
+    "EZD-513",
+    "EZD-229"
    ],
    "build_position": 296,
    "acs": [
@@ -11890,7 +11901,8 @@
    "acs_source": "done-when",
    "spec_phase": 10,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/03-data-model.md#Q-0704"
    ]
   },
   {
@@ -11914,7 +11926,10 @@
     "EZD-234",
     "EZD-226",
     "EZD-602",
-    "EZD-401"
+    "EZD-401",
+    "EZD-1602",
+    "EZD-413",
+    "EZD-516"
    ],
    "build_position": 297,
    "acs": [
@@ -11926,7 +11941,9 @@
    "acs_source": "done-when",
    "spec_phase": 10,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/11-non-functional-requirements.md#Q-0454",
+    "spec/decisions/05-screens.md#Q-0768"
    ]
   },
   {
@@ -11956,7 +11973,8 @@
    "acs_source": "done-when",
    "spec_phase": 10,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0633"
    ]
   },
   {
@@ -11975,7 +11993,8 @@
    "phase_file": "tickets/phases/phase-10.md",
    "depends_on": [
     "EZD-1002",
-    "EZD-116"
+    "EZD-116",
+    "EZD-230"
    ],
    "build_position": 303,
    "acs": [
@@ -11987,7 +12006,9 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/11-non-functional-requirements.md#Q-0294",
+    "spec/decisions/05-screens.md#Q-0633"
    ]
   },
   {
@@ -12046,7 +12067,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/05-screens.md#Q-0500"
    ]
   },
   {
@@ -12065,7 +12087,8 @@
    ],
    "phase_file": "tickets/phases/phase-10.md",
    "depends_on": [
-    "EZD-1002"
+    "EZD-1002",
+    "EZD-224b"
    ],
    "build_position": 301,
    "acs": [
@@ -12074,7 +12097,8 @@
    "acs_source": "done-when",
    "spec_phase": 10,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214"
    ]
   },
   {
@@ -12097,7 +12121,9 @@
     "EZD-1001b",
     "EZD-1001c",
     "EZD-401",
-    "EZD-505"
+    "EZD-505",
+    "EZD-233",
+    "EZD-126"
    ],
    "build_position": 304,
    "acs": [
@@ -12106,7 +12132,9 @@
    "acs_source": "done-when",
    "spec_phase": 10,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0768",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214"
    ]
   },
   {
@@ -12126,7 +12154,9 @@
    "phase_file": "tickets/phases/phase-10.md",
    "depends_on": [
     "EZD-1002",
-    "EZD-612"
+    "EZD-612",
+    "EZD-230",
+    "EZD-1616"
    ],
    "build_position": 305,
    "acs": [
@@ -12135,7 +12165,8 @@
    "acs_source": "done-when",
    "spec_phase": 10,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0500"
    ]
   },
   {
@@ -12153,7 +12184,8 @@
    ],
    "phase_file": "tickets/phases/phase-10.md",
    "depends_on": [
-    "EZD-202"
+    "EZD-202",
+    "EZD-133"
    ],
    "build_position": 308,
    "acs": [
@@ -12164,7 +12196,8 @@
    "acs_source": "done-when",
    "spec_phase": 10,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/13b-round-26.md"
    ]
   },
   {
@@ -12186,7 +12219,10 @@
     "EZD-1009",
     "EZD-1001a",
     "EZD-1001b",
-    "EZD-1001c"
+    "EZD-1001c",
+    "EZD-1007",
+    "EZD-1008",
+    "EZD-125"
    ],
    "build_position": 309,
    "acs": [
@@ -12196,7 +12232,11 @@
    "acs_source": "done-when",
    "spec_phase": 10,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/05-screens.md#Q-0630",
+    "spec/decisions/10-permissions-and-settings.md#Q-0235"
    ]
   },
   {
@@ -12224,7 +12264,8 @@
    "acs_source": "done-when",
    "spec_phase": 10,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/13a-rounds-24-25.md"
    ]
   },
   {
@@ -12241,7 +12282,8 @@
    ],
    "phase_file": "tickets/phases/phase-10.md",
    "depends_on": [
-    "EZD-1002"
+    "EZD-1002",
+    "EZD-231"
    ],
    "build_position": 306,
    "acs": [
@@ -12271,7 +12313,8 @@
     "EZD-1012",
     "EZD-014a",
     "EZD-014b",
-    "EZD-014c"
+    "EZD-014c",
+    "EZD-1006"
    ],
    "build_position": 311,
    "acs": [
@@ -12282,7 +12325,9 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0056",
+    "spec/decisions/05-screens.md#Q-0185"
    ]
   },
   {
@@ -12301,7 +12346,9 @@
     "EZD-1001a",
     "EZD-1001b",
     "EZD-1001c",
-    "EZD-721"
+    "EZD-721",
+    "EZD-224b",
+    "EZD-132"
    ],
    "build_position": 312,
    "acs": [
@@ -12312,7 +12359,9 @@
    "acs_source": "done-when",
    "spec_phase": 10,
    "decisions": [
-    "spec/decisions/08-import-and-export.md"
+    "spec/decisions/08-import-and-export.md",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
+    "spec/decisions/08-import-and-export.md#Q-0209"
    ]
   },
   {
@@ -12343,7 +12392,9 @@
    "spec_phase": 10,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/11-non-functional-requirements.md"
+    "spec/decisions/11-non-functional-requirements.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
+    "spec/decisions/05-screens.md#Q-0568"
    ]
   },
   {
@@ -12363,7 +12414,8 @@
    "depends_on": [
     "EZD-1001a",
     "EZD-1001b",
-    "EZD-1001c"
+    "EZD-1001c",
+    "EZD-224b"
    ],
    "build_position": 307,
    "acs": [
@@ -12373,7 +12425,8 @@
    "acs_source": "done-when",
    "spec_phase": 10,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0630"
    ]
   },
   {
@@ -12392,7 +12445,8 @@
    "phase_file": "tickets/phases/phase-11.md",
    "depends_on": [
     "EZD-009",
-    "EZD-1006"
+    "EZD-1006",
+    "EZD-1009"
    ],
    "build_position": 313,
    "acs": [
@@ -12401,7 +12455,9 @@
    "acs_source": "done-when",
    "spec_phase": 11,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/03-data-model.md#Q-0700",
+    "spec/decisions/13b-round-26.md"
    ]
   },
   {
@@ -12428,7 +12484,11 @@
    "spec_phase": 11,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0210",
+    "spec/decisions/02-product-overview.md#Q-0372",
+    "spec/decisions/02-product-overview.md#Q-0237",
+    "spec/decisions/11-non-functional-requirements.md#Q-0020"
    ]
   },
   {
@@ -12459,7 +12519,12 @@
    "spec_phase": 11,
    "decisions": [
     "spec/decisions/02-product-overview.md",
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0016",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0076",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0082",
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/03-data-model.md#Q-0700"
    ]
   },
   {
@@ -12568,7 +12633,11 @@
    "phase_file": "tickets/phases/phase-11.md",
    "depends_on": [
     "EZD-1006",
-    "EZD-1101"
+    "EZD-1101",
+    "EZD-1008",
+    "EZD-612",
+    "EZD-1616",
+    "EZD-230"
    ],
    "build_position": 316,
    "acs": [
@@ -12578,7 +12647,9 @@
    "acs_source": "done-when",
    "spec_phase": 11,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/03-data-model.md#Q-0513",
+    "spec/decisions/05-screens.md#Q-0637"
    ]
   },
   {
@@ -12597,7 +12668,8 @@
    ],
    "phase_file": "tickets/phases/phase-11.md",
    "depends_on": [
-    "EZD-1106"
+    "EZD-1106",
+    "EZD-1004"
    ],
    "build_position": 317,
    "acs": [
@@ -12627,7 +12699,9 @@
    "phase_file": "tickets/phases/phase-11.md",
    "depends_on": [
     "EZD-1107",
-    "EZD-401"
+    "EZD-401",
+    "EZD-417",
+    "EZD-733"
    ],
    "build_position": 318,
    "acs": [
@@ -12657,7 +12731,8 @@
    "phase_file": "tickets/phases/phase-11.md",
    "depends_on": [
     "EZD-1108",
-    "EZD-1103"
+    "EZD-1103",
+    "EZD-1010"
    ],
    "build_position": 319,
    "acs": [
@@ -12668,7 +12743,9 @@
    "spec_phase": 11,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/02-product-overview.md#Q-0372",
+    "spec/decisions/02-product-overview.md#Q-0237"
    ]
   },
   {
@@ -12698,7 +12775,8 @@
    "acs_source": "done-when",
    "spec_phase": 11,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0393"
    ]
   },
   {
@@ -12728,7 +12806,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/05-screens.md#Q-0080"
    ]
   },
   {
@@ -12815,7 +12894,8 @@
    "spec_phase": 11,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/05-screens.md#Q-0080"
    ]
   },
   {
@@ -12878,7 +12958,8 @@
    "spec_phase": 11,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/08-import-and-export.md"
+    "spec/decisions/08-import-and-export.md",
+    "spec/decisions/13b-round-26.md"
    ]
   },
   {
@@ -12898,7 +12979,10 @@
    "depends_on": [
     "EZD-1102",
     "EZD-110a",
-    "EZD-110b"
+    "EZD-110b",
+    "EZD-1103",
+    "EZD-1106",
+    "EZD-1111"
    ],
    "build_position": 328,
    "acs": [
@@ -12908,7 +12992,11 @@
    "spec_phase": 11,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/02-product-overview.md#Q-0372",
+    "spec/decisions/02-product-overview.md#Q-0237",
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/05-screens.md#Q-0393"
    ]
   },
   {
@@ -17507,7 +17595,9 @@
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
     "EZD-735",
-    "EZD-1114"
+    "EZD-1114",
+    "EZD-1010",
+    "EZD-736"
    ],
    "build_position": 325,
    "acs": [
@@ -17516,7 +17606,9 @@
    "acs_source": "done-when",
    "spec_phase": 7,
    "decisions": [
-    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190"
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
+    "spec/decisions/08-import-and-export.md#Q-0209",
+    "spec/decisions/13b-round-26.md"
    ]
   },
   {
@@ -17623,7 +17715,8 @@
    "phase_file": "tickets/phases/phase-10.md",
    "depends_on": [
     "EZD-1018",
-    "EZD-1014"
+    "EZD-1014",
+    "EZD-1013"
    ],
    "build_position": 0,
    "acs": [
