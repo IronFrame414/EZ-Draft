@@ -33,6 +33,10 @@ export interface ProjectChannelEvents {
   'lock.request_cancelled': { requestId: string; requesterAppUserId: string; respondedAt: string };
   // EZD-121 (S20 Events emitted): pushed by send_to_client after a send numbers its checkpoint.
   'version.sent': { modelVersionId: string; versionNo: number; sentAt: string };
+  // EZD-122 (S20 Events emitted; Q-0700 03 "Revert"): pushed by name_snapshot and revert_to_version. A revert makes
+  // every open editor reload; a new snapshot name refreshes the Versions panel.
+  'version.snapshot_named': { modelVersionId: string };
+  'version.reverted': { modelVersionId: string; fromVersionId: string };
 }
 
 export interface UserChannelEvents {

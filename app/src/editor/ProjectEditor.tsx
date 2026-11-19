@@ -51,6 +51,11 @@
 // the Send dialog (lazy). Its no-client link opens Project settings for the session, after the Send dialog closes.
 // EZD-304 (S01 PDF: scale calibration; Q-0203): the project's newest calibrated PDF lies under the plan for tracing;
 // for an editor, a PDF with no scale shows a banner with Set scale. An upload from the header reads it again.
+// EZD-122 (S20 Entry points, Controls; Q-0700 05, 03 "Revert", 10; AC-EZD-122-2 to -10): the Versions tab in the left
+// panel (lazy, with the version inspector and the status bar text). The header's version text opens it. A version
+// row opens that version read-only (version-view.ts): every edit path reads `mayEdit`, which is false while a version
+// shows, so the rail shows the EZD-225 paused state. Revert drains the outbox, posts, then reopens the editor (a new
+// store, so undo is cleared); a version.reverted from someone else reopens it too.
 import {
   useCallback,
   useEffect,
@@ -145,7 +150,22 @@ import {
 } from './status/PlanStatus';
 import { createPhaseSetting, type PhaseSetting } from './status/phase-setting';
 import { createLayerSetting, type LayerSetting } from './layers/layer-setting';
-import { LeftPanel } from './layers/LeftPanel';
+import { LeftPanel, type Tab as LeftTab } from './layers/LeftPanel';
+import type { RoutedStore } from './model/routed-store';
+import type {
+  VersionInspectorProps,
+  VersionsPanelProps,
+  VersionsStatusProps,
+} from './versions/VersionsPanel';
+import { versionTitle } from './versions/versions-list';
+import { createVersionView, type VersionView, type VersionViewState } from './versions/version-view';
+import { hubVersionEvents } from './versions/version-events';
+import {
+  fetchVersions,
+  postRevert,
+  postSnapshot,
+  type VersionRow,
+} from '../lib/versions/versions';
 import { createModelDerived, type ModelDerived } from './derived/model-derived';
 import { phaseViewOf, savePhaseView } from '../lib/plan/phase-view';
 import { createScaleSetting, deviceSnapSettings, type ScaleSetting } from './status/view-settings';
@@ -204,12 +224,15 @@ type CanvasState =
       derived: ModelDerived;
       assistant: AssistantLoader | null;
       floors: FloorView;
+      routed: RoutedStore;
+      versions: VersionView;
     };
 
 const PLAN_VIEWS: EditorView[] = ['plan'];
 
 const noop = () => {};
 const noSubscribe = () => noop;
+const NOT_VIEWING: VersionViewState = { viewing: null, opening: null, failed: false };
 
 export function ProjectEditor({
   projectId,
@@ -355,7 +378,18 @@ export function ProjectEditor({
                 // EZD-5604b: the session loads with the panel's lazy module on the first press.
                 () => assistantPanelModule.load(),
               );
+        // EZD-122: a version open read-only points the routed store at its objects.
+        const versions = createVersionView({
+          projectId,
+          routed,
+          base: result.session.store,
+          reset: () => {
+            drawing.selectTool(null);
+            selection.clear();
+          },
+        });
         dispose = () => {
+          versions.dispose();
           assistant?.dispose();
           drawing.attachSelection(null);
           edit.dispose();
@@ -382,6 +416,8 @@ export function ProjectEditor({
           derived,
           assistant,
           floors,
+          routed,
+          versions,
         });
         return;
       }
@@ -511,8 +547,52 @@ export function ProjectEditor({
     readLockLost,
     readLockLost,
   );
-  // May edit now: Edit model and holding the lock (`viewer.canEdit` is the hold at open, editor-session.ts).
-  const mayEdit = (session?.model.viewer.canEdit ?? false) && !lockLost;
+  // EZD-122: the Versions tab, its rows and the version open read-only.
+  const versionView = state.kind === 'ready' ? state.versions : null;
+  const readView = () => versionView?.getState() ?? NOT_VIEWING;
+  const view = useSyncExternalStore(
+    versionView ? versionView.subscribe : noSubscribe,
+    readView,
+    readView,
+  );
+  const viewing = view.viewing;
+  const [leftTab, setLeftTab] = useState<LeftTab>('layers');
+  const [versionRows, setVersionRows] = useState<VersionRow[] | null>(null);
+  const [versionsFailed, setVersionsFailed] = useState(false);
+  const [reverting, setReverting] = useState(false);
+  // The last refusal, for the version it was about.
+  const [versionError, setVersionError] = useState<{ id: string; key: MessageKey } | null>(null);
+  const refreshVersions = useCallback(() => {
+    void fetchVersions(projectId).then((r) => {
+      if (r.ok) setVersionRows(r.body);
+      setVersionsFailed(!r.ok);
+    });
+  }, [projectId]);
+  // Each time the tab opens, and after a reopen, the list is read again.
+  useEffect(() => {
+    if (leftTab === 'versions' && session !== null) refreshVersions();
+  }, [leftTab, session, refreshVersions]);
+  const retryRef = useRef(retry);
+  useEffect(() => {
+    retryRef.current = retry;
+  });
+  // The id of the version this editor's own revert made: its broadcast is not a reason to reopen again.
+  const ownRevert = useRef<string | null>(null);
+  useEffect(
+    () =>
+      hubVersionEvents(projectId, {
+        onReverted: (p) => {
+          if (p.modelVersionId !== ownRevert.current) retryRef.current();
+        },
+        onNamed: () => refreshVersions(),
+      }),
+    [projectId, refreshVersions],
+  );
+
+  // May edit now: Edit model and holding the lock (`viewer.canEdit` is the hold at open, editor-session.ts), and the
+  // working copy shown (EZD-122).
+  const holdsLock = (session?.model.viewer.canEdit ?? false) && !lockLost;
+  const mayEdit = holdsLock && viewing === null;
   useEffect(() => {
     if (lockLost) drawing?.pause();
   }, [lockLost, drawing]);
@@ -595,19 +675,72 @@ export function ProjectEditor({
   const versionNo = newerVersionNo(session?.model.project.versionNo ?? null, sentNo);
   const label = versionLabel({
     lastSent: versionNo === null ? null : { kind: 'version', no: versionNo },
+    // EZD-121 text: "Version N" while that sent version is open read-only.
+    viewing:
+      viewing !== null && viewing.isSent && viewing.versionNo !== null
+        ? { kind: 'version', no: viewing.versionNo }
+        : null,
   });
   const versionText = t(label.key, label.params);
   const clientName = session?.model.project.clientName ?? null;
+  // EZD-122 (S20 Entry points; Q-0700 05): the version text opens the Versions tab.
   const subtitle = useMemo(
     () => [
       clientName,
-      <span key="version" data-testid="editor-version">
+      <button
+        key="version"
+        type="button"
+        className={styles.versionLink}
+        data-testid="editor-version"
+        onClick={() => setLeftTab('versions')}
+      >
         {versionText}
-      </span>,
+      </button>,
       sync ? <SaveStateText sync={sync} /> : null,
     ],
     [clientName, versionText, sync],
   );
+
+  // EZD-122 (Q-0700 03 "Revert"): the outbox drains, the route reverts, then the editor reopens with a new store.
+  const versionLabelOf = (row: VersionRow): string => {
+    const title = versionTitle(row);
+    return 'text' in title ? title.text : t(title.key, title.params);
+  };
+  const revert = async () => {
+    if (session === null || viewing === null || reverting) return;
+    setReverting(true);
+    setVersionError(null);
+    try {
+      await sync?.flush();
+    } catch {
+      /* the save-failed banner says it; the route refuses a stale generation */
+    }
+    // The row as the list has it now (a name given since it was opened included).
+    const current = versionRows?.find((row) => row.id === viewing.id) ?? viewing;
+    const r = await postRevert(projectId, viewing.id, {
+      lockEpoch: session.model.lockEpoch,
+      label: versionLabelOf(current),
+    });
+    setReverting(false);
+    if (!r.ok) {
+      setVersionError({ id: viewing.id, key: versionErrorKey(r.code) });
+      return;
+    }
+    ownRevert.current = r.body.id;
+    retry();
+  };
+  const nameSnapshot = async (name: string): Promise<string | null> => {
+    if (viewing === null) return 'no_version';
+    const r = await postSnapshot(projectId, viewing.id, name);
+    if (!r.ok) {
+      setVersionError({ id: viewing.id, key: versionErrorKey(r.code) });
+      return r.code;
+    }
+    setVersionError(null);
+    refreshVersions();
+    return null;
+  };
+  const cleanupAge = session?.defaults.get()['version_cleanup_age'];
 
   const closeMenu = useCallback(() => setMenu(null), []);
 
@@ -838,7 +971,18 @@ export function ProjectEditor({
   );
   // EZD-213b (vault/plans/EZD-213b.md D-Editor): the inspector aside for every viewer of a ready plan.
   const inspector =
-    showPlan && cabinetsOn && session !== null && cabinetSelection !== null ? (
+    showPlan && viewing !== null && session !== null ? (
+      <LazyVersionInspector
+        row={versionRows?.find((r) => r.id === viewing.id) ?? viewing}
+        rows={versionRows ?? []}
+        canEditModel={session.lock.canEditModel}
+        canRevert={holdsLock}
+        onName={nameSnapshot}
+        onRevert={() => void revert()}
+        reverting={reverting}
+        error={versionError?.id === viewing.id ? t(versionError.key) : null}
+      />
+    ) : showPlan && cabinetsOn && session !== null && cabinetSelection !== null ? (
       <LazyCabinetInspector
         store={session.store}
         selectionStore={cabinetSelection}
@@ -874,6 +1018,22 @@ export function ProjectEditor({
         roomArea={derived?.roomAreaSqFt}
         floors={floors ?? undefined}
         projectId={projectId}
+        tab={leftTab}
+        onTab={setLeftTab}
+        versions={
+          versionView !== null ? (
+            <LazyVersions
+              rows={versionRows}
+              failed={versionsFailed}
+              openFailed={view.failed}
+              viewingId={viewing?.id ?? null}
+              openingId={view.opening}
+              cleanupAgeDays={typeof cleanupAge === 'number' ? cleanupAge : CLEANUP_AGE_DEFAULT}
+              onOpen={(row) => void versionView.open(row)}
+              onBack={versionView.back}
+            />
+          ) : undefined
+        }
       />
     ) : null;
   const openAssistant = shown !== null && assistantOpen ? assistantSession : null;
@@ -930,6 +1090,13 @@ export function ProjectEditor({
                     ) : null}
                     <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
                     {part('status')}
+                    {leftTab === 'versions' || viewing !== null ? (
+                      <LazyVersionsStatus
+                        rows={versionRows}
+                        viewing={viewing}
+                        onBack={versionView?.back ?? noop}
+                      />
+                    ) : null}
                   </>
                 ) : undefined
               }
@@ -1012,6 +1179,43 @@ function useLazy<T>(module: LazyModule<T>, wanted = true): T | undefined {
     };
   }, [module, mod, wanted]);
   return mod;
+}
+
+// EZD-122 (11 Budgets): the Versions tab, the version inspector and the status text load when the tab first opens.
+const versionsModule = lazyModule(() => import('./versions/VersionsPanel'));
+const CLEANUP_AGE_DEFAULT = 30;
+
+function versionErrorKey(code: string): MessageKey {
+  switch (code) {
+    case 'stale_lock_epoch':
+      return 'error.stale_lock_epoch';
+    case 'permission_denied':
+      return 'error.not_authorized';
+    case 'version_not_found':
+      return 'error.version_not_found';
+    case 'version_not_working':
+      return 'error.version_not_working';
+    case 'invalid_input':
+    case 'invalid_object':
+      return 'error.invalid_input';
+    default:
+      return 'office.versions.action_failed';
+  }
+}
+
+function LazyVersions(props: VersionsPanelProps) {
+  const mod = useLazy(versionsModule);
+  return mod ? <mod.VersionsPanel {...props} /> : null;
+}
+
+function LazyVersionInspector(props: VersionInspectorProps) {
+  const mod = useLazy(versionsModule);
+  return mod ? <mod.VersionInspector {...props} /> : null;
+}
+
+function LazyVersionsStatus(props: VersionsStatusProps) {
+  const mod = useLazy(versionsModule);
+  return mod ? <mod.VersionsStatus {...props} /> : null;
 }
 
 // EZD-5604b (11 Budgets; EZD-120c B11): the Assistant preview layer comes with the panel's lazy module, shown while

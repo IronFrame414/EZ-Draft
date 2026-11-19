@@ -577,14 +577,14 @@ isOneToOne: false
                   ]
                 },"model_version": {
                   Row: {
-                    "cleanup_shown_at": string | null,"created_at": string,"created_by": string | null,"id": string,"is_sent": boolean,"is_snapshot": boolean,"keep": boolean,"label": string | null,"model_json": NonNullable<Json>,"parent_version_id": string | null,"preview_path": string | null,"project_id": string,"schema_version": number,"sent_at": string | null,"sent_to": string | null,"tenant_id": string,"version_no": number | null
+                    "cause": string | null,"cleanup_shown_at": string | null,"created_at": string,"created_by": string | null,"id": string,"is_sent": boolean,"is_snapshot": boolean,"keep": boolean,"label": string | null,"model_json": NonNullable<Json>,"parent_version_id": string | null,"preview_path": string | null,"project_id": string,"schema_version": number,"sent_at": string | null,"sent_to": string | null,"tenant_id": string,"version_no": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "cleanup_shown_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_sent"?: boolean,"is_snapshot"?: boolean,"keep"?: boolean,"label"?: string | null,"model_json": NonNullable<Json>,"parent_version_id"?: string | null,"preview_path"?: string | null,"project_id": string,"schema_version": number,"sent_at"?: string | null,"sent_to"?: string | null,"tenant_id": string,"version_no"?: number | null
+                    "cause"?: string | null,"cleanup_shown_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_sent"?: boolean,"is_snapshot"?: boolean,"keep"?: boolean,"label"?: string | null,"model_json": NonNullable<Json>,"parent_version_id"?: string | null,"preview_path"?: string | null,"project_id": string,"schema_version": number,"sent_at"?: string | null,"sent_to"?: string | null,"tenant_id": string,"version_no"?: number | null
                   }
                   Update: {
-                    "cleanup_shown_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_sent"?: boolean,"is_snapshot"?: boolean,"keep"?: boolean,"label"?: string | null,"model_json"?: NonNullable<Json>,"parent_version_id"?: string | null,"preview_path"?: string | null,"project_id"?: string,"schema_version"?: number,"sent_at"?: string | null,"sent_to"?: string | null,"tenant_id"?: string,"version_no"?: number | null
+                    "cause"?: string | null,"cleanup_shown_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_sent"?: boolean,"is_snapshot"?: boolean,"keep"?: boolean,"label"?: string | null,"model_json"?: NonNullable<Json>,"parent_version_id"?: string | null,"preview_path"?: string | null,"project_id"?: string,"schema_version"?: number,"sent_at"?: string | null,"sent_to"?: string | null,"tenant_id"?: string,"version_no"?: number | null
                   }
                   Relationships: [
                     {
@@ -1178,6 +1178,9 @@ isOneToOne: false
 "member_scope":
 { Args: { "p_membership_id": string }; Returns: Json
                            },
+"name_snapshot":
+{ Args: { "p_name": string,"p_project": string,"p_version": string }; Returns: Json
+                           },
 "open_notification":
 { Args: { "p_id": string }; Returns: {
               "link": string,"project_id": string,"project_state": string
@@ -1249,6 +1252,9 @@ isOneToOne: false
                            },
 "retry_import":
 { Args: { "p_job": string,"p_project": string }; Returns: Json
+                           },
+"revert_to_version":
+{ Args: { "p_label": string,"p_lock_epoch": number,"p_objects": Json,"p_project": string,"p_version": string }; Returns: Json
                            },
 "rewrap_my_ai_key":
 { Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean

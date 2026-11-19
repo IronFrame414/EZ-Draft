@@ -156,10 +156,10 @@ test.describe('EZD-218 left panel: Layers and Rooms', () => {
     await signInAs(user.email);
     await openReady(page, ids.P1);
 
-    // AC-1: Layers and Rooms, Layers open, no Versions tab (Q-0673 (c)).
+    // AC-1: Layers and Rooms, Layers open; EZD-122 adds Versions after them (Q-0673 (c) "until EZD-122").
     const panel = page.locator('[data-shell-region="left-panel"]');
     await expect(panel).toHaveAttribute('aria-label', 'Left panel');
-    await expect(panel.getByRole('tab')).toHaveText(['Layers', 'Rooms']);
+    await expect(panel.getByRole('tab')).toHaveText(['Layers', 'Rooms', 'Versions']);
     await expect(id(page, 'left-panel-tab-layers')).toHaveAttribute('aria-selected', 'true');
 
     const { room, walls } = await seedRoom(page);

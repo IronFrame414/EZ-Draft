@@ -137,6 +137,50 @@ const calls: Call[] = [
       );
     },
   },
+  // EZD-122: the Versions panel routes.
+  {
+    route: 'GET /api/projects/<id>/versions',
+    run: async () => {
+      const id = randomUUID();
+      return (await import('./projects/[id]/versions/route')).GET(
+        get(`/api/projects/${id}/versions`),
+        withParams(id),
+      );
+    },
+  },
+  {
+    route: 'GET /api/projects/<id>/versions/<versionId>',
+    run: async () => {
+      const id = randomUUID();
+      const versionId = randomUUID();
+      return (await import('./projects/[id]/versions/[versionId]/route')).GET(
+        get(`/api/projects/${id}/versions/${versionId}`),
+        { params: Promise.resolve({ id, versionId }) },
+      );
+    },
+  },
+  {
+    route: 'POST /api/projects/<id>/versions/<versionId>/snapshot',
+    run: async () => {
+      const id = randomUUID();
+      const versionId = randomUUID();
+      return (await import('./projects/[id]/versions/[versionId]/snapshot/route')).POST(
+        post(`/api/projects/${id}/versions/${versionId}/snapshot`, { name: 'Kept' }),
+        { params: Promise.resolve({ id, versionId }) },
+      );
+    },
+  },
+  {
+    route: 'POST /api/projects/<id>/versions/<versionId>/revert',
+    run: async () => {
+      const id = randomUUID();
+      const versionId = randomUUID();
+      return (await import('./projects/[id]/versions/[versionId]/revert/route')).POST(
+        post(`/api/projects/${id}/versions/${versionId}/revert`, { lockEpoch: 0, label: 'x' }),
+        { params: Promise.resolve({ id, versionId }) },
+      );
+    },
+  },
   {
     route: 'GET /api/realtime/token',
     run: async () => (await import('./realtime/token/route')).GET(),

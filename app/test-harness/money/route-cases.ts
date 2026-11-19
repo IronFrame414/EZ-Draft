@@ -1140,6 +1140,66 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 201,
     note: 'EZD-111: one send; 201 { send } (no money)',
   },
+  // EZD-122: the Versions panel routes, after the send so the thumbnail cases' version stays the newest.
+  {
+    file: `${API}projects/[id]/versions/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/versions/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/versions`),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-122: the version list; 200 { versions } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/versions/[versionId]/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/versions/[versionId]/route'),
+    request: async (env) => {
+      const versionId = made(env, 'thumbVersionId');
+      return {
+        request: new Request(`${BASE}/api/projects/${env.projectId}/versions/${versionId}`),
+        params: { id: env.projectId, versionId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-122: one version read-only; 200 { version, invalid } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/versions/[versionId]/snapshot/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/versions/[versionId]/snapshot/route'),
+    request: async (env) => {
+      const versionId = made(env, 'thumbVersionId');
+      return {
+        request: new Request(
+          `${BASE}/api/projects/${env.projectId}/versions/${versionId}/snapshot`,
+          { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ name: 'Kept' }) },
+        ),
+        params: { id: env.projectId, versionId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-122: Name snapshot; 200 { version: { id, label } } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/versions/[versionId]/revert/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/versions/[versionId]/revert/route'),
+    request: async (env) => {
+      const versionId = made(env, 'thumbVersionId');
+      return {
+        request: new Request(
+          `${BASE}/api/projects/${env.projectId}/versions/${versionId}/revert`,
+          { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ lockEpoch: 0, label: 'Kept' }) },
+        ),
+        params: { id: env.projectId, versionId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-122: Revert with no holder at generation 0 (as a save); 200 { version: { id } } (no money)',
+  },
   {
     file: `${API}projects/[id]/plan-scale/route.ts`,
     method: 'PUT',

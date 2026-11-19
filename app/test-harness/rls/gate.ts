@@ -32,6 +32,12 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   },
   { fn: 'mark_sent_package_emailed', args: { p_sent_package: null } },
   { fn: 'resolve_sent_package', args: { p_token_hash: null } },
+  // EZD-122: Name snapshot and Revert (authenticated only).
+  { fn: 'name_snapshot', args: { p_project: null, p_version: null, p_name: null } },
+  {
+    fn: 'revert_to_version',
+    args: { p_project: null, p_version: null, p_lock_epoch: null, p_objects: null, p_label: null },
+  },
   // EZD-5601 step 2 (vault/plans/EZD-5601.md): the user's own Anthropic key functions, authenticated only.
   { fn: 'get_my_ai_key', args: {} },
   {

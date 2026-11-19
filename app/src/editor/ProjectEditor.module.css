@@ -42,3 +42,14 @@
 .state[data-editor-state='ready'] > * {
   pointer-events: auto;
 }
+
+/* EZD-122 (board S20 header: the version text is a link that opens the Versions tab). */
+.versionLink {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--ez-cobalt-link);
+  text-decoration: underline;
+  cursor: pointer;
+}

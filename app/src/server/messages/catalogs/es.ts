@@ -206,4 +206,6 @@ export const es = {
     'La edición se hace en un iPad o una computadora. Abre este proyecto allí.',
   // EZD-111 (vault/plans/EZD-111.md section 6): agent-written Spanish, checked at the field check (Q-0030 (a)).
   'error.send_no_client': 'Este proyecto no tiene un cliente con correo.',
+  // EZD-122: agent-written Spanish, checked at the field check (Q-0030 (a)).
+  'error.version_not_working': 'Solo se puede nombrar una versión de trabajo.',
 } as const satisfies Record<SpanishKey, Message>;
