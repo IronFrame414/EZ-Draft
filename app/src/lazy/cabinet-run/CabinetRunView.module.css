@@ -49,6 +49,29 @@
   flex: 1;
 }
 
+/* EZD-407: the fit chip, as board S04 (green pill; amber when the run does not fit). */
+.fitChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ez-green-tint);
+  color: var(--ez-green);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+button.fitChip {
+  cursor: pointer;
+}
+
+.fitMismatch {
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+}
+
 .autoFill {
   height: 36px;
   padding: 0 14px;

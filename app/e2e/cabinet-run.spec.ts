@@ -693,3 +693,46 @@ test.describe('EZD-409 Cabinet schedule', () => {
     await expect(id(page, 'cabinet-schedule-export')).toHaveCount(0);
   });
 });
+
+// EZD-407 (AC-EZD-407-1 "A 117" run with 1/2" scribe on a 117 1/2" wall shows green"; S04 Controls "Fit chip"; board
+// S04Cabinets): the seeded board run on its 117 1/2" wall, with the Defaults fit tolerance not set.
+test.describe('EZD-407 Fit chip', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  test('AC-EZD-407-1 the 117" run with 1/2" scribe on a 117 1/2" wall shows green; a click picks the filler', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids: project, user } = await fixtureS();
+    await signInAs(user.email);
+    await openReady(page, project.P1);
+    const ids = await seedRun(page);
+    await saved(page);
+
+    await page.keyboard.press('c');
+    const chip = id(page, 'cabinet-fit-chip');
+    await expect(chip).toHaveAttribute('data-fit', 'fits');
+    await expect(chip).toHaveText('Run 117" fits wall 117 1/2" · 1/2" scribe');
+    // Drawn green, as the board's chip.
+    expect(await chip.evaluate((e) => getComputedStyle(e).color)).toBe(
+      await page.evaluate(() => {
+        const probe = document.createElement('span');
+        probe.style.color = 'var(--ez-green)';
+        document.body.appendChild(probe);
+        const c = getComputedStyle(probe).color;
+        probe.remove();
+        return c;
+      }),
+    );
+
+    await chip.click();
+    await expect.poll(() => selectedIn(page, 'plan')).toEqual([ids.F3]);
+    await expect.poll(() => selectedIn(page, 'elevation')).toEqual([ids.F3]);
+  });
+});

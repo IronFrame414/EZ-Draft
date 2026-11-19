@@ -18,6 +18,7 @@ export * from './cabinets/elevation';
 export * from './cabinets/run';
 export * from './cabinets/edit';
 export * from './cabinets/hosting';
+export * from './cabinets/fit';
 export * from './countertops/piece';
 export * from './derived';
 export * from './drawing';

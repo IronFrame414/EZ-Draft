@@ -23,9 +23,11 @@ import {
   resizeCabinetMember,
   cabinetRunLayout,
   cabinetRunSummary,
+  cabinetRunFit,
   objectLookup,
   parseStoredObject,
   type CabinetRun,
+  type CabinetRunFit,
   type CabinetRunLayout,
   type CabinetRunMember,
   type CabinetRunSummary,
@@ -83,6 +85,26 @@ export function cabinetView(
     offWall: isCabinetRunOffWall(run, objects),
   };
 }
+
+// EZD-407 (S04 Controls "Fit chip"; phase-04 EZD-407; AC-EZD-407-1; vault/build/assumptions.md EZD-407): how the
+// run fits its host wall. The wall length is the host wall's extent along the run (the elevation's wall), the scribe
+// the base row fillers' allowance and `tolerance` the Defaults "Cabinet fit" value (null while not set). Null for a
+// run off every wall: there is no wall to fit.
+export function cabinetViewFit(view: CabinetView, tolerance: number | null): CabinetRunFit | null {
+  const { wall } = view.layout;
+  if (wall === null) return null;
+  return cabinetRunFit({
+    total: view.summary.total,
+    wallLength: wall.to - wall.from,
+    scribe: view.summary.scribe,
+    tolerance,
+  });
+}
+
+// EZD-407 "click zooms to the filler": the screen has no zoom yet (EZD-404), so a click on the chip selects the base
+// row's fillers, marked in both views. Empty when the row has none.
+export const cabinetFitFillerIds = (view: CabinetView): string[] =>
+  view.layout.base.filter((s) => s.kind === 'filler').map((s) => s.id);
 
 export type CabinetSelection = {
   readonly ids: readonly string[];

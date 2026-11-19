@@ -61,7 +61,9 @@ import {
   cabinetHeightChanges,
   cabinetReorderChanges,
   cabinetResizeChanges,
+  cabinetFitFillerIds,
   cabinetView,
+  cabinetViewFit,
   isCabinetSelected,
   modelObjects,
   wallTileAddChanges,
@@ -82,6 +84,8 @@ export type CabinetRunViewProps = {
   newId?: () => string;
   // EZD-406: the selection shared with the box inspector.
   selectionStore?: CabinetSelectionStore;
+  // EZD-407: the Defaults "Cabinet fit" tolerance in inches; null while not set.
+  fitTolerance?: number | null;
 };
 
 const inches = (n: number) => `${formatInches(n)}"`;
@@ -134,6 +138,7 @@ export function CabinetRunView({
   canEdit = false,
   newId,
   selectionStore,
+  fitTolerance = null,
 }: CabinetRunViewProps): ReactElement {
   const { objects, parsed, floorId, view } = useCabinetModel(store, floors);
   const selStore = useCabinetSelectionStore(selectionStore);
@@ -291,6 +296,7 @@ export function CabinetRunView({
   return (
     <CabinetRunScreen
       view={shown}
+      fitTolerance={fitTolerance}
       tile={tile}
       selection={selection}
       onInput={(i) => {
@@ -381,7 +387,64 @@ export type CabinetRunScreenProps = {
   onEntryClose?: () => void;
   menu?: CabinetMenuProps | null;
   tile?: CabinetTileHandlers;
+  // EZD-407: the Defaults fit tolerance in inches; null while not set (counts as 0).
+  fitTolerance?: number | null;
 };
+
+// EZD-407 (S04 Controls "Fit chip ("Run 117" fits wall 117 1/2" · 1/2" scribe") | Canvas header | Display; click zooms
+// to the filler/scribe location"; S04 States "Run mismatch: fit chip turns to warning with the difference"; board
+// S04Cabinets; AC-EZD-407-1; vault/build/assumptions.md EZD-407): green when the run fits its wall, amber with the gap
+// otherwise. A click selects the base row's fillers (no zoom on this screen yet). None for a run off every wall.
+function FitChip({
+  view,
+  tolerance,
+  onInput,
+}: {
+  view: CabinetView;
+  tolerance: number | null;
+  onInput: (i: CabinetSelectionInput) => void;
+}): ReactElement | null {
+  const t = useT();
+  const fit = cabinetViewFit(view, tolerance);
+  if (fit === null) return null;
+  const fillers = cabinetFitFillerIds(view);
+  const params = {
+    run: inches(fit.total),
+    wall: inches(fit.wallLength),
+    scribe: inches(fit.scribe),
+    gap: inches(Math.abs(fit.gap)),
+  };
+  const text = fit.fits
+    ? t('office.cabinets.fit.fits', params)
+    : fit.gap < 0
+      ? t('office.cabinets.fit.long', params)
+      : t('office.cabinets.fit.short', params);
+  const body = (
+    <>
+      <Icon name={fit.fits ? 'check' : 'error'} size={16} />
+      {text}
+    </>
+  );
+  const common = {
+    className: fit.fits ? styles.fitChip : `${styles.fitChip} ${styles.fitMismatch}`,
+    'data-testid': 'cabinet-fit-chip',
+    'data-fit': fit.fits ? 'fits' : 'mismatch',
+  };
+  return fillers.length === 0 ? (
+    <span {...common} role="status">
+      {body}
+    </span>
+  ) : (
+    <button
+      type="button"
+      {...common}
+      title={t('office.cabinets.fit.show_fillers')}
+      onClick={() => onInput({ type: 'set', ids: fillers })}
+    >
+      {body}
+    </button>
+  );
+}
 
 export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
   const {
@@ -394,6 +457,7 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
     onEntryClose,
     menu = null,
     tile,
+    fitTolerance = null,
   } = props;
   const t = useT();
   const sectionRef = useRef<HTMLElement>(null);
@@ -451,6 +515,7 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
           </select>
         </label>
         <span className={styles.grow} />
+        <FitChip view={view} tolerance={fitTolerance} onInput={onInput} />
         {/* EZD-408 fills the run; until then the button is shown and off. */}
         <button type="button" className={styles.autoFill} data-testid="cabinet-auto-fill" disabled>
           {t('office.cabinets.auto_fill')}

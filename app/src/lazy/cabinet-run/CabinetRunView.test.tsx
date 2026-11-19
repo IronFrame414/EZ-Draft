@@ -207,3 +207,48 @@ describe('EZD-733 wall tile on the cabinet elevation', () => {
     expect(b).toContain('data-testid="cabinet-tile-start"');
   });
 });
+
+// EZD-407 (AC-EZD-407-1 "A 117" run with 1/2" scribe on a 117 1/2" wall shows green"; S04 Controls "Fit chip ("Run
+// 117" fits wall 117 1/2" · 1/2" scribe")"; S04 States "Run mismatch: fit chip turns to warning with the difference").
+// Expected text: board S04's chip; the mismatch wording is in vault/build/assumptions.md EZD-407.
+describe('EZD-407 fit chip', () => {
+  const chip = (s: string) => /<(button|span)[^>]*data-testid="cabinet-fit-chip"[^>]*>.*?<\/\1>/.exec(s)?.[0] ?? '';
+  const onWall = (to: number) => {
+    const v = view()!;
+    return { ...v, layout: { ...v.layout, wall: { from: 0, to } } };
+  };
+  const at = (v: ReturnType<typeof view>, fitTolerance: number | null = null) =>
+    html(
+      <CabinetRunScreen
+        view={v}
+        selection={NO_CABINET_SELECTION}
+        onInput={() => {}}
+        fitTolerance={fitTolerance}
+      />,
+    );
+
+  it('AC-EZD-407-1: the board run (117", 1/2" scribe) on its 117 1/2" wall shows the green chip', () => {
+    const c = chip(screen());
+    expect(c).toContain('data-fit="fits"');
+    expect(c).toContain('Run 117" fits wall 117 1/2" · 1/2" scribe');
+    expect(c).not.toMatch(/fitMismatch/);
+  });
+
+  it('a 120" wall shows the amber chip with the 3" gap; a 2 1/2" tolerance turns it green', () => {
+    const c = chip(at(onWall(120)));
+    expect(c).toContain('data-fit="mismatch"');
+    expect(c).toContain('Run 117" is 3" short of wall 120" · 1/2" scribe');
+    expect(chip(at(onWall(120), 2.5))).toContain('data-fit="fits"');
+  });
+
+  it('a run longer than its wall shows the amber chip with the overrun', () => {
+    const c = chip(at(onWall(115)));
+    expect(c).toContain('data-fit="mismatch"');
+    expect(c).toContain('Run 117" is 2" over wall 115"');
+  });
+
+  it('a run off every wall has no chip', () => {
+    const v = view()!;
+    expect(at({ ...v, layout: { ...v.layout, wall: null } })).not.toContain('cabinet-fit-chip');
+  });
+});

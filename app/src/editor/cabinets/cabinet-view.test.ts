@@ -10,8 +10,17 @@ import {
   wallTileAddChanges,
   wallTileChanges,
   wallTileStart,
+  cabinetFitFillerIds,
+  cabinetViewFit,
 } from './cabinet-view';
-import { boardModel, boardModelWallMoved, CAB_FLOOR, CAB_RUN, cabId } from './test-utils/board-run';
+import {
+  boardModel,
+  boardModelWallMoved,
+  CAB_FLOOR,
+  CAB_RUN,
+  CAB_WALL,
+  cabId,
+} from './test-utils/board-run';
 
 describe('EZD-404 cabinet view', () => {
   it('opens the first run on the open floor with its layout, counts and elevation letter', () => {
@@ -131,5 +140,48 @@ describe('EZD-733 wall tile edits', () => {
     expect(wallTileChanges(view, parsed, { joint: -0.125 })).toEqual([]);
     expect(wallTileChanges(view, parsed, { height: 0 })).toEqual([]);
     expect(wallTileChanges(view, parsed, { pattern: 'straight' })).toEqual([]);
+  });
+});
+
+// EZD-407 (AC-EZD-407-1 "A 117" run with 1/2" scribe on a 117 1/2" wall shows green"; phase-04 EZD-407 rule). The
+// board run is 117" with one 3" filler carrying 1/2" scribe, on a 117 1/2" wall.
+// The board model with its back wall `length` long.
+const wallOf = (length: number) => {
+  const m = new Map(boardModel());
+  const w = m.get(CAB_WALL)!;
+  const data = w.data as { geometry: { start: { x: number; y: number } } };
+  m.set(CAB_WALL, {
+    ...w,
+    data: { ...w.data, geometry: { ...data.geometry, end: { x: length, y: 0 } } },
+  });
+  return m;
+};
+
+describe('EZD-407 fit of the run', () => {
+  it('AC-EZD-407-1: the board run fits its 117 1/2" wall with 1/2" scribe and no tolerance set', () => {
+    const v = cabinetView(modelObjects(boardModel()), CAB_FLOOR)!;
+    const f = cabinetViewFit(v, null);
+    expect(f).toMatchObject({ fits: true, total: 117, wallLength: 117.5, scribe: 0.5, gap: 0.5 });
+  });
+
+  it('a 120" wall: the 3" gap is more than the 1/2" scribe, flagged; a 2 1/2" tolerance makes it fit', () => {
+    const v = cabinetView(modelObjects(wallOf(120)), CAB_FLOOR)!;
+    expect(cabinetViewFit(v, null)).toMatchObject({ fits: false, gap: 3 });
+    expect(cabinetViewFit(v, 2.5)).toMatchObject({ fits: true, gap: 3 });
+  });
+
+  it('a 115" wall: the run is 2" longer than the wall, flagged', () => {
+    const v = cabinetView(modelObjects(wallOf(115)), CAB_FLOOR)!;
+    expect(cabinetViewFit(v, null)).toMatchObject({ fits: false, gap: -2 });
+  });
+
+  it('the chip click picks the base row fillers', () => {
+    const v = cabinetView(modelObjects(boardModel()), CAB_FLOOR)!;
+    expect(cabinetFitFillerIds(v)).toEqual([cabId(1)]);
+  });
+
+  it('a run off every wall has no fit', () => {
+    const v = cabinetView(modelObjects(boardModel()), CAB_FLOOR)!;
+    expect(cabinetViewFit({ ...v, layout: { ...v.layout, wall: null } }, null)).toBeNull();
   });
 });

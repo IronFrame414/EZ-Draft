@@ -1964,6 +1964,11 @@ export const en = {
   'office.cabinets.resize_edge': 'Drag to resize',
   // EZD-410: S04 Validation's red flag on a run left off its wall.
   'office.cabinets.not_on_wall': 'Not on a wall',
+  // EZD-407: the fit chip. `fits` is board S04's text; the rest is wording for Josh to confirm (assumptions.md EZD-407).
+  'office.cabinets.fit.fits': 'Run {run} fits wall {wall} · {scribe} scribe',
+  'office.cabinets.fit.short': 'Run {run} is {gap} short of wall {wall} · {scribe} scribe',
+  'office.cabinets.fit.long': 'Run {run} is {gap} over wall {wall}',
+  'office.cabinets.fit.show_fillers': 'Show the fillers',
   // EZD-733: the wall tile bar and the tile start point (vault/build/assumptions.md EZD-733, wording for Josh to confirm).
   'office.cabinets.tile.title': 'Wall tile',
   'office.cabinets.tile.add': 'Add wall tile',

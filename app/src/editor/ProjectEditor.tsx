@@ -494,6 +494,18 @@ export function ProjectEditor({
     () => (sessionStore === null ? null : createCabinetSelectionStore()),
     [sessionStore],
   );
+  // EZD-407: the Defaults "Cabinet fit" tolerance for the fit chip, re-read on every defaults resync; null while not
+  // set.
+  const sessionDefaults = session?.defaults ?? null;
+  const readFitTolerance = () => {
+    const v = sessionDefaults?.get()['cabinet_fit_tolerance'];
+    return typeof v === 'number' ? v : null;
+  };
+  const fitTolerance = useSyncExternalStore(
+    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
+    readFitTolerance,
+    readFitTolerance,
+  );
   // Leaving the Cabinets tool drops its selection, as the screen's own selection did before EZD-406.
   useEffect(() => {
     if (!cabinetsOn) cabinetSelection?.getState().send({ type: 'set', ids: [] });
@@ -969,6 +981,7 @@ export function ProjectEditor({
           floors={floors ?? undefined}
           canEdit={mayEdit}
           selectionStore={cabinetSelection ?? undefined}
+          fitTolerance={fitTolerance}
         />
       ) : null}
       {stateArea}
