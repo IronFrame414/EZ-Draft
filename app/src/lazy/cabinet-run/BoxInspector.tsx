@@ -39,6 +39,12 @@ import {
   type CabinetMemberKind,
 } from '../../editor/cabinets/box-inspector';
 import { useCabinetModel } from './CabinetRunView';
+import {
+  CabinetScheduleView,
+  loadPermissions as fetchMemberPermissions,
+  useCanExport,
+  type PermissionsLoad,
+} from './CabinetSchedule';
 import styles from './BoxInspector.module.css';
 
 export type CatalogLoad = () => Promise<CatalogItem[]>;
@@ -51,6 +57,8 @@ export type CabinetInspectorProps = {
   canEdit?: boolean;
   // GET /api/catalog by default; tests pass their own.
   loadCatalog?: CatalogLoad;
+  // EZD-409: GET /api/permissions by default (Export shows the schedule's CSV button); tests pass their own.
+  loadPermissions?: PermissionsLoad;
 };
 
 const inches = (n: number) => `${formatInches(n)}"`;
@@ -84,11 +92,13 @@ export function CabinetInspector({
   floors,
   canEdit = false,
   loadCatalog = fetchCatalog,
+  loadPermissions = fetchMemberPermissions,
 }: CabinetInspectorProps): ReactElement {
   const { parsed, view } = useCabinetModel(store, floors);
   const ids = useStore(selectionStore, (s) => s.selection.ids);
   const swapFor = useStore(selectionStore, (s) => s.swapFor);
   const catalog = useCatalog(loadCatalog);
+  const canExport = useCanExport(loadPermissions);
   const apply = useCallback(
     (changes: Change[]) => (changes.length === 0 ? [] : store.applyEdit(changes)),
     [store],
@@ -102,6 +112,7 @@ export function CabinetInspector({
       box={one}
       catalog={catalog}
       canEdit={canEdit}
+      canExport={canExport}
       swapOpen={one !== null && swapFor !== null && swapFor.toLowerCase() === one.id.toLowerCase()}
       onSwapOpen={(open) => selectionStore.getState().openSwap(open && one !== null ? one.id : null)}
       onChanges={apply}
@@ -116,6 +127,8 @@ export type BoxInspectorScreenProps = {
   box: BoxInspectorView | null;
   catalog: CatalogState;
   canEdit: boolean;
+  // EZD-409: the member holds Export (the schedule's Export CSV button).
+  canExport?: boolean;
   swapOpen: boolean;
   onSwapOpen(open: boolean): void;
   onChanges(changes: Change[]): unknown;
@@ -196,12 +209,14 @@ function BoxPanel({
   box,
   catalog,
   canEdit,
+  canExport = false,
   swapOpen,
   onSwapOpen,
   onChanges,
 }: BoxInspectorScreenProps & { view: CabinetView; box: BoxInspectorView }): ReactElement {
   const t = useT();
   const [picking, setPicking] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const edit = (e: BoxEdit) => onChanges(boxEditChanges(view, objects, box.id, e));
   const items = catalog.kind === 'ready' ? catalog.items : [];
   const item =
@@ -404,16 +419,25 @@ function BoxPanel({
         >
           {t('office.cabinets.swap')}
         </button>
-        {/* EZD-409 opens the schedule; until then the button is shown and off. */}
+        {/* EZD-409: every viewer opens the schedule (S04 Permissions "View projects"). */}
         <button
           type="button"
           className={styles.footerButton}
           data-testid="box-inspector-schedule"
-          disabled
+          aria-expanded={scheduleOpen}
+          onClick={() => setScheduleOpen(true)}
         >
           {t('office.cabinets.schedule')}
         </button>
       </footer>
+
+      {scheduleOpen ? (
+        <CabinetScheduleView
+          objects={objects}
+          canExport={canExport}
+          onClose={() => setScheduleOpen(false)}
+        />
+      ) : null}
 
       {picking && catalog.kind === 'ready' ? (
         <div

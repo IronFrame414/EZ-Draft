@@ -1987,6 +1987,15 @@ export const en = {
   'office.cabinets.swap_title': 'Compatible boxes',
   'office.cabinets.swap_empty': 'No compatible boxes in the catalog.',
   'office.cabinets.schedule': 'Cabinet schedule',
+  // EZD-409: the schedule view and its CSV (S04 "code, qty, finish, notes"; 08 Exports).
+  'office.cabinets.schedule_code': 'Code',
+  'office.cabinets.schedule_qty': 'Qty',
+  'office.cabinets.schedule_finish': 'Finish',
+  'office.cabinets.schedule_notes': 'Notes',
+  'office.cabinets.schedule_existing': '{count} existing',
+  'office.cabinets.schedule_empty': 'No cabinets in this project yet.',
+  'office.cabinets.schedule_export': 'Export CSV',
+  'office.cabinets.schedule_file': 'Cabinet schedule.csv',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

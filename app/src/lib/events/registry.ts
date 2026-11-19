@@ -110,6 +110,8 @@ export const EVENTS = {
   'library.item_deleted': { kind: 'log_only' },
   // EZD-313 (S02 Events emitted "import.cancelled (new)"): Cancel import discarded an import's detected items.
   'import.cancelled': { kind: 'log_only' },
+  // EZD-409 (S04 Events emitted "cabinet_schedule.updated (new)"): a save changed the project's cabinets.
+  'cabinet_schedule.updated': { kind: 'log_only' },
 } as const satisfies Record<string, { kind: EventKind }>;
 
 export type EventName = keyof typeof EVENTS;
@@ -246,4 +248,6 @@ export interface EventPayloads {
   'library.item_deleted': { itemId: string; kind: LibraryKind; name: string };
   // EZD-313 (S02 Events emitted import.cancelled): the import whose review was discarded.
   'import.cancelled': { projectId: string; jobId: string };
+  // EZD-409: the cabinet runs and members (boxes, fillers, panels, corners, shelves, trim) the save wrote.
+  'cabinet_schedule.updated': { objectIds: string[] };
 }

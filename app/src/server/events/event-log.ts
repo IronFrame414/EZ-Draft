@@ -196,6 +196,9 @@ export const EVENT_LOG: EventLogRules = {
     mode: 'sink',
     object: (e) => ({ type: 'project', id: e.payload.projectId }),
   },
+  // EZD-409: one row per save that wrote cabinet objects, on the project (at most one per save, within the
+  // rows-per-save budget Q-0735 keeps for model.saved).
+  'cabinet_schedule.updated': SINK,
 };
 
 // The first x-forwarded-for entry when it is one IPv4 or IPv6 address (no port, brackets or zone id), else

@@ -597,3 +597,99 @@ test.describe('EZD-406 Box inspector', () => {
     await expect(id(page, 'box-inspector')).not.toContainText('internal');
   });
 });
+
+// EZD-409 (S04 Controls "Cabinet schedule | Inspector footer | Opens the schedule: code, qty, finish, notes"; S04
+// Permissions "Export: export the cabinet schedule (CSV/PDF) from the schedule view"; AC-EZD-409-1, -2). Expected
+// values: board S04's run, one of each of its 8 codes; after the B15 is duplicated the plan holds two B15.
+test.describe('EZD-409 Cabinet schedule', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  const scheduleCounts = (page: Page) =>
+    page
+      .locator('[data-testid="cabinet-schedule-row"]')
+      .evaluateAll((rows) =>
+        rows.map((r) => [
+          r.getAttribute('data-code'),
+          r.querySelector('[data-testid="cabinet-schedule-qty"]')?.textContent,
+        ]),
+      );
+
+  test('AC-EZD-409-1, -2 the schedule counts the plan; Export CSV downloads one row per code', async ({
+    page,
+    signInAs,
+  }) => {
+    const { tenant, ids: project, user } = await fixtureS();
+    await setPermissions(tenant, user.membershipId, [...EDITOR, 'export'] as never);
+    await signInAs(user.email);
+    await openReady(page, project.P1);
+    const ids = await seedRun(page);
+    await saved(page);
+
+    await page.keyboard.press('c');
+    // A second B15: Duplicate from the box's context menu.
+    await box(page, ids.B15!, 'elevation').click({ button: 'right' });
+    await page.getByRole('menuitem', { name: 'Duplicate' }).click();
+    await saved(page);
+
+    await box(page, ids.SB36!, 'elevation').click();
+    await id(page, 'box-inspector-schedule').click();
+    await expect(id(page, 'cabinet-schedule')).toBeVisible();
+    // AC-EZD-409-1: counts match the plan.
+    await expect
+      .poll(() => scheduleCounts(page))
+      .toEqual([
+        ['B15', '2'],
+        ['B18', '1'],
+        ['B21', '1'],
+        ['DW24', '1'],
+        ['F3', '1'],
+        ['SB36', '1'],
+        ['W1530', '1'],
+        ['W3030', '1'],
+      ]);
+
+    // AC-EZD-409-2: the CSV has one row per code.
+    const download = page.waitForEvent('download');
+    await id(page, 'cabinet-schedule-export').click();
+    const file = await download;
+    expect(file.suggestedFilename()).toBe('Cabinet schedule.csv');
+    const stream = await file.createReadStream();
+    let csv = '';
+    for await (const chunk of stream) csv += String(chunk);
+    expect(csv.split('\r\n')).toEqual([
+      'Code,Qty,Finish,Notes',
+      'B15,2,,Back wall run',
+      'B18,1,,Back wall run',
+      'B21,1,,Back wall run',
+      'DW24,1,,Back wall run',
+      'F3,1,,Back wall run',
+      'SB36,1,,Back wall run',
+      'W1530,1,,Back wall run',
+      'W3030,1,,Back wall run',
+      '',
+    ]);
+
+    await id(page, 'cabinet-schedule-close').click();
+    await expect(id(page, 'cabinet-schedule')).toHaveCount(0);
+  });
+
+  test('without Export the schedule opens with no Export CSV', async ({ page, signInAs }) => {
+    const { ids: project, user } = await fixtureS();
+    await signInAs(user.email);
+    await openReady(page, project.P1);
+    const ids = await seedRun(page);
+    await saved(page);
+
+    await page.keyboard.press('c');
+    await box(page, ids.SB36!, 'elevation').click();
+    await id(page, 'box-inspector-schedule').click();
+    await expect(id(page, 'cabinet-schedule-row')).toHaveCount(8);
+    await expect(id(page, 'cabinet-schedule-export')).toHaveCount(0);
+  });
+});
