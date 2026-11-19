@@ -396,7 +396,8 @@
     "EZD-139",
     "EZD-733",
     "EZD-613",
-    "EZD-407"
+    "EZD-407",
+    "EZD-731"
   ],
   "seeded_done": 324,
   "merged": [
@@ -946,6 +947,14 @@
       "ts": "2026-11-19T07:13:19Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-731",
+      "title": "Mechanical layout",
+      "commit": "99deb7dd",
+      "ts": "2026-11-19T07:45:31Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1032,17 +1041,17 @@
     }
   },
   "running": {
-    "EZD-731": {
-      "lane": 1,
-      "title": "Mechanical layout",
-      "started": "2026-11-19T05:55:45Z",
-      "develop": "de05b6b9"
-    },
     "EZD-712": {
       "lane": 2,
       "title": "Submittal profiles",
       "started": "2026-11-19T06:23:49Z",
       "develop": "c902b61a"
+    },
+    "EZD-408": {
+      "lane": 0,
+      "title": "Auto-fill run",
+      "started": "2026-11-19T07:14:12Z",
+      "develop": "c351ab05"
     }
   }
 }
