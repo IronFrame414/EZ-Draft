@@ -14,7 +14,7 @@ Written 2026-11-18 when phases 28 to 37 were prepared for the build loop:
 
 Everything else in these phases was settled from the spec, your decisions and the drawings. Those choices are listed in `vault/build/assumptions.md` (about 345 rows, tagged with each ticket) for you to look over whenever you like. They include a lot of proposed screen wording, marked "Wording for Josh to confirm".
 
-Seven things need you. Only question 7 holds anything, and only one ticket (AR editing). Every other piece of phases 28 to 37 builds without waiting; you check the results at each phase check.
+Seven things needed you; all seven are answered (2026-11-18, Q-0771 to Q-0777). Only question 7 holds anything, and only one ticket (AR editing). Every other piece of phases 28 to 37 builds without waiting; you check the results at each phase check.
 
 ---
 
@@ -36,6 +36,9 @@ Seven things need you. Only question 7 holds anything, and only one ticket (AR e
 - (a) Build them from the spec in the style of the nearest approved drawing, with no new drawings (recommended)
 - (b) Make drawings first for the ones you name; only those tickets wait
 
+
+**Josh's answer (2026-11-18): (a), "yes".** Recorded as Q-0771.
+
 ---
 
 ## 2. Code warnings you accepted: do they print on the set the department gets?
@@ -50,6 +53,9 @@ Seven things need you. Only question 7 holds anything, and only one ticket (AR e
 
 - (a) Keep the issue log inside EZ Draft, under each issued revision, never on the sheets (recommended)
 - (b) Also print it on the cover sheet (A0.0)
+
+
+**Josh's answer (2026-11-18): (a).** Recorded as Q-0772. The issue log never prints on the sheets.
 
 ---
 
@@ -66,6 +72,9 @@ Seven things need you. Only question 7 holds anything, and only one ticket (AR e
 - (a) Start empty (recommended)
 - (b) An agent draws a starter set from the code book and your past permit sets, and you approve each one at the phase check
 - (c) You send the details you want drawn
+
+
+**Josh's answer (2026-11-18): (a).** Recorded as Q-0773. The detail library starts empty.
 
 ---
 
@@ -88,6 +97,9 @@ For Countertops, Tile, Lighting, Hardware, Paint and Trim and beams, you type th
 - (a) As above (recommended)
 - (b) Send your own lists
 
+
+**Josh's answer (2026-11-18): (a).** Recorded as Q-0774.
+
 ---
 
 ## 5. Names in the 3D layer list
@@ -102,6 +114,9 @@ For Countertops, Tile, Lighting, Hardware, Paint and Trim and beams, you type th
 
 - (a) "Fixtures + appliances" and "Lighting + devices" (recommended)
 - (b) Keep the drawing's "Furniture" and "Lighting"
+
+
+**Josh's answer (2026-11-18): (a).** Recorded as Q-0775.
 
 ---
 
@@ -118,6 +133,9 @@ For Countertops, Tile, Lighting, Hardware, Paint and Trim and beams, you type th
 - (a) 3D shows the floor you're on (recommended)
 - (b) Stack every floor, with a floor-to-floor height you type in for each floor (a later ticket)
 
+
+**Josh's answer (2026-11-18): (b).** Recorded as Q-0776. New ticket EZD-1022 (phase 34) adds a floor-to-floor height per floor and stacks every floor in 3D.
+
 ---
 
 ## 7. AR editing on iPhone and iPad: what if Safari can't do it?
@@ -132,6 +150,9 @@ For Countertops, Tile, Lighting, Hardware, Paint and Trim and beams, you type th
 
 - (a) If the research says no, AR editing moves to v2 with the native app; if it says yes, it builds as planned (recommended)
 - (b) Keep AR editing in v1 with whatever partial route the research finds
+
+
+**Josh's answer (2026-11-18): (a).** Recorded as Q-0777. EZD-1020 stays held until the EZD-1018 research note is read: go → it builds; no-go → it moves to v2.
 
 ---
 

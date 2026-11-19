@@ -236,8 +236,8 @@
     {
       "ticket": "EZD-1020",
       "title": "AR editing",
-      "reason": "Held 2026-11-18 at phases 28-37 prep: Safari may not allow moving objects in AR from a web page; Josh decides v1 vs v2 if the EZD-1018 spike says no-go for editing. Release (delete this entry) once he answers.",
-      "question": "vault/questions/phases-28-37-for-josh.md question 7",
+      "reason": "Josh 2026-11-18 (Q-0777): builds only if the EZD-1018 spike says AR editing is go. After EZD-1018 merges, read vault/spikes/EZD-1018.md: go → add approach rows and delete this entry; no-go → mark retired (v2 with the native app) and add it to non-goals.",
+      "question": "Q-0777",
       "kind": "held",
       "since": "2026-11-18"
     }
