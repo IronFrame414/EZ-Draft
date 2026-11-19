@@ -398,7 +398,8 @@
     "EZD-613",
     "EZD-407",
     "EZD-731",
-    "EZD-408"
+    "EZD-408",
+    "EZD-419"
   ],
   "seeded_done": 324,
   "merged": [
@@ -962,6 +963,14 @@
       "title": "Auto-fill run",
       "commit": "dfd7b482",
       "ts": "2026-11-19T08:40:29Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-419",
+      "title": "Plan inspector: run selection",
+      "commit": "d6f54cdb",
+      "ts": "2026-11-19T09:23:25Z",
       "kind": "ticket",
       "lane": 0
     }
