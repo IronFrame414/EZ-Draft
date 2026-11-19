@@ -7,6 +7,7 @@
 // EZD-730 (AC-EZD-730-1, -2): exports the plumbing diagram.
 // EZD-402 (AC-EZD-402-1): exports the cabinet run totals.
 // EZD-404 (AC-EZD-404-2): exports the cabinet run plan strip and elevation layout.
+// EZD-408 (AC-EZD-408-1): exports Auto-fill run.
 // EZD-405 (AC-EZD-405-1): exports the cabinet box edits (resize with code update, reorder, delete, duplicate).
 // EZD-411 (AC-EZD-411-1): exports the countertop piece measures.
 // EZD-215 (AC-EZD-215-1, -2): exports the bearing wall rule.
@@ -19,6 +20,7 @@ export * from './cabinets/run';
 export * from './cabinets/edit';
 export * from './cabinets/hosting';
 export * from './cabinets/fit';
+export * from './cabinets/autofill';
 export * from './countertops/piece';
 export * from './derived';
 export * from './drawing';

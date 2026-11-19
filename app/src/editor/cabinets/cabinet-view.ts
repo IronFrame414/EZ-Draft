@@ -24,8 +24,12 @@ import {
   cabinetRunLayout,
   cabinetRunSummary,
   cabinetRunFit,
+  cabinetAutoFill,
+  CABINET_BASE_DEPTH,
+  CABINET_BASE_HEIGHT,
   objectLookup,
   parseStoredObject,
+  type CabinetAutoFill,
   type CabinetRun,
   type CabinetRunFit,
   type CabinetRunLayout,
@@ -338,4 +342,82 @@ export function wallTileChanges(
     },
   };
   return JSON.stringify(next.data) === JSON.stringify(o.data) ? [] : [objectChange(next)];
+}
+
+// EZD-408 (S04 Controls "Auto-fill run | Canvas header | Fills the selected wall run with real boxes in 3" increments
+// plus fillers at walls and appliances; shows result for confirmation | Existing boxes are replaced only after
+// confirm"; phase-04 EZD-408; AC-EZD-408-1; vault/build/assumptions.md EZD-408): Auto-fill as model changes. The
+// replaced base-row members are removed, new boxes and fillers are made from the seeded generic line (B9 to B36, F3;
+// EZD-401), and the run lists them in order with the kept sink bases and appliance panels. The upper row is left as
+// it is. `fill` is null (and there are no changes) for a run off every wall. One `applyEdit`, so one undo step.
+export function cabinetAutoFillChanges(
+  view: CabinetView,
+  objects: readonly ModelObject[],
+  increment: number,
+  newId: () => string,
+): { changes: Change[]; fill: CabinetAutoFill | null } {
+  const fill = cabinetAutoFill(view.run, objects, increment);
+  if (fill === null) return { changes: [], fill: null };
+  const level = view.run.data.level;
+  const made: Change[] = [];
+  const base: string[] = [];
+  for (const s of fill.slots) {
+    if (s.kind === 'keep') {
+      base.push(s.id);
+      continue;
+    }
+    const id = newId();
+    base.push(id);
+    const size = { width: s.width, depth: CABINET_BASE_DEPTH, height: CABINET_BASE_HEIGHT };
+    const object: ModelObject =
+      s.kind === 'box'
+        ? {
+            id,
+            type: 'cabinet_box',
+            data: {
+              status: 'new',
+              level,
+              attributes: {
+                code: s.code,
+                boxType: 'base',
+                ...size,
+                // Board S04 and library rows "B9–B24 Base, 1 door", "B27–B36 Base, 2 doors".
+                faceLayout: s.width > 24 ? 'drawer_doors_2' : 'drawer_door_1',
+                hingeSide: s.width > 24 ? 'pair' : 'left',
+                finishedEnds: 'none',
+                catalogItemId: null,
+                finish: null,
+              },
+            },
+          }
+        : {
+            id,
+            type: 'cabinet_filler',
+            data: {
+              status: 'new',
+              level,
+              attributes: {
+                code: s.code,
+                ...size,
+                scribe: Math.min(s.scribe, s.width),
+                catalogItemId: null,
+                finish: null,
+              },
+            },
+          };
+    made.push(objectChange(object));
+  }
+  const run: CabinetRun = {
+    ...view.run,
+    data: {
+      ...view.run.data,
+      geometry: { ...view.run.data.geometry, start: fill.start },
+      attributes: { ...view.run.data.attributes, base },
+    },
+  };
+  const gone = fill.replaced.filter((id) => memberOf(objects, id) !== null);
+  return {
+    changes: [...gone.map((id) => ({ id, value: null })), ...made, objectChange(run)],
+    fill,
+  };
 }

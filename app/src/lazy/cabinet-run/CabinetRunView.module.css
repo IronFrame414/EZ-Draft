@@ -387,3 +387,28 @@ button.fitChip {
 .tileStart[data-draggable='true'] {
   cursor: move;
 }
+
+/* EZD-408: the Auto-fill result waiting for Confirm, in the style of the tile bar. */
+.fillBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.fillConfirm {
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+  font-size: 13px;
+  font-weight: 500;
+}

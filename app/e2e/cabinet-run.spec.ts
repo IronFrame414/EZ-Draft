@@ -736,3 +736,110 @@ test.describe('EZD-407 Fit chip', () => {
     await expect.poll(() => selectedIn(page, 'elevation')).toEqual([ids.F3]);
   });
 });
+
+// EZD-408 (AC-EZD-408-1 "a 117 1/2" empty wall returns boxes whose widths are multiples of 3" plus fillers, with the
+// total inside the scribe allowance"; 12 Acceptance · Cabinets "Auto-fill of a 117 1/2" wall yields boxes in 3"
+// increments plus filler, total shown vs wall"; S04 Controls "Auto-fill run ... Existing boxes are replaced only after
+// confirm"). Expected values worked by hand from the seeded line (B9 to B36, F3): F3, B36, B36, B36, F6 with 1/2"
+// scribe = 117" on the 117 1/2" wall, board S04's chip text.
+async function seedEmptyRun(page: Page): Promise<void> {
+  const level = await page.evaluate(() => {
+    const floor = (window as unknown as Window2).__ezdraftEditor
+      .objects()
+      .find((x) => x.type === 'floor');
+    if (!floor) throw new Error('no floor');
+    return floor.id;
+  });
+  const made = createWallData({
+    start: { x: 0, y: 0 },
+    end: { x: 117.5, y: 0 },
+    level,
+    thicknessSide: 'right',
+  });
+  if (!made.ok) throw new Error('wall data');
+  const wallId = crypto.randomUUID();
+  const v = (type: string, data: Record<string, unknown>) => ({
+    type,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data,
+  });
+  const changes = [
+    { id: wallId, value: v('wall', made.data as unknown as Record<string, unknown>) },
+    {
+      id: crypto.randomUUID(),
+      value: v('cabinet_run', {
+        geometry: { hostWallId: wallId, start: { x: 0, y: 0 }, axis: { x: 1, y: 0 } },
+        level,
+        attributes: { name: 'Back wall run', base: [], upper: [] },
+      }),
+    },
+  ];
+  const done = await page.evaluate(
+    (c) => (window as unknown as Window2).__ezdraftEditor.edit(c),
+    changes,
+  );
+  expect(done.length).toBeGreaterThan(0);
+}
+
+const baseCodes = (page: Page) =>
+  page.evaluate(() => {
+    const objects = (window as unknown as Window2).__ezdraftEditor.objects();
+    const run = objects.find((o) => o.type === 'cabinet_run');
+    const base = ((run?.data.attributes as { base?: string[] } | undefined)?.base ?? []) as string[];
+    return base.map(
+      (id) =>
+        (objects.find((o) => o.id === id)?.data.attributes as { code?: string } | undefined)?.code ??
+        null,
+    );
+  });
+
+test.describe('EZD-408 Auto-fill run', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  test('AC-EZD-408-1 Auto-fill of the empty 117 1/2" wall: preview, cancel, confirm; fits within the scribe; one undo', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids: project, user } = await fixtureS();
+    await signInAs(user.email);
+    await openReady(page, project.P1);
+    await seedEmptyRun(page);
+    await saved(page);
+
+    await page.keyboard.press('c');
+    const fill = id(page, 'cabinet-auto-fill');
+    await expect(fill).toBeEnabled();
+
+    // The result is shown first; the model is unchanged until Confirm.
+    await fill.click();
+    await expect(id(page, 'cabinet-auto-fill-bar')).toBeVisible();
+    const chip = id(page, 'cabinet-fit-chip');
+    await expect(chip).toHaveAttribute('data-fit', 'fits');
+    await expect(chip).toHaveText('Run 117" fits wall 117 1/2" · 1/2" scribe');
+    expect(await countOf(page, 'cabinet_box')).toBe(0);
+    await id(page, 'cabinet-auto-fill-cancel').click();
+    await expect(id(page, 'cabinet-auto-fill-bar')).toHaveCount(0);
+    expect(await baseCodes(page)).toEqual([]);
+
+    await fill.click();
+    await id(page, 'cabinet-auto-fill-confirm').click();
+    await expect(id(page, 'cabinet-auto-fill-bar')).toHaveCount(0);
+    await expect.poll(() => baseCodes(page)).toEqual(['F3', 'B36', 'B36', 'B36', 'F6']);
+    expect(await countOf(page, 'cabinet_box')).toBe(3);
+    expect(await countOf(page, 'cabinet_filler')).toBe(2);
+    await expect(id(page, 'cabinet-run-counts')).toHaveText('3 boxes · 2 fillers');
+    await expect(chip).toHaveText('Run 117" fits wall 117 1/2" · 1/2" scribe');
+    await saved(page);
+
+    // One undo step takes the whole fill back.
+    await page.keyboard.press('ControlOrMeta+z');
+    await expect.poll(() => baseCodes(page)).toEqual([]);
+    expect(await countOf(page, 'cabinet_box')).toBe(0);
+  });
+});

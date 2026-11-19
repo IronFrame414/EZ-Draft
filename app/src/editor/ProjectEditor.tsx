@@ -506,6 +506,16 @@ export function ProjectEditor({
     readFitTolerance,
     readFitTolerance,
   );
+  // EZD-408: the Defaults "Cabinet auto-fill increment" (per project) for Auto-fill run; null while not read.
+  const readAutoFillIncrement = () => {
+    const v = sessionDefaults?.get()['cabinet_autofill_increment'];
+    return typeof v === 'number' && v > 0 ? v : null;
+  };
+  const autoFillIncrement = useSyncExternalStore(
+    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
+    readAutoFillIncrement,
+    readAutoFillIncrement,
+  );
   // Leaving the Cabinets tool drops its selection, as the screen's own selection did before EZD-406.
   useEffect(() => {
     if (!cabinetsOn) cabinetSelection?.getState().send({ type: 'set', ids: [] });
@@ -982,6 +992,7 @@ export function ProjectEditor({
           canEdit={mayEdit}
           selectionStore={cabinetSelection ?? undefined}
           fitTolerance={fitTolerance}
+          autoFillIncrement={autoFillIncrement}
         />
       ) : null}
       {stateArea}

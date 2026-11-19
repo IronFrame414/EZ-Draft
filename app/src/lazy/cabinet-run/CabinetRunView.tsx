@@ -18,6 +18,11 @@
 // assumptions.md EZD-733): the wall tile bar under the header (Add wall tile, then pattern, tile size, joint, start
 // point and set height) and the tile drawn behind the elevation, cut pieces shaded and dashed. The start point is
 // typed in the bar or dragged on the elevation; each change is one undo step. Edits need Edit model and the lock.
+// EZD-408 (S04 Controls "Auto-fill run | Canvas header | Fills the selected wall run with real boxes in 3" increments
+// plus fillers at walls and appliances; shows result for confirmation | Existing boxes are replaced only after
+// confirm. Any box can be swapped after"; AC-EZD-408-1; vault/build/assumptions.md EZD-408): Auto-fill draws the
+// filled run (fit chip included) with a bar to confirm or cancel; the model changes only on Confirm, as one undo step.
+// Esc or Cancel drops it, and any other change to the model drops it too.
 import {
   useCallback,
   useEffect,
@@ -58,6 +63,7 @@ import {
   cabinetDeleteChanges,
   cabinetDropIndex,
   cabinetDuplicateChanges,
+  cabinetAutoFillChanges,
   cabinetHeightChanges,
   cabinetReorderChanges,
   cabinetResizeChanges,
@@ -86,6 +92,8 @@ export type CabinetRunViewProps = {
   selectionStore?: CabinetSelectionStore;
   // EZD-407: the Defaults "Cabinet fit" tolerance in inches; null while not set.
   fitTolerance?: number | null;
+  // EZD-408: the Defaults "Cabinet auto-fill increment" in inches (3" when not given).
+  autoFillIncrement?: number | null;
 };
 
 const inches = (n: number) => `${formatInches(n)}"`;
@@ -139,8 +147,12 @@ export function CabinetRunView({
   newId,
   selectionStore,
   fitTolerance = null,
+  autoFillIncrement = null,
 }: CabinetRunViewProps): ReactElement {
   const { objects, parsed, floorId, view } = useCabinetModel(store, floors);
+  // EZD-408: the Auto-fill result waiting for Confirm, for the model it was made from.
+  const [filling, setFilling] = useState<{ objects: Objects; changes: Change[] } | null>(null);
+  const fill = filling !== null && filling.objects === objects && canEdit ? filling : null;
   const selStore = useCabinetSelectionStore(selectionStore);
   const selection = useStore(selStore, (s) => s.selection);
   const send = selStore.getState().send;
@@ -163,10 +175,11 @@ export function CabinetRunView({
 
   // While dragging, the drawing shows the run as it will be.
   const shown = useMemo(() => {
+    if (fill !== null) return cabinetView(preview(objects, fill.changes), floorId);
     if (drag === null || view === null) return view;
     const changes = dragChanges(drag, view);
     return changes.length === 0 ? view : cabinetView(preview(objects, changes), floorId);
-  }, [drag, view, objects, floorId, dragChanges]);
+  }, [fill, drag, view, objects, floorId, dragChanges]);
 
   const apply = useCallback(
     (changes: Change[]) => (changes.length === 0 ? [] : store.applyEdit(changes)),
@@ -194,7 +207,8 @@ export function CabinetRunView({
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented) return;
       if (e.key === 'Escape') {
-        if (drag !== null) setDrag(null);
+        if (fill !== null) setFilling(null);
+        else if (drag !== null) setDrag(null);
         else if (menu !== null) setMenu(null);
         else if (entry !== null) setEntry(null);
         else if (selection.ids.length > 0) send({ type: 'escape' });
@@ -216,10 +230,10 @@ export function CabinetRunView({
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [drag, menu, entry, selection.ids.length, canEdit, deleteSelected, store, send]);
+  }, [fill, drag, menu, entry, selection.ids.length, canEdit, deleteSelected, store, send]);
 
   const edit: CabinetEditHandlers | undefined =
-    !canEdit || view === null
+    !canEdit || view === null || fill !== null
       ? undefined
       : {
           beginResize: (id, edge, x) => {
@@ -284,11 +298,39 @@ export function CabinetRunView({
   };
 
   const tile: CabinetTileHandlers | undefined =
-    !canEdit || view === null
+    !canEdit || view === null || fill !== null
       ? undefined
       : {
           add: () => apply(wallTileAddChanges(view, newId ?? (() => crypto.randomUUID()))),
           edit: (e) => apply(wallTileChanges(view, parsed, e)).length > 0,
+        };
+
+  // EZD-408: Auto-fill is offered with Edit model and the lock, for a run on a wall.
+  const autoFill: CabinetAutoFillHandlers | undefined =
+    !canEdit || view === null || view.layout.wall === null
+      ? undefined
+      : {
+          previewing: fill !== null,
+          start: () => {
+            setMenu(null);
+            setEntry(null);
+            setDrag(null);
+            const r = cabinetAutoFillChanges(
+              view,
+              parsed,
+              autoFillIncrement ?? 3,
+              newId ?? (() => crypto.randomUUID()),
+            );
+            if (r.changes.length === 0) return;
+            send({ type: 'set', ids: [] });
+            setFilling({ objects, changes: r.changes });
+          },
+          confirm: () => {
+            if (fill === null) return;
+            setFilling(null);
+            apply(fill.changes);
+          },
+          cancel: () => setFilling(null),
         };
 
   const menuIds =
@@ -297,6 +339,7 @@ export function CabinetRunView({
     <CabinetRunScreen
       view={shown}
       fitTolerance={fitTolerance}
+      autoFill={autoFill}
       tile={tile}
       selection={selection}
       onInput={(i) => {
@@ -360,6 +403,15 @@ export type CabinetEditHandlers = {
   isDragging: boolean;
 };
 
+// EZD-408: Auto-fill run; absent without Edit model and the lock, or for a run off every wall.
+export type CabinetAutoFillHandlers = {
+  // The filled run is drawn and waits for Confirm or Cancel.
+  previewing: boolean;
+  start(): void;
+  confirm(): void;
+  cancel(): void;
+};
+
 // EZD-733: the wall tile edits; absent without Edit model and the lock. `edit` is false when nothing changed or the
 // value was refused.
 export type CabinetTileHandlers = {
@@ -389,6 +441,7 @@ export type CabinetRunScreenProps = {
   tile?: CabinetTileHandlers;
   // EZD-407: the Defaults fit tolerance in inches; null while not set (counts as 0).
   fitTolerance?: number | null;
+  autoFill?: CabinetAutoFillHandlers;
 };
 
 // EZD-407 (S04 Controls "Fit chip ("Run 117" fits wall 117 1/2" · 1/2" scribe") | Canvas header | Display; click zooms
@@ -458,6 +511,7 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
     menu = null,
     tile,
     fitTolerance = null,
+    autoFill,
   } = props;
   const t = useT();
   const sectionRef = useRef<HTMLElement>(null);
@@ -516,11 +570,38 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
         </label>
         <span className={styles.grow} />
         <FitChip view={view} tolerance={fitTolerance} onInput={onInput} />
-        {/* EZD-408 fills the run; until then the button is shown and off. */}
-        <button type="button" className={styles.autoFill} data-testid="cabinet-auto-fill" disabled>
+        <button
+          type="button"
+          className={styles.autoFill}
+          data-testid="cabinet-auto-fill"
+          disabled={autoFill === undefined || autoFill.previewing}
+          onClick={() => autoFill?.start()}
+        >
           {t('office.cabinets.auto_fill')}
         </button>
       </header>
+      {autoFill?.previewing === true ? (
+        <div className={styles.fillBar} data-testid="cabinet-auto-fill-bar" role="status">
+          <span className={styles.tileTitle}>{t('office.cabinets.auto_fill.preview')}</span>
+          <span>{t('office.cabinets.auto_fill.replace_note')}</span>
+          <button
+            type="button"
+            className={styles.fillConfirm}
+            data-testid="cabinet-auto-fill-confirm"
+            onClick={autoFill.confirm}
+          >
+            {t('office.cabinets.auto_fill.confirm')}
+          </button>
+          <button
+            type="button"
+            className={styles.tileButton}
+            data-testid="cabinet-auto-fill-cancel"
+            onClick={autoFill.cancel}
+          >
+            {t('office.cabinets.auto_fill.cancel')}
+          </button>
+        </div>
+      ) : null}
       {entry !== null && onEntry !== undefined ? (
         <DimEntry
           key={entryKey(entry)}

@@ -116,3 +116,17 @@ export function boardModelWallMoved(delta: { x: number; y: number }): ModelObjec
   const changed = new Map<string, ModelObject>(r.changed.map((w) => [w.id, w]));
   return objects.map((o) => changed.get(o.id) ?? o);
 }
+
+// EZD-408 test data: the board's 117 1/2" back wall with an empty run on it (no boxes, no uppers), as stored model
+// values (AC-EZD-408-1 "a 117 1/2" empty wall").
+export function emptyRunModel(): Objects {
+  const objects = new Map(boardModel());
+  for (let i = 1; i <= 8; i++) objects.delete(cabId(i));
+  const run = objects.get(CAB_RUN)!;
+  const data = run.data as { attributes: Record<string, unknown> };
+  objects.set(CAB_RUN, {
+    ...run,
+    data: { ...run.data, attributes: { ...data.attributes, base: [], upper: [] } },
+  });
+  return objects;
+}

@@ -21,8 +21,11 @@ import {
   boardModelWallMoved,
   CAB_FLOOR,
   cabId,
+  emptyRunModel,
 } from '../../editor/cabinets/test-utils/board-run';
-import { CabinetRunScreen } from './CabinetRunView';
+import { cabinetAutoFillChanges } from '../../editor/cabinets/cabinet-view';
+import type { Change, Objects } from '../../editor/model/patches';
+import { CabinetRunScreen, type CabinetAutoFillHandlers } from './CabinetRunView';
 
 const html = (ui: ReactElement) =>
   renderToStaticMarkup(
@@ -250,5 +253,59 @@ describe('EZD-407 fit chip', () => {
   it('a run off every wall has no chip', () => {
     const v = view()!;
     expect(at({ ...v, layout: { ...v.layout, wall: null } })).not.toContain('cabinet-fit-chip');
+  });
+});
+
+// EZD-408 (AC-EZD-408-1; S04 Controls "Auto-fill run ... shows result for confirmation | Existing boxes are replaced
+// only after confirm"; 12 Acceptance · Cabinets "total shown vs wall"). Expected values worked by hand: on the empty
+// 117 1/2" run the result is F3, B36, B36, B36, F6 (1/2" scribe) = 117", board S04's chip text. The confirm bar
+// wording is in vault/build/assumptions.md EZD-408.
+describe('EZD-408 Auto-fill run', () => {
+  const noop = () => {};
+  const handlers = (previewing: boolean): CabinetAutoFillHandlers => ({
+    previewing,
+    start: noop,
+    confirm: noop,
+    cancel: noop,
+  });
+  const autoFillButton = (s: string) => /<button[^>]*data-testid="cabinet-auto-fill"[^>]*>/.exec(s)?.[0] ?? '';
+  const filled = (): Objects => {
+    const objects = emptyRunModel();
+    const v = cabinetView(modelObjects(objects), CAB_FLOOR)!;
+    const { changes } = cabinetAutoFillChanges(v, modelObjects(objects), 3, (() => {
+      let n = 0;
+      return () => `e0000000-0000-4000-8000-${String(++n).padStart(12, '0')}`;
+    })());
+    const next = new Map(objects);
+    for (const c of changes as Change[]) {
+      if (c.value === null) next.delete(c.id);
+      else next.set(c.id, c.value);
+    }
+    return next;
+  };
+
+  it('the button is off without Edit model and on with it', () => {
+    expect(autoFillButton(screen())).toContain('disabled');
+    const s = html(
+      <CabinetRunScreen view={view()} selection={NO_CABINET_SELECTION} onInput={noop} autoFill={handlers(false)} />,
+    );
+    expect(autoFillButton(s)).not.toContain('disabled');
+    expect(s).not.toContain('cabinet-auto-fill-bar');
+  });
+
+  it('AC-EZD-408-1: the result is drawn with its fit chip (total vs wall) and a bar to confirm or cancel', () => {
+    const v = cabinetView(modelObjects(filled()), CAB_FLOOR);
+    const s = html(
+      <CabinetRunScreen view={v} selection={NO_CABINET_SELECTION} onInput={noop} autoFill={handlers(true)} />,
+    );
+    const chain = [...s.matchAll(/data-chain-id="[^"]+" data-width="([\d.]+)"/g)].map((m) => Number(m[1]));
+    expect(chain).toEqual([3, 36, 36, 36, 6]);
+    expect(s).toContain('Run 117" fits wall 117 1/2" · 1/2" scribe');
+    expect(s).toContain('data-testid="cabinet-auto-fill-bar"');
+    expect(s).toContain('Auto-fill result');
+    expect(s).toMatch(/data-testid="cabinet-auto-fill-confirm"[^>]*>Confirm</);
+    expect(s).toMatch(/data-testid="cabinet-auto-fill-cancel"[^>]*>Cancel</);
+    // While the result waits, Auto-fill is not offered again.
+    expect(autoFillButton(s)).toContain('disabled');
   });
 });

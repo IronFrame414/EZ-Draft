@@ -1975,6 +1975,11 @@ export const en = {
   'office.cabinets.fit.short': 'Run {run} is {gap} short of wall {wall} · {scribe} scribe',
   'office.cabinets.fit.long': 'Run {run} is {gap} over wall {wall}',
   'office.cabinets.fit.show_fillers': 'Show the fillers',
+  // EZD-408: the Auto-fill confirm bar (vault/build/assumptions.md EZD-408, wording for Josh to confirm).
+  'office.cabinets.auto_fill.preview': 'Auto-fill result',
+  'office.cabinets.auto_fill.replace_note': 'Confirm to replace the boxes in this run. Sink bases and appliance panels stay.',
+  'office.cabinets.auto_fill.confirm': 'Confirm',
+  'office.cabinets.auto_fill.cancel': 'Cancel',
   // EZD-733: the wall tile bar and the tile start point (vault/build/assumptions.md EZD-733, wording for Josh to confirm).
   'office.cabinets.tile.title': 'Wall tile',
   'office.cabinets.tile.add': 'Add wall tile',
