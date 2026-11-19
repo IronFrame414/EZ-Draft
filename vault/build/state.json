@@ -395,7 +395,8 @@
     "EZD-122",
     "EZD-139",
     "EZD-733",
-    "EZD-613"
+    "EZD-613",
+    "EZD-407"
   ],
   "seeded_done": 324,
   "merged": [
@@ -937,6 +938,14 @@
       "ts": "2026-11-19T06:23:43Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-407",
+      "title": "Fit chip",
+      "commit": "56a88f99",
+      "ts": "2026-11-19T07:13:19Z",
+      "kind": "ticket",
+      "lane": 0
     }
   ],
   "set_aside": {
@@ -1023,17 +1032,17 @@
     }
   },
   "running": {
-    "EZD-407": {
-      "lane": 0,
-      "title": "Fit chip",
-      "started": "2026-11-19T05:55:44Z",
-      "develop": "de05b6b9"
-    },
     "EZD-731": {
       "lane": 1,
       "title": "Mechanical layout",
       "started": "2026-11-19T05:55:45Z",
       "develop": "de05b6b9"
+    },
+    "EZD-712": {
+      "lane": 2,
+      "title": "Submittal profiles",
+      "started": "2026-11-19T06:23:49Z",
+      "develop": "c902b61a"
     }
   }
 }
