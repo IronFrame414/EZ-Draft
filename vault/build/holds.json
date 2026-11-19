@@ -240,6 +240,14 @@
       "question": "Q-0777",
       "kind": "held",
       "since": "2026-11-18"
+    },
+    {
+      "ticket": "EZD-503",
+      "title": "Ceiling type editor",
+      "reason": "Paused 2026-11-19 by Josh so EZD-425 (Next.js security fix) can start; it held docs/architecture.md. Release when EZD-425 has merged.",
+      "question": "",
+      "kind": "held",
+      "since": "2026-11-19"
     }
   ]
 }
