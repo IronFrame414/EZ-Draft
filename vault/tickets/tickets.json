@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 656,
+ "count": 657,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -23003,6 +23003,29 @@
     "AC-EZD-423-3"
    ],
    "acs_source": "loop-2026-11-18"
+  },
+  {
+   "id": "EZD-424",
+   "phase": 21,
+   "title": "Fix: a long default department on Sheet presets squeezes the disclaimer out of the settings status bar",
+   "depends_raw": "EZD-712",
+   "spec_ref": "S11 disclaimer on every page (EZD-136); CI gate red on develop 7465b58e at e2e/disclaimer.spec.ts:142 /settings/sheet-presets (scrollWidth 749 > clientWidth 535) after an earlier test left a long default department",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-712"
+   ],
+   "acs": [
+    "AC-EZD-424-1",
+    "AC-EZD-424-2",
+    "AC-EZD-424-3"
+   ],
+   "acs_source": "loop-2026-11-19"
   },
   {
    "id": "EZD-1022",
