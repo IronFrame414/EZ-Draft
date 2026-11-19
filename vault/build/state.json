@@ -394,7 +394,8 @@
     "EZD-730",
     "EZD-122",
     "EZD-139",
-    "EZD-733"
+    "EZD-733",
+    "EZD-613"
   ],
   "seeded_done": 324,
   "merged": [
@@ -928,6 +929,14 @@
       "ts": "2026-11-19T05:55:39Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-613",
+      "title": "Code edition settings",
+      "commit": "a78749e4",
+      "ts": "2026-11-19T06:23:43Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1014,11 +1023,17 @@
     }
   },
   "running": {
-    "EZD-613": {
-      "lane": 2,
-      "title": "Code edition settings",
-      "started": "2026-11-19T03:23:15Z",
-      "develop": "113bf41b"
+    "EZD-407": {
+      "lane": 0,
+      "title": "Fit chip",
+      "started": "2026-11-19T05:55:44Z",
+      "develop": "de05b6b9"
+    },
+    "EZD-731": {
+      "lane": 1,
+      "title": "Mechanical layout",
+      "started": "2026-11-19T05:55:45Z",
+      "develop": "de05b6b9"
     }
   }
 }
