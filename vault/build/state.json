@@ -393,7 +393,8 @@
     "EZD-409",
     "EZD-730",
     "EZD-122",
-    "EZD-139"
+    "EZD-139",
+    "EZD-733"
   ],
   "seeded_done": 324,
   "merged": [
@@ -919,6 +920,14 @@
       "ts": "2026-11-19T04:14:28Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-733",
+      "title": "Tile layout",
+      "commit": "32607e55",
+      "ts": "2026-11-19T05:55:39Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1005,12 +1014,6 @@
     }
   },
   "running": {
-    "EZD-733": {
-      "lane": 1,
-      "title": "Tile layout",
-      "started": "2026-11-19T02:54:38Z",
-      "develop": "1ec73668"
-    },
     "EZD-613": {
       "lane": 2,
       "title": "Code edition settings",
