@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 657,
+ "count": 658,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -23060,6 +23060,28 @@
    ],
    "acs_source": "josh-2026-11-18",
    "spec_phase": 10
+  },
+  {
+   "id": "EZD-425",
+   "phase": 1,
+   "track": "security",
+   "title": "Fix: security advisories in glob, minimatch, next; move to the patched versions",
+   "depends_raw": "",
+   "spec_ref": "Security advisories found by the build loop's pnpm audit on 2026-11-19: GHSA-3g3m-2fjr-6pw4 moderate glob >=9.0.0 <=14.0.1 -> >=14.0.2 (installed 13.0.6): Glob: AbortSignal cancellation bypass allows post-timeout filesystem traversal | GHSA-g3hv-75wg-m249 moderate minimatch >=7.0.0 <11.0.1 -> >=11.0.1 (installed 10.2.6): minimatch has potential denial of service via globparts amplification | GHSA-mfr8-8qww-v76h moderate next >=16.3.0 <=16.4.4 -> >=16.4.5 (installed 16.4.2): Next.js: Information disclosure across root params when a 'use cache' function is called through unstable_cache() | GHSA-vc7v-qv4w-wrv8 moderate next >=16.2.0 <=16.4.4 -> >=16.4.5 (installed 16.4.2): Next.js: Cache leak across root param values in nested 'use cache' functions via delayed inner stream metadata",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-425-1",
+    "AC-EZD-425-2",
+    "AC-EZD-425-3"
+   ],
+   "acs_source": "loop-advisories-2026-11-19"
   }
  ],
  "recut_applied": "2026-10-20"
