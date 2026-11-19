@@ -11,7 +11,7 @@ import { CURRENT_SCHEMA_VERSION, migrateStoredObject } from './migrate';
 import { parseModelDocument, parseStoredObject, type StoredObject } from './index';
 import v1 from './samples/v1.json';
 import v2 from './samples/v2.json';
-import v6 from './samples/v6.json';
+import v7 from './samples/v7.json';
 
 type Rec = Record<string, unknown>;
 type Layer = { material: string; thickness: number };
@@ -81,7 +81,7 @@ describe('EZD-203 walls core: wall layers schema', () => {
     const mOpening = migrateStoredObject(opening);
     const mNull = migrateStoredObject(nullData);
 
-    for (const m of [m45, m6, mNear, mOpening, mNull]) expect(m?.schema_version).toBe(6);
+    for (const m of [m45, m6, mNear, mOpening, mNull]) expect(m?.schema_version).toBe(7);
     expect(layersOf(m45)).toEqual(DEFAULT_LAYERS);
     expect(layersOf(m6)).toEqual([{ material: 'stud', thickness: 6 }]);
     expect(layersOf(mNear)).toEqual(DEFAULT_LAYERS);
@@ -103,7 +103,7 @@ describe('EZD-203 walls core: wall layers schema', () => {
       ok: false,
       issue: { id: nullData.id, issue: 'invalid_data' },
     });
-    expect(CURRENT_SCHEMA_VERSION).toBe(6);
+    expect(CURRENT_SCHEMA_VERSION).toBe(7);
   });
 
   it('EZD-203 T23 samples: v2.json parses with 16 objects and layered walls; v1.json migrates to v6.json', () => {
@@ -129,7 +129,7 @@ describe('EZD-203 walls core: wall layers schema', () => {
       (o) => migrateStoredObject(o),
     );
     expect(fromV1).toEqual(
-      structuredClone((v6 as unknown as { objects: StoredObject[] }).objects.slice(0, 16)),
+      structuredClone((v7 as unknown as { objects: StoredObject[] }).objects.slice(0, 16)),
     );
   });
 

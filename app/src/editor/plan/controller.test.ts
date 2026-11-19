@@ -263,6 +263,7 @@ const roomB = (name: string): ObjectValue => ({
       roomType: null,
       floorFinish: '',
       ceilingType: null,
+      ceiling: null,
     },
     closureOverride: null,
   },

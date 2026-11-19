@@ -15,6 +15,7 @@ import v3 from './samples/v3.json';
 import v4 from './samples/v4.json';
 import v5 from './samples/v5.json';
 import v6 from './samples/v6.json';
+import v7 from './samples/v7.json';
 
 const STORED_SAMPLES: Record<number, { objects: StoredObject[] }> = {
   1: v1 as unknown as { objects: StoredObject[] },
@@ -23,6 +24,7 @@ const STORED_SAMPLES: Record<number, { objects: StoredObject[] }> = {
   4: v4 as unknown as { objects: StoredObject[] },
   5: v5 as unknown as { objects: StoredObject[] },
   6: v6 as unknown as { objects: StoredObject[] },
+  7: v7 as unknown as { objects: StoredObject[] },
 };
 
 const keys = (r: Record<number, unknown>) => Object.keys(r).map(Number);
@@ -39,7 +41,7 @@ describe('EZD-202 schema migration', () => {
       }
       expect(sample).toEqual(before);
     }
-    expect(CURRENT_SCHEMA_VERSION).toBe(6);
+    expect(CURRENT_SCHEMA_VERSION).toBe(7);
     expect(
       migrationChainProblems(CURRENT_SCHEMA_VERSION, keys(MIGRATIONS), keys(STORED_SAMPLES)),
     ).toEqual([]);

@@ -47,7 +47,7 @@ const allLeaves = (): string[] => [
 ];
 
 // D-Classify: the 8 'never' keys, plus EZD-234's room floor level and photos and EZD-218's room type, floor finish
-// and ceiling type; the other 36 are 'send'.
+// and ceiling type, and EZD-501's twelve room ceiling leaves; the other 36 are 'send'.
 const NEVER = [
   'floor.name',
   'opening.geometry.axis.x',
@@ -62,6 +62,18 @@ const NEVER = [
   'room.attributes.roomType',
   'room.attributes.floorFinish',
   'room.attributes.ceilingType',
+  'room.attributes.ceiling.heightsBy',
+  'room.attributes.ceiling.wallHeights[].wall',
+  'room.attributes.ceiling.wallHeights[].height',
+  'room.attributes.ceiling.pointHeights[].at.x',
+  'room.attributes.ceiling.pointHeights[].at.y',
+  'room.attributes.ceiling.pointHeights[].height',
+  'room.attributes.ceiling.pitch',
+  'room.attributes.ceiling.ridge.start.x',
+  'room.attributes.ceiling.ridge.start.y',
+  'room.attributes.ceiling.ridge.end.x',
+  'room.attributes.ceiling.ridge.end.y',
+  'room.attributes.ceiling.ridge.height',
 ];
 
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-/i;
@@ -99,14 +111,14 @@ const V4_LAYERS = [
 describe('EZD-5602 send list', () => {
   it('T2 classification: every schema leaf is classified, nothing else is, and each object type has a projector', () => {
     const leaves = allLeaves();
-    expect(leaves).toHaveLength(49);
-    expect(new Set(leaves).size).toBe(49);
+    expect(leaves).toHaveLength(61);
+    expect(new Set(leaves).size).toBe(61);
     expect(Object.keys(SEND_CLASSIFICATION).sort()).toEqual([...leaves].sort());
     const expected = Object.fromEntries(
       leaves.map((leaf) => [leaf, NEVER.includes(leaf) ? 'never' : 'send']),
     );
     expect({ ...SEND_CLASSIFICATION }).toEqual(expected);
-    expect(Object.values(SEND_CLASSIFICATION).filter((v) => v === 'never')).toHaveLength(13);
+    expect(Object.values(SEND_CLASSIFICATION).filter((v) => v === 'never')).toHaveLength(25);
     expect(leaves).toContain('wall.attributes.layers[].material');
 
     // A new stored field shows up unclassified.

@@ -85,6 +85,7 @@ const roomData = (level: string): Rec => ({
     roomType: null,
     floorFinish: '',
     ceilingType: null,
+    ceiling: null,
   },
   closureOverride: null,
 });

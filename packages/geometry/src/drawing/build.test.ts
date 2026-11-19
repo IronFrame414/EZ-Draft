@@ -116,6 +116,7 @@ function fx(w1Side: Side = 'right', extra: ModelObject[] = []): ModelDocument {
             roomType: null,
             floorFinish: '',
             ceilingType: null,
+            ceiling: null,
           },
           closureOverride: null,
         },

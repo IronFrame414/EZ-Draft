@@ -12,10 +12,12 @@
 // room `floorLevel: 0` and `photos: []`; the phase 10 types are new, so no stored object of theirs is older than v5.
 // EZD-218 (03 Q-0664 "Rooms gain …"; AC-EZD-218-6): v5 to v6 gives every room no type, an empty floor finish and
 // no ceiling type.
+// EZD-501 (S05 Data shown; phase-05 EZD-501 "default flat at wall height"): v6 to v7 gives every room
+// `ceiling: null`, a flat ceiling at its wall height.
 import { coordsEqual } from '../tolerance';
 import type { StoredObject } from './index';
 
-export const CURRENT_SCHEMA_VERSION = 6;
+export const CURRENT_SCHEMA_VERSION = 7;
 
 // Takes an object at `schema_version` n and returns a new object at n + 1; never mutates its input.
 export type MigrateStep = (obj: Readonly<StoredObject>) => StoredObject;
@@ -127,12 +129,27 @@ const migrateV5ToV6: MigrateStep = (obj) => {
   return { id: obj.id, type: obj.type, schema_version: 6, data };
 };
 
+// Copies `data` and `data.attributes` only; every other subtree is shared by reference.
+const migrateV6ToV7: MigrateStep = (obj) => {
+  const data = obj.data;
+  if (obj.type === 'room' && isRecord(data) && isRecord(data.attributes)) {
+    return {
+      id: obj.id,
+      type: obj.type,
+      schema_version: 7,
+      data: { ...data, attributes: { ...data.attributes, ceiling: null } },
+    };
+  }
+  return { id: obj.id, type: obj.type, schema_version: 7, data };
+};
+
 export const MIGRATIONS: Readonly<Record<number, MigrateStep>> = {
   1: migrateV1ToV2,
   2: migrateV2ToV3,
   3: migrateV3ToV4,
   4: migrateV4ToV5,
   5: migrateV5ToV6,
+  6: migrateV6ToV7,
 };
 
 // null when the version is not an integer in 1..CURRENT_SCHEMA_VERSION or a step is missing; an object already

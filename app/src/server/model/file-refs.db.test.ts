@@ -171,6 +171,7 @@ describe('EZD-234 file references on save (database)', () => {
           roomType: null,
           floorFinish: '',
           ceilingType: null,
+          ceiling: null,
         },
         closureOverride: null,
       });

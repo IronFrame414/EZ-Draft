@@ -155,6 +155,7 @@ async function addR1(page: Page): Promise<void> {
               roomType: null,
               floorFinish: '',
               ceilingType: null,
+              ceiling: null,
             },
             closureOverride: null,
           },
