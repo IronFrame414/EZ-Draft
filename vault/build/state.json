@@ -1021,7 +1021,8 @@
     "EZD-134": 1,
     "EZD-305": 1,
     "EZD-403": 1,
-    "EZD-701": 1
+    "EZD-701": 1,
+    "EZD-123": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1079,6 +1080,10 @@
     "EZD-701": {
       "ts": "2026-11-19T13:10:45Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-123": {
+      "ts": "2026-11-19T14:42:00Z",
+      "reason": "builder timed out after 90 min with no commits"
     }
   },
   "running": {
