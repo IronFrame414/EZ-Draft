@@ -218,6 +218,7 @@ export interface EventPayloads {
   // EZD-301: `file` when the project starts from a file (S01 Events emitted).
   'project.created': { projectId: string; source: 'standalone' | 'file' };
   // EZD-130: field names (name, address, scope_of_work, type, customer_id) and per-project default keys.
+  // EZD-613 adds code_edition; EZD-739 adds scope_trades (the scope tick boxes).
   'project.updated': { projectId: string; keys: string[] };
   'project.renamed': { projectId: string; from: string; to: string };
   'project.status_changed': { projectId: string; from: string; to: string };

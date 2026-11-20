@@ -35,6 +35,7 @@ import { InlineError } from '../states/InlineError';
 import { Skeleton, SkeletonGroup } from '../states/Skeleton';
 import { StateButton } from '../states/StateButton';
 import { CustomerPicker } from './CustomerPicker';
+import { SCOPE_TRADE_LABELS, ScopeTrades } from './ScopeTrades';
 import styles from './NewProject.module.css';
 import own from './ProjectSettings.module.css';
 
@@ -369,6 +370,18 @@ export function ProjectSettingsContent({
           )}
           {fieldError('scopeOfWork')}
         </label>
+        {editable.details ? (
+          <ScopeTrades
+            idPrefix="project-settings"
+            value={draft.scopeTrades}
+            onChange={(scopeTrades) => set({ scopeTrades })}
+          />
+        ) : (
+          text(
+            'project-settings-scope-trades',
+            draft.scopeTrades.map((trade) => t(SCOPE_TRADE_LABELS[trade])).join(', '),
+          )
+        )}
         <label className={styles.field}>
           {t('office.project_settings.code_edition')}
           {editable.details ? (

@@ -181,7 +181,14 @@ describe('EZD-130 project settings route', () => {
     expect(read.defaults.waste_lvp).toBeNull();
     expect(Object.keys(read.defaults)).not.toContain('pattern_straight');
     // AC-5: no code edition or submittal profile in the read
-    expect(Object.keys(read.project).sort()).toEqual(['address', 'id', 'name', 'scopeOfWork', 'type']);
+    expect(Object.keys(read.project).sort()).toEqual([
+      'address',
+      'id',
+      'name',
+      'scopeOfWork',
+      'scopeTrades',
+      'type',
+    ]);
 
     state.store = new Map(senderCookies);
     expect(((await call('GET', project)).json as ProjectSettings).client).toEqual({

@@ -51,6 +51,7 @@ import { StateButton } from '../states/StateButton';
 import { CustomerPicker } from './CustomerPicker';
 import styles from './NewProject.module.css';
 import { NewProjectStep2, type InputSource } from './NewProjectStep2';
+import { ScopeTrades } from './ScopeTrades';
 import { templateModule } from './template-module';
 
 export type NewProjectDialogProps = {
@@ -383,6 +384,11 @@ export function NewProjectDialog({
                   }}
                 />
               </label>
+              <ScopeTrades
+                idPrefix="new-project"
+                value={draft.scopeTrades}
+                onChange={(scopeTrades) => setDraft((d) => ({ ...d, scopeTrades }))}
+              />
             </div>
           ) : (
             <NewProjectStep2

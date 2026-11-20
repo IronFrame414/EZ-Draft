@@ -31,6 +31,7 @@ describe('EZD-118 new project draft helpers', () => {
       type: null,
       customer: null,
       scopeOfWork: '',
+      scopeTrades: [],
     });
 
     const bath = applyType(EMPTY_NEW_PROJECT, 'bath', 'Bath remodel');
@@ -61,6 +62,7 @@ describe('EZD-118 new project draft helpers', () => {
       type: 'kitchen',
       customer: CUSTOMER,
       scopeOfWork: '  A  ',
+      scopeTrades: [],
     };
     expect(toCreateBody(valid)).toEqual({
       name: 'A',
@@ -68,6 +70,7 @@ describe('EZD-118 new project draft helpers', () => {
       type: 'kitchen',
       customerId: 'c1',
       scopeOfWork: 'A',
+      scopeTrades: [],
     });
     expect(toCreateBody(EMPTY_NEW_PROJECT)).toBeNull();
   });

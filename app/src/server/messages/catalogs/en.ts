@@ -1324,6 +1324,11 @@ export const en = {
   'office.new_project.default_name': '{type} remodel',
   'office.new_project.address': 'Address',
   'office.new_project.scope': 'Scope of work',
+  // EZD-739 (Q-0764; Q-0779): the scope tick boxes under Scope of work.
+  'office.scope_trades.electrical': 'Electrical',
+  'office.scope_trades.plumbing': 'Plumbing',
+  'office.scope_trades.mechanical': 'Mechanical',
+  'office.scope_trades.rcp': 'Reflected ceiling plan',
   'office.new_project.ready': 'Name, address and type complete',
   'office.new_project.create': 'Create project',
   'office.new_project.create_failed': "Couldn't create the project. Try again.",

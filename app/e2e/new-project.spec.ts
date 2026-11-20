@@ -355,14 +355,14 @@ test.describe('EZD-118 New project wizard', () => {
   });
 
   test(
-    `EZD-118 B8 touch targets: the dialog's nine controls are at least 44 px on iPad (11 Accessibility and input; Q-0593 (a))`,
+    `EZD-118 B8 touch targets: the dialog's thirteen controls are at least 44 px on iPad (11 Accessibility and input; Q-0593 (a))`,
     { tag: ['@ipad'] },
     async ({ page, signInAs }) => {
       const { email } = await creator();
       await signInAs(email);
       await page.goto('/');
       await openDialog(page);
-      expect(await expectTouchTargets(page, tid(page, 'new-project-dialog'))).toBe(9);
+      expect(await expectTouchTargets(page, tid(page, 'new-project-dialog'))).toBe(13);
     },
   );
 });

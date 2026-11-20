@@ -19,6 +19,9 @@ import {
   PROJECT_NAME_MAX,
   PROJECT_TYPES,
   SCOPE_OF_WORK_MAX,
+  SCOPE_TRADES,
+  isScopeTrade,
+  normalizeScopeTrades,
 } from '../../lib/projects/new-project';
 import {
   isProjectType,
@@ -56,7 +59,7 @@ export async function loadProjectSettings(
     client
       .from('project')
       .select(
-        'id, name, address, type, scope_of_work, settings, code_edition, customer!project_customer_fk(id, name, email, phone)',
+        'id, name, address, type, scope_of_work, scope_trades, settings, code_edition, customer!project_customer_fk(id, name, email, phone)',
       )
       .eq('id', id)
       .maybeSingle(),
@@ -84,6 +87,7 @@ export async function loadProjectSettings(
       address: p.address,
       type: isProjectType(p.type) ? p.type : 'kitchen',
       scopeOfWork: p.scope_of_work ?? '',
+      scopeTrades: normalizeScopeTrades((p.scope_trades ?? []).filter(isScopeTrade)),
     },
     client: c
       ? contact
@@ -112,6 +116,7 @@ const patchSchema = z.strictObject({
   name: trimmed(PROJECT_NAME_MAX).optional(),
   address: trimmed(PROJECT_ADDRESS_MAX).optional(),
   scopeOfWork: trimmed(SCOPE_OF_WORK_MAX).optional(),
+  scopeTrades: z.array(z.enum(SCOPE_TRADES)).max(SCOPE_TRADES.length).optional(),
   type: z.enum(PROJECT_TYPES).optional(),
   customerId: z.uuid().nullable().optional(),
   defaults: z.record(z.string(), z.unknown()).optional(),
@@ -149,6 +154,10 @@ export function parseProjectSettingsPatch(body: unknown): ParsedPatch {
     const scope = d.scopeOfWork.trim();
     if (scope.length > SCOPE_OF_WORK_MAX) fields.scopeOfWork = 'office.project_settings.too_long';
     else patch.scopeOfWork = scope;
+  }
+  if (d.scopeTrades !== undefined) {
+    if (new Set(d.scopeTrades).size !== d.scopeTrades.length) return { ok: false };
+    patch.scopeTrades = normalizeScopeTrades(d.scopeTrades);
   }
   if (d.type !== undefined) patch.type = d.type;
   if (d.customerId !== undefined) patch.customerId = d.customerId;
@@ -224,6 +233,7 @@ export async function saveProjectSettings(
   if (patch.name !== undefined) changes.name = patch.name;
   if (patch.address !== undefined) changes.address = patch.address;
   if (patch.scopeOfWork !== undefined) changes.scope_of_work = patch.scopeOfWork;
+  if (patch.scopeTrades !== undefined) changes.scope_trades = patch.scopeTrades;
   if (patch.type !== undefined) changes.type = patch.type;
   if (patch.customerId !== undefined) changes.customer_id = patch.customerId;
   if (patch.codeEdition !== undefined) changes.code_edition = patch.codeEdition;

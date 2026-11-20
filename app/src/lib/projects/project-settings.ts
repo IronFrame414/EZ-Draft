@@ -13,7 +13,11 @@ import {
   PROJECT_NAME_MAX,
   PROJECT_TYPES,
   SCOPE_OF_WORK_MAX,
+  isScopeTrade,
+  normalizeScopeTrades,
+  sameScopeTrades,
   type ProjectType,
+  type ScopeTrade,
 } from './new-project';
 
 // The per-project keys in the dialog, registry order (waste factors, the four overhangs, the cabinet auto-fill
@@ -35,6 +39,8 @@ export type ProjectSettings = {
     address: string;
     type: ProjectType;
     scopeOfWork: string;
+    // EZD-739 (Q-0764; Q-0779): the ticked scope boxes; absent reads as none ticked.
+    scopeTrades?: ScopeTrade[];
   };
   client: ProjectSettingsClient | null;
   // Each per-project key's effective value: the project's copy, else the company's effective value (null is
@@ -52,6 +58,7 @@ export type ProjectSettingsPatch = {
   name?: string;
   address?: string;
   scopeOfWork?: string;
+  scopeTrades?: ScopeTrade[];
   type?: ProjectType;
   customerId?: string | null;
   defaults?: Record<string, number>;
@@ -67,12 +74,14 @@ export const PROJECT_FIELD_KEYS = [
   'type',
   'customer_id',
   'code_edition',
+  'scope_trades',
 ] as const;
 
 export type ProjectSettingsDraft = {
   name: string;
   address: string;
   scopeOfWork: string;
+  scopeTrades: ScopeTrade[];
   type: ProjectType;
   client: Customer | null;
   defaults: Record<string, string>;
@@ -90,6 +99,7 @@ export function draftOf(s: ProjectSettings): ProjectSettingsDraft {
     name: s.project.name,
     address: s.project.address,
     scopeOfWork: s.project.scopeOfWork,
+    scopeTrades: scopeTradesOf(s),
     type: s.project.type,
     client: s.client
       ? {
@@ -150,6 +160,10 @@ export function toPatchBody(
     if (name !== s.project.name) body.name = name;
     if (address !== s.project.address) body.address = address;
     if (scope !== s.project.scopeOfWork.trim()) body.scopeOfWork = scope;
+    // EZD-739: the boxes are sent only when the ticked set changed (order does not count).
+    if (!sameScopeTrades(d.scopeTrades, scopeTradesOf(s))) {
+      body.scopeTrades = normalizeScopeTrades(d.scopeTrades);
+    }
     // EZD-613: sent only when it differs from the edition the project runs, so opening and saving the dialog
     // never fixes a project to the company default.
     if (d.codeEdition !== (s.codeEdition.own ?? s.codeEdition.effective)) {
@@ -183,6 +197,10 @@ export function toPatchBody(
   }
   if (Object.keys(fields).length > 0) return { ok: false, fields };
   return { ok: true, body };
+}
+
+export function scopeTradesOf(s: ProjectSettings): ScopeTrade[] {
+  return normalizeScopeTrades((s.project.scopeTrades ?? []).filter(isScopeTrade));
 }
 
 export function isProjectType(v: unknown): v is ProjectType {

@@ -23,6 +23,9 @@ import {
   PROJECT_NAME_MAX,
   PROJECT_TYPES,
   SCOPE_OF_WORK_MAX,
+  SCOPE_TRADES,
+  normalizeScopeTrades,
+  type ScopeTrade,
   type ProjectType,
 } from '../../lib/projects/new-project';
 import { TEMPLATE_KEYS, isTemplateSize, type TemplateBody } from '../../lib/projects/templates';
@@ -178,6 +181,8 @@ export type NewProjectValues = {
   type: ProjectType;
   customerId: string | null;
   scopeOfWork: string | null;
+  // EZD-739 (Q-0764; Q-0779): the ticked scope boxes in the fixed order; absent when none is ticked.
+  scopeTrades?: ScopeTrade[];
   template: TemplateBody | null;
   // EZD-129 (Q-0202; AC-EZD-129-3): the wizard's Foreman, a membership id; absent when none is picked.
   foremanId?: string;
@@ -193,6 +198,7 @@ const newProjectSchema = z.strictObject({
   type: z.enum(PROJECT_TYPES),
   customerId: z.uuid().nullable(),
   scopeOfWork: z.string().max(SCOPE_OF_WORK_MAX),
+  scopeTrades: z.array(z.enum(SCOPE_TRADES)).max(SCOPE_TRADES.length).optional(),
   template: z
     .strictObject({ key: z.enum(TEMPLATE_KEYS), width: size, length: size, ceilingHeight: size })
     .nullable()
@@ -208,12 +214,15 @@ export function parseNewProject(body: unknown): NewProjectValues | null {
   const address = parsed.data.address.trim();
   const scope = parsed.data.scopeOfWork.trim();
   if (name === '' || address === '') return null;
+  const trades = parsed.data.scopeTrades ?? [];
+  if (new Set(trades).size !== trades.length) return null;
   return {
     name,
     address,
     type: parsed.data.type,
     customerId: parsed.data.customerId,
     scopeOfWork: scope === '' ? null : scope,
+    ...(trades.length > 0 ? { scopeTrades: normalizeScopeTrades(trades) } : {}),
     template: parsed.data.template ?? null,
     ...(parsed.data.foremanId ? { foremanId: parsed.data.foremanId } : {}),
     ...(parsed.data.source === 'file' ? { source: 'file' as const } : {}),
@@ -248,6 +257,10 @@ export async function createProject(
     // EZD-129: sent only when a Foreman is picked, so a call without one is unchanged.
     ...(v.foremanId !== undefined ? { p_foreman_membership_id: v.foremanId } : {}),
     ...(defaults !== undefined ? { p_defaults: defaults } : {}),
+    // EZD-739: sent only when a box is ticked; the column's default is none ticked.
+    ...(v.scopeTrades !== undefined && v.scopeTrades.length > 0
+      ? { p_scope_trades: v.scopeTrades }
+      : {}),
   };
   const { data, error } =
     v.template === null
