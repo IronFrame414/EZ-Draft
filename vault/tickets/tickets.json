@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 659,
+ "count": 660,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -23613,6 +23613,29 @@
     "AC-EZD-426-1",
     "AC-EZD-426-2",
     "AC-EZD-426-3"
+   ],
+   "acs_source": "loop-2026-11-20"
+  },
+  {
+   "id": "EZD-427",
+   "phase": 21,
+   "title": "Fix: the EZD-009 background-jobs browser test fails at random under load and sets tickets aside",
+   "depends_raw": "EZD-426",
+   "spec_ref": "app/e2e/jobs.spec.ts:33 (EZD-009 done when, plan T1: six events within 20,000 ms of page load) failed on its own and set aside or requeued EZD-122 (2026-11-18), EZD-425 (2026-11-20 03:14Z) and EZD-701 (2026-11-20 17:59Z); it also failed in CI run 44729539217. Retired once before as EZD-420 when it passed in CI. Traces: test-results/jobs-EZD-009-*/trace.zip in failing worktrees.",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-426"
+   ],
+   "acs": [
+    "AC-EZD-427-1",
+    "AC-EZD-427-2",
+    "AC-EZD-427-3"
    ],
    "acs_source": "loop-2026-11-20"
   }
