@@ -406,7 +406,8 @@
     "EZD-714",
     "EZD-425",
     "EZD-505",
-    "EZD-506"
+    "EZD-506",
+    "EZD-713"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1036,6 +1037,14 @@
       "ts": "2026-11-20T05:59:04Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-713",
+      "title": "Department profile settings",
+      "commit": "24b74b8a",
+      "ts": "2026-11-20T06:24:42Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1151,11 +1160,11 @@
     }
   },
   "running": {
-    "EZD-713": {
-      "lane": 1,
-      "title": "Department profile settings",
-      "started": "2026-11-20T04:24:00Z",
-      "develop": "0bc89d8b"
+    "EZD-601": {
+      "lane": 2,
+      "title": "Electrical mode and left panel",
+      "started": "2026-11-20T05:59:09Z",
+      "develop": "a4b226c9"
     }
   },
   "advisories_checked_at": "2026-11-20T04:58:02Z"
