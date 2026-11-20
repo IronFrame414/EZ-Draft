@@ -401,7 +401,8 @@
     "EZD-408",
     "EZD-419",
     "EZD-712",
-    "EZD-502"
+    "EZD-502",
+    "EZD-424"
   ],
   "seeded_done": 324,
   "merged": [
@@ -991,6 +992,14 @@
       "ts": "2026-11-19T10:47:44Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-424",
+      "title": "Fix: a long default department on Sheet presets squeezes the disclaimer out of the settings status bar",
+      "commit": "180611a9",
+      "ts": "2026-11-20T01:46:53Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1003,8 +1012,8 @@
       "worktree": ".claude/worktrees/EZD-222"
     }
   },
-  "red_streak": 2,
-  "push_pending": false,
+  "red_streak": 0,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1102,17 +1111,18 @@
     }
   },
   "running": {
-    "EZD-424": {
+    "EZD-425": {
       "lane": 0,
-      "title": "Fix: a long default department on Sheet presets squeezes the disclaimer out of the settings status bar",
-      "started": "2026-11-19T18:31:35Z",
-      "develop": "0812d8f2"
+      "title": "Fix: security advisories in glob, minimatch, next; move to the patched versions",
+      "started": "2026-11-19T22:57:34Z",
+      "develop": "81fd1d60"
     },
-    "EZD-503": {
-      "lane": 1,
-      "title": "Ceiling type editor",
-      "started": "2026-11-19T19:38:19Z",
-      "develop": "4177157b"
+    "EZD-505": {
+      "lane": 2,
+      "title": "Beams",
+      "started": "2026-11-19T22:57:36Z",
+      "develop": "81fd1d60"
     }
-  }
+  },
+  "advisories_checked_at": "2026-11-19T22:57:31Z"
 }
