@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 658,
+ "count": 659,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -23250,6 +23250,27 @@
     "AC-EZD-425-3"
    ],
    "acs_source": "loop-advisories-2026-11-19"
+  },
+  {
+   "id": "EZD-426",
+   "phase": 21,
+   "title": "Fix: test fixture cleanup deadlocks when two browser-test workers delete at the same time",
+   "depends_raw": "",
+   "spec_ref": "CI gate red on develop 211fb7d9 (run 44729539217, twice): PostgresError deadlock detected at app/test-harness/rls/fixtures.ts:252 in cleanupCreated (assistant-panel EZD-5603a B6 @ipad); the same deadlock in the PR #9 runs. Blocks release PRs at random.",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-426-1",
+    "AC-EZD-426-2",
+    "AC-EZD-426-3"
+   ],
+   "acs_source": "loop-2026-11-20"
   }
  ],
  "recut_applied": "2026-10-20"
