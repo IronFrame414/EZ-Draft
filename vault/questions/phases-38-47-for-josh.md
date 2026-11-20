@@ -16,7 +16,7 @@ Everything else in these phases was settled from the spec, your decisions and th
 
 Eight questions need you. **None of them holds a ticket.** Each piece is built the recommended way, and a different answer becomes a small follow-on ticket. Answer whenever it suits you.
 
-**Answered 2026-11-20 (Q-0781 to Q-0785):** 1 yes; 2 one signature, plus a simple pen for the client (new ticket EZD-1216); 3 yes; 4 the architect's own colours; 6 both buttons. **Then (same day), "Take my picks" (Q-0786 to Q-0788):** 5 (a); 7 (a); 8 no to all 19 items. Every question in this file is answered.
+**Answered 2026-11-20 (Q-0781 to Q-0785):** 1 yes; 2 one signature, plus a simple pen for the client (new ticket EZD-1216); 3 yes; 4 the architect's own colours; 6 both buttons. **Then (same day), "Take my picks", and then your final answers:** 5 (b), keep the small copy of the architect's lines (Q-0786); 7 (b), print the work-area plan (Q-0787, new ticket EZD-619); 8 yes to all 19 objects (Q-0789, new phase 57). Every question in this file is answered.
 
 ---
 
@@ -192,7 +192,7 @@ Answer each with **yes** (add it to v1) or **no** (leave it as "not checked" in 
 
 If you answer "yes" to any, I'll add the tickets after phase 47 so they don't hold up what's already released.
 
-**Josh's answer (2026-11-20): "Take my picks": no to all 19** (Worth Properties remodels are mostly kitchens and baths). Recorded as Q-0788. Any item can be added later as its own ticket.
+**Josh's answer (2026-11-20): "Take my picks" (no to all), then "8 yes to everything".** Recorded as Q-0789 (replaces Q-0788). New phase 57, 21 tickets (EZD-644 to EZD-664): one schema ticket, then a drawing tool and its code rules for stairs, guards, ramps and lofts, skylights, garage doors, carports and saunas, glass block, fireplaces, the fuel-burning appliances and generators, pools and spas, floor drains and valves, then 3D massing and a final check that none of these rules is still listed as not checked. Phase 57 builds when you release it (after phase 47).
 
 ---
 

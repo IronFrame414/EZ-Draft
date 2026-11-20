@@ -23806,6 +23806,888 @@
     "AC-EZD-427-3"
    ],
    "acs_source": "loop-2026-11-20"
+  },
+  {
+   "id": "EZD-644",
+   "phase": 57,
+   "title": "Code-rule object types",
+   "depends_raw": "EZD-234, EZD-731, EZD-620, EZD-204a, EZD-203",
+   "spec_ref": "Q-0789; Objects inside model_json",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/03-data-model.md#Q-0762"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-234",
+    "EZD-731",
+    "EZD-620",
+    "EZD-204a",
+    "EZD-203"
+   ],
+   "build_position": 625,
+   "acs": [
+    "AC-EZD-644-1",
+    "AC-EZD-644-2",
+    "AC-EZD-644-3",
+    "AC-EZD-644-4"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-645",
+   "phase": 57,
+   "title": "Stair tool, inspector and plan symbol",
+   "depends_raw": "EZD-644, EZD-213b, EZD-208a, EZD-208b, EZD-212a, EZD-214, EZD-238, EZD-620, EZD-702b",
+   "spec_ref": "Q-0789; S03 Fixtures; 09d B-24",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0705"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png"
+   ],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-644",
+    "EZD-213b",
+    "EZD-208a",
+    "EZD-208b",
+    "EZD-212a",
+    "EZD-214",
+    "EZD-238",
+    "EZD-620",
+    "EZD-702b"
+   ],
+   "build_position": 626,
+   "acs": [
+    "AC-EZD-645-1",
+    "AC-EZD-645-2",
+    "AC-EZD-645-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-646",
+   "phase": 57,
+   "title": "Stair code rules switched on",
+   "depends_raw": "EZD-645, EZD-611a, EZD-611b, EZD-611c, EZD-616, EZD-618, EZD-620, EZD-633, EZD-612",
+   "spec_ref": "Q-0789; Code rules catalog; 09d B-24",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09d-building-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-645",
+    "EZD-611a",
+    "EZD-611b",
+    "EZD-611c",
+    "EZD-616",
+    "EZD-618",
+    "EZD-620",
+    "EZD-633",
+    "EZD-612"
+   ],
+   "build_position": 627,
+   "acs": [
+    "AC-EZD-646-1",
+    "AC-EZD-646-2",
+    "AC-EZD-646-3",
+    "AC-EZD-646-4",
+    "AC-EZD-646-5"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-647",
+   "phase": 57,
+   "title": "Guard, ramp and loft tools",
+   "depends_raw": "EZD-644, EZD-645, EZD-213b, EZD-208a, EZD-212a, EZD-214, EZD-238, EZD-620, EZD-702b",
+   "spec_ref": "Q-0789; S03 Fixtures",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0705"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png"
+   ],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-644",
+    "EZD-645",
+    "EZD-213b",
+    "EZD-208a",
+    "EZD-212a",
+    "EZD-214",
+    "EZD-238",
+    "EZD-620",
+    "EZD-702b"
+   ],
+   "build_position": 628,
+   "acs": [
+    "AC-EZD-647-1",
+    "AC-EZD-647-2",
+    "AC-EZD-647-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-648",
+   "phase": 57,
+   "title": "Guard, ramp and loft code rules switched on",
+   "depends_raw": "EZD-647, EZD-646, EZD-611a, EZD-611c, EZD-616, EZD-617, EZD-618, EZD-620, EZD-612",
+   "spec_ref": "Q-0789; Code rules catalog",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09d-building-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-647",
+    "EZD-646",
+    "EZD-611a",
+    "EZD-611c",
+    "EZD-616",
+    "EZD-617",
+    "EZD-618",
+    "EZD-620",
+    "EZD-612"
+   ],
+   "build_position": 629,
+   "acs": [
+    "AC-EZD-648-1",
+    "AC-EZD-648-2",
+    "AC-EZD-648-3",
+    "AC-EZD-648-4"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-649",
+   "phase": 57,
+   "title": "Skylights and their code rules",
+   "depends_raw": "EZD-644, EZD-507, EZD-238, EZD-620, EZD-611a, EZD-611b, EZD-611c, EZD-621, EZD-622, EZD-623, EZD-702b",
+   "spec_ref": "Q-0789; S05 Controls; Code rules catalog",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/screens/S05-ceiling-plan-rcp.md",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0705",
+    "spec/decisions/13b-round-26.md#R19"
+   ],
+   "mockups": [
+    "mockups/S05Ceiling.png",
+    "mockups/S03dDoorSelected.png"
+   ],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-644",
+    "EZD-507",
+    "EZD-238",
+    "EZD-620",
+    "EZD-611a",
+    "EZD-611b",
+    "EZD-611c",
+    "EZD-621",
+    "EZD-622",
+    "EZD-623",
+    "EZD-702b"
+   ],
+   "build_position": 630,
+   "acs": [
+    "AC-EZD-649-1",
+    "AC-EZD-649-2",
+    "AC-EZD-649-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-650",
+   "phase": 57,
+   "title": "Garage doors and their code rules",
+   "depends_raw": "EZD-644, EZD-204a, EZD-204b, EZD-211a, EZD-213b, EZD-238, EZD-620, EZD-611a, EZD-611b, EZD-611c, EZD-621, EZD-702b",
+   "spec_ref": "Q-0789; S03 Openings; Code rules catalog",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0705",
+    "spec/decisions/13b-round-26.md#R19"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png"
+   ],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-644",
+    "EZD-204a",
+    "EZD-204b",
+    "EZD-211a",
+    "EZD-213b",
+    "EZD-238",
+    "EZD-620",
+    "EZD-611a",
+    "EZD-611b",
+    "EZD-611c",
+    "EZD-621",
+    "EZD-702b"
+   ],
+   "build_position": 631,
+   "acs": [
+    "AC-EZD-650-1",
+    "AC-EZD-650-2",
+    "AC-EZD-650-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-651",
+   "phase": 57,
+   "title": "Carport and sauna rooms and their code rules",
+   "depends_raw": "EZD-644, EZD-655, EZD-218, EZD-620, EZD-611a, EZD-611c, EZD-625, EZD-626",
+   "spec_ref": "Q-0789; Q-0762; Code rules catalog",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09d-building-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md",
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/05-screens.md#Q-0705"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png"
+   ],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-644",
+    "EZD-655",
+    "EZD-218",
+    "EZD-620",
+    "EZD-611a",
+    "EZD-611c",
+    "EZD-625",
+    "EZD-626"
+   ],
+   "build_position": 632,
+   "acs": [
+    "AC-EZD-651-1",
+    "AC-EZD-651-2",
+    "AC-EZD-651-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-652",
+   "phase": 57,
+   "title": "Glass block walls and windows and their code rules",
+   "depends_raw": "EZD-644, EZD-203, EZD-213b, EZD-238, EZD-620, EZD-611a, EZD-621, EZD-702b",
+   "spec_ref": "Q-0789; Code rules catalog",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0705",
+    "spec/decisions/13b-round-26.md#R19"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png"
+   ],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-644",
+    "EZD-203",
+    "EZD-213b",
+    "EZD-238",
+    "EZD-620",
+    "EZD-611a",
+    "EZD-621",
+    "EZD-702b"
+   ],
+   "build_position": 633,
+   "acs": [
+    "AC-EZD-652-1",
+    "AC-EZD-652-2",
+    "AC-EZD-652-3",
+    "AC-EZD-652-4"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-653",
+   "phase": 57,
+   "title": "Fireplace, hearth and chimney tool",
+   "depends_raw": "EZD-644, EZD-234, EZD-213b, EZD-212a, EZD-214, EZD-238, EZD-620, EZD-702b",
+   "spec_ref": "Q-0789; S03 Fixtures",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0705"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png"
+   ],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-644",
+    "EZD-234",
+    "EZD-213b",
+    "EZD-212a",
+    "EZD-214",
+    "EZD-238",
+    "EZD-620",
+    "EZD-702b"
+   ],
+   "build_position": 634,
+   "acs": [
+    "AC-EZD-653-1",
+    "AC-EZD-653-2",
+    "AC-EZD-653-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-654",
+   "phase": 57,
+   "title": "Fireplace and chimney code rules switched on",
+   "depends_raw": "EZD-653, EZD-611a, EZD-620, EZD-621, EZD-622, EZD-623, EZD-626, EZD-612",
+   "spec_ref": "Q-0789; Code rules catalog",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09d-building-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-653",
+    "EZD-611a",
+    "EZD-620",
+    "EZD-621",
+    "EZD-622",
+    "EZD-623",
+    "EZD-626",
+    "EZD-612"
+   ],
+   "build_position": 635,
+   "acs": [
+    "AC-EZD-654-1",
+    "AC-EZD-654-2",
+    "AC-EZD-654-3",
+    "AC-EZD-654-4"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-655",
+   "phase": 57,
+   "title": "Fuel-burning appliances, heaters and generators on the Mechanical layer",
+   "depends_raw": "EZD-644, EZD-731, EZD-234, EZD-213b, EZD-238, EZD-620, EZD-738",
+   "spec_ref": "Q-0789; Q-0763; S03 Fixtures",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0705",
+    "spec/decisions/09-calculations-and-rules.md#Q-0763",
+    "spec/decisions/09-calculations-and-rules.md#Q-0780"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png"
+   ],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-644",
+    "EZD-731",
+    "EZD-234",
+    "EZD-213b",
+    "EZD-238",
+    "EZD-620",
+    "EZD-738"
+   ],
+   "build_position": 636,
+   "acs": [
+    "AC-EZD-655-1",
+    "AC-EZD-655-2",
+    "AC-EZD-655-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-656",
+   "phase": 57,
+   "title": "Gas furnace and gas heater code rules switched on",
+   "depends_raw": "EZD-655, EZD-611a, EZD-620, EZD-624, EZD-626, EZD-632, EZD-638, EZD-612",
+   "spec_ref": "Q-0789; Code rules catalog",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09d-building-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-655",
+    "EZD-611a",
+    "EZD-620",
+    "EZD-624",
+    "EZD-626",
+    "EZD-632",
+    "EZD-638",
+    "EZD-612"
+   ],
+   "build_position": 637,
+   "acs": [
+    "AC-EZD-656-1",
+    "AC-EZD-656-2",
+    "AC-EZD-656-3",
+    "AC-EZD-656-4"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-657",
+   "phase": 57,
+   "title": "Oil, solid-fuel and boiler code rules switched on",
+   "depends_raw": "EZD-655, EZD-611a, EZD-620, EZD-624, EZD-625, EZD-612",
+   "spec_ref": "Q-0789; Code rules catalog",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09d-building-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-655",
+    "EZD-611a",
+    "EZD-620",
+    "EZD-624",
+    "EZD-625",
+    "EZD-612"
+   ],
+   "build_position": 638,
+   "acs": [
+    "AC-EZD-657-1",
+    "AC-EZD-657-2",
+    "AC-EZD-657-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-658",
+   "phase": 57,
+   "title": "Standby generator code rules switched on",
+   "depends_raw": "EZD-655, EZD-611a, EZD-620, EZD-617, EZD-625, EZD-626, EZD-639, EZD-612",
+   "spec_ref": "Q-0789; Code rules catalog",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09d-building-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-655",
+    "EZD-611a",
+    "EZD-620",
+    "EZD-617",
+    "EZD-625",
+    "EZD-626",
+    "EZD-639",
+    "EZD-612"
+   ],
+   "build_position": 639,
+   "acs": [
+    "AC-EZD-658-1",
+    "AC-EZD-658-2",
+    "AC-EZD-658-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-659",
+   "phase": 57,
+   "title": "Pool and spa tool",
+   "depends_raw": "EZD-644, EZD-234, EZD-213b, EZD-212a, EZD-214, EZD-238, EZD-620, EZD-702b",
+   "spec_ref": "Q-0789; S03 Fixtures",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0705"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png"
+   ],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-644",
+    "EZD-234",
+    "EZD-213b",
+    "EZD-212a",
+    "EZD-214",
+    "EZD-238",
+    "EZD-620",
+    "EZD-702b"
+   ],
+   "build_position": 640,
+   "acs": [
+    "AC-EZD-659-1",
+    "AC-EZD-659-2",
+    "AC-EZD-659-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-660",
+   "phase": 57,
+   "title": "Pool and spa code rules switched on",
+   "depends_raw": "EZD-659, EZD-602, EZD-611a, EZD-611c, EZD-620, EZD-639, EZD-612",
+   "spec_ref": "Q-0789; Code rules catalog",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09d-building-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md",
+    "spec/sections/screens/S06-electrical-edit-lock.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-659",
+    "EZD-602",
+    "EZD-611a",
+    "EZD-611c",
+    "EZD-620",
+    "EZD-639",
+    "EZD-612"
+   ],
+   "build_position": 641,
+   "acs": [
+    "AC-EZD-660-1",
+    "AC-EZD-660-2",
+    "AC-EZD-660-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-661",
+   "phase": 57,
+   "title": "Floor drains and their code rules",
+   "depends_raw": "EZD-644, EZD-234, EZD-729, EZD-730, EZD-238, EZD-620, EZD-611a, EZD-628, EZD-629",
+   "spec_ref": "Q-0789; S03 Fixtures; Code rules catalog",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0705",
+    "spec/decisions/13b-round-26.md#R19"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png"
+   ],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-644",
+    "EZD-234",
+    "EZD-729",
+    "EZD-730",
+    "EZD-238",
+    "EZD-620",
+    "EZD-611a",
+    "EZD-628",
+    "EZD-629"
+   ],
+   "build_position": 642,
+   "acs": [
+    "AC-EZD-661-1",
+    "AC-EZD-661-2",
+    "AC-EZD-661-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-662",
+   "phase": 57,
+   "title": "Valves, regulators and backflow devices and their code rules",
+   "depends_raw": "EZD-644, EZD-729, EZD-213b, EZD-238, EZD-620, EZD-611a, EZD-626, EZD-627, EZD-628, EZD-629",
+   "spec_ref": "Q-0789; S03 Fixtures; Code rules catalog",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0705",
+    "spec/decisions/13b-round-26.md#R19"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png"
+   ],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-644",
+    "EZD-729",
+    "EZD-213b",
+    "EZD-238",
+    "EZD-620",
+    "EZD-611a",
+    "EZD-626",
+    "EZD-627",
+    "EZD-628",
+    "EZD-629"
+   ],
+   "build_position": 643,
+   "acs": [
+    "AC-EZD-662-1",
+    "AC-EZD-662-2",
+    "AC-EZD-662-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-663",
+   "phase": 57,
+   "title": "3D massing for code-rule objects",
+   "depends_raw": "EZD-1001a, EZD-1001c, EZD-1005, EZD-645, EZD-647, EZD-649, EZD-650, EZD-652, EZD-653, EZD-655, EZD-659",
+   "spec_ref": "Q-0789; Q-0775; S07 Layers",
+   "spec_files": [
+    "spec/sections/screens/S07-3d-view.md",
+    "spec/sections/03f-model-json-objects.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0775"
+   ],
+   "mockups": [
+    "mockups/S07ThreeD.png"
+   ],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-1001a",
+    "EZD-1001c",
+    "EZD-1005",
+    "EZD-645",
+    "EZD-647",
+    "EZD-649",
+    "EZD-650",
+    "EZD-652",
+    "EZD-653",
+    "EZD-655",
+    "EZD-659"
+   ],
+   "build_position": 644,
+   "acs": [
+    "AC-EZD-663-1",
+    "AC-EZD-663-2",
+    "AC-EZD-663-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-664",
+   "phase": 57,
+   "title": "Not checked list after phase 57",
+   "depends_raw": "EZD-646, EZD-648, EZD-649, EZD-650, EZD-651, EZD-652, EZD-654, EZD-656, EZD-657, EZD-658, EZD-660, EZD-661, EZD-662, EZD-612, EZD-620",
+   "spec_ref": "Q-0789; 09d last paragraph",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09d-building-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/09-calculations-and-rules.md#Q-0788"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-646",
+    "EZD-648",
+    "EZD-649",
+    "EZD-650",
+    "EZD-651",
+    "EZD-652",
+    "EZD-654",
+    "EZD-656",
+    "EZD-657",
+    "EZD-658",
+    "EZD-660",
+    "EZD-661",
+    "EZD-662",
+    "EZD-612",
+    "EZD-620"
+   ],
+   "build_position": 645,
+   "acs": [
+    "AC-EZD-664-1",
+    "AC-EZD-664-2"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 57
   }
  ],
  "recut_applied": "2026-10-20"
