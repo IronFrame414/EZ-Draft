@@ -8803,7 +8803,13 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/13b-round-26.md#R34",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/09-calculations-and-rules.md#Q-0559",
+    "spec/decisions/09-calculations-and-rules.md#Q-0704",
+    "spec/decisions/13b-round-26.md#R19"
    ]
   },
   {
@@ -8838,7 +8844,12 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/13b-round-26.md#R34",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/13b-round-26.md#R19"
    ]
   },
   {
@@ -8857,7 +8868,9 @@
    "phase_file": "tickets/phases/phase-06.md",
    "depends_on": [
     "EZD-611a",
-    "EZD-620"
+    "EZD-620",
+    "EZD-611b",
+    "EZD-611c"
    ],
    "build_position": 393,
    "acs": [
@@ -8871,7 +8884,12 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/13b-round-26.md#R34",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/09-calculations-and-rules.md#Q-0182",
+    "spec/decisions/13b-round-26.md#R19"
    ]
   },
   {
@@ -8931,7 +8949,8 @@
    "depends_on": [
     "EZD-611a",
     "EZD-620",
-    "EZD-501"
+    "EZD-501",
+    "EZD-215"
    ],
    "build_position": 394,
    "acs": [
@@ -8945,7 +8964,15 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/13b-round-26.md#R34",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/09-calculations-and-rules.md#Q-0182",
+    "spec/decisions/09-calculations-and-rules.md#Q-0205",
+    "spec/decisions/09-calculations-and-rules.md#Q-0704",
+    "spec/decisions/09-calculations-and-rules.md#Q-0708",
+    "spec/decisions/13b-round-26.md#R19"
    ]
   },
   {
@@ -8965,7 +8992,8 @@
    "depends_on": [
     "EZD-611a",
     "EZD-620",
-    "EZD-501"
+    "EZD-501",
+    "EZD-402"
    ],
    "build_position": 395,
    "acs": [
@@ -8979,7 +9007,12 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/13b-round-26.md#R34",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/09-calculations-and-rules.md#Q-0182",
+    "spec/decisions/13b-round-26.md#R19"
    ]
   },
   {
@@ -8999,7 +9032,9 @@
    "depends_on": [
     "EZD-611a",
     "EZD-620",
-    "EZD-507"
+    "EZD-507",
+    "EZD-731",
+    "EZD-743"
    ],
    "build_position": 396,
    "acs": [
@@ -9013,7 +9048,12 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/13b-round-26.md#R34",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/09-calculations-and-rules.md#Q-0780",
+    "spec/decisions/13b-round-26.md#R19"
    ]
   },
   {
@@ -9033,7 +9073,9 @@
    "depends_on": [
     "EZD-611a",
     "EZD-620",
-    "EZD-234"
+    "EZD-234",
+    "EZD-731",
+    "EZD-402"
    ],
    "build_position": 397,
    "acs": [
@@ -9047,7 +9089,12 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/13b-round-26.md#R34",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/09-calculations-and-rules.md#Q-0780",
+    "spec/decisions/13b-round-26.md#R19"
    ]
   },
   {
@@ -9067,7 +9114,10 @@
    "depends_on": [
     "EZD-611a",
     "EZD-620",
-    "EZD-234"
+    "EZD-234",
+    "EZD-731",
+    "EZD-743",
+    "EZD-402"
    ],
    "build_position": 398,
    "acs": [
@@ -9081,7 +9131,12 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/13b-round-26.md#R34",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/09-calculations-and-rules.md#Q-0780",
+    "spec/decisions/13b-round-26.md#R19"
    ]
   },
   {
@@ -9101,7 +9156,8 @@
    "depends_on": [
     "EZD-611a",
     "EZD-620",
-    "EZD-234"
+    "EZD-234",
+    "EZD-402"
    ],
    "build_position": 399,
    "acs": [
@@ -9115,7 +9171,11 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/13b-round-26.md#R34",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/13b-round-26.md#R19"
    ]
   },
   {
@@ -9136,7 +9196,9 @@
     "EZD-611a",
     "EZD-620",
     "EZD-234",
-    "EZD-226"
+    "EZD-226",
+    "EZD-729",
+    "EZD-228"
    ],
    "build_position": 400,
    "acs": [
@@ -9150,7 +9212,13 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/13b-round-26.md#R34",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/09-calculations-and-rules.md#Q-0559",
+    "spec/decisions/09-calculations-and-rules.md#Q-0704",
+    "spec/decisions/13b-round-26.md#R19"
    ]
   },
   {
@@ -9171,7 +9239,9 @@
     "EZD-611a",
     "EZD-620",
     "EZD-234",
-    "EZD-226"
+    "EZD-226",
+    "EZD-729",
+    "EZD-625"
    ],
    "build_position": 401,
    "acs": [
@@ -9185,7 +9255,11 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/13b-round-26.md#R34",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/13b-round-26.md#R19"
    ]
   },
   {
@@ -9206,7 +9280,8 @@
     "EZD-611a",
     "EZD-620",
     "EZD-234",
-    "EZD-226"
+    "EZD-226",
+    "EZD-730"
    ],
    "build_position": 402,
    "acs": [
@@ -9220,7 +9295,11 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/13b-round-26.md#R34",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/09-calculations-and-rules.md#Q-0763",
+    "spec/decisions/13b-round-26.md#R19"
    ]
   },
   {
