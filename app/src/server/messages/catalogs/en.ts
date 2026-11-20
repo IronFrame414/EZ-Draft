@@ -302,6 +302,10 @@ export const en = {
   'office.editor.save_failed': 'Changes not saved',
   'office.editor.load_failed': "Couldn't load this project.",
   'office.editor.offline': 'Offline. Changes are saved on this device and will sync.',
+  // EZD-1401 (S17 Offline status icon; vault/build/assumptions.md EZD-1401 wording).
+  'office.offline_icon.cached': 'Saved on this device for offline use',
+  'office.offline_icon.caching': 'Saving for offline use…',
+  'office.offline_icon.queued': 'Offline. Changes waiting to sync: {n}',
   // EZD-128 (Q-0698): the project switcher.
   'office.switcher.label': 'Switch project',
   'office.switcher.no_recent': 'No recent projects',

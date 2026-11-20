@@ -96,6 +96,7 @@ const EXPECTED_ICONS = [
   'my_location',
   'notifications',
   'notifications_off',
+  'offline_pin',
   'open_with',
   'person',
   'person_book',

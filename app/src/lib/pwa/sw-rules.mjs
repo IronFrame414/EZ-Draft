@@ -218,6 +218,17 @@ export async function onWarmMessage(data) {
   }
 }
 
+// EZD-1401 (S17 Offline status icon "spinner while caching"): when the warm work is done the worker answers the
+// page that sent it with the same message type and `done`, so the page's offline icon checks the cache again
+// without a timer. Never throws.
+export function replyWarmed(source) {
+  try {
+    if (source && typeof source.postMessage === 'function') source.postMessage({ type: WARM_MESSAGE, done: true });
+  } catch {
+    // the page is gone
+  }
+}
+
 // Constants and functions the build copies into the worker, in order.
 export const WORKER_CONSTANTS = {
   CACHE_PREFIX,
@@ -245,5 +256,6 @@ export const WORKER_FUNCTIONS = [
   readBudgetMb,
   pruneProjects,
   onWarmMessage,
+  replyWarmed,
   addNetworkRoutes,
 ];

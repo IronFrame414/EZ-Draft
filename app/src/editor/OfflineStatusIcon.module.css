@@ -1,0 +1,43 @@
+/* EZD-1401 (S17 Offline status icon; board S17Field: green check pin left of the revision badge). */
+.icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  vertical-align: middle;
+  min-height: 18px;
+}
+
+.cached {
+  color: var(--ez-green);
+}
+
+.queued {
+  color: var(--ez-amber-icon);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.count {
+  line-height: 1;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--ez-green-tint);
+  border-top-color: var(--ez-green);
+  border-radius: 50%;
+  animation: offline-icon-spin 0.9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+@keyframes offline-icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

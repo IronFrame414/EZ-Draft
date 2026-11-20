@@ -58,6 +58,8 @@
 // store, so undo is cleared); a version.reverted from someone else reopens it too.
 // EZD-139 (Q-0220; Q-0700 05; Q-0703): while a version is open, the diff layer outlines what changed since (amber)
 // and what was removed since (red dashed) over the canvas, and the status bar shows its counts and Show changes.
+// EZD-1401 (11 Offline; S17 Offline status icon; AC-EZD-1401-1): the model load is stored on the device and, with no
+// network, answered read-only from that copy (lib/pwa/project-cache.ts); the header shows the offline icon.
 import {
   useCallback,
   useEffect,
@@ -93,14 +95,9 @@ import { createAssistantLoader, type AssistantLoader } from './assistant/assista
 import type { PreviewStore } from './assistant/preview-store';
 import { createRoutedStore } from './model/routed-store';
 import { newObjectId } from './tools/model-changes';
-import {
-  beamToolReceiver,
-  ceilingAware,
-  receiverRouter,
-  wireBeamTool,
-} from './tools/beam-tool';
+import { beamToolReceiver, ceilingAware, receiverRouter, wireBeamTool } from './tools/beam-tool';
 import type { PlanPointerReceiver } from './plan/input';
-import { BeamSpacingPill } from './tools/BeamSpacingPill';
+import type { BeamSpacingPillProps } from './tools/BeamSpacingPill';
 import { assistantShown } from './assistant/assistant-ui';
 import {
   openEditorSession,
@@ -153,6 +150,8 @@ import {
   type SelectionController,
 } from './selection/selection-controller';
 import { SaveFailedBanner, SaveStateText } from './SaveStatus';
+import { OfflineStatusIcon } from './OfflineStatusIcon';
+import { createProjectCache } from '../lib/pwa/project-cache';
 import {
   PhaseFailedBanner,
   PlanScaleFailedBanner,
@@ -178,15 +177,14 @@ import type {
   VersionsStatusProps,
 } from './versions/VersionsPanel';
 import { versionTitle } from './versions/versions-list';
-import { createVersionView, type VersionView, type VersionViewState } from './versions/version-view';
+import {
+  createVersionView,
+  type VersionView,
+  type VersionViewState,
+} from './versions/version-view';
 import type { DiffLayerProps } from './versions/DiffLayer';
 import { hubVersionEvents } from './versions/version-events';
-import {
-  fetchVersions,
-  postRevert,
-  postSnapshot,
-  type VersionRow,
-} from '../lib/versions/versions';
+import { fetchVersions, postRevert, postSnapshot, type VersionRow } from '../lib/versions/versions';
 import { createModelDerived, type ModelDerived } from './derived/model-derived';
 import { phaseViewOf, savePhaseView } from '../lib/plan/phase-view';
 import { createScaleSetting, deviceSnapSettings, type ScaleSetting } from './status/view-settings';
@@ -297,6 +295,9 @@ export function ProjectEditor({
   const [canvasAttempt, setCanvasAttempt] = useState(0);
   const [listOpen, setListOpen] = useState(conflictsOpen === true);
   const [menu, setMenu] = useState<EditMenuRequest | null>(null);
+  // EZD-1401 (11 Offline): this page's copy of the open project's data, and the header icon's state.
+  // One per project, so another project's stored state never shows.
+  const projectCache = useMemo(() => createProjectCache(), [projectId]);
   const openDepsRef = useRef(openDeps);
   const onSessionRef = useRef(onSession);
   const messageRef = useRef<(key: MessageKey) => void>(noop);
@@ -313,9 +314,12 @@ export function ProjectEditor({
     let live = true;
     let dispose: (() => void) | null = null;
     // EZD-116 (AC-EZD-116-8): the session re-reads the defaults on the project channel resync.
+    // EZD-1401: the model load goes through the project cache (stored online, read-only from the copy offline).
+    const deps = openDepsRef.current;
     void openEditorSession(projectId, {
       resync: hubResync,
-      ...openDepsRef.current,
+      ...deps,
+      fetchImpl: projectCache.wrap(deps?.fetchImpl ?? globalThis.fetch.bind(globalThis)),
     }).then((result) => {
       if (!live) {
         if (result.kind === 'ready') result.session.dispose();
@@ -464,7 +468,7 @@ export function ProjectEditor({
       live = false;
       dispose?.();
     };
-  }, [projectId, attempt, surface]);
+  }, [projectId, attempt, surface, projectCache]);
 
   const session = state.kind === 'ready' ? state.session : null;
   const plan = state.kind === 'ready' ? state.plan : null;
@@ -911,7 +915,11 @@ export function ProjectEditor({
           stopEditing={part('stop')}
           share={
             canSend ? (
-              <HeaderButton icon="share" data-testid="header-share" onClick={() => setSendOpen(true)}>
+              <HeaderButton
+                icon="share"
+                data-testid="header-share"
+                onClick={() => setSendOpen(true)}
+              >
                 {t('office.header.share')}
               </HeaderButton>
             ) : undefined
@@ -919,6 +927,13 @@ export function ProjectEditor({
           // EZD-127: the review pill (every viewer), then Upload files for an editor (EZD-301).
           reviewPill={
             <>
+              {/* EZD-1401 (S17 Offline status icon): on the header's right, as beside the revision badge on the board. */}
+              <OfflineStatusIcon
+                cache={projectCache}
+                projectId={projectId}
+                queued={session.queued}
+                sync={sync}
+              />
               <EditorReview projectId={projectId} />
               {menuCanEdit ? (
                 <StateButton
@@ -1063,7 +1078,7 @@ export function ProjectEditor({
       {screenOn ? null : <ZoomStack handle={plan.handle} />}
       {shownSurface === 'floor' ? null : <CeilingLegend />}
       {shownSurface !== 'floor' && selection !== null && routedStore !== null ? (
-        <BeamSpacingPill
+        <LazyBeamSpacingPill
           store={routedStore}
           selection={selection}
           handle={plan.handle}
@@ -1421,6 +1436,14 @@ function LazyVersionInspector(props: VersionInspectorProps) {
 function LazyVersionsStatus(props: VersionsStatusProps) {
   const mod = useLazy(versionsModule);
   return mod ? <mod.VersionsStatus {...props} /> : null;
+}
+
+// EZD-1401 (11 Budgets; EZD-120c B11): the beam spacing pill loads when the Ceiling or Both view first shows.
+const beamSpacingModule = lazyModule(() => import('../lazy/beam-spacing'));
+
+function LazyBeamSpacingPill(props: BeamSpacingPillProps) {
+  const mod = useLazy(beamSpacingModule);
+  return mod ? <mod.BeamSpacingPill {...props} /> : null;
 }
 
 function LazyDiffLayer(props: DiffLayerProps) {

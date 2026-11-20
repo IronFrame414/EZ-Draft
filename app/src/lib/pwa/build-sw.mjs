@@ -52,7 +52,9 @@ export function workerCode() {
   const functions = WORKER_FUNCTIONS.map((f) => f.toString().replace(/^export /, ''));
   const listener = `self.addEventListener('install', addNetworkRoutes);
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === WARM_MESSAGE) event.waitUntil(onWarmMessage(event.data));
+  if (event.data && event.data.type === WARM_MESSAGE && !event.data.done) {
+    event.waitUntil(onWarmMessage(event.data).then(() => replyWarmed(event.source)));
+  }
 });`;
   return `${[...constants, ...functions, listener].join('\n')}\n`;
 }
