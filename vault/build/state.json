@@ -407,7 +407,8 @@
     "EZD-425",
     "EZD-505",
     "EZD-506",
-    "EZD-713"
+    "EZD-713",
+    "EZD-601"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1045,6 +1046,14 @@
       "ts": "2026-11-20T06:24:42Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-601",
+      "title": "Electrical mode and left panel",
+      "commit": "bed805d8",
+      "ts": "2026-11-20T07:31:03Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1160,11 +1169,11 @@
     }
   },
   "running": {
-    "EZD-601": {
-      "lane": 2,
-      "title": "Electrical mode and left panel",
-      "started": "2026-11-20T05:59:09Z",
-      "develop": "a4b226c9"
+    "EZD-1102": {
+      "lane": 1,
+      "title": "Render models settings",
+      "started": "2026-11-20T06:24:47Z",
+      "develop": "1bb00ac4"
     }
   },
   "advisories_checked_at": "2026-11-20T04:58:02Z"
