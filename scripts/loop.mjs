@@ -762,6 +762,13 @@ async function main() {
   const prev = lastBeat(P.heartbeat);
   const gap = startNote(prev, { now: first.ts, boot: first.boot, reason: prev && prev.boot !== first.boot ? resetReason(prev.ts) : null });
   if (gap) log(gap);
+  // Josh 2026-11-20: two heavy-check slots are a trial. A Mac reset since the last run puts it back to one slot.
+  if (gap && gap.startsWith('MAC RESTARTED')) {
+    try {
+      const raw = readJson(P.config, {});
+      if (Number(raw.heavy_slots) > 1) { raw.heavy_slots = 1; raw.heavy_slots_note = `${raw.heavy_slots_note || ''} Set back to 1 by the loop after a Mac reset (${now()}).`.trim(); writeFileSync(P.config, JSON.stringify(raw, null, 2) + '\n'); log('heavy_slots set back to 1 after the Mac reset'); }
+    } catch (e) { log(`could not reset heavy_slots: ${e?.message || e}`); }
+  }
   log(`loop start (pid ${process.pid}; lanes ${laneList().join(', ')})`);
   const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock'); // slot 1; heartbeat reads every slot
   const beat = () => { try { writeBeat(P.heartbeat, sample({ running: Object.keys(s.running), heavyLock })); } catch (e) { console.log(`heartbeat: ${e?.message || e}`); } };
