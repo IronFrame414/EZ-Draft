@@ -182,3 +182,18 @@ These pieces have a written description in the spec but no drawing. Your answer 
 ## Added 2026-11-20: reflected ceiling plan sheet is optional
 
 **Josh (2026-11-20): "this isn't always needed but should be one of the check boxes to add".** Recorded as Q-0779. A fourth tick box, "Reflected ceiling plan", sits with Electrical, Plumbing and Mechanical. Ticked, the A6.0 sheet is in the set; unticked, it is left out, and drawn ceiling work then gets a Check warning. It starts unticked; that default and the wording are listed in `vault/build/assumptions.md` for you to confirm. Tickets: EZD-739 (new), EZD-701, EZD-708a, EZD-641.
+
+---
+
+## 10. Manual J: get the ACCA book, and check what your department accepts (added 2026-11-20)
+
+**What it is:** to build Manual J into EZ Draft (your answer of 2026-11-20), the agents need ACCA's procedure, its tables and a worked example with known answers. A search of ACCA, DOE, FSEC, RESNET and ENERGY STAR found no free source that has all three. They are only in the ACCA book: Manual J, 8th edition (ANSI/ACCA 2-2016). ACCA's site also says "Only ACCA-approved software complies with our design standards and meets building code requirements", and the code allows "other approved" methods only with the building official's approval.
+
+**Why you're being asked:** buying the book and asking your building department are things only you can do.
+
+**What waits on it:** only the three Manual J tickets (EZD-740 inputs, EZD-741 calculation, EZD-742 report). The equipment-size check (EZD-732) builds now, using a Manual J load typed from a report.
+
+**My recommendation: (a), but ask your department first.** Ask whether they accept a Manual J report from EZ Draft, or only from ACCA-approved software. If only approved software, (b) avoids building something they would reject.
+
+- (a) Buy the ACCA Manual J 8th edition PDF (and Manual S) and give it to the agents (it stays out of git, like the NEC book). EZ Draft builds its own Manual J, and you confirm your department accepts its report.
+- (b) Keep typing in the Manual J load from your A/C sub's approved program. EZ Draft checks the equipment against it and prints it on the mechanical sheet. The three Manual J tickets are retired.
