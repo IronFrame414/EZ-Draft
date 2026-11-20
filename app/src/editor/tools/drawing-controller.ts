@@ -28,6 +28,7 @@
 // without Edit model and stays on through a pause; C turns it on, Esc turns it off.
 // EZD-6001 (vault/plans/EZD-6001.md D-Wire, D-Draw-switch): new objects go on the chosen floor; a switch ends what is half
 // drawn as Escape does and keeps the tool.
+// EZD-505 (S05 "Beams in a set move as a set"): the level's beam sets move with Move and Select drags.
 import {
   DEFAULT_SNAP_SETTINGS,
   DOOR_TARGET_PX,
@@ -130,6 +131,7 @@ import {
   type SelectionFrame,
   looseOn,
   blockingsOn,
+  beamsOn,
   type FixtureChoice,
   type LooseObject,
 } from './index';
@@ -319,6 +321,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let loose: LooseObject[] = level === null ? [] : looseOn(objects, level);
   // EZD-227: the level's grab-bar blocking, which moves and is placed against the walls.
   let blockings: ModelObject[] = level === null ? [] : blockingsOn(objects, level);
+  let beams: ModelObject[] = level === null ? [] : beamsOn(objects, level);
   // EZD-225: `let`, so `pause` can turn editing off when the lock is lost.
   let enabled = viewer.canEdit && level !== null;
 
@@ -459,6 +462,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
           openings = level === null ? [] : openingsOn(objects, level);
           loose = level === null ? [] : looseOn(objects, level);
           blockings = level === null ? [] : blockingsOn(objects, level);
+          beams = level === null ? [] : beamsOn(objects, level);
           moveCache = null;
           index = createWallSnapIndex(snapWalls(models));
           drawingIds = currentDrawingIds();
@@ -476,6 +480,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     openings = level === null ? [] : openingsOn(objects, level);
     loose = level === null ? [] : looseOn(objects, level);
     blockings = level === null ? [] : blockingsOn(objects, level);
+    beams = level === null ? [] : beamsOn(objects, level);
     moveCache = null;
     if (level !== prevLevel || level === null) {
       index = createWallSnapIndex(snapWalls(models));
@@ -502,7 +507,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   // D7 (a): the walls and openings a move reads.
   function moveModels(): ModelObject[] {
-    if (moveCache === null) moveCache = [...models, ...openings, ...blockings, ...loose];
+    if (moveCache === null) moveCache = [...models, ...openings, ...blockings, ...loose, ...beams];
     return moveCache;
   }
 

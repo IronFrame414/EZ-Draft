@@ -257,6 +257,8 @@ export const PROJECTORS: {
   countertop_piece: notSent,
   // EZD-733: tile layouts are not sent until a ticket decides what of them the assistant reads.
   tile_layout: notSent,
+  // EZD-505: beam sets are not sent until a ticket decides what of them the assistant reads.
+  beam: notSent,
 };
 
 const LABEL_WORDS = new Set(ROOM_LABEL_WORDS.map((w) => w.toLowerCase()));

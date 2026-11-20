@@ -93,6 +93,14 @@ import { createAssistantLoader, type AssistantLoader } from './assistant/assista
 import type { PreviewStore } from './assistant/preview-store';
 import { createRoutedStore } from './model/routed-store';
 import { newObjectId } from './tools/model-changes';
+import {
+  beamToolReceiver,
+  ceilingAware,
+  receiverRouter,
+  wireBeamTool,
+} from './tools/beam-tool';
+import type { PlanPointerReceiver } from './plan/input';
+import { BeamSpacingPill } from './tools/BeamSpacingPill';
 import { assistantShown } from './assistant/assistant-ui';
 import {
   openEditorSession,
@@ -121,7 +129,7 @@ import {
   type PlanStats,
 } from './plan/controller';
 import { openFloorId } from './plan/batches';
-import { createFloorView, type FloorView } from './floors/floors';
+import { chosenFloor, createFloorView, type FloorView } from './floors/floors';
 import { FloorSwitcher } from './floors/FloorSwitcher';
 import { createGlyphAtlas } from './plan/glyph-atlas-canvas';
 import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
@@ -239,6 +247,8 @@ type CanvasState =
       floors: FloorView;
       routed: RoutedStore;
       versions: VersionView;
+      // EZD-505: puts the Beam tool's receiver in front of the drawing and selection receivers.
+      toolRoute: (r: PlanPointerReceiver | null) => void;
     };
 
 const PLAN_VIEWS: EditorView[] = ['plan'];
@@ -277,6 +287,9 @@ export function ProjectEditor({
   // EZD-301 (S02 Entry): the Upload files dialog, loaded with the edit menus' lazy module.
   const [uploading, setUploading] = useState(false);
   const [state, setState] = useState<CanvasState>({ kind: 'loading' });
+  // EZD-502 (S05 Entry points; AC-EZD-502-1): the plan's surface for this page. EZD-505: made before the session so
+  // selection can leave ceiling items out on Floor.
+  const [surface] = useState(createSurfaceSetting);
   const [attempt, setAttempt] = useState(0);
   const [canvasFailed, setCanvasFailed] = useState(false);
   const [canvasAttempt, setCanvasAttempt] = useState(0);
@@ -331,7 +344,8 @@ export function ProjectEditor({
           { store: routed, scale: scale.get(), phase: layers, derived, floors },
           { createRoot: createR3fRoot, createAtlas: createGlyphAtlas },
         );
-        const slots = shareReceiver(plan.handle.setPointerReceiver);
+        const router = receiverRouter(plan.handle.setPointerReceiver);
+        const slots = shareReceiver(router.base);
         const unsubscribeScale = scale.subscribe(() => plan.handle.setScale(scale.get()));
         // EZD-423: the drawing engine loads on the first input in the page or the first tool asked for.
         const drawing = createDrawingShell(
@@ -353,7 +367,7 @@ export function ProjectEditor({
           drawing,
           setReceiver: slots.selection,
           claim: drawing.claimSelectPointer,
-          phase: layers.selectable,
+          phase: ceilingAware(layers.selectable, surface),
           floors,
         });
         drawing.attachSelection(selection);
@@ -438,6 +452,7 @@ export function ProjectEditor({
           floors,
           routed,
           versions,
+          toolRoute: router.tool,
         });
         return;
       }
@@ -447,7 +462,7 @@ export function ProjectEditor({
       live = false;
       dispose?.();
     };
-  }, [projectId, attempt]);
+  }, [projectId, attempt, surface]);
 
   const session = state.kind === 'ready' ? state.session : null;
   const plan = state.kind === 'ready' ? state.plan : null;
@@ -599,9 +614,8 @@ export function ProjectEditor({
   );
   const viewing = view.viewing;
   const [leftTab, setLeftTab] = useState<LeftTab>('layers');
-  // EZD-502 (S05 Entry points; AC-EZD-502-1): the plan's surface for this page; Ceiling and Both draw through the lazy
-  // RCP module, and a switch away from Floor ends any standard tool (the cabinet screen too).
-  const [surface] = useState(createSurfaceSetting);
+  // EZD-502: Ceiling and Both draw through the lazy RCP module, and a switch away from Floor ends any standard tool
+  // (the cabinet screen too).
   const shownSurface = useSyncExternalStore(
     surface.subscribe,
     () => surface.get().surface,
@@ -666,6 +680,21 @@ export function ProjectEditor({
   useEffect(() => {
     if (lockLost) drawing?.pause();
   }, [lockLost, drawing]);
+  // EZD-505 (S05 Controls "Beam"): the Beam tool takes the plan's clicks while it is on and editing is allowed.
+  const toolRoute = state.kind === 'ready' ? state.toolRoute : null;
+  const routedStore = state.kind === 'ready' ? state.routed : null;
+  useEffect(() => {
+    if (toolRoute === null || routedStore === null || selection === null || phase === null) return;
+    const receiver = beamToolReceiver({
+      store: routedStore,
+      chosenFloor: () => chosenFloor(floors),
+      newStatus: () => phase.newObjectStatus(),
+      newId: newObjectId,
+      select: (ids) => selection.select(ids),
+      onMessage: (key) => messageRef.current(key),
+    });
+    return wireBeamTool(surface, toolRoute, receiver, mayEdit);
+  }, [toolRoute, routedStore, selection, phase, floors, surface, mayEdit]);
   const pdfUnderlay = usePdfUnderlay({ projectId, plan, canEdit: mayEdit });
 
   // EZD-130: a Project settings save (in the switcher) draws the header again with the new name and client.
@@ -987,6 +1016,14 @@ export function ProjectEditor({
       <PlanInputSurface controller={plan} />
       {cabinetsOn ? null : <ZoomStack handle={plan.handle} />}
       {shownSurface === 'floor' ? null : <CeilingLegend />}
+      {shownSurface !== 'floor' && selection !== null && routedStore !== null ? (
+        <BeamSpacingPill
+          store={routedStore}
+          selection={selection}
+          handle={plan.handle}
+          canEdit={canEdit}
+        />
+      ) : null}
       {preview !== null ? <LazyPreviewLayer store={preview} handle={plan.handle} /> : null}
       {versionView !== null && viewing !== null ? (
         <LazyDiffLayer view={versionView} handle={plan.handle} floors={floors} />

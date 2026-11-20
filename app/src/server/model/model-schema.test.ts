@@ -274,14 +274,14 @@ describe('EZD-202 model object schema on save', () => {
     }
   }, 120000);
 
-  it('A3 type, version: schemaVersion 8 and type beam are refused, nothing is written', async () => {
+  it('A3 type, version: schemaVersion 8 and type skylight are refused, nothing is written', async () => {
     const before = await rows(project);
     const v = randomUUID();
     expectRefused(await send(project, [up(v, 'wall', wallData(floor1), 0, 8)]), [
       { id: v, issue: 'unknown_schema_version' },
     ]);
     const t = randomUUID();
-    expectRefused(await send(project, [up(t, 'beam', wallData(floor1))]), [
+    expectRefused(await send(project, [up(t, 'skylight', wallData(floor1))]), [
       { id: t, issue: 'unknown_type' },
     ]);
     expect(await rows(project)).toEqual(before);
