@@ -176,4 +176,82 @@ test.describe('EZD-712 Settings > Sheet presets', () => {
     await page.reload();
     await expect(box).toBeChecked();
   });
+  // EZD-713 (S15c; board S15cSubmittal profile panel): the department rules are settings saved on the profile.
+  // Seeded default: PBC 10 MB and 80 characters (08 PBC row); "336 Golfview Rd buildingplans.pdf" is 33 / 80.
+  test('EZD-713: file split, naming, revision naming, export and resubmittal settings save', async ({
+    page,
+    signInAs,
+  }) => {
+    const tenant = await open(signInAs, page);
+    await expect(tid(page, 'sheet-presets-max-file')).toHaveValue('10');
+    await expect(tid(page, 'sheet-presets-naming-count')).toHaveText('33 / 80');
+    await expect(tid(page, 'sheet-presets-naming-warning')).toBeVisible();
+
+    await tid(page, 'sheet-presets-file-split').selectOption('per_sheet');
+    await tid(page, 'sheet-presets-naming-max').fill('30');
+    await tid(page, 'sheet-presets-case-upper').click();
+    await expect(tid(page, 'sheet-presets-naming-preview')).toContainText(
+      '336 GOLFVIEW RD BUILDINGPL.pdf',
+    );
+    await expect(tid(page, 'sheet-presets-naming-count')).toHaveText('30 / 30');
+    // Same name as original: the {rev} warning goes (S15c Validation).
+    await tid(page, 'sheet-presets-revision-same_name').click();
+    await expect(tid(page, 'sheet-presets-naming-warning')).toHaveCount(0);
+    // Export unsigned turns on when a signer is chosen (S15c).
+    await expect(tid(page, 'sheet-presets-export-unsigned')).toHaveAttribute(
+      'aria-checked',
+      'false',
+    );
+    await tid(page, 'sheet-presets-signer').selectOption('electrical_contractor');
+    await expect(tid(page, 'sheet-presets-export-unsigned')).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    await tid(page, 'sheet-presets-flatten').click();
+    await tid(page, 'sheet-presets-toc-sheet').click();
+    await page.locator('[data-testid="sheet-presets-min-scale"][data-value="0.1875"]').click();
+    await tid(page, 'sheet-presets-resubmittal-mode').selectOption('full_set_narrative');
+    await tid(page, 'sheet-presets-transmittal').click();
+    // Empty = no limit.
+    await tid(page, 'sheet-presets-max-file').fill('');
+
+    const saved = page.waitForResponse(
+      (r) =>
+        r.request().method() === 'PATCH' &&
+        /\/api\/settings\/sheet-presets\/[0-9a-f-]+$/.test(r.url()),
+    );
+    await tid(page, 'sheet-presets-save').click();
+    expect((await saved).status()).toBe(200);
+    await expect(tid(page, 'sheet-presets-save')).toBeDisabled();
+
+    const [row] =
+      await harnessSql()`select file_split, max_file_mb, naming_max_length, naming_upper,
+        revision_naming, flatten, export_unsigned, bookmarks, toc_sheet, resubmittal_mode, transmittal,
+        min_scale_in_per_ft, signer
+      from public.submittal_profile where tenant_id = ${tenant}::uuid and is_default`;
+    expect({ ...row, min_scale_in_per_ft: Number(row.min_scale_in_per_ft) }).toEqual({
+      file_split: 'per_sheet',
+      max_file_mb: null,
+      naming_max_length: 30,
+      naming_upper: true,
+      revision_naming: 'same_name',
+      flatten: true,
+      export_unsigned: true,
+      bookmarks: true,
+      toc_sheet: true,
+      resubmittal_mode: 'full_set_narrative',
+      transmittal: true,
+      min_scale_in_per_ft: 0.1875,
+      signer: 'electrical_contractor',
+    });
+
+    await page.reload();
+    await expect(tid(page, 'sheet-presets-file-split')).toHaveValue('per_sheet');
+    await expect(tid(page, 'sheet-presets-revision-same_name')).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    await expect(tid(page, 'sheet-presets-row').first()).toContainText('Same name on resubmit');
+    await expect(tid(page, 'sheet-presets-row').first()).toContainText('ALL CAPS');
+  });
 });
