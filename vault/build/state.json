@@ -412,7 +412,8 @@
     "EZD-1102",
     "EZD-412",
     "EZD-134",
-    "EZD-413"
+    "EZD-413",
+    "EZD-739"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1090,6 +1091,14 @@
       "ts": "2026-11-20T13:40:40Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-739",
+      "title": "Scope tick boxes",
+      "commit": "edc8f833",
+      "ts": "2026-11-20T15:21:40Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1218,11 +1227,11 @@
     }
   },
   "running": {
-    "EZD-739": {
-      "lane": 1,
-      "title": "Scope tick boxes",
-      "started": "2026-11-20T13:14:31Z",
-      "develop": "f8fd4315"
+    "EZD-1401": {
+      "lane": 2,
+      "title": "Service worker cache",
+      "started": "2026-11-20T13:40:45Z",
+      "develop": "b75c6128"
     }
   },
   "advisories_checked_at": "2026-11-20T10:58:15Z"
