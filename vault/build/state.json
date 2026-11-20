@@ -409,7 +409,8 @@
     "EZD-506",
     "EZD-713",
     "EZD-601",
-    "EZD-1102"
+    "EZD-1102",
+    "EZD-412"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1063,6 +1064,14 @@
       "ts": "2026-11-20T08:18:38Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-412",
+      "title": "Trace and Draw outline",
+      "commit": "1f0b85f8",
+      "ts": "2026-11-20T11:12:32Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1084,7 +1093,7 @@
     }
   },
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1193,5 +1202,5 @@
       "develop": "43ee2216"
     }
   },
-  "advisories_checked_at": "2026-11-20T04:58:02Z"
+  "advisories_checked_at": "2026-11-20T10:58:15Z"
 }
