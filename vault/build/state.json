@@ -404,7 +404,8 @@
     "EZD-502",
     "EZD-424",
     "EZD-714",
-    "EZD-425"
+    "EZD-425",
+    "EZD-505"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1018,6 +1019,14 @@
       "ts": "2026-11-20T04:23:54Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-505",
+      "title": "Beams",
+      "commit": "c1a255dc",
+      "ts": "2026-11-20T04:50:34Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1133,11 +1142,11 @@
     }
   },
   "running": {
-    "EZD-505": {
-      "lane": 2,
-      "title": "Beams",
-      "started": "2026-11-19T22:57:36Z",
-      "develop": "81fd1d60"
+    "EZD-713": {
+      "lane": 1,
+      "title": "Department profile settings",
+      "started": "2026-11-20T04:24:00Z",
+      "develop": "0bc89d8b"
     }
   },
   "advisories_checked_at": "2026-11-19T22:57:31Z"
