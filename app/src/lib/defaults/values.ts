@@ -38,6 +38,8 @@ const OK: CheckResult = { ok: true };
 const refuse = (messageKey: MessageKey): CheckResult => ({ ok: false, messageKey });
 
 export function refusalKey(row: DefaultRow): MessageKey {
+  // EZD-134: a row with its own bounds names its own message.
+  if (row.refusal) return row.refusal;
   switch (row.type) {
     case 'length':
     case 'length_choice':

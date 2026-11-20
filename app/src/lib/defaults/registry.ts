@@ -6,6 +6,12 @@
 // numbers are sample data, never defaults. Answers to open questions are in vault/build/assumptions.md
 // (EZD-116). Lengths are stored in inches; percents, minutes, days and counts as numbers.
 import type { MessageKey } from '../../server/messages/catalog';
+import {
+  DEVICE_CACHE_BUDGET_DEFAULT_MB,
+  DEVICE_CACHE_BUDGET_KEY,
+  DEVICE_CACHE_BUDGET_MAX_MB,
+  DEVICE_CACHE_BUDGET_MIN_MB,
+} from '../pwa/sw-constants.mjs';
 
 export const DEFAULT_GROUPS = [
   'units',
@@ -56,7 +62,7 @@ export type DefaultRow = {
   label: MessageKey;
   hint?: MessageKey;
   type: DefaultType;
-  unit?: 'in' | '%' | 'min' | 'days';
+  unit?: 'in' | '%' | 'min' | 'days' | 'MB';
   default: DefaultValue | null;
   // Copied into project.settings.defaults when a project is made (S15d Decision 4; Q-0697 03).
   perProject: boolean;
@@ -65,6 +71,8 @@ export type DefaultRow = {
   zeroAllowed?: boolean;
   min?: number;
   max?: number;
+  // EZD-134: the refusal message when the type's shared one names other bounds.
+  refusal?: MessageKey;
 };
 
 // Q-0207: dimension rounding choices (assumption Q-0713 (a)).
@@ -405,6 +413,20 @@ export const DEFAULTS_REGISTRY: readonly DefaultRow[] = [
     type: 'minutes',
     unit: 'min',
     default: 5,
+  }),
+  // EZD-134 (03b Architecture rule 10): megabytes each device keeps for cached projects other than the open one
+  // (default and bounds: assumption EZD-134 in vault/build/assumptions.md; S15d has no such row).
+  row({
+    key: DEVICE_CACHE_BUDGET_KEY,
+    group: 'history',
+    label: L('device_cache_budget'),
+    hint: H('device_cache_budget'),
+    type: 'count',
+    unit: 'MB',
+    default: DEVICE_CACHE_BUDGET_DEFAULT_MB,
+    min: DEVICE_CACHE_BUDGET_MIN_MB,
+    max: DEVICE_CACHE_BUDGET_MAX_MB,
+    refusal: 'office.defaults.error.device_cache_budget' as MessageKey,
   }),
   // Client
   row({

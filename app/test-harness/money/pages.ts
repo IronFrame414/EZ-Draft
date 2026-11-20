@@ -1,6 +1,9 @@
 // EZD-133 section 3 harness row `money/pages.ts` (vault/plans/EZD-133.md): list every page file under
 // `<appSrcDir>/app/` (Next.js default pageExtensions) and scan the text a page loads for money names.
 // Scripts are static, so only documents and data requests are scanned. Test-only.
+// EZD-134: the service worker copies the built files a page loaded into its cache with fetch(); a worker fetch of
+// a built static file (/_next/static/) is that script again, not data, so it is not scanned either. A worker fetch
+// of anything else (a page, the API) still is.
 import path from 'node:path';
 import type { MoneyClass, MoneyField } from '../../src/server/db/money-fields';
 import type { TrafficResponse } from '../e2e/traffic';
@@ -40,6 +43,7 @@ export function pageViolations(
   const out: string[] = [];
   for (const r of responses) {
     if (!(PAGE_SCAN_TYPES as readonly string[]).includes(r.resourceType)) continue;
+    if (r.fromServiceWorker && r.path.startsWith('/_next/static/')) continue;
     for (const v of moneyTextViolations(r.body, fields, denied)) {
       out.push(`${r.method} ${r.path}: ${v}`);
     }

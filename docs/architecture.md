@@ -191,7 +191,7 @@ One choice per job (02 Named tools; R26 R11). The `Packages` cell holds only npm
 | Schema and validation | Zod, one file per model object type (02; 03 rule 5) | `zod` |
 | Unit tests / browser tests | Vitest / Playwright (02) | `vitest`, `@playwright/test` |
 | Styling and UI primitives | CSS modules on the design tokens (built into Next.js, no package); Radix primitives for dialogs, menus, popovers, from the combined `radix-ui` package so every primitive is at one version (02) | `radix-ui` |
-| Device storage | IndexedDB through `idb`; service worker built with Workbox: `workbox-build` generates the worker, `workbox-window` registers it, `workbox-precaching`, `workbox-routing` and `workbox-strategies` run inside it, all at one version (02) | `idb`, `workbox-build`, `workbox-window`, `workbox-precaching`, `workbox-routing`, `workbox-strategies` |
+| Device storage | IndexedDB through `idb`; service worker built with Workbox: `workbox-build` generates `app/public/sw.js` with the Workbox runtime inlined (EZD-134), and EZD-013's `registerServiceWorker` registers it, so no other Workbox package is installed (02) | `idb`, `workbox-build` |
 | Polygon math | Clipper2, WebAssembly build (`clipper2-wasm`), run in a Web Worker (02; 11 rule 3) | `clipper2-wasm` |
 | PDF writer | PDFKit, in the job only (02; R26 R7) | `pdfkit` |
 | DXF | `dxf-parser` to read, plus own handler for HATCH, `@tarikjabiri/dxf` to write; confirmed by EZD-029 (see `### DXF (EZD-029)`) (02 Stack DXF in/out; R26 R16) | `dxf-parser`, `@tarikjabiri/dxf` |
@@ -218,7 +218,7 @@ One row per layer of 02 Stack. Same cell format as Named tools.
 | Database, auth, files | Supabase: Postgres with RLS, Auth, Storage, Realtime (02). `@supabase/supabase-js` is the client; `@supabase/ssr` builds the per-request server client from the session cookie; `supabase` is the CLI | `@supabase/supabase-js`, `@supabase/ssr`, `supabase` |
 | Background jobs | Postgres `job` table; workers are Vercel Functions started on enqueue and by a once-a-minute sweep (02; P4; EZD-009) | — |
 | AI | Claude for text and image reading through `@anthropic-ai/sdk`; image edits for Gemini image, GPT Image 2 and Flux Kontext pro through plain HTTP (02; R26 R21; Q-0016; EZD-021, see `### AI (EZD-021)`). Claude model ids are in `### AI (EZD-021)`; image model ids are chosen by EZD-031 and EZD-1103 | `@anthropic-ai/sdk` |
-| Offline | Service worker cache (Workbox) + local change queue; working copy in IndexedDB (`idb`) (02; 03 rules 9–10) | `workbox-build`, `workbox-window`, `workbox-precaching`, `workbox-routing`, `workbox-strategies`, `idb` |
+| Offline | Service worker cache (Workbox) + local change queue; working copy in IndexedDB (`idb`) (02; 03 rules 9–10) | `workbox-build`, `idb` |
 | Hosting | Vercel (app at ezdraft.ezcontractorbinder.com) + Supabase; local GPU render worker preferred, paid API fallback (02; R24 #1, #50; R26 R18) | — |
 
 ### DXF (EZD-029)
@@ -279,11 +279,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `@playwright/test` | `1.64.1` | root, app, spikes | Named tools: browser tests | EZD-000 |
 | `radix-ui` | `1.8.1` | app | Named tools: Styling and UI primitives | EZD-000 |
 | `idb` | `8.0.4` | app | Named tools: Device storage; Stack: Offline | EZD-000 |
-| `workbox-build` | `7.4.1` | app | Named tools: Device storage (builds the service worker) | EZD-000 |
-| `workbox-window` | `7.4.1` | app | Named tools: Device storage (registers the service worker) | EZD-000 |
-| `workbox-precaching` | `7.4.1` | app | Named tools: Device storage; Stack: Offline | EZD-000 |
-| `workbox-routing` | `7.4.1` | app | Named tools: Device storage; Stack: Offline | EZD-000 |
-| `workbox-strategies` | `7.4.1` | app | Named tools: Device storage; Stack: Offline | EZD-000 |
+| `workbox-build` | `7.4.1` | app | Named tools: Device storage (generates `app/public/sw.js` with its runtime inlined; a devDependency, run by `pnpm --filter app sw`; EZD-134 dropped the `workbox-window`, `workbox-precaching`, `workbox-routing` and `workbox-strategies` rows, as nothing imports them) | EZD-000 |
 | `clipper2-wasm` | `0.4.0` | geometry, app | Named tools: Polygon math (Clipper2 WebAssembly build) | EZD-000 |
 | `three-bvh-csg` | `0.0.18` | app | Stack: Polygon math | EZD-000 |
 | `pdfkit` | `0.20.2` | app, spikes | Named tools: PDF writer; Stack: PDF out | EZD-000 |
@@ -684,11 +680,23 @@ EZD-013 (vault/plans/EZD-013.md Steps 1-12); 02 Platform; R24 #1; Q-0051 (a); Q-
 
 - Files: `app/src/lib/pwa/app-meta.ts` (`APP_NAME` `EZ Draft`, `THEME_COLOR` read from the `--ez-canvas` entry of `TOKENS`), `app/src/app/manifest.ts` (served at `/manifest.webmanifest`), `app/src/lib/pwa/register-sw.ts` (`registerServiceWorker`), `app/src/components/pwa/ServiceWorkerRegistration.tsx` (mounted last in `<body>` of the root layout), `app/public/sw.js`, `app/next.config.ts` (the `/sw.js` header), `app/src/app/layout.tsx` (`appleWebApp`, `viewport`), `app/src/pwa/app-icon.html` and `app/scripts/app-icons.mjs`.
 - Manifest values: name and short name `EZ Draft` (R24 #1), `display` `standalone`, `start_url` and `scope` `/`, `id` `/`, `lang` `en`, `background_color` and `theme_color` `#f6f7f9` (`--ez-canvas`, 04 Frame and visual system), three icons (192 `any`, 512 `any`, 512 `maskable`). No description and no orientation.
-- `/sw.js` with scope `/` is fixed: EZD-134 builds the Workbox worker at the same URL or unregisters this one.
-- No fetch handler and no cache until EZD-134; the worker only calls `skipWaiting` and `clients.claim`.
+- `/sw.js` with scope `/` is fixed; EZD-134 builds the Workbox worker at the same URL (below).
 - `registerServiceWorker` registers after the window `load` event, only in a secure context with service worker support, and reports a failed registration with `captureBrowserError(error, 'pwa.register')`, loaded with `import()`, and never throws.
 - Re-render the icons: edit `app/src/pwa/app-icon.html`, run `pnpm --filter @ezdraft/app app-icons:render`, commit the five PNGs.
 - Public static files keep a file extension, so the request gate (`app/src/proxy.ts` matcher) never sees them.
+
+### App-shell cache and device storage (EZD-134)
+
+EZD-134; 03b Architecture rules 10 and 12; 11 Offline; Q-0338; Q-0501; Q-0503; Q-0530; Q-0540.
+
+- **Worker.** `app/public/sw.js` is generated: `pnpm --filter app sw` runs `app/src/lib/pwa/build-sw.mjs` (`workbox-build` `generateSW`, runtime inlined, no precache manifest) and prepends the cache work of `app/src/lib/pwa/sw-rules.mjs` (its functions copied as source text; names and numbers in `sw-constants.mjs`). `sw-file.test.ts` regenerates it and fails while the committed file is out of date. Never edit `sw.js` by hand.
+- **Online the worker answers nothing.** Its three Workbox routes (`CacheOnly`, `ignoreVary`) match only while `self.navigator.onLine` is false: same-origin shell pages (`ezdraft-shell`: every path except `/api`, `/sign-in`, `/auth`, `/invite`, `/dev`, `/projects`), project pages (`ezdraft-projects`: `/projects/<id>...`) and static files (`ezdraft-static`: `/_next/static/`, `/app-icons/`, `/icons/`). So pages are never stale and Playwright's `page.route` and the EZD-163 traffic collector see every request. Where the browser has static routing (Chromium), install declares `/api/*`, `/sign-in`, `/auth/*`, `/invite/*` and `/dev/*` as network routes, so those requests never start a stopped worker (traffic.spec.ts R1).
+- **Filling the caches.** After registration `startWarm` (`app/src/lib/pwa/warm-message.ts`), on a page the device stores (a shell or project page; never sign-in, auth links, invites or dev pages, so those start no worker fetches: Chromium crashed when DevTools stopped a worker with them in flight, traffic.spec.ts R1), posts `{ type: 'ezdraft-warm', build, page, files, openProject }` to the active worker, then again for each later file (a `PerformanceObserver` on `resource`, fetches left out). The worker stores the page unless its copy names the same build (`x-ezdraft-app-build`), stores each static file once (`cache: 'force-cache'`, newest 400 kept) and stores only a 200 same-origin answer that was not redirected. Worker fetches do not count toward the page size budgets (the size check sums worker traffic apart).
+- **Cache budget.** Settings › Defaults `device_cache_budget` (History + collaboration; megabytes, default 500, 100 to 10,000; migration `20261120134000`). After each warm message the worker trims `ezdraft-projects` oldest first (by the answers' `Date`) to the budget, never the open project, reading the budget from `GET /api/settings/defaults` only when the cache is over 100 MB. The outbox (IndexedDB) is never touched.
+- **Persistent storage.** `requestPersistentStorage` asks once per load; Settings › System status shows the answer on the This device card (`system-status-storage`, `data-persistence` `kept`, `may_clear` or `unsupported`).
+- **Sign-out** deletes every `ezdraft-` cache before it signs out, online or offline (`signOutOnDevice`, `clear-caches.ts`); queued edits stay (Q-0503).
+- **App version.** `app/next.config.ts` computes one build number, inlines it as `EZD_APP_BUILD` and answers every path with it in `x-ezdraft-app-build` through a `headers()` rule. Never set it in the request gate: Next copies the gate's answer headers onto the request, so every save would look current. `installVersionFetch` (`version-fetch.ts`, loaded with `ServiceWorkerRegistration`) adds the header to every same-origin `fetch` except a save (`POST /api/projects/<id>/objects`, which carries its own, EZD-299a). An answer naming a newer build marks the page outdated (`outdatedStore`); the office layout's `ReloadPrompt` (`app-reload-prompt`) shows once `useQueuedCount` reads 0 for this person (Q-0540: saves keep EZD-299's prompt). Page loads cannot carry the header.
+- **Projects page warning.** `ProjectsHeader` shows `projects-unsynced` while `useQueuedCount()` (`OutboxDrain.tsx`, this person's outbox count, read every 2,000 ms) is above 0; the sign-out warning is EZD-120d's.
 
 ### Settings shell (EZD-103a)
 

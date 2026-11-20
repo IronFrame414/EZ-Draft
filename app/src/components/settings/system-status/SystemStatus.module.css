@@ -10,8 +10,9 @@
   grid-template-areas:
     'jobs backups'
     'jobs drill'
-    'benchmark webhooks';
-  grid-template-rows: auto auto auto;
+    'benchmark webhooks'
+    'benchmark device';
+  grid-template-rows: auto auto auto auto;
   gap: 16px;
   align-items: start;
 }
@@ -32,6 +33,10 @@
   grid-area: jobs;
 }
 
+.device {
+  grid-area: device;
+}
+
 .benchmark {
   grid-area: benchmark;
   min-width: 0;
@@ -41,7 +46,7 @@
 @media (width < 1280px) {
   .cards {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'backups' 'drill' 'webhooks' 'jobs' 'benchmark';
+    grid-template-areas: 'backups' 'drill' 'webhooks' 'device' 'jobs' 'benchmark';
     grid-template-rows: none;
   }
 }

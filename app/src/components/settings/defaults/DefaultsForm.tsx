@@ -50,6 +50,7 @@ const UNIT_KEY: Partial<Record<string, MessageKey>> = {
   days: 'office.defaults.unit.days',
   min: 'office.defaults.unit.min',
   '%': 'office.defaults.unit.percent',
+  MB: 'office.defaults.unit.mb',
 };
 const GROUP_NOTE: Partial<Record<DefaultGroup, MessageKey>> = {
   units: 'office.defaults.fixed_note',

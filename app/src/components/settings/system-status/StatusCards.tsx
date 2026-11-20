@@ -12,6 +12,7 @@ import {
   type StatusPage,
   type WebhookFailureRow,
 } from '../../../lib/system-status/system-status';
+import type { Persistence } from '../../../lib/pwa/device-storage';
 import { Icon } from '../../icon/Icon';
 import { StateButton } from '../../states/StateButton';
 import styles from './SystemStatus.module.css';
@@ -280,6 +281,32 @@ export function DrillBody({ data, timeZone }: { data: BackupStatus; timeZone?: s
         <Icon name={failed ? 'error' : 'check_circle'} size={15} />
         {t(failed ? 'office.system_status.drill_failed' : 'office.system_status.drill_passed')}
       </span>
+    </div>
+  );
+}
+
+// EZD-134 (03b Architecture rule 10 "shows the answer in Settings"): the browser's answer to the request for
+// persistent storage on this device.
+const PERSISTENCE_KEY = {
+  kept: 'office.system_status.storage_kept',
+  may_clear: 'office.system_status.storage_may_clear',
+  unsupported: 'office.system_status.storage_unsupported',
+} as const;
+
+export function DeviceBody({ persistence }: { persistence: Persistence }) {
+  const t = useT();
+  return (
+    <div className={styles.blocks}>
+      <div className={styles.kv}>
+        <span className={styles.key}>{t('office.system_status.storage_label')}</span>
+        <span
+          data-testid="system-status-storage"
+          data-persistence={persistence}
+          className={styles.value}
+        >
+          {t(PERSISTENCE_KEY[persistence])}
+        </span>
+      </div>
     </div>
   );
 }

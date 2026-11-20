@@ -425,6 +425,19 @@ export const en = {
   'office.outbox.sign_out_message':
     'Some changes are saved only on this device. They will send the next time you sign in here.',
   'office.outbox.sign_out_confirm': 'Sign out anyway',
+  // EZD-134: device storage, the unsynced warning and the reload prompt.
+  'office.projects.unsynced': 'Some changes are saved only on this device.',
+  'office.app.reload_message': 'EZ Draft has been updated. Reload to use the new version.',
+  'office.app.reload': 'Reload',
+  'office.system_status.device_title': 'This device',
+  'office.system_status.storage_label': 'Storage',
+  'office.system_status.storage_kept': 'Kept on this device',
+  'office.system_status.storage_may_clear': 'The browser may clear it when space runs low',
+  'office.system_status.storage_unsupported': 'Not available in this browser',
+  'office.defaults.row.device_cache_budget': 'Offline project cache',
+  'office.defaults.hint.device_cache_budget': 'Per device; oldest projects dropped first',
+  'office.defaults.unit.mb': 'MB',
+  'office.defaults.error.device_cache_budget': 'Enter a whole number from 100 to 10,000',
   'office.settings.draft_restored': 'Your unsaved changes from last time are still here.',
   'office.company.subtitle':
     'Identity used on the title block, client pages, selections PDF and email.',

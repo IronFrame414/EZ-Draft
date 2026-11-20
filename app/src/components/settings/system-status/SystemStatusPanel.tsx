@@ -19,7 +19,14 @@ import { AsyncView } from '../../states/AsyncView';
 import { Skeleton, SkeletonGroup } from '../../states/Skeleton';
 import { StateButton } from '../../states/StateButton';
 import { BenchmarkCard } from './BenchmarkCard';
-import { BackupsBody, DrillBody, JobFailuresBody, WebhookFailuresBody } from './StatusCards';
+import { readPersistence, type Persistence } from '../../../lib/pwa/device-storage';
+import {
+  BackupsBody,
+  DeviceBody,
+  DrillBody,
+  JobFailuresBody,
+  WebhookFailuresBody,
+} from './StatusCards';
 import styles from './SystemStatus.module.css';
 
 type Refresh = { tick: number; updatedAt: number; refresh: () => void };
@@ -157,6 +164,18 @@ export function SystemStatusPanel({ benchmark }: { benchmark?: { canRun: boolean
     [tick],
   );
 
+  // EZD-134: this device's storage answer, read in the browser (no request); empty for the moment it takes.
+  const [persistence, setPersistence] = useState<Persistence | null>(null);
+  useEffect(() => {
+    let live = true;
+    void readPersistence().then((p) => {
+      if (live) setPersistence(p);
+    });
+    return () => {
+      live = false;
+    };
+  }, [tick]);
+
   return (
     <div data-testid="system-status-panel" className={styles.cards}>
       <Card id="backups" className={styles.backups} title={t('office.system_status.backup_title')}>
@@ -203,6 +222,9 @@ export function SystemStatusPanel({ benchmark }: { benchmark?: { canRun: boolean
         >
           {(d) => <JobFailuresBody data={d} onPage={setJobsPage} />}
         </AsyncView>
+      </Card>
+      <Card id="device" className={styles.device} title={t('office.system_status.device_title')}>
+        {persistence === null ? null : <DeviceBody persistence={persistence} />}
       </Card>
       {benchmark === undefined ? null : (
         <div className={styles.benchmark}>

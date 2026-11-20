@@ -19,12 +19,25 @@ const MARKER_MAX_AGE_SECONDS = 400 * 24 * 60 * 60;
 type Env = {
   document: Pick<Document, 'cookie'>;
   location: Pick<Location, 'protocol' | 'replace'>;
+  clearCaches?: () => Promise<unknown>;
 };
+
+// EZD-134: the service worker's cached pages hold this person's data, so they go first, online or offline. The
+// module is loaded only here, so the request gate (which imports this file) never runs it. Never rejects.
+async function clearCachedPages(): Promise<void> {
+  try {
+    const { clearAppCaches } = await import('../pwa/clear-caches');
+    await clearAppCaches();
+  } catch {
+    // nothing cached, or no Cache Storage
+  }
+}
 
 export async function signOutOnDevice(
   action: () => Promise<unknown>,
   env: Env = { document, location },
 ): Promise<void> {
+  await (env.clearCaches ?? clearCachedPages)().catch(() => undefined);
   try {
     await action();
   } catch (error) {
