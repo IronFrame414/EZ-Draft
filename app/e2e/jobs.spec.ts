@@ -14,6 +14,7 @@ import {
   setPermissions,
   test,
 } from '../test-harness/e2e/test';
+import { logResponses } from '../test-harness/e2e/response-log';
 
 const STEPS = 3;
 const STEP_MS = 1500;
@@ -45,21 +46,9 @@ test.describe('EZD-009 background jobs', () => {
     // never appears in a response body or header the page receives. A blank key would make this pass on nothing.
     const secretKey = process.env.SUPABASE_SECRET_KEY ?? '';
     expect(secretKey.length).toBeGreaterThan(0);
-    const seen: Promise<{ url: string; headers: string[]; body: string }>[] = [];
-    page.on('response', (r) => {
-      seen.push(
-        (async () => {
-          const headers = Object.values(await r.allHeaders());
-          let body = '';
-          try {
-            body = (await r.body()).toString('utf8');
-          } catch {
-            // Redirect responses have no body.
-          }
-          return { url: r.url(), headers, body };
-        })(),
-      );
-    });
+    // EZD-427: bodies are read when a request finishes (test-harness/e2e/response-log.ts). The old read waited on
+    // response.body() at the response event, which never settles for a request the navigation below cuts off.
+    const responseLog = logResponses(page);
 
     let enqueueStatus = 0;
     let enqueueBody: { job?: { status?: string } } = {};
@@ -148,7 +137,7 @@ test.describe('EZD-009 background jobs', () => {
       await page.evaluate(() => (window as unknown as { __ezdLongTasks: number }).__ezdLongTasks),
     ).toBe(0);
 
-    const all = await Promise.all(seen);
+    const all = await responseLog.settle();
     expect(all.length).toBeGreaterThan(0);
     expect(all.filter((x) => x.body.includes(secretKey)).map((x) => x.url)).toHaveLength(0);
     expect(
