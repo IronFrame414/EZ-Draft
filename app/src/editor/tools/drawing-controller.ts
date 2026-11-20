@@ -136,6 +136,7 @@ import {
   type LooseObject,
 } from './index';
 import { fixturesModule } from './fixtures-module';
+import { VIEW_TOOL_IDS } from './tool-defs';
 import { sketchModule } from './sketch-module';
 import { initialSketchState, reduceSketch, type SketchState } from './sketch-tool';
 import {
@@ -276,7 +277,8 @@ type ToolState =
   | { id: 'fixtures'; state: null }
   | { id: 'sketch'; state: SketchState }
   | { id: 'measure'; state: MeasureState }
-  | { id: 'cabinets'; state: null };
+  | { id: 'cabinets'; state: null }
+  | { id: 'electrical'; state: null };
 
 type OpeningTool = Extract<ToolState, { id: 'door' | 'window' }>;
 
@@ -408,7 +410,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   function syncReceiver(): void {
     if (disposed) return;
-    const want = enabled ? ui.tool !== null || ui.pick !== null : ui.tool === 'measure';
+    // EZD-601: electrical mode leaves the plan's presses to selection (S06 "Canvas click on device: Selects device").
+    const want = enabled
+      ? (ui.tool !== null && ui.tool !== 'electrical') || ui.pick !== null
+      : ui.tool === 'measure';
     if (want === receiverSet) return;
     receiverSet = want;
     handle.setPointerReceiver(want ? receiver : null);
@@ -416,7 +421,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   function syncHover(): void {
     const mode: HoverMode =
-      ui.tool === 'move'
+      ui.tool === 'move' || ui.tool === 'electrical'
         ? 'select'
         : ui.tool !== null
           ? 'off'
@@ -519,7 +524,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       tool.id === 'fixtures' ||
       tool.id === 'sketch' ||
       tool.id === 'measure' ||
-      tool.id === 'cabinets'
+      tool.id === 'cabinets' ||
+      tool.id === 'electrical'
     )
       return NO_CONTEXT;
     if (isOpeningTool(tool)) return NO_CONTEXT;
@@ -742,7 +748,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (tool.id === 'move') return moveFrame(tool.state.base, tool.state.ids);
     if (isOpeningTool(tool)) return { ...EMPTY_FRAME, opening: openingFrame(tool) };
-    if (tool.id === 'sketch' || tool.id === 'cabinets') return null;
+    if (tool.id === 'sketch' || tool.id === 'cabinets' || tool.id === 'electrical') return null;
     if (tool.id === 'measure') {
       const { from, to } = tool.state;
       return {
@@ -919,7 +925,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       onPick(event);
       return;
     }
-    if (tool === null || tool.id === 'cabinets') return;
+    if (tool === null || tool.id === 'cabinets' || tool.id === 'electrical') return;
     if (tool.id === 'move') {
       onMovePointer(event, tool.state);
       return;
@@ -1252,7 +1258,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   function selectTool(id: DrawingToolId | null): void {
-    if (disposed || !(enabled || id === null || id === 'measure' || id === 'cabinets')) return;
+    if (disposed || !(enabled || id === null || VIEW_TOOL_IDS.includes(id))) return;
     cancelEntry();
     const hadDrag = drag !== null;
     drag = null;
@@ -1280,7 +1286,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
                   ? { id, state: initialSketchState() }
                   : id === 'measure'
                     ? { id, state: initialMeasureState() }
-                    : id === 'cabinets'
+                    : id === 'cabinets' || id === 'electrical'
                       ? { id, state: null }
                     : { id, state: initialOpeningToolState(id) };
     if (id === 'fixtures') loadFixtures();
@@ -1400,6 +1406,15 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       selectTool(null);
       return true;
     }
+    // EZD-601: E (electrical mode) and, while it is on, Esc work without Edit model.
+    if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'e') {
+      selectTool('electrical');
+      return true;
+    }
+    if (tool !== null && tool.id === 'electrical' && e.key === 'Escape') {
+      selectTool(null);
+      return true;
+    }
     if (!enabled) return false;
     if (e.key === 'Escape' && (ui.entry !== null || claim !== null)) {
       cancelEntry();
@@ -1445,7 +1460,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         tool.id === 'fixtures' ||
         tool.id === 'sketch' ||
         tool.id === 'measure' ||
-        tool.id === 'cabinets'
+        tool.id === 'cabinets' ||
+        tool.id === 'electrical'
       )
         return false;
       input({ type: 'enter' });
@@ -1690,7 +1706,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     pause() {
       if (disposed || !enabled) return;
       // Measure is allowed in view only (S06 States), so it stays on; any other tool ends as Escape ends it.
-      if (tool?.id === 'measure' || tool?.id === 'cabinets') cancelEntry();
+      if (tool?.id === 'measure' || tool?.id === 'cabinets' || tool?.id === 'electrical')
+        cancelEntry();
       else selectTool(null);
       enabled = false;
       setUi({ pick: null, gapMessage: null, boxes: computeBoxes() });

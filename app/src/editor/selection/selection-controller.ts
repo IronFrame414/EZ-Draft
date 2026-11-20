@@ -28,7 +28,12 @@ import {
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
 import type { DrawingController, ToolKeyEvent } from '../tools/drawing-controller';
 import { railMode } from '../tools/rail-mode';
-import { CABINETS_RAIL_TOOL, DRAWING_RAIL_TOOLS, MEASURE_RAIL_TOOL } from '../tools/tool-defs';
+import {
+  CABINETS_RAIL_TOOL,
+  DRAWING_RAIL_TOOLS,
+  ELECTRICAL_RAIL_TOOL,
+  MEASURE_RAIL_TOOL,
+} from '../tools/tool-defs';
 import { isTypingTarget } from '../typed-entry/typed-entry';
 import { expandGroups } from './groups';
 import type { PhaseFilter } from '../../lib/plan/phase-view';
@@ -508,16 +513,28 @@ export function shareReceiver(set: (r: PlanPointerReceiver | null) => void): Rec
 
 // EZD-231 (04 Tool rail; S06 Measure "Allowed in view only"): Measure ends the top group for every viewer.
 // EZD-404 (S04 Permissions; board S04 rail): Cabinets follows Window for every viewer and is never paused.
+// EZD-601 (S06 Permissions "View ... circuits: View projects"; board S06Electrical rail): Electrical follows Cabinets,
+// for every viewer and never paused.
 const withCabinets = (tools: readonly RailTool[]): RailTool[] => {
   const i = tools.findIndex((t) => t.id === 'window');
-  return [...tools.slice(0, i + 1), CABINETS_RAIL_TOOL, ...tools.slice(i + 1)];
+  return [
+    ...tools.slice(0, i + 1),
+    CABINETS_RAIL_TOOL,
+    ELECTRICAL_RAIL_TOOL,
+    ...tools.slice(i + 1),
+  ];
 };
 const ALL_TOOLS: readonly RailTool[] = [
   SELECT_RAIL_TOOL,
   ...withCabinets(DRAWING_RAIL_TOOLS),
   MEASURE_RAIL_TOOL,
 ];
-const SELECT_ONLY: readonly RailTool[] = [SELECT_RAIL_TOOL, CABINETS_RAIL_TOOL, MEASURE_RAIL_TOOL];
+const SELECT_ONLY: readonly RailTool[] = [
+  SELECT_RAIL_TOOL,
+  CABINETS_RAIL_TOOL,
+  ELECTRICAL_RAIL_TOOL,
+  MEASURE_RAIL_TOOL,
+];
 
 // EZD-225 (S06:48, 100; Q-0697 decisions 05): the drawing tools a lock-denied viewer sees paused; Select and Measure
 // stay on (S06 States "selecting, panning, zooming, measuring ... allowed"; vault/build/assumptions.md EZD-231).

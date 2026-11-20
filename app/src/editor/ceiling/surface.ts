@@ -124,7 +124,7 @@ export function ceilingRail(
 
 // The standard tools' keys do nothing on the ceiling surfaces (their tools are not on the ceiling rail); V and the
 // edit keys stay. Shift+L is Measure, which is not on the ceiling rail either.
-const FLOOR_KEYS = new Set(['w', 'r', 'd', 'n', 'm', 'f', 's', 'c']);
+const FLOOR_KEYS = new Set(['w', 'r', 'd', 'n', 'm', 'f', 's', 'c', 'e']);
 export function isFloorToolKey(e: ToolKeyEvent): boolean {
   if (e.defaultPrevented || isTypingTarget(e.target)) return false;
   if (e.ctrlKey || e.metaKey || e.altKey) return false;

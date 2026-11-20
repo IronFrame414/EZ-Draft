@@ -58,7 +58,13 @@ describe('EZD-404 Cabinets tool', () => {
     const ids = (r: ReturnType<typeof editorRail>) => r?.tools.map((t) => t.id);
     const edit = ids(editorRail({ ...base, canEdit: true }));
     expect(edit?.slice(edit.indexOf('window'), edit.indexOf('window') + 2)).toEqual(['window', 'cabinets']);
-    expect(ids(editorRail({ ...base, canEdit: false }))).toEqual(['select', 'cabinets', 'measure']);
+    // EZD-601: Electrical follows Cabinets on a viewer's rail.
+    expect(ids(editorRail({ ...base, canEdit: false }))).toEqual([
+      'select',
+      'cabinets',
+      'electrical',
+      'measure',
+    ]);
     const locked = editorRail({ ...base, canEdit: false, canEditModel: true });
     expect(ids(locked)).toContain('cabinets');
     expect(locked?.paused).not.toContain('cabinets');

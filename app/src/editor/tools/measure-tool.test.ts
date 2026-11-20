@@ -200,6 +200,7 @@ describe('EZD-231 Measure tool', () => {
     expect(viewer?.tools.map((t) => (t.kind === 'tool' ? t.id : '-'))).toEqual([
       'select',
       'cabinets',
+      'electrical', // EZD-601: Electrical follows Cabinets on a viewer's rail (S06 Permissions).
       'measure',
     ]);
     expect(viewer?.disabled).toBe(false);

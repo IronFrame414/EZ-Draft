@@ -16,9 +16,11 @@ import {
 } from './index';
 import {
   DOOR_TOOL,
+  ELECTRICAL_RAIL_TOOL,
   OFFSET_LEFT_FIELD,
   OFFSET_RIGHT_FIELD,
   OPENING_WIDTH_FIELD,
+  VIEW_TOOL_IDS,
   WINDOW_TOOL,
 } from './tool-defs';
 
@@ -176,5 +178,26 @@ describe('EZD-211a opening tool definitions', () => {
     const catalog = catalogFor('office', 'en') as Readonly<Record<string, unknown>>;
     for (const [key, text] of OPENING_WORDING)
       expect({ key, text: catalog[key] }).toEqual({ key, text });
+  });
+});
+
+// EZD-601 (S06 Controls "Electrical tool (E) | Standard rail | Enters electrical mode. | Pressed state. Shortcut E";
+// S06 Permissions "View plan, circuits ...: View projects"; board S06Electrical rail bolt).
+describe('EZD-601 Electrical rail tool', () => {
+  it('is the Electrical tool with shortcut E, a bolt icon and the "Electrical" label', () => {
+    expect(ELECTRICAL_RAIL_TOOL).toEqual({
+      kind: 'tool',
+      id: 'electrical',
+      icon: 'bolt',
+      label: 'office.tool.electrical',
+      shortcut: 'E',
+    });
+    expect(ICON_NAMES).toContain('bolt');
+    expect(catalogFor('office', 'en')['office.tool.electrical']).toBe('Electrical');
+  });
+
+  it('is a view tool, not a drawing tool, so view only never pauses it', () => {
+    expect(VIEW_TOOL_IDS).toEqual(['measure', 'cabinets', 'electrical']);
+    expect(DRAWING_RAIL_TOOLS.map((t) => t.id)).not.toContain('electrical');
   });
 });

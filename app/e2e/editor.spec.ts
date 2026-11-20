@@ -179,7 +179,7 @@ test.describe('EZD-120c editor route', () => {
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="top"] [data-rail-tool]'),
-    ).toHaveCount(11);
+    ).toHaveCount(12); // EZD-601: plus Electrical
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
     ).toHaveCount(1);

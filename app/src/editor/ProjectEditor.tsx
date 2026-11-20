@@ -161,6 +161,7 @@ import {
 import { createPhaseSetting, type PhaseSetting } from './status/phase-setting';
 import { createLayerSetting, type LayerSetting } from './layers/layer-setting';
 import { LeftPanel, type Tab as LeftTab } from './layers/LeftPanel';
+import type { ElectricalPanelProps } from './electrical/ElectricalPanel';
 import { createSurfaceSetting } from './ceiling/surface';
 import { rcpModule } from './ceiling/rcp-module';
 import {
@@ -512,6 +513,13 @@ export function ProjectEditor({
     drawing ? drawing.subscribe : noSubscribe,
     readCabinets,
     readCabinets,
+  );
+  // EZD-601 (S06 Entry points "Plan tab, Electrical tool (E)"): electrical mode is on while the Electrical tool is.
+  const readElectrical = () => drawing?.getUi().tool === 'electrical';
+  const electricalOn = useSyncExternalStore(
+    drawing ? drawing.subscribe : noSubscribe,
+    readElectrical,
+    readElectrical,
   );
   const sessionStore = session?.store ?? null;
   // A new model session starts with no cabinet selected.
@@ -1136,6 +1144,17 @@ export function ProjectEditor({
         tab={leftTab}
         onTab={setLeftTab}
         surface={surface}
+        electrical={
+          electricalOn ? (
+            <LazyElectricalPanel
+              store={session.store}
+              selection={selection}
+              showObject={plan.handle.showObject}
+              layers={layers}
+              floors={floors ?? undefined}
+            />
+          ) : undefined
+        }
         versions={
           versionView !== null ? (
             <LazyVersions
@@ -1205,6 +1224,9 @@ export function ProjectEditor({
                       <LazyCabinetStatus store={session.store} floors={floors ?? undefined} />
                     ) : null}
                     {shownSurface === 'floor' ? null : <CeilingViewStatus />}
+                    {electricalOn && shownSurface === 'floor' && session !== null ? (
+                      <LazyElectricalStatus store={session.store} />
+                    ) : null}
                     <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
                     {shownSurface === 'floor' ? null : <JoistsStatus />}
                     {part('status')}
@@ -1304,6 +1326,19 @@ function useLazy<T>(module: LazyModule<T>, wanted = true): T | undefined {
 
 // EZD-122 (11 Budgets): the Versions tab, the version inspector and the status text load when the tab first opens.
 const versionsModule = lazyModule(() => import('./versions/VersionsPanel'));
+
+// EZD-601 (11 Budgets editor download size): electrical mode's panel and status items load when it is first on.
+const electricalModule = lazyModule(() => import('./electrical'));
+
+function LazyElectricalPanel(props: ElectricalPanelProps) {
+  const mod = useLazy(electricalModule);
+  return mod ? <mod.ElectricalPanel {...props} /> : null;
+}
+
+function LazyElectricalStatus(props: { store: EditorSession['store'] }) {
+  const mod = useLazy(electricalModule);
+  return mod ? <mod.ElectricalStatus {...props} /> : null;
+}
 const CLEANUP_AGE_DEFAULT = 30;
 
 function versionErrorKey(code: string): MessageKey {

@@ -565,7 +565,8 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
             ui.tool !== null &&
             ui.tool !== 'fixtures' &&
             ui.tool !== 'sketch' &&
-            ui.tool !== 'measure'
+            ui.tool !== 'measure' &&
+            ui.tool !== 'electrical'
               ? DRAWING_TOOLS[ui.tool]
               : entryTyped
           }

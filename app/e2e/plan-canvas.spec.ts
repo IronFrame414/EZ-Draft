@@ -327,7 +327,8 @@ test.describe('EZD-207a plan canvas', () => {
     await signInAs(user.email);
     await openReady(page, ids.P1);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(4);
+    // EZD-601: plus Electrical, on every viewer's rail.
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(5);
     await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]').first()).toHaveAttribute(
       'data-rail-tool',
       'select',
@@ -366,7 +367,7 @@ test.describe('EZD-207a plan canvas', () => {
     await expect(page.getByTestId('plan-input')).toHaveCount(0);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     const tools = page.locator('[data-shell-region="rail"] [data-rail-tool]');
-    await expect(tools).toHaveCount(11);
+    await expect(tools).toHaveCount(12); // EZD-601: plus Electrical
     await expect(tools.first()).toBeDisabled();
     await expect(tools.last()).toBeDisabled();
     release();
@@ -426,7 +427,7 @@ test.describe('EZD-207a plan canvas', () => {
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="top"] [data-rail-tool]'),
-    ).toHaveCount(11);
+    ).toHaveCount(12); // EZD-601: plus Electrical
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
     ).toHaveCount(1);

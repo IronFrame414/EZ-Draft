@@ -259,6 +259,9 @@ export const PROJECTORS: {
   tile_layout: notSent,
   // EZD-505: beam sets are not sent until a ticket decides what of them the assistant reads.
   beam: notSent,
+  // EZD-601: panels and circuits are not sent until a ticket decides what of them the assistant reads.
+  panel: notSent,
+  circuit: notSent,
 };
 
 const LABEL_WORDS = new Set(ROOM_LABEL_WORDS.map((w) => w.toLowerCase()));

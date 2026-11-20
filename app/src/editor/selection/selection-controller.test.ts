@@ -22,7 +22,7 @@ import {
   type PickState,
 } from '../tools/index';
 import { DOOR, baseObjects, F1, uid, withWalls } from '../tools/test-utils/fixtures';
-import { CABINETS_RAIL_TOOL, MEASURE_RAIL_TOOL } from '../tools/tool-defs';
+import { CABINETS_RAIL_TOOL, ELECTRICAL_RAIL_TOOL, MEASURE_RAIL_TOOL } from '../tools/tool-defs';
 import {
   SAME_SPOT_PX,
   SELECT_RAIL_TOOL,
@@ -372,7 +372,13 @@ describe('EZD-208a selection controller', () => {
     });
     // EZD-404: Cabinets follows Window (board S04 rail).
     const drawing = [...DRAWING_RAIL_TOOLS];
-    drawing.splice(drawing.findIndex((t) => t.id === 'window') + 1, 0, CABINETS_RAIL_TOOL);
+    // EZD-601: Electrical follows Cabinets, also never paused.
+    drawing.splice(
+      drawing.findIndex((t) => t.id === 'window') + 1,
+      0,
+      CABINETS_RAIL_TOOL,
+      ELECTRICAL_RAIL_TOOL,
+    );
     const all = [SELECT_RAIL_TOOL, ...drawing, MEASURE_RAIL_TOOL];
     const base = { canvasFailed: false, controllerEnabled: true };
     for (const canEdit of [true, false]) {
@@ -392,6 +398,7 @@ describe('EZD-208a selection controller', () => {
       'door',
       'window',
       'cabinets',
+      'electrical',
       'fixtures',
       'sketch',
       'measure',
@@ -402,17 +409,33 @@ describe('EZD-208a selection controller', () => {
     expect(off?.disabled).toBe(true);
 
     const view = editorRail({ ...base, editor: 'ready', canEdit: false });
-    expect(view?.tools).toEqual([SELECT_RAIL_TOOL, CABINETS_RAIL_TOOL, MEASURE_RAIL_TOOL]);
+    expect(view?.tools).toEqual([
+      SELECT_RAIL_TOOL,
+      CABINETS_RAIL_TOOL,
+      ELECTRICAL_RAIL_TOOL,
+      MEASURE_RAIL_TOOL,
+    ]);
     expect(view?.disabled).toBe(false);
     const failed = editorRail({ ...base, editor: 'ready', canEdit: false, canvasFailed: true });
-    expect(failed?.tools).toEqual([SELECT_RAIL_TOOL, CABINETS_RAIL_TOOL, MEASURE_RAIL_TOOL]);
+    expect(failed?.tools).toEqual([
+      SELECT_RAIL_TOOL,
+      CABINETS_RAIL_TOOL,
+      ELECTRICAL_RAIL_TOOL,
+      MEASURE_RAIL_TOOL,
+    ]);
     expect(failed?.disabled).toBe(true);
   });
 
   it('EZD-225 U1 editorRail: loading disabled, Edit model without the lock paused, no Edit model Select only', () => {
     // EZD-404: Cabinets follows Window (board S04 rail) and is not a drawing tool, so it is never paused.
     const drawing = [...DRAWING_RAIL_TOOLS];
-    drawing.splice(drawing.findIndex((t) => t.id === 'window') + 1, 0, CABINETS_RAIL_TOOL);
+    // EZD-601: Electrical follows Cabinets, also never paused.
+    drawing.splice(
+      drawing.findIndex((t) => t.id === 'window') + 1,
+      0,
+      CABINETS_RAIL_TOOL,
+      ELECTRICAL_RAIL_TOOL,
+    );
     const all = [SELECT_RAIL_TOOL, ...drawing, MEASURE_RAIL_TOOL];
     const base = { canvasFailed: false, controllerEnabled: true };
     const drawingIds = DRAWING_RAIL_TOOLS.map((t) => t.id);
@@ -442,7 +465,12 @@ describe('EZD-208a selection controller', () => {
     expect(lockedFailed?.disabled).toBe(true);
     // AC-EZD-225-2 (S03:145; Q-0630 row 9; Q-0214 hidden, not greyed): no drawing tool at all, nothing paused.
     const view = editorRail({ ...base, editor: 'ready', canEdit: false, canEditModel: false });
-    expect(view?.tools).toEqual([SELECT_RAIL_TOOL, CABINETS_RAIL_TOOL, MEASURE_RAIL_TOOL]);
+    expect(view?.tools).toEqual([
+      SELECT_RAIL_TOOL,
+      CABINETS_RAIL_TOOL,
+      ELECTRICAL_RAIL_TOOL,
+      MEASURE_RAIL_TOOL,
+    ]);
     expect(view?.paused).toBeUndefined();
     // The holder: every tool on, nothing paused (S06:78).
     const holder = editorRail({ ...base, editor: 'ready', canEdit: true, canEditModel: true });

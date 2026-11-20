@@ -1182,6 +1182,47 @@
           "endDetail": "square"
         }
       }
+    },
+    {
+      "id": "8b2f1d4e-6c3a-4f9b-8d72-1e5a4c3b2f01",
+      "type": "panel",
+      "schema_version": 6,
+      "data": {
+        "geometry": {
+          "point": {
+            "x": 12,
+            "y": 200
+          }
+        },
+        "status": "existing",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "name": "Panel A",
+          "parentPanel": null,
+          "serviceSize": 200,
+          "mainBreaker": 200,
+          "spaces": 40
+        }
+      }
+    },
+    {
+      "id": "8b2f1d4e-6c3a-4f9b-8d72-1e5a4c3b2f02",
+      "type": "circuit",
+      "schema_version": 6,
+      "data": {
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "panel": "8b2f1d4e-6c3a-4f9b-8d72-1e5a4c3b2f01",
+          "space": 1,
+          "poles": 2,
+          "name": "Range",
+          "breaker": 50,
+          "protection": null,
+          "dedicated": true,
+          "load": 12000
+        }
+      }
     }
   ]
 }

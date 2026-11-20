@@ -13,6 +13,8 @@
 // EZD-502 (S05 Entry points "left panel segment Ceiling or Both"; S05 Controls "Floor / Ceiling / Both segment ...
 // Available in view only"; board S05Ceiling left panel; AC-EZD-502-1): the segment tops the panel for every viewer;
 // on Ceiling or Both the floor tabs give way to the ceiling sections, which arrive with EZD-503, EZD-508 to EZD-510.
+// EZD-601 (S06 Entry points "Left panel tabs Circuits / Devices / Panel once in electrical mode"; S06 Layout): in
+// electrical mode, on the floor, the editor passes the electrical panel, which takes the floor tabs' place.
 import type { FloorChoice } from '../floors/floors';
 import { useChosenFloor } from '../floors/use-chosen-floor';
 import type { ObjectStatus, RoomObject } from '@ezdraft/geometry';
@@ -56,6 +58,8 @@ export type LeftPanelProps = {
   versions?: ReactNode;
   // EZD-502: the plan's surface; without it there is no Floor / Ceiling / Both segment.
   surface?: SurfaceSetting;
+  // EZD-601: the electrical panel while electrical mode is on; it replaces the floor tabs.
+  electrical?: ReactNode;
 };
 
 const noSubscribe = () => () => {};
@@ -179,6 +183,7 @@ export function LeftPanel({
   onTab,
   versions,
   surface,
+  electrical,
 }: LeftPanelProps): ReactElement {
   const chosen = useChosenFloor(floors);
   const t = useT();
@@ -257,6 +262,19 @@ export function LeftPanel({
       <div className={styles.panel} data-testid="left-panel" data-surface={shownSurface}>
         {segment}
         <div className={styles.body} data-testid="left-panel-ceiling" />
+      </div>
+    );
+
+  if (electrical !== undefined)
+    return (
+      <div
+        className={styles.panel}
+        data-testid="left-panel"
+        data-surface="floor"
+        data-mode="electrical"
+      >
+        {segment}
+        {electrical}
       </div>
     );
 
