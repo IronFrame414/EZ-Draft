@@ -13944,7 +13944,11 @@
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
     "EZD-1402",
-    "EZD-125"
+    "EZD-125",
+    "EZD-299a",
+    "EZD-299b",
+    "EZD-126",
+    "EZD-313"
    ],
    "build_position": 376,
    "acs": [
@@ -13958,7 +13962,12 @@
     "spec/decisions/11-non-functional-requirements.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/03-data-model.md#Q-0502",
-    "spec/decisions/03-data-model.md#Q-0511"
+    "spec/decisions/03-data-model.md#Q-0511",
+    "spec/decisions/03-data-model.md#Q-0531",
+    "spec/decisions/03-data-model.md#Q-0540",
+    "spec/decisions/03-data-model.md#Q-0697",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0501",
+    "spec/decisions/13b-round-26.md#R6"
    ]
   },
   {
@@ -13977,7 +13986,9 @@
    ],
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
-    "EZD-1401"
+    "EZD-1401",
+    "EZD-129",
+    "EZD-122"
    ],
    "build_position": 378,
    "acs": [
@@ -13988,7 +13999,11 @@
    "spec_phase": 14,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190"
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
+    "spec/decisions/process.md#Q-0338",
+    "spec/decisions/05-screens.md#Q-0401",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0056",
+    "spec/decisions/10-permissions-and-settings.md#Q-0030"
    ]
   },
   {
@@ -14003,12 +14018,19 @@
     "spec/sections/screens/S17-field-pack-phone.md#Layers button"
    ],
    "mockups": [
-    "mockups/S17Field.png"
+    "mockups/S17Field.png",
+    "mockups/S17c3DPhone.png"
    ],
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
     "EZD-1404",
-    "EZD-1013"
+    "EZD-1013",
+    "EZD-216",
+    "EZD-707",
+    "EZD-801",
+    "EZD-811",
+    "EZD-813",
+    "EZD-1007"
    ],
    "build_position": 379,
    "acs": [
@@ -14018,7 +14040,10 @@
    "acs_source": "done-when",
    "spec_phase": 14,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0664",
+    "spec/decisions/05-screens.md#Q-0185",
+    "spec/decisions/13b-round-26.md#R2"
    ]
   },
   {
@@ -14046,7 +14071,9 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/04-app-shell-and-global-ui.md#Q-0759"
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0759",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0561",
+    "spec/decisions/09-calculations-and-rules.md#Q-0568"
    ]
   },
   {
@@ -14066,7 +14093,8 @@
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
     "EZD-1406",
-    "EZD-1402"
+    "EZD-1402",
+    "EZD-220"
    ],
    "build_position": 381,
    "acs": [
@@ -14077,7 +14105,9 @@
    "spec_phase": 14,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/03-data-model.md#Q-0513",
+    "spec/decisions/10-permissions-and-settings.md#Q-0030"
    ]
   },
   {
@@ -14097,7 +14127,9 @@
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
     "EZD-131",
-    "EZD-021"
+    "EZD-021",
+    "EZD-214",
+    "EZD-218"
    ],
    "build_position": 382,
    "acs": [
@@ -14108,7 +14140,9 @@
    "spec_phase": 14,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/02-product-overview.md"
+    "spec/decisions/02-product-overview.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/05-screens.md#Q-0664"
    ]
   },
   {
@@ -14138,7 +14172,9 @@
    "acs_source": "done-when",
    "spec_phase": 14,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0121",
+    "spec/decisions/10-permissions-and-settings.md#Q-0030"
    ]
   },
   {
@@ -14167,7 +14203,8 @@
    "acs_source": "done-when",
    "spec_phase": 14,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/03-data-model.md#Q-0513"
    ]
   },
   {
@@ -14187,7 +14224,8 @@
    "depends_on": [
     "EZD-1405",
     "EZD-1421",
-    "EZD-715"
+    "EZD-715",
+    "EZD-736"
    ],
    "build_position": 389,
    "acs": [
@@ -14199,12 +14237,14 @@
     "spec/decisions/05-screens.md",
     "spec/decisions/08-import-and-export.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/08-import-and-export.md#Q-0209",
+    "spec/decisions/10-permissions-and-settings.md#Q-0121"
    ]
   },
   {
    "id": "EZD-1412",
-   "phase": 44,
+   "phase": 45,
    "title": "Stale actions on reconnect",
    "depends_raw": "EZD-1402, EZD-717",
    "spec_ref": "R24 #31; S17 States",
@@ -14217,7 +14257,13 @@
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
     "EZD-1402",
-    "EZD-717"
+    "EZD-717",
+    "EZD-1404",
+    "EZD-1407",
+    "EZD-1409",
+    "EZD-1410",
+    "EZD-1413",
+    "EZD-1414"
    ],
    "build_position": 377,
    "acs": [
@@ -14227,7 +14273,9 @@
    "spec_phase": 14,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0030",
+    "spec/decisions/13b-round-26.md#R17"
    ]
   },
   {
@@ -14247,7 +14295,8 @@
     "EZD-1407",
     "EZD-310",
     "EZD-127",
-    "EZD-125"
+    "EZD-125",
+    "EZD-1418"
    ],
    "build_position": 385,
    "acs": [
@@ -14258,7 +14307,10 @@
    "spec_phase": 14,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/process.md#Q-0219",
+    "spec/decisions/05-screens.md#Q-0664",
+    "spec/decisions/03-data-model.md#Q-0697"
    ]
   },
   {
@@ -14277,7 +14329,8 @@
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
     "EZD-1407",
-    "EZD-127"
+    "EZD-127",
+    "EZD-1413"
    ],
    "build_position": 386,
    "acs": [
@@ -14287,7 +14340,8 @@
    "spec_phase": 14,
    "decisions": [
     "spec/decisions/04-app-shell-and-global-ui.md",
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/process.md#Q-0219"
    ]
   },
   {
@@ -14463,7 +14517,8 @@
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
     "EZD-1408",
-    "EZD-1409"
+    "EZD-1409",
+    "EZD-218"
    ],
    "build_position": 387,
    "acs": [
@@ -14473,7 +14528,10 @@
    "acs_source": "done-when",
    "spec_phase": 14,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/05-screens.md#Q-0664",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/10-permissions-and-settings.md#Q-0121"
    ]
   },
   {
@@ -14493,7 +14551,8 @@
    "depends_on": [
     "EZD-1420",
     "EZD-129",
-    "EZD-1404"
+    "EZD-1404",
+    "EZD-111"
    ],
    "build_position": 388,
    "acs": [
@@ -14506,7 +14565,9 @@
     "spec/decisions/05-screens.md",
     "spec/decisions/07-hooks-events-and-integrations.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/11-non-functional-requirements.md#Q-0035",
+    "spec/decisions/08-import-and-export.md#Q-0209"
    ]
   },
   {
@@ -18119,7 +18180,8 @@
    "acs_source": "done-when",
    "spec_phase": 14,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190"
    ]
   },
   {
