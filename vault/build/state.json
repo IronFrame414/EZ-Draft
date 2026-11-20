@@ -414,7 +414,8 @@
     "EZD-134",
     "EZD-413",
     "EZD-739",
-    "EZD-1401"
+    "EZD-1401",
+    "EZD-426"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1108,6 +1109,14 @@
       "ts": "2026-11-20T16:14:33Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-426",
+      "title": "Fix: test fixture cleanup deadlocks when two browser-test workers delete at the same time",
+      "commit": "bfa56b84",
+      "ts": "2026-11-20T18:26:26Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1121,7 +1130,7 @@
     }
   },
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1225,13 +1234,6 @@
       "reason": "builder timed out after 90 min with no commits"
     }
   },
-  "running": {
-    "EZD-426": {
-      "lane": 2,
-      "title": "Fix: test fixture cleanup deadlocks when two browser-test workers delete at the same time",
-      "started": "2026-11-20T16:16:20Z",
-      "develop": "6debd03c"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-20T10:58:15Z"
 }
