@@ -1111,25 +1111,17 @@
     }
   ],
   "set_aside": {
-    "EZD-222": {
-      "title": "Keyboard shortcuts and Help",
-      "ts": "2026-11-18T18:21:56Z",
-      "reason": "builder crashed (no result) (first try: builder timed out after 90 min with no commits)",
-      "detail": "\n",
-      "branch": "t/EZD-222",
-      "worktree": ".claude/worktrees/EZD-222"
-    },
-    "EZD-403": {
-      "title": "Cabinet library panel",
-      "ts": "2026-11-20T09:26:14Z",
-      "reason": "check red after merging newer develop (first try: check still red after 2 fix rounds)",
-      "detail": " EZD-021 net guard in browser tests › EZD-021 T14 (a) a page request to a live host fails the test (78ms)\n  ✘  217 [desktop] › e2e/net-guard.spec.ts:22:9 › EZD-021 net guard in browser tests › server log › EZD-021 T14 (b) a line in the server guard log fails the test (4ms)\n  ✘  219 [desktop] › e2e/net-guard.spec.ts:40:7 › EZD-159 net guard blocks page WebSockets › EZD-159 T7 a page WebSocket to a live host fails the test (116ms)\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] Error: aborted\n[WebServer]     at ignore-listed frames {\n[WebServer]   code: 'ECONNRESET'\n[WebServer] }\n  1) [desktop] › e2e/move.spec.ts:165:7 › EZD-212b Move tool › EZD-212b B1 Move the host wall away from a door \n    Error: expect(received).toEqual(expected) // deep equality\n    - Expected  - 3\n    + Received  + 1\n    - Array [\n    -   \"ae7e5749-80ac-4ca5-8887-0d83f3ee4978\",\n    - ]\n    + Array []\n      175 |\n      176 |     await clickAt(page, 144, 100);\n    > 177 |     expect(await selectedIds(page)).toEqual([seed.E]);\n          |                                     ^\n      178 |     const before = geoOf(await objects(page), seed.E);\n      179 |     near(before.start.x, 144, 9);\n      180 |     near(before.end.x, 144, 9);\n        at /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-403/app/e2e/move.spec.ts:177:37\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n    Error Context: test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/error-context.md\n    Error Context: test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/error-context.md\n    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/trace.zip\n    Usage:\n        pnpm exec playwright show-trace test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/trace.zip\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n  1 failed\n    [desktop] › e2e/move.spec.ts:165:7 › EZD-212b Move tool › EZD-212b B1 Move the host wall away from a door \n  7 did not run\n  564 passed (4.8m)\n[ELIFECYCLE] Command failed with exit code 1.\nError: \nERR_PNPM_RECURSIVE_RUN_FIRST_FAIL\n  × \"pnpm recursive run\" failed in /Users/josh/Projects/ezdraft/.claude/\n  │ worktrees/EZD-403/app\n",
-      "branch": "t/EZD-403",
-      "worktree": ".claude/worktrees/EZD-403"
+    "EZD-701": {
+      "title": "Sheet model and default set",
+      "ts": "2026-11-20T17:59:20Z",
+      "reason": "check red after merging newer develop (first try: check red after merging newer develop)",
+      "detail": "ontext than the active one is not supported. Skipping injection.\n(node:25781) [THREE_CJS_DEPRECATED] DeprecationWarning: `require(\"three\")` is deprecated and will be removed.\nReplace `const THREE = require(\"three\")` with `import * as THREE from \"three\"`.\n(Use `node --trace-deprecation ...` to show where the warning was created)\nEZD-423 editor route compressed JavaScript: 499911 bytes\n  ✘  221 [desktop] › e2e/net-guard.spec.ts:14:7 › EZD-021 net guard in browser tests › EZD-021 T14 (a) a page request to a live host fails the test (76ms)\n  ✘  222 [desktop] › e2e/net-guard.spec.ts:22:9 › EZD-021 net guard in browser tests › server log › EZD-021 T14 (b) a line in the server guard log fails the test (3ms)\n  ✘  224 [desktop] › e2e/net-guard.spec.ts:40:7 › EZD-159 net guard blocks page WebSockets › EZD-159 T7 a page WebSocket to a live host fails the test (162ms)\n  ✘  193 [desktop] › e2e/jobs.spec.ts:33:7 › EZD-009 background jobs › EZD-009 done when: a test job runs, reports progress and result, and the UI stays usable (1.0m)\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n  1) [desktop] › e2e/jobs.spec.ts:33:7 › EZD-009 background jobs › EZD-009 done when: a test job runs, reports progress and result, and the UI stays usable \n    Test timeout of 60000ms exceeded.\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n    Error Context: test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/error-context.md\n    Error Context: test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/error-context.md\n    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/trace.zip\n    Usage:\n        pnpm exec playwright show-trace test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/trace.zip\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n  1 failed\n    [desktop] › e2e/jobs.spec.ts:33:7 › EZD-009 background jobs › EZD-009 done when: a test job runs, reports progress and result, and the UI stays usable \n  7 did not run\n  577 passed (5.7m)\n[ELIFECYCLE] Command failed with exit code 1.\nError: \nERR_PNPM_RECURSIVE_RUN_FIRST_FAIL\n  × \"pnpm recursive run\" failed in /Users/josh/Projects/ezdraft/.claude/\n  │ worktrees/EZD-701/app\n",
+      "branch": "t/EZD-701",
+      "worktree": ".claude/worktrees/EZD-701"
     }
   },
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1140,12 +1132,10 @@
     "EZD-216": 1,
     "EZD-215": 1,
     "EZD-306": 1,
-    "EZD-222": 1,
     "EZD-124": 1,
     "EZD-312": 1,
     "EZD-134": 1,
     "EZD-305": 1,
-    "EZD-403": 1,
     "EZD-701": 1,
     "EZD-123": 1,
     "EZD-424": 1,
@@ -1236,11 +1226,11 @@
     }
   },
   "running": {
-    "EZD-701": {
-      "lane": 1,
-      "title": "Sheet model and default set",
-      "started": "2026-11-20T15:21:45Z",
-      "develop": "0bf943f4"
+    "EZD-426": {
+      "lane": 2,
+      "title": "Fix: test fixture cleanup deadlocks when two browser-test workers delete at the same time",
+      "started": "2026-11-20T16:16:20Z",
+      "develop": "6debd03c"
     }
   },
   "advisories_checked_at": "2026-11-20T10:58:15Z"
