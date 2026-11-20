@@ -402,7 +402,8 @@
     "EZD-419",
     "EZD-712",
     "EZD-502",
-    "EZD-424"
+    "EZD-424",
+    "EZD-714"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1000,6 +1001,14 @@
       "ts": "2026-11-20T01:46:53Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-714",
+      "title": "Notes library",
+      "commit": "78bcef47",
+      "ts": "2026-11-20T03:49:35Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1012,8 +1021,8 @@
       "worktree": ".claude/worktrees/EZD-222"
     }
   },
-  "red_streak": 1,
-  "push_pending": false,
+  "red_streak": 0,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1034,8 +1043,7 @@
     "EZD-123": 1,
     "EZD-424": 1,
     "EZD-412": 1,
-    "EZD-1009": 1,
-    "EZD-425": 1
+    "EZD-1009": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1122,11 +1130,11 @@
       "started": "2026-11-19T22:57:36Z",
       "develop": "81fd1d60"
     },
-    "EZD-714": {
-      "lane": 1,
-      "title": "Notes library",
-      "started": "2026-11-20T01:46:57Z",
-      "develop": "49afd16d"
+    "EZD-425": {
+      "lane": 3,
+      "title": "Fix: security advisories in glob, minimatch, next; move to the patched versions",
+      "started": "2026-11-20T03:15:14Z",
+      "develop": "bf8504da"
     }
   },
   "advisories_checked_at": "2026-11-19T22:57:31Z"
