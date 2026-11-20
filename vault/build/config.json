@@ -26,5 +26,8 @@
     2,
     3
   ],
-  "lanes_note": "Josh 2026-11-17: 3 lanes; the multi-lane trial ends Thursday 2026-11-19 06:00 ET, then compare tickets per hour against 1 lane (Nov 13) 2026-11-20: lanes 1-3 instead of 0-2 (still 3 lanes): lane 0 serves e2e on port 3000, which Josh's command-center app uses."
+  "lanes_note": "Josh 2026-11-17: 3 lanes; the multi-lane trial ends Thursday 2026-11-19 06:00 ET, then compare tickets per hour against 1 lane (Nov 13) 2026-11-20: lanes 1-3 instead of 0-2 (still 3 lanes): lane 0 serves e2e on port 3000, which Josh's command-center app uses.",
+  "heavy_slots": 2,
+  "heavy_slots_note": "Josh 2026-11-20: two lanes may run the build/scripts-tests/e2e stretch at once (was 1). Watch vault/build/heartbeat.jsonl for low memory or a reset; set back to 1 if either appears.",
+  "fix_model": "claude-fable-5-2"
 }

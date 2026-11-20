@@ -8,6 +8,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { createWriteStream, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { release, slotsFrom, tryTake } from './loop/heavy-lock.mjs';
 
 const args = process.argv.slice(2);
 const fast = args.includes('--fast');
@@ -86,26 +87,24 @@ function run(name, cmd, argv) {
 
 // Build lanes (2026-11-16): several checks run at once on this Mac, one per lane. The build, the scripts tests and e2e
 // hold timing tests (perf, page load) that fail falsely when two Next builds or two browsers compete for the machine,
-// so that stretch runs one check at a time across all lanes. The earlier steps run in parallel. EZD_HEAVY_LOCK=0 skips it.
+// so that stretch runs on a limited number of lanes at a time (heavy_slots, below). The earlier steps run in parallel. EZD_HEAVY_LOCK=0 skips it.
 const HEAVY = new Set(['build', 'scripts tests', 'database again', 'e2e']);
 const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock');
-let heavyHeld = false;
-const alive = (pid) => { try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
+// Josh 2026-11-20: up to `heavy_slots` lanes run the heavy stretch at once (scripts/loop/heavy-lock.mjs). The count is
+// read from vault/build/config.json in the build loop's checkout (EZD_BUILD_ROOT) each time a check waits; default 1.
+const heavySlots = () => slotsFrom(path.join(process.env.EZD_BUILD_ROOT || dir, 'vault/build/config.json'));
+let heavyHeld = null;
 async function takeHeavy() {
   if (heavyHeld || process.env.EZD_HEAVY_LOCK === '0') return;
   let said = false;
   for (;;) {
-    try { mkdirSync(heavyLock); writeFileSync(path.join(heavyLock, 'pid'), `${process.pid} lane ${lane} ${dir}\n`); heavyHeld = true; return; } catch (e) {
-      if (e.code !== 'EEXIST') throw e;
-      let pid = 0;
-      try { pid = Number(readFileSync(path.join(heavyLock, 'pid'), 'utf8').split(' ')[0]); } catch {}
-      if (pid && !alive(pid)) { rmSync(heavyLock, { recursive: true, force: true }); continue; }
-      if (!said) { console.log('wait another lane is running its build and e2e; waiting for it'); said = true; }
-      await new Promise((r) => setTimeout(r, 5000));
-    }
+    heavyHeld = tryTake(heavyLock, heavySlots(), `lane ${lane} ${dir}`);
+    if (heavyHeld) return;
+    if (!said) { console.log('wait another lane is running its build and e2e; waiting for it'); said = true; }
+    await new Promise((r) => setTimeout(r, 5000));
   }
 }
-function dropHeavy() { if (heavyHeld) { rmSync(heavyLock, { recursive: true, force: true }); heavyHeld = false; } }
+function dropHeavy() { release(heavyHeld); heavyHeld = null; }
 process.on('exit', dropHeavy);
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { dropHeavy(); process.exit(1); });
 

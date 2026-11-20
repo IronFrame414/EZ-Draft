@@ -51,6 +51,10 @@ const DEFAULTS = {
   // Josh 2026-11-19: security is handled as the app is built. pnpm audit runs this often; a new advisory becomes a fix
   // ticket at the front of the line (scripts/loop/advisories.mjs).
   advisory_check_hours: 6,
+  // Josh 2026-11-20: "All fixes should use the next model up." Every fix round (check, review, merge) and every fix
+  // ticket (a title starting "Fix:" or the security track) is built with fix_model; a fix_model run that gives no
+  // result at all falls back to builder_model once.
+  fix_model: 'claude-fable-5-2',
 };
 const SECURITY_PATHS = /(supabase\/migrations|\/server\/|rls|auth|permission|share|price|money|cost|webhook|invite|role)/i;
 
@@ -198,6 +202,8 @@ function gateNote(s) {
   const ids = waits.map((x) => `${x.id}${aside.has(x.id) ? ' (set aside)' : ''}`);
   return `phase gate (gate_from_phase ${c.gate_from_phase}): ${held.length} ticket(s) from phase ${held[0].phase} up wait on ${waits.length} lower-phase ticket(s): ${ids.slice(0, 25).join(', ')}${ids.length > 25 ? `, +${ids.length - 25} more` : ''}`;
 }
+// Fix tickets (Josh 2026-11-20) are built with fix_model: a title starting "Fix:" or the security track.
+function isFixTicket(t) { return t?.track === SECURITY_TRACK || /^Fix:/i.test(String(t?.title || '')); }
 function readingList(id) {
   const r = spawnSync('node', ['vault/tools/next_ticket.mjs', '--reads', id, 'builder'], { cwd: ROOT, encoding: 'utf8' });
   return r.status === 0 ? r.stdout.trim() : '';
@@ -514,8 +520,9 @@ async function doTicket(t, s, lane, kind = 'ticket') {
   };
   const plan = existsSync(path.join(ROOT, 'vault/plans', `${t.id}.md`));
   const prompt = t.prompt ? `${t.prompt}\n${lanesNote(t)}` : builderPrompt(t, plan, readingList(t.id));
-  let r = await runClaude({ cwd: wt, prompt, model: c.builder_model, effort: c.builder_effort, name: `${t.id} build`, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
-  recordUsage(t.id, 'builder', c.builder_model, r);
+  const buildModel = isFixTicket(t) ? (c.fix_model || c.builder_model) : c.builder_model;
+  let r = await runClaude({ cwd: wt, prompt, model: buildModel, effort: c.builder_effort, name: `${t.id} build`, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
+  recordUsage(t.id, 'builder', buildModel, r);
   if (r.limited) return stopForLimit(r);
   let session = r.res?.session_id;
   const held = heldBy(r.res?.result);
@@ -527,8 +534,14 @@ async function doTicket(t, s, lane, kind = 'ticket') {
 
   const commitAll = () => { if (git(['status', '--porcelain'], wt).out) { git(['add', '-A'], wt); git(['commit', '-q', '-m', `feat(${t.id}): uncommitted builder work`], wt); } };
   const fix = async (kindOf, detail, label) => {
-    const f = await runClaude({ cwd: wt, prompt: fixPrompt(kindOf, detail), model: c.builder_model, effort: c.builder_effort, name: `${t.id} ${label}`, resume: session, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
-    recordUsage(t.id, `builder-fix-${kindOf}`, c.builder_model, f);
+    const fixModel = c.fix_model || c.builder_model;
+    let f = await runClaude({ cwd: wt, prompt: fixPrompt(kindOf, detail), model: fixModel, effort: c.builder_effort, name: `${t.id} ${label}`, resume: session, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
+    recordUsage(t.id, `builder-fix-${kindOf}`, fixModel, f);
+    if (fixModel !== c.builder_model && !f.res && !f.timedOut && !f.limited) {
+      log(`${t.id} ${label}: ${fixModel} gave no result; trying ${c.builder_model}`);
+      f = await runClaude({ cwd: wt, prompt: fixPrompt(kindOf, detail), model: c.builder_model, effort: c.builder_effort, name: `${t.id} ${label} (fallback)`, resume: session, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
+      recordUsage(t.id, `builder-fix-${kindOf}`, c.builder_model, f);
+    }
     if (f.res?.session_id) session = f.res.session_id;
     return f;
   };
@@ -750,7 +763,7 @@ async function main() {
   const gap = startNote(prev, { now: first.ts, boot: first.boot, reason: prev && prev.boot !== first.boot ? resetReason(prev.ts) : null });
   if (gap) log(gap);
   log(`loop start (pid ${process.pid}; lanes ${laneList().join(', ')})`);
-  const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock');
+  const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock'); // slot 1; heartbeat reads every slot
   const beat = () => { try { writeBeat(P.heartbeat, sample({ running: Object.keys(s.running), heavyLock })); } catch (e) { console.log(`heartbeat: ${e?.message || e}`); } };
   writeBeat(P.heartbeat, { ...first, running: [] });
   setInterval(beat, 60000);

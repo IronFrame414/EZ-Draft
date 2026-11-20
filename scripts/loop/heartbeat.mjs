@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { holders } from './heavy-lock.mjs';
 
 export const KEEP_LINES = 4320; // three days at one line a minute
 export const GAP_MIN = 5; // a same-boot gap longer than this is worth a note
@@ -40,8 +41,9 @@ export function parseResetDiag(text) {
 }
 
 export function sample({ running = [], heavyLock } = {}) {
-  let heavy = null;
-  if (heavyLock && existsSync(path.join(heavyLock, 'pid'))) { try { heavy = readFileSync(path.join(heavyLock, 'pid'), 'utf8').trim(); } catch { /* lock gone between the check and the read */ } }
+  // Every held heavy-check slot (heavy-lock.mjs), joined with " + ".
+  const held = heavyLock ? holders(heavyLock) : [];
+  const heavy = held.length ? held.join(' + ') : null;
   return {
     ts: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
     boot: parseBoottime(run('sysctl', ['-n', 'kern.boottime'])),
