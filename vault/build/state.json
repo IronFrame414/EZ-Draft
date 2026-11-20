@@ -403,7 +403,8 @@
     "EZD-712",
     "EZD-502",
     "EZD-424",
-    "EZD-714"
+    "EZD-714",
+    "EZD-425"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1009,6 +1010,14 @@
       "ts": "2026-11-20T03:49:35Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-425",
+      "title": "Fix: security advisories in glob, minimatch, next; move to the patched versions",
+      "commit": "28d5c86a",
+      "ts": "2026-11-20T04:23:54Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {
@@ -1129,12 +1138,6 @@
       "title": "Beams",
       "started": "2026-11-19T22:57:36Z",
       "develop": "81fd1d60"
-    },
-    "EZD-425": {
-      "lane": 3,
-      "title": "Fix: security advisories in glob, minimatch, next; move to the patched versions",
-      "started": "2026-11-20T03:15:14Z",
-      "develop": "bf8504da"
     }
   },
   "advisories_checked_at": "2026-11-19T22:57:31Z"
