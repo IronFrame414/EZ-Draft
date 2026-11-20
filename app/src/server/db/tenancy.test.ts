@@ -191,7 +191,8 @@ describe('EZD-005a tenancy tables', () => {
       ezbinder_job_id: 'job-1',
       ezbinder_job_no: '1001',
       property_record_id: randomUUID(),
-      submittal_profile_id: randomUUID(),
+      // EZD-712: the column now references the company's own submittal_profile row, so a random id is refused.
+      submittal_profile_id: null,
       code_edition: 'fbc8',
       phase_default: 'proposed',
       scope_of_work: 'Remodel',

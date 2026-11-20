@@ -1,0 +1,78 @@
+/* EZD-127 (04 Header card review list): card as the project switcher panel (EZD-128); spacing in px (no spacing
+   tokens, L-013); colours, radii and shadow are tokens only; counts in DM Mono (04 Type). */
+.panel {
+  position: fixed;
+  width: 280px;
+  box-sizing: border-box;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  z-index: 90;
+  overflow-y: auto;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-popover);
+  font: 400 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.title {
+  padding: 6px 10px;
+  font-weight: 600;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 4px 10px;
+  border-radius: var(--ez-radius-8);
+}
+
+.dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-amber);
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+}
+
+.count {
+  font-family: var(--ez-font-mono);
+  color: var(--ez-amber-text);
+}
+
+.note {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 10px 10px;
+  color: var(--ez-slate-500);
+}
+
+.retry {
+  padding: 4px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-7);
+  background: var(--ez-surface);
+  font: 500 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+  cursor: pointer;
+}

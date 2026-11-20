@@ -1,0 +1,313 @@
+/* EZD-122: the Versions tab (board S20Versions.dc.html lines 31-38: .lbl, .vr, .vron, .vt, .vs, .ic, .kv). */
+.panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.top {
+  padding: 8px 6px 0;
+}
+
+/* .lbl */
+.lbl {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+  padding: 12px 14px 6px;
+}
+
+.lblRule {
+  border-top: 1px solid var(--ez-divider);
+  margin-top: 8px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0 6px;
+}
+
+/* .vr */
+.vr {
+  display: flex;
+  gap: 9px;
+  padding: 7px 8px;
+  border-radius: var(--ez-radius-8);
+  font: 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+  align-items: flex-start;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+}
+
+.vr:hover {
+  background: var(--ez-hover);
+}
+
+.working {
+  border: 1px solid var(--ez-border);
+}
+
+/* .vron */
+.vrOn,
+.vrOn:hover {
+  background: var(--ez-cobalt-tint);
+}
+
+/* .vt */
+.vt {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-weight: 500;
+}
+
+.titleStrong {
+  font-weight: 600;
+}
+
+.mono {
+  font-family: var(--ez-font-mono);
+}
+
+/* .vs */
+.vs {
+  font-size: 11px;
+  color: var(--ez-slate-400);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* .ic */
+.ic {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.icWorking {
+  background: var(--ez-green-tint);
+  color: var(--ez-green);
+}
+
+.icSent {
+  background: var(--ez-hover);
+  color: var(--ez-slate-700);
+  font: 500 10px var(--ez-font-mono);
+}
+
+.icSnapshot {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.icHistory {
+  background: var(--ez-hover);
+  color: var(--ez-slate-400);
+}
+
+.lock {
+  color: var(--ez-slate-300);
+  display: flex;
+}
+
+.older {
+  font-size: 12px;
+  color: var(--ez-slate-400);
+  padding: 6px 8px;
+}
+
+.note {
+  font-size: 12px;
+  color: var(--ez-slate-400);
+  margin: 6px 8px 0;
+}
+
+.error {
+  font-size: 13px;
+  color: var(--ez-red-text);
+  margin: 8px 0 0;
+}
+
+.inspector {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  font-size: 13px;
+  color: var(--ez-ink);
+}
+
+.h {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+/* .kv */
+.kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px solid var(--ez-divider);
+}
+
+.k {
+  color: var(--ez-slate-400);
+}
+
+.nameForm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.input {
+  font: 13px var(--ez-font-sans);
+  padding: 8px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+}
+
+.actions {
+  margin-top: 16px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font: 500 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font: 12px var(--ez-font-mono);
+  color: var(--ez-slate-400);
+}
+
+.back {
+  border: 0;
+  background: transparent;
+  color: var(--ez-cobalt-text);
+  font: 500 12px var(--ez-font-sans);
+  cursor: pointer;
+}
+
+/* EZD-139 (Q-0703): the visual diff over the canvas while an old version is open. Changed objects get an amber
+   outline (2 px); objects removed since a red dashed outline (2 px, dash 6 4, as the Assistant preview's removed);
+   added since are not drawn. The status-bar chip "N changed · N removed · N added since" and its Show changes
+   switch (the knob as PlanStatus .knob, sized for the status bar). Nothing on the canvas takes a pointer. */
+.diffLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.diffOverlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.diffChanged {
+  fill: none;
+  stroke: var(--ez-amber);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+}
+
+.diffRemoved {
+  fill: none;
+  stroke: var(--ez-red);
+  stroke-width: 2px;
+  stroke-dasharray: 6 4;
+}
+
+.diffChip {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+  font: 500 12px var(--ez-font-mono);
+}
+
+.diffSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ez-ink);
+  font: 500 12px var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.diffKnob {
+  position: relative;
+  flex: none;
+  width: 28px;
+  height: 16px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-border-hover);
+}
+
+.diffSwitch[aria-checked='true'] .diffKnob {
+  background: var(--ez-cobalt);
+}
+
+.diffKnob::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-surface);
+  box-shadow: var(--ez-shadow-switch-knob);
+}
+
+.diffSwitch[aria-checked='true'] .diffKnob::after {
+  left: 14px;
+}

@@ -13,6 +13,7 @@
 // EZD-234 Build (Q-0704 03-data-model row 3 "File references are checked on save"): one generic pass over every
 // source_file id the saved objects hold (`fileRefs`), read through the caller's client: each must name a row of this
 // project, of a kind the field allows, whose upload has completed; otherwise the object is refused `file_not_found`.
+// EZD-215 (07 Q-0708): a save answers the engineer note events it raises (`engineerNoteEvents`); the route emits them.
 import {
   CURRENT_SCHEMA_VERSION,
   fileRefs,
@@ -20,6 +21,7 @@ import {
   parseStoredObject,
   raiseNumberHighs,
   type ClosureOverride,
+  type EngineerNoteData,
   type FileRef,
   type ModelObject,
   type ObjectIssue,
@@ -63,6 +65,8 @@ export type SaveResult =
       tenantId: string;
       objects: { id: string; updatedSeq: number; number?: number }[];
       overridden: { roomId: string; gapIn: number }[];
+      // EZD-215: the engineer note events this save raises, in change order.
+      engineer: EngineerNoteEvent[];
       resolved?: string[];
     }
   | {
@@ -155,6 +159,32 @@ export function closureOverrideCheck(
 
 // L-061: the most ids one stored-row read names.
 const OVERRIDE_READ_CHUNK = 100;
+
+// EZD-215 (07 Q-0708; AC-EZD-215-5): a saved note with no stored row (or a deleted one) raises
+// wall.engineer_required; a note whose "Engineer letter on file" goes from unticked (or new) to ticked raises
+// wall.engineer_note_attached. `stored` is keyed by lower-case id: the stored letterOnFile, or null for a deleted or
+// unreadable row; no key = no row.
+export type EngineerNoteEvent = {
+  name: 'wall.engineer_required' | 'wall.engineer_note_attached';
+  wallId: string;
+  noteId: string;
+  fileId: string | null;
+};
+
+export function engineerNoteEvents(
+  notes: readonly { id: string; data: EngineerNoteData }[],
+  stored: ReadonlyMap<string, boolean | null>,
+): EngineerNoteEvent[] {
+  const out: EngineerNoteEvent[] = [];
+  for (const { id, data } of notes) {
+    const s = stored.get(id.toLowerCase());
+    const payload = { wallId: data.attributes.wallId, noteId: id, fileId: data.attributes.fileId };
+    if (s === undefined || s === null) out.push({ name: 'wall.engineer_required', ...payload });
+    if (data.attributes.letterOnFile && s !== true)
+      out.push({ name: 'wall.engineer_note_attached', ...payload });
+  }
+  return out;
+}
 
 // `files` is keyed by lower-case source_file id; a missing key is a row the caller cannot read or that does not exist.
 // One issue per object, in object order.
@@ -257,6 +287,41 @@ export async function saveObjects(
     overridden = check.overridden;
   }
 
+  // EZD-215: the stored rows of the saved engineer notes, read before the rpc.
+  const notes = parsedObjects.flatMap((o) =>
+    o.type === 'engineer_note' ? [{ id: o.id, data: o.data }] : [],
+  );
+  let engineer: EngineerNoteEvent[] = [];
+  if (notes.length > 0) {
+    const stored = new Map<string, boolean | null>();
+    for (let i = 0; i < notes.length; i += OVERRIDE_READ_CHUNK) {
+      const chunk = notes.slice(i, i + OVERRIDE_READ_CHUNK).map((n) => n.id);
+      const { data, error } = await client
+        .from('model_object')
+        .select('object_id, type, schema_version, data, deleted')
+        .eq('project_id', projectId)
+        .in('object_id', chunk);
+      if (error) throw error;
+      for (const row of data) {
+        const parsed = row.deleted
+          ? null
+          : parseStoredObject({
+              id: row.object_id,
+              type: row.type,
+              schema_version: row.schema_version,
+              data: row.data,
+            });
+        stored.set(
+          row.object_id.toLowerCase(),
+          parsed?.ok && parsed.object.type === 'engineer_note'
+            ? parsed.object.data.attributes.letterOnFile
+            : null,
+        );
+      }
+    }
+    engineer = engineerNoteEvents(notes, stored);
+  }
+
   const changes = checked.map((c) =>
     c.deleted
       ? { id: c.id, base_seq: c.baseSeq, deleted: true }
@@ -308,6 +373,7 @@ export async function saveObjects(
           : { id: o.object_id, updatedSeq: o.updated_seq },
       ),
       overridden,
+      engineer,
       ...(result.resolved === undefined ? {} : { resolved: result.resolved }),
     };
   }

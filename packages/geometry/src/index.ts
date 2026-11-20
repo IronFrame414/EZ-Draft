@@ -4,10 +4,23 @@
 // EZD-212a Build step 9 (vault/plans/EZD-212a.md section 3): exports the moves core.
 // EZD-235 Build step 4 (vault/plans/EZD-235.md Decided "D-Where"; 11 rule 2): exports the derived values.
 // EZD-729 Build (AC-EZD-729-1): exports the plumbing locations.
+// EZD-730 (AC-EZD-730-1, -2): exports the plumbing diagram.
 // EZD-402 (AC-EZD-402-1): exports the cabinet run totals.
+// EZD-404 (AC-EZD-404-2): exports the cabinet run plan strip and elevation layout.
+// EZD-408 (AC-EZD-408-1): exports Auto-fill run.
+// EZD-405 (AC-EZD-405-1): exports the cabinet box edits (resize with code update, reorder, delete, duplicate).
 // EZD-411 (AC-EZD-411-1): exports the countertop piece measures.
-export * from './benchmark/benchmark';
+// EZD-215 (AC-EZD-215-1, -2): exports the bearing wall rule.
+// EZD-733 (AC-EZD-733-1): exports the tile layout pieces and cuts.
+// EZD-229 (11 Budgets; EZD-120c B11): the benchmark model is its own entry, `@ezdraft/geometry/benchmark`, so the
+// editor's first download does not carry the 3,000-object generator that only the lazy benchmark runner, the server
+// and the dev pages use.
+export * from './cabinets/elevation';
 export * from './cabinets/run';
+export * from './cabinets/edit';
+export * from './cabinets/hosting';
+export * from './cabinets/fit';
+export * from './cabinets/autofill';
 export * from './countertops/piece';
 export * from './derived';
 export * from './drawing';
@@ -16,12 +29,15 @@ export * from './length';
 export * from './moves';
 export * from './numbers';
 export * from './openings';
+export * from './plumbing/diagram';
 export * from './plumbing/locations';
 export * from './rooms';
+export * from './rules/bearing';
 export * from './schema';
 export * from './selection';
 export * from './sketch';
 export * from './snap/index';
+export * from './tile';
 export * from './tolerance';
 export * from './walls';
 export * from './turn';

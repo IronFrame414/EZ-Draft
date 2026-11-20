@@ -264,15 +264,10 @@ const STATUS_TYPES: ReadonlySet<string> = new Set([
   'blocking',
 ]);
 
-// Set status writes one status on every selected object that has one. A bearing wall is not set to Demo here: that
-// needs the engineer prompt (S03 Validation), so the whole command is refused.
+// Set status writes one status on every selected object that has one. EZD-215 (09-calculations Q-0704): a bearing
+// wall is set to Demo too; the model store adds its "Engineer required" note in the same edit.
 export function statusChanges(ctx: ArrangeContext, status: ObjectStatus): ArrangeResult {
   const selected = selectedOn(ctx, STATUS_TYPES);
-  if (
-    status === 'demo' &&
-    selected.some((o) => o.type === 'wall' && o.data.attributes.bearing === true)
-  )
-    return { ok: false, messageKey: 'office.edit.bearing_demo' };
   const changes: Change[] = [];
   for (const o of selected) {
     if (!('status' in o.data) || o.data.status === status) continue;

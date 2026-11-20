@@ -308,6 +308,7 @@
 }
 
 .underlay {
+  cursor: pointer;
   fill: var(--ez-slate-300);
   fill-opacity: 0.25;
   stroke: none;
@@ -486,4 +487,245 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+/* EZD-309: canvas picking, hover, Fix mode handles and live length. */
+.hit {
+  stroke: transparent;
+  stroke-width: 14px;
+  fill: none;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.handle {
+  fill: var(--ez-surface);
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+  cursor: grab;
+}
+
+.liveDimension,
+.hover {
+  position: absolute;
+  transform: translate(-50%, -150%);
+  padding: 2px 8px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.hover {
+  transform: none;
+  background: var(--ez-ink);
+  font-family: inherit;
+}
+
+.fixHint {
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  font-size: 13px;
+}
+
+.leftFootActions {
+  display: flex;
+  gap: 8px;
+  margin-right: auto;
+}
+
+.saveError {
+  margin: 0;
+  padding: 8px 16px;
+  color: var(--ez-red-text);
+  background: var(--ez-red-tint);
+  font-size: 13px;
+}
+
+/* EZD-310: typed vs scan conflicts (board S02 inspector). */
+.fieldPair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.typedInput {
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 10px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  font-family: var(--ez-font-mono);
+  font-size: 14px;
+}
+
+.typedInput:focus {
+  outline: none;
+  border: 2px solid var(--ez-cobalt);
+}
+
+.typedInput[aria-invalid='true'] {
+  border-color: var(--ez-red-text);
+}
+
+.typedRefused {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--ez-red-text);
+}
+
+.headRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.conflictPill {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.conflicts {
+  padding: 12px 8px;
+  border-top: 1px solid var(--ez-divider);
+}
+
+.conflictList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.conflictRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.conflictRow:hover {
+  background: var(--ez-surface-sunken);
+}
+
+.conflictError {
+  display: inline-flex;
+  color: var(--ez-red-text);
+}
+
+.conflictWarning {
+  display: inline-flex;
+  color: var(--ez-amber);
+}
+
+.gapMarker {
+  fill: var(--ez-red-tint);
+  stroke: var(--ez-red-text);
+}
+
+.gapLabel {
+  fill: var(--ez-red-text);
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+}
+
+/* EZD-311: the gap marker selects its room; pick mode shows a crosshair. */
+.gapHit {
+  cursor: pointer;
+}
+
+.svg[data-picking='true'] {
+  cursor: crosshair;
+}
+
+/* EZD-313: a refused Finish import or Cancel import, under the header card. */
+.closeError {
+  flex: none;
+  margin: 8px 16px 0;
+  padding: 8px 12px;
+  border-radius: var(--ez-radius-8);
+  color: var(--ez-red-text);
+  background: var(--ez-red-tint);
+  font-size: 13px;
+}
+
+/* EZD-314: import states. The lock banner and the read-only note sit under the header, as the close error does. */
+.lockRow {
+  flex: none;
+  margin: 8px 16px 0;
+}
+
+.readOnlyNote {
+  flex: none;
+  margin: 8px 16px 0;
+  padding: 8px 12px;
+  border-radius: var(--ez-radius-8);
+  color: var(--ez-amber-text);
+  background: var(--ez-amber-tint);
+  font-size: 13px;
+}
+
+.retryError {
+  display: block;
+  margin-top: 8px;
+  color: var(--ez-red-text);
+  font-size: 13px;
+}
+
+/* A wall the import read as bearing (S02 Validation "flagged"). */
+.bearingFlag {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ez-red-tint);
+  color: var(--ez-red-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Disables Resolve the gap's buttons in a read-only review without changing its layout. */
+.plainFieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+/* The page message with Retry under it, centred together in the body. */
+.messageBox {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.messageActions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 24px;
 }

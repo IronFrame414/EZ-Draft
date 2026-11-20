@@ -1,0 +1,46 @@
+/* EZD-220: the pin inspector's photo parts, in the inspector's card style (Q-0705 boards waived). */
+.thumb {
+  display: block;
+  max-width: 100%;
+  max-height: 160px;
+  border-radius: var(--ez-radius-8);
+  border: 1px solid var(--ez-border);
+  object-fit: cover;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  font: 500 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+  background: none;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-5);
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.failed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-red-tint);
+  color: var(--ez-red-text);
+  font-size: 12px;
+}
+
+.error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ez-red);
+}

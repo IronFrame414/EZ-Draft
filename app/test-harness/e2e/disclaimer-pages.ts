@@ -87,6 +87,18 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
     placement: 'bar',
   },
   {
+    file: 'src/app/(office)/settings/code-edition/page.tsx',
+    path: '/settings/code-edition',
+    signedIn: true,
+    placement: 'bar',
+  },
+  {
+    file: 'src/app/(office)/settings/sheet-presets/page.tsx',
+    path: '/settings/sheet-presets',
+    signedIn: true,
+    placement: 'bar',
+  },
+  {
     file: 'src/app/(office)/settings/defaults/page.tsx',
     path: '/settings/defaults',
     signedIn: true,

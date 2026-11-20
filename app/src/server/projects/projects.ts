@@ -11,7 +11,7 @@ import { z } from 'zod';
 import {
   PROJECT_SEARCH_MAX,
   PROJECT_SORTS,
-  PROJECT_STATUSES,
+  PROJECT_STATES,
   PROJECT_TABS,
   type ProjectCounts,
   type ProjectPage,
@@ -57,7 +57,8 @@ const cursorSchema = z.strictObject({
   n: pgKey,
   m: z.boolean(),
   c: pgKey,
-  r: z.number().int().min(1).max(5),
+  // EZD-137: complete is status rank 6 (Complete sorts last, Q-0700).
+  r: z.number().int().min(1).max(6),
   o: z.number().int().min(0).max(2147483647),
 });
 
@@ -79,6 +80,7 @@ export function decodeCursor(s: string): ProjectCursor | null {
   return parsed.success ? parsed.data : null;
 }
 
+// EZD-124: `archived` is a tab, not a status; list_projects reads it as archived projects only.
 const isTab = (v: string): v is ProjectTab => (PROJECT_TABS as readonly string[]).includes(v);
 const isSort = (v: string): v is ProjectSort => (PROJECT_SORTS as readonly string[]).includes(v);
 
@@ -116,10 +118,13 @@ const pageSchema = z.object({
       name: z.string(),
       clientName: z.string().nullable(),
       address: z.string(),
-      status: z.enum(PROJECT_STATUSES),
+      status: z.enum(PROJECT_STATES),
       openItems: z.number().int().nonnegative(),
       hasThumbnail: z.boolean(),
       versionNo: z.number().int().positive().nullable(),
+      archived: z.boolean(),
+      // EZD-314: list_projects (…_add_project_importing.sql) reads an import in progress.
+      importing: z.boolean().optional(),
     }),
   ),
   next: cursorSchema.nullable(),
@@ -132,6 +137,8 @@ const countsSchema = z.strictObject({
   permit_submitted: z.number().int().nonnegative(),
   approved: z.number().int().nonnegative(),
   in_build: z.number().int().nonnegative(),
+  complete: z.number().int().nonnegative(),
+  archived: z.number().int().nonnegative(),
 });
 
 export async function listProjects(

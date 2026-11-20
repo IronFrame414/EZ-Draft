@@ -6,6 +6,9 @@
 // EZD-306 (S01 DXF: conversion choice "After upload, DXF only"): once the files are sent, each DXF drawing (kind
 // dxf) gets the conversion choice: its layers are read on the server and chooseLayers asks the user. The layers it
 // answers go with the import (dxfLayers); an empty answer, or no chooseLayers, keeps the drawing as reference only.
+// EZD-304 (S01 PDF: scale calibration "After upload, PDF only"; Q-0203 never blocks): once the files are sent, each
+// PDF (kind pdf) gets the set-scale step through setScale, from its local bytes. Whatever it answers, or a failure,
+// the import goes on; the scale can be set later.
 import { uploadFile, type SignedUpload } from '../storage/upload';
 import type { DxfLayerChoice } from './dxf-layers';
 import type { UploadItem } from './upload-files';
@@ -34,6 +37,8 @@ export type UploadRunOptions = {
   onStarted?: (jobId: string | null) => void;
   // EZD-306: asks the conversion choice of one DXF drawing; answers the layers to convert ([] = reference only).
   chooseLayers?: (file: { name: string; layers: string[] }) => Promise<DxfLayerChoice[]>;
+  // EZD-304: the set-scale step of one PDF; its answer never stops the import.
+  setScale?: (file: { name: string; sourceFileId: string; source: Blob }) => Promise<unknown>;
 };
 
 /** EZD-307 (S02 Entry points): Import review of one import. */
@@ -92,6 +97,11 @@ export async function uploadAndStartImport(
     opts.done.set(item.id, body.sourceFile.id);
   }
   const sourceFileIds = items.map((i) => opts.done.get(i.id) as string);
+  for (const item of items) {
+    if (item.kind !== 'pdf' || !opts.setScale) continue;
+    const sourceFileId = opts.done.get(item.id) as string;
+    await opts.setScale({ name: item.name, sourceFileId, source: item.file }).catch(() => null);
+  }
   const dxfLayers: { sourceFileId: string; layers: DxfLayerChoice[] }[] = [];
   for (const item of items) {
     if (item.kind !== 'dxf' || !opts.chooseLayers) continue;

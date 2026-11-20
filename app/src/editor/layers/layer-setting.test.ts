@@ -22,6 +22,7 @@ const UNLOCKED: LayerLocks = {
   new: false,
   rooms: false,
   plumbing: false,
+  mechanical: false,
 };
 
 function fakePhase(): LayerPhase & { calls: Array<[ObjectStatus, boolean]> } {
@@ -76,7 +77,12 @@ describe('EZD-218 layer rules', () => {
 describe('EZD-218 layer store', () => {
   it('AC-3 a new store opens with every eye from the view, Rooms shown and nothing locked', () => {
     const layers = createLayerSetting(fakePhase());
-    expect(layers.get()).toEqual({ roomsEye: true, plumbingEye: true, locks: UNLOCKED });
+    expect(layers.get()).toEqual({
+      roomsEye: true,
+      plumbingEye: true,
+      mechanicalEye: true,
+      locks: UNLOCKED,
+    });
     expect(layers.eyes()).toEqual({ existing: true, demo: true, new: false });
   });
 

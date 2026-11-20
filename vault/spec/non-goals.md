@@ -4,7 +4,7 @@ Things agents must not build or change. A ticket or plan that touches any of the
 
 ## Product scope deferred by the spec (Not in v1)
 
-Updated from Q-0220 and Q-0236 (Josh 2026-10-20; D5 (a), Josh 2026-11-01). In v1 since Q-0220, so no longer listed here: AR viewing and editing on iPhone and iPad, IFC export, billing companies for EZ Draft (paywall, seats meter, onboarding), commercial load calc and service design, visual diff when opening an old version, per-user notification settings, code editions other than FBC 9th ed. / NEC 2023.
+Updated from Q-0220 and Q-0236 (Josh 2026-10-20; D5 (a), Josh 2026-11-01). In v1 since Q-0220, so no longer listed here: AR viewing and editing on iPhone and iPad, IFC export, billing companies for EZ Draft (paywall, seats meter, onboarding), visual diff when opening an old version, per-user notification settings, code editions other than FBC 9th ed. / NEC 2023.
 
 - DWG import and export through the paid ODA converter (v2; v1 asks for a DXF re-save).
 - Sprinkler heads on the RCP (v2).
@@ -17,6 +17,7 @@ Updated from Q-0220 and Q-0236 (Josh 2026-10-20; D5 (a), Josh 2026-11-01). In v1
 - Laser measuring of any kind: native app, direct Bluetooth pairing and keyboard-mode input (v2; Q-0759 removed keyboard mode from v1).
 - SMS notifications (v2).
 - Tile cut list (v2).
+- Commercial load calculation and service design (v2; Q-0767 moved it back out of v1).
 - Point-in-time recovery backups (v2).
 - Out of scope entirely (not planned for any version): new construction, commercial TI, point clouds, structural calculations, pricing engine, scheduling, payments, and client billing in any form (Q-0236).
 

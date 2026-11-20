@@ -136,6 +136,7 @@ describe('EZD-235 model derived', () => {
           roomType: null,
           floorFinish: '',
           ceilingType: null,
+          ceiling: null,
         },
         closureOverride: null,
       },

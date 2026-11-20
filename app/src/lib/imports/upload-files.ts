@@ -26,6 +26,8 @@ export const KIND_CONTENT_TYPES: Readonly<Record<SourceFileKind, readonly Source
   photo: PHOTO_TYPES,
   panel_photo: PHOTO_TYPES,
   field_measure: PHOTO_TYPES,
+  // EZD-215 (AC-EZD-215-4 "an optional PDF or image"): not an Upload step kind.
+  engineer_letter: [PDF, ...PHOTO_TYPES],
 };
 
 export function kindTakes(kind: SourceFileKind, contentType: string): boolean {

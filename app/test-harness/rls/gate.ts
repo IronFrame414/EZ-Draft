@@ -5,6 +5,25 @@
 export type GatedRpcCall = { fn: string; args: Record<string, unknown> };
 
 export const GATED_RPC_CALLS: GatedRpcCall[] = [
+  // EZD-124: the project card menu (authenticated only).
+  { fn: 'rename_project', args: { p_project: null, p_name: null } },
+  { fn: 'set_project_status', args: { p_project: null, p_status: null } },
+  { fn: 'archive_project', args: { p_project: null } },
+  { fn: 'restore_project', args: { p_project: null } },
+  { fn: 'delete_project', args: { p_project: null, p_confirm_name: null } },
+  // EZD-137: Mark complete and Reopen (authenticated only).
+  { fn: 'complete_project', args: { p_project: null } },
+  { fn: 'reopen_project', args: { p_project: null } },
+  // EZD-313: Finish import and Cancel import (authenticated only).
+  { fn: 'finish_import', args: { p_project: null, p_job: null, p_objects: null } },
+  { fn: 'cancel_import', args: { p_project: null, p_job: null } },
+  // EZD-314: Retry of a failed import (authenticated only).
+  { fn: 'retry_import', args: { p_project: null, p_job: null } },
+  // EZD-309: the import review's batched save (authenticated only).
+  {
+    fn: 'save_import_review',
+    args: { p_project: null, p_job: null, p_mode: null, p_changes: null },
+  },
   // EZD-111 (vault/plans/EZD-111.md Shared lists): the send functions (authenticated) and the client-link
   // resolver (anon only).
   {
@@ -13,6 +32,12 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   },
   { fn: 'mark_sent_package_emailed', args: { p_sent_package: null } },
   { fn: 'resolve_sent_package', args: { p_token_hash: null } },
+  // EZD-122: Name snapshot and Revert (authenticated only).
+  { fn: 'name_snapshot', args: { p_project: null, p_version: null, p_name: null } },
+  {
+    fn: 'revert_to_version',
+    args: { p_project: null, p_version: null, p_lock_epoch: null, p_objects: null, p_label: null },
+  },
   // EZD-5601 step 2 (vault/plans/EZD-5601.md): the user's own Anthropic key functions, authenticated only.
   { fn: 'get_my_ai_key', args: {} },
   {
@@ -157,6 +182,18 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   },
   // EZD-116: the Defaults write path, authenticated only.
   { fn: 'update_tenant_defaults', args: { p_set: {}, p_remove: [] } },
+  // EZD-613: the Code edition write path, authenticated only.
+  { fn: 'update_tenant_code_edition', args: { p_code_edition: null, p_optional_load_calc: null } },
+  // EZD-712: the Sheet presets (submittal profile) write paths, authenticated only.
+  { fn: 'create_submittal_profile', args: { p_department: 'Gate', p_source: null } },
+  { fn: 'update_submittal_profile', args: { p_id: '00000000-0000-0000-0000-000000000000', p_changes: {} } },
+  { fn: 'set_default_submittal_profile', args: { p_id: '00000000-0000-0000-0000-000000000000' } },
+  { fn: 'archive_submittal_profile', args: { p_id: '00000000-0000-0000-0000-000000000000', p_archived: true } },
+  { fn: 'delete_submittal_profile', args: { p_id: '00000000-0000-0000-0000-000000000000' } },
+  {
+    fn: 'set_project_submittal_profile',
+    args: { p_project: '00000000-0000-0000-0000-000000000000', p_profile: '00000000-0000-0000-0000-000000000000' },
+  },
   // EZD-113 section 3 (vault/plans/EZD-113.md): the customer list, authenticated only.
   { fn: 'list_customers', args: { p_search: '', p_archived: false, p_page: 1 } },
   // EZD-104 (vault/plans/EZD-104.md): the Users page functions, authenticated only.

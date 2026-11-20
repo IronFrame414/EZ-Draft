@@ -92,6 +92,7 @@ describe('EZD-132 storage library', () => {
       'photo',
       'panel_photo',
       'field_measure',
+      'engineer_letter',
     ]);
   });
 

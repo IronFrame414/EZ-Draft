@@ -4,11 +4,13 @@
 // Q-0645 (a); Q-0659 (a)): what the inspector shows for a selection. Pure; parses the level's objects once per call.
 // EZD-214 (05 Q-0664 "Status on objects"): doors and windows show their status; bulk edit shares Status over every
 // selected wall, door and window, Mixed when they differ.
+// EZD-215 (AC-EZD-215-3, -6): a wall shows the ids of its engineer notes whose letter is not on file.
 import {
   COMPARISON_TOLERANCE_IN,
   DETAIL_DISPLAY_DENOMINATOR,
   PLAN_DISPLAY_DENOMINATOR,
   coordsEqual,
+  engineerRequired,
   formatLength,
   isVerticalLine,
   objectNumber,
@@ -93,7 +95,15 @@ export type BulkOpeningFields = {
 
 export type InspectorView =
   | { kind: 'empty' }
-  | { kind: 'wall'; id: string; number: number | null; rooms: string[]; fields: WallFields }
+  | {
+      kind: 'wall';
+      id: string;
+      number: number | null;
+      rooms: string[];
+      fields: WallFields;
+      // EZD-215 (AC-EZD-215-3, -6): the ids of this wall's engineer notes whose letter is not on file.
+      engineerRequired: string[];
+    }
   | {
       kind: 'opening';
       id: string;
@@ -417,6 +427,13 @@ export function inspectorView(
         number: objectNumber(o),
         rooms: wallRooms(o, rooms),
         fields: wallFields(o),
+        engineerRequired: all.flatMap((n) =>
+          n.type === 'engineer_note' &&
+          lower(n.data.attributes.wallId) === lower(o.id) &&
+          engineerRequired(n.data)
+            ? [n.id]
+            : [],
+        ),
       };
     return openingView(o, walls, rooms);
   }

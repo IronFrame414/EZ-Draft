@@ -23,6 +23,9 @@
 // (Shift+L) measures between two snapped points (`reduceMeasure`) and never changes the model. It is the one tool a
 // viewer without Edit model can turn on: `enabled` still means "can edit", and only the receiver, the pointer,
 // `selectTool('measure' | null)` and the Shift+L and Esc keys let Measure through.
+// EZD-404 (S04 Entry points "Cabinets (C) tool"; S04 Permissions "View projects: view runs, plan strip, elevation"):
+// the Cabinets tool opens the cabinet run screen over the plan and takes no plan input. Like Measure it turns on
+// without Edit model and stays on through a pause; C turns it on, Esc turns it off.
 // EZD-6001 (vault/plans/EZD-6001.md D-Wire, D-Draw-switch): new objects go on the chosen floor; a switch ends what is half
 // drawn as Escape does and keeps the tool.
 import {
@@ -260,17 +263,8 @@ export type DrawingController = {
   dispose(): void;
 };
 
-export function railMode(o: {
-  editor: 'loading' | 'ready' | 'failed' | 'no-access' | 'not-found';
-  canEdit: boolean;
-  canvasFailed: boolean;
-  controllerEnabled: boolean;
-}): 'hidden' | 'disabled' | 'enabled' {
-  if (o.editor === 'loading') return 'disabled';
-  if (o.editor !== 'ready' || !o.canEdit) return 'hidden';
-  if (o.canvasFailed || !o.controllerEnabled) return 'disabled';
-  return 'enabled';
-}
+// EZD-423: the rail mode lives in rail-mode.ts so the editor entry reads it without this engine.
+export { railMode } from './rail-mode';
 
 type ToolState =
   | { id: 'wall'; state: WallChainState }
@@ -279,7 +273,8 @@ type ToolState =
   | { id: 'move'; state: MoveToolState }
   | { id: 'fixtures'; state: null }
   | { id: 'sketch'; state: SketchState }
-  | { id: 'measure'; state: MeasureState };
+  | { id: 'measure'; state: MeasureState }
+  | { id: 'cabinets'; state: null };
 
 type OpeningTool = Extract<ToolState, { id: 'door' | 'window' }>;
 
@@ -518,7 +513,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       tool.id === 'move' ||
       tool.id === 'fixtures' ||
       tool.id === 'sketch' ||
-      tool.id === 'measure'
+      tool.id === 'measure' ||
+      tool.id === 'cabinets'
     )
       return NO_CONTEXT;
     if (isOpeningTool(tool)) return NO_CONTEXT;
@@ -741,7 +737,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (tool.id === 'move') return moveFrame(tool.state.base, tool.state.ids);
     if (isOpeningTool(tool)) return { ...EMPTY_FRAME, opening: openingFrame(tool) };
-    if (tool.id === 'sketch') return null;
+    if (tool.id === 'sketch' || tool.id === 'cabinets') return null;
     if (tool.id === 'measure') {
       const { from, to } = tool.state;
       return {
@@ -918,7 +914,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       onPick(event);
       return;
     }
-    if (tool === null) return;
+    if (tool === null || tool.id === 'cabinets') return;
     if (tool.id === 'move') {
       onMovePointer(event, tool.state);
       return;
@@ -1251,7 +1247,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   function selectTool(id: DrawingToolId | null): void {
-    if (disposed || !(enabled || id === null || id === 'measure')) return;
+    if (disposed || !(enabled || id === null || id === 'measure' || id === 'cabinets')) return;
     cancelEntry();
     const hadDrag = drag !== null;
     drag = null;
@@ -1279,9 +1275,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
                   ? { id, state: initialSketchState() }
                   : id === 'measure'
                     ? { id, state: initialMeasureState() }
+                    : id === 'cabinets'
+                      ? { id, state: null }
                     : { id, state: initialOpeningToolState(id) };
     if (id === 'fixtures') loadFixtures();
     if (id === 'sketch') sketchModule.preload();
+    // EZD-404: the cabinet screen covers the plan, so no plan object stays selected under it.
+    if (id === 'cabinets') link?.select([]);
     touchPoint = null;
     lastSnap = null;
     lastContext = NO_CONTEXT;
@@ -1386,6 +1386,15 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       measureInput({ type: 'escape' });
       return true;
     }
+    // EZD-404: C and, while the cabinet screen is open, Esc work without Edit model.
+    if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'c') {
+      selectTool('cabinets');
+      return true;
+    }
+    if (tool !== null && tool.id === 'cabinets' && e.key === 'Escape') {
+      selectTool(null);
+      return true;
+    }
     if (!enabled) return false;
     if (e.key === 'Escape' && (ui.entry !== null || claim !== null)) {
       cancelEntry();
@@ -1430,7 +1439,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         tool.id === 'move' ||
         tool.id === 'fixtures' ||
         tool.id === 'sketch' ||
-        tool.id === 'measure'
+        tool.id === 'measure' ||
+        tool.id === 'cabinets'
       )
         return false;
       input({ type: 'enter' });
@@ -1507,6 +1517,9 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       }
       if (isOpeningTool(tool) || tool === null) emitFrame();
     });
+    // EZD-423: the editor attaches the selection when this engine loads, which may be after the first selection;
+    // what is already selected draws its frame at once.
+    if (next.getUi().ids.length > 0 && tool === null) emitFrame();
   }
 
   function claimSelectPointer(event: PlanPointerEvent): boolean {
@@ -1672,7 +1685,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     pause() {
       if (disposed || !enabled) return;
       // Measure is allowed in view only (S06 States), so it stays on; any other tool ends as Escape ends it.
-      if (tool?.id === 'measure') cancelEntry();
+      if (tool?.id === 'measure' || tool?.id === 'cabinets') cancelEntry();
       else selectTool(null);
       enabled = false;
       setUi({ pick: null, gapMessage: null, boxes: computeBoxes() });

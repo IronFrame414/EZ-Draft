@@ -4,6 +4,9 @@
 // EZD-294 Build step 11 (vault/plans/EZD-294.md Decided "Store highs", "Apply saved numbers"; Q-0625 (a);
 // Q-0629 (b)): `numberHighs` only rises (undo and redo never lower it); `applySavedNumbers` puts the server's
 // numbers in the open model without an edit.
+// EZD-215 (Q-0704 "Every change path calls that function"; AC-EZD-215-1, -2): every edit gets the "Engineer
+// required" notes it raises (edit/bearing-rule.ts) in the same undo step; undo and redo replay the edit, notes
+// included, and a remote change is applied as sent.
 import {
   NO_NUMBERS,
   numberKeyOf,
@@ -14,6 +17,7 @@ import {
 } from '@ezdraft/geometry';
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { ObjectValue } from '../../lib/outbox/model-api';
+import { withBearingNotes } from '../edit/bearing-rule';
 import { applyEditTo, makeEdit, type Change, type Edit, type Objects } from './patches';
 
 export type ModelState = {
@@ -36,7 +40,10 @@ export function createModelStore(o: {
   objects: Objects;
   numberHighs?: NumberHighs;
   onCommit?: (changes: Change[]) => void;
+  // EZD-215: the ids of the notes an edit adds; random when not given.
+  newId?: () => string;
 }): ModelStore {
+  const newId = o.newId ?? (() => crypto.randomUUID());
   const store = createStore<ModelState>()(() => ({
     objects: o.objects,
     past: [],
@@ -76,7 +83,7 @@ export function createModelStore(o: {
     applyEdit(changes) {
       if (changes.length === 0) return [];
       const { objects, past } = store.getState();
-      const edit = makeEdit(objects, changes);
+      const edit = makeEdit(objects, withBearingNotes(objects, changes, newId));
       return commit(edit, 'forward', [...past, edit], []);
     },
     undo() {

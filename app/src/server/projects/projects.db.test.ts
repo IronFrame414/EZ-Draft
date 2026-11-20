@@ -29,7 +29,7 @@ import {
 } from './projects';
 
 const typed = (s: Session) => s.serverDb as unknown as SupabaseClient<Database>;
-const D1 = { all: 6, draft: 2, client_review: 1, permit_submitted: 1, approved: 1, in_build: 1 };
+const D1 = { all: 6, draft: 2, client_review: 1, permit_submitted: 1, approved: 1, in_build: 1, complete: 0, archived: 1 };
 const ids = (a: string, b: string) => [a.toLowerCase(), b.toLowerCase()].sort();
 
 async function walk(s: Session, tab: ProjectTab, sort: ProjectSort) {
@@ -114,6 +114,8 @@ describe('EZD-117a list and count projects', () => {
       permit_submitted: 0,
       approved: 0,
       in_build: 1,
+      complete: 0,
+      archived: 0,
     });
     expect(await list(listed, 'all', 'edited')).toEqual([P.P4, P.P3]);
   });
@@ -183,6 +185,10 @@ describe('EZD-117a list and count projects', () => {
       hasThumbnail: false,
       // EZD-121 (S01 Data shown; Q-0700 05): no send yet.
       versionNo: null,
+      // EZD-124 (Q-0201): an active project.
+      archived: false,
+      // EZD-314 (S01 States "Import in progress"): no import in progress.
+      importing: false,
     });
     expect(p2?.clientName).toBeNull();
     expect(rpc).toHaveBeenCalledTimes(1);

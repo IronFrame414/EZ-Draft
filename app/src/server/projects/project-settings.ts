@@ -26,6 +26,7 @@ import {
   type ProjectSettings,
   type ProjectSettingsPatch,
 } from '../../lib/projects/project-settings';
+import { CODE_EDITIONS, isCodeEdition, projectEdition } from '../../lib/code-edition/editions';
 import { can, type PermissionContext } from '../permissions';
 import type { Database, Json } from '../db/database.types';
 import { loadTenantDefaults, projectCopyOf } from '../defaults/defaults';
@@ -51,17 +52,19 @@ export async function loadProjectSettings(
   ctx: PermissionContext,
   id: string,
 ): Promise<LoadedProject | null> {
-  const [project, stored] = await Promise.all([
+  const [project, stored, tenant] = await Promise.all([
     client
       .from('project')
       .select(
-        'id, name, address, type, scope_of_work, settings, customer!project_customer_fk(id, name, email, phone)',
+        'id, name, address, type, scope_of_work, settings, code_edition, customer!project_customer_fk(id, name, email, phone)',
       )
       .eq('id', id)
       .maybeSingle(),
     loadTenantDefaults(client),
+    client.from('tenant').select('code_edition').maybeSingle(),
   ]);
   if (project.error) throw project.error;
+  if (tenant.error) throw tenant.error;
   const p = project.data;
   if (p === null) return null;
   const copy = projectCopyOf(p.settings);
@@ -88,6 +91,10 @@ export async function loadProjectSettings(
         : { id: c.id, name: c.name }
       : null,
     defaults,
+    codeEdition: {
+      own: isCodeEdition(p.code_edition) ? p.code_edition : null,
+      effective: projectEdition(p.code_edition, tenant.data?.code_edition ?? null),
+    },
     can: {
       details: editModel,
       client:
@@ -108,6 +115,7 @@ const patchSchema = z.strictObject({
   type: z.enum(PROJECT_TYPES).optional(),
   customerId: z.uuid().nullable().optional(),
   defaults: z.record(z.string(), z.unknown()).optional(),
+  codeEdition: z.enum(CODE_EDITIONS).optional(),
   lockEpoch: z.number().int().min(0).optional(),
 });
 
@@ -115,7 +123,8 @@ export type ParsedPatch =
   | { ok: true; patch: ProjectSettingsPatch }
   | { ok: false; fields?: FieldErrors };
 
-// The PATCH body: unknown keys (code edition, submittal profile, ...) are refused (Q-0399); name and address
+// The PATCH body: unknown keys (submittal profile, ...) are refused (Q-0399); the code edition is one of the
+// editions (EZD-613); name and address
 // must not be blank; each default must be a per-project key with a value its row accepts.
 export function parseProjectSettingsPatch(body: unknown): ParsedPatch {
   const parsed = patchSchema.safeParse(body);
@@ -143,6 +152,7 @@ export function parseProjectSettingsPatch(body: unknown): ParsedPatch {
   }
   if (d.type !== undefined) patch.type = d.type;
   if (d.customerId !== undefined) patch.customerId = d.customerId;
+  if (d.codeEdition !== undefined) patch.codeEdition = d.codeEdition;
   if (d.defaults !== undefined) {
     const defaults: Record<string, number> = {};
     for (const [key, value] of Object.entries(d.defaults)) {
@@ -216,6 +226,7 @@ export async function saveProjectSettings(
   if (patch.scopeOfWork !== undefined) changes.scope_of_work = patch.scopeOfWork;
   if (patch.type !== undefined) changes.type = patch.type;
   if (patch.customerId !== undefined) changes.customer_id = patch.customerId;
+  if (patch.codeEdition !== undefined) changes.code_edition = patch.codeEdition;
   if (Object.keys(defaults).length > 0) changes.defaults = defaults;
   const { data, error } = await client.rpc('update_project_settings', {
     p_project: id,

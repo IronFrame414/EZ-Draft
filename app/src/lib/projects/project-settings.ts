@@ -5,6 +5,7 @@
 // three, client from the customer list) and the Defaults value checks (AC-EZD-116-4).
 import type { MessageKey } from '../../server/messages/catalog';
 import type { Customer } from '../customers/customers';
+import type { CodeEdition } from '../code-edition/editions';
 import { PER_PROJECT_KEYS, defaultRow } from '../defaults/registry';
 import { formValueOf, parseFormValue } from '../defaults/values';
 import {
@@ -39,6 +40,9 @@ export type ProjectSettings = {
   // Each per-project key's effective value: the project's copy, else the company's effective value (null is
   // Not set).
   defaults: Record<string, number | null>;
+  // EZD-613 (S15g Decision 2): the project's own code edition (null: none picked, it reads the company default)
+  // and the edition it runs.
+  codeEdition: { own: CodeEdition | null; effective: CodeEdition };
   // What this member may change. `typeAndDefaults` is Edit model on the project; the dialog also needs this tab
   // to hold the edit lock (the database checks the epoch).
   can: { details: boolean; client: boolean; typeAndDefaults: boolean };
@@ -51,11 +55,19 @@ export type ProjectSettingsPatch = {
   type?: ProjectType;
   customerId?: string | null;
   defaults?: Record<string, number>;
+  codeEdition?: CodeEdition;
   lockEpoch?: number;
 };
 
 // The keys the save reports as changed (project.updated `keys`): field names and per-project default keys.
-export const PROJECT_FIELD_KEYS = ['name', 'address', 'scope_of_work', 'type', 'customer_id'] as const;
+export const PROJECT_FIELD_KEYS = [
+  'name',
+  'address',
+  'scope_of_work',
+  'type',
+  'customer_id',
+  'code_edition',
+] as const;
 
 export type ProjectSettingsDraft = {
   name: string;
@@ -64,6 +76,7 @@ export type ProjectSettingsDraft = {
   type: ProjectType;
   client: Customer | null;
   defaults: Record<string, string>;
+  codeEdition: CodeEdition;
 };
 
 export function draftOf(s: ProjectSettings): ProjectSettingsDraft {
@@ -89,6 +102,7 @@ export function draftOf(s: ProjectSettings): ProjectSettingsDraft {
         }
       : null,
     defaults,
+    codeEdition: s.codeEdition.own ?? s.codeEdition.effective,
   };
 }
 
@@ -136,6 +150,11 @@ export function toPatchBody(
     if (name !== s.project.name) body.name = name;
     if (address !== s.project.address) body.address = address;
     if (scope !== s.project.scopeOfWork.trim()) body.scopeOfWork = scope;
+    // EZD-613: sent only when it differs from the edition the project runs, so opening and saving the dialog
+    // never fixes a project to the company default.
+    if (d.codeEdition !== (s.codeEdition.own ?? s.codeEdition.effective)) {
+      body.codeEdition = d.codeEdition;
+    }
   }
   if (e.client && (d.client?.id ?? null) !== (s.client?.id ?? null)) {
     body.customerId = d.client?.id ?? null;

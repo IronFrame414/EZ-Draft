@@ -5,6 +5,8 @@
 // texture, and one translucent hover highlight; neither counts as a batch object.
 // EZD-208a Build step 4 (vault/plans/EZD-208a.md section 3 A4-A5; section 1 R11): hover lines, and the selection's
 // opaque fill, opening bodies and lines; none counts as a batch object.
+// EZD-304 (S01 PDF: scale calibration "Required before tracing"; 08 Imports "Underlay for tracing"): one calibrated
+// PDF page as a see-through image under the drawing, above the grid; it is not a batch object and is never picked.
 import {
   BufferAttribute,
   BufferGeometry,
@@ -34,6 +36,16 @@ import {
 
 export const SELECTION_FILL_RENDER_ORDER = 3.5;
 export const SELECTION_LINE_RENDER_ORDER = 3.55;
+/** Above the grid (0), under rooms (1) and everything drawn on them. */
+export const UNDERLAY_RENDER_ORDER = 0.5;
+/** See-through, so the drawing over it stays readable (vault/build/assumptions.md EZD-304). */
+export const UNDERLAY_OPACITY = 0.5;
+
+/** A drawn page and the plan positions of its corners: top-left, top-right, bottom-right, bottom-left. */
+export type PlanUnderlay = {
+  image: HTMLCanvasElement | OffscreenCanvas;
+  corners: readonly { x: number; y: number }[];
+};
 
 export type PlanScene = {
   group: Group;
@@ -44,6 +56,7 @@ export type PlanScene = {
   setText(batch: PlanTextBatch): number;
   setHighlight(fill: Float32Array, segments?: Float32Array): number;
   setSelection(g: ObjectGeometry): number;
+  setUnderlay(u: PlanUnderlay | null): void;
   objectCount(): number;
   dispose(): void;
 };
@@ -219,8 +232,57 @@ export function createPlanScene(): PlanScene {
     return 1;
   };
 
+  let underlay: Mesh | null = null;
+  const removeUnderlay = () => {
+    if (underlay === null) return;
+    group.remove(underlay);
+    const material = underlay.material as MeshBasicMaterial;
+    material.map?.dispose();
+    disposeObject(underlay);
+    underlay = null;
+  };
+
   return {
     group,
+    setUnderlay(u) {
+      removeUnderlay();
+      if (u === null || u.corners.length !== 4) return;
+      const [tl, tr, br, bl] = u.corners;
+      const geometry = new BufferGeometry();
+      geometry.setAttribute(
+        'position',
+        new BufferAttribute(
+          new Float32Array([tl.x, tl.y, 0, tr.x, tr.y, 0, br.x, br.y, 0, bl.x, bl.y, 0]),
+          3,
+        ),
+      );
+      // The texture keeps flipY, so v = 1 is the image's top row.
+      geometry.setAttribute(
+        'uv',
+        new BufferAttribute(new Float32Array([0, 1, 1, 1, 1, 0, 0, 0]), 2),
+      );
+      geometry.setIndex([0, 3, 1, 1, 3, 2]);
+      const texture = new CanvasTexture<HTMLCanvasElement | OffscreenCanvas>(u.image);
+      texture.colorSpace = SRGBColorSpace;
+      const mesh = new Mesh(
+        geometry,
+        new MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          opacity: UNDERLAY_OPACITY,
+          side: DoubleSide,
+          depthTest: false,
+          depthWrite: false,
+          toneMapped: false,
+        }),
+      );
+      mesh.name = 'pdf-underlay';
+      mesh.renderOrder = UNDERLAY_RENDER_ORDER;
+      mesh.frustumCulled = false;
+      mesh.raycast = () => {};
+      group.add(mesh);
+      underlay = mesh;
+    },
     setBatches(batches) {
       let uploads = 0;
       const seen = new Set<string>();
@@ -376,6 +438,7 @@ export function createPlanScene(): PlanScene {
       return entries.size;
     },
     dispose() {
+      removeUnderlay();
       removeText();
       removeHighlight();
       removeHighlightLines();

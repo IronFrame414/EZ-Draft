@@ -18,7 +18,7 @@ const READY: ProjectListState = {
   items: [],
   next: null,
   moreStatus: 'idle',
-  counts: { all: 0, draft: 0, client_review: 0, permit_submitted: 0, approved: 0, in_build: 0 },
+  counts: { all: 0, draft: 0, client_review: 0, permit_submitted: 0, approved: 0, in_build: 0, complete: 0, archived: 0 },
   countsStatus: 'ready',
   search: '',
 };

@@ -335,7 +335,7 @@ test.describe('EZD-208b selection', () => {
     const bottomTools = page.locator(
       '[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]',
     );
-    await expect(topTools).toHaveCount(9);
+    await expect(topTools).toHaveCount(11);
     await expect(bottomTools).toHaveCount(1);
     await expect(bottomTools).toHaveAttribute('data-rail-tool', 'assistant');
     await expect(topTools.nth(0)).toHaveAttribute('data-rail-tool', 'select');
@@ -344,6 +344,7 @@ test.describe('EZD-208b selection', () => {
     await expect(topTools.nth(3)).toHaveAttribute('data-rail-tool', 'room-rect');
     await expect(topTools.nth(4)).toHaveAttribute('data-rail-tool', 'door');
     await expect(topTools.nth(5)).toHaveAttribute('data-rail-tool', 'window');
+    await expect(topTools.nth(6)).toHaveAttribute('data-rail-tool', 'cabinets');
     await expect(tool(page, 'select')).toHaveAttribute('aria-label', 'Select');
     await expect(tool(page, 'select')).toHaveAttribute('aria-keyshortcuts', 'V');
     await expect(tool(page, 'select')).toHaveAttribute('aria-pressed', 'true');
@@ -625,12 +626,12 @@ test.describe('EZD-208b selection', () => {
     await page.reload();
     await openReady(page, pids.P1);
     await view(page);
-    await expect(railTools(page)).toHaveCount(2);
+    await expect(railTools(page)).toHaveCount(4);
     await expect(railTools(page).first()).toHaveAttribute('data-rail-tool', 'select');
     await expect(tool(page, 'select')).toHaveAttribute('aria-pressed', 'true');
     await expect(tool(page, 'select')).toBeEnabled();
     await page.keyboard.press('w');
-    await expect(railTools(page)).toHaveCount(2);
+    await expect(railTools(page)).toHaveCount(4);
     await expect(tool(page, 'select')).toHaveAttribute('aria-pressed', 'true');
     await clickModel(page, DOOR);
     await expectIds(page, [d1]);

@@ -185,7 +185,8 @@ test.describe('EZD-117a Projects page', () => {
     const { owner, ids } = await fixtureS();
     await signInAs(owner.email);
     await page.goto('/');
-    await expect(page.getByTestId('projects-tab-count')).toHaveText(['6', '2', '1', '1', '1', '1']);
+    // EZD-124 (Q-0702): the Archived tab counts fixture S golf.
+    await expect(page.getByTestId('projects-tab-count')).toHaveText(['6', '2', '1', '1', '1', '1', '0', '1']);
     await expect(cardNames(page)).toHaveText([
       'Delta',
       'bravo',
@@ -197,7 +198,8 @@ test.describe('EZD-117a Projects page', () => {
 
     await page.getByTestId('projects-tab-draft').click();
     await expect(cardNames(page)).toHaveText(['Alpha', 'charlie']);
-    await expect(page.getByTestId('projects-tab-count')).toHaveText(['6', '2', '1', '1', '1', '1']);
+    // EZD-124 (Q-0702): the Archived tab counts fixture S golf.
+    await expect(page.getByTestId('projects-tab-count')).toHaveText(['6', '2', '1', '1', '1', '1', '0', '1']);
     await page.getByTestId('projects-tab-all').click();
     await expect(cardNames(page)).toHaveCount(6);
 
@@ -268,7 +270,8 @@ test.describe('EZD-117a Projects page', () => {
     await signInAs(listed.email);
     await page.goto('/');
     await expect(cardNames(page)).toHaveText(['Delta', 'charlie']);
-    await expect(page.getByTestId('projects-tab-count')).toHaveText(['2', '1', '0', '0', '0', '1']);
+    // EZD-124 (Q-0702): golf (archived) is not listed for this member, so Archived counts 0.
+    await expect(page.getByTestId('projects-tab-count')).toHaveText(['2', '1', '0', '0', '0', '1', '0', '0']);
   });
 
   test('EZD-117a B8 a member without View projects sees the no-access line, the avatar menu, and no data request', async ({

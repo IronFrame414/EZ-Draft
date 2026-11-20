@@ -1099,6 +1099,58 @@
           ]
         }
       }
+    },
+    {
+      "id": "7a1e0c3d-5b2f-4e8a-9c61-0d4f3b2a1e01",
+      "type": "tile_layout",
+      "schema_version": 6,
+      "data": {
+        "geometry": {
+          "host": {
+            "kind": "floor",
+            "roomId": "6a5bae36-e7f4-4459-a3b8-b1528fbd8a21"
+          },
+          "start": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "pattern": "diagonal",
+          "tileWidth": 12,
+          "tileHeight": 12,
+          "joint": 0.125
+        }
+      }
+    },
+    {
+      "id": "7a1e0c3d-5b2f-4e8a-9c61-0d4f3b2a1e02",
+      "type": "tile_layout",
+      "schema_version": 6,
+      "data": {
+        "geometry": {
+          "host": {
+            "kind": "wall",
+            "wallId": "aaf876ba-3f51-4bdc-a79b-74af4fe95f45",
+            "side": "left",
+            "height": 96
+          },
+          "start": {
+            "x": 6,
+            "y": 0
+          }
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "pattern": "straight",
+          "tileWidth": 12,
+          "tileHeight": 24,
+          "joint": 0
+        }
+      }
     }
   ]
 }

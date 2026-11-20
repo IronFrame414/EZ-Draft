@@ -13,7 +13,14 @@ export const PROJECT_STATUSES = [
   'in_build',
 ] as const;
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
-export const PROJECT_TABS = ['all', ...PROJECT_STATUSES] as const;
+// EZD-137 (Q-0191; Q-0199; Q-0700 decisions 03): Mark complete sets complete; it is not one of the five
+// hand-moved statuses, so Set status never offers it.
+export const PROJECT_COMPLETE = 'complete';
+export type ProjectState = ProjectStatus | typeof PROJECT_COMPLETE;
+export const PROJECT_STATES = [...PROJECT_STATUSES, PROJECT_COMPLETE] as const;
+// EZD-124 (Q-0702; Q-0201): Archived is the last tab; All and the five status tabs list active projects only.
+// EZD-137 (Q-0702; Q-0700): Completed sits after In build, before Archived; All and the five status tabs exclude it.
+export const PROJECT_TABS = ['all', ...PROJECT_STATUSES, PROJECT_COMPLETE, 'archived'] as const;
 export type ProjectTab = (typeof PROJECT_TABS)[number];
 export const PROJECT_SORTS = ['edited', 'name', 'client', 'status', 'open_items'] as const;
 export type ProjectSort = (typeof PROJECT_SORTS)[number];
@@ -26,11 +33,15 @@ export type ProjectSummary = {
   name: string;
   clientName: string | null;
   address: string;
-  status: ProjectStatus;
+  status: ProjectState;
   openItems: number;
   hasThumbnail: boolean;
   // EZD-121 (S01 Data shown; Q-0700 05): the highest sent version number; null (or absent) before any send.
   versionNo?: number | null;
+  // EZD-124 (Q-0201): archived_at is set; such a card sits under Archived and offers Restore.
+  archived?: boolean;
+  // EZD-314 (S01 States "Import in progress"): an import of the project is detecting or in review.
+  importing?: boolean;
 };
 
 export function projectThumbnailSrc(projectId: string): string {

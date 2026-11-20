@@ -20,6 +20,13 @@ export const NOT_MONEY_COLUMNS: ReadonlyArray<{
     column: 'cost_usd',
     reason: "The user's own Anthropic bill, not company cost or sell price (Q-0637 usage row)",
   },
+  // EZD-401 (03c catalog_item).
+  {
+    schema: 'public',
+    table: 'catalog_item',
+    column: 'allowance_category',
+    reason: 'The name of the allowance an item counts toward, not an amount (03c catalog_item; S09 Field rows)',
+  },
 ];
 
 export async function unlistedMoneyColumns(

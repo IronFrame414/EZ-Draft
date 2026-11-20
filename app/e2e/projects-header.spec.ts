@@ -64,10 +64,10 @@ test.describe('EZD-117b Projects header, search and states', () => {
     await page.getByTestId('projects-search').pressSequentially('HENDRICKS');
     await expect(page.getByTestId('project-card')).toHaveCount(2);
     await expect(cardNames(page)).toHaveText(['Kitchen remodel', 'Primary bath']);
-    await expect(page.getByTestId('projects-tab-count')).toHaveText(['2', '1', '1', '0', '0', '0']);
+    await expect(page.getByTestId('projects-tab-count')).toHaveText(['2', '1', '1', '0', '0', '0', '0', '0']);
     await page.getByTestId('projects-tab-draft').click();
     await expect(cardNames(page)).toHaveText(['Kitchen remodel']);
-    await expect(page.getByTestId('projects-tab-count')).toHaveText(['2', '1', '1', '0', '0', '0']);
+    await expect(page.getByTestId('projects-tab-count')).toHaveText(['2', '1', '1', '0', '0', '0', '0', '0']);
     await traffic.settle();
     expect([...withQ].sort()).toEqual(
       [
@@ -263,7 +263,7 @@ test.describe('EZD-117b Projects header, search and states', () => {
     await expect(page.getByTestId('projects-new')).toHaveCount(0);
   });
 
-  test(`EZD-117b B12 done when: No-match touch targets are at least 44 px (11 Accessibility and input; 6 tabs + sort + Clear filter).`, async ({
+  test(`EZD-117b B12 done when: No-match touch targets are at least 44 px (11 Accessibility and input; 8 tabs + sort + Clear filter).`, async ({
     page,
     signInAs,
   }) => {
@@ -273,7 +273,8 @@ test.describe('EZD-117b Projects header, search and states', () => {
     await expect(page.getByTestId('project-card')).toHaveCount(5);
     await page.getByTestId('projects-search').fill('zzz');
     await expect(page.getByTestId('projects-no-match')).toBeVisible();
-    expect(await expectTouchTargets(page, page.locator('main'))).toBe(8);
+    // EZD-124 (Q-0702): the seventh tab, Archived. EZD-137 (Q-0702): the eighth, Completed.
+    expect(await expectTouchTargets(page, page.locator('main'))).toBe(10);
   });
 
   test(

@@ -28,7 +28,7 @@ describe('EZD-117a project list query and cursor', () => {
     });
     expect(parseProjectListQuery(params('status=bogus'))).toBeNull();
     expect(parseProjectListQuery(params('sort='))).toBeNull();
-    expect(parseProjectListQuery(params('status=complete'))).toBeNull();
+    expect(parseProjectListQuery(params('status=completed'))).toBeNull();
     expect(parseProjectListQuery(params(`after=${encodeCursor(CURSOR)}`))).toEqual({
       tab: 'all',
       sort: 'edited',

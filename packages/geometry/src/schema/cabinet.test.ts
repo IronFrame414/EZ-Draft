@@ -41,7 +41,7 @@ const CABINET_TYPES = [
 
 describe('EZD-402 cabinet object schema', () => {
   it('every cabinet type is a model type, new types keep version 6, and v6.json parses whole', () => {
-    expect(CURRENT_SCHEMA_VERSION).toBe(6);
+    expect(CURRENT_SCHEMA_VERSION).toBe(7); // EZD-501: room ceiling data is version 7
     for (const t of CABINET_TYPES) expect(OBJECT_TYPES).toContain(t);
     for (const t of CABINET_TYPES) expect(ok(sampleOf(t))).toBe(true);
     expect(parseModelDocument(structuredClone(v6)).ok).toBe(true);

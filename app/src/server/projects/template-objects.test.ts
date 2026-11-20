@@ -90,6 +90,7 @@ describe('EZD-221a buildTemplateObjects', () => {
         roomType: null,
         floorFinish: '',
         ceilingType: null,
+        ceiling: null,
       },
       closureOverride: null,
     });
@@ -153,6 +154,7 @@ describe('EZD-294 template numbers', () => {
       roomType: null,
       floorFinish: '',
       ceilingType: null,
+      ceiling: null,
     });
   });
 });

@@ -1,0 +1,176 @@
+/* EZD-419 (board S03Plan inspector "Island run"): the run inspector, in the box inspector's style (BoxInspector). */
+
+.panel {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  color: var(--ez-ink);
+}
+
+.header {
+  padding: 18px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.section {
+  border-top: 1px solid var(--ez-divider);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.head {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tile:disabled {
+  cursor: default;
+}
+
+.tile:not(:disabled):hover {
+  border-color: var(--ez-cobalt);
+}
+
+.swatch {
+  display: block;
+  height: 64px;
+  background: var(--ez-surface-sunken);
+}
+
+/* Catalog items carry no swatch image yet; each tile shows a plain token colour (assumptions.md EZD-419). */
+.swatch_countertop {
+  background: var(--ez-border);
+}
+
+.swatch_finish {
+  background: var(--ez-slate-700);
+}
+
+.tileText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px 10px;
+}
+
+.tileLabel {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.tileValue {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.totalLine {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.list {
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.total {
+  font-family: var(--ez-font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.grow {
+  flex: 1;
+}
+
+.footer {
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.footerButton {
+  height: 40px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: 600 14px var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.footerButton[aria-expanded='true'] {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.pickerLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  background: var(--ez-surface);
+}
+
+.pickerHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.close {
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  color: var(--ez-slate-500);
+  cursor: pointer;
+}

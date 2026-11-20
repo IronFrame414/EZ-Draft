@@ -59,6 +59,8 @@ const COUNTS: ProjectCounts = {
   permit_submitted: 1,
   approved: 1,
   in_build: 1,
+  complete: 0,
+  archived: 0,
 };
 const abortError = () => Object.assign(new Error('aborted'), { name: 'AbortError' });
 
@@ -192,5 +194,34 @@ describe('EZD-117a project list store', () => {
     c.counts[0].d.reject(abortError());
     await flush();
     expect(s3.get()).toEqual(before);
+  });
+
+  // EZD-124 (S01 Card overflow menu): after a card menu change the same tab, sort and search load again with fresh
+  // counts; the cards on screen stay until the new page arrives.
+  it('EZD-124 refresh() reloads the page and the counts in place', async () => {
+    const { api, pages, counts } = fakeApi();
+    const store = createProjectListStore(api);
+    store.refresh();
+    expect(api.fetchPage).not.toHaveBeenCalled();
+    store.start();
+    pages[0].d.resolve({ items: [item('a'), item('b')], next: null });
+    counts[0].d.resolve(COUNTS);
+    await flush();
+    store.setTab('archived');
+    pages[1].d.resolve({ items: [item('b')], next: null });
+    await flush();
+
+    store.refresh();
+    expect(api.fetchPage).toHaveBeenCalledTimes(3);
+    expect(pages[2].q).toEqual({ tab: 'archived', sort: 'edited', after: null });
+    expect(api.fetchCounts).toHaveBeenCalledTimes(2);
+    expect(store.get().status).toBe('ready');
+    expect(store.get().items.map((i) => i.id)).toEqual(['b']);
+    pages[2].d.resolve({ items: [], next: null });
+    counts[1].d.resolve({ ...COUNTS, archived: 0, all: 7 });
+    await flush();
+    expect(store.get().items).toEqual([]);
+    expect(store.get().counts?.all).toBe(7);
+    expect(store.get().countsStatus).toBe('ready');
   });
 });

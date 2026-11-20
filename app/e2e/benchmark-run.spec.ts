@@ -5,7 +5,7 @@
 // page's user agent, app_version a commit or dev-<build> (D-Version); the drag ends in cancel, so the wall's saved
 // data and seq are unchanged (D-Drag); the history lists the run (newest first); the Run button is at least 44 px
 // on the iPad (11 Accessibility).
-import { benchmarkObjectId } from '@ezdraft/geometry';
+import { benchmarkObjectId } from '@ezdraft/geometry/benchmark';
 import type { Page } from '@playwright/test';
 import {
   cleanup,

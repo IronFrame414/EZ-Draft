@@ -46,6 +46,7 @@ import {
 import { assistantChangeSchema, type AssistantChange } from '../../lib/assistant/changes';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import { MAX_CHANGES_PER_SAVE } from '../../lib/outbox/outbox';
+import { withBearingNotes } from '../edit/bearing-rule';
 import { deleteChanges } from '../edit/edit-changes';
 import { levelModelObjects } from '../inspector/inspector-edits';
 import { applyEditTo, makeEdit, type Change, type Objects } from '../model/patches';
@@ -308,8 +309,8 @@ class Pass {
     return this.input.status ?? 'existing';
   }
 
-  // EZD-214 D-set_status: a sent wall, door or window on the floor; a bearing wall is not set to Demo (S03
-  // Inspector); no cascade and no room reconcile (S03 Decisions "Demo is set per object"; Q-0669 (a)).
+  // EZD-214 D-set_status: a sent wall, door or window on the floor; no cascade and no room reconcile (S03 Decisions
+  // "Demo is set per object"; Q-0669 (a)). EZD-215 (Q-0704): a bearing wall is set to Demo with its note (`result`).
   private setStatus(c: Extract<AssistantChange, { op: 'set_status' }>) {
     const refs = this.input.refs;
     const id = Object.hasOwn(refs, c.ref) ? refs[c.ref] : undefined;
@@ -323,7 +324,6 @@ class Pass {
     this.used.add(c.ref);
     if (v.type === 'wall') {
       const w = this.current(key, isWall);
-      if (c.status === 'demo' && w.data.attributes.bearing) refuse('invalid_value');
       if (w.data.status === c.status) return;
       this.apply([wallChange({ ...w, data: { ...w.data, status: c.status } })]);
       return;
@@ -559,8 +559,10 @@ class Pass {
 }
 
 // D-Result.
+// EZD-215 (Q-0704 "AI Accept"; Q-0638 AI remove acts as the Delete key): the change set carries the "Engineer
+// required" notes it raises, so Accept saves them with the wall; they count toward MAX_CHANGES_PER_SAVE.
 function result(input: ApplyReplyInput, pass: Pass): AssistantPreview {
-  const changes: Change[] = [];
+  let changes: Change[] = [];
   for (const id of pass.order) {
     const final = pass.scratch.get(id) ?? null;
     const orig = input.objects.get(id) ?? null;
@@ -568,6 +570,7 @@ function result(input: ApplyReplyInput, pass: Pass): AssistantPreview {
     if (final !== null && orig !== null && sameObject(id, orig, final)) continue;
     changes.push({ id, value: final });
   }
+  changes = withBearingNotes(input.objects, changes, input.newId);
   for (const c of changes) {
     if (c.value !== null && parseValue(c.id, c.value) === null) refuse('invalid_result');
   }

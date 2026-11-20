@@ -4,6 +4,8 @@
 // boards S03dWallSelected, S03dDoorSelected, S03dWindowSelected, S03dStates; S03 Controls — inspector; 04 Left panel
 // and inspector; 05 Q-0630 rows 9, 33, 36; Q-0633 G7, G9, G11; Q-0635; Q-0640 row 5-4; Q-0645 (a)): the inspector
 // panel for walls, doors, windows and bulk selections. `InspectorContent` takes no store, so static markup renders it.
+// EZD-215 (AC-EZD-215-3, -4, -6): one engineer note alone shows its form (EngineerNoteForm); a wall with a note
+// whose letter is not on file shows "Engineer required", with or without Edit model.
 import type { FloorChoice } from '../floors/floors';
 import { useChosenFloor } from '../floors/use-chosen-floor';
 import {
@@ -33,6 +35,7 @@ import { useCoarsePointer } from '../../lib/device/useDeviceLayout';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ModelStore } from '../model/model-store';
+import type { Objects } from '../model/patches';
 import { openFloorId } from '../plan/batches';
 import type { SelectionController } from '../selection/selection-controller';
 import type { DrawingController } from '../tools/drawing-controller';
@@ -61,7 +64,17 @@ import {
   type SideLabel,
 } from './inspector-view';
 import { ResolveGap, type ResolveGapProps } from './ResolveGap';
+import { PinPanel } from './PinPanel';
+import { EngineerNoteForm } from './EngineerNoteForm';
 import styles from './InspectorPanel.module.css';
+
+// EZD-220: whether the id names a pin. EZD-215: or another type.
+function isType(objects: Objects, id: string, type: string): boolean {
+  const key = id.toLowerCase();
+  for (const [k, v] of objects) if (k.toLowerCase() === key) return v.type === type;
+  return false;
+}
+const isPin = (objects: Objects, id: string) => isType(objects, id, 'pin');
 
 // D-Text: sub-line and view-only layer parts are joined by this constant.
 const SEPARATOR = ' · ';
@@ -86,6 +99,8 @@ export type InspectorPanelProps = {
   newStatus?: () => ObjectStatus;
   // EZD-6001 D-Wire: the floor the user chose; without it the lowest floor.
   floors?: FloorChoice;
+  // EZD-220: the project a pin photo is sent to; without it a pin's photo is shown but not attached.
+  projectId?: string;
 };
 
 export type InspectorContentProps = {
@@ -111,6 +126,7 @@ export function InspectorPanel({
   drawing,
   newStatus,
   floors,
+  projectId,
 }: InspectorPanelProps): ReactElement {
   const chosen = useChosenFloor(floors);
   const objects = useSyncExternalStore(
@@ -135,6 +151,8 @@ export function InspectorPanel({
   const idsKey = ui.ids.join(' ');
   const roomAlone =
     selected.ids.length === 1 && ids.length === 0 ? roomNameOf(objects, selected.ids[0]!) : null;
+  const pinAlone = ids.length === 1 && isPin(objects, ids[0]!) ? ids[0]! : null;
+  const noteAlone = ids.length === 1 && isType(objects, ids[0]!, 'engineer_note') ? ids[0]! : null;
 
   // EZD-213c D-Panel: the gap of the one selected wall.
   const drawingUi = useSyncExternalStore(
@@ -210,6 +228,29 @@ export function InspectorPanel({
   }, [focus, view]);
 
   if (roomAlone !== null) return <RoomNote name={roomAlone} canEdit={canEdit} />;
+  // EZD-220: one pin alone shows the pin inspector.
+  if (pinAlone !== null)
+    return (
+      <PinPanel
+        key={pinAlone}
+        store={store}
+        pinId={pinAlone}
+        canEdit={canEdit}
+        {...(projectId === undefined ? {} : { projectId })}
+      />
+    );
+
+  // EZD-215: one engineer note alone shows its form.
+  if (noteAlone !== null)
+    return (
+      <EngineerNoteForm
+        key={noteAlone}
+        store={store}
+        noteId={noteAlone}
+        canEdit={canEdit}
+        {...(projectId === undefined ? {} : { projectId })}
+      />
+    );
 
   return (
     <InspectorContent
@@ -683,6 +724,19 @@ function WallPanel(props: InspectorContentProps & { view: WallView }) {
   return (
     <div className={styles.panel} data-testid="inspector" data-inspector-kind="wall">
       <Header title={title} subtitle={subtitle} canEdit={canEdit} />
+      {view.engineerRequired.length > 0 ? (
+        <div className={styles.flag} data-testid="inspector-engineer-required" role="status">
+          <span className={styles.flagTitle}>
+            <Icon name="error" size={18} />
+            {t('office.engineer.required')}
+          </span>
+          {canEdit ? (
+            <span className={`${styles.hint} ${styles.flagHint}`}>
+              {t('office.engineer.wall_hint')}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       <div className={styles.grid3}>
         <TextBox
           testId="inspector-length"

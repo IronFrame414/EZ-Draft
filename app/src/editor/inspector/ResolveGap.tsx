@@ -1,6 +1,8 @@
 'use client';
 // The Resolve the gap section of the inspector (EZD-213c D-Markup; vault/plans/EZD-213c.md; Q-0570: no buttons
 // without Edit model; Q-0633 G9: the tablet hint). A pure component.
+// EZD-311: Import review has no Select tool, so it passes its own pick hint and a Back control that leaves pick
+// mode without a keyboard (Q-0630 tablet rule; S02 Esc). The Plan editor passes neither.
 import type { ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
 import { StateButton } from '../../components/states/StateButton';
@@ -16,6 +18,10 @@ export type ResolveGapProps = {
   coarse: boolean;
   onPick: () => void;
   onKeep: () => void;
+  /** EZD-311: the pick-mode hint, in place of the Plan editor's. */
+  pickHint?: MessageKey;
+  /** EZD-311: shown as Back while picking; leaves pick mode. */
+  onBack?: () => void;
 };
 
 export function ResolveGap({
@@ -25,6 +31,8 @@ export function ResolveGap({
   coarse,
   onPick,
   onKeep,
+  pickHint,
+  onBack,
 }: ResolveGapProps): ReactElement {
   const t = useT();
   const act = box.actions.length > 0;
@@ -47,9 +55,20 @@ export function ResolveGap({
       </p>
       {act ? (
         picking ? (
-          <p className={styles.hint} data-testid="gap-hint">
-            {t(coarse ? 'office.tools.gap.pick_hint_touch' : 'office.tools.gap.pick_hint')}
-          </p>
+          <>
+            <p className={styles.hint} data-testid="gap-hint">
+              {t(
+                pickHint ??
+                  (coarse ? 'office.tools.gap.pick_hint_touch' : 'office.tools.gap.pick_hint'),
+              )}
+            </p>
+            {onBack ? (
+              <StateButton className={styles.action} data-testid="gap-back" onClick={onBack}>
+                <Icon name="arrow_back" size={18} />
+                {t('office.review.gap_back')}
+              </StateButton>
+            ) : null}
+          </>
         ) : (
           <>
             {box.actions.includes('absorb') ? (

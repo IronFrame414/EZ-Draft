@@ -32,10 +32,9 @@ function inchPart(g: (string | undefined)[]): number | null {
   return (whole === undefined ? 0 : Number(whole)) + n / d;
 }
 
-export function parseLength(text: string, kind: LengthFieldKind): ParseLengthResult {
-  const s = text.trim().replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
-  if (s.length === 0 || s.length > MAX_TEXT_LENGTH) return refuse('format');
-
+// The typed length in inches before rounding, or null when it is not a length. EZD-229: also read by the signed
+// floor level (rooms/floor-level.ts).
+export function readLength(s: string): number | null {
   let value: number | null = null;
   const a = SHAPE_A.exec(s);
   if (a) {
@@ -50,6 +49,13 @@ export function parseLength(text: string, kind: LengthFieldKind): ParseLengthRes
       if (c) value = inchPart(c.slice(1, 7));
     }
   }
+  return value;
+}
+
+export function parseLength(text: string, kind: LengthFieldKind): ParseLengthResult {
+  const s = text.trim().replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
+  if (s.length === 0 || s.length > MAX_TEXT_LENGTH) return refuse('format');
+  const value = readLength(s);
   if (value === null) return refuse('format');
 
   const inches = Math.floor(value * 16 + 0.5) / 16;

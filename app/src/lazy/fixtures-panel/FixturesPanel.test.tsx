@@ -47,7 +47,7 @@ describe('EZD-234 Fixtures panel', () => {
       'Drain',
     ];
     for (const n of names) expect(s, n).toContain(`>${n}</button>`);
-    expect(s.match(/<button/g)).toHaveLength(20); // EZD-227: plus Grab-bar blocking. EZD-226: plus the Tile shower button
+    expect(s.match(/<button/g)).toHaveLength(38); // EZD-731: plus the four mechanical kinds. EZD-229: plus the eight existing details. EZD-220: plus the six pin kinds. EZD-227: plus Grab-bar blocking. EZD-226: plus the Tile shower button
     // EZD-233 (Q-0704 "EZD-233 adds that"; R26): the Saved section, still loading in static markup.
     expect(s).toContain('data-testid="saved-groups-section"');
     expect(s).toContain('aria-pressed="true" data-testid="fixture-kind-toilet"');

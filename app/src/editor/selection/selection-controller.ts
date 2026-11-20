@@ -26,9 +26,9 @@ import {
   type OutlineLookup,
 } from '../plan/hover';
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
-import { railMode, type DrawingController, type ToolKeyEvent } from '../tools/drawing-controller';
-import { DRAWING_RAIL_TOOLS } from '../tools/index';
-import { MEASURE_RAIL_TOOL } from '../tools/tool-defs';
+import type { DrawingController, ToolKeyEvent } from '../tools/drawing-controller';
+import { railMode } from '../tools/rail-mode';
+import { CABINETS_RAIL_TOOL, DRAWING_RAIL_TOOLS, MEASURE_RAIL_TOOL } from '../tools/tool-defs';
 import { isTypingTarget } from '../typed-entry/typed-entry';
 import { expandGroups } from './groups';
 import type { PhaseFilter } from '../../lib/plan/phase-view';
@@ -64,7 +64,7 @@ export type SelectionDeps = {
   store: Pick<ModelStore, 'getState' | 'subscribe'>;
   drawing:
     | (Pick<DrawingController, 'getUi' | 'keyDown' | 'selectTool'> &
-        Partial<Pick<DrawingController, 'startDrag' | 'dragPointer'>>)
+        Partial<Pick<DrawingController, 'startDrag' | 'dragPointer' | 'subscribe'>>)
     | null;
   setReceiver: (r: PlanPointerReceiver | null) => void;
   claim?: (event: PlanPointerEvent) => boolean;
@@ -300,6 +300,25 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     setUi([]);
   };
 
+  // EZD-613: Esc while the drawing engine still loads is held and answered when it loads, so the tool may turn
+  // off after keyDown returns. Until the tool next changes, a change to no tool clears the selection, as an Esc
+  // the engine answered at once does (EZD-208b B7).
+  let offEscapeWait: (() => void) | null = null;
+  const stopEscapeWait = () => {
+    offEscapeWait?.();
+    offEscapeWait = null;
+  };
+  const waitForEscape = (tool: unknown) => {
+    if (drawing === null || drawing.subscribe === undefined) return;
+    stopEscapeWait();
+    offEscapeWait = drawing.subscribe(() => {
+      const now = drawing.getUi().tool;
+      if (now === tool) return;
+      stopEscapeWait();
+      if (now === null) clearSelection();
+    });
+  };
+
   const escape = (e: ToolKeyEvent): boolean => {
     if (press !== null && box !== null) {
       dropPress();
@@ -309,7 +328,9 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       const before = drawing.getUi();
       if (before.tool !== null || before.pick !== null || before.entry !== null) {
         const r = drawing.keyDown(e);
-        if (before.tool !== null && drawing.getUi().tool === null) clearSelection();
+        const after = drawing.getUi();
+        if (before.tool !== null && after.tool === null) clearSelection();
+        else if (before.tool !== null && after.tool === before.tool) waitForEscape(after.tool);
         return r;
       }
     }
@@ -409,6 +430,8 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
         return selectToolStep();
       }
       if ((e.key === 'a' || e.key === 'A') && (e.ctrlKey || e.metaKey) && !e.altKey) {
+        // EZD-404: the plan is hidden under the cabinet screen; Select all would pick objects no one can see.
+        if (drawing?.getUi().tool === 'cabinets') return false;
         selectAll();
         return true;
       }
@@ -443,6 +466,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     dispose() {
       if (disposed) return;
       disposed = true;
+      stopEscapeWait();
       unsubscribe();
       unsubscribePhase();
       unsubscribeFloors();
@@ -483,8 +507,17 @@ export function shareReceiver(set: (r: PlanPointerReceiver | null) => void): Rec
 }
 
 // EZD-231 (04 Tool rail; S06 Measure "Allowed in view only"): Measure ends the top group for every viewer.
-const ALL_TOOLS: readonly RailTool[] = [SELECT_RAIL_TOOL, ...DRAWING_RAIL_TOOLS, MEASURE_RAIL_TOOL];
-const SELECT_ONLY: readonly RailTool[] = [SELECT_RAIL_TOOL, MEASURE_RAIL_TOOL];
+// EZD-404 (S04 Permissions; board S04 rail): Cabinets follows Window for every viewer and is never paused.
+const withCabinets = (tools: readonly RailTool[]): RailTool[] => {
+  const i = tools.findIndex((t) => t.id === 'window');
+  return [...tools.slice(0, i + 1), CABINETS_RAIL_TOOL, ...tools.slice(i + 1)];
+};
+const ALL_TOOLS: readonly RailTool[] = [
+  SELECT_RAIL_TOOL,
+  ...withCabinets(DRAWING_RAIL_TOOLS),
+  MEASURE_RAIL_TOOL,
+];
+const SELECT_ONLY: readonly RailTool[] = [SELECT_RAIL_TOOL, CABINETS_RAIL_TOOL, MEASURE_RAIL_TOOL];
 
 // EZD-225 (S06:48, 100; Q-0697 decisions 05): the drawing tools a lock-denied viewer sees paused; Select and Measure
 // stay on (S06 States "selecting, panning, zooming, measuring ... allowed"; vault/build/assumptions.md EZD-231).

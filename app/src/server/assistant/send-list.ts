@@ -92,6 +92,19 @@ export const SEND_CLASSIFICATION: Readonly<Record<string, 'send' | 'never'>> = {
   'room.attributes.roomType': 'never',
   'room.attributes.floorFinish': 'never',
   'room.attributes.ceilingType': 'never',
+  // EZD-501: not on the Q-0637 send list (vault/build/assumptions.md EZD-501).
+  'room.attributes.ceiling.heightsBy': 'never',
+  'room.attributes.ceiling.wallHeights[].wall': 'never',
+  'room.attributes.ceiling.wallHeights[].height': 'never',
+  'room.attributes.ceiling.pointHeights[].at.x': 'never',
+  'room.attributes.ceiling.pointHeights[].at.y': 'never',
+  'room.attributes.ceiling.pointHeights[].height': 'never',
+  'room.attributes.ceiling.pitch': 'never',
+  'room.attributes.ceiling.ridge.start.x': 'never',
+  'room.attributes.ceiling.ridge.start.y': 'never',
+  'room.attributes.ceiling.ridge.end.x': 'never',
+  'room.attributes.ceiling.ridge.end.y': 'never',
+  'room.attributes.ceiling.ridge.height': 'never',
   'room.closureOverride.who': 'never',
   'room.closureOverride.when': 'never',
   'room.closureOverride.gap.x': 'never',
@@ -242,6 +255,8 @@ export const PROJECTORS: {
   cabinet_trim: notSent,
   // EZD-411: countertop pieces are not sent until a ticket decides what of them the assistant reads.
   countertop_piece: notSent,
+  // EZD-733: tile layouts are not sent until a ticket decides what of them the assistant reads.
+  tile_layout: notSent,
 };
 
 const LABEL_WORDS = new Set(ROOM_LABEL_WORDS.map((w) => w.toLowerCase()));

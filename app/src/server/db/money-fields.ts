@@ -15,8 +15,34 @@ export type MoneyField = {
   source: string;
 };
 
-// No local column holds money yet (EZD-133 section 1, 2026-11-04).
-export const MONEY_FIELDS: readonly MoneyField[] = [];
+export const MONEY_FIELDS: readonly MoneyField[] = [
+  // EZD-401 (03c catalog_item; S09 Permissions: cost with See company costs; sell price and markup with See
+  // sell prices).
+  {
+    schema: 'public',
+    table: 'catalog_item',
+    column: 'unit_cost',
+    moneyClass: 'company_cost',
+    responseKeys: [],
+    source: 'EZD-401; 03c catalog_item; S09 Permissions',
+  },
+  {
+    schema: 'public',
+    table: 'catalog_item',
+    column: 'sell_price',
+    moneyClass: 'sell_price',
+    responseKeys: [],
+    source: 'EZD-401; 03c catalog_item; S09 Permissions',
+  },
+  {
+    schema: 'public',
+    table: 'catalog_item',
+    column: 'markup_pct',
+    moneyClass: 'sell_price',
+    responseKeys: [],
+    source: 'EZD-401; 03c catalog_item; S09 Permissions',
+  },
+];
 
 export const MONEY_PERMISSIONS: Readonly<Record<MoneyClass, PermissionKey>> = {
   company_cost: 'see_company_costs',

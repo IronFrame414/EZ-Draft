@@ -69,7 +69,25 @@ describe('EZD-307 GET /api/projects/[id]/imports/[jobId]', () => {
     const ok = await call();
     expect(ok.status).toBe(200);
     expect(ok.headers.get('Cache-Control')).toBe('no-store');
-    expect(await ok.json()).toEqual({ review });
+    // EZD-314: the review carries whether the viewer has Edit model (here granted) and who the viewer is.
+    expect(await ok.json()).toEqual({ review: { ...review, canEdit: true } });
     expect(readImportReview).toHaveBeenLastCalledWith({}, P, J);
+  });
+
+  it('EZD-314: carries canEdit false without Edit model, and the viewer id', async () => {
+    vi.mocked(requireApiPermission).mockResolvedValueOnce({
+      session: { appUserId: 'u1' },
+      ctx: {},
+    } as never);
+    const review = { jobId: J, projectId: P, status: 'ready' };
+    vi.mocked(readImportReview).mockResolvedValueOnce(review as never);
+    // The View projects target check passes; the Edit model check refuses.
+    vi.mocked(requirePermission)
+      .mockReturnValueOnce(null)
+      .mockReturnValueOnce(new Response(null, { status: 403 }) as never);
+    const ok = await call();
+    expect(ok.status).toBe(200);
+    expect(await ok.json()).toEqual({ review: { ...review, canEdit: false, viewerId: 'u1' } });
+    expect(requirePermission).toHaveBeenLastCalledWith({}, 'edit_model', { projectId: P });
   });
 });

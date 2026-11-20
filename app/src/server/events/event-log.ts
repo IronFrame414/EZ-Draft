@@ -23,7 +23,8 @@ export type EventObjectType =
   | 'app_user'
   | 'membership'
   | 'role'
-  | 'library_item';
+  | 'library_item'
+  | 'submittal_profile';
 
 export type EventLogObject = { type: EventObjectType; id: string };
 
@@ -73,7 +74,11 @@ export const EVENT_LOG: EventLogRules = {
   'lock.conflict': SINK,
   // Q-0735 (a): an autosave writes no row.
   'model.saved': { mode: 'none' },
-  'import.completed': SINK,
+  // EZD-313: written after Finish import commits, under the finishing member.
+  'import.completed': {
+    mode: 'sink',
+    object: (e) => ({ type: 'project', id: e.payload.projectId }),
+  },
   // EZD-302: emitted by the import job, which has no member session to write the log row with (log_event is for
   // signed-in members); the import.started row already records who started the import.
   'import.ready': { mode: 'none' },
@@ -109,14 +114,40 @@ export const EVENT_LOG: EventLogRules = {
   },
   // EZD-5605 (S03c "Accepted changes are marked as AI in the event log"): written under the saving member.
   'model.ai_change_accepted': SINK,
+  // EZD-215 (07 Q-0708 "each writes an event_log row"): written after the save under the saving member, on the wall.
+  'wall.engineer_required': {
+    mode: 'sink',
+    object: (e) => ({ type: 'model_object', id: e.payload.wallId }),
+  },
+  'wall.engineer_note_attached': {
+    mode: 'sink',
+    object: (e) => ({ type: 'model_object', id: e.payload.wallId }),
+  },
   'catalog_item.created': SINK,
   'detail.placed': SINK,
   // Written by link_app_user and accept_invite in the acceptance transaction.
   'user.joined': TRANSACTION,
   'tenant.updated': { mode: 'sink', object: (e) => ({ type: 'tenant', id: e.tenantId }) },
   'tenant.defaults_updated': { mode: 'sink', object: (e) => ({ type: 'tenant', id: e.tenantId }) },
+  'tenant.code_edition_updated': {
+    mode: 'sink',
+    object: (e) => ({ type: 'tenant', id: e.tenantId }),
+  },
   // EZD-125 (Q-0697 decisions 10): written by cancel_edit_request in the lock transaction.
   'lock.request_cancelled': TRANSACTION,
+  // EZD-712 (S15c Events emitted): Settings > Sheet presets.
+  'submittal_profile.created': {
+    mode: 'sink',
+    object: (e) => ({ type: 'submittal_profile', id: e.payload.profileId }),
+  },
+  'submittal_profile.updated': {
+    mode: 'sink',
+    object: (e) => ({ type: 'submittal_profile', id: e.payload.profileId }),
+  },
+  'submittal_profile.deleted': {
+    mode: 'sink',
+    object: (e) => ({ type: 'submittal_profile', id: e.payload.profileId }),
+  },
   'customer.created': {
     mode: 'sink',
     object: (e) => ({ type: 'customer', id: e.payload.customerId }),
@@ -134,6 +165,12 @@ export const EVENT_LOG: EventLogRules = {
     mode: 'sink',
     object: (e) => ({ type: 'project', id: e.payload.projectId }),
   },
+  // EZD-124 (Q-0708; Q-0700 decisions 03): written by the card menu's definer functions in their transaction.
+  'project.renamed': TRANSACTION,
+  'project.status_changed': TRANSACTION,
+  'project.archived': TRANSACTION,
+  'project.restored': TRANSACTION,
+  'project.deleted': TRANSACTION,
   'import.started': {
     mode: 'sink',
     object: (e) => ({ type: 'project', id: e.payload.projectId }),
@@ -172,6 +209,14 @@ export const EVENT_LOG: EventLogRules = {
     mode: 'sink',
     object: (e) => ({ type: 'library_item', id: e.payload.itemId }),
   },
+  // EZD-313: written after Cancel import commits.
+  'import.cancelled': {
+    mode: 'sink',
+    object: (e) => ({ type: 'project', id: e.payload.projectId }),
+  },
+  // EZD-409: one row per save that wrote cabinet objects, on the project (at most one per save, within the
+  // rows-per-save budget Q-0735 keeps for model.saved).
+  'cabinet_schedule.updated': SINK,
 };
 
 // The first x-forwarded-for entry when it is one IPv4 or IPv6 address (no port, brackets or zone id), else

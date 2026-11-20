@@ -26,16 +26,11 @@ import {
   type WallObject,
 } from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
-import { WALL_LENGTH_FIELD, type TypedTool, type TypedValues } from '../typed-entry/typed-entry';
-import {
-  DISTANCE_FIELD,
-  DOOR_TOOL,
-  OFFSET_LEFT_FIELD,
-  OFFSET_RIGHT_FIELD,
-  OPENING_WIDTH_FIELD,
-  WALL_TOOL,
-  WINDOW_TOOL,
-} from './tool-defs';
+import type { TypedValues } from '../typed-entry/typed-entry';
+// EZD-423: entryTool moved to entry-tool.ts (the editor entry reads it) and is re-exported here.
+import { entryTool } from './entry-tool';
+
+export { entryTool };
 
 // D2: a handle is hit within 22 screen px (the 44 px round target).
 export const HANDLE_HIT_PX = 22;
@@ -301,26 +296,6 @@ export function sizeChipNormal(objects: readonly ModelObject[], id: string): Poi
   const side: ChipSide = a.kind === 'door' ? (a.swing === 'left' ? 'right' : 'left') : 'right';
   const d = f.d;
   return side === 'left' ? { x: -d.y, y: d.x } : { x: d.y, y: -d.x };
-}
-
-export function entryTool(entry: SelectionEntry): TypedTool {
-  const icon =
-    entry.objectKind === 'wall'
-      ? WALL_TOOL.icon
-      : entry.objectKind === 'door'
-        ? DOOR_TOOL.icon
-        : WINDOW_TOOL.icon;
-  if (entry.kind === 'chip') {
-    const field =
-      entry.objectKind === 'wall'
-        ? DISTANCE_FIELD
-        : entry.side === 'left'
-          ? OFFSET_LEFT_FIELD
-          : OFFSET_RIGHT_FIELD;
-    return { id: `chip-${entry.objectKind}-${entry.side}`, icon, fields: [field] };
-  }
-  const field = entry.objectKind === 'wall' ? WALL_LENGTH_FIELD : OPENING_WIDTH_FIELD;
-  return { id: `handle-${entry.objectKind}`, icon, fields: [field] };
 }
 
 export function entryValue(entry: SelectionEntry, values: TypedValues): number | null {

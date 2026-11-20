@@ -21,6 +21,7 @@ import { StateButton } from '../../components/states/StateButton';
 import { useToast } from '../../components/states/ToastProvider';
 import { UploadStep } from '../../components/imports/UploadStep';
 import { useDxfConversion } from '../../components/imports/DxfConversion';
+import { useScaleCalibration } from '../../components/imports/ScaleCalibration';
 
 export function UploadFilesDialog({
   projectId,
@@ -40,6 +41,8 @@ export function UploadFilesDialog({
   const done = useRef(new Map<string, string>());
   // EZD-306: the conversion choice of each DXF drawing, asked after its upload.
   const dxf = useDxfConversion();
+  // EZD-304: the set-scale step of each PDF, after its upload.
+  const scale = useScaleCalibration();
 
   const send = async () => {
     setBusy(true);
@@ -54,6 +57,7 @@ export function UploadFilesDialog({
           started.jobId = id;
         },
         chooseLayers: dxf.chooseLayers,
+        setScale: scale.setScale,
       });
       toast.show({ message: 'office.upload.done' });
       onClose();
@@ -140,6 +144,7 @@ export function UploadFilesDialog({
             </StateButton>
           </div>
           {dxf.dialog}
+          {scale.dialog}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

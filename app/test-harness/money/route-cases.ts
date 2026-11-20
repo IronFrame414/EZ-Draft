@@ -292,6 +292,79 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 202,
     note: 'EZD-301: project id and source file ids (no money)',
   },
+  // EZD-304: the scale of the PDF uploaded above (kind pdf, finished): the project's PDFs, then set and read its
+  // scale. Answers are source_file ids, names, the calibration and a signed link (no money).
+  {
+    file: `${API}projects/[id]/source-files/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/source-files/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/source-files`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-304: the project PDFs with their scale (no money)',
+  },
+  {
+    file: `${API}source-files/[id]/scale/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/source-files/[id]/scale/route'),
+    request: async (env) => {
+      const id = made(env, 'uploadStepFileId');
+      return {
+        ...(await sendJson('POST', `/api/source-files/${id}/scale`, {
+          scaleCalibration: { page: 1, a: [504, 300], b: [720, 300], lengthIn: 144 },
+        })()),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-304: the PDF scale (no money)',
+  },
+  {
+    file: `${API}source-files/[id]/scale/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/source-files/[id]/scale/route'),
+    request: async (env) => {
+      const id = made(env, 'uploadStepFileId');
+      return { request: new Request(`${BASE}/api/source-files/${id}/scale`), params: { id } };
+    },
+    expectStatus: 200,
+    note: 'EZD-304: the PDF scale and a signed link (no money)',
+  },
+  // EZD-220: the thumbnail link of an uploaded pin photo (kind photo). The row and object are made here; the answer
+  // is the signed link only.
+  {
+    file: `${API}source-files/[id]/link/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/source-files/[id]/link/route'),
+    request: async (env) => {
+      const fileId = randomUUID();
+      const storagePath = `${env.tenantId}/${env.projectId}/${fileId}`;
+      const { error: rowError } = await adminDb().from('source_file').insert({
+        id: fileId,
+        tenant_id: env.tenantId,
+        project_id: env.projectId,
+        kind: 'photo',
+        storage_path: storagePath,
+        original_name: 'stain.png',
+        content_type: 'image/png',
+        size_bytes: PNG_100.length,
+        uploaded_at: new Date().toISOString(),
+      });
+      if (rowError) throw new Error(`source_file insert failed: ${rowError.message}`);
+      const { error } = await adminDb()
+        .storage.from('sources')
+        .upload(storagePath, PNG_100, { contentType: 'image/png' });
+      if (error) throw new Error(`upload failed: ${error.message}`);
+      return {
+        request: new Request(`${BASE}/api/source-files/${fileId}/link`),
+        params: { id: fileId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-220: a signed photo link (no money)',
+  },
   // EZD-306: the layers of an uploaded DXF drawing (kind dxf). The row and object are made here; the answer is
   // layer names only.
   {
@@ -341,6 +414,65 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     },
     expectStatus: 404,
     note: 'EZD-307: the made job is not an import, so not found; a review holds detected items and file names (no money)',
+  },
+  {
+    file: `${API}projects/[id]/imports/[jobId]/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/projects/[id]/imports/[jobId]/route'),
+    request: async (env) => {
+      const jobId = made(env, 'jobId');
+      return {
+        ...(await sendJson('PATCH', `/api/projects/${env.projectId}/imports/${jobId}`, {
+          mode: 'by_room',
+          changes: [{ item_id: 'w1', decision: 'accepted', fix: null }],
+        })()),
+        params: { id: env.projectId, jobId },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-309: the made job is not an import, so not found; review changes hold decisions and geometry (no money)',
+  },
+  {
+    file: `${API}projects/[id]/imports/[jobId]/finish/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/imports/[jobId]/finish/route'),
+    request: async (env) => {
+      const jobId = made(env, 'jobId');
+      return {
+        ...(await sendJson('POST', `/api/projects/${env.projectId}/imports/${jobId}/finish`, {})()),
+        params: { id: env.projectId, jobId },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-313: the made job is not an import, so not found; Finish answers a version id and counts (no money)',
+  },
+  {
+    file: `${API}projects/[id]/imports/[jobId]/cancel/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/imports/[jobId]/cancel/route'),
+    request: async (env) => {
+      const jobId = made(env, 'jobId');
+      return {
+        ...(await sendJson('POST', `/api/projects/${env.projectId}/imports/${jobId}/cancel`, {})()),
+        params: { id: env.projectId, jobId },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-313: the made job is not an import, so not found; Cancel answers a status (no money)',
+  },
+  {
+    file: `${API}projects/[id]/imports/[jobId]/retry/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/imports/[jobId]/retry/route'),
+    request: async (env) => {
+      const jobId = made(env, 'jobId');
+      return {
+        ...(await sendJson('POST', `/api/projects/${env.projectId}/imports/${jobId}/retry`, {})()),
+        params: { id: env.projectId, jobId },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-314: the made job is not an import, so not found; Retry answers a status (no money)',
   },
   {
     file: `${API}dev/permissions/projects/[id]/route.ts`,
@@ -393,6 +525,15 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     },
     expectStatus: 200,
   },
+  // EZD-401: the read-only catalog picker list (no money fields).
+  {
+    file: `${API}catalog/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/catalog/route'),
+    request: get('/api/catalog'),
+    expectStatus: 200,
+    note: 'EZD-401: the company catalog; 200 { items } (no money)',
+  },
   // EZD-131: the Settings > Libraries routes. POST adds one abbreviation; PATCH edits it and DELETE removes it.
   {
     file: `${API}settings/libraries/route.ts`,
@@ -442,6 +583,81 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
       };
     },
     expectStatus: 200,
+  },
+  // EZD-712: Settings > Sheet presets. The case company has no profile, so POST makes its first one, the
+  // default; PATCH renames it; DELETE of the default is refused (409 profile_is_default).
+  {
+    file: `${API}settings/sheet-presets/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/sheet-presets/route'),
+    request: get('/api/settings/sheet-presets'),
+    expectStatus: 200,
+    note: 'EZD-712: the company submittal profiles; 200 { profiles } (no money)',
+  },
+  {
+    file: `${API}settings/sheet-presets/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/settings/sheet-presets/route'),
+    request: sendJson('POST', '/api/settings/sheet-presets', { department: 'Palm Beach County' }),
+    expectStatus: 201,
+    after: (body, env) => env.created.set('submittalProfileId', field(body, 'profile', 'id')),
+    note: 'EZD-712: New profile; 201 { profile } (no money)',
+  },
+  {
+    file: `${API}settings/sheet-presets/[id]/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/settings/sheet-presets/[id]/route'),
+    request: async (env) => {
+      const id = made(env, 'submittalProfileId');
+      return {
+        ...(await sendJson('PATCH', `/api/settings/sheet-presets/${id}`, {
+          fields: { department: 'Palm Beach County Building' },
+        })()),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-712: the inspector Save; 200 { profile } (no money)',
+  },
+  {
+    file: `${API}settings/sheet-presets/[id]/route.ts`,
+    method: 'DELETE',
+    load: () => import('../../src/app/api/settings/sheet-presets/[id]/route'),
+    request: async (env) => {
+      const id = made(env, 'submittalProfileId');
+      return {
+        request: new Request(`${BASE}/api/settings/sheet-presets/${id}`, { method: 'DELETE' }),
+        params: { id },
+      };
+    },
+    expectStatus: 409,
+    note: 'EZD-712: the default cannot be deleted; 409 profile_is_default (no money)',
+  },
+  // EZD-712: the project's submittal profile in Project settings. The case company has its first profile from the
+  // sheet-presets POST above.
+  {
+    file: `${API}projects/[id]/submittal-profile/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/submittal-profile/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/submittal-profile`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-712: the project profile and the choices; 200 { profileId, profiles, canManage } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/submittal-profile/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/projects/[id]/submittal-profile/route'),
+    request: async (env) => ({
+      ...(await sendJson('PATCH', `/api/projects/${env.projectId}/submittal-profile`, {
+        profileId: made(env, 'submittalProfileId'),
+      })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-712: Project settings picks the profile; 200 { profileId } (no money)',
   },
   // EZD-233: the Plan editor's saved groups; POST saves one lavatory as a group.
   {
@@ -673,6 +889,22 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     request: sendJson('PATCH', '/api/settings/defaults', { changes: { waste_tile: 10 } }),
     expectStatus: 200,
     note: 'EZD-116: save the company defaults; 200 { stored, effective } (no money, Q-0697 10)',
+  },
+  {
+    file: `${API}settings/code-edition/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/code-edition/route'),
+    request: get('/api/settings/code-edition'),
+    expectStatus: 200,
+    note: 'EZD-613: the company code edition; 200 { edition, optionalLoadCalc, available } (no money)',
+  },
+  {
+    file: `${API}settings/code-edition/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/settings/code-edition/route'),
+    request: sendJson('PATCH', '/api/settings/code-edition', { optionalLoadCalc: true }),
+    expectStatus: 200,
+    note: 'EZD-613: save the company code edition; 200 { edition, optionalLoadCalc, available } (no money)',
   },
   {
     file: `${API}settings/company/route.ts`,
@@ -999,6 +1231,66 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 201,
     note: 'EZD-111: one send; 201 { send } (no money)',
   },
+  // EZD-122: the Versions panel routes, after the send so the thumbnail cases' version stays the newest.
+  {
+    file: `${API}projects/[id]/versions/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/versions/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/versions`),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-122: the version list; 200 { versions } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/versions/[versionId]/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/versions/[versionId]/route'),
+    request: async (env) => {
+      const versionId = made(env, 'thumbVersionId');
+      return {
+        request: new Request(`${BASE}/api/projects/${env.projectId}/versions/${versionId}`),
+        params: { id: env.projectId, versionId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-122: one version read-only; 200 { version, invalid } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/versions/[versionId]/snapshot/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/versions/[versionId]/snapshot/route'),
+    request: async (env) => {
+      const versionId = made(env, 'thumbVersionId');
+      return {
+        request: new Request(
+          `${BASE}/api/projects/${env.projectId}/versions/${versionId}/snapshot`,
+          { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ name: 'Kept' }) },
+        ),
+        params: { id: env.projectId, versionId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-122: Name snapshot; 200 { version: { id, label } } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/versions/[versionId]/revert/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/versions/[versionId]/revert/route'),
+    request: async (env) => {
+      const versionId = made(env, 'thumbVersionId');
+      return {
+        request: new Request(
+          `${BASE}/api/projects/${env.projectId}/versions/${versionId}/revert`,
+          { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ lockEpoch: 0, label: 'Kept' }) },
+        ),
+        params: { id: env.projectId, versionId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-122: Revert with no holder at generation 0 (as a save); 200 { version: { id } } (no money)',
+  },
   {
     file: `${API}projects/[id]/plan-scale/route.ts`,
     method: 'PUT',
@@ -1067,6 +1359,46 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-130: Project settings save; 200 ProjectSettings (no money)',
   },
   {
+    file: `${API}projects/[id]/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/projects/[id]/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}`, {
+        method: 'PATCH',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ status: 'draft' }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-124: the card menu Rename, Set status, Archive, Restore; 200 { changed } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/delete/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/delete/route'),
+    request: async (env) => {
+      // Its own project, so the shared one stays for the other cases.
+      const { data, error } = await adminDb()
+        .from('project')
+        .insert({ tenant_id: env.tenantId, name: 'Money delete case', address: '1 Money St', type: 'kitchen' })
+        .select('id')
+        .single();
+      if (error || !data) throw new Error(`money delete case project: ${error?.message}`);
+      const id = (data as { id: string }).id;
+      return {
+        request: new Request(`${BASE}/api/projects/${id}/delete`, {
+          method: 'POST',
+          headers: JSON_HEADERS,
+          body: JSON.stringify({ confirmName: 'Money delete case' }),
+        }),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-124: Delete a project; 200 { deleted: true } (no money)',
+  },
+  {
     file: `${API}projects/[id]/model/route.ts`,
     method: 'GET',
     load: () => import('../../src/app/api/projects/[id]/model/route'),
@@ -1090,6 +1422,17 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     }),
     expectStatus: 200,
     note: 'EZD-126: names and initials of people in the project; 200 { people } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/review/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/review/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/review?list=1`, { method: 'GET' }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-127: the review count and source groups; 200 { count, groups } (no money)',
   },
   {
     file: `${API}benchmark/project/route.ts`,

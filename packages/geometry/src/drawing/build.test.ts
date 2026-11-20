@@ -116,6 +116,7 @@ function fx(w1Side: Side = 'right', extra: ModelObject[] = []): ModelDocument {
             roomType: null,
             floorFinish: '',
             ceilingType: null,
+            ceiling: null,
           },
           closureOverride: null,
         },
@@ -568,5 +569,122 @@ describe('EZD-235 drawing list options', () => {
     expect(calls).toEqual([{ id: R1, type: 'room' }]);
     expect(labels(buildDrawingList(fx(), V1, [], {}), R1)[0]!.text).toBe('R1 \u00b7 120 SF');
     expect(labels(buildDrawingList(fx(), V1, []), R1)[0]!.text).toBe('R1 \u00b7 120 SF');
+  });
+});
+
+// EZD-229 (11 Budgets; EZD-120c B11): `options.extraItems` adds the caller's items for the level's objects after the
+// fixtures; the plan passes the existing details and floor transitions this way (app/src/lazy/room-fields).
+describe('EZD-229 extra items', () => {
+  it('T-229-H extraItems gets the level objects, the level and the dimension text size, and its items are drawn', () => {
+    const V = { level: F1, dimensionTextPt: 8, roomHatch: null, roomLabelPt: 10 } as DrawingView;
+    const doc: ModelDocument = {
+      objects: [
+        roomObj(R1, [P(0, 0), P(120, 0), P(120, 120), P(0, 120)], 'R1', F1) as ModelObject,
+        roomObj(uid(72), [P(0, 0), P(10, 0), P(10, 10)], 'Up', F2) as ModelObject,
+      ],
+    };
+    const calls: [string[], string, number][] = [];
+    const extra: DrawingItem = {
+      kind: 'line',
+      role: 'beyond',
+      layer: 'existing',
+      objectId: R1,
+      from: P(1, 1),
+      to: P(2, 2),
+    };
+    const list = buildDrawingList(doc, V, [], {
+      extraItems: (objects, level, textPt) => {
+        calls.push([objects.map((o) => o.id), level, textPt]);
+        return [extra];
+      },
+    });
+    expect(calls).toEqual([[[R1], F1.toLowerCase(), 8]]);
+    expect(list.items).toContainEqual(extra);
+    expect(buildDrawingList(doc, V).items).not.toContainEqual(extra);
+  });
+});
+
+// EZD-215 (AC-EZD-215-3; S03:154; Q-0708). Expected values: the note's line (the wall's line at the time) and an
+// equilateral triangle of side ENGINEER_MARK_IN = 12" centred on its midpoint (60, 0): corners (54, -2*sqrt(3)),
+// (66, -2*sqrt(3)), (60, 4*sqrt(3)); h = 6*sqrt(3), centroid at h/3 above the base.
+describe('EZD-215 engineer note', () => {
+  const V = { level: F1, dimensionTextPt: 8, roomHatch: null, roomLabelPt: 10 } as DrawingView;
+  const note = (letterOnFile: boolean, level = F1): ModelObject => ({
+    id: uid(80),
+    type: 'engineer_note',
+    data: {
+      geometry: { start: P(0, 0), end: P(120, 0) },
+      status: 'existing',
+      level,
+      attributes: {
+        wallId: W1,
+        action: 'delete',
+        engineerName: letterOnFile ? 'A. Engineer' : '',
+        approvedText: letterOnFile ? 'Header 2-2x12' : '',
+        fileId: null,
+        letterOnFile,
+      },
+    },
+  });
+
+  it('T-215-1 a note with no letter on file draws its line and triangle on the flagged layer', () => {
+    const items = buildDrawingList({ objects: [note(false)] }, V).items;
+    expect(items.every((i) => i.layer === 'flagged' && i.objectId === uid(80))).toBe(true);
+    expect(items[0]).toMatchObject({ kind: 'line', role: 'hidden', from: P(0, 0), to: P(120, 0) });
+    const r3 = Math.sqrt(3);
+    const corners = [P(54, -2 * r3), P(66, -2 * r3), P(60, 4 * r3)];
+    const tri = items.slice(1);
+    expect(tri).toHaveLength(3);
+    tri.forEach((t, i) => {
+      if (t.kind !== 'line') throw new Error('line');
+      expect(t.role).toBe('cut');
+      expect(t.from.x).toBeCloseTo(corners[i]!.x, 12);
+      expect(t.from.y).toBeCloseTo(corners[i]!.y, 12);
+      expect(t.to.x).toBeCloseTo(corners[(i + 1) % 3]!.x, 12);
+      expect(t.to.y).toBeCloseTo(corners[(i + 1) % 3]!.y, 12);
+    });
+  });
+
+  it('T-215-2 a note with the letter on file, or on another floor, draws nothing', () => {
+    expect(buildDrawingList({ objects: [note(true)] }, V).items).toEqual([]);
+    expect(buildDrawingList({ objects: [note(false, F2)] }, V).items).toEqual([]);
+  });
+});
+
+// EZD-733 (phase-07 EZD-733 "visible cuts on the plan"): a floor tile layout is one hatch over its room, each piece's
+// outline. Hand figures: a 36" x 24" room in 12" tiles butted from its corner is 3 x 2 = 6 whole tiles, 6 x 4 = 24
+// edges; started 6" in, columns run -6, 6, 18, 30 (four, the end two 6" cuts) and rows -6, 6, 18 (three, both ends
+// cut), 4 x 3 = 12 pieces, 48 edges.
+describe('EZD-733 floor tile on the plan', () => {
+  const V = { level: F1, dimensionTextPt: 8, roomHatch: null, roomLabelPt: 10 } as DrawingView;
+  const room = roomObj(R1, [P(0, 0), P(36, 0), P(36, 24), P(0, 24)], 'Bath');
+  const tile = (start: Point, roomId = R1): ModelObject => ({
+    id: uid(90),
+    type: 'tile_layout',
+    data: {
+      geometry: { host: { kind: 'floor', roomId }, start },
+      status: 'new',
+      level: F1,
+      attributes: { pattern: 'straight', tileWidth: 12, tileHeight: 12, joint: 0 },
+    },
+  });
+  const hatchOf = (l: DrawingList) =>
+    l.items.filter((i): i is HatchItem => i.kind === 'hatch' && i.objectId === uid(90));
+
+  it('draws every piece in the layout status layer; moving the start moves the cut lines', () => {
+    const a = hatchOf(buildDrawingList({ objects: [room, tile(P(0, 0))] }, V));
+    expect(a).toHaveLength(1);
+    expect(a[0]).toMatchObject({ layer: 'new', role: 'beyond' });
+    expect(a[0]!.segments).toHaveLength(24);
+    const b = hatchOf(buildDrawingList({ objects: [room, tile(P(6, 6))] }, V));
+    expect(b[0]!.segments).toHaveLength(48);
+    expect(b[0]!.segments.some((s) => s.from.x === 6 && s.to.x === 6)).toBe(true);
+    expect(a[0]!.segments.some((s) => s.from.x === 6 && s.to.x === 6)).toBe(false);
+  });
+
+  it('a layout whose room is gone is omitted as host_not_found', () => {
+    const gone = buildDrawingList({ objects: [tile(P(0, 0), uid(91))] }, V);
+    expect(hatchOf(gone)).toEqual([]);
+    expect(gone.omitted).toContainEqual({ id: uid(90), reason: 'host_not_found' });
   });
 });

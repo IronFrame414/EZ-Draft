@@ -21,6 +21,8 @@ export type ReviewWall = {
   confidence: number;
   geometry: { start: Pt; end: Pt };
   thickness: number | null;
+  /** EZD-314 (S02 Validation "Bearing walls detected or marked: flagged"): the import read the wall as bearing. */
+  bearing?: boolean;
 };
 
 export type ReviewOpening = {
@@ -42,9 +44,31 @@ export type ReviewRoom = {
   boundary: Pt[];
   closed: boolean;
   areaSqIn: number;
+  /** EZD-311: the gap (in) the room was kept out of square on; set from its fix (lib/imports/review-fix.ts). */
+  keptGap?: Pt;
 };
 
-export type ReviewItem = ReviewWall | ReviewOpening | ReviewRoom;
+/**
+ * EZD-312 (S02 Data shown "Ceiling slope, east"; Decisions "Ceiling slope items are fixed in the inspector with the
+ * same three inputs as Round 1: heights at points (low/high wall), pitch, or the value read from the mesh"): a
+ * single-slope ceiling read for a room. The ceiling rises from the low wall to the high wall, `run` inches apart;
+ * heights are inches above the floor and pitch is rise per 12 (S05 "9.4/12").
+ */
+export type ReviewCeilingSlope = {
+  id: string;
+  type: 'ceiling_slope';
+  number: number;
+  confidence: number;
+  roomId: string | null;
+  lowSide: Side;
+  highSide: Side;
+  run: number;
+  lowHeight: number;
+  highHeight: number;
+  pitchPer12: number;
+};
+
+export type ReviewItem = ReviewWall | ReviewOpening | ReviewRoom | ReviewCeilingSlope;
 
 /**
  * The high-confidence cutoff (%) used while the company's Defaults value is Not set. S15d makes the cutoff a
@@ -112,6 +136,7 @@ export function reviewSummary(
     if (decisions[item.id] !== 'accepted') continue;
     if (item.type === 'wall') accepted.walls += 1;
     else if (item.type === 'room') accepted.rooms += 1;
+    else if (item.type === 'ceiling_slope') continue;
     else if (item.kind === 'door') accepted.doors += 1;
     else accepted.windows += 1;
   }
@@ -228,6 +253,9 @@ export function roomGroups(items: readonly ReviewItem[]): RoomGroup[] {
     if (item.type === 'room') continue;
     let roomId: string | null;
     if (item.type === 'wall') roomId = wallRoom.get(item.id) ?? null;
+    // EZD-312: a ceiling slope goes with the room it was read for.
+    else if (item.type === 'ceiling_slope')
+      roomId = item.roomId !== null && groups.has(item.roomId) ? item.roomId : null;
     else if (item.hostWallId !== null && wallRoom.has(item.hostWallId)) roomId = wallRoom.get(item.hostWallId) ?? null;
     else roomId = rooms.find((rm) => on(item.center, rm, ROOM_EDGE_REACH_IN))?.id ?? null;
     groups.get(roomId)?.push(item);
@@ -255,14 +283,17 @@ export function itemLabel(item: ReviewItem, items: readonly ReviewItem[]): strin
     return shared ? `${SIDE_WORD[item.side]} wall ${item.number}` : `${SIDE_WORD[item.side]} wall`;
   }
   if (item.type === 'room') return `Room ${item.number}`;
+  // EZD-312: "Ceiling slope, east" (S02 Data shown; board S02), named by the side it rises toward.
+  if (item.type === 'ceiling_slope') return `Ceiling slope, ${item.highSide}`;
   return item.kind === 'door' ? `Door D${item.number}` : `Window W${item.number}`;
 }
 
-export type ItemTypeWord = 'Wall' | 'Door' | 'Window' | 'Room';
+export type ItemTypeWord = 'Wall' | 'Door' | 'Window' | 'Room' | 'Ceiling';
 
 export function itemTypeWord(item: ReviewItem): ItemTypeWord {
   if (item.type === 'wall') return 'Wall';
   if (item.type === 'room') return 'Room';
+  if (item.type === 'ceiling_slope') return 'Ceiling';
   return item.kind === 'door' ? 'Door' : 'Window';
 }
 
@@ -273,13 +304,25 @@ export function scanReads(item: ReviewItem): string {
     return formatLength(Math.hypot(end.x - start.x, end.y - start.y), PLAN_DISPLAY_DENOMINATOR);
   }
   if (item.type === 'opening') return formatLength(item.width, PLAN_DISPLAY_DENOMINATOR);
+  if (item.type === 'ceiling_slope') return slopeText(item);
   return `${Math.round(item.areaSqIn / 144)} SF`;
+}
+
+/** EZD-312: a slope as S05's summary writes it, e.g. "8' 0\" to 12' 0\" · 4/12". */
+export function slopeText(s: { lowHeight: number; highHeight: number; pitchPer12: number }): string {
+  const pitch = Math.round(s.pitchPer12 * 10) / 10;
+  return `${formatLength(s.lowHeight, PLAN_DISPLAY_DENOMINATOR)} to ${formatLength(s.highHeight, PLAN_DISPLAY_DENOMINATOR)} · ${pitch}/12`;
 }
 
 export type ReviewFile = { name: string; kind: string };
 
-/** Status bar source: "Polycam Space · DXF + GLB" (board S02), "Polycam Space · DXF" without a mesh. */
+/**
+ * Status bar source: "Polycam Space · DXF + GLB" (board S02), "Polycam Space · DXF" without a mesh. EZD-305: an
+ * import from a PDF drawing alone reads "PDF" (wording for Josh to confirm, vault/build/assumptions.md EZD-305).
+ */
 export function sourceLine(files: readonly ReviewFile[]): string {
+  const scan = files.some((f) => f.kind === 'polycam_dxf' || f.kind === 'polycam_glb');
+  if (!scan && files.length > 0 && files.every((f) => f.kind === 'pdf')) return 'PDF';
   const hasMesh = files.some((f) => f.kind === 'polycam_glb');
   return hasMesh ? 'Polycam Space · DXF + GLB' : 'Polycam Space · DXF';
 }
@@ -292,7 +335,7 @@ export function itemExtents(items: readonly ReviewItem[]): Extents | null {
   for (const item of items) {
     if (item.type === 'wall') pts.push(item.geometry.start, item.geometry.end);
     else if (item.type === 'room') pts.push(...item.boundary);
-    else pts.push(item.center);
+    else if (item.type === 'opening') pts.push(item.center);
   }
   if (pts.length === 0) return null;
   return {

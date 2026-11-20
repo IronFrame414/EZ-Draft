@@ -9,16 +9,25 @@
 // EZD-729 (AC-EZD-729-1; S03 "Layers tab sections: Phase, Overlays, Rooms"; vault/build/assumptions.md EZD-729): the
 // Plumbing layer. A sink's derived supply and drain locations and every water or drain utility point are in it, as
 // well as in their Phase layer; its eye starts on and resets on reload.
+// EZD-731 (AC-EZD-731-1; phase-07 EZD-731 "on a Mechanical layer"; vault/build/assumptions.md EZD-731): the Mechanical
+// layer. Every hvac object (air handler, condenser, supply and return registers, of any status) is in it, as well as
+// in its Phase layer; its eye starts on and resets on reload.
 import { PLUMBING_LOCATION_TYPE, type ObjectStatus } from '@ezdraft/geometry';
-import type { PhaseEyes, PhaseFilter } from '../../lib/plan/phase-view';
+import type { PhaseEyes, PhaseFilter, PhaseView } from '../../lib/plan/phase-view';
+import { viewShowsType } from '../plan/phase-filter';
 
-export const LAYER_IDS = ['existing', 'demo', 'new', 'rooms', 'plumbing'] as const;
+export const LAYER_IDS = ['existing', 'demo', 'new', 'rooms', 'plumbing', 'mechanical'] as const;
 
 export type LayerId = (typeof LAYER_IDS)[number];
 
 export type LayerLocks = Readonly<Record<LayerId, boolean>>;
 
-export type LayerState = Readonly<{ roomsEye: boolean; plumbingEye: boolean; locks: LayerLocks }>;
+export type LayerState = Readonly<{
+  roomsEye: boolean;
+  plumbingEye: boolean;
+  mechanicalEye: boolean;
+  locks: LayerLocks;
+}>;
 
 const isStatus = (s: unknown): s is ObjectStatus => s === 'existing' || s === 'demo' || s === 'new';
 
@@ -31,6 +40,7 @@ export function objectLayers(type: string, status: unknown, kind?: unknown): Lay
   if (isStatus(status)) out.push(status);
   if (type === 'room') out.push('rooms');
   if (inPlumbing(type, kind)) out.push('plumbing');
+  if (type === 'hvac') out.push('mechanical');
   return out;
 }
 
@@ -41,9 +51,16 @@ export function objectVisible(
   status: unknown,
   kind?: unknown,
   plumbingEye = true,
+  mechanicalEye = true,
 ): boolean {
   return objectLayers(type, status, kind).every((l) =>
-    l === 'rooms' ? roomsEye : l === 'plumbing' ? plumbingEye : eyes[l],
+    l === 'rooms'
+      ? roomsEye
+      : l === 'plumbing'
+        ? plumbingEye
+        : l === 'mechanical'
+          ? mechanicalEye
+          : eyes[l],
   );
 }
 
@@ -58,8 +75,9 @@ export function objectSelectable(
 
 type Listenable = { subscribe(listener: () => void): () => void };
 
+// EZD-220: `view`, when the phase gives it, applies the type rule of phase-filter.ts (pins in Existing only).
 export type LayerPhase = Listenable & {
-  get(): { eyes: PhaseEyes };
+  get(): { eyes: PhaseEyes; view?: PhaseView };
   version(): number;
   setEye(status: ObjectStatus, on: boolean): void;
 };
@@ -71,6 +89,7 @@ export type LayerSetting = PhaseFilter &
     setEye(status: ObjectStatus, on: boolean): void;
     setRoomsEye(on: boolean): void;
     setPlumbingEye(on: boolean): void;
+    setMechanicalEye(on: boolean): void;
     setLock(layer: LayerId, on: boolean): void;
     // What selection reads: shown and not locked.
     readonly selectable: PhaseFilter & Listenable;
@@ -82,10 +101,16 @@ const UNLOCKED: LayerLocks = Object.freeze({
   new: false,
   rooms: false,
   plumbing: false,
+  mechanical: false,
 });
 
 export function createLayerSetting(phase: LayerPhase): LayerSetting {
-  let state: LayerState = Object.freeze({ roomsEye: true, plumbingEye: true, locks: UNLOCKED });
+  let state: LayerState = Object.freeze({
+    roomsEye: true,
+    plumbingEye: true,
+    mechanicalEye: true,
+    locks: UNLOCKED,
+  });
   let own = 0;
   const listeners = new Set<() => void>();
   const notify = () => {
@@ -107,7 +132,16 @@ export function createLayerSetting(phase: LayerPhase): LayerSetting {
     };
   };
   const shownObject = (type: string, status: unknown, kind?: unknown) =>
-    objectVisible(phase.get().eyes, state.roomsEye, type, status, kind, state.plumbingEye);
+    viewShowsType(phase.get().view, type) &&
+    objectVisible(
+      phase.get().eyes,
+      state.roomsEye,
+      type,
+      status,
+      kind,
+      state.plumbingEye,
+      state.mechanicalEye,
+    );
   const shown = (status: unknown) => shownObject('', status);
 
   return {
@@ -125,6 +159,10 @@ export function createLayerSetting(phase: LayerPhase): LayerSetting {
     setPlumbingEye(on) {
       if (state.plumbingEye === on) return;
       change({ ...state, plumbingEye: on });
+    },
+    setMechanicalEye(on) {
+      if (state.mechanicalEye === on) return;
+      change({ ...state, mechanicalEye: on });
     },
     setLock(layer, on) {
       if (state.locks[layer] === undefined || state.locks[layer] === on) return;

@@ -194,17 +194,17 @@ describe('EZD-233 Set status', () => {
     for (const c of changes) expect(dataOf(c.value).status).toBe('demo');
   });
 
-  it('EZD-233 a bearing wall is not set to Demo here', () => {
+  // EZD-215 (09-calculations Q-0704): Set status Demo on a bearing wall is allowed; the model store adds the note.
+  it('EZD-215 a bearing wall is set to Demo here too', () => {
     const w1 = ROOM.get(uid(1))!;
     const attrs = (w1.data as { attributes: Record<string, unknown> }).attributes;
     const objects = new Map(ROOM).set(uid(1), {
       ...w1,
       data: { ...w1.data, attributes: { ...attrs, bearing: true } },
     });
-    expect(statusChanges(ctx(objects, [uid(1), uid(2)]), 'demo')).toEqual({
-      ok: false,
-      messageKey: 'office.edit.bearing_demo',
-    });
+    const demo = changesOf(statusChanges(ctx(objects, [uid(1), uid(2)]), 'demo'));
+    expect(demo.map((c) => c.id).sort()).toEqual([uid(1), uid(2)].sort());
+    expect(dataOf(valueFor(demo, uid(1))).status).toBe('demo');
     const asNew = changesOf(statusChanges(ctx(objects, [uid(1)]), 'new'));
     expect(dataOf(valueFor(asNew, uid(1))).status).toBe('new');
   });

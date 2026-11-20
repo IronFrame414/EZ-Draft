@@ -244,6 +244,13 @@ describe('EZD-109 event log sink', () => {
       type: 'model_object',
       id: C,
     });
+    // EZD-215 (07 Q-0708): the row is on the wall; the note and file ids are in the details.
+    for (const name of ['wall.engineer_required', 'wall.engineer_note_attached'] as const) {
+      expect(objectOf(event(name, { wallId: C, noteId: U, fileId: null })), name).toEqual({
+        type: 'model_object',
+        id: C,
+      });
+    }
     expect(objectOf(event('user.language_changed', { appUserId: U, language: 'es' }))).toEqual({
       type: 'app_user',
       id: U,
@@ -259,6 +266,19 @@ describe('EZD-109 event log sink', () => {
       'lock.auto_released',
       'lock.request_declined',
       'lock.request_cancelled',
+    ] as const) {
+      expect(EVENT_LOG[name].mode, name).toBe('transaction');
+    }
+  });
+
+  it('EZD-124 the card menu events are written in their definer function transaction (Q-0708)', async () => {
+    const { EVENT_LOG } = await import('./event-log');
+    for (const name of [
+      'project.renamed',
+      'project.status_changed',
+      'project.archived',
+      'project.restored',
+      'project.deleted',
     ] as const) {
       expect(EVENT_LOG[name].mode, name).toBe('transaction');
     }

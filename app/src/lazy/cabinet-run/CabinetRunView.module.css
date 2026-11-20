@@ -1,0 +1,428 @@
+/* EZD-404 (board S04Cabinets canvas): the cabinet run screen over the plan: the run header bar, then the plan strip
+   and the elevation drawn as one SVG on the canvas. Selected boxes are drawn blue (S04 "Selected box drawn blue"). */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 24px;
+  background: var(--ez-canvas);
+  pointer-events: auto;
+  overflow: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ez-ink);
+  /* EZD-419: the run name is a button that selects the run. */
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  padding: 2px 6px;
+  margin: -2px -6px;
+  background: transparent;
+  font-family: var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.name:hover,
+.name[aria-pressed='true'] {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.counts {
+  font-family: var(--ez-font-mono);
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.pickerLabel {
+  font-size: 12px;
+}
+
+.grow {
+  flex: 1;
+}
+
+/* EZD-407: the fit chip, as board S04 (green pill; amber when the run does not fit). */
+.fitChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ez-green-tint);
+  color: var(--ez-green);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+button.fitChip {
+  cursor: pointer;
+}
+
+.fitMismatch {
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+}
+
+.autoFill {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.autoFill:disabled {
+  color: var(--ez-slate-400);
+}
+
+.empty {
+  margin: auto;
+  font-size: 15px;
+  color: var(--ez-slate-500);
+}
+
+.drawing {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.sectionLabel {
+  font-family: var(--ez-font-mono);
+  font-size: 3.5px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  fill: var(--ez-slate-500);
+}
+
+.wall {
+  fill: var(--ez-ink);
+}
+
+.box {
+  cursor: pointer;
+}
+
+/* An upper in the plan strip lies over the base boxes: it is drawn (and marked when picked in the elevation) but
+   never takes the pointer, so a click or hover there reaches the base box under it (AC-EZD-404-1). */
+.upperPlan {
+  pointer-events: none;
+}
+
+.outline {
+  fill: var(--ez-surface);
+  stroke: var(--ez-slate-700);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.dashed {
+  fill: transparent;
+  stroke-dasharray: 3 3;
+}
+
+.face {
+  fill: transparent;
+  stroke: var(--ez-slate-450);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.code {
+  font-family: var(--ez-font-mono);
+  font-size: 3px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  fill: var(--ez-slate-700);
+  pointer-events: none;
+}
+
+.box[data-hovered='true'] .outline {
+  stroke: var(--ez-cobalt);
+}
+
+.box[data-selected='true'] .outline {
+  fill: var(--ez-cobalt-tint);
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+}
+
+.box[data-selected='true'] .face {
+  stroke: var(--ez-cobalt);
+}
+
+.box[data-selected='true'] .code {
+  fill: var(--ez-cobalt-text);
+  font-weight: 600;
+}
+
+.window {
+  fill: var(--ez-surface);
+  stroke: var(--ez-slate-700);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.toeKick {
+  fill: var(--ez-surface-sunken);
+}
+
+.countertop {
+  fill: var(--ez-surface-sunken);
+  stroke: var(--ez-slate-700);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.floor,
+.dim {
+  stroke: var(--ez-slate-500);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.dimText,
+.heightText {
+  font-family: var(--ez-font-mono);
+  font-size: 3px;
+  fill: var(--ez-slate-700);
+}
+
+.dimText {
+  text-anchor: middle;
+}
+
+/* EZD-405: box editing. The side-edge handles take the resize cursor (S04 "Drag box side edge"); typable dimension
+   text takes the pointer; the typed entry sits under the header; the context menu at the right-click. */
+.edge {
+  fill: transparent;
+  cursor: ew-resize;
+  pointer-events: all;
+}
+
+.drawing[data-dragging='true'] {
+  cursor: grabbing;
+}
+
+.typable {
+  cursor: text;
+}
+
+.typable:hover {
+  fill: var(--ez-cobalt-text);
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.entryLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.entryInput {
+  width: 96px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-family: var(--ez-font-mono);
+  font-size: 13px;
+}
+
+.entryRefused {
+  font-size: 13px;
+  color: var(--ez-red-text);
+}
+
+.menu {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  padding: 4px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  box-shadow: var(--ez-shadow-floating);
+}
+
+.menuItem {
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--ez-radius-6);
+  background: transparent;
+  color: var(--ez-ink);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: var(--ez-surface-sunken);
+}
+
+/* EZD-410 (S04 Validation "Hosted cabinet left off a wall after a wall move: red 'Not on a wall' flag"): the header
+   flag and the run's boxes are drawn red; a selected box stays marked by its heavier outline. */
+.notOnWall {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-red-tint);
+  color: var(--ez-red-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.box[data-flagged='true'] .outline,
+.box[data-flagged='true'] .face {
+  stroke: var(--ez-red);
+}
+
+.box[data-flagged='true'] .code {
+  fill: var(--ez-red-text);
+}
+
+/* EZD-733: the wall tile bar and the tile on the elevation, in the style of the typed entry and the drawing. */
+.tileBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.tileTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ez-ink);
+}
+
+.tileInput {
+  width: 72px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-family: var(--ez-font-mono);
+  font-size: 13px;
+}
+
+.tileInput[aria-invalid='true'] {
+  border-color: var(--ez-red);
+}
+
+.tileSelect {
+  height: 32px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-size: 13px;
+}
+
+.tileButton {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.tilePiece {
+  fill: none;
+  stroke: var(--ez-slate-400);
+  stroke-width: 0.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.tileCut {
+  fill: var(--ez-surface-sunken);
+  stroke: var(--ez-slate-500);
+  stroke-width: 0.75px;
+  stroke-dasharray: 3 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.tileStart {
+  fill: var(--ez-surface);
+  stroke: var(--ez-ink);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.tileStart[data-draggable='true'] {
+  cursor: move;
+}
+
+/* EZD-408: the Auto-fill result waiting for Confirm, in the style of the tile bar. */
+.fillBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.fillConfirm {
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+  font-size: 13px;
+  font-weight: 500;
+}

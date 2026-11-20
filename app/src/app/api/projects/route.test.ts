@@ -63,7 +63,7 @@ async function cookiesFor(email: string): Promise<Map<string, string>> {
 const NOT_SIGNED_IN = { error: { code: 'not_signed_in', message_key: 'error.not_signed_in' } };
 const FORBIDDEN = { error: { code: 'permission_denied', message_key: 'error.not_authorized' } };
 const INVALID = { error: { code: 'invalid_input', message_key: 'error.invalid_input' } };
-const D1 = { all: 6, draft: 2, client_review: 1, permit_submitted: 1, approved: 1, in_build: 1 };
+const D1 = { all: 6, draft: 2, client_review: 1, permit_submitted: 1, approved: 1, in_build: 1, complete: 0, archived: 1 };
 
 async function call(path: string, query = ''): Promise<{ res: Response; json: unknown }> {
   const url = `http://localhost/api/projects${path}${query}`;
@@ -215,6 +215,8 @@ describe('EZD-117a projects routes', () => {
       permit_submitted: 0,
       approved: 0,
       in_build: 1,
+      complete: 0,
+      archived: 0,
     });
 
     for (const r of all) expect(r.headers.get('cache-control') ?? '').toContain('no-store');

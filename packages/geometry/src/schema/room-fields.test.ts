@@ -29,13 +29,14 @@ describe('EZD-218 room fields', () => {
   it('AC-6 a v5 room opens with no type, an empty floor finish and no ceiling type; the input is not changed', () => {
     const room = deepFreeze(roomOf(v5));
     const m = migrateStoredObject(room);
-    expect(m?.schema_version).toBe(6);
+    expect(m?.schema_version).toBe(7);
     const a = (m?.data as { attributes: Rec }).attributes;
     expect(a).toEqual({
       ...((room.data as { attributes: Rec }).attributes as Rec),
       roomType: null,
       floorFinish: '',
       ceilingType: null,
+      ceiling: null,
     });
     expect(parseStoredObject(m as StoredObject).ok).toBe(true);
   });
@@ -58,7 +59,7 @@ describe('EZD-218 room fields', () => {
       structuredClone((v5 as { objects: StoredObject[] }).objects).find((o) => o.type === 'wall')!,
     );
     const m = migrateStoredObject(wall);
-    expect(m?.schema_version).toBe(6);
+    expect(m?.schema_version).toBe(7);
     expect(m?.data).toEqual(wall.data);
   });
 
@@ -72,6 +73,7 @@ describe('EZD-218 room fields', () => {
       roomType: null,
       floorFinish: '',
       ceilingType: null,
+      ceiling: null,
     });
   });
 

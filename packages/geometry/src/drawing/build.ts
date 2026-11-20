@@ -7,20 +7,32 @@
 // wall drawn where it stands on the `flagged` layer.
 // EZD-211a: door symbol from G/openings/door-symbol.ts.
 // EZD-235 Build step 5 (vault/plans/EZD-235.md Decided "D-Label"; 11 rule 2): the room label's area can be given through `options`.
-// EZD-234 Build (S03 Fixtures; mockup S03Plan REF box; Q-0705 boards wait): a fixture is its outline with both
-// diagonals, a utility point a diamond UTILITY_MARK_IN across each way, both in their status layer as 'beyond'.
+// EZD-234 Build (S03 Fixtures; mockup S03Plan REF box; Q-0705 boards wait): a fixture is its kind's plan symbol
+// (EZD-422, fixtures/fixture-symbol.ts), a utility point a diamond UTILITY_MARK_IN across each way, both in their status layer as 'beyond'.
 // EZD-227 Build (AC-EZD-227-1; vault/build/assumptions.md EZD-227): blocking is its outline behind the face on its
 // side with both diagonals, 'beyond', in its status layer; on the `flagged` layer when it is on no wall.
 // EZD-226 Build (AC-EZD-226-1): a tile shower draws through fixtures/tile-shower-drawing.ts, with the fixtures.
+// EZD-229 (AC-EZD-229-1, -2; 11 Budgets; EZD-120c B11): `options.extraItems` adds items after the fixtures. The plan
+// passes the existing details and the floor transitions there from a lazy module (app/src/lazy/room-fields), so their
+// code is not in the editor's first download.
+// EZD-215 (AC-EZD-215-3; S03:154 "flagged with 'Engineer required'"; Q-0708): an engineer note whose letter is not on
+// file is the wall's line at the time, 'hidden', with a triangle ENGINEER_MARK_IN a side at its middle, on the
+// `flagged` layer; once the letter is on file it draws nothing.
+// EZD-733 (phase-07 EZD-733 "visible cuts on the plan"; AC-EZD-733-1; vault/build/assumptions.md EZD-733): a floor
+// tile layout draws one hatch over its room, the outline of every piece (cut pieces are the ones the room's edge
+// trims), 'beyond', in the layout's status layer; a layout whose room is gone is omitted as host_not_found.
 import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
+import { tileLayoutPieces, type TileLayoutObject } from '../tile/hosts';
 import { doorSymbolInFrame } from '../openings/door-symbol';
 import { isVerticalLine } from '../openings/opening';
 import { coordsEqual, pointsEqual } from '../tolerance';
-import { fixtureOutline, type FixtureObject, type UtilityPointObject } from '../fixtures/fixtures';
+import type { FixtureObject, UtilityPointObject } from '../fixtures/fixtures';
+import { fixtureSymbolItems } from '../fixtures/fixture-symbol';
 import { tileShowerItems } from '../fixtures/tile-shower-drawing';
 import type { TileShowerObject } from '../fixtures/tile-shower';
 import { blockingOutline, type BlockingObject } from '../fixtures/blocking';
 import { wallFaceOffsets } from '../walls/wall';
+import { engineerRequired } from '../rules/bearing';
 import { formatRoomLabel, interiorPoint, roomAreaSqFt } from '../rooms/area';
 import type { RoomObject } from '../rooms/sync';
 import { hatchSegments } from './hatch';
@@ -106,7 +118,11 @@ function pieces(f: Frame): [number, number][] {
   return out.filter(([a, b]) => !coordsEqual(a, b));
 }
 
-export type DrawingListOptions = { roomAreaSqFt?: (room: RoomObject) => number };
+export type DrawingListOptions = {
+  roomAreaSqFt?: (room: RoomObject) => number;
+  // EZD-229: more items for the objects of the level (the level's objects, the level id, the dimension text size).
+  extraItems?: (objects: readonly ModelObject[], level: string, textPt: number) => DrawingItem[];
+};
 
 export function buildDrawingList(
   document: ModelDocument,
@@ -188,6 +204,30 @@ export function buildDrawingList(
     }
   }
 
+  for (const o of onFloor) {
+    if (o.type !== 'tile_layout') continue;
+    const host = o.data.geometry.host;
+    if (host.kind !== 'floor') continue;
+    const t = o as TileLayoutObject;
+    const room = rooms.find((r) => r.id.toLowerCase() === host.roomId.toLowerCase());
+    const tiles = room === undefined ? null : tileLayoutPieces(t, [room]);
+    if (room === undefined || tiles === null) {
+      reasons.set(t.id, 'host_not_found');
+      continue;
+    }
+    const segments = tiles.pieces.flatMap((piece) =>
+      piece.points.map((from, i) => ({ from, to: piece.points[(i + 1) % piece.points.length]! })),
+    );
+    roomHatches.push({
+      kind: 'hatch',
+      role: 'beyond',
+      layer: t.data.status,
+      objectId: t.id,
+      boundary: room.data.geometry.boundary.map((p) => ({ x: p.x, y: p.y })),
+      segments,
+    });
+  }
+
   const wallFills: DrawingItem[] = [];
   const wallLines: DrawingItem[] = [];
   for (const [w, f] of wallFrames) {
@@ -254,6 +294,17 @@ export function buildDrawingList(
     };
     flaggedItems.push({ ...base, kind: 'line', role: 'cut', from, to });
     if (a.kind === 'door') flaggedItems.push(...doorItems(base, f, 0, w, a.hand!, a.swing!));
+  }
+
+  for (const o of onFloor) {
+    if (o.type !== 'engineer_note' || !engineerRequired(o.data)) continue;
+    const base = { layer: 'flagged' as const, objectId: o.id };
+    const { start, end } = o.data.geometry;
+    if (!pointsEqual(start, end))
+      flaggedItems.push({ ...base, kind: 'line', role: 'hidden', from: start, to: end });
+    const t = engineerMark(engineerMarkCenter(o.data.geometry));
+    for (let i = 0; i < 3; i++)
+      flaggedItems.push({ ...base, kind: 'line', role: 'cut', from: t[i]!, to: t[(i + 1) % 3]! });
   }
 
   const dimItems: DrawingItem[] = [];
@@ -358,16 +409,16 @@ export function buildDrawingList(
       from,
       to,
     });
-    const ring =
-      o.type === 'fixture'
-        ? fixtureOutline((o as FixtureObject).data)
-        : utilityMark((o as UtilityPointObject).data.geometry.point);
-    for (let i = 0; i < 4; i++) fixtureItems.push(line(ring[i]!, ring[(i + 1) % 4]!));
     if (o.type === 'fixture') {
-      fixtureItems.push(line(ring[0], ring[2]));
-      fixtureItems.push(line(ring[1], ring[3]));
+      fixtureItems.push(...fixtureSymbolItems(o as FixtureObject, v.dimensionTextPt));
+      continue;
     }
+    const ring = utilityMark((o as UtilityPointObject).data.geometry.point);
+    for (let i = 0; i < 4; i++) fixtureItems.push(line(ring[i]!, ring[(i + 1) % 4]!));
   }
+
+  if (options.extraItems)
+    fixtureItems.push(...options.extraItems(onFloor, level, v.dimensionTextPt));
 
   const omitted: OmittedObject[] = onFloor.flatMap((o) => {
     const reason = reasons.get(o.id);
@@ -401,5 +452,24 @@ export function utilityMark(p: Point): [Point, Point, Point, Point] {
     { x: p.x, y: p.y + h },
     { x: p.x - h, y: p.y },
     { x: p.x, y: p.y - h },
+  ];
+}
+
+// EZD-215: the engineer note's triangle, its side in model inches (a 1'-0" mark, as UTILITY_MARK_IN is 6").
+export const ENGINEER_MARK_IN = 12;
+
+export const engineerMarkCenter = (line: { start: Point; end: Point }): Point => ({
+  x: (line.start.x + line.end.x) / 2,
+  y: (line.start.y + line.end.y) / 2,
+});
+
+// The triangle's corners, point up, centred on `c` (its centroid): bottom left, bottom right, top.
+export function engineerMark(c: Point): [Point, Point, Point] {
+  const h = (ENGINEER_MARK_IN * Math.sqrt(3)) / 2;
+  const half = ENGINEER_MARK_IN / 2;
+  return [
+    { x: c.x - half, y: c.y - h / 3 },
+    { x: c.x + half, y: c.y - h / 3 },
+    { x: c.x, y: c.y + (2 * h) / 3 },
   ];
 }

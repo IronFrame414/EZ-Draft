@@ -196,8 +196,10 @@ describe('EZD-231 Measure tool', () => {
     const editor = editorRail({ ...base, editor: 'ready', canEdit: true });
     const viewer = editorRail({ ...base, editor: 'ready', canEdit: false });
     expect(editor?.tools.at(-1)).toEqual(want);
+    // EZD-404: Cabinets is on a viewer's rail too (S04 Permissions "View projects: view runs").
     expect(viewer?.tools.map((t) => (t.kind === 'tool' ? t.id : '-'))).toEqual([
       'select',
+      'cabinets',
       'measure',
     ]);
     expect(viewer?.disabled).toBe(false);

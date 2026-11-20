@@ -137,6 +137,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"catalog_item": {
+                  Row: {
+                    "ai_confidence": NonNullable<Json>,"allowance_category": string | null,"brand": string | null,"category": string,"created_at": string,"depth": number | null,"finish": string | null,"height": number | null,"id": string,"install_specs": NonNullable<Json>,"is_standard_spec": boolean,"lead_time_days": number | null,"lead_time_text": string | null,"line": string | null,"markup_pct": number | null,"model": string | null,"name": string,"project_id": string | null,"sell_price": number | null,"sku": string | null,"source_url": string | null,"spec_sheet_path": string | null,"subcategory": string | null,"supplier": string | null,"tenant_id": string,"texture_path": string | null,"thumb_path": string | null,"unit_cost": number | null,"updated_at": string,"width": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "ai_confidence"?: NonNullable<Json>,"allowance_category"?: string | null,"brand"?: string | null,"category": string,"created_at"?: string,"depth"?: number | null,"finish"?: string | null,"height"?: number | null,"id"?: string,"install_specs"?: NonNullable<Json>,"is_standard_spec"?: boolean,"lead_time_days"?: number | null,"lead_time_text"?: string | null,"line"?: string | null,"markup_pct"?: number | null,"model"?: string | null,"name": string,"project_id"?: string | null,"sell_price"?: number | null,"sku"?: string | null,"source_url"?: string | null,"spec_sheet_path"?: string | null,"subcategory"?: string | null,"supplier"?: string | null,"tenant_id": string,"texture_path"?: string | null,"thumb_path"?: string | null,"unit_cost"?: number | null,"updated_at"?: string,"width"?: number | null
+                  }
+                  Update: {
+                    "ai_confidence"?: NonNullable<Json>,"allowance_category"?: string | null,"brand"?: string | null,"category"?: string,"created_at"?: string,"depth"?: number | null,"finish"?: string | null,"height"?: number | null,"id"?: string,"install_specs"?: NonNullable<Json>,"is_standard_spec"?: boolean,"lead_time_days"?: number | null,"lead_time_text"?: string | null,"line"?: string | null,"markup_pct"?: number | null,"model"?: string | null,"name"?: string,"project_id"?: string | null,"sell_price"?: number | null,"sku"?: string | null,"source_url"?: string | null,"spec_sheet_path"?: string | null,"subcategory"?: string | null,"supplier"?: string | null,"tenant_id"?: string,"texture_path"?: string | null,"thumb_path"?: string | null,"unit_cost"?: number | null,"updated_at"?: string,"width"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "catalog_item_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "catalog_item_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"customer": {
                   Row: {
                     "address": string | null,"archived_at": string | null,"created_at": string,"email": string,"id": string,"name": string,"phone": string | null,"tenant_id": string,"updated_at": string
@@ -284,6 +310,44 @@ isOneToOne: false
       columns: ["tenant_id"]
 isOneToOne: false
       referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"import_review_item": {
+                  Row: {
+                    "created_at": string,"decision": string | null,"fix": Json | null,"id": string,"item_id": string,"job_id": string,"project_id": string,"tenant_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"decision"?: string | null,"fix"?: Json | null,"id"?: string,"item_id": string,"job_id": string,"project_id": string,"tenant_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"decision"?: string | null,"fix"?: Json | null,"id"?: string,"item_id"?: string,"job_id"?: string,"project_id"?: string,"tenant_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "import_review_item_job_id_fkey"
+      columns: ["job_id"]
+isOneToOne: false
+      referencedRelation: "job"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "import_review_item_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "import_review_item_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "import_review_item_updated_by_fkey"
+      columns: ["updated_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
       referencedColumns: ["id"]
     }
                   ]
@@ -513,14 +577,14 @@ isOneToOne: false
                   ]
                 },"model_version": {
                   Row: {
-                    "cleanup_shown_at": string | null,"created_at": string,"created_by": string | null,"id": string,"is_sent": boolean,"is_snapshot": boolean,"keep": boolean,"label": string | null,"model_json": NonNullable<Json>,"parent_version_id": string | null,"preview_path": string | null,"project_id": string,"schema_version": number,"sent_at": string | null,"sent_to": string | null,"tenant_id": string,"version_no": number | null
+                    "cause": string | null,"cleanup_shown_at": string | null,"created_at": string,"created_by": string | null,"id": string,"is_sent": boolean,"is_snapshot": boolean,"keep": boolean,"label": string | null,"model_json": NonNullable<Json>,"parent_version_id": string | null,"preview_path": string | null,"project_id": string,"schema_version": number,"sent_at": string | null,"sent_to": string | null,"tenant_id": string,"version_no": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "cleanup_shown_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_sent"?: boolean,"is_snapshot"?: boolean,"keep"?: boolean,"label"?: string | null,"model_json": NonNullable<Json>,"parent_version_id"?: string | null,"preview_path"?: string | null,"project_id": string,"schema_version": number,"sent_at"?: string | null,"sent_to"?: string | null,"tenant_id": string,"version_no"?: number | null
+                    "cause"?: string | null,"cleanup_shown_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_sent"?: boolean,"is_snapshot"?: boolean,"keep"?: boolean,"label"?: string | null,"model_json": NonNullable<Json>,"parent_version_id"?: string | null,"preview_path"?: string | null,"project_id": string,"schema_version": number,"sent_at"?: string | null,"sent_to"?: string | null,"tenant_id": string,"version_no"?: number | null
                   }
                   Update: {
-                    "cleanup_shown_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_sent"?: boolean,"is_snapshot"?: boolean,"keep"?: boolean,"label"?: string | null,"model_json"?: NonNullable<Json>,"parent_version_id"?: string | null,"preview_path"?: string | null,"project_id"?: string,"schema_version"?: number,"sent_at"?: string | null,"sent_to"?: string | null,"tenant_id"?: string,"version_no"?: number | null
+                    "cause"?: string | null,"cleanup_shown_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_sent"?: boolean,"is_snapshot"?: boolean,"keep"?: boolean,"label"?: string | null,"model_json"?: NonNullable<Json>,"parent_version_id"?: string | null,"preview_path"?: string | null,"project_id"?: string,"schema_version"?: number,"sent_at"?: string | null,"sent_to"?: string | null,"tenant_id"?: string,"version_no"?: number | null
                   }
                   Relationships: [
                     {
@@ -597,14 +661,14 @@ isOneToOne: false
                   ]
                 },"project": {
                   Row: {
-                    "address": string,"archived_at": string | null,"client_name": string | null,"code_edition": string | null,"created_at": string,"customer_id": string | null,"ezbinder_job_id": string | null,"ezbinder_job_no": string | null,"id": string,"is_benchmark": boolean,"name": string,"open_items_count": number,"phase_default": string,"property_record_id": string | null,"scope_of_work": string | null,"settings": NonNullable<Json>,"status": string,"submittal_profile_id": string | null,"tenant_id": string,"thumbnail_path": string | null,"type": string,"updated_at": string
+                    "address": string,"archived_at": string | null,"client_name": string | null,"code_edition": string | null,"completed_at": string | null,"completed_from": string | null,"created_at": string,"customer_id": string | null,"ezbinder_job_id": string | null,"ezbinder_job_no": string | null,"id": string,"is_benchmark": boolean,"name": string,"open_items_count": number,"phase_default": string,"property_record_id": string | null,"scope_of_work": string | null,"settings": NonNullable<Json>,"status": string,"submittal_profile_id": string | null,"tenant_id": string,"thumbnail_path": string | null,"type": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address": string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"is_benchmark"?: boolean,"name": string,"open_items_count"?: number,"phase_default"?: string,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id": string,"thumbnail_path"?: string | null,"type": string,"updated_at"?: string
+                    "address": string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"completed_at"?: string | null,"completed_from"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"is_benchmark"?: boolean,"name": string,"open_items_count"?: number,"phase_default"?: string,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id": string,"thumbnail_path"?: string | null,"type": string,"updated_at"?: string
                   }
                   Update: {
-                    "address"?: string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"is_benchmark"?: boolean,"name"?: string,"open_items_count"?: number,"phase_default"?: string,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id"?: string,"thumbnail_path"?: string | null,"type"?: string,"updated_at"?: string
+                    "address"?: string,"archived_at"?: string | null,"client_name"?: string | null,"code_edition"?: string | null,"completed_at"?: string | null,"completed_from"?: string | null,"created_at"?: string,"customer_id"?: string | null,"ezbinder_job_id"?: string | null,"ezbinder_job_no"?: string | null,"id"?: string,"is_benchmark"?: boolean,"name"?: string,"open_items_count"?: number,"phase_default"?: string,"property_record_id"?: string | null,"scope_of_work"?: string | null,"settings"?: NonNullable<Json>,"status"?: string,"submittal_profile_id"?: string | null,"tenant_id"?: string,"thumbnail_path"?: string | null,"type"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -612,6 +676,12 @@ isOneToOne: false
       columns: ["customer_id","tenant_id"]
 isOneToOne: false
       referencedRelation: "customer"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "project_submittal_profile_fkey"
+      columns: ["submittal_profile_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "submittal_profile"
       referencedColumns: ["id","tenant_id"]
     },{
       foreignKeyName: "project_tenant_id_fkey"
@@ -647,6 +717,32 @@ isOneToOne: false
       referencedColumns: ["id","tenant_id"]
     },{
       foreignKeyName: "project_recent_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"review_item": {
+                  Row: {
+                    "created_at": string,"id": string,"project_id": string,"resolved_at": string | null,"source": string,"source_ref": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"project_id": string,"resolved_at"?: string | null,"source": string,"source_ref": string,"tenant_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"project_id"?: string,"resolved_at"?: string | null,"source"?: string,"source_ref"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "review_item_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "review_item_tenant_id_fkey"
       columns: ["tenant_id"]
 isOneToOne: false
       referencedRelation: "tenant"
@@ -754,6 +850,26 @@ isOneToOne: false
       columns: ["uploaded_by"]
 isOneToOne: false
       referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"submittal_profile": {
+                  Row: {
+                    "archived_at": string | null,"bookmarks": boolean,"created_at": string,"department": string,"export_unsigned": boolean,"file_split": string,"flatten": boolean,"id": string,"is_default": boolean,"max_file_mb": number | null,"min_scale_in_per_ft": number | null,"naming_max_length": number | null,"naming_template": string,"naming_upper": boolean,"required_notes": (string)[],"resubmittal_mode": string,"revision_naming": string,"sheet_size": string,"signer": string,"stamp_box_height_in": number,"stamp_box_position": string,"stamp_box_width_in": number,"submittal_type": string,"tenant_id": string,"toc_sheet": boolean,"transmittal": boolean,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"bookmarks"?: boolean,"created_at"?: string,"department": string,"export_unsigned"?: boolean,"file_split"?: string,"flatten"?: boolean,"id"?: string,"is_default"?: boolean,"max_file_mb"?: number | null,"min_scale_in_per_ft"?: number | null,"naming_max_length"?: number | null,"naming_template"?: string,"naming_upper"?: boolean,"required_notes"?: (string)[],"resubmittal_mode"?: string,"revision_naming"?: string,"sheet_size"?: string,"signer"?: string,"stamp_box_height_in"?: number,"stamp_box_position"?: string,"stamp_box_width_in"?: number,"submittal_type"?: string,"tenant_id": string,"toc_sheet"?: boolean,"transmittal"?: boolean,"updated_at"?: string
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"bookmarks"?: boolean,"created_at"?: string,"department"?: string,"export_unsigned"?: boolean,"file_split"?: string,"flatten"?: boolean,"id"?: string,"is_default"?: boolean,"max_file_mb"?: number | null,"min_scale_in_per_ft"?: number | null,"naming_max_length"?: number | null,"naming_template"?: string,"naming_upper"?: boolean,"required_notes"?: (string)[],"resubmittal_mode"?: string,"revision_naming"?: string,"sheet_size"?: string,"signer"?: string,"stamp_box_height_in"?: number,"stamp_box_position"?: string,"stamp_box_width_in"?: number,"submittal_type"?: string,"tenant_id"?: string,"toc_sheet"?: boolean,"transmittal"?: boolean,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "submittal_profile_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
       referencedColumns: ["id"]
     }
                   ]
@@ -867,11 +983,23 @@ isOneToOne: false
 "acquire_edit_lock":
 { Args: { "p_device_id": string,"p_ip"?: unknown,"p_project": string }; Returns: Json
                            },
+"archive_project":
+{ Args: { "p_project": string }; Returns: Json
+                           },
+"archive_submittal_profile":
+{ Args: { "p_archived": boolean,"p_id": string }; Returns: boolean
+                           },
 "cancel_edit_request":
 { Args: { "p_ip"?: unknown,"p_project": string }; Returns: Json
                            },
+"cancel_import":
+{ Args: { "p_job": string,"p_project": string }; Returns: Json
+                           },
 "cancel_invite":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
+                           },
+"complete_project":
+{ Args: { "p_project": string }; Returns: Json
                            },
 "count_projects":
 { Args: { "p_search"?: string }; Returns: Json
@@ -898,6 +1026,42 @@ isOneToOne: false
 "create_role":
 { Args: { "p_granted": (string)[],"p_ip"?: unknown,"p_name": string }; Returns: Json
                            },
+"create_submittal_profile":
+{ Args: { "p_department": string,"p_source"?: string }; Returns: {
+              "archived_at": string | null,
+"bookmarks": boolean,
+"created_at": string,
+"department": string,
+"export_unsigned": boolean,
+"file_split": string,
+"flatten": boolean,
+"id": string,
+"is_default": boolean,
+"max_file_mb": number | null,
+"min_scale_in_per_ft": number | null,
+"naming_max_length": number | null,
+"naming_template": string,
+"naming_upper": boolean,
+"required_notes": (string)[],
+"resubmittal_mode": string,
+"revision_naming": string,
+"sheet_size": string,
+"signer": string,
+"stamp_box_height_in": number,
+"stamp_box_position": string,
+"stamp_box_width_in": number,
+"submittal_type": string,
+"tenant_id": string,
+"toc_sheet": boolean,
+"transmittal": boolean,
+"updated_at": string
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "submittal_profile"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
 "current_app_user_id":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -920,14 +1084,23 @@ isOneToOne: false
 "delete_my_sync_conflict":
 { Args: { "p_id": string }; Returns: boolean
                            },
+"delete_project":
+{ Args: { "p_confirm_name": string,"p_project": string }; Returns: Json
+                           },
 "delete_role":
 { Args: { "p_ip"?: unknown,"p_role_id": string }; Returns: Json
+                           },
+"delete_submittal_profile":
+{ Args: { "p_id": string }; Returns: number
                            },
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
                            },
 "error_tunnel_take":
 { Args: { "p_events": number,"p_ip_key": string }; Returns: boolean
+                           },
+"finish_import":
+{ Args: { "p_job": string,"p_objects": Json,"p_project": string }; Returns: Json
                            },
 "get_my_ai_key":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -1041,6 +1214,11 @@ isOneToOne: false
 "list_notifications":
 { Args: { "p_before_created_at": string,"p_before_id": string }; Returns: Json
                            },
+"list_project_purge_files":
+{ Args: { "p_limit": number,"p_project": string,"p_tenant": string }; Returns: {
+              "bucket_id": string,"name": string
+            }[]
+                           },
 "list_projects":
 { Args: { "p_after"?: Json,"p_search"?: string,"p_sort": string,"p_status"?: string }; Returns: Json
                            },
@@ -1067,6 +1245,9 @@ isOneToOne: false
                            },
 "member_scope":
 { Args: { "p_membership_id": string }; Returns: Json
+                           },
+"name_snapshot":
+{ Args: { "p_name": string,"p_project": string,"p_version": string }; Returns: Json
                            },
 "open_notification":
 { Args: { "p_id": string }; Returns: {
@@ -1114,6 +1295,12 @@ isOneToOne: false
 "remove_member":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
                            },
+"rename_project":
+{ Args: { "p_name": string,"p_project": string }; Returns: Json
+                           },
+"reopen_project":
+{ Args: { "p_project": string }; Returns: Json
+                           },
 "request_edit_lock":
 { Args: { "p_ip"?: unknown,"p_minutes": number,"p_project": string }; Returns: Json
                            },
@@ -1128,8 +1315,20 @@ isOneToOne: false
 "respond_edit_request":
 { Args: { "p_ip"?: unknown,"p_project": string,"p_request": string,"p_response": string }; Returns: Json
                            },
+"restore_project":
+{ Args: { "p_project": string }; Returns: Json
+                           },
+"retry_import":
+{ Args: { "p_job": string,"p_project": string }; Returns: Json
+                           },
+"revert_to_version":
+{ Args: { "p_label": string,"p_lock_epoch": number,"p_objects": Json,"p_project": string,"p_version": string }; Returns: Json
+                           },
 "rewrap_my_ai_key":
 { Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean
+                           },
+"save_import_review":
+{ Args: { "p_changes": Json,"p_job": string,"p_mode": string,"p_project": string }; Returns: Json
                            },
 "save_member":
 { Args: { "p_granted": (string)[],"p_ip"?: unknown,"p_language": string,"p_membership_id": string,"p_role_id": string }; Returns: Json
@@ -1158,11 +1357,20 @@ isOneToOne: false
 "set_checkpoint_thumbnail":
 { Args: { "p_project": string,"p_version": string }; Returns: string
                            },
+"set_default_submittal_profile":
+{ Args: { "p_id": string }; Returns: string
+                           },
 "set_phase_default":
 { Args: { "p_phase": string,"p_project": string }; Returns: string
                            },
 "set_plan_scale":
 { Args: { "p_project": string,"p_scale": number }; Returns: number
+                           },
+"set_project_status":
+{ Args: { "p_project": string,"p_status": string }; Returns: Json
+                           },
+"set_project_submittal_profile":
+{ Args: { "p_profile": string,"p_project": string }; Returns: boolean
                            },
 "sign_in_throttle_settle":
 { Args: { "p_attempt_id": string,"p_ip_attempt_id": string }; Returns: undefined
@@ -1204,6 +1412,14 @@ isOneToOne: false
                            },
 "update_role":
 { Args: { "p_granted": (string)[],"p_ip"?: unknown,"p_name": string,"p_role_id": string }; Returns: Json
+                           },
+"update_submittal_profile":
+{ Args: { "p_changes": Json,"p_id": string }; Returns: Json
+                           },
+"update_tenant_code_edition":
+{ Args: { "p_code_edition": string,"p_optional_load_calc": boolean }; Returns: {
+              "changed": (string)[],"code_edition": string,"tenant_defaults": Json,"tenant_id": string
+            }[]
                            },
 "update_tenant_defaults":
 { Args: { "p_remove": (string)[],"p_set": Json }; Returns: {

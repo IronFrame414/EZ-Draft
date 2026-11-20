@@ -7,6 +7,8 @@
 // EZD-402: the cabinet types (run, box, filler, panel, corner treatment, open shelf, trim); new types, so the
 // version stays.
 // EZD-411: the `countertop_piece` type (outline and edges); a new type, so the version stays.
+// EZD-733: the `tile_layout` type (pattern, tile size, joint, start point on a floor or a wall face); a new type, so
+// the version stays.
 import { z } from 'zod';
 import { blockingDataSchema, type BlockingData } from './blocking';
 import {
@@ -42,6 +44,7 @@ import {
 import { fixtureDataSchema, type FixtureData } from './fixture';
 import { groupDataSchema, type GroupData } from './group';
 import { pinDataSchema, type PinData } from './pin';
+import { tileLayoutDataSchema, type TileLayoutData } from './tile-layout';
 import { tileShowerDataSchema, type TileShowerData } from './tile-shower';
 import { utilityPointDataSchema, type UtilityPointData } from './utility-point';
 import { floorDataSchema, type FloorData } from './floor';
@@ -60,6 +63,7 @@ export * from './fixture';
 export * from './floor';
 export * from './group';
 export * from './pin';
+export * from './tile-layout';
 export * from './tile-shower';
 export * from './utility-point';
 export * from './migrate';
@@ -92,6 +96,7 @@ export const OBJECT_TYPES = [
   'cabinet_shelf',
   'cabinet_trim',
   'countertop_piece',
+  'tile_layout',
 ] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
@@ -122,6 +127,7 @@ type DataByType = {
   cabinet_shelf: CabinetShelfData;
   cabinet_trim: CabinetTrimData;
   countertop_piece: CountertopPieceData;
+  tile_layout: TileLayoutData;
 };
 export type ModelObject = {
   [T in ObjectType]: { id: string; type: T; data: DataByType[T] };
@@ -165,14 +171,16 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
   cabinet_shelf: cabinetShelfDataSchema,
   cabinet_trim: cabinetTrimDataSchema,
   countertop_piece: countertopPieceDataSchema,
+  tile_layout: tileLayoutDataSchema,
 };
 
 // A source_file id held in an object, with the source_file kinds that field accepts. An empty `kinds` refuses
-// every id: the engineer letter's own kind arrives with EZD-215 (Q-0704 row 3).
+// every id. EZD-215 (Q-0704 row 3): the engineer letter takes its own kind, engineer_letter.
 export type FileRef = { fileId: string; kinds: readonly string[] };
 
 const none = (): FileRef[] => [];
 const PHOTO_KINDS = ['photo'] as const;
+const LETTER_KINDS = ['engineer_letter'] as const;
 
 // Mapped over every type, so a new type cannot be added without saying which file ids it holds.
 const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
@@ -181,7 +189,7 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   opening: none,
   room: (d) => d.attributes.photos.map((fileId) => ({ fileId, kinds: PHOTO_KINDS })),
   engineer_note: (d) =>
-    d.attributes.fileId === null ? [] : [{ fileId: d.attributes.fileId, kinds: [] }],
+    d.attributes.fileId === null ? [] : [{ fileId: d.attributes.fileId, kinds: LETTER_KINDS }],
   fixture: none,
   utility_point: none,
   pin: (d) =>
@@ -204,6 +212,7 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   cabinet_shelf: none,
   cabinet_trim: none,
   countertop_piece: none,
+  tile_layout: none,
 };
 
 export function fileRefs(object: ModelObject): FileRef[] {

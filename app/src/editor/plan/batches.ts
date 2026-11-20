@@ -22,6 +22,7 @@ import {
 } from '@ezdraft/geometry';
 import { ShapeUtils, Vector2 } from 'three';
 import { objectShownBy, type PhaseFilter } from '../../lib/plan/phase-view';
+import { pinItems, type PinObject } from './pins';
 import type { Objects } from '../model/patches';
 import { resolveOpenFloor } from '../floors/floors';
 import { tokenRgb, type Rgb } from './color';
@@ -107,7 +108,14 @@ export function planDrawingList(
       ? plumbingLocationItems(o as FixtureObject)
       : [],
   );
-  return plumbing.length === 0 ? list : { ...list, items: [...list.items, ...plumbing] };
+  // EZD-220: pins of the open floor, drawn here since the geometry drawing list has no pin items (Q-0704).
+  const pins = shown.flatMap((o) =>
+    o.type === 'pin' && o.data.level.toLowerCase() === level.toLowerCase()
+      ? pinItems(o as PinObject)
+      : [],
+  );
+  const extra = [...plumbing, ...pins];
+  return extra.length === 0 ? list : { ...list, items: [...list.items, ...extra] };
 }
 
 export function arcPoints(

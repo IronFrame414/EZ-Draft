@@ -32,7 +32,7 @@ const PROFILE = '5f0c2a1e-9b3d-4e7a-8c6f-1a2b3c4d5e6f';
 
 describe('EZD-411 countertop object schema', () => {
   it('countertop_piece is a model type, the new type keeps version 6, and v6.json parses whole', () => {
-    expect(CURRENT_SCHEMA_VERSION).toBe(6);
+    expect(CURRENT_SCHEMA_VERSION).toBe(7); // EZD-501: room ceiling data is version 7
     expect(OBJECT_TYPES).toContain('countertop_piece');
     expect(ok(sample())).toBe(true);
     expect(parseModelDocument(structuredClone(v6)).ok).toBe(true);

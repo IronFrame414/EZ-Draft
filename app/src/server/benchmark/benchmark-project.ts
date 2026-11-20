@@ -1,7 +1,8 @@
 // EZD-236 Build step 7 (vault/plans/EZD-236.md section 1 Decided "`benchmarkChanges`", "`ensureBenchmarkProject`";
 // section 3; AC-EZD-236-1): makes the caller's tenant its benchmark project through the caller's session client
 // (create_benchmark_project checks System status; save_objects inside it checks Edit model and scope).
-import { generateBenchmarkModel, parseModelDocument, type StoredObject } from '@ezdraft/geometry';
+import { parseModelDocument, type StoredObject } from '@ezdraft/geometry';
+import { generateBenchmarkModel } from '@ezdraft/geometry/benchmark';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import type { Database, Json } from '../db/database.types';

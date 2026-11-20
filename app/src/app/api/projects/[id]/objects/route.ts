@@ -12,6 +12,10 @@
 // naming `resolves` answers which recorded refused changes it removed.
 // EZD-5605 (vault/plans/EZD-5605.md D-Marker): a save with `assistant: true` also emits `model.ai_change_accepted`
 // after `model.saved`.
+// EZD-215 (07 Q-0708): after the closure events, `wall.engineer_required` and `wall.engineer_note_attached` for the
+// engineer notes the save raised.
+// EZD-409 (S04 Events emitted "cabinet_schedule.updated (new)"): last, one `cabinet_schedule.updated` when the save
+// wrote any cabinet object. A removed member always comes with its run's new row lists, so the run's id stands for it.
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { errorType } from '../../../../../server/errors/fingerprint';
@@ -35,6 +39,8 @@ const ROUTE = '/api/projects/[id]/objects';
 const EMIT_FAILED = 'model_saved_event_failed';
 const CLOSURE_EMIT_FAILED = 'room_closure_overridden_event_failed';
 const AI_EMIT_FAILED = 'model_ai_change_accepted_event_failed';
+const ENGINEER_EMIT_FAILED = 'wall_engineer_event_failed';
+const CABINET_EMIT_FAILED = 'cabinet_schedule_updated_event_failed';
 
 const fail = (status: number, code: string, messageKey = `error.${code}`) =>
   Response.json({ error: { code, message_key: messageKey } }, { status, headers });
@@ -156,6 +162,52 @@ export async function POST(
       } catch (e) {
         try {
           await reportError(new Error(CLOSURE_EMIT_FAILED), {
+            source: 'function',
+            location: ROUTE,
+            tags: { 'ezd.cause': errorType(e) },
+          });
+        } catch {
+          /* reportError never throws; guarded as route-failure.ts does */
+        }
+      }
+    }
+
+    // EZD-215 (07 Q-0708; AC-EZD-215-5): one event per new note and per note whose letter was ticked, in change
+    // order, after the closure events; a failed emit is reported and does not fail the save.
+    for (const e of result.engineer) {
+      try {
+        await emit(
+          e.name,
+          { wallId: e.wallId, noteId: e.noteId, fileId: e.fileId },
+          { tenantId: result.tenantId, projectId: id, actorId: p.session.appUserId },
+        );
+      } catch (err) {
+        try {
+          await reportError(new Error(ENGINEER_EMIT_FAILED), {
+            source: 'function',
+            location: ROUTE,
+            tags: { 'ezd.cause': errorType(err), 'ezd.event': e.name },
+          });
+        } catch {
+          /* reportError never throws; guarded as route-failure.ts does */
+        }
+      }
+    }
+
+    // EZD-409: the cabinet objects this save wrote (removes carry no type and are left out).
+    const cabinetIds = req.changes.flatMap((c) =>
+      !c.deleted && c.type.startsWith('cabinet_') ? [c.id] : [],
+    );
+    if (cabinetIds.length > 0) {
+      try {
+        await emit(
+          'cabinet_schedule.updated',
+          { objectIds: cabinetIds },
+          { tenantId: result.tenantId, projectId: id, actorId: p.session.appUserId },
+        );
+      } catch (e) {
+        try {
+          await reportError(new Error(CABINET_EMIT_FAILED), {
             source: 'function',
             location: ROUTE,
             tags: { 'ezd.cause': errorType(e) },

@@ -2,7 +2,8 @@
 // values: Q-0697 decisions 10 (without Edit model every field is text and there is no Save; with Edit model and no
 // lock name, address and scope of work are inputs and type and the defaults are text; the holder edits every
 // field; the client picker only with Company settings or Create projects; email and phone only when the read
-// gives them); Q-0399 (no Code edition, no Submittal profile); Q-0699 ("Defaults for this project", Save and
+// gives them); Q-0399 (no Code edition, no Submittal profile; EZD-712 lifts it for the Submittal profile: S15c
+// Decision 2, an active profile of the company, a select with Edit model); Q-0699 ("Defaults for this project", Save and
 // Cancel); AC-6 (a failed save keeps the dialog open with the Try again message).
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
@@ -10,6 +11,7 @@ import { attr, elements, textOf } from '../../../test-harness/projects-markup';
 import { MessagesProvider } from '../../lib/messages';
 import { draftOf, type ProjectSettings } from '../../lib/projects/project-settings';
 import { catalogFor } from '../../server/messages/catalog';
+import type { ProjectProfileAnswer } from '../../lib/submittal-profiles/profiles';
 import { en } from '../../server/messages/catalogs/en';
 import type { MessageKey } from '../../server/messages/catalog';
 import { ProjectSettingsContent, type Load } from './ProjectSettingsDialog';
@@ -20,6 +22,7 @@ const read = (can: ProjectSettings['can'], contact = false): ProjectSettings => 
     ? { id: 'c1', name: 'Ann Lee', email: 'ann@example.com', phone: '555-0100' }
     : { id: 'c1', name: 'Ann Lee' },
   defaults: { waste_tile: 10, waste_lvp: null, overhang_standard: 1.5 },
+  codeEdition: { own: null, effective: 'fbc9_nec2023' },
   can,
 });
 const NONE = { details: false, client: false, typeAndDefaults: false };
@@ -29,7 +32,7 @@ const ALL = { details: true, client: true, typeAndDefaults: true };
 function render(
   s: ProjectSettings | null,
   holding: boolean,
-  opts: { error?: MessageKey; load?: Load } = {},
+  opts: { error?: MessageKey; load?: Load; profile?: ProjectProfileAnswer } = {},
 ): string {
   const load: Load = opts.load ?? (s ? { status: 'ready', settings: s } : { status: 'loading' });
   return renderToStaticMarkup(
@@ -42,6 +45,8 @@ function render(
         error={opts.error ?? null}
         busy={false}
         online
+        profile={opts.profile ?? null}
+        profileId={opts.profile?.profileId ?? null}
         onDraft={() => {}}
         onRetry={() => {}}
         onSave={() => {}}
@@ -108,10 +113,37 @@ describe('EZD-130 ProjectSettingsContent', () => {
     expect(textOf(one(picker, 'project-settings-customer-contact').inner)).toBe('ann@example.com · 555-0100');
   });
 
-  it('AC-5: no Code edition and no Submittal profile', () => {
-    const html = render(read(ALL, true), true).toLowerCase();
-    expect(html).not.toContain('code edition');
-    expect(html).not.toContain('submittal');
+  it('AC-5: no Submittal profile without its read; EZD-613 (S15g Decision 2): the Code edition, a select with Edit model', () => {
+    const html = render(read(ALL, true), true);
+    expect(html.toLowerCase()).not.toContain('submittal');
+    const select = one(html, 'project-settings-code-edition');
+    expect(select.tag).toBe('select');
+    expect(select.inner).toContain('FBC 9th ed. · NEC 2023');
+    const plain = render(read(NONE), false);
+    expect(isText(plain, 'project-settings-code-edition')).toBe(true);
+    expect(textOf(one(plain, 'project-settings-code-edition').inner)).toBe('FBC 9th ed. · NEC 2023');
+  });
+
+  it('EZD-712 (S15c Decision 2): the Submittal profile, a select with Edit model, text without it', () => {
+    const profile: ProjectProfileAnswer = {
+      profileId: 'p2',
+      profiles: [
+        { id: 'p1', department: 'Palm Beach County', isDefault: true, archived: false },
+        { id: 'p2', department: 'City of Boca Raton', isDefault: false, archived: false },
+      ],
+      canManage: true,
+    };
+    const html = render(read(EDIT), false, { profile });
+    const select = one(html, 'project-settings-submittal-profile');
+    expect(select.tag).toBe('select');
+    expect(select.inner).toContain('Palm Beach County (company default)');
+    expect(select.inner).toContain('City of Boca Raton');
+    expect(textOf(html)).toContain('Submittal profile');
+    expect(attr(one(html, 'project-settings-sheet-presets-link').attrs, 'href')).toBe('/settings/sheet-presets');
+    const plain = render(read(NONE), false, { profile: { ...profile, canManage: false } });
+    expect(isText(plain, 'project-settings-submittal-profile')).toBe(true);
+    expect(textOf(one(plain, 'project-settings-submittal-profile').inner)).toBe('City of Boca Raton');
+    expect(elements(plain, 'project-settings-sheet-presets-link')).toHaveLength(0);
   });
 
   it('AC-6: a failed save shows the Try again message with Save still there; load states', () => {

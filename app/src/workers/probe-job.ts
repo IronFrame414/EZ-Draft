@@ -1,11 +1,6 @@
 // EZD-235b Build step 3 (vault/plans/EZD-235b.md): probeRoomAreas, the perf probe's room-area job on the benchmark model.
-import {
-  generateBenchmarkModel,
-  parseStoredObject,
-  roomAreaSqFt,
-  type Point,
-  type StoredObject,
-} from '@ezdraft/geometry';
+import { parseStoredObject, roomAreaSqFt, type Point, type StoredObject } from '@ezdraft/geometry';
+import { generateBenchmarkModel } from '@ezdraft/geometry/benchmark';
 
 export const PROBE_JOB = 'probe-room-areas';
 export const PROBE_JOB_MS = 500;

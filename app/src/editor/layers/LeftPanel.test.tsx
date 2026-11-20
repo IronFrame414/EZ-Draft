@@ -173,4 +173,32 @@ describe('EZD-218 left panel', () => {
     expect(html).not.toContain('<select');
     expect(html).not.toContain('<input');
   });
+
+  // EZD-122 (S03 "tabs Layers, Rooms, Versions"; board S20; S20 Entry points; AC-EZD-122-2, -8): with the Versions
+  // content given, a third tab; the editor may hold the tab, so the header can open Versions.
+  it('EZD-122 a Versions tab after Rooms, opened by the tab the editor holds', () => {
+    const s = setup();
+    const ui = (tab: Tab | undefined) =>
+      renderToStaticMarkup(
+        <MessagesProvider language="en" messages={catalogFor('office', 'en') as never}>
+          <LeftPanel
+            store={s.store}
+            layers={s.layers}
+            selection={s.selection}
+            showObject={() => true}
+            canEdit
+            tab={tab}
+            versions={<p data-testid="versions-content">list</p>}
+          />
+        </MessagesProvider>,
+      );
+    const closed = ui(undefined);
+    expect([...closed.matchAll(/role="tab"/g)]).toHaveLength(3);
+    expect(textOf(one(closed, 'left-panel-tab-versions').inner)).toBe('Versions');
+    expect(elements(closed, 'versions-content')).toHaveLength(0);
+    const open = ui('versions');
+    expect(attr(one(open, 'left-panel').attrs, 'data-tab')).toBe('versions');
+    expect(attr(one(open, 'left-panel-tab-versions').attrs, 'aria-selected')).toBe('true');
+    expect(elements(open, 'versions-content')).toHaveLength(1);
+  });
 });

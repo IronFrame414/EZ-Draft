@@ -16,7 +16,14 @@
 // EZD-6001 (vault/plans/EZD-6001.md D-Wire, D-Gone; Q-0509): the canvas draws the chosen floor; a switch redraws as a View change does.
 // EZD-224b Build step 7 (vault/plans/EZD-224b.md Decided "Capture rule"; Q-0667): `captureThumbnail` reads the
 // region as drawn through the root, with no fit, camera or redraw; nothing drawn gives null.
+// EZD-229 (AC-EZD-229-1, -2; 11 Budgets; EZD-120c B11): the existing details and floor transitions are drawn through
+// the lazy room-fields module, loaded the first time the model has an existing detail or a room with a floor level
+// or finish set (two rooms can only differ then); once it loads, the plan is drawn again.
+// EZD-502 (S05 Controls "Floor / Ceiling / Both segment"; AC-EZD-502-1): `setSurface` draws the RCP, or the RCP over the
+// greyed floor plan, through the view the lazy RCP module builds from the floor list; a switch redraws as a View change
+// does. Bounds stay the floor plan's, so Fit is the same on every surface. `drawn()` reports the surface and batches.
 import type { DerivedStats, DrawingList, ObjectStatus, Point } from '@ezdraft/geometry';
+import type { PlanSurface } from '../ceiling/surface';
 import type { PhaseFilter } from '../../lib/plan/phase-view';
 import { DEFAULT_PLAN_SCALE, isPlanScale, type PlanScale } from '../../lib/plan/plan-scale';
 import type { CaptureSource, ThumbnailCapture } from '../../lib/thumbnail/thumbnail';
@@ -24,7 +31,14 @@ import { createModelDerived, type ModelDerived } from '../derived/model-derived'
 import type { ModelStore } from '../model/model-store';
 import { chosenFloor, type FloorChoice } from '../floors/floors';
 import type { Objects } from '../model/patches';
-import { buildPlanBatches, drawingBounds, openFloorId, planDrawingList } from './batches';
+import { roomFieldsModule as planDetails } from '../layers/room-fields-module';
+import {
+  buildPlanBatches,
+  drawingBounds,
+  openFloorId,
+  planDrawingList,
+  type PlanBatch,
+} from './batches';
 import { layoutText } from './glyph-atlas';
 import {
   HOVER_CAPTURE_PX,
@@ -43,7 +57,7 @@ import {
   type PlanInput,
   type PlanPointerReceiver,
 } from './input';
-import { createPlanScene, type PlanScene } from './scene';
+import { createPlanScene, type PlanScene, type PlanUnderlay } from './scene';
 import {
   MAX_ZOOM_PERCENT,
   MIN_ZOOM_PERCENT,
@@ -128,8 +142,23 @@ export type PlanController = {
   captureThumbnail(): Promise<ThumbnailCapture | null>;
   atlasFailed(): boolean;
   subscribeAtlasFailed(listener: () => void): () => void;
+  // EZD-304: the calibrated PDF page under the plan for tracing; null removes it.
+  setUnderlay(u: PlanUnderlay | null): void;
+  underlay(): PlanUnderlay['corners'] | null;
+  // EZD-502: the surface drawn; `view` builds a ceiling surface's drawing (the lazy RCP module), null for Floor.
+  setSurface(surface: PlanSurface, view: SurfaceViewBuilder | null): void;
+  drawn(): {
+    surface: PlanSurface;
+    batches: Array<{ key: string; color: PlanBatch['color']; order: number }>;
+  };
   dispose(): void;
 };
+
+export type SurfaceViewBuilder = (
+  floor: DrawingList | null,
+  objects: Objects,
+  surface: Exclude<PlanSurface, 'floor'>,
+) => { list: DrawingList | null; batches: PlanBatch[] };
 
 async function reportDefault(error: unknown): Promise<void> {
   const { captureBrowserError } = await import('../../lib/errors/capture');
@@ -142,6 +171,17 @@ function unmountQuietly(root: RenderRoot): void {
   } catch {
     // The root is dropped either way.
   }
+}
+
+// Whether anything needs the plan details: an existing detail, or a room whose floor level or finish is set (only
+// rooms have them; two rooms can only differ then).
+function needsPlanDetails(objects: Objects): boolean {
+  for (const v of objects.values()) {
+    const a = (v.data as { attributes?: { floorLevel?: number; floorFinish?: string } }).attributes;
+    if (/^(hvac|device|access|soffit|chase)$/.test(v.type) || a?.floorLevel || a?.floorFinish)
+      return true;
+  }
+  return false;
 }
 
 export function createPlanController(
@@ -201,6 +241,7 @@ export function createPlanController(
   let outlineLookup: OutlineLookup | null = null;
   let selectedIds: ReadonlySet<string> = new Set();
   let selectionUploads = 0;
+  let underlayCorners: { x: number; y: number }[] | null = null;
   const hover = createHoverIndex();
   const NO_HIGHLIGHT = new Float32Array(0);
 
@@ -220,19 +261,40 @@ export function createPlanController(
     return uploaded > 0;
   };
 
+  let surface: PlanSurface = 'floor';
+  let surfaceView: SurfaceViewBuilder | null = null;
+  let drawnBatches: PlanBatch[] = [];
+
   const phase = o.phase ?? null;
   const floorOf = (objects: Objects) => openFloorId(objects, chosenFloor(o.floors));
   const rebuild = (): number => {
-    list = planDrawingList(
-      o.store.getState().objects,
-      { roomAreaSqFt: derived.roomAreaSqFt },
+    const details = planDetails.peek();
+    if (!details && needsPlanDetails(o.store.getState().objects))
+      planDetails.load().then(
+        () => disposed || refreshAll(),
+        () => {},
+      );
+    const objects = o.store.getState().objects;
+    const floor = planDrawingList(
+      objects,
+      { roomAreaSqFt: derived.roomAreaSqFt, extraItems: details?.planDetailItems },
       phase,
       chosenFloor(o.floors),
     );
     derived.prune();
-    bounds = drawingBounds(list);
+    bounds = drawingBounds(floor);
+    let batches: PlanBatch[];
+    if (surface === 'floor' || surfaceView === null) {
+      list = floor;
+      batches = buildPlanBatches(floor);
+    } else {
+      const v = surfaceView(floor, objects, surface);
+      list = v.list;
+      batches = v.batches;
+    }
+    drawnBatches = batches;
     const before = scene.objectCount();
-    const uploaded = scene.setBatches(buildPlanBatches(list));
+    const uploaded = scene.setBatches(batches);
     bufferUploads += uploaded;
     return uploaded > 0 || scene.objectCount() !== before ? 1 : 0;
   };
@@ -628,6 +690,42 @@ export function createPlanController(
         if (i >= 0) atlasFailedListeners.splice(i, 1);
       };
     },
+    setUnderlay(u) {
+      if (disposed) return;
+      scene.setUnderlay(u);
+      underlayCorners = u === null ? null : u.corners.map((c) => ({ x: c.x, y: c.y }));
+      // An empty plan shows the whole page, so tracing can start (fit as Fit does, on the page instead).
+      const size = regionSize();
+      if (u !== null && bounds === null && size !== null) {
+        const xs = u.corners.map((c) => c.x);
+        const ys = u.corners.map((c) => c.y);
+        setView(
+          fitView(
+            {
+              minX: Math.min(...xs),
+              minY: Math.min(...ys),
+              maxX: Math.max(...xs),
+              maxY: Math.max(...ys),
+            },
+            size,
+            zoom100(),
+          ),
+        );
+      }
+      redraw();
+    },
+    underlay: () => (underlayCorners === null ? null : underlayCorners.map((c) => ({ ...c }))),
+    setSurface(next, build) {
+      const view = next === 'floor' ? null : build;
+      if (next === surface && view === surfaceView) return;
+      surface = next;
+      surfaceView = view;
+      if (!disposed) refreshAll();
+    },
+    drawn: () => ({
+      surface: surfaceView === null ? 'floor' : surface,
+      batches: drawnBatches.map((b) => ({ key: b.key, color: { ...b.color }, order: b.order })),
+    }),
     derivedStats: () => derived.stats(),
     stats() {
       const s = root !== null && ready ? root.stats() : { frames: 0, drawCalls: 0 };

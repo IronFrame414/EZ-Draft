@@ -14,8 +14,13 @@ export {
 export {
   COST_FILE_KINDS,
   completeSourceFileUpload,
+  listProjectPdfs,
+  readPdfScale,
+  setPdfScale,
+  signPhotoLink,
   sourceFilePath,
   startSourceFileUpload,
+  type PdfScaleView,
   type SourceFileView,
   type StartSourceFileInput,
 } from './source-files';

@@ -4,7 +4,7 @@
 // D1, D3 and D7: confirm on pinned version (L-009; plan M3 `on conflict ... where`, nested `save_objects` gate,
 // M1 `current_user` inside M3); these SQL fragments have not been run yet.
 // Calls go through the gated serverDb of `signIn` (RLS applies); rows are read with harnessSql.
-import { generateBenchmarkModel } from '@ezdraft/geometry';
+import { generateBenchmarkModel } from '@ezdraft/geometry/benchmark';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { setPermissions } from '../../../test-harness/permissions/grant';
 import {

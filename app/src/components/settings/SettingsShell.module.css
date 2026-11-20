@@ -231,20 +231,50 @@
 
 .statusItem {
   display: flex;
+  flex: none;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .statusLabel {
+  flex: none;
   color: var(--ez-slate-300);
 }
 
+/* EZD-424 (AC-EZD-424-1; Q-0272 (a)): each value keeps a bounded room; a longer value is cut with "…" and
+   keeps its full text in a title, so a long value never squeezes the disclaimer at the desktop size. */
 .statusValue {
+  max-width: 24ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--ez-ink);
 }
 
 .location {
   margin-left: auto;
+  flex: none;
+  white-space: nowrap;
   color: var(--ez-ink);
+}
+
+/* EZD-424 (AC-EZD-424-1): at the desktop size the disclaimer keeps its full width whatever the values hold;
+   the readouts give way instead, each value cut with "…". Narrower bars keep Q-0272 (a): readouts keep their
+   room and the disclaimer gives way first. */
+@media (width >= 1600px) {
+  .status > [data-placement='bar'] {
+    flex-shrink: 0;
+  }
+
+  .statusItem {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .statusValue {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
 }
 
 @media (hover: hover) {

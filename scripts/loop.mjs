@@ -13,6 +13,11 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { summarize, reportMarkdown } from './usage-report.mjs';
+import { RESUME_PROMPT, describeExit, died, readLastEntry } from './loop/claude-exit.mjs';
+import { randomUUID } from 'node:crypto';
+import { lastBeat, resetReason, sample, startNote, writeBeat } from './loop/heartbeat.mjs';
+import { TRACK as SECURITY_TRACK, readSeen, recordFixTicket, runAudit, unseen } from './loop/advisories.mjs';
+import { effectiveStatuses } from './loop/holds.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -27,6 +32,7 @@ const P = {
   attention: path.join(B, 'ATTENTION.md'),
   report: path.join(B, 'trial-report.md'),
   footprints: path.join(B, 'footprints.json'),
+  heartbeat: path.join(B, 'heartbeat.jsonl'),
 };
 const DEFAULTS = {
   builder_model: 'claude-opus-5-5', builder_effort: 'medium',
@@ -42,6 +48,9 @@ const DEFAULTS = {
   gate_from_phase: 13,
   // Josh 2026-11-16: only phases that are ready build. A ticket in a phase rank above max_phase never starts.
   max_phase: 999,
+  // Josh 2026-11-19: security is handled as the app is built. pnpm audit runs this often; a new advisory becomes a fix
+  // ticket at the front of the line (scripts/loop/advisories.mjs).
+  advisory_check_hours: 6,
 };
 const SECURITY_PATHS = /(supabase\/migrations|\/server\/|rls|auth|permission|share|price|money|cost|webhook|invite|role)/i;
 
@@ -62,7 +71,8 @@ function git(args, cwd = ROOT, opts = {}) {
   }
 }
 // Build files the loop writes and commits itself. A merge in the main checkout needs them unstaged.
-const BUILD_FILES = ['vault/build/state.json', 'vault/build/set-aside.md', 'vault/build/usage.jsonl', 'vault/build/loop.log', 'vault/build/trial-report.md'];
+const BUILD_FILES = ['vault/build/state.json', 'vault/build/set-aside.md', 'vault/build/usage.jsonl', 'vault/build/trial-report.md'];
+// loop.log is gitignored (*.log); listing it made every `git add` fail, so no build file was ever committed (2026-11-17).
 // A read-only checkout of develop for the footprint calls, so a claude session's git calls never touch the main
 // checkout's index while the loop commits there.
 function footprintTree() {
@@ -81,14 +91,9 @@ function seedDone() {
   }
   return done;
 }
-function seedStatuses() {
-  const st = {};
-  for (const line of readFileSync(path.join(ROOT, 'vault/tickets/STATUS.md'), 'utf8').split('\n')) {
-    const c = line.split('|').map((s) => s.trim());
-    if (/^EZD-/.test(c[1] || '')) st[c[1]] = c[4];
-  }
-  return st;
-}
+// STATUS.md statuses with every hold in the tracked vault/build/holds.json forced to `blocked` (scripts/loop/holds.mjs), so a
+// regenerated STATUS.md can never release a held ticket.
+function seedStatuses() { return effectiveStatuses(ROOT); }
 // One state object in memory for every lane; saveState writes it. A change Josh makes to the file by hand (deleting a
 // set_aside entry or a retry) is taken in at the next scheduling pass (adoptHandEdits).
 let STATE = null;
@@ -152,9 +157,10 @@ const phaseRank = (p) => (Number(p) === 56 ? 5.5 : Number(p));
 // Lower-rank tickets that keep a ticket of rank r from starting under the phase gate (empty when r is below the gate).
 function gateBlockers(t, s, c = cfg(), statuses = seedStatuses()) {
   const r = phaseRank(t.phase);
-  if (!(r >= c.gate_from_phase)) return [];
+  // A security fix ticket is never held by the phase gate and never holds it (advisories.mjs).
+  if (t.track === SECURITY_TRACK || !(r >= c.gate_from_phase)) return [];
   const done = new Set(s.done);
-  return tickets().filter((x) => phaseRank(x.phase) < r && !done.has(x.id)
+  return tickets().filter((x) => phaseRank(x.phase) < r && !done.has(x.id) && x.track !== SECURITY_TRACK
     && !c.skip_tracks.includes(x.track) && !c.skip_statuses.includes(statuses[x.id]));
 }
 // candidates(): eligible apart from the phase gate. pickNext: the first candidate the gate lets through.
@@ -170,7 +176,8 @@ function candidates(s, c, statuses) {
     && (t.depends_on || []).every((d) => done.has(d)));
   const retried = (t) => (s.retries?.[t.id] ? 1 : 0);
   const rank = (t) => { const i = (c.priority || []).indexOf(t.id); return i < 0 ? 1e9 : i; };
-  list.sort((a, b) => (rank(a) - rank(b)) || (retried(a) - retried(b)) || (phaseRank(a.phase) - phaseRank(b.phase)) || ((a.build_position ?? 1e9) - (b.build_position ?? 1e9)) || a.id.localeCompare(b.id));
+  const sec = (t) => (t.track === SECURITY_TRACK ? 0 : 1);
+  list.sort((a, b) => (sec(a) - sec(b)) || (rank(a) - rank(b)) || (retried(a) - retried(b)) || (phaseRank(a.phase) - phaseRank(b.phase)) || ((a.build_position ?? 1e9) - (b.build_position ?? 1e9)) || a.id.localeCompare(b.id));
   return list;
 }
 // Every candidate the phase gate lets through, in build order. A running ticket counts as not done for the gate.
@@ -204,9 +211,26 @@ function laneEnv(lane, cwd, ticket) {
   if (String(lane ?? 0) !== '0') env.SUPABASE_WORKDIR = path.join(cwd, '.lanes', `lane${lane}`); else delete env.SUPABASE_WORKDIR;
   return env;
 }
-function runClaude({ cwd, prompt, model, effort, name, resume, timeoutMin, readOnly, lane = 0, ticket }) {
+// A run that dies (no result, no timeout, no limit) is logged with its exit code, signal and last transcript entry,
+// and a writing run is resumed once in the same session, so its work goes on (2026-11-18).
+async function runClaude(opts) {
+  const sessionId = opts.resume ? null : randomUUID();
+  const r = await runClaudeOnce({ ...opts, sessionId });
+  if (!died(r)) return r;
+  const sid = opts.resume || sessionId;
+  const last = readLastEntry(opts.cwd, sid);
+  log(`CLAUDE DIED ${opts.name}: ${describeExit(r)}; session ${sid}; last entry: ${last || 'no transcript'}${r.text.trim() ? `; output: ${r.text.trim().slice(-300).replace(/\s+/g, ' ')}` : ''}`);
+  const left = opts.timeoutMin - r.secs / 60;
+  if (opts.readOnly || !last || left < 10) return { ...r, died: [describeExit(r)] };
+  log(`${opts.name}: resuming session ${sid} once (${Math.round(left)} min left)`);
+  const again = await runClaudeOnce({ ...opts, prompt: RESUME_PROMPT, resume: sid, sessionId: null, timeoutMin: left });
+  if (died(again)) log(`CLAUDE DIED again ${opts.name}: ${describeExit(again)}; last entry: ${readLastEntry(opts.cwd, sid) || 'no transcript'}`);
+  return { ...again, secs: r.secs + again.secs, died: [describeExit(r), ...(died(again) ? [describeExit(again)] : [])], recovered: !died(again) };
+}
+function runClaudeOnce({ cwd, prompt, model, effort, name, resume, sessionId, timeoutMin, readOnly, lane = 0, ticket }) {
   const args = ['-p', prompt, '--output-format', 'json', '--model', model, '--effort', effort, '--name', name];
   if (resume) args.push('--resume', resume);
+  if (sessionId) args.push('--session-id', sessionId);
   if (readOnly) {
     args.push('--permission-mode', 'dontAsk',
       '--allowedTools', 'Read', 'Grep', 'Glob', 'Bash(git diff:*)', 'Bash(git log:*)', 'Bash(git show:*)',
@@ -222,11 +246,11 @@ function runClaude({ cwd, prompt, model, effort, name, resume, timeoutMin, readO
     p.stdout.on('data', (d) => { out += d; });
     p.stderr.on('data', (d) => { err += d; });
     const timer = setTimeout(() => { p.kill('SIGTERM'); setTimeout(() => p.kill('SIGKILL'), 10000); }, timeoutMin * 60000);
-    p.on('close', (code) => {
+    p.on('close', (code, signal) => {
       clearTimeout(timer);
       const res = parseResult(out);
-      const text = String(res?.result ?? '') + '\n' + err.slice(-2000);
-      resolve({ code, res, text, secs: Math.round((Date.now() - started) / 1000),
+      const text = String(res?.result ?? '') + '\n' + err.slice(-2000) + (res ? '' : out.slice(-1000));
+      resolve({ code, signal, res, text, secs: Math.round((Date.now() - started) / 1000),
         timedOut: Date.now() - started >= timeoutMin * 60000 - 1000,
         limited: /(hit your|usage limit|weekly limit|rate limit|limit reached|resets \d)/i.test(text) && (res?.is_error || code !== 0) });
     });
@@ -246,6 +270,7 @@ function recordUsage(ticket, role, requested, r) {
     cost_usd: Number(r.res?.total_cost_usd ?? 0) || 0, fable_usd: 0, opus_usd: 0, sonnet_usd: 0, haiku_usd: 0,
     input_tokens: 0, output_tokens: 0, cache_read_tokens: 0, cache_write_tokens: 0, fable_tokens: 0,
     turns: r.res?.num_turns ?? null, duration_s: r.secs, session_id: r.res?.session_id ?? null,
+    exit_code: r.code ?? null, signal: r.signal ?? null, died: r.died ?? undefined, recovered: r.recovered ?? undefined,
     outcome: r.limited ? 'limit' : r.timedOut ? 'timeout' : (r.res?.is_error || r.code !== 0) ? 'error' : 'ok' };
   for (const [m, v] of Object.entries(mu)) {
     const usd = Number(v?.costUSD ?? 0) || 0;
@@ -617,6 +642,23 @@ function commitBuildFiles(msg) {
   const cm = git(['commit', '-q', '-m', `docs(build): ${msg}`, '--', ...files]);
   if (!cm.ok) { git(['reset', '-q', '--', ...files]); log(`build files not committed (${cm.err.slice(0, 160)}); next time`); }
 }
+// Security advisories (Josh 2026-11-19): every advisory_check_hours, pnpm audit; anything new becomes one fix ticket at
+// the front of the line, committed by pathspec so nothing is left staged for the next squash merge. A failed audit
+// (registry down, no network) is logged and tried again next time; it never stops the loop or sets a ticket aside.
+function checkAdvisories(s, c) {
+  const due = Date.parse(s.advisories_checked_at || 0) + Number(c.advisory_check_hours || 6) * 3600000;
+  if (Date.now() < due) return;
+  s.advisories_checked_at = now(); saveState(s);
+  const a = runAudit(ROOT);
+  if (!a.ok) { log(`advisory check failed (will try again in ${c.advisory_check_hours} h): ${a.error}`); return; }
+  const fresh = unseen(a.list, readSeen(ROOT));
+  if (!fresh.length) { log(`advisory check: ${a.list.length} known advisor${a.list.length === 1 ? 'y' : 'ies'}, none new`); return; }
+  const r = recordFixTicket(ROOT, fresh, now().slice(0, 10));
+  const cm = git(['commit', '-q', '-m', `chore(tickets): ${r.id} security fix for ${fresh.map((x) => x.id).join(', ')} (build loop advisory check)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`, '--', ...r.files]);
+  if (!cm.ok) { log(`advisory ticket ${r.id} written but not committed: ${cm.err.slice(0, 200)}`); return; }
+  s.push_pending = true; saveState(s);
+  log(`SECURITY ${r.id}: ${fresh.length} new advisor${fresh.length === 1 ? 'y' : 'ies'} (${fresh.map((x) => `${x.module} ${x.severity} ${x.id}`).join('; ')}); queued first`);
+}
 function writeTrialReport(s) {
   const rows = readFileSync(P.usage, 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l));
   writeFileSync(P.report, reportMarkdown(rows, s));
@@ -702,7 +744,16 @@ async function ensureFootprints(s, list) {
 // ---------- main ----------
 async function main() {
   const s = loadState();
+  // Heartbeat (2026-11-17): explain the gap since the last run, then record the machine's state every minute.
+  const first = sample();
+  const prev = lastBeat(P.heartbeat);
+  const gap = startNote(prev, { now: first.ts, boot: first.boot, reason: prev && prev.boot !== first.boot ? resetReason(prev.ts) : null });
+  if (gap) log(gap);
   log(`loop start (pid ${process.pid}; lanes ${laneList().join(', ')})`);
+  const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock');
+  const beat = () => { try { writeBeat(P.heartbeat, sample({ running: Object.keys(s.running), heavyLock })); } catch (e) { console.log(`heartbeat: ${e?.message || e}`); } };
+  writeBeat(P.heartbeat, { ...first, running: [] });
+  setInterval(beat, 60000);
   // Recovery: anything still marked running was interrupted by a restart.
   if (s.current) { s.running[s.current] = { lane: 0 }; delete s.current; }
   for (const id of Object.keys(s.running)) { log(`recovering: ${id} was interrupted; starting it fresh`); cleanupWorktree(id); }
@@ -734,6 +785,7 @@ async function main() {
       continue;
     }
     if (s.sleep_until) { delete s.sleep_until; delete s.next_probe; saveState(s); }
+    try { checkAdvisories(s, c); } catch (e) { log(`advisory check error: ${e?.message || e}`); }
     if (!active.size) push(s);
     if (s.red_streak >= c.red_streak_guard) {
       if (active.size) { note(`red streak of ${s.red_streak}: no new starts until the ${active.size} running ticket(s) finish`); await idle(60000); continue; }

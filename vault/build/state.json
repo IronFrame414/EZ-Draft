@@ -358,7 +358,51 @@
     "EZD-224b",
     "EZD-308",
     "EZD-125",
-    "EZD-126"
+    "EZD-126",
+    "EZD-729",
+    "EZD-128",
+    "EZD-130",
+    "EZD-306",
+    "EZD-225",
+    "EZD-111",
+    "EZD-121",
+    "EZD-402",
+    "EZD-411",
+    "EZD-309",
+    "EZD-220",
+    "EZD-310",
+    "EZD-311",
+    "EZD-313",
+    "EZD-401",
+    "EZD-229",
+    "EZD-124",
+    "EZD-312",
+    "EZD-137",
+    "EZD-404",
+    "EZD-304",
+    "EZD-215",
+    "EZD-314",
+    "EZD-423",
+    "EZD-422",
+    "EZD-405",
+    "EZD-305",
+    "EZD-127",
+    "EZD-410",
+    "EZD-406",
+    "EZD-501",
+    "EZD-409",
+    "EZD-730",
+    "EZD-122",
+    "EZD-139",
+    "EZD-733",
+    "EZD-613",
+    "EZD-407",
+    "EZD-731",
+    "EZD-408",
+    "EZD-419",
+    "EZD-712",
+    "EZD-502",
+    "EZD-424"
   ],
   "seeded_done": 324,
   "merged": [
@@ -604,11 +648,372 @@
       "ts": "2026-11-17T00:06:45Z",
       "kind": "ticket",
       "lane": 0
+    },
+    {
+      "id": "EZD-729",
+      "title": "Plumbing locations",
+      "commit": "3fdd0d71",
+      "ts": "2026-11-17T01:39:02Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-128",
+      "title": "Project switcher",
+      "commit": "fb2b9f7e",
+      "ts": "2026-11-17T03:53:57Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-130",
+      "title": "Project settings dialog",
+      "commit": "306a5141",
+      "ts": "2026-11-17T05:12:43Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-306",
+      "title": "DXF conversion choice",
+      "commit": "ebb3fb8e",
+      "ts": "2026-11-17T06:23:16Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-225",
+      "title": "Editor states",
+      "commit": "13093e91",
+      "ts": "2026-11-17T07:01:02Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-111",
+      "title": "Send dialog with Copy link",
+      "commit": "c2b572ed",
+      "ts": "2026-11-17T07:53:05Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-121",
+      "title": "Sent versions and numbering",
+      "commit": "b4efce72",
+      "ts": "2026-11-17T08:40:03Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-402",
+      "title": "Cabinet object model",
+      "commit": "c4dfaffe",
+      "ts": "2026-11-17T09:18:17Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-411",
+      "title": "Countertop object model",
+      "commit": "53546ad5",
+      "ts": "2026-11-17T10:04:54Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-309",
+      "title": "Fix and delete",
+      "commit": "0366abeb",
+      "ts": "2026-11-17T13:31:43Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-220",
+      "title": "Existing-condition pins",
+      "commit": "5f51fad2",
+      "ts": "2026-11-17T19:38:22Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-310",
+      "title": "Typed vs scan conflicts",
+      "commit": "21174f75",
+      "ts": "2026-11-17T20:41:28Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-311",
+      "title": "Resolve the gap",
+      "commit": "c8963e9d",
+      "ts": "2026-11-17T22:19:04Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-313",
+      "title": "Finish and cancel",
+      "commit": "5b06567b",
+      "ts": "2026-11-17T23:42:24Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-401",
+      "title": "Catalog items (minimal)",
+      "commit": "2328748f",
+      "ts": "2026-11-18T00:57:33Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-229",
+      "title": "Existing-condition details",
+      "commit": "1e4fae9f",
+      "ts": "2026-11-18T02:13:40Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-124",
+      "title": "Project card menu",
+      "commit": "ac94591c",
+      "ts": "2026-11-18T03:01:48Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-312",
+      "title": "Ceiling slope in review",
+      "commit": "eb3d3bf9",
+      "ts": "2026-11-18T04:34:19Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-137",
+      "title": "Mark complete and Completed filter",
+      "commit": "0e1b291f",
+      "ts": "2026-11-18T06:08:46Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-404",
+      "title": "Plan strip and elevation",
+      "commit": "c7e18055",
+      "ts": "2026-11-18T06:34:04Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-304",
+      "title": "PDF underlay and scale",
+      "commit": "ab7c7ff6",
+      "ts": "2026-11-18T08:54:07Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-215",
+      "title": "Bearing wall rule",
+      "commit": "3f4f053b",
+      "ts": "2026-11-18T14:17:44Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-314",
+      "title": "Import states",
+      "commit": "7cab0190",
+      "ts": "2026-11-18T15:06:34Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-423",
+      "title": "Fix: the editor route is at its 500 KB download limit; move code out of the editor entry so tickets have room",
+      "commit": "7e03ce3a",
+      "ts": "2026-11-18T16:10:57Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-422",
+      "title": "Fix: every fixture kind draws its own standard plan symbol, not the same box with diagonals",
+      "commit": "8af52232",
+      "ts": "2026-11-18T16:59:32Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-405",
+      "title": "Box editing on canvas",
+      "commit": "154f6896",
+      "ts": "2026-11-18T18:08:59Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-305",
+      "title": "Vector PDF wall detection",
+      "commit": "29403669",
+      "ts": "2026-11-18T18:49:58Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-127",
+      "title": "Review pill",
+      "commit": "26611fb1",
+      "ts": "2026-11-18T20:07:15Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-410",
+      "title": "Cabinet flags and states",
+      "commit": "01db437f",
+      "ts": "2026-11-18T21:03:17Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-406",
+      "title": "Box inspector",
+      "commit": "c50262f7",
+      "ts": "2026-11-18T23:36:38Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-501",
+      "title": "Ceiling data per room",
+      "commit": "b1ff1cc1",
+      "ts": "2026-11-19T00:01:16Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-409",
+      "title": "Cabinet schedule",
+      "commit": "f86eecd0",
+      "ts": "2026-11-19T00:59:50Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-730",
+      "title": "Plumbing diagram and calculations",
+      "commit": "fdcfe510",
+      "ts": "2026-11-19T02:54:33Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-122",
+      "title": "Versions panel",
+      "commit": "c0fad6a5",
+      "ts": "2026-11-19T03:22:28Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-139",
+      "title": "Visual diff of an old version",
+      "commit": "f5722474",
+      "ts": "2026-11-19T04:14:28Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-733",
+      "title": "Tile layout",
+      "commit": "32607e55",
+      "ts": "2026-11-19T05:55:39Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-613",
+      "title": "Code edition settings",
+      "commit": "a78749e4",
+      "ts": "2026-11-19T06:23:43Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-407",
+      "title": "Fit chip",
+      "commit": "56a88f99",
+      "ts": "2026-11-19T07:13:19Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-731",
+      "title": "Mechanical layout",
+      "commit": "99deb7dd",
+      "ts": "2026-11-19T07:45:31Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-408",
+      "title": "Auto-fill run",
+      "commit": "dfd7b482",
+      "ts": "2026-11-19T08:40:29Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-419",
+      "title": "Plan inspector: run selection",
+      "commit": "d6f54cdb",
+      "ts": "2026-11-19T09:23:25Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-712",
+      "title": "Submittal profiles",
+      "commit": "e939ceed",
+      "ts": "2026-11-19T09:49:04Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-502",
+      "title": "RCP view and ceiling rail",
+      "commit": "115693bd",
+      "ts": "2026-11-19T10:47:44Z",
+      "kind": "ticket",
+      "lane": 0
+    },
+    {
+      "id": "EZD-424",
+      "title": "Fix: a long default department on Sheet presets squeezes the disclaimer out of the settings status bar",
+      "commit": "180611a9",
+      "ts": "2026-11-20T01:46:53Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
-  "set_aside": {},
+  "set_aside": {
+    "EZD-222": {
+      "title": "Keyboard shortcuts and Help",
+      "ts": "2026-11-18T18:21:56Z",
+      "reason": "builder crashed (no result) (first try: builder timed out after 90 min with no commits)",
+      "detail": "\n",
+      "branch": "t/EZD-222",
+      "worktree": ".claude/worktrees/EZD-222"
+    }
+  },
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -618,7 +1023,18 @@
     "EZD-116": 1,
     "EZD-216": 1,
     "EZD-215": 1,
-    "EZD-306": 1
+    "EZD-306": 1,
+    "EZD-222": 1,
+    "EZD-124": 1,
+    "EZD-312": 1,
+    "EZD-134": 1,
+    "EZD-305": 1,
+    "EZD-403": 1,
+    "EZD-701": 1,
+    "EZD-123": 1,
+    "EZD-424": 1,
+    "EZD-412": 1,
+    "EZD-1009": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -636,20 +1052,77 @@
     "EZD-306": {
       "ts": "2026-11-17T00:39:41Z",
       "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-122": {
+      "ts": "2026-11-17T10:11:09Z",
+      "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-410": {
+      "ts": "2026-11-17T11:35:00Z",
+      "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-222": {
+      "ts": "2026-11-17T11:42:27Z",
+      "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-124": {
+      "ts": "2026-11-17T11:48:53Z",
+      "reason": "builder crashed (no result)"
+    },
+    "EZD-312": {
+      "ts": "2026-11-17T18:34:37Z",
+      "reason": "builder crashed (no result)"
+    },
+    "EZD-422": {
+      "ts": "2026-11-17T18:34:39Z",
+      "reason": "builder crashed (no result)"
+    },
+    "EZD-134": {
+      "ts": "2026-11-17T21:19:40Z",
+      "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-305": {
+      "ts": "2026-11-18T11:12:53Z",
+      "reason": "builder crashed (no result)"
+    },
+    "EZD-403": {
+      "ts": "2026-11-18T13:04:15Z",
+      "reason": "check still red after 2 fix rounds"
+    },
+    "EZD-701": {
+      "ts": "2026-11-19T13:10:45Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-123": {
+      "ts": "2026-11-19T14:42:00Z",
+      "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-424": {
+      "ts": "2026-11-19T18:31:05Z",
+      "reason": "check still red after 2 fix rounds"
+    },
+    "EZD-412": {
+      "ts": "2026-11-19T19:37:39Z",
+      "reason": "check still red after 2 fix rounds"
+    },
+    "EZD-1009": {
+      "ts": "2026-11-19T20:56:15Z",
+      "reason": "check red after a review fix"
     }
   },
   "running": {
-    "EZD-729": {
-      "lane": 2,
-      "title": "Plumbing locations",
-      "started": "2026-11-16T23:21:28Z",
-      "develop": "f465d586"
-    },
-    "EZD-225": {
+    "EZD-425": {
       "lane": 0,
-      "title": "Editor states",
-      "started": "2026-11-17T00:07:58Z",
-      "develop": "b6ffab28"
+      "title": "Fix: security advisories in glob, minimatch, next; move to the patched versions",
+      "started": "2026-11-19T22:57:34Z",
+      "develop": "81fd1d60"
+    },
+    "EZD-505": {
+      "lane": 2,
+      "title": "Beams",
+      "started": "2026-11-19T22:57:36Z",
+      "develop": "81fd1d60"
     }
-  }
+  },
+  "advisories_checked_at": "2026-11-19T22:57:31Z"
 }

@@ -199,6 +199,33 @@ function renderPart(db, p) {
   return renderRow(cols.map((c) => row[c]));
 }
 
+// Durable holds (2026-11-18): the records database does not keep holds, so every STATUS.md this file writes gets the Status
+// cell of each ticket in the tracked <vault>/build/holds.json set back to `blocked` (same rule as scripts/loop/holds.mjs,
+// kept here so records.mjs stays one file that tests can copy alone). No holds file → nothing changes. An unreadable holds
+// file throws rather than release every hold. Returns the ticket ids whose row changed.
+export function applyHoldsToVault(vaultDir) {
+  const statusFile = path.join(vaultDir, 'tickets/STATUS.md');
+  const holdsFile = path.join(vaultDir, 'build/holds.json');
+  if (!existsSync(statusFile) || !existsSync(holdsFile)) return [];
+  let j;
+  try { j = JSON.parse(readFileSync(holdsFile, 'utf8')); } catch (e) { throw new Error(`${holdsFile} is not valid JSON (${e.message}); holds not applied`); }
+  if (!j || !Array.isArray(j.holds)) throw new Error(`${holdsFile} has no "holds" list`);
+  const ids = new Set(j.holds.map((h) => h?.ticket));
+  const changed = [];
+  const before = readFileSync(statusFile, 'utf8');
+  const after = before.split('\n').map((line) => {
+    const m = /^\| (EZD-[0-9A-Za-z]+) \|/.exec(line);
+    if (!m || !ids.has(m[1])) return line;
+    const cells = line.split('|');
+    if (cells.length < 6 || cells[4].trim() === 'blocked') return line;
+    cells[4] = ' blocked ';
+    changed.push(m[1]);
+    return cells.join('|');
+  }).join('\n');
+  if (changed.length) { const tmp = `${statusFile}.tmp-${process.pid}`; writeFileSync(tmp, after); renameSync(tmp, statusFile); }
+  return changed;
+}
+
 export function exportVault(db, outDir) {
   const written = [];
   for (const d of db.prepare('select name, final_newline from docs order by name').all()) {
@@ -210,6 +237,8 @@ export function exportVault(db, outDir) {
     renameSync(tmp, file);
     written.push(d.name);
   }
+  // The records database does not keep holds; re-apply the tracked build/holds.json so a regenerated STATUS.md keeps them.
+  if (written.includes('tickets/STATUS.md')) applyHoldsToVault(outDir);
   return written;
 }
 
@@ -602,6 +631,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
         if (name === 'tickets/STATUS.md') statusFromSnapshot = true;
       }
       const added = statusFromSnapshot ? addNewTicketRows(path.join(root, 'vault')) : [];
+      if (statusFromSnapshot) applyHoldsToVault(path.join(root, 'vault'));
       console.log(`views from snapshot ${label}: ${n} files written${added.length ? `; todo rows for tickets added since: ${added.join(', ')}` : ''}`);
     } else if (cmd === 'apply') {
       if (!args[0] || args[0].startsWith('--')) { console.error('usage: records.mjs apply <file>'); process.exitCode = 1; } else {

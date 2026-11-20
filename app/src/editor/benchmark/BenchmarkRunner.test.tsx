@@ -3,7 +3,8 @@
 // the section 4 fakes, and the component as static markup. Expected values: Decided D-Runner (Edit model, then
 // the benchmark wall, then the plan drawn with text, 30 s by frame time, then the script), D-Cover (the cover's
 // test id), D-Script (549 frames; 180 per step, progress every 30), D-Wall (anchor (1320, 1020)).
-import { CURRENT_SCHEMA_VERSION, generateBenchmarkModel } from '@ezdraft/geometry';
+import { CURRENT_SCHEMA_VERSION } from '@ezdraft/geometry';
+import { generateBenchmarkModel } from '@ezdraft/geometry/benchmark';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import type { ObjectValue } from '../../lib/outbox/model-api';

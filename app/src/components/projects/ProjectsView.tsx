@@ -10,6 +10,8 @@
 // EZD-118 Build step 16 (vault/plans/EZD-118.md Decided "Entry", "After create"; Q-0394; Q-0410): both New project
 // buttons open the New project dialog; after a create the list goes back to All, Last edited and no search.
 // EZD-120c Build step 9 (vault/plans/EZD-120c.md; Q-0500): after a create, the new project opens in the editor.
+// EZD-124 (S01 Card overflow menu; Q-0702): the Archived tab, and each card's three-dot menu for a user with Edit
+// model or Delete projects; after a change the list and counts reload, a failed change shows a toast.
 import {
   useEffect,
   useRef,
@@ -45,6 +47,9 @@ import buttonStyles from '../states/StateButton.module.css';
 import { NewProjectDialog } from './NewProjectDialog';
 import { importReviewPath } from '../../lib/imports/upload-client';
 import { ProjectCard } from './ProjectCard';
+import { ProjectCardWithMenu, type CardMenuConfig } from './ProjectCardMenu';
+import { cardActionsHttpApi } from '../../lib/projects/project-card-menu';
+import { useToast } from '../states/ToastProvider';
 import { ProjectsHeader, type ProjectsAccount } from './ProjectsHeader';
 import styles from './Projects.module.css';
 
@@ -60,6 +65,8 @@ export type ProjectsBoardProps = {
   onNewProject?: (start: NewProjectStart) => void;
   onRetry?: () => void;
   onClearFilters?: () => void;
+  // EZD-124: present when the user may use the card menu (Edit model or Delete projects).
+  cardMenu?: CardMenuConfig;
 };
 
 export type NewProjectStart = 'blank' | 'file';
@@ -206,6 +213,7 @@ export function ProjectsBoard({
   onNewProject,
   onRetry,
   onClearFilters,
+  cardMenu,
 }: ProjectsBoardProps) {
   const t = useT();
   const sortLabel = t(`office.projects.sort.${state.sort}`);
@@ -294,7 +302,15 @@ export function ProjectsBoard({
             </div>
           </SkeletonGroup>
         ) : null}
-        {ready ? state.items.map((p) => <ProjectCard key={p.id} project={p} />) : null}
+        {ready
+          ? state.items.map((p) =>
+              cardMenu ? (
+                <ProjectCardWithMenu key={p.id} project={p} config={cardMenu} />
+              ) : (
+                <ProjectCard key={p.id} project={p} />
+              ),
+            )
+          : null}
       </div>
       {nothing && state.search === '' && state.tab === 'all' ? (
         <div className={styles.empty} data-testid="projects-empty">
@@ -341,13 +357,18 @@ export function ProjectsView({
   account,
   canCreate,
   canImport = false,
+  canEdit = false,
+  canDelete = false,
 }: {
   account: ProjectsAccount;
   canCreate: boolean;
   canImport?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }): ReactElement {
   const router = useRouter();
   const t = useT();
+  const toast = useToast();
   const [store] = useState(() => createProjectListStore(projectHttpApi));
   useEffect(() => {
     store.start();
@@ -361,6 +382,19 @@ export function ProjectsView({
   const online = useOnline();
   const canDrop = canImport && online && creating === null;
   const hasFiles = (e: DragEvent<HTMLDivElement>) => e.dataTransfer.types.includes('Files');
+  const cardMenu: CardMenuConfig | undefined =
+    canEdit || canDelete
+      ? {
+          canEdit,
+          canDelete,
+          api: cardActionsHttpApi,
+          onChanged: () => store.refresh(),
+          onFailed: () => {
+            toast.show({ message: 'office.projects.menu.failed' });
+            store.refresh();
+          },
+        }
+      : undefined;
   return (
     <>
       <ProjectsHeader
@@ -412,6 +446,7 @@ export function ProjectsView({
           canImport={canImport}
           onNewProject={(start) => setCreating({ start, files: [] })}
           onRetry={() => store.retry()}
+          cardMenu={cardMenu}
           onClearFilters={() => {
             setText('');
             store.clearFilters();

@@ -1,0 +1,253 @@
+{
+  "_readme": "Durable holds (scripts/loop/holds.mjs). Every ticket listed here is treated as `blocked` by scripts/loop.mjs, whatever vault/tickets/STATUS.md says, and is written back as `blocked` whenever records.mjs regenerates STATUS.md. To release a ticket, delete its entry here and commit; setting STATUS.md to ready alone does not release it. To hold one, add { ticket, title, reason, question, since }.",
+  "holds": [
+    {
+      "ticket": "EZD-003",
+      "title": "Hosting and subdomain",
+      "reason": "Repo work merged 2026-10-19 dc6e8e6; blocked per plan Step 6 / Q-0032 (a): waiting on Josh: Before-launch checklist and first real release (T8 then → done; T7 at the Phase 0 gate; T10 after each main merge before launch). 151 = repo node:test on develop phase 0 (EZD-003 T1–T6 among them; Vitest 1...",
+      "question": "Q-0032, Q-0147, Q-0116, Q-0123",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-315",
+      "title": "Laser keyboard input",
+      "reason": "RETIRED 2026-11-14 by Josh (Q-0759, \"no laser in v1\"); never built.|",
+      "question": "Q-0759",
+      "kind": "retired",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-141",
+      "title": "Fix: SET LOCAL warning during sign-in",
+      "reason": "Added 2026-10-24 by Josh's request (Q-0267). · BLOCKED 2026-10-24 by Josh (Q-0274 (a)): waiting on Supabase's fix of supabase/auth#2852 (GoTrue v2.197.0 runs set local statement_timeout outside a transaction when the before-user-created hook runs). Unblocks when a fixed Auth release and a Supabas...",
+      "question": "Q-0267, Q-0274",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-185",
+      "title": "Fix: unit-steps merge reports a failed cleanup, and screenshots never block it",
+      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 unfreezes in order (Josh, chat: \"Yes, do that\"): set ready once the sandbox is back on (D-021 fix, then the watched switch-on); guards and dead-lock fixes before the lanes...",
+      "question": "Q-0321",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-191",
+      "title": "Fix: root scripts and lint rules are linted",
+      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 unfreezes in order (Josh, chat: \"Yes, do that\"): set ready once the sandbox is back on (D-021 fix, then the watched switch-on); guards and dead-lock fixes before the lanes...",
+      "question": "Q-0332",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-248",
+      "title": "Fix: a question row is checked before it is committed",
+      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
+      "question": "Q-0421, Q-0427",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-249",
+      "title": "Fix: a research report is checked before it is committed",
+      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
+      "question": "Q-0421",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-261",
+      "title": "Fix: plan lint rejects a bare folder in a node --test verify command",
+      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 unfreezes in order (Josh, chat: \"Yes, do that\"): set ready once the sandbox is back on (D-021 fix, then the watched switch-on); guards and dead-lock fixes before the lanes...",
+      "question": null,
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-263",
+      "title": "Fix: every update of develop is ledger-checked",
+      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
+      "question": "Q-0421",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-264",
+      "title": "Fix: architecture and runbook say Josh enters the Preview EMAIL_TRANSPORT value",
+      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 unfreezes in order (Josh, chat: \"Yes, do that\"): set ready once the sandbox is back on (D-021 fix, then the watched switch-on); guards and dead-lock fixes before the lanes...",
+      "question": "Q-0432, Q-0433",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-265",
+      "title": "Fix: one ticket never stops the launcher; the watchdog restarts it after any stop not on the KEEP list; every wait names its real reason",
+      "reason": "2026-11-04 dropped: lean process (Josh, chat \"Approve\"; vault/spec/decisions/process.md 2026-11-04 row): the rule changes replace it or the problem was seen once or never; not built, never resumed.|",
+      "question": null,
+      "kind": "retired",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-268",
+      "title": "Fix: a failed unit or role goes up the model ladder before a ticket is set aside or the launcher waits",
+      "reason": "2026-11-04 dropped: lean process (Josh, chat \"Approve\"; vault/spec/decisions/process.md 2026-11-04 row): the rule changes replace it or the problem was seen once or never; not built, never resumed. Tests 79e0d30d stay on t/EZD-268, unmerged; worktree .claude/worktrees/EZD-268 left as is.|",
+      "question": null,
+      "kind": "retired",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-269",
+      "title": "Fix: a wait on another ticket is a dependency, and the ticket resumes by itself",
+      "reason": "2026-11-04 dropped: lean process (Josh, chat \"Approve\"; vault/spec/decisions/process.md 2026-11-04 row): the rule changes replace it or the problem was seen once or never; not built, never resumed.|",
+      "question": null,
+      "kind": "retired",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-270",
+      "title": "Fix: the chain of command answers every question the system can answer; only Level 4 questions wait for Josh",
+      "reason": "2026-11-04 dropped: lean process (Josh, chat \"Approve\"; vault/spec/decisions/process.md 2026-11-04 row): the rule changes replace it or the problem was seen once or never; not built, never resumed.|",
+      "question": null,
+      "kind": "retired",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-271",
+      "title": "Fix: a usage-limit error is classified by a fresh meter reading; only a full weekly meter holds the launcher",
+      "reason": "2026-11-04 dropped: lean process (Josh, chat \"Approve\"; vault/spec/decisions/process.md 2026-11-04 row): the rule changes replace it or the problem was seen once or never; not built, never resumed.|",
+      "question": null,
+      "kind": "retired",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-272",
+      "title": "Fix: every unit has a defined step for a classifier refusal or a protected path",
+      "reason": "2026-11-04 dropped: lean process (Josh, chat \"Approve\"; vault/spec/decisions/process.md 2026-11-04 row): the rule changes replace it or the problem was seen once or never; not built, never resumed.|",
+      "question": null,
+      "kind": "retired",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-273",
+      "title": "Fix: the gate fails when the launcher or ledger gains a stop path that is not on the KEEP list",
+      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
+      "question": "Q-0438",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-274",
+      "title": "Fix: a limit-like error with neither meter full is an ordinary failed unit, not a usage-limit hold",
+      "reason": "2026-11-04 dropped: lean process (Josh, chat \"Approve\"; vault/spec/decisions/process.md 2026-11-04 row): the rule changes replace it or the problem was seen once or never; not built, never resumed.|",
+      "question": null,
+      "kind": "retired",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-275",
+      "title": "Fix: the gate fails when a skill ends a unit or blocks a ticket for a reason not on the KEEP list",
+      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
+      "question": "Q-0442",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-276",
+      "title": "Fix: the perf check signs in a member and measures the Projects first cards",
+      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. Added 2026-10-30 from Q-0449 (a) (rule 17).|",
+      "question": "Q-0449",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-732",
+      "title": "Mechanical calculations",
+      "reason": "Added 2026-10-20 in the re-cut for Q-0179 (Q-0218). Blocked 2026-11-18: Q-0763 settled the sheets; waits on Josh about Manual J in EZ Draft (vault/questions/phases-18-27-for-josh.md question 2 follow-up).|",
+      "question": "Q-0179, Q-0218, Q-0763",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-642",
+      "title": "Commercial load calculation",
+      "reason": "Added 2026-10-20 for Q-0220. RETIRED 2026-11-18 by Josh (Q-0767, \"v2\"); never built.|",
+      "question": "Q-0220, Q-0767",
+      "kind": "retired",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-328",
+      "title": "Fix: each lane's gate and database run outside the unit sandbox",
+      "reason": "Waited for the sandbox, which Josh brought back 2026-11-06 (session 8, 023476e9). Gate, worktree and merge now run outside the sandbox through excludedCommands in scripts/unit-sandbox.json (EZD-317), and sandboxed builds have created worktrees and passed lane gates since. Next: an interactive fix...",
+      "question": null,
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-355a",
+      "title": "Build system: the gate's Docker calls go through a policy relay that acts only on objects it created",
+      "reason": "Split from EZD-355 on 2026-11-07 (Q-0615). Blocked until planned in fix mode by an interactive session: its paths are guarded, so the launcher can neither build it nor carry its tooling mark before a plan exists. Josh said yes to the work (Q-0614).|",
+      "question": "Q-0615, Q-0614",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-355b",
+      "title": "Build system: sandboxed units reach Docker only through the policy relay",
+      "reason": "Split from EZD-355 on 2026-11-07 (Q-0615). Blocked until planned in fix mode by an interactive session: its paths are guarded, so the launcher can neither build it nor carry its tooling mark before a plan exists. Josh said yes to the work (Q-0614).|",
+      "question": "Q-0615, Q-0614",
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-393",
+      "title": "Fix: the EZD-356 T1 pan-row test finds a wait during the fixture pan under load",
+      "reason": "builder (haiku-5-5/high per --dispatch) stopped at D-Runs load wait: no other lane live (lanes 1-3 idle, orchestrator re-checked 2026-11-12 19:51 ET); builder's claim of 60 min polling is not backed (its dispatch lasted 69 s), so run 1 never started, 0 of 10 gates. Test commit 98d5d2a8 present, d...",
+      "question": null,
+      "kind": "held",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-394",
+      "title": "Fix: the EZD-000b T4 skill-file test fails when the gate's write probe appears in .claude/agents",
+      "reason": "Retired 2026-11-14 (build v3): its test is part of the retired build machinery, which the gate (scripts/check.mjs) does not run, and it tests the retired agent setup. Earlier: proof series paused: 4 of 9 gates green (race pass), 2 of 5 counting (gates 1,3); D-Wait found no other live lane twice (...",
+      "question": null,
+      "kind": "retired",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-399",
+      "title": "Fix: the EZD-207c N5 throttle test finds a marked task with no CPU time on CI",
+      "reason": "Retired 2026-11-14 (build v3): its test, scripts/perf/__tests__/profiles.test.mjs, is deliberately left out of the gate (scripts/check.mjs) as timing-sensitive on CI; the rest of scripts/perf still runs. Earlier: Resume at step 7 (gate), then merge: develop recorded fa3e33f9 by overwatch 2026-11-...",
+      "question": null,
+      "kind": "retired",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-420",
+      "title": "Fix: the EZD-009 jobs browser test failed in the phase 4 PR CI gate (test:e2e) with no error text kept",
+      "reason": "Retired 2026-11-14 (build v3): app/e2e/jobs.spec.ts passed in every develop CI run checked (8 runs, 2026-11-13 to 14, incl. the 2 red ones, which failed on other tests). Reopen if it fails again.|",
+      "question": null,
+      "kind": "retired",
+      "since": "2026-11-18 (moved from STATUS.md)"
+    },
+    {
+      "ticket": "EZD-1020",
+      "title": "AR editing",
+      "reason": "Josh 2026-11-18 (Q-0777): builds only if the EZD-1018 spike says AR editing is go. After EZD-1018 merges, read vault/spikes/EZD-1018.md: go → add approach rows and delete this entry; no-go → mark retired (v2 with the native app) and add it to non-goals.",
+      "question": "Q-0777",
+      "kind": "held",
+      "since": "2026-11-18"
+    },
+    {
+      "ticket": "EZD-503",
+      "title": "Ceiling type editor",
+      "reason": "Paused 2026-11-19 by Josh so EZD-425 (Next.js security fix) can start; it held docs/architecture.md. Release when EZD-425 has merged.",
+      "question": "",
+      "kind": "held",
+      "since": "2026-11-19"
+    }
+  ]
+}

@@ -8,6 +8,7 @@
 // An empty search is never sent: no `search` key and no second fetchCounts argument.
 // EZD-118 Build step 11 (vault/plans/EZD-118.md Decided "`reset()`"; Q-0394): back to All, Last edited and no
 // search after a create, with a fresh page and counts; the old counts stay until the new ones arrive.
+// EZD-124: refresh() reloads the page and the counts in place after a card menu change.
 import {
   SEARCH_DEBOUNCE_MS,
   projectCountsUrl,
@@ -51,6 +52,7 @@ export type ProjectListStore = {
   clearFilters(): void;
   retry(): void;
   reset(): void;
+  refresh(): void;
   dispose(): void;
 };
 
@@ -259,6 +261,14 @@ export function createProjectListStore(
         moreStatus: 'idle',
         countsStatus: 'loading',
       });
+      loadPage();
+      loadCounts();
+    },
+    // EZD-124: after a card menu change, the same tab, sort and search again, with fresh counts; the cards and
+    // counts on screen stay until the new ones arrive.
+    refresh() {
+      if (!started) return;
+      set({ countsStatus: 'loading' });
       loadPage();
       loadCounts();
     },

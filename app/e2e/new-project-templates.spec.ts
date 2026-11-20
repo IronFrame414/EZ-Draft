@@ -336,7 +336,7 @@ test.describe('EZD-221b New project wizard: template step', () => {
     await expectReady(page);
     await expect(tid(page, 'save-state')).toHaveCount(0);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(2);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(4);
     await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]').first()).toHaveAttribute(
       'data-rail-tool',
       'select',
@@ -363,7 +363,7 @@ test.describe('EZD-221b New project wizard: template step', () => {
     await expectReady(page);
     await expect(tid(page, 'save-state')).toHaveCount(0);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(2);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(4);
     await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]').first()).toHaveAttribute(
       'data-rail-tool',
       'select',

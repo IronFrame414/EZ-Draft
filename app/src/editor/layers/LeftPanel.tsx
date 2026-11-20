@@ -7,10 +7,22 @@
 // EZD-729 (AC-EZD-729-1; S03 "Layers tab sections: Phase, Overlays, Rooms"; board S03Plan Overlays rows): the
 // Overlays section with the Plumbing row, its icon left of the name as the board's overlay rows. The room fields
 // load lazily (`roomFieldsModule`, 11 Budgets) when the Rooms tab is opened (a failed download is tried again on the next open); none show while it downloads.
+// EZD-122 (Q-0673 (c) "Layers and Rooms only until EZD-122"; S03 "tabs Layers, Rooms, Versions"; board S20; S20 Entry
+// points; AC-EZD-122-2, -8): the Versions tab, shown when the editor passes its content. The editor may hold the
+// tab (`tab`, `onTab`), so the header's version text can open Versions.
+// EZD-502 (S05 Entry points "left panel segment Ceiling or Both"; S05 Controls "Floor / Ceiling / Both segment ...
+// Available in view only"; board S05Ceiling left panel; AC-EZD-502-1): the segment tops the panel for every viewer;
+// on Ceiling or Both the floor tabs give way to the ceiling sections, which arrive with EZD-503, EZD-508 to EZD-510.
 import type { FloorChoice } from '../floors/floors';
 import { useChosenFloor } from '../floors/use-chosen-floor';
 import type { ObjectStatus, RoomObject } from '@ezdraft/geometry';
-import { useMemo, useState, useSyncExternalStore, type ReactElement } from 'react';
+import {
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
@@ -18,8 +30,9 @@ import touch from '../../styles/touch.module.css';
 import type { ModelStore } from '../model/model-store';
 import { openFloorId } from '../plan/batches';
 import type { SelectionController } from '../selection/selection-controller';
+import { PLAN_SURFACES, type SurfaceSetting } from '../ceiling/surface';
 import type { LayerId, LayerSetting } from './layer-setting';
-import { lazyModule } from '../../lib/lazy/lazy-module';
+import { roomFieldsModule } from './room-fields-module';
 import { roomRows, type RoomRow } from './rooms';
 import styles from './LeftPanel.module.css';
 
@@ -34,11 +47,25 @@ export type LeftPanelProps = {
   initialTab?: Tab;
   // EZD-6001 D-Wire: the floor the user chose; the Rooms tab lists its rooms. Without it the lowest floor.
   floors?: FloorChoice;
+  // EZD-229 (AC-EZD-229-5): the project a room photo is sent to; without it photos show but are not added.
+  projectId?: string;
+  // EZD-122: the tab shown, when the editor holds it, and what a tab press asks for.
+  tab?: Tab;
+  onTab?: (tab: Tab) => void;
+  // EZD-122: the Versions tab's content; without it there is no Versions tab.
+  versions?: ReactNode;
+  // EZD-502: the plan's surface; without it there is no Floor / Ceiling / Both segment.
+  surface?: SurfaceSetting;
 };
 
-export type Tab = 'layers' | 'rooms';
+const noSubscribe = () => () => {};
+const floorShown = () => 'floor' as const;
 
-export const roomFieldsModule = lazyModule(() => import('../../lazy/room-fields'));
+export type Tab = 'layers' | 'rooms' | 'versions';
+
+// EZD-229: the same lazy module also holds the plan marks of the existing details and floor transitions, which the
+// plan controller loads through this one handle (room-fields-module.ts).
+export { roomFieldsModule };
 
 const PHASE_ROWS: readonly ObjectStatus[] = ['existing', 'demo', 'new'];
 
@@ -147,10 +174,21 @@ export function LeftPanel({
   roomArea,
   initialTab = 'layers',
   floors,
+  projectId,
+  tab: heldTab,
+  onTab,
+  versions,
+  surface,
 }: LeftPanelProps): ReactElement {
   const chosen = useChosenFloor(floors);
   const t = useT();
-  const [tab, setTab] = useState<Tab>(initialTab);
+  const shownSurface = useSyncExternalStore(
+    surface ? surface.subscribe : noSubscribe,
+    surface ? () => surface.get().surface : floorShown,
+    surface ? () => surface.get().surface : floorShown,
+  );
+  const [ownTab, setOwnTab] = useState<Tab>(initialTab);
+  const tab = heldTab ?? ownTab;
   const objects = useSyncExternalStore(
     store.subscribe,
     () => store.getState().objects,
@@ -182,7 +220,8 @@ export function LeftPanel({
       className={`${styles.seg} ${tab === id ? styles.segOn : ''} ${touch.target}`}
       data-testid={`left-panel-tab-${id}`}
       onClick={() => {
-        setTab(id);
+        setOwnTab(id);
+        onTab?.(id);
         if (id === 'rooms') roomFieldsModule.load().then(setFields, () => {});
       }}
     >
@@ -190,13 +229,50 @@ export function LeftPanel({
     </button>
   );
 
+  const segment =
+    surface === undefined ? null : (
+      <div
+        className={styles.tabs}
+        role="group"
+        aria-label={t('office.ceiling.surface.group')}
+        data-testid="surface-segment"
+      >
+        {PLAN_SURFACES.map((s) => (
+          <button
+            key={s}
+            type="button"
+            aria-pressed={shownSurface === s}
+            className={`${styles.seg} ${shownSurface === s ? styles.segOn : ''} ${touch.target}`}
+            data-testid={`surface-${s}`}
+            onClick={() => surface.setSurface(s)}
+          >
+            {t(`office.ceiling.surface.${s}`)}
+          </button>
+        ))}
+      </div>
+    );
+
+  if (shownSurface !== 'floor')
+    return (
+      <div className={styles.panel} data-testid="left-panel" data-surface={shownSurface}>
+        {segment}
+        <div className={styles.body} data-testid="left-panel-ceiling" />
+      </div>
+    );
+
   return (
-    <div className={styles.panel} data-testid="left-panel" data-tab={tab}>
+    <div className={styles.panel} data-testid="left-panel" data-tab={tab} data-surface="floor">
+      {segment}
       <div className={styles.tabs} role="tablist" aria-label={t('office.left_panel.tabs')}>
         {tabButton('layers', 'office.left_panel.tab.layers')}
         {tabButton('rooms', 'office.left_panel.tab.rooms')}
+        {versions === undefined ? null : tabButton('versions', 'office.left_panel.tab.versions')}
       </div>
-      {tab === 'layers' ? (
+      {tab === 'versions' && versions !== undefined ? (
+        <div className={styles.body} role="tabpanel" data-testid="left-panel-versions">
+          {versions}
+        </div>
+      ) : tab === 'layers' ? (
         <div className={styles.body} role="tabpanel" data-testid="left-panel-layers">
           <span className={styles.lbl}>{t('office.left_panel.section.phase')}</span>
           <div className={styles.list}>
@@ -239,6 +315,20 @@ export function LeftPanel({
                 onEye={() => layers.setPlumbingEye(!layerState.plumbingEye)}
               />
             </div>
+            <div
+              className={`${styles.row} ${layerState.mechanicalEye ? '' : styles.off}`}
+              data-testid="layer-row-mechanical"
+            >
+              <Icon name="autorenew" size={18} />
+              <span className={styles.name}>{t('office.left_panel.layer.mechanical')}</span>
+              <LayerControls
+                layer="mechanical"
+                name={t('office.left_panel.layer.mechanical')}
+                on={layerState.mechanicalEye}
+                layers={layers}
+                onEye={() => layers.setMechanicalEye(!layerState.mechanicalEye)}
+              />
+            </div>
           </div>
           <div
             className={`${styles.row} ${styles.sectionRow} ${layerState.roomsEye ? '' : styles.off}`}
@@ -260,7 +350,12 @@ export function LeftPanel({
           <RoomList rows={rows} selectedId={selectedId} onPick={pick}>
             {(row) =>
               fields === undefined ? null : (
-                <fields.RoomFields row={row} canEdit={canEdit} store={store} />
+                <fields.RoomFields
+                  row={row}
+                  canEdit={canEdit}
+                  store={store}
+                  {...(projectId !== undefined ? { projectId } : {})}
+                />
               )
             }
           </RoomList>
