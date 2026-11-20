@@ -413,7 +413,8 @@
     "EZD-412",
     "EZD-134",
     "EZD-413",
-    "EZD-739"
+    "EZD-739",
+    "EZD-1401"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1099,6 +1100,14 @@
       "ts": "2026-11-20T15:21:40Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1401",
+      "title": "Service worker cache",
+      "commit": "f10db4c6",
+      "ts": "2026-11-20T16:14:33Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1227,11 +1236,11 @@
     }
   },
   "running": {
-    "EZD-1401": {
-      "lane": 2,
-      "title": "Service worker cache",
-      "started": "2026-11-20T13:40:45Z",
-      "develop": "b75c6128"
+    "EZD-701": {
+      "lane": 1,
+      "title": "Sheet model and default set",
+      "started": "2026-11-20T15:21:45Z",
+      "develop": "0bf943f4"
     }
   },
   "advisories_checked_at": "2026-11-20T10:58:15Z"
