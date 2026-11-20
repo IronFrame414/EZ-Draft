@@ -408,7 +408,8 @@
     "EZD-505",
     "EZD-506",
     "EZD-713",
-    "EZD-601"
+    "EZD-601",
+    "EZD-1102"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1054,6 +1055,14 @@
       "ts": "2026-11-20T07:31:03Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1102",
+      "title": "Render models settings",
+      "commit": "d89cd349",
+      "ts": "2026-11-20T08:18:38Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1169,11 +1178,11 @@
     }
   },
   "running": {
-    "EZD-1102": {
-      "lane": 1,
-      "title": "Render models settings",
-      "started": "2026-11-20T06:24:47Z",
-      "develop": "1bb00ac4"
+    "EZD-403": {
+      "lane": 2,
+      "title": "Cabinet library panel",
+      "started": "2026-11-20T07:31:08Z",
+      "develop": "0a049e49"
     }
   },
   "advisories_checked_at": "2026-11-20T04:58:02Z"
