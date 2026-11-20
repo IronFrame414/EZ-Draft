@@ -16,7 +16,7 @@ Everything else in these phases was settled from the spec, your decisions and th
 
 Eight questions need you. **None of them holds a ticket.** Each piece is built the recommended way, and a different answer becomes a small follow-on ticket. Answer whenever it suits you.
 
-**Answered 2026-11-20 (Q-0781 to Q-0785):** 1 yes; 2 one signature, plus a simple pen for the client (new ticket EZD-1216); 3 yes; 4 the architect's own colours; 6 both buttons. **Still open:** 5 and 7 (explained in plain words under each), and 8, now split into one short question per item.
+**Answered 2026-11-20 (Q-0781 to Q-0785):** 1 yes; 2 one signature, plus a simple pen for the client (new ticket EZD-1216); 3 yes; 4 the architect's own colours; 6 both buttons. **Then (same day), "Take my picks" (Q-0786 to Q-0788):** 5 (a); 7 (a); 8 no to all 19 items. Every question in this file is answered.
 
 ---
 
@@ -108,7 +108,7 @@ Eight questions need you. **None of them holds a ticket.** Each piece is built t
 - (a) The line snaps to the architect's lines, and the detail holds your model's walls cut at that line, the same as a section on the plan. The architect's lines only guide where you draw (recommended)
 - (b) Also copy the architect's linework near the line into the detail as gray lines to trace over
 
-**Josh's reply (2026-11-20): "explain".** Still open; holds nothing.
+**Josh's reply (2026-11-20): "explain"**, then "Take my picks": **(a)**. Recorded as Q-0786.
 
 **In plain words:** say the architect's plan shows a kitchen wall with a soffit, and you want a section through it for the permit set. You draw a line across that wall on the architect's drawing, and EZ Draft opens a new detail.
 - With (a), the detail starts with the walls you drew in EZ Draft, cut where your line crosses them: stud, drywall, and so on, as on a section from your own plan. The architect's lines only helped you put the line in the right place. If you haven't drawn that wall in EZ Draft yet, the detail starts empty and you draw it.
@@ -148,7 +148,7 @@ Eight questions need you. **None of them holds a ticket.** Each piece is built t
 - (a) Keep it as a checklist item in v1 (recommended)
 - (b) Add a hatched work-area plan with the SF and % to the permit set (a new ticket)
 
-**Josh's reply (2026-11-20): "explain".** Still open; holds nothing.
+**Josh's reply (2026-11-20): "explain"**, then "Take my picks": **(a)**. Recorded as Q-0787.
 
 **In plain words:** under the Existing Building code, how much paperwork and upgrading a remodel needs depends on how much of the house you're working on. That share is the "work area": the rooms you're reconfiguring, as a percentage of the whole house. Under 50% is usually a Level 2 alteration; over 50% is Level 3, which pulls in more requirements. EZ Draft already works this out from your plan and shows it in the code check ("Work area 420 SF of 1,800 SF (23%), Alteration level 2").
 
@@ -191,6 +191,8 @@ Answer each with **yes** (add it to v1) or **no** (leave it as "not checked" in 
 19. **Valves, regulators and backflow devices** (shutoffs, pressure regulators, backflow preventers). The rules check that they're there and reachable. *[no]*
 
 If you answer "yes" to any, I'll add the tickets after phase 47 so they don't hold up what's already released.
+
+**Josh's answer (2026-11-20): "Take my picks": no to all 19** (Worth Properties remodels are mostly kitchens and baths). Recorded as Q-0788. Any item can be added later as its own ticket.
 
 ---
 

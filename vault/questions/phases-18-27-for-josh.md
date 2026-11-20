@@ -157,7 +157,7 @@ One piece is held for agent work, not for you: the optional load calc method (EZ
 - (a) Leave them out of v1 and list them as not checked (recommended)
 - (b) Tell me which to add (stairs first?). Each becomes a new drawing piece, and its rules wait for it.
 
-**Josh's reply (2026-11-18): "why cant they be drawn?"** Answered in chat 2026-11-18. Still open; holds nothing. Until Josh picks, the rules are listed as not checked. 2026-11-20: Josh asked for one question per item; that list, with this question's items, is question 8 of vault/questions/phases-38-47-for-josh.md.
+**Josh's reply (2026-11-18): "why cant they be drawn?"** Answered in chat 2026-11-18. Still open; holds nothing. Until Josh picks, the rules are listed as not checked. 2026-11-20: Josh asked for one question per item; that list, with this question's items, is question 8 of vault/questions/phases-38-47-for-josh.md. **Answered 2026-11-20 ("Take my picks"): (a), none added in v1.** Recorded as Q-0788.
 
 ---
 
