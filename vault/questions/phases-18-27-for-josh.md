@@ -54,7 +54,7 @@ One piece is held for agent work, not for you: the optional load calc method (EZ
 - (a) As above (recommended)
 - (b) As above, but you tell me what to change (for example, add an isometric view, or fill in the change-out forms)
 
-**Josh's answer (2026-11-18):** "why cant manual j be automated within ez draft?. plumbing and electric often need 2 pages or more. E-1 would be the layout with devices and symbols. E-2 if a second floor or location or detail is needed. then panel schedule and load calc. same goes for mechanical and plumbing". Recorded as Q-0763: each trade runs to as many sheets as it needs (E1.0 layout, E2.0 for a second floor, location or detail, then the panel schedule and load calc; plumbing and mechanical the same). The rest of (a) stands, since the reply did not change it, and you review it at the phase check. EZD-730 and EZD-731 are released. **Still open: Manual J in EZ Draft** (answered in chat 2026-11-18); EZD-732 waits on it.
+**Josh's answer (2026-11-18):** "why cant manual j be automated within ez draft?. plumbing and electric often need 2 pages or more. E-1 would be the layout with devices and symbols. E-2 if a second floor or location or detail is needed. then panel schedule and load calc. same goes for mechanical and plumbing". Recorded as Q-0763: each trade runs to as many sheets as it needs (E1.0 layout, E2.0 for a second floor, location or detail, then the panel schedule and load calc; plumbing and mechanical the same). The rest of (a) stands, since the reply did not change it, and you review it at the phase check. EZD-730 and EZD-731 are released. **Manual J follow-up, Josh (2026-11-20): "my local building departments accept it so this should be built and incorporated in v1".** Recorded as Q-0778. EZD-732 is released (it reads a typed Manual J load for now). New tickets EZD-740 (inputs), EZD-741 (calculation) and EZD-742 (report on the mechanical sheets) wait until the method and a worked example are written into the spec from a cited source.
 
 ---
 
@@ -176,3 +176,9 @@ These pieces have a written description in the spec but no drawing. Your answer 
 - (b) Make drawings first for the ones you list. Those tickets would wait for the drawings.
 
 **Josh's answer (2026-11-18): (a), "yes".** Recorded as Q-0769.
+
+---
+
+## Added 2026-11-20: reflected ceiling plan sheet is optional
+
+**Josh (2026-11-20): "this isn't always needed but should be one of the check boxes to add".** Recorded as Q-0779. A fourth tick box, "Reflected ceiling plan", sits with Electrical, Plumbing and Mechanical. Ticked, the A6.0 sheet is in the set; unticked, it is left out, and drawn ceiling work then gets a Check warning. It starts unticked; that default and the wording are listed in `vault/build/assumptions.md` for you to confirm. Tickets: EZD-739 (new), EZD-701, EZD-708a, EZD-641.

@@ -9586,13 +9586,15 @@
    ],
    "phase_file": "tickets/phases/phase-07.md",
    "depends_on": [
-    "EZD-202"
+    "EZD-202",
+    "EZD-739"
    ],
    "build_position": 234,
    "acs": [
-    "AC-EZD-701-1"
+    "AC-EZD-701-1",
+    "AC-EZD-701-2"
    ],
-   "acs_source": "done-when",
+   "acs_source": "josh-2026-11-20",
    "spec_phase": 7,
    "decisions": [
     "spec/decisions/05-screens.md",
@@ -9601,7 +9603,8 @@
     "spec/decisions/13b-round-26.md",
     "spec/decisions/09-calculations-and-rules.md#Q-0179",
     "spec/decisions/03-data-model.md#Q-0509",
-    "spec/decisions/09-calculations-and-rules.md#Q-0763"
+    "spec/decisions/09-calculations-and-rules.md#Q-0763",
+    "spec/decisions/09-calculations-and-rules.md#Q-0779"
    ]
   },
   {
@@ -9847,14 +9850,16 @@
    ],
    "build_position": 243,
    "acs": [
-    "AC-EZD-708a-1"
+    "AC-EZD-708a-1",
+    "AC-EZD-708a-2"
    ],
-   "acs_source": "done-when",
+   "acs_source": "josh-2026-11-20",
    "spec_phase": 7,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/09-calculations-and-rules.md",
-    "spec/decisions/03-data-model.md#Q-0509"
+    "spec/decisions/03-data-model.md#Q-0509",
+    "spec/decisions/09-calculations-and-rules.md#Q-0779"
    ]
   },
   {
@@ -10491,7 +10496,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/03-data-model.md#Q-0509",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0779"
    ]
   },
   {
@@ -10551,7 +10557,8 @@
    "spec_phase": 7,
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
-    "spec/decisions/05-screens.md#Q-0769"
+    "spec/decisions/05-screens.md#Q-0769",
+    "spec/decisions/09-calculations-and-rules.md#Q-0779"
    ]
   },
   {
@@ -17417,22 +17424,57 @@
     "EZD-118",
     "EZD-234",
     "EZD-512",
-    "EZD-130"
+    "EZD-130",
+    "EZD-739",
+    "EZD-501"
    ],
    "build_position": 228,
    "acs": [
     "AC-EZD-641-1",
-    "AC-EZD-641-2"
+    "AC-EZD-641-2",
+    "AC-EZD-641-3"
    ],
-   "acs_source": "done-when",
+   "acs_source": "josh-2026-11-20",
    "spec_phase": 6,
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/09-calculations-and-rules.md#Q-0180",
     "spec/decisions/05-screens.md#Q-0396",
     "spec/decisions/13b-round-26.md#R28",
-    "spec/decisions/09-calculations-and-rules.md#Q-0764"
+    "spec/decisions/09-calculations-and-rules.md#Q-0764",
+    "spec/decisions/09-calculations-and-rules.md#Q-0779"
    ]
+  },
+  {
+   "id": "EZD-739",
+   "phase": 21,
+   "title": "Scope tick boxes",
+   "depends_raw": "EZD-118, EZD-130",
+   "spec_ref": "Q-0764; Q-0779; S01 Step 1",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0764",
+    "spec/decisions/09-calculations-and-rules.md#Q-0779",
+    "spec/decisions/05-screens.md#Q-0396",
+    "spec/decisions/05-screens.md#Q-0769"
+   ],
+   "mockups": [
+    "mockups/S01Projects.png"
+   ],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-118",
+    "EZD-130"
+   ],
+   "build_position": 227.5,
+   "acs": [
+    "AC-EZD-739-1",
+    "AC-EZD-739-2"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 6
   },
   {
    "id": "EZD-729",
@@ -17528,13 +17570,15 @@
    ],
    "build_position": 232,
    "acs": [
-    "AC-EZD-732-1"
+    "AC-EZD-732-1",
+    "AC-EZD-732-2"
    ],
-   "acs_source": "done-when",
+   "acs_source": "josh-2026-11-20",
    "spec_phase": 7,
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md#Q-0179",
-    "spec/decisions/09-calculations-and-rules.md#Q-0763"
+    "spec/decisions/09-calculations-and-rules.md#Q-0763",
+    "spec/decisions/09-calculations-and-rules.md#Q-0778"
    ]
   },
   {
@@ -17718,8 +17762,92 @@
     "spec/decisions/05-screens.md",
     "spec/decisions/09-calculations-and-rules.md#Q-0179",
     "spec/decisions/09-calculations-and-rules.md#Q-0763",
-    "spec/decisions/05-screens.md#Q-0771"
+    "spec/decisions/05-screens.md#Q-0771",
+    "spec/decisions/09-calculations-and-rules.md#Q-0778"
    ]
+  },
+  {
+   "id": "EZD-740",
+   "phase": 23,
+   "title": "Manual J inputs",
+   "depends_raw": "EZD-731, EZD-218",
+   "spec_ref": "Q-0778; 09t",
+   "spec_files": [
+    "spec/sections/09t-manual-j.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0778",
+    "spec/decisions/09-calculations-and-rules.md#Q-0763",
+    "spec/decisions/05-screens.md#Q-0769"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-731",
+    "EZD-218"
+   ],
+   "build_position": 232.5,
+   "acs": [
+    "AC-EZD-740-1",
+    "AC-EZD-740-2"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 7
+  },
+  {
+   "id": "EZD-741",
+   "phase": 23,
+   "title": "Manual J load calculation",
+   "depends_raw": "EZD-740, EZD-732",
+   "spec_ref": "Q-0778; 09t",
+   "spec_files": [
+    "spec/sections/09t-manual-j.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0778",
+    "spec/decisions/13b-round-26.md"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-740",
+    "EZD-732"
+   ],
+   "build_position": 232.6,
+   "acs": [
+    "AC-EZD-741-1",
+    "AC-EZD-741-2"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 7
+  },
+  {
+   "id": "EZD-742",
+   "phase": 28,
+   "title": "Manual J report on the mechanical sheets",
+   "depends_raw": "EZD-741, EZD-738",
+   "spec_ref": "Q-0778; Q-0763; 09t",
+   "spec_files": [
+    "spec/sections/09t-manual-j.md",
+    "spec/sections/screens/S13-sheets-key-issue.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0778",
+    "spec/decisions/09-calculations-and-rules.md#Q-0763"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-741",
+    "EZD-738"
+   ],
+   "build_position": 267.5,
+   "acs": [
+    "AC-EZD-742-1",
+    "AC-EZD-742-2"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 7
   },
   {
    "id": "EZD-1424",
