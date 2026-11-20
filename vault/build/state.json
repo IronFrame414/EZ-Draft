@@ -411,7 +411,8 @@
     "EZD-601",
     "EZD-1102",
     "EZD-412",
-    "EZD-134"
+    "EZD-134",
+    "EZD-413"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1081,6 +1082,14 @@
       "ts": "2026-11-20T11:40:30Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-413",
+      "title": "Seams and cutouts",
+      "commit": "b5a660c9",
+      "ts": "2026-11-20T13:40:40Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1102,7 +1111,7 @@
     }
   },
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1209,11 +1218,11 @@
     }
   },
   "running": {
-    "EZD-413": {
-      "lane": 2,
-      "title": "Seams and cutouts",
-      "started": "2026-11-20T11:13:11Z",
-      "develop": "9991d2fc"
+    "EZD-739": {
+      "lane": 1,
+      "title": "Scope tick boxes",
+      "started": "2026-11-20T13:14:31Z",
+      "develop": "f8fd4315"
     }
   },
   "advisories_checked_at": "2026-11-20T10:58:15Z"
