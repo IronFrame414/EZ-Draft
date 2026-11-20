@@ -405,7 +405,8 @@
     "EZD-424",
     "EZD-714",
     "EZD-425",
-    "EZD-505"
+    "EZD-505",
+    "EZD-506"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1027,6 +1028,14 @@
       "ts": "2026-11-20T04:50:34Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-506",
+      "title": "Section A-A preview",
+      "commit": "9c8f98d5",
+      "ts": "2026-11-20T05:59:04Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1149,5 +1158,5 @@
       "develop": "0bc89d8b"
     }
   },
-  "advisories_checked_at": "2026-11-19T22:57:31Z"
+  "advisories_checked_at": "2026-11-20T04:58:02Z"
 }
