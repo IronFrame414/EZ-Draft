@@ -1012,8 +1012,8 @@
       "worktree": ".claude/worktrees/EZD-222"
     }
   },
-  "red_streak": 0,
-  "push_pending": true,
+  "red_streak": 1,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1034,7 +1034,8 @@
     "EZD-123": 1,
     "EZD-424": 1,
     "EZD-412": 1,
-    "EZD-1009": 1
+    "EZD-1009": 1,
+    "EZD-425": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1108,20 +1109,24 @@
     "EZD-1009": {
       "ts": "2026-11-19T20:56:15Z",
       "reason": "check red after a review fix"
+    },
+    "EZD-425": {
+      "ts": "2026-11-20T03:14:56Z",
+      "reason": "check still red after 2 fix rounds"
     }
   },
   "running": {
-    "EZD-425": {
-      "lane": 0,
-      "title": "Fix: security advisories in glob, minimatch, next; move to the patched versions",
-      "started": "2026-11-19T22:57:34Z",
-      "develop": "81fd1d60"
-    },
     "EZD-505": {
       "lane": 2,
       "title": "Beams",
       "started": "2026-11-19T22:57:36Z",
       "develop": "81fd1d60"
+    },
+    "EZD-714": {
+      "lane": 1,
+      "title": "Notes library",
+      "started": "2026-11-20T01:46:57Z",
+      "develop": "49afd16d"
     }
   },
   "advisories_checked_at": "2026-11-19T22:57:31Z"
