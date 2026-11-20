@@ -108,7 +108,7 @@ Eight questions need you. **None of them holds a ticket.** Each piece is built t
 - (a) The line snaps to the architect's lines, and the detail holds your model's walls cut at that line, the same as a section on the plan. The architect's lines only guide where you draw (recommended)
 - (b) Also copy the architect's linework near the line into the detail as gray lines to trace over
 
-**Josh's reply (2026-11-20): "explain"**, then "Take my picks": **(a)**. Recorded as Q-0786.
+**Josh's reply (2026-11-20): "explain"**, then "Take my picks", then **"5 - b. keep the small copy so the end user can see where the section detail is located"**. Recorded as Q-0786: the detail keeps a small gray copy of the architect's lines around the cut, and it prints (EZD-912).
 
 **In plain words:** say the architect's plan shows a kitchen wall with a soffit, and you want a section through it for the permit set. You draw a line across that wall on the architect's drawing, and EZ Draft opens a new detail.
 - With (a), the detail starts with the walls you drew in EZ Draft, cut where your line crosses them: stud, drywall, and so on, as on a section from your own plan. The architect's lines only helped you put the line in the right place. If you haven't drawn that wall in EZ Draft yet, the detail starts empty and you draw it.
@@ -148,7 +148,7 @@ Eight questions need you. **None of them holds a ticket.** Each piece is built t
 - (a) Keep it as a checklist item in v1 (recommended)
 - (b) Add a hatched work-area plan with the SF and % to the permit set (a new ticket)
 
-**Josh's reply (2026-11-20): "explain"**, then "Take my picks": **(a)**. Recorded as Q-0787.
+**Josh's reply (2026-11-20): "explain"**, then "Take my picks", then **"7 - b"**. Recorded as Q-0787: the cover sheet A0.0 prints a hatched work-area plan with the SF, % and level (new ticket EZD-619, phase 46).
 
 **In plain words:** under the Existing Building code, how much paperwork and upgrading a remodel needs depends on how much of the house you're working on. That share is the "work area": the rooms you're reconfiguring, as a percentage of the whole house. Under 50% is usually a Level 2 alteration; over 50% is Level 3, which pulls in more requirements. EZ Draft already works this out from your plan and shows it in the code check ("Work area 420 SF of 1,800 SF (23%), Alteration level 2").
 

@@ -8902,6 +8902,41 @@
    ]
   },
   {
+   "id": "EZD-619",
+   "phase": 46,
+   "title": "Work-area plan on the cover sheet",
+   "depends_raw": "EZD-618, EZD-620, EZD-728, EZD-702b, EZD-715",
+   "spec_ref": "Q-0787; Code rules catalog EB-017; Sheet set rules",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md",
+    "spec/sections/09h-sheets-and-revisions.md#Sheet set rules",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0787",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/05-screens.md#Q-0781",
+    "spec/decisions/13b-round-26.md#R7"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-06.md",
+   "depends_on": [
+    "EZD-618",
+    "EZD-620",
+    "EZD-728",
+    "EZD-702b",
+    "EZD-715"
+   ],
+   "build_position": 393.5,
+   "acs": [
+    "AC-EZD-619-1",
+    "AC-EZD-619-2",
+    "AC-EZD-619-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 6
+  },
+  {
    "id": "EZD-620",
    "phase": 21,
    "title": "Code data fields",
@@ -10668,7 +10703,8 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/05-screens.md#Q-0769",
-    "spec/decisions/09-calculations-and-rules.md#Q-0779"
+    "spec/decisions/09-calculations-and-rules.md#Q-0779",
+    "spec/decisions/09-calculations-and-rules.md#Q-0787"
    ]
   },
   {
@@ -11691,11 +11727,13 @@
    "phase_file": "tickets/phases/phase-09.md",
    "depends_on": [
     "EZD-902",
-    "EZD-811"
+    "EZD-811",
+    "EZD-903"
    ],
    "build_position": 366,
    "acs": [
-    "AC-EZD-912-1"
+    "AC-EZD-912-1",
+    "AC-EZD-912-2"
    ],
    "acs_source": "done-when",
    "spec_phase": 9,
