@@ -415,7 +415,8 @@
     "EZD-413",
     "EZD-739",
     "EZD-1401",
-    "EZD-426"
+    "EZD-426",
+    "EZD-427"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1117,18 +1118,17 @@
       "ts": "2026-11-20T18:26:26Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-427",
+      "title": "Fix: the EZD-009 background-jobs browser test fails at random under load and sets tickets aside",
+      "commit": "f0e7e5ab",
+      "ts": "2026-11-20T19:35:19Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
-  "set_aside": {
-    "EZD-701": {
-      "title": "Sheet model and default set",
-      "ts": "2026-11-20T17:59:20Z",
-      "reason": "check red after merging newer develop (first try: check red after merging newer develop)",
-      "detail": "ontext than the active one is not supported. Skipping injection.\n(node:25781) [THREE_CJS_DEPRECATED] DeprecationWarning: `require(\"three\")` is deprecated and will be removed.\nReplace `const THREE = require(\"three\")` with `import * as THREE from \"three\"`.\n(Use `node --trace-deprecation ...` to show where the warning was created)\nEZD-423 editor route compressed JavaScript: 499911 bytes\n  ✘  221 [desktop] › e2e/net-guard.spec.ts:14:7 › EZD-021 net guard in browser tests › EZD-021 T14 (a) a page request to a live host fails the test (76ms)\n  ✘  222 [desktop] › e2e/net-guard.spec.ts:22:9 › EZD-021 net guard in browser tests › server log › EZD-021 T14 (b) a line in the server guard log fails the test (3ms)\n  ✘  224 [desktop] › e2e/net-guard.spec.ts:40:7 › EZD-159 net guard blocks page WebSockets › EZD-159 T7 a page WebSocket to a live host fails the test (162ms)\n  ✘  193 [desktop] › e2e/jobs.spec.ts:33:7 › EZD-009 background jobs › EZD-009 done when: a test job runs, reports progress and result, and the UI stays usable (1.0m)\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n  1) [desktop] › e2e/jobs.spec.ts:33:7 › EZD-009 background jobs › EZD-009 done when: a test job runs, reports progress and result, and the UI stays usable \n    Test timeout of 60000ms exceeded.\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n    Error Context: test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/error-context.md\n    Error Context: test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/error-context.md\n    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/trace.zip\n    Usage:\n        pnpm exec playwright show-trace test-results/jobs-EZD-009-background-jo-74c6d-ult-and-the-UI-stays-usable-desktop/trace.zip\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n  1 failed\n    [desktop] › e2e/jobs.spec.ts:33:7 › EZD-009 background jobs › EZD-009 done when: a test job runs, reports progress and result, and the UI stays usable \n  7 did not run\n  577 passed (5.7m)\n[ELIFECYCLE] Command failed with exit code 1.\nError: \nERR_PNPM_RECURSIVE_RUN_FIRST_FAIL\n  × \"pnpm recursive run\" failed in /Users/josh/Projects/ezdraft/.claude/\n  │ worktrees/EZD-701/app\n",
-      "branch": "t/EZD-701",
-      "worktree": ".claude/worktrees/EZD-701"
-    }
-  },
+  "set_aside": {},
   "red_streak": 0,
   "push_pending": true,
   "trial_report_written": true,
@@ -1145,7 +1145,6 @@
     "EZD-312": 1,
     "EZD-134": 1,
     "EZD-305": 1,
-    "EZD-701": 1,
     "EZD-123": 1,
     "EZD-424": 1,
     "EZD-412": 1,
@@ -1234,6 +1233,13 @@
       "reason": "builder timed out after 90 min with no commits"
     }
   },
-  "running": {},
-  "advisories_checked_at": "2026-11-20T10:58:15Z"
+  "running": {
+    "EZD-222": {
+      "lane": 1,
+      "title": "Keyboard shortcuts and Help",
+      "started": "2026-11-20T18:27:43Z",
+      "develop": "55c6a206"
+    }
+  },
+  "advisories_checked_at": "2026-11-20T18:26:37Z"
 }
