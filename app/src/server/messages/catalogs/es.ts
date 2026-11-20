@@ -28,6 +28,7 @@ export const es = {
     'Resuelve cada elemento y cada hueco de habitación antes de terminar la importación.',
   'error.job_not_found': 'Esa tarea ya no existe.',
   'error.invalid_input': 'Parte de esa información no es válida. Revísala e inténtalo de nuevo.',
+  'error.tier_model_required': 'Elige un modelo para cada nivel para guardar.',
   'common.invite.email_subject': 'Te invitaron a unirte a {company} en EZ Draft',
   'common.invite.email_intro':
     '{company} te invitó a EZ Draft. Abre el enlace y presiona Aceptar para unirte.',
@@ -140,6 +141,9 @@ export const es = {
   'error.library_abbreviation_taken': 'Esta abreviatura ya está en la biblioteca.',
   'error.library_item_not_found': 'Este elemento de la biblioteca ya no existe.',
   'error.library_item_read_only': 'Este elemento de la biblioteca no se puede cambiar aquí.',
+  'error.library_note_required': 'Escribe el texto de la nota.',
+  'error.library_note_too_long': 'Usa 1,000 caracteres o menos.',
+  'error.library_note_project_type_required': 'Elige al menos un tipo de proyecto.',
   'error.member_not_found': 'Esta persona ya no está en esta empresa.',
   'error.password_target_refused': 'No puedes poner una contraseña para esta persona.',
   'error.project_unavailable':

@@ -42,6 +42,39 @@ export const MONEY_FIELDS: readonly MoneyField[] = [
     responseKeys: [],
     source: 'EZD-401; 03c catalog_item; S09 Permissions',
   },
+  // EZD-1102 (S15f; 13b R2: render cost and allowance dollars are See company costs).
+  {
+    schema: 'public',
+    table: 'render_tier_model',
+    column: 'cost_usd_per_render',
+    moneyClass: 'company_cost',
+    responseKeys: [],
+    source: 'EZD-1102; S15f Tiers; 13b R2',
+  },
+  {
+    schema: 'public',
+    table: 'render_allowance',
+    column: 'amount_usd',
+    moneyClass: 'company_cost',
+    responseKeys: [],
+    source: 'EZD-1102; 03d render_allowance; 13b R2',
+  },
+  {
+    schema: 'public',
+    table: 'render_allowance',
+    column: 'balance_usd',
+    moneyClass: 'company_cost',
+    responseKeys: [],
+    source: 'EZD-1102; 03d render_allowance; 13b R2',
+  },
+  {
+    schema: 'public',
+    table: 'render_allowance',
+    column: 'refill_amount_usd',
+    moneyClass: 'company_cost',
+    responseKeys: [],
+    source: 'EZD-1102; 03d render_allowance; 13b R2',
+  },
 ];
 
 export const MONEY_PERMISSIONS: Readonly<Record<MoneyClass, PermissionKey>> = {

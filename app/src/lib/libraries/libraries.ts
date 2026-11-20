@@ -80,13 +80,22 @@ export const LIBRARY_TABS: readonly LibraryTab[] = [
   },
 ];
 
-// Kinds this ticket can add (S15h: abbreviations may be added) and change (abbreviations; saved groups are
-// renamed or deleted). The other kinds' own tickets add their editors.
-export const CREATABLE_KINDS: readonly LibraryKind[] = ['abbreviation'];
-export const EDITABLE_KINDS: readonly LibraryKind[] = ['abbreviation', 'saved_group'];
+// Kinds that can be added (S15h: abbreviations may be added; EZD-714 notes) and changed (abbreviations, notes;
+// saved groups are renamed or deleted). The other kinds' own tickets add their editors.
+export const CREATABLE_KINDS: readonly LibraryKind[] = ['note', 'abbreviation'];
+export const EDITABLE_KINDS: readonly LibraryKind[] = ['note', 'abbreviation', 'saved_group'];
 
 export const LIBRARY_NAME_MAX = 120;
 export const LIBRARY_MEANING_MAX = 200;
+// EZD-714: a note's name is its text, which may run longer than a name (20261119160000_notes_library.sql).
+export const NOTE_TEXT_MAX = 1000;
+
+// EZD-714 (S15h Tab: Notes): general notes and code notes, grouped by project type (project.type values).
+export const NOTE_GROUPS = ['general', 'code'] as const;
+export type NoteGroup = (typeof NOTE_GROUPS)[number];
+export const NOTE_PROJECT_TYPES = ['kitchen', 'bath', 'whole_home_interior'] as const;
+export type NoteProjectType = (typeof NOTE_PROJECT_TYPES)[number];
+export type NoteData = { group: NoteGroup; projectTypes: NoteProjectType[] };
 
 export type LibraryItem = {
   id: string;
@@ -95,6 +104,8 @@ export type LibraryItem = {
   // An abbreviation's meaning; null for the other kinds.
   meaning: string | null;
   updatedAt: string;
+  // A note's group and project types; present on notes only.
+  note?: NoteData;
 };
 
 export type LibraryCode =
@@ -102,7 +113,10 @@ export type LibraryCode =
   | 'library_name_required'
   | 'library_name_too_long'
   | 'library_meaning_required'
-  | 'library_meaning_too_long';
+  | 'library_meaning_too_long'
+  | 'library_note_required'
+  | 'library_note_too_long'
+  | 'library_note_project_type_required';
 
 export type LibraryDraft = { name: string; meaning: string | null };
 
@@ -125,4 +139,41 @@ export function matchesSearch(item: LibraryItem, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (q === '') return true;
   return item.name.toLowerCase().includes(q) || (item.meaning ?? '').toLowerCase().includes(q);
+}
+
+// EZD-714: the first problem with a note draft; null when it may be saved.
+export function checkNoteDraft(text: string, projectTypes: readonly string[]): LibraryCode | null {
+  const t = text.trim();
+  if (t === '') return 'library_note_required';
+  if (t.length > NOTE_TEXT_MAX) return 'library_note_too_long';
+  if (projectTypes.length === 0) return 'library_note_project_type_required';
+  return null;
+}
+
+// A note's stored data read back: an unknown group is general; unknown project types are dropped and none
+// left means every project type.
+export function noteDataOf(data: unknown): NoteData {
+  const obj =
+    data !== null && typeof data === 'object' && !Array.isArray(data)
+      ? (data as Record<string, unknown>)
+      : {};
+  const group: NoteGroup = obj.group === 'code' ? 'code' : 'general';
+  const raw = Array.isArray(obj.projectTypes) ? obj.projectTypes : [];
+  const types = NOTE_PROJECT_TYPES.filter((p) => raw.includes(p));
+  return { group, projectTypes: types.length > 0 ? types : [...NOTE_PROJECT_TYPES] };
+}
+
+// The Notes tab shows one project type at a time; 'all' shows every note.
+export type NoteFilter = NoteProjectType | 'all';
+export function notesFor(
+  items: readonly LibraryItem[],
+  filter: NoteFilter,
+  group: NoteGroup,
+): LibraryItem[] {
+  return items.filter(
+    (i) =>
+      i.note !== undefined &&
+      i.note.group === group &&
+      (filter === 'all' || i.note.projectTypes.includes(filter)),
+  );
 }

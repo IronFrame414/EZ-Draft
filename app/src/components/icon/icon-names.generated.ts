@@ -12,6 +12,7 @@ export const ICON_NAMES = [
   'autorenew',
   'badge',
   'block',
+  'bolt',
   'category',
   'chat_bubble',
   'check',

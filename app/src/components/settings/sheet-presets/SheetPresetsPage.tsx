@@ -5,11 +5,16 @@
 // rows muted) with a row menu (Set as default, Duplicate, Archive or Restore, Delete); New profile copies the
 // default. The inspector edits the EZD-712 fields: department name, submittal type, permit sheet size (fixed
 // 24x36), electrical signature, file naming template with its tokens, stamp box size and position, and shows the
-// PDF output line. File split, max size, revision naming, flatten, bookmarks, resubmittal, minimum scale and
-// export unsigned are EZD-713; required notes wait for the notes library (EZD-714) (assumptions EZD-712).
+// PDF output line. EZD-713 adds the rest of the board's profile panel: file split and max file size, the name
+// length limit and letter case with the count, revision naming, flatten, export unsigned (turned on when a signer
+// is chosen), bookmarks, TOC sheet, minimum plan scale, resubmittal mode and transmittal letter. EZD-714 (S15c Required notes): a multi-select from the notes library, kept in
+// library order (the order the set prints them), with a link to Settings > Libraries.
 // Offline: read-only.
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { LibraryItem } from '../../../lib/libraries/libraries';
+import type { MessageKey } from '../../../server/messages/catalog';
 import { useT } from '../../../lib/messages';
 import { useOnline } from '../../../lib/network';
 import {
@@ -18,7 +23,15 @@ import {
   checkNamingTemplate,
   exampleName,
   fieldsOf,
+  FILE_SPLITS,
+  fileSplitLabel,
+  MIN_SCALES,
   NAMING_TOKENS,
+  RESUBMITTAL_MODES,
+  resubmittalModeLabel,
+  REVISION_NAMINGS,
+  revisionNamingLabel,
+  scaleLabel,
   SIGNERS,
   signerLabel,
   sortProfiles,
@@ -26,7 +39,9 @@ import {
   stampPositionLabel,
   SUBMITTAL_TYPES,
   submittalTypeLabel,
+  type FileSplit,
   type ProfileFields,
+  type ResubmittalMode,
   type Signer,
   type StampPosition,
   type SubmittalProfile,
@@ -90,7 +105,7 @@ export function SheetPresetsPage({
 
   const changes = selected && form ? changedFields(selected, form) : null;
   const dirty = changes !== null;
-  const problems = selected && form ? checkFields(form, selected.revisionNaming) : [];
+  const problems = selected && form ? checkFields(form, form.revisionNaming) : [];
 
   const replace = useCallback((p: SubmittalProfile) => {
     setProfiles((list) => sortProfiles(list.map((x) => (x.id === p.id ? p : x))));
@@ -284,10 +299,20 @@ export function SheetPresetsPage({
     </StateButton>
   );
 
+  // The board's row chips: what sets this profile apart.
   const chips = (p: SubmittalProfile) => [
     t(submittalTypeLabel(p.submittalType)),
     '24x36',
+    t(`office.sheet_presets.chip.${p.fileSplit}`),
+    ...(p.maxFileMb !== null ? [t('office.sheet_presets.chip.max_mb', { mb: p.maxFileMb })] : []),
     p.namingTemplate,
+    ...(p.namingUpper ? [t('office.sheet_presets.chip.all_caps')] : []),
+    ...(p.namingMaxLength !== null
+      ? [t('office.sheet_presets.chip.max_chars', { max: p.namingMaxLength })]
+      : []),
+    ...(p.revisionNaming === 'same_name' ? [t('office.sheet_presets.chip.same_name')] : []),
+    ...(p.flatten ? [t('office.sheet_presets.chip.flatten')] : []),
+    ...(p.tocSheet ? [t('office.sheet_presets.chip.toc_sheet')] : []),
     `${p.stampBoxWidthIn}"x${p.stampBoxHeightIn}" ${positionShort[p.stampBoxPosition]}`,
   ];
 
@@ -550,7 +575,26 @@ function ProfileInspector({
   }
   const set = <K extends keyof ProfileFields>(k: K, v: ProfileFields[K]) =>
     setForm({ ...form, [k]: v });
-  const naming = checkNamingTemplate(form.namingTemplate, profile.revisionNaming);
+  const naming = checkNamingTemplate(form.namingTemplate, form.revisionNaming);
+  const example = exampleName(form.namingTemplate, {
+    upper: form.namingUpper,
+    maxLength:
+      form.namingMaxLength !== null && Number.isFinite(form.namingMaxLength)
+        ? form.namingMaxLength
+        : null,
+  });
+  // S15c: Export unsigned is on by default when the signer is not None, unless the switch was changed here.
+  const setSigner = (signer: Signer) =>
+    setForm({
+      ...form,
+      signer,
+      ...(form.signer === 'none' &&
+      signer !== 'none' &&
+      form.exportUnsigned === profile.exportUnsigned
+        ? { exportUnsigned: true }
+        : {}),
+    });
+  const optNum = (v: string) => (v.trim() === '' ? null : Number(v));
   const sub = [
     profile.projectCount > 0
       ? t('office.sheet_presets.used_by', { count: profile.projectCount })
@@ -634,7 +678,7 @@ function ProfileInspector({
               className={styles.input}
               value={form.signer}
               disabled={readOnly}
-              onChange={(e) => set('signer', e.target.value as Signer)}
+              onChange={(e) => setSigner(e.target.value as Signer)}
             >
               {(SIGNERS as readonly Signer[])
                 .concat(form.signer === 'engineer' ? ['engineer'] : [])
@@ -648,6 +692,43 @@ function ProfileInspector({
         </div>
 
         <h3 className={styles.section}>{t('office.sheet_presets.files')}</h3>
+        <div className={styles.grid}>
+          <label className={styles.field}>
+            <span className={styles.label}>{t('office.sheet_presets.file_split')}</span>
+            <select
+              data-testid="sheet-presets-file-split"
+              className={styles.input}
+              value={form.fileSplit}
+              disabled={readOnly}
+              onChange={(e) => set('fileSplit', e.target.value as FileSplit)}
+            >
+              {FILE_SPLITS.map((v) => (
+                <option key={v} value={v}>
+                  {t(fileSplitLabel(v))}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={styles.field}>
+            <span className={styles.label}>{t('office.sheet_presets.max_file')}</span>
+            <input
+              data-testid="sheet-presets-max-file"
+              className={`${styles.input} ${styles.small}`}
+              inputMode="decimal"
+              defaultValue={form.maxFileMb === null ? '' : String(form.maxFileMb)}
+              key={`mb-${profile.id}-${resetKey}`}
+              disabled={readOnly}
+              aria-invalid={problems.includes('office.sheet_presets.max_file_invalid')}
+              onChange={(e) => set('maxFileMb', optNum(e.target.value))}
+            />
+            <span className={styles.muted}>{t('office.sheet_presets.max_file_hint')}</span>
+          </label>
+        </div>
+        {problems.includes('office.sheet_presets.max_file_invalid') ? (
+          <p role="alert" className={styles.error}>
+            {t('office.sheet_presets.max_file_invalid')}
+          </p>
+        ) : null}
         <label className={styles.field}>
           <span className={styles.label}>{t('office.sheet_presets.naming')}</span>
           <input
@@ -660,6 +741,51 @@ function ProfileInspector({
             onChange={(e) => set('namingTemplate', e.target.value)}
           />
         </label>
+        <div className={styles.stampRow}>
+          <label className={styles.inline}>
+            <span className={styles.muted}>{t('office.sheet_presets.naming_max')}</span>
+            <input
+              data-testid="sheet-presets-naming-max"
+              aria-label={t('office.sheet_presets.naming_max_label')}
+              className={`${styles.input} ${styles.small}`}
+              inputMode="numeric"
+              defaultValue={form.namingMaxLength === null ? '' : String(form.namingMaxLength)}
+              key={`len-${profile.id}-${resetKey}`}
+              disabled={readOnly}
+              aria-invalid={problems.includes('office.sheet_presets.naming_max_invalid')}
+              onChange={(e) => set('namingMaxLength', optNum(e.target.value))}
+            />
+          </label>
+          <div
+            role="radiogroup"
+            aria-label={t('office.sheet_presets.naming_case')}
+            className={styles.segment}
+          >
+            {([false, true] as const).map((upper) => (
+              <button
+                key={String(upper)}
+                type="button"
+                role="radio"
+                aria-checked={form.namingUpper === upper}
+                data-testid={`sheet-presets-case-${upper ? 'upper' : 'typed'}`}
+                className={styles.segmentItem}
+                disabled={readOnly}
+                onClick={() => set('namingUpper', upper)}
+              >
+                {t(
+                  upper
+                    ? 'office.sheet_presets.naming_case.upper'
+                    : 'office.sheet_presets.naming_case.typed',
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+        {problems.includes('office.sheet_presets.naming_max_invalid') ? (
+          <p role="alert" className={styles.error}>
+            {t('office.sheet_presets.naming_max_invalid')}
+          </p>
+        ) : null}
         <div className={styles.tokens}>
           <span className={styles.muted}>{t('office.sheet_presets.insert')}</span>
           {NAMING_TOKENS.map((k) => (
@@ -686,7 +812,16 @@ function ProfileInspector({
             data-testid="sheet-presets-naming-preview"
             className={`${styles.preview} ${styles.mono}`}
           >
-            {exampleName(form.namingTemplate)}
+            {example}
+            {form.namingMaxLength !== null && Number.isFinite(form.namingMaxLength) ? (
+              <span data-testid="sheet-presets-naming-count" className={styles.muted}>
+                {' '}
+                {t('office.sheet_presets.naming_count', {
+                  count: example.length,
+                  max: form.namingMaxLength,
+                })}
+              </span>
+            ) : null}
           </p>
         )}
         {naming.warnRev ? (
@@ -695,10 +830,64 @@ function ProfileInspector({
           </p>
         ) : null}
 
+        <div className={styles.field}>
+          <span className={styles.label} id="sp-revision">
+            {t('office.sheet_presets.revision_naming')}
+          </span>
+          <div role="radiogroup" aria-labelledby="sp-revision" className={styles.segment}>
+            {REVISION_NAMINGS.map((v) => (
+              <button
+                key={v}
+                type="button"
+                role="radio"
+                aria-checked={form.revisionNaming === v}
+                data-testid={`sheet-presets-revision-${v}`}
+                className={styles.segmentItem}
+                disabled={readOnly}
+                onClick={() => set('revisionNaming', v)}
+              >
+                {t(revisionNamingLabel(v))}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <h3 className={styles.section}>{t('office.sheet_presets.output')}</h3>
         <p className={styles.muted} data-testid="sheet-presets-output">
           <Icon name="lock" size={14} /> {t('office.sheet_presets.output_value')}
         </p>
+        <Toggle
+          testId="sheet-presets-flatten"
+          label="office.sheet_presets.flatten"
+          hint="office.sheet_presets.flatten_hint"
+          on={form.flatten}
+          readOnly={readOnly}
+          onChange={(v) => set('flatten', v)}
+        />
+        <Toggle
+          testId="sheet-presets-export-unsigned"
+          label="office.sheet_presets.export_unsigned"
+          hint="office.sheet_presets.export_unsigned_hint"
+          on={form.exportUnsigned}
+          readOnly={readOnly}
+          onChange={(v) => set('exportUnsigned', v)}
+        />
+        <Toggle
+          testId="sheet-presets-bookmarks"
+          label="office.sheet_presets.bookmarks"
+          hint="office.sheet_presets.bookmarks_hint"
+          on={form.bookmarks}
+          readOnly={readOnly}
+          onChange={(v) => set('bookmarks', v)}
+        />
+        <Toggle
+          testId="sheet-presets-toc-sheet"
+          label="office.sheet_presets.toc_sheet"
+          hint="office.sheet_presets.toc_sheet_hint"
+          on={form.tocSheet}
+          readOnly={readOnly}
+          onChange={(v) => set('tocSheet', v)}
+        />
         <div className={styles.field}>
           <span className={styles.label}>{t('office.sheet_presets.stamp_box')}</span>
           <div className={styles.stampRow}>
@@ -749,6 +938,67 @@ function ProfileInspector({
             </p>
           ) : null}
         </div>
+
+        <div className={styles.field}>
+          <span className={styles.label} id="sp-min-scale">
+            {t('office.sheet_presets.min_scale')}
+          </span>
+          <div role="radiogroup" aria-labelledby="sp-min-scale" className={styles.tokens}>
+            {[null, ...MIN_SCALES].map((v) => (
+              <button
+                key={String(v)}
+                type="button"
+                role="radio"
+                aria-checked={form.minScaleInPerFt === v}
+                data-testid="sheet-presets-min-scale"
+                data-value={v === null ? 'none' : String(v)}
+                className={styles.chipButton}
+                disabled={readOnly}
+                onClick={() => set('minScaleInPerFt', v)}
+              >
+                {v === null ? t('office.sheet_presets.min_scale_none') : scaleLabel(v)}
+              </button>
+            ))}
+            {form.minScaleInPerFt !== null &&
+            !(MIN_SCALES as readonly number[]).includes(form.minScaleInPerFt) ? (
+              <span className={styles.chipButton} aria-checked="true" role="radio">
+                {scaleLabel(form.minScaleInPerFt)}
+              </span>
+            ) : null}
+          </div>
+        </div>
+
+        <h3 className={styles.section}>{t('office.sheet_presets.review')}</h3>
+        <label className={styles.field}>
+          <span className={styles.label}>{t('office.sheet_presets.resubmittal_mode')}</span>
+          <select
+            data-testid="sheet-presets-resubmittal-mode"
+            className={styles.input}
+            value={form.resubmittalMode}
+            disabled={readOnly}
+            onChange={(e) => set('resubmittalMode', e.target.value as ResubmittalMode)}
+          >
+            {RESUBMITTAL_MODES.map((v) => (
+              <option key={v} value={v}>
+                {t(resubmittalModeLabel(v))}
+              </option>
+            ))}
+          </select>
+        </label>
+        <Toggle
+          testId="sheet-presets-transmittal"
+          label="office.sheet_presets.transmittal"
+          hint="office.sheet_presets.transmittal_hint"
+          on={form.transmittal}
+          readOnly={readOnly}
+          onChange={(v) => set('transmittal', v)}
+        />
+
+        <RequiredNotesField
+          value={form.requiredNotes}
+          readOnly={readOnly}
+          onChange={(ids) => set('requiredNotes', ids)}
+        />
       </div>
       {saveError ? (
         <div data-testid="sheet-presets-save-error" className={styles.saveError}>
@@ -778,6 +1028,123 @@ function ProfileInspector({
         </StateButton>
       </div>
     </aside>
+  );
+}
+
+// EZD-713: one switch row (board "Flatten on export", "Export unsigned", ...): the label, its line and the switch.
+function Toggle({
+  testId,
+  label,
+  hint,
+  on,
+  readOnly,
+  onChange,
+}: {
+  testId: string;
+  label: MessageKey;
+  hint: MessageKey;
+  on: boolean;
+  readOnly: boolean;
+  onChange: (on: boolean) => void;
+}) {
+  const t = useT();
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-labelledby={`${testId}-label`}
+      data-testid={testId}
+      className={`${styles.toggleRow} ${touch.target}`}
+      disabled={readOnly}
+      onClick={() => onChange(!on)}
+    >
+      <span className={styles.toggleText}>
+        <span className={styles.toggleLabel} id={`${testId}-label`}>
+          {t(label)}
+        </span>
+        <span className={styles.muted}>{t(hint)}</span>
+      </span>
+      <span className={styles.switch} aria-hidden="true" />
+    </button>
+  );
+}
+
+// EZD-714 (S15c Required notes): the company's notes as checkboxes; the chosen ids are kept in library order.
+function RequiredNotesField({
+  value,
+  readOnly,
+  onChange,
+}: {
+  value: readonly string[];
+  readOnly: boolean;
+  onChange: (ids: string[]) => void;
+}) {
+  const t = useT();
+  const [notes, setNotes] = useState<LibraryItem[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    const ac = new AbortController();
+    fetch('/api/settings/libraries?kind=note', {
+      cache: 'no-store',
+      credentials: 'same-origin',
+      signal: ac.signal,
+    })
+      .then(async (res) => {
+        if (res.status !== 200) throw new Error('notes_load_failed');
+        const body = (await res.json()) as { items: LibraryItem[] };
+        setNotes(body.items);
+      })
+      .catch(() => {
+        if (!ac.signal.aborted) setFailed(true);
+      });
+    return () => ac.abort();
+  }, []);
+  const toggle = (id: string) => {
+    const on = new Set(value);
+    if (on.has(id)) on.delete(id);
+    else on.add(id);
+    onChange((notes ?? []).filter((n) => on.has(n.id)).map((n) => n.id));
+  };
+  return (
+    <div data-testid="sheet-presets-required-notes" className={styles.field}>
+      <h3 className={styles.section}>{t('office.sheet_presets.required_notes')}</h3>
+      <span className={styles.muted}>{t('office.sheet_presets.required_notes_hint')}</span>
+      {failed ? (
+        <p role="alert" className={styles.error}>
+          {t('office.sheet_presets.required_notes_load_failed')}
+        </p>
+      ) : notes === null ? null : notes.length === 0 ? (
+        <span data-testid="sheet-presets-required-notes-none" className={styles.muted}>
+          {t('office.sheet_presets.required_notes_none')}
+        </span>
+      ) : (
+        <ul className={styles.noteList}>
+          {notes.map((n) => (
+            <li key={n.id}>
+              <label className={styles.noteOption}>
+                <input
+                  type="checkbox"
+                  data-testid="sheet-presets-required-note"
+                  data-note-id={n.id}
+                  checked={value.includes(n.id)}
+                  disabled={readOnly}
+                  onChange={() => toggle(n.id)}
+                />
+                <span>{n.name}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      )}
+      <Link
+        href="/settings/libraries"
+        data-testid="sheet-presets-required-notes-link"
+        className={styles.noteLink}
+      >
+        {t('office.sheet_presets.required_notes_link')}
+      </Link>
+    </div>
   );
 }
 

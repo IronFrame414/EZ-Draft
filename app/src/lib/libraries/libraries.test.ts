@@ -53,8 +53,8 @@ describe('EZD-131 library tabs and items', () => {
     ]);
     expect(isLibraryKind('saved_group')).toBe(true);
     expect(isLibraryKind('detail')).toBe(false);
-    expect([...CREATABLE_KINDS]).toEqual(['abbreviation']);
-    expect([...EDITABLE_KINDS]).toEqual(['abbreviation', 'saved_group']);
+    expect([...CREATABLE_KINDS]).toEqual(['note', 'abbreviation']);
+    expect([...EDITABLE_KINDS]).toEqual(['note', 'abbreviation', 'saved_group']);
   });
 
   it('checkLibraryDraft names the first problem in field order', () => {

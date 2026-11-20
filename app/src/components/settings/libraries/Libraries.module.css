@@ -210,3 +210,100 @@
   justify-content: flex-end;
   gap: 8px;
 }
+
+/* EZD-714: the Notes tab. */
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: 999px;
+  background: var(--ez-surface);
+  color: var(--ez-slate-700);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.chipOn {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groupHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-700);
+}
+
+.groupCount {
+  font-family: var(--ez-font-mono);
+  font-weight: 400;
+  color: var(--ez-slate-500);
+}
+
+.groupEmpty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.rowNote {
+  text-align: left;
+  line-height: 1.4;
+}
+
+.textarea {
+  height: auto;
+  min-height: 96px;
+  padding: 8px 10px;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.4;
+}
+
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  margin-bottom: 5px;
+  padding: 0;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ez-ink);
+}

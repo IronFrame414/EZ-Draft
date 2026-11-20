@@ -37,6 +37,7 @@ const EXPECTED_ICONS = [
   'autorenew',
   'badge',
   'block',
+  'bolt',
   'category',
   'chat_bubble',
   'check',

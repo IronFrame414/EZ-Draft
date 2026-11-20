@@ -42,14 +42,7 @@ describe('EZD-131 LibrariesPanel markup', () => {
     expect(symbols).toContain('placeholder="Search abbreviations"');
     expect(symbols).toContain('data-testid="libraries-add"');
     expect(symbols).toContain('Add abbreviation');
-    for (const tab of [
-      'notes',
-      'details',
-      'hatches',
-      'parts',
-      'saved_groups',
-      'task_templates',
-    ] as const) {
+    for (const tab of ['details', 'hatches', 'parts', 'saved_groups', 'task_templates'] as const) {
       expect(html(tab), tab).not.toContain('data-testid="libraries-add"');
     }
     expect(html('task_templates')).toContain('placeholder="Search templates"');
@@ -57,5 +50,14 @@ describe('EZD-131 LibrariesPanel markup', () => {
 
   it('starts with the empty inspector', () => {
     expect(html('notes')).toContain('Select an item to see it here.');
+  });
+
+  // EZD-714 (S15h Add note / Edit / Delete on the Notes tab).
+  it('the Notes tab has Search notes and Add note', () => {
+    const notes = html('notes');
+    expect(notes).toContain('placeholder="Search notes"');
+    expect(notes).toContain('data-testid="libraries-add"');
+    expect(notes).toContain('Add note');
+    expect(notes).not.toContain('Add abbreviation');
   });
 });

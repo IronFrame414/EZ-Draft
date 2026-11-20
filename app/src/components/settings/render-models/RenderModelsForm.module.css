@@ -1,0 +1,321 @@
+/* EZD-1102 (board S15fRender): Settings > Render models. Colors from tokens only (C10); no :hover. */
+.form {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 14px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.problem {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--ez-red-alert-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-red-tint);
+  color: var(--ez-red-text);
+  font-size: 13px;
+}
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sectionTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ez-slate-700);
+}
+.sectionNote {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+.tableBox {
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  overflow: hidden;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th,
+.table td {
+  padding: 12px 16px;
+  text-align: left;
+  vertical-align: middle;
+  border-top: 1px solid var(--ez-divider-row);
+}
+.table thead th {
+  border-top: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+.table tbody th {
+  font-weight: 400;
+}
+.num {
+  text-align: right;
+}
+.table th.num,
+.table td.num {
+  text-align: right;
+}
+.mono {
+  font-family: var(--ez-font-mono);
+  font-size: 13px;
+  color: var(--ez-slate-700);
+}
+.tierCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tierIcon {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--ez-radius-8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+.tierIconDark {
+  background: var(--ez-ink);
+  color: var(--ez-surface);
+}
+.tierText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tierName {
+  font-weight: 600;
+  color: var(--ez-ink);
+}
+.tierHint {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+.select {
+  box-sizing: border-box;
+  height: 38px;
+  width: 100%;
+  min-width: 220px;
+  padding: 0 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: inherit;
+  font-size: 14px;
+}
+.select:focus {
+  border-color: var(--ez-cobalt);
+}
+.select[aria-invalid='true'] {
+  border-color: var(--ez-red);
+}
+.select:disabled {
+  background: var(--ez-surface-sunken);
+  color: var(--ez-slate-500);
+}
+.moneyInput {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-slate-400);
+  font-family: var(--ez-font-mono);
+  font-size: 14px;
+}
+.moneyInput input {
+  width: 72px;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ez-ink);
+  font: inherit;
+}
+.moneyInput input:disabled {
+  color: var(--ez-slate-500);
+}
+.chip {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: var(--ez-radius-5);
+  background: var(--ez-hover);
+  color: var(--ez-slate-700);
+  font-size: 12px;
+  font-weight: 500;
+}
+.pending {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--ez-amber-alert-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-amber-alert);
+  color: var(--ez-amber-strong);
+  font-size: 13px;
+}
+.pending svg {
+  flex: none;
+  color: var(--ez-amber-icon);
+}
+.allowance {
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  padding: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.allowanceMain {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.cardTitle {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ez-ink);
+}
+.cardTitle svg {
+  color: var(--ez-slate-500);
+}
+.use {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.useRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.useFigure {
+  font-family: var(--ez-font-mono);
+  font-size: 15px;
+  color: var(--ez-ink);
+}
+.useOf {
+  color: var(--ez-slate-400);
+}
+.bar {
+  height: 6px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-divider);
+  overflow: hidden;
+}
+.barFill {
+  display: block;
+  height: 100%;
+  background: var(--ez-cobalt);
+}
+.left {
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+  color: var(--ez-slate-700);
+}
+.amounts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field .moneyInput {
+  width: 100%;
+}
+.field .moneyInput input {
+  width: 100%;
+}
+.fieldLabel {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+.refillNote {
+  margin: 0;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-canvas);
+  color: var(--ez-slate-700);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.refillNote svg {
+  flex: none;
+  color: var(--ez-slate-500);
+}
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  border-top: 1px solid var(--ez-divider);
+}
+.unsaved {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ez-amber-text);
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-amber);
+}
+.spacer {
+  flex: 1;
+}
+.footerNote {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+.saveButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.plainButton:disabled {
+  color: var(--ez-slate-300);
+  cursor: default;
+}

@@ -184,6 +184,8 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'update_tenant_defaults', args: { p_set: {}, p_remove: [] } },
   // EZD-613: the Code edition write path, authenticated only.
   { fn: 'update_tenant_code_edition', args: { p_code_edition: null, p_optional_load_calc: null } },
+  // EZD-1102: the Render models write path, authenticated only.
+  { fn: 'save_render_settings', args: { p_tiers: [], p_allowance: null } },
   // EZD-712: the Sheet presets (submittal profile) write paths, authenticated only.
   { fn: 'create_submittal_profile', args: { p_department: 'Gate', p_source: null } },
   { fn: 'update_submittal_profile', args: { p_id: '00000000-0000-0000-0000-000000000000', p_changes: {} } },

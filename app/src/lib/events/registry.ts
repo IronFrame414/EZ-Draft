@@ -71,6 +71,8 @@ export const EVENTS = {
   'tenant.defaults_updated': { kind: 'log_only' },
   // EZD-613 (S15g Events emitted): Settings > Code edition saved; what changed.
   'tenant.code_edition_updated': { kind: 'log_only' },
+  // EZD-1102 (S15f Events emitted "render.model_config_updated (new)"): Settings > Render models saved.
+  'render.model_config_updated': { kind: 'log_only' },
   // EZD-125 (Q-0697 decisions 10): Cancel request; written as the event_log row by cancel_edit_request.
   'lock.request_cancelled': { kind: 'log_only' },
   // EZD-712 (S15c Events emitted): Settings > Sheet presets.
@@ -202,6 +204,8 @@ export interface EventPayloads {
   'tenant.updated': { fields: TenantField[] };
   'tenant.defaults_updated': { keys: string[] };
   'tenant.code_edition_updated': { keys: ('code_edition' | 'optional_load_calc')[] };
+  // EZD-1102: the tiers whose model or cost changed, and whether the allowance changed.
+  'render.model_config_updated': { tiers: ('fast' | 'standard' | 'photoreal')[]; allowance: boolean };
   // EZD-712: `sourceId` is the profile copied (New profile copies the default; Duplicate the chosen one).
   'submittal_profile.created': { profileId: string; sourceId: string | null };
   // EZD-712: the changed columns, plus `is_default` (Set as default) and `archived_at` (Archive or restore).

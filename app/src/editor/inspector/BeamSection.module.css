@@ -1,0 +1,46 @@
+/* EZD-506 (board S05Ceiling, inspector "Section A-A" block and its SVG): the beam section preview. */
+
+.block {
+  border-top: 1px solid var(--ez-divider);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.heading {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+
+.adjoining {
+  fill: none;
+  stroke: var(--ez-slate-300);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.profile {
+  fill: none;
+  stroke: var(--ez-slate-700);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.floor {
+  stroke: var(--ez-slate-700);
+  stroke-width: 2;
+}
+
+/* Board beam fill is a wood tan with no token (C10); the nearest token, same hue, is the amber border. Cobalt edge. */
+.beam {
+  fill: var(--ez-amber-border);
+  stroke: var(--ez-cobalt);
+  stroke-width: 1.5;
+}
+
+.label {
+  font: 400 11px var(--ez-font-mono);
+  fill: var(--ez-slate-500);
+}

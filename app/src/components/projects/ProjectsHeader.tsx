@@ -4,12 +4,16 @@
 // "/" shortcut and Esc to clear, the notifications bell, the settings gear (only to a user who may open Settings)
 // and the avatar menu. No EZ Binder link (Q-0401). Without `search` (no View projects) the search field, the bell
 // and the key listener are absent.
+// EZD-134 (03b Architecture rule 10 "The Projects page and sign-out warn when this device holds unsynced
+// changes"): a warning beside the title while any of this person's edits are queued on this device.
 import Link from 'next/link';
 import { useEffect, useRef, type ReactElement } from 'react';
 import { useT } from '../../lib/messages';
 import { AvatarMenu } from '../account/AvatarMenu';
 import { Icon } from '../icon/Icon';
 import { NotificationBell } from '../notifications/NotificationBell';
+import { useQueuedCount } from '../outbox/OutboxDrain';
+import notices from '../pwa/DeviceNotices.module.css';
 import styles from './Projects.module.css';
 
 export type ProjectsAccount = {
@@ -113,6 +117,20 @@ function SearchField({ query, onQuery, onClear }: ProjectsSearchProps) {
   );
 }
 
+export function UnsyncedWarning(): ReactElement | null {
+  const t = useT();
+  const queued = useQueuedCount();
+  if (queued === null || queued === 0) return null;
+  return (
+    <span role="status" className={notices.unsynced} data-testid="projects-unsynced">
+      <span className={notices.icon} aria-hidden="true">
+        <Icon name="sync_problem" size={18} />
+      </span>
+      <span className={notices.unsyncedText}>{t('office.projects.unsynced')}</span>
+    </span>
+  );
+}
+
 export function ProjectsHeader({ account, search }: ProjectsHeaderProps): ReactElement {
   const t = useT();
   return (
@@ -126,6 +144,7 @@ export function ProjectsHeader({ account, search }: ProjectsHeaderProps): ReactE
         {t('office.projects.title')}
       </span>
       <span className={styles.spacer} />
+      <UnsyncedWarning />
       {search !== null ? (
         <>
           <SearchField query={search.query} onQuery={search.onQuery} onClear={search.onClear} />

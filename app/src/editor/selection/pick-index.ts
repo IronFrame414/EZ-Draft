@@ -13,9 +13,13 @@
 // EZD-215 (AC-EZD-215-3, -4): an engineer note whose letter is not on file picks by the box around its triangle, so a
 // note left by a deleted wall can be selected and its form opened; a note with the letter on file is not drawn and
 // does not pick.
+// EZD-505 (S05 Controls "Select", "Canvas drag on object"): a beam set picks by the box around its beams, worked out
+// from its room, so like an opening on its host wall it is re-placed when its room changes.
 import {
+  beamSetPickShape,
   blockingPickShape,
   type BlockingObject,
+  type BeamData,
   createSpatialIndex,
   engineerMark,
   engineerMarkCenter,
@@ -153,6 +157,7 @@ export function createPickIndex(): PickIndex {
   let openings = new Map<string, OpeningObject | BlockingObject>();
   let loose = new Map<string, LooseObject>();
   let rooms = new Map<string, RoomObject>();
+  let beams = new Map<string, { id: string; data: BeamData }>();
   let hostOf = new Map<string, string | null>();
   let byHost = new Map<string, Set<string>>();
 
@@ -165,9 +170,21 @@ export function createPickIndex(): PickIndex {
     }
     hostOf.delete(key);
     openings.delete(key);
+    beams.delete(key);
   };
 
-  // Records the parsed object under its lower-cased key (walls and openings only); anything else is dropped.
+  const hostBy = (key: string, host: string | null) => {
+    hostOf.set(key, host);
+    if (host === null) return;
+    let set = byHost.get(host);
+    if (set === undefined) {
+      set = new Set<string>();
+      byHost.set(host, set);
+    }
+    set.add(key);
+  };
+
+  // Records the parsed object under its lower-cased key (the types that pick); anything else is dropped.
   const record = (key: string, object: ModelObject | null) => {
     walls.delete(key);
     loose.delete(key);
@@ -181,16 +198,10 @@ export function createPickIndex(): PickIndex {
       walls.set(key, object);
     } else if (object !== null && (object.type === 'opening' || object.type === 'blocking')) {
       openings.set(key, object);
-      const host = object.data.geometry.hostWallId?.toLowerCase() ?? null;
-      hostOf.set(key, host);
-      if (host !== null) {
-        let set = byHost.get(host);
-        if (set === undefined) {
-          set = new Set<string>();
-          byHost.set(host, set);
-        }
-        set.add(key);
-      }
+      hostBy(key, object.data.geometry.hostWallId?.toLowerCase() ?? null);
+    } else if (object !== null && object.type === 'beam') {
+      beams.set(key, object);
+      hostBy(key, object.data.geometry.roomId.toLowerCase());
     }
   };
 
@@ -224,6 +235,12 @@ export function createPickIndex(): PickIndex {
                 ? utilityPointPickShape(free as UtilityPointObject)
                 : fixturePickShape(free as FixtureObject);
       return shape === null ? null : { id: free.id, shape, hosted: false };
+    }
+    const beam = beams.get(key);
+    if (beam !== undefined) {
+      const room = rooms.get(beam.data.geometry.roomId.toLowerCase());
+      const shape = room === undefined ? null : beamSetPickShape(beam.data, room.data);
+      return shape === null ? null : { id: beam.id, shape, hosted: false };
     }
     const opening = openings.get(key);
     if (opening === undefined) return null;
@@ -284,12 +301,19 @@ export function createPickIndex(): PickIndex {
         openings = new Map();
         loose = new Map();
         rooms = new Map();
+        beams = new Map();
         hostOf = new Map();
         byHost = new Map();
         for (const id of objects.keys())
           record(id.toLowerCase(), parseOnFloor(id, objects, floorId, phase));
         let count = 0;
-        for (const key of [...walls.keys(), ...openings.keys(), ...loose.keys(), ...rooms.keys()])
+        for (const key of [
+          ...walls.keys(),
+          ...openings.keys(),
+          ...loose.keys(),
+          ...rooms.keys(),
+          ...beams.keys(),
+        ])
           if (place(key)) count += 1;
         return count;
       }

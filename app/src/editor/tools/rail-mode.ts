@@ -32,9 +32,12 @@ export function toolForKey(e: ToolKeyEvent, enabled: boolean): DrawingToolId | n
   if (e.defaultPrevented || isTypingTarget(e.target)) return null;
   const plain = !e.ctrlKey && !e.metaKey && !e.altKey;
   const key = e.key.toLowerCase();
-  // EZD-231: Shift+L (Measure) and EZD-404: C (Cabinets) work without Edit model.
+  // EZD-231: Shift+L (Measure), EZD-404: C (Cabinets) and EZD-601: E (Electrical) work without Edit model.
   if (plain && e.shiftKey && key === 'l') return 'measure';
   if (plain && !e.shiftKey && key === 'c') return 'cabinets';
+  // EZD-412: K (Countertops) too.
+  if (plain && !e.shiftKey && key === 'k') return 'countertops';
+  if (plain && !e.shiftKey && key === 'e') return 'electrical';
   if (!enabled || !plain) return null;
   return EDIT_KEYS[key] ?? null;
 }

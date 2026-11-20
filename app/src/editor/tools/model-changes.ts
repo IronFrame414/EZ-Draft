@@ -7,6 +7,7 @@
 // EZD-234 Build (S03 Move, Fixtures; 09e:7): moved fixtures and utility points are written in the same edit.
 // EZD-227 Build (AC-EZD-227-1; S03:152): every wall edit also appends the blocking host updates of its level, and a
 // moved blocking is written with its re-hosting, in the same edit.
+// EZD-505 (S05 "Beams in a set move as a set"): a moved beam set is written in the same edit.
 import {
   blockingHostUpdates,
   CURRENT_SCHEMA_VERSION,
@@ -91,6 +92,24 @@ export function openingsOn(objects: Objects, level: string): OpeningObject[] {
       data: v.data,
     });
     if (r.ok && r.object.type === 'opening') out.push(r.object);
+  }
+  return out;
+}
+
+// EZD-505: the beam sets of a level, which Move and Select drags move whole.
+export function beamsOn(objects: Objects, level: string): ModelObject[] {
+  const lvl = level.toLowerCase();
+  const out: ModelObject[] = [];
+  for (const [id, v] of objects) {
+    if (v.type !== 'beam') continue;
+    if (typeof v.data.level !== 'string' || v.data.level.toLowerCase() !== lvl) continue;
+    const r = parseStoredObject({
+      id,
+      type: v.type,
+      schema_version: v.schemaVersion,
+      data: v.data,
+    });
+    if (r.ok && r.object.type === 'beam') out.push(r.object);
   }
   return out;
 }
@@ -238,9 +257,23 @@ export function moveEditChanges(
 ): Change[] {
   if (changed.length === 0) return [];
   const loose = changed.filter(isLooseObject).map(looseChange);
+  const beams: Change[] = changed.flatMap((o) =>
+    o.type === 'beam'
+      ? [
+          {
+            id: o.id,
+            value: {
+              type: 'beam',
+              schemaVersion: CURRENT_SCHEMA_VERSION,
+              data: o.data as unknown as Record<string, unknown>,
+            },
+          },
+        ]
+      : [],
+  );
   const blocks = changed.filter((o): o is BlockingObject => o.type === 'blocking');
   const base = wallAndOpeningMoves(objects, level, changed, newId, highs, blocks, roomStatus);
-  return [...base, ...blockingMoves(objects, level, blocks, base), ...loose];
+  return [...base, ...blockingMoves(objects, level, blocks, base), ...loose, ...beams];
 }
 
 // EZD-227: each moved blocking, re-hosted against the walls after the move, unless the wall edit already wrote it.

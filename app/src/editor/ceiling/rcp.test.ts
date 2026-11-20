@@ -2,12 +2,17 @@
 // S05 Layout "Canvas: RCP drawing"; S05 Data shown "ridge line and direction"; board S05Ceiling "RIDGE 13' 0"").
 // Fixture: the 144 x 120 ROOM walls with a 36" door on the east wall (tools test-utils), and the room vaulted with
 // a ridge at y = 60, 156" high (EZD-501 ceiling-sync values: S05 summary "ridge 13' 0""). No browser.
-import { newRoomAttributes, type Point } from '@ezdraft/geometry';
+import {
+  CURRENT_SCHEMA_VERSION,
+  newRoomAttributes,
+  type BeamData,
+  type Point,
+} from '@ezdraft/geometry';
 import { describe, expect, it } from 'vitest';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import { planDrawingList } from '../plan/batches';
 import { tokenRgb } from '../plan/color';
-import { DOOR, roomValue, uid } from '../tools/test-utils/fixtures';
+import { DOOR, F1, roomValue, uid } from '../tools/test-utils/fixtures';
 import { dashes, GREYED_FLOOR_TOKEN, rcpList, rcpView } from './rcp';
 
 const P = (x: number, y: number): Point => ({ x, y });
@@ -120,5 +125,62 @@ describe('EZD-502 RCP drawing', () => {
       [P(22, 0), P(30, 0)],
     ]);
     expect(dashes(P(5, 5), P(5, 5))).toEqual([]);
+  });
+});
+
+// EZD-505 (AC-EZD-505-1; S05 Validation "Level beams in a vault must sit below the ridge and at or above the wall
+// plate; warn otherwise"; Q-0630 "The whole object turns error red"). The 144" room, ridge 13' 0" east-west, walls
+// 8' 0": 6" x 8" beams across the ridge at 4' 0" o.c. are 3 beams (144 / 48), each drawn as its 4 outline edges.
+const BEAM_ID = uid(70);
+function withBeam(heightAff: number): Map<string, ObjectValue> {
+  const objects = vaulted();
+  const data: BeamData = {
+    geometry: { roomId: ROOM_ID, shift: P(0, 0) },
+    status: 'new',
+    level: F1,
+    attributes: {
+      placement: 'level_in_vault',
+      heightAff,
+      match: 'custom',
+      matchRoomId: null,
+      width: 6,
+      height: 8,
+      layout: { by: 'spacing', spacing: 48 },
+      length: null,
+      direction: 'across_ridge',
+      endDetail: 'square',
+    },
+  };
+  objects.set(BEAM_ID, {
+    type: 'beam',
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: data as unknown as Record<string, unknown>,
+  });
+  return objects;
+}
+
+describe('EZD-505 beams on the RCP', () => {
+  it('draws each beam of the set in its status colour', () => {
+    const objects = withBeam(108);
+    const rcp = rcpList(planDrawingList(objects, {}, null, null), objects)!;
+    const beams = rcp.items.filter((i) => i.objectId === BEAM_ID);
+    expect(beams).toHaveLength(12);
+    expect(beams.every((i) => i.layer === 'new')).toBe(true);
+    const xs = new Set(beams.flatMap((i) => (i.kind === 'line' ? [i.from.x, i.to.x] : [])));
+    expect([...xs].sort((a, b) => a - b)).toEqual([21, 27, 69, 75, 117, 123]);
+  });
+
+  it('AC-EZD-505-1: a level beam set above the ridge turns error red', () => {
+    const objects = withBeam(162);
+    const rcp = rcpList(planDrawingList(objects, {}, null, null), objects)!;
+    const beams = rcp.items.filter((i) => i.objectId === BEAM_ID);
+    expect(beams).toHaveLength(12);
+    expect(beams.every((i) => i.layer === 'flagged')).toBe(true);
+  });
+
+  it('beams are ceiling items: the floor plan does not draw them', () => {
+    const objects = withBeam(108);
+    const floor = planDrawingList(objects, {}, null, null)!;
+    expect(floor.items.some((i) => i.objectId === BEAM_ID)).toBe(false);
   });
 });

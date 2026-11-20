@@ -4,14 +4,22 @@
 // both (vault/build/assumptions.md EZD-502). The RCP keeps the walls and rooms (and their labels) and adds each
 // room's ridge line; door swings, windows, fixtures, cabinets, pins and dimensions are floor items. Both draws the
 // whole floor plan in one grey under the RCP. Loaded lazily on the first switch to Ceiling or Both (11 rule 7).
+// EZD-505 (S05 Controls "Beam"; S05 Validation "Level beams in a vault must sit below the ridge and at or above the
+// wall plate; warn otherwise"; Q-0630 "The whole object turns error red"; AC-EZD-505-1): each beam set on a shown
+// room draws its beams' outlines in its status colour, or all in error red while the set has a warning.
 import {
   DRAWING_FONTS,
+  beamOutlines,
+  beamSetWarnings,
+  type DrawingLayer,
+  type ModelObject,
   formatLength,
   measureTextPt,
   type DrawingItem,
   type DrawingList,
   type Point,
 } from '@ezdraft/geometry';
+import { levelModelObjects } from '../inspector/inspector-edits';
 import type { Objects } from '../model/patches';
 import { buildPlanBatches, PLAN_DIMENSION_TEXT_PT, type PlanBatch } from '../plan/batches';
 import { tokenRgb } from '../plan/color';
@@ -82,7 +90,44 @@ function ridgeItems(roomId: string, ridge: Ridge): DrawingItem[] {
   return items;
 }
 
-/** The RCP drawing list: the floor list's wall and room items (dimensions left out) and each shown room's ridge. */
+const STATUS_LAYER: Readonly<Record<string, DrawingLayer>> = {
+  existing: 'existing',
+  demo: 'demo',
+  new: 'new',
+};
+
+/** The beam sets on the shown rooms: each beam's outline, on the flagged layer while the set warns. */
+export function beamItems(objects: Objects, level: string, rooms: ReadonlySet<string>): DrawingItem[] {
+  let hasBeams = false;
+  for (const [, v] of objects) if (v.type === 'beam') hasBeams = true;
+  if (!hasBeams) return [];
+  const all = levelModelObjects(objects, level);
+  const roomById = new Map<string, Extract<ModelObject, { type: 'room' }>>();
+  for (const o of all) if (o.type === 'room') roomById.set(o.id.toLowerCase(), o);
+  const items: DrawingItem[] = [];
+  for (const o of all) {
+    if (o.type !== 'beam') continue;
+    const roomKey = o.data.geometry.roomId.toLowerCase();
+    const room = roomById.get(roomKey);
+    if (room === undefined || !rooms.has(roomKey)) continue;
+    const layer: DrawingLayer =
+      beamSetWarnings(o.data, all).length > 0 ? 'flagged' : (STATUS_LAYER[o.data.status] ?? 'new');
+    for (const outline of beamOutlines(o.data, room.data))
+      outline.forEach((from, i) =>
+        items.push({
+          kind: 'line',
+          role: 'beyond',
+          layer,
+          objectId: o.id,
+          from,
+          to: outline[(i + 1) % outline.length]!,
+        }),
+      );
+  }
+  return items;
+}
+
+/** The RCP drawing list: the floor list's wall and room items (dimensions left out), each shown room's ridge and beams. */
 export function rcpList(floor: DrawingList | null, objects: Objects): DrawingList | null {
   if (floor === null) return null;
   const typeOf = new Map<string, string>();
@@ -100,6 +145,7 @@ export function rcpList(floor: DrawingList | null, objects: Objects): DrawingLis
     const ridge = ridgeOf(v.data);
     if (ridge !== null) items.push(...ridgeItems(id, ridge));
   }
+  items.push(...beamItems(objects, floor.level, rooms));
   return { level: floor.level, items, omitted: [] };
 }
 

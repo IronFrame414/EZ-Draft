@@ -1,0 +1,145 @@
+/* EZD-412 (board S04bCountertops canvas): the countertop screen over the plan: the tool bar card and hint, then the
+   countertop plan over dashed cabinets drawn as one SVG. The selected piece is drawn blue. */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 24px;
+  background: var(--ez-canvas);
+  pointer-events: auto;
+  overflow: auto;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tools {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+}
+
+.tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: transparent;
+  color: var(--ez-ink);
+  font-family: var(--ez-font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tool[aria-pressed='true'] {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.tool:disabled {
+  color: var(--ez-slate-400);
+  cursor: default;
+}
+
+.hint {
+  margin: 0;
+  max-width: 320px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.length label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.length input {
+  width: 96px;
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-family: var(--ez-font-mono);
+  font-size: 14px;
+}
+
+.plan {
+  flex: 1;
+  width: 100%;
+  min-height: 320px;
+  touch-action: none;
+}
+
+.plan[data-drawing='true'] {
+  cursor: crosshair;
+}
+
+.wall {
+  fill: var(--ez-slate-700);
+}
+
+.cabinet {
+  fill: none;
+  stroke: var(--ez-slate-500);
+  stroke-width: 1px;
+  stroke-dasharray: 4 3;
+}
+
+.piece {
+  fill: var(--ez-surface-sunken);
+  fill-opacity: 0.7;
+  stroke: var(--ez-ink);
+  stroke-width: 2px;
+  cursor: pointer;
+}
+
+.pieceOn {
+  fill: var(--ez-cobalt-tint);
+  fill-opacity: 0.7;
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+}
+
+.label {
+  fill: var(--ez-cobalt-text);
+  font-family: var(--ez-font-mono);
+  pointer-events: none;
+}
+
+.vertex {
+  fill: var(--ez-surface);
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+  cursor: move;
+}
+
+.draft {
+  fill: none;
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+  stroke-dasharray: 6 4;
+}
+
+.draftPoint {
+  fill: var(--ez-cobalt);
+}

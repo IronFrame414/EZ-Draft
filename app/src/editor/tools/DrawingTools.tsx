@@ -559,13 +559,14 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
         <LazyUtilitiesToMove moved={ui.utilities} onClose={controller.dismissUtilities} />
       ) : null}
       {/* EZD-404: the cabinet run screen has no typed bar of the plan. */}
-      {canEdit && ui.tool !== 'cabinets' ? (
+      {canEdit && ui.tool !== 'cabinets' && ui.tool !== 'countertops' ? (
         <TypedEntryLayer
           tool={
             ui.tool !== null &&
             ui.tool !== 'fixtures' &&
             ui.tool !== 'sketch' &&
-            ui.tool !== 'measure'
+            ui.tool !== 'measure' &&
+            ui.tool !== 'electrical'
               ? DRAWING_TOOLS[ui.tool]
               : entryTyped
           }

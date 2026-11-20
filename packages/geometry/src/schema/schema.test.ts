@@ -67,20 +67,20 @@ describe('EZD-202 model document schema', () => {
 
   test('G5 type, version: an unknown type and an unknown version are named before the data', () => {
     const wall = firstOf(sample(), 'wall');
-    expect(parseStoredObject({ ...wall, type: 'beam' })).toEqual({
+    expect(parseStoredObject({ ...wall, type: 'skylight' })).toEqual({
       ok: false,
       issue: { id: wall.id, issue: 'unknown_type' },
     });
-    const badBeam = {
+    const badSkylight = {
       ...(JSON.parse(JSON.stringify(wall)) as StoredObject),
-      type: 'beam',
+      type: 'skylight',
       data: { not: 'a wall' },
     };
-    expect(parseStoredObject(badBeam)).toEqual({
+    expect(parseStoredObject(badSkylight)).toEqual({
       ok: false,
       issue: { id: wall.id, issue: 'unknown_type' },
     });
-    expect(parseStoredObject({ ...wall, type: 'beam', schema_version: 8 })).toEqual({
+    expect(parseStoredObject({ ...wall, type: 'skylight', schema_version: 8 })).toEqual({
       ok: false,
       issue: { id: wall.id, issue: 'unknown_schema_version' },
     });

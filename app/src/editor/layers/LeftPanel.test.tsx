@@ -201,4 +201,25 @@ describe('EZD-218 left panel', () => {
     expect(attr(one(open, 'left-panel-tab-versions').attrs, 'aria-selected')).toBe('true');
     expect(elements(open, 'versions-content')).toHaveLength(1);
   });
+
+  // EZD-601 (S06 Entry points "Left panel tabs Circuits / Devices / Panel once in electrical mode").
+  it('EZD-601 in electrical mode the electrical panel takes the floor tabs place', () => {
+    const s = setup();
+    const html = renderToStaticMarkup(
+      <MessagesProvider language="en" messages={catalogFor('office', 'en') as never}>
+        <LeftPanel
+          store={s.store}
+          layers={s.layers}
+          selection={s.selection}
+          showObject={() => true}
+          canEdit
+          electrical={<p data-testid="electrical-content">circuits</p>}
+        />
+      </MessagesProvider>,
+    );
+    expect(attr(one(html, 'left-panel').attrs, 'data-mode')).toBe('electrical');
+    expect(elements(html, 'electrical-content')).toHaveLength(1);
+    expect(elements(html, 'left-panel-tab-layers')).toHaveLength(0);
+    expect(elements(html, 'left-panel-layers')).toHaveLength(0);
+  });
 });

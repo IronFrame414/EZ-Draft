@@ -1,5 +1,6 @@
 // EZD-131 (S15h Controls, Decisions 1, Events emitted): change or delete one library item. Abbreviations take a
-// new name and meaning; saved groups are renamed (their group data is kept). Order: 401, 403 (no Libraries
+// new name and meaning; saved groups are renamed (their group data is kept); notes (EZD-714) take a new text,
+// group and project types, and a deleted note leaves the profiles that required it (database trigger). Order: 401, 403 (no Libraries
 // switch), 404 for a malformed id, 400 (body), 404 when no visible row (another company's item included),
 // 400 `library_item_read_only` for a kind this page does not edit, then the write. Nothing changed is 200
 // with no write and no event. Each write emits its library.item_* event after it commits.
@@ -16,6 +17,7 @@ import {
   LIBRARY_COLUMNS,
   dataFor,
   isAbbreviationTaken,
+  noteFieldsChanged,
   parseLibraryPatch,
   toLibraryItem,
 } from '../../../../../server/libraries/libraries';
@@ -73,14 +75,17 @@ export async function PATCH(
     const parsed = parseLibraryPatch(raw, before.kind);
     if (!parsed.ok) return fail(400, parsed.code);
 
-    const fields: ('name' | 'data')[] = [];
-    if (parsed.value.name !== before.name) fields.push('name');
-    if (before.kind === 'abbreviation' && parsed.value.meaning !== before.meaning)
-      fields.push('data');
+    let fields: ('name' | 'data')[] = [];
+    if (before.kind === 'note') fields = noteFieldsChanged(before, parsed.value);
+    else {
+      if (parsed.value.name !== before.name) fields.push('name');
+      if (before.kind === 'abbreviation' && parsed.value.meaning !== before.meaning)
+        fields.push('data');
+    }
     if (fields.length === 0) return Response.json({ item: before }, { status: 200, headers });
 
     const update =
-      before.kind === 'abbreviation'
+      before.kind === 'abbreviation' || before.kind === 'note'
         ? { name: parsed.value.name, data: dataFor(parsed.value) }
         : { name: parsed.value.name };
     const { data, error } = await client

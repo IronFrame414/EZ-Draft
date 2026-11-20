@@ -9,7 +9,10 @@
 // EZD-411: the `countertop_piece` type (outline and edges); a new type, so the version stays.
 // EZD-733: the `tile_layout` type (pattern, tile size, joint, start point on a floor or a wall face); a new type, so
 // the version stays.
+// EZD-505: the `beam` type (a beam set on one room's ceiling); a new type, so the version stays.
+// EZD-601: the `panel` and `circuit` types (S06 left panel); new types, so the version stays.
 import { z } from 'zod';
+import { beamDataSchema, type BeamData } from './beam';
 import { blockingDataSchema, type BlockingData } from './blocking';
 import {
   cabinetBoxDataSchema,
@@ -27,6 +30,12 @@ import {
   type CabinetShelfData,
   type CabinetTrimData,
 } from './cabinet';
+import {
+  circuitDataSchema,
+  panelDataSchema,
+  type CircuitData,
+  type PanelData,
+} from './electrical';
 import { countertopPieceDataSchema, type CountertopPieceData } from './countertop';
 import { engineerNoteDataSchema, type EngineerNoteData } from './engineer-note';
 import {
@@ -53,10 +62,12 @@ import { openingDataSchema, type OpeningData } from './opening';
 import { roomDataSchema, type RoomData } from './room';
 import { wallDataSchema, type WallData } from './wall';
 
+export * from './beam';
 export * from './blocking';
 export * from './cabinet';
 export * from './common';
 export * from './countertop';
+export * from './electrical';
 export * from './engineer-note';
 export * from './existing-details';
 export * from './fixture';
@@ -97,6 +108,9 @@ export const OBJECT_TYPES = [
   'cabinet_trim',
   'countertop_piece',
   'tile_layout',
+  'beam',
+  'panel',
+  'circuit',
 ] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
@@ -128,6 +142,9 @@ type DataByType = {
   cabinet_trim: CabinetTrimData;
   countertop_piece: CountertopPieceData;
   tile_layout: TileLayoutData;
+  beam: BeamData;
+  panel: PanelData;
+  circuit: CircuitData;
 };
 export type ModelObject = {
   [T in ObjectType]: { id: string; type: T; data: DataByType[T] };
@@ -172,6 +189,9 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
   cabinet_trim: cabinetTrimDataSchema,
   countertop_piece: countertopPieceDataSchema,
   tile_layout: tileLayoutDataSchema,
+  beam: beamDataSchema,
+  panel: panelDataSchema,
+  circuit: circuitDataSchema,
 };
 
 // A source_file id held in an object, with the source_file kinds that field accepts. An empty `kinds` refuses
@@ -213,6 +233,9 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   cabinet_trim: none,
   countertop_piece: none,
   tile_layout: none,
+  beam: none,
+  panel: none,
+  circuit: none,
 };
 
 export function fileRefs(object: ModelObject): FileRef[] {

@@ -93,6 +93,12 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
     placement: 'bar',
   },
   {
+    file: 'src/app/(office)/settings/render-models/page.tsx',
+    path: '/settings/render-models',
+    signedIn: true,
+    placement: 'bar',
+  },
+  {
     file: 'src/app/(office)/settings/sheet-presets/page.tsx',
     path: '/settings/sheet-presets',
     signedIn: true,

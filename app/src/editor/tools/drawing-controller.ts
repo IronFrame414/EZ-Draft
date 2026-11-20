@@ -28,6 +28,7 @@
 // without Edit model and stays on through a pause; C turns it on, Esc turns it off.
 // EZD-6001 (vault/plans/EZD-6001.md D-Wire, D-Draw-switch): new objects go on the chosen floor; a switch ends what is half
 // drawn as Escape does and keeps the tool.
+// EZD-505 (S05 "Beams in a set move as a set"): the level's beam sets move with Move and Select drags.
 import {
   DEFAULT_SNAP_SETTINGS,
   DOOR_TARGET_PX,
@@ -130,10 +131,12 @@ import {
   type SelectionFrame,
   looseOn,
   blockingsOn,
+  beamsOn,
   type FixtureChoice,
   type LooseObject,
 } from './index';
 import { fixturesModule } from './fixtures-module';
+import { VIEW_TOOL_IDS } from './tool-defs';
 import { sketchModule } from './sketch-module';
 import { initialSketchState, reduceSketch, type SketchState } from './sketch-tool';
 import {
@@ -274,7 +277,9 @@ type ToolState =
   | { id: 'fixtures'; state: null }
   | { id: 'sketch'; state: SketchState }
   | { id: 'measure'; state: MeasureState }
-  | { id: 'cabinets'; state: null };
+  | { id: 'cabinets'; state: null }
+  | { id: 'countertops'; state: null }
+  | { id: 'electrical'; state: null };
 
 type OpeningTool = Extract<ToolState, { id: 'door' | 'window' }>;
 
@@ -319,6 +324,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let loose: LooseObject[] = level === null ? [] : looseOn(objects, level);
   // EZD-227: the level's grab-bar blocking, which moves and is placed against the walls.
   let blockings: ModelObject[] = level === null ? [] : blockingsOn(objects, level);
+  let beams: ModelObject[] = level === null ? [] : beamsOn(objects, level);
   // EZD-225: `let`, so `pause` can turn editing off when the lock is lost.
   let enabled = viewer.canEdit && level !== null;
 
@@ -405,7 +411,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   function syncReceiver(): void {
     if (disposed) return;
-    const want = enabled ? ui.tool !== null || ui.pick !== null : ui.tool === 'measure';
+    // EZD-601: electrical mode leaves the plan's presses to selection (S06 "Canvas click on device: Selects device").
+    const want = enabled
+      ? (ui.tool !== null && ui.tool !== 'electrical') || ui.pick !== null
+      : ui.tool === 'measure';
     if (want === receiverSet) return;
     receiverSet = want;
     handle.setPointerReceiver(want ? receiver : null);
@@ -413,7 +422,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   function syncHover(): void {
     const mode: HoverMode =
-      ui.tool === 'move'
+      ui.tool === 'move' || ui.tool === 'electrical'
         ? 'select'
         : ui.tool !== null
           ? 'off'
@@ -459,6 +468,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
           openings = level === null ? [] : openingsOn(objects, level);
           loose = level === null ? [] : looseOn(objects, level);
           blockings = level === null ? [] : blockingsOn(objects, level);
+          beams = level === null ? [] : beamsOn(objects, level);
           moveCache = null;
           index = createWallSnapIndex(snapWalls(models));
           drawingIds = currentDrawingIds();
@@ -476,6 +486,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     openings = level === null ? [] : openingsOn(objects, level);
     loose = level === null ? [] : looseOn(objects, level);
     blockings = level === null ? [] : blockingsOn(objects, level);
+    beams = level === null ? [] : beamsOn(objects, level);
     moveCache = null;
     if (level !== prevLevel || level === null) {
       index = createWallSnapIndex(snapWalls(models));
@@ -502,7 +513,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   // D7 (a): the walls and openings a move reads.
   function moveModels(): ModelObject[] {
-    if (moveCache === null) moveCache = [...models, ...openings, ...blockings, ...loose];
+    if (moveCache === null) moveCache = [...models, ...openings, ...blockings, ...loose, ...beams];
     return moveCache;
   }
 
@@ -514,7 +525,9 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       tool.id === 'fixtures' ||
       tool.id === 'sketch' ||
       tool.id === 'measure' ||
-      tool.id === 'cabinets'
+      tool.id === 'cabinets' ||
+      tool.id === 'countertops' ||
+      tool.id === 'electrical'
     )
       return NO_CONTEXT;
     if (isOpeningTool(tool)) return NO_CONTEXT;
@@ -737,7 +750,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (tool.id === 'move') return moveFrame(tool.state.base, tool.state.ids);
     if (isOpeningTool(tool)) return { ...EMPTY_FRAME, opening: openingFrame(tool) };
-    if (tool.id === 'sketch' || tool.id === 'cabinets') return null;
+    if (
+      tool.id === 'sketch' ||
+      tool.id === 'cabinets' ||
+      tool.id === 'countertops' ||
+      tool.id === 'electrical'
+    )
+      return null;
     if (tool.id === 'measure') {
       const { from, to } = tool.state;
       return {
@@ -914,7 +933,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       onPick(event);
       return;
     }
-    if (tool === null || tool.id === 'cabinets') return;
+    if (
+      tool === null ||
+      tool.id === 'cabinets' ||
+      tool.id === 'countertops' ||
+      tool.id === 'electrical'
+    )
+      return;
     if (tool.id === 'move') {
       onMovePointer(event, tool.state);
       return;
@@ -1247,7 +1272,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   function selectTool(id: DrawingToolId | null): void {
-    if (disposed || !(enabled || id === null || id === 'measure' || id === 'cabinets')) return;
+    if (disposed || !(enabled || id === null || VIEW_TOOL_IDS.includes(id))) return;
     cancelEntry();
     const hadDrag = drag !== null;
     drag = null;
@@ -1275,13 +1300,14 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
                   ? { id, state: initialSketchState() }
                   : id === 'measure'
                     ? { id, state: initialMeasureState() }
-                    : id === 'cabinets'
+                    : id === 'cabinets' || id === 'countertops' || id === 'electrical'
                       ? { id, state: null }
                     : { id, state: initialOpeningToolState(id) };
     if (id === 'fixtures') loadFixtures();
     if (id === 'sketch') sketchModule.preload();
     // EZD-404: the cabinet screen covers the plan, so no plan object stays selected under it.
-    if (id === 'cabinets') link?.select([]);
+    // EZD-412: so does the countertop screen.
+    if (id === 'cabinets' || id === 'countertops') link?.select([]);
     touchPoint = null;
     lastSnap = null;
     lastContext = NO_CONTEXT;
@@ -1395,6 +1421,25 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       selectTool(null);
       return true;
     }
+    // EZD-412 (S04b Entry points "Countertops (K) tool on the rail"; S04b Permissions "View projects: view pieces"): K
+    // and, while the countertop screen is open, Esc work without Edit model.
+    if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'k') {
+      selectTool('countertops');
+      return true;
+    }
+    if (tool !== null && tool.id === 'countertops' && e.key === 'Escape') {
+      selectTool(null);
+      return true;
+    }
+    // EZD-601: E (electrical mode) and, while it is on, Esc work without Edit model.
+    if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'e') {
+      selectTool('electrical');
+      return true;
+    }
+    if (tool !== null && tool.id === 'electrical' && e.key === 'Escape') {
+      selectTool(null);
+      return true;
+    }
     if (!enabled) return false;
     if (e.key === 'Escape' && (ui.entry !== null || claim !== null)) {
       cancelEntry();
@@ -1440,7 +1485,9 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         tool.id === 'fixtures' ||
         tool.id === 'sketch' ||
         tool.id === 'measure' ||
-        tool.id === 'cabinets'
+        tool.id === 'cabinets' ||
+        tool.id === 'countertops' ||
+        tool.id === 'electrical'
       )
         return false;
       input({ type: 'enter' });
@@ -1685,7 +1732,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     pause() {
       if (disposed || !enabled) return;
       // Measure is allowed in view only (S06 States), so it stays on; any other tool ends as Escape ends it.
-      if (tool?.id === 'measure' || tool?.id === 'cabinets') cancelEntry();
+      if (
+        tool?.id === 'measure' ||
+        tool?.id === 'cabinets' ||
+        tool?.id === 'countertops' ||
+        tool?.id === 'electrical'
+      )
+        cancelEntry();
       else selectTool(null);
       enabled = false;
       setUi({ pick: null, gapMessage: null, boxes: computeBoxes() });

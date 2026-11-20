@@ -120,4 +120,18 @@ describe('EZD-712 Sheet presets page markup', () => {
     const err = render(<SheetPresetsLoadError />);
     expect(text(err)).toContain("Couldn't load sheet presets.");
   });
+
+  // EZD-714 (S15c Required notes: "Notes added to sets for this department", a multi-select from the notes
+  // library, linked to 15h).
+  it('the inspector has Required notes with its line and a link to Libraries', () => {
+    const html = render(<SheetPresetsPage initial={[PBC, BROWARD]} />);
+    const section = openTag(html, 'sheet-presets-required-notes');
+    expect(section).not.toBeNull();
+    expect(text(html)).toContain('Required notes');
+    expect(text(html)).toContain('Notes added to sets for this department.');
+    expect(openTag(html, 'sheet-presets-required-notes-link')).toContain(
+      'href="/settings/libraries"',
+    );
+    expect(text(html)).toContain('Edit notes in Libraries');
+  });
 });

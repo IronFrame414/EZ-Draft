@@ -15,6 +15,7 @@ import {
   polygonSchema,
   unitVectorSchema,
 } from './common';
+import { circuitProtectionSchema } from './electrical';
 
 const rectGeometry = z.strictObject({ center: pointSchema, axis: unitVectorSchema });
 
@@ -37,7 +38,14 @@ export const deviceDataSchema = z.strictObject({
   geometry: z.strictObject({ point: pointSchema }),
   status: objectStatusSchema,
   level: levelSchema,
-  attributes: z.strictObject({ kind: z.enum(DEVICE_KINDS) }),
+  // EZD-601 (S06 Devices tab "device type, circuit, GFCI/AFCI"; 03f "receptacles (GFCI/AFCI, height, circuit)"):
+  // the circuit the device is on and its own protection, both optional so every stored device stays valid and the
+  // version stays; absent reads as no circuit and no protection.
+  attributes: z.strictObject({
+    kind: z.enum(DEVICE_KINDS),
+    circuit: z.uuid().nullable().optional(),
+    protection: circuitProtectionSchema.nullable().optional(),
+  }),
 });
 export type DeviceData = z.infer<typeof deviceDataSchema>;
 

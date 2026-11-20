@@ -36,7 +36,16 @@ export async function loadOfficeDrain(
   }
 }
 
-export function OutboxDrain({ actor, children }: { actor: Actor | null; children: ReactNode }) {
+// EZD-134: `notice` (the reload prompt) renders after the page, inside the provider.
+export function OutboxDrain({
+  actor,
+  children,
+  notice,
+}: {
+  actor: Actor | null;
+  children: ReactNode;
+  notice?: ReactNode;
+}) {
   const handleRef = useRef<DrainHandle | null>(null);
   const appUserId = actor?.appUserId;
   const tenantId = actor?.tenantId;
@@ -70,7 +79,12 @@ export function OutboxDrain({ actor, children }: { actor: Actor | null; children
     };
   }, [appUserId, tenantId, membershipId]);
 
-  return <Context.Provider value={value}>{children}</Context.Provider>;
+  return (
+    <Context.Provider value={value}>
+      {children}
+      {notice}
+    </Context.Provider>
+  );
 }
 
 export function useOutboxSignOut(): { check(): Promise<boolean>; dialog: ReactElement | null } {
@@ -98,4 +112,38 @@ export function useOutboxSignOut(): { check(): Promise<boolean>; dialog: ReactEl
     <ConfirmDialog key={request.id} request={request} onChoose={controller.choose} />
   ) : null;
   return { check, dialog };
+}
+
+// EZD-134: who is signed in for the outbox, or null outside a provider or without a loaded actor.
+export function useOutboxActor(): Actor | null {
+  return useContext(Context)?.actor ?? null;
+}
+
+// EZD-134 (03b Architecture rule 10 "The Projects page and sign-out warn when this device holds unsynced
+// changes"): how many of this person's edits are queued on this device, read now and every `pollMs` while
+// `enabled`. null until read, while not enabled, outside a provider or when the count cannot be read.
+export const QUEUED_POLL_MS = 2000;
+
+export function useQueuedCount(enabled = true, pollMs: number = QUEUED_POLL_MS): number | null {
+  const actor = useOutboxActor();
+  const [count, setCount] = useState<number | null>(null);
+  const appUserId = actor?.appUserId;
+  const tenantId = actor?.tenantId;
+  useEffect(() => {
+    if (!enabled || appUserId === undefined || tenantId === undefined) return;
+    let live = true;
+    const read = () => {
+      void countQueued(appUserId, tenantId).then((n) => {
+        if (live) setCount(n);
+      });
+    };
+    read();
+    // eslint-disable-next-line no-restricted-globals -- display-only: re-reads this device's IndexedDB count (no request), since another tab's editor can queue or send edits
+    const timer = setInterval(read, pollMs);
+    return () => {
+      live = false;
+      clearInterval(timer);
+    };
+  }, [enabled, appUserId, tenantId, pollMs]);
+  return actor === null || !enabled ? null : count;
 }

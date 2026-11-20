@@ -25,8 +25,13 @@ export type DrawingToolId =
   | 'fixtures'
   | 'sketch'
   | 'measure'
-  | 'cabinets';
-export type TypedDrawingToolId = Exclude<DrawingToolId, 'fixtures' | 'sketch' | 'measure' | 'cabinets'>;
+  | 'cabinets'
+  | 'countertops'
+  | 'electrical';
+export type TypedDrawingToolId = Exclude<
+  DrawingToolId,
+  'fixtures' | 'sketch' | 'measure' | 'cabinets' | 'countertops' | 'electrical'
+>;
 
 export const WIDTH_FIELD: TypedLengthField = {
   id: 'width',
@@ -149,6 +154,37 @@ export const CABINETS_RAIL_TOOL: RailTool = {
   label: 'office.tool.cabinets',
   shortcut: 'C',
 };
+
+// EZD-412 (S04b Entry points "Countertops (K) tool on the rail"; S04b Permissions "View projects: view pieces"; S15d
+// Reset to default map "K Countertops"; board S04bCountertops rail, after Cabinets): opens the countertop screen. Like
+// Cabinets it is on every viewer's rail and never paused, so it is not one of the drawing tools.
+export const COUNTERTOPS_RAIL_TOOL: RailTool = {
+  kind: 'tool',
+  id: 'countertops',
+  icon: 'dashboard',
+  label: 'office.tool.countertops',
+  shortcut: 'K',
+};
+
+// EZD-601 (S06 Controls "Electrical tool (E) | Standard rail | Enters electrical mode. | Pressed state. Shortcut E";
+// S06 Permissions "View plan, circuits, load calc, panel schedule ...: View projects"; board S06Electrical rail, the
+// bolt after Cabinets): electrical mode. Like Cabinets it is on every viewer's rail and never paused, so it is not
+// one of the drawing tools.
+export const ELECTRICAL_RAIL_TOOL: RailTool = {
+  kind: 'tool',
+  id: 'electrical',
+  icon: 'bolt',
+  label: 'office.tool.electrical',
+  shortcut: 'E',
+};
+
+/** The tools that need no Edit model and stay on in view only (S06 States "selecting, panning, zooming, measuring"). */
+export const VIEW_TOOL_IDS: readonly DrawingToolId[] = [
+  'measure',
+  'cabinets',
+  'countertops',
+  'electrical',
+];
 
 // `at` is the snapped model point; `enter` and `escape` arrive only when the typed layer did not handle them.
 export type ToolInput =

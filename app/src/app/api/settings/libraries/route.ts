@@ -1,5 +1,5 @@
 // EZD-131 (S15h Controls, Permissions, Events emitted; 03e library_item): list one library tab's items and add
-// an abbreviation. Order: 401, 403 (no Libraries switch), 400 (query or body), then the session client (RLS:
+// an abbreviation or (EZD-714) a note. Order: 401, 403 (no Libraries switch), 400 (query or body), then the session client (RLS:
 // the claim tenant). A duplicate abbreviation in the company is 400 `library_abbreviation_taken`.
 // `library.item_created` is emitted after the insert; a failed emit does not fail the save.
 import { endedSessionResponse } from '../../../../server/auth/ended-session';
@@ -18,7 +18,7 @@ import {
   parseLibraryCreate,
   toLibraryItem,
 } from '../../../../server/libraries/libraries';
-import { requireApiPermission } from '../../../../server/permissions';
+import { can, getPermissionContext, requireApiPermission } from '../../../../server/permissions';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,9 +31,18 @@ const fail = (status: number, code: string, messageKey = `error.${code}`) =>
 
 export async function GET(request: Request): Promise<Response> {
   try {
+    const kind = parseKindQuery(new URL(request.url).searchParams);
+    // EZD-714 (S15c Required notes: a multi-select from the notes library): the Sheet presets switch also
+    // reads the notes.
+    if (kind === 'note') {
+      const ctx = await getPermissionContext();
+      if (ctx !== null && can(ctx, 'settings_sheet_presets') && !can(ctx, 'settings_libraries')) {
+        const items = await listLibraryItems(createSessionClient(), kind);
+        return Response.json({ items }, { status: 200, headers });
+      }
+    }
     const p = await requireApiPermission('settings_libraries');
     if (p instanceof Response) return p;
-    const kind = parseKindQuery(new URL(request.url).searchParams);
     if (kind === null) return fail(400, 'invalid_input');
     const items = await listLibraryItems(createSessionClient(), kind);
     return Response.json({ items }, { status: 200, headers });

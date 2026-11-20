@@ -21,7 +21,7 @@ import type {
 import { isTypingTarget } from '../typed-entry/typed-entry';
 import { gapBoxes } from './gap';
 import { toolForKey } from './rail-mode';
-import type { DrawingToolId } from './tool-defs';
+import { VIEW_TOOL_IDS, type DrawingToolId } from './tool-defs';
 
 export type DrawingEngine = { createDrawingController(deps: DrawingDeps): DrawingController };
 
@@ -217,10 +217,10 @@ export function createDrawingShell(deps: DrawingDeps, opts: ShellOptions): Drawi
   // A tool asked for before the engine loads, by the engine's rules ("selectTool(id)", "Rail mode"): it shows at once
   // and the plan's presses are held for it, as the engine takes them once a tool is on.
   const ask = (id: DrawingToolId | null) => {
-    if (!(canEdit() || id === null || id === 'measure' || id === 'cabinets')) return;
+    if (!(canEdit() || id === null || VIEW_TOOL_IDS.includes(id))) return;
     setUi({ tool: id });
     if (id === null) stopHolding();
-    const wantsPresses = id !== null && (canEdit() || id === 'measure');
+    const wantsPresses = id !== null && id !== 'electrical' && (canEdit() || id === 'measure');
     if (wantsPresses && !holding) {
       holding = true;
       handle.setPointerReceiver(holdReceiver);
@@ -303,9 +303,9 @@ export function createDrawingShell(deps: DrawingDeps, opts: ShellOptions): Drawi
       if (engine !== null) return engine.pause();
       if (paused || !enabled) return;
       paused = true;
-      // As the engine: Measure and Cabinets stay on, any other tool ends; editing ends. The held calls still reach
+      // As the engine: Measure, Cabinets and Electrical stay on, any other tool ends; editing ends. The held calls still reach
       // the engine, which starts paused, so none of them edits.
-      const tool = ui.tool === 'measure' || ui.tool === 'cabinets' ? ui.tool : null;
+      const tool = ui.tool !== null && VIEW_TOOL_IDS.includes(ui.tool) ? ui.tool : null;
       setUi({ enabled: false, tool, boxes: boxesOf(store.getState().objects) });
       if (tool !== 'measure') stopHolding();
     },

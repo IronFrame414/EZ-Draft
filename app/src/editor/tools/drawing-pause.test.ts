@@ -97,8 +97,9 @@ describe('EZD-225 drawing controller pause', () => {
     controller.selectTool('room-rect');
     controller.selectTool('door');
     expect(controller.getUi().tool).toBeNull();
-    for (const k of ['w', 'r', 'd', 'm', 'k', 'e', 'f'])
-      expect(controller.keyDown(key(k))).toBe(false);
+    // EZD-601: E is no longer here; it turns on electrical mode, which view only allows (S06 Permissions).
+    // EZD-412: K is no longer here either; it opens the countertop screen, which view only allows (S04b Permissions).
+    for (const k of ['w', 'r', 'd', 'm', 'f']) expect(controller.keyDown(key(k))).toBe(false);
     expect(controller.getUi().tool).toBeNull();
 
     // Measure stays usable in view only (S06 States).

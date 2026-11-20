@@ -1,7 +1,11 @@
 // Move tool reducer, drag session, outcomes and preview (EZD-212b; vault/plans/EZD-212b.md D2-D5b; S03 Move; Q-0630
 // rows 11, 35; Q-0570; Q-0633 G12). Pure: no React, no DOM.
 // EZD-227 Build (AC-EZD-227-1): a lone blocking drags along its wall as a lone opening does (slideBlocking).
+// EZD-505 (S05 Controls "Canvas drag on object: Moves the object; live dimensions show. Beams in a set move as a
+// set"): a selected beam set moves whole (moveBeamSet); the other selected objects move as before.
 import {
+  beamSetPickShape,
+  moveBeamSet,
   blockingHostUpdates,
   blockingPickShape,
   slideBlocking,
@@ -202,9 +206,20 @@ export function clickOutcome(
   ids: readonly string[],
   delta: Point,
 ): MoveOutcome {
-  const r = moveSelection(objects, ids, delta);
-  if (r.ok) return { ok: true, changed: r.changed };
-  return { ok: false, message: MOVE_REFUSALS[r.reason] };
+  const wanted = new Set(ids.map(lower));
+  const beams = objects.filter(
+    (o): o is Extract<ModelObject, { type: 'beam' }> =>
+      o.type === 'beam' && wanted.has(lower(o.id)),
+  );
+  const beamIds = new Set(beams.map((b) => lower(b.id)));
+  const rest = ids.filter((id) => !beamIds.has(lower(id)));
+  if (beams.length > 0 && (!Number.isFinite(delta.x) || !Number.isFinite(delta.y)))
+    return { ok: false, message: MOVE_REFUSALS.invalid_delta };
+  const r = moveSelection(objects, rest, delta);
+  if (!r.ok) return { ok: false, message: MOVE_REFUSALS[r.reason] };
+  if (beams.length === 0 || pointsEqual(delta, { x: 0, y: 0 })) return { ok: true, changed: r.changed };
+  const moved = beams.map((b) => ({ ...b, data: moveBeamSet(b.data, delta) }));
+  return { ok: true, changed: [...r.changed, ...moved] };
 }
 
 export function dragOutcome(
@@ -247,6 +262,14 @@ export function previewShapes(
   for (const o of changed) {
     let shape: PickShape | null = null;
     if (o.type === 'wall') shape = wallPickShape(o);
+    else if (o.type === 'beam') {
+      const roomId = lower(o.data.geometry.roomId);
+      const room = after.find(
+        (x): x is Extract<ModelObject, { type: 'room' }> =>
+          x.type === 'room' && lower(x.id) === roomId,
+      );
+      shape = room === undefined ? null : beamSetPickShape(o.data, room.data);
+    }
     else if (o.type === 'fixture') shape = fixturePickShape(o);
     else if (o.type === 'utility_point') shape = utilityPointPickShape(o);
     else if (o.type === 'tile_shower') shape = tileShowerPickShape(o);

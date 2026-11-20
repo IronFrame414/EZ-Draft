@@ -121,6 +121,90 @@ test.describe('EZD-131 libraries', () => {
     expect(left).toHaveLength(0);
   });
 
+  // EZD-714 (S15h Tab: Notes "General notes and code notes, grouped by project type"; Add note / Edit /
+  // Delete). Expected values: the S13 board GENERAL NOTES seeded in board order (assumptions EZD-714); the
+  // wording in vault/build/assumptions.md EZD-714.
+  test('EZD-714: the Notes tab lists general and code notes by project type; a note is added, edited and deleted', async ({
+    page,
+    signInAs,
+  }) => {
+    const tenant = await createTenant();
+    await harnessSql()`select private.seed_general_notes(${tenant}::uuid)`;
+    const member = await createMember({ tenantId: tenant, scope: 'all' });
+    await setPermissions(tenant, member.membershipId, ['settings_libraries']);
+    await signInAs(member.email);
+    await page.goto('/settings/libraries');
+
+    const general = page.locator('[data-testid="notes-group"][data-group="general"]');
+    const code = page.locator('[data-testid="notes-group"][data-group="code"]');
+    await expect(general.getByTestId('library-row-name')).toHaveCount(7);
+    await expect(general.getByTestId('library-row-name').first()).toHaveText(
+      'Verify all dimensions in field before ordering cabinets.',
+    );
+    await expect(code).toContainText('None for this project type.');
+
+    // Add a bath code note.
+    await tid(page, 'libraries-add').click();
+    await expect(tid(page, 'library-inspector-title')).toHaveText('New note');
+    await tid(page, 'library-save').click();
+    await expect(tid(page, 'library-form-error')).toHaveText('Enter the note text.');
+    await tid(page, 'library-field-note').fill('Bath exhaust fan ducted to exterior.');
+    await tid(page, 'library-field-group').selectOption('code');
+    await page.locator('[data-testid="library-field-project-type"][data-type="kitchen"]').uncheck();
+    await page
+      .locator('[data-testid="library-field-project-type"][data-type="whole_home_interior"]')
+      .uncheck();
+    await tid(page, 'library-save').click();
+    await expect(code.getByTestId('library-row-name')).toHaveText([
+      'Bath exhaust fan ducted to exterior.',
+    ]);
+    await expect(tid(page, 'library-inspector-title')).toHaveText('Code note');
+
+    // Grouped by project type: Kitchen hides the bath note, Bath shows it.
+    await page.locator('[data-testid="notes-filter"][data-filter="kitchen"]').click();
+    await expect(code).toContainText('None for this project type.');
+    await expect(general.getByTestId('library-row-name')).toHaveCount(7);
+    await page.locator('[data-testid="notes-filter"][data-filter="bath"]').click();
+    await expect(code.getByTestId('library-row-name')).toHaveText([
+      'Bath exhaust fan ducted to exterior.',
+    ]);
+
+    // Search filters on the note text.
+    await tid(page, 'libraries-search').fill('exhaust');
+    await expect(general.getByTestId('library-row-name')).toHaveCount(0);
+    await expect(code.getByTestId('library-row-name')).toHaveCount(1);
+    await tid(page, 'libraries-search').fill('');
+
+    // Edit the text and persist it.
+    await code.getByTestId('library-row').click();
+    await tid(page, 'library-field-note').fill(
+      'Bath exhaust fan ducted to exterior, 50 CFM minimum.',
+    );
+    await tid(page, 'library-save').click();
+    await expect(code.getByTestId('library-row-name')).toHaveText([
+      'Bath exhaust fan ducted to exterior, 50 CFM minimum.',
+    ]);
+    const rows = await harnessSql()<{ name: string; data: unknown }[]>`
+      select name, data from public.library_item
+      where tenant_id = ${tenant}::uuid and kind = 'note' and data->>'group' = 'code'`;
+    expect(rows).toEqual([
+      {
+        name: 'Bath exhaust fan ducted to exterior, 50 CFM minimum.',
+        data: { group: 'code', projectTypes: ['bath'] },
+      },
+    ]);
+
+    // Delete it.
+    await tid(page, 'library-delete').click();
+    const confirm = page.locator('[data-confirm]');
+    await expect(confirm).toContainText('Delete this note?');
+    await confirm.getByRole('button', { name: 'Delete' }).click();
+    await expect(code).toContainText('None for this project type.');
+    const left = await harnessSql()`select id from public.library_item
+      where tenant_id = ${tenant}::uuid and kind = 'note'`;
+    expect(left).toHaveLength(7);
+  });
+
   test('without the Libraries switch the page shows the no-access line in place', async ({
     page,
     signInAs,

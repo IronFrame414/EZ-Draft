@@ -402,7 +402,16 @@
     "EZD-419",
     "EZD-712",
     "EZD-502",
-    "EZD-424"
+    "EZD-424",
+    "EZD-714",
+    "EZD-425",
+    "EZD-505",
+    "EZD-506",
+    "EZD-713",
+    "EZD-601",
+    "EZD-1102",
+    "EZD-412",
+    "EZD-134"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1000,6 +1009,78 @@
       "ts": "2026-11-20T01:46:53Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-714",
+      "title": "Notes library",
+      "commit": "78bcef47",
+      "ts": "2026-11-20T03:49:35Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-425",
+      "title": "Fix: security advisories in glob, minimatch, next; move to the patched versions",
+      "commit": "28d5c86a",
+      "ts": "2026-11-20T04:23:54Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-505",
+      "title": "Beams",
+      "commit": "c1a255dc",
+      "ts": "2026-11-20T04:50:34Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-506",
+      "title": "Section A-A preview",
+      "commit": "9c8f98d5",
+      "ts": "2026-11-20T05:59:04Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-713",
+      "title": "Department profile settings",
+      "commit": "24b74b8a",
+      "ts": "2026-11-20T06:24:42Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-601",
+      "title": "Electrical mode and left panel",
+      "commit": "bed805d8",
+      "ts": "2026-11-20T07:31:03Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1102",
+      "title": "Render models settings",
+      "commit": "d89cd349",
+      "ts": "2026-11-20T08:18:38Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-412",
+      "title": "Trace and Draw outline",
+      "commit": "1f0b85f8",
+      "ts": "2026-11-20T11:12:32Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-134",
+      "title": "App-shell cache and device storage",
+      "commit": "c99a7b12",
+      "ts": "2026-11-20T11:40:30Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1010,6 +1091,14 @@
       "detail": "\n",
       "branch": "t/EZD-222",
       "worktree": ".claude/worktrees/EZD-222"
+    },
+    "EZD-403": {
+      "title": "Cabinet library panel",
+      "ts": "2026-11-20T09:26:14Z",
+      "reason": "check red after merging newer develop (first try: check still red after 2 fix rounds)",
+      "detail": " EZD-021 net guard in browser tests › EZD-021 T14 (a) a page request to a live host fails the test (78ms)\n  ✘  217 [desktop] › e2e/net-guard.spec.ts:22:9 › EZD-021 net guard in browser tests › server log › EZD-021 T14 (b) a line in the server guard log fails the test (4ms)\n  ✘  219 [desktop] › e2e/net-guard.spec.ts:40:7 › EZD-159 net guard blocks page WebSockets › EZD-159 T7 a page WebSocket to a live host fails the test (116ms)\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] Error: aborted\n[WebServer]     at ignore-listed frames {\n[WebServer]   code: 'ECONNRESET'\n[WebServer] }\n  1) [desktop] › e2e/move.spec.ts:165:7 › EZD-212b Move tool › EZD-212b B1 Move the host wall away from a door \n    Error: expect(received).toEqual(expected) // deep equality\n    - Expected  - 3\n    + Received  + 1\n    - Array [\n    -   \"ae7e5749-80ac-4ca5-8887-0d83f3ee4978\",\n    - ]\n    + Array []\n      175 |\n      176 |     await clickAt(page, 144, 100);\n    > 177 |     expect(await selectedIds(page)).toEqual([seed.E]);\n          |                                     ^\n      178 |     const before = geoOf(await objects(page), seed.E);\n      179 |     near(before.start.x, 144, 9);\n      180 |     near(before.end.x, 144, 9);\n        at /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-403/app/e2e/move.spec.ts:177:37\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n    Error Context: test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/error-context.md\n    Error Context: test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/error-context.md\n    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/trace.zip\n    Usage:\n        pnpm exec playwright show-trace test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/trace.zip\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n  1 failed\n    [desktop] › e2e/move.spec.ts:165:7 › EZD-212b Move tool › EZD-212b B1 Move the host wall away from a door \n  7 did not run\n  564 passed (4.8m)\n[ELIFECYCLE] Command failed with exit code 1.\nError: \nERR_PNPM_RECURSIVE_RUN_FIRST_FAIL\n  × \"pnpm recursive run\" failed in /Users/josh/Projects/ezdraft/.claude/\n  │ worktrees/EZD-403/app\n",
+      "branch": "t/EZD-403",
+      "worktree": ".claude/worktrees/EZD-403"
     }
   },
   "red_streak": 0,
@@ -1108,21 +1197,19 @@
     "EZD-1009": {
       "ts": "2026-11-19T20:56:15Z",
       "reason": "check red after a review fix"
+    },
+    "EZD-425": {
+      "ts": "2026-11-20T03:14:56Z",
+      "reason": "check still red after 2 fix rounds"
     }
   },
   "running": {
-    "EZD-425": {
-      "lane": 0,
-      "title": "Fix: security advisories in glob, minimatch, next; move to the patched versions",
-      "started": "2026-11-19T22:57:34Z",
-      "develop": "81fd1d60"
-    },
-    "EZD-505": {
+    "EZD-413": {
       "lane": 2,
-      "title": "Beams",
-      "started": "2026-11-19T22:57:36Z",
-      "develop": "81fd1d60"
+      "title": "Seams and cutouts",
+      "started": "2026-11-20T11:13:11Z",
+      "develop": "9991d2fc"
     }
   },
-  "advisories_checked_at": "2026-11-19T22:57:31Z"
+  "advisories_checked_at": "2026-11-20T10:58:15Z"
 }

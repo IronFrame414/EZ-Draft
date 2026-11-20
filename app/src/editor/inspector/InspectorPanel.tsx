@@ -6,6 +6,7 @@
 // panel for walls, doors, windows and bulk selections. `InspectorContent` takes no store, so static markup renders it.
 // EZD-215 (AC-EZD-215-3, -4, -6): one engineer note alone shows its form (EngineerNoteForm); a wall with a note
 // whose letter is not on file shows "Engineer required", with or without Edit model.
+// EZD-505: one beam set alone shows the beam inspector (tools/BeamPanel.tsx).
 import type { FloorChoice } from '../floors/floors';
 import { useChosenFloor } from '../floors/use-chosen-floor';
 import {
@@ -65,6 +66,7 @@ import {
 } from './inspector-view';
 import { ResolveGap, type ResolveGapProps } from './ResolveGap';
 import { PinPanel } from './PinPanel';
+import { BeamPanel } from '../tools/BeamPanel';
 import { EngineerNoteForm } from './EngineerNoteForm';
 import styles from './InspectorPanel.module.css';
 
@@ -153,6 +155,8 @@ export function InspectorPanel({
     selected.ids.length === 1 && ids.length === 0 ? roomNameOf(objects, selected.ids[0]!) : null;
   const pinAlone = ids.length === 1 && isPin(objects, ids[0]!) ? ids[0]! : null;
   const noteAlone = ids.length === 1 && isType(objects, ids[0]!, 'engineer_note') ? ids[0]! : null;
+  // EZD-505: one beam set alone shows the beam inspector.
+  const beamAlone = ids.length === 1 && isType(objects, ids[0]!, 'beam') ? ids[0]! : null;
 
   // EZD-213c D-Panel: the gap of the one selected wall.
   const drawingUi = useSyncExternalStore(
@@ -239,6 +243,9 @@ export function InspectorPanel({
         {...(projectId === undefined ? {} : { projectId })}
       />
     );
+
+  if (beamAlone !== null)
+    return <BeamPanel key={beamAlone} store={store} beamId={beamAlone} canEdit={canEdit} />;
 
   // EZD-215: one engineer note alone shows its form.
   if (noteAlone !== null)
