@@ -94,3 +94,20 @@ export function twoRunModel(): Objects {
     [ctId(22), boxValue('B33', 33)],
   ]);
 }
+
+// EZD-413: a sink (or another fixture) placed on the floor, centred at `center` with its width along +x.
+export const fixtureValue = (
+  kind: 'sink' | 'cooktop' | 'dishwasher',
+  center: Point,
+  width: number,
+  depth: number,
+): ObjectValue => ({
+  type: 'fixture',
+  schemaVersion: 7,
+  data: {
+    geometry: { center, axis: { x: 1, y: 0 } },
+    status: 'new',
+    level: CT_FLOOR,
+    attributes: { kind, width, depth },
+  },
+});

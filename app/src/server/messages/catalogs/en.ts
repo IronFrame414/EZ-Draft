@@ -2431,6 +2431,18 @@ export const en = {
   'office.countertops.length': 'Length',
   'office.countertops.hint_no_cabinets': 'Add cabinets to trace tops from them, or draw an outline.',
   'office.countertops.hint_draw': 'Click each corner, or type a length. Click the first corner to finish.',
+  'office.countertops.seam': 'Seam',
+  'office.countertops.cutout': 'Cutout',
+  'office.countertops.hint_seam': 'Click across a piece to split it.',
+  'office.countertops.hint_cutout': 'Click a top to place a cutout. Over a sink or cooktop it takes that size.',
+  'office.countertops.seam_label': 'SEAM',
+  'office.countertops.cutout_kind': 'Cutout type',
+  'office.countertops.cutout_sink': 'Sink',
+  'office.countertops.cutout_cooktop': 'Cooktop',
+  'office.countertops.cutout_width': 'W',
+  'office.countertops.cutout_depth': 'D',
+  'office.countertops.cutout_label_sink': 'SINK',
+  'office.countertops.cutout_label_cooktop': 'COOKTOP',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

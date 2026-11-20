@@ -143,3 +143,93 @@
 .draftPoint {
   fill: var(--ez-cobalt);
 }
+
+/* EZD-413 (board S04bCountertops: "SEAM" red dashed across the top; SINK and RANGE cutouts dashed with rounded
+   corners; legend "Cutout", "Seam"): seams, cutouts and the cutout W × D fields. */
+.seam,
+.seamPreview {
+  stroke: var(--ez-red);
+  stroke-width: 1.5px;
+  stroke-dasharray: 6 4;
+  fill: none;
+}
+
+.seamPreview {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.seamLabel {
+  fill: var(--ez-red);
+  font-family: var(--ez-font-mono);
+  pointer-events: none;
+}
+
+.cutout,
+.cutoutOn {
+  fill: var(--ez-surface);
+  stroke: var(--ez-slate-500);
+  stroke-width: 1px;
+  stroke-dasharray: 4 3;
+  stroke-linejoin: round;
+}
+
+.cutoutOn {
+  stroke: var(--ez-cobalt);
+  stroke-width: 2px;
+}
+
+.cutoutLabel {
+  fill: var(--ez-slate-500);
+  font-family: var(--ez-font-mono);
+  pointer-events: none;
+}
+
+.cutoutForm {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cutoutForm label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.cutoutForm input {
+  width: 72px;
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-family: var(--ez-font-mono);
+  font-size: 13px;
+}
+
+.kinds {
+  display: flex;
+  gap: 4px;
+}
+
+.kind {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-family: var(--ez-font-sans);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.kind[aria-pressed='true'] {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}

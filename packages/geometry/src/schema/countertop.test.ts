@@ -93,3 +93,58 @@ describe('EZD-411 countertop object schema', () => {
     expect(ok(withData((d) => (d.attributes.edges[2]!.segment = 2)))).toBe(false);
   });
 });
+
+// EZD-413 (S04b Seam "seam drawn red dashed", footer "pieces, seams"; 03f "Countertop pieces, seams, cutouts (sink,
+// cooktop)"; vault/build/assumptions.md EZD-413): a seam edge carries the seam's id and is a joint (kind wall, no
+// splash); a piece holds its sink and cooktop cutouts. Both are optional, so pieces saved before them still parse.
+const SEAM = '7a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d';
+const CUT = '8b2c3d4e-5f6a-4b7c-9d8e-0f1a2b3c4d5e';
+const sinkCutout = () => ({
+  id: CUT,
+  kind: 'sink',
+  center: { x: 60, y: 12 },
+  axis: { x: 1, y: 0 },
+  width: 30,
+  depth: 16,
+  fixtureId: null,
+});
+
+describe('EZD-413 seams and cutouts on a countertop piece', () => {
+  it('a piece saved with no cutouts and no seam ids still parses', () => {
+    const d = sample().data as Data;
+    expect(d.attributes.cutouts).toBeUndefined();
+    expect(ok(sample())).toBe(true);
+  });
+
+  it('a seam id goes on a wall edge with no splash only', () => {
+    const seamOn = (i: number, splash: number | null) =>
+      withData((d) => {
+        d.attributes.edges[i]!.kind = 'wall';
+        d.attributes.edges[i]!.overhang = 0;
+        d.attributes.edges[i]!.backsplashHeight = splash;
+        d.attributes.edges[i]!.profileId = null;
+        d.attributes.edges[i]!.seamId = SEAM;
+      });
+    expect(ok(seamOn(2, null))).toBe(true);
+    expect(ok(seamOn(2, 4))).toBe(false);
+    expect(ok(withData((d) => (d.attributes.edges[2]!.seamId = SEAM)))).toBe(false); // exposed edge
+    expect(ok(withData((d) => (d.attributes.edges[1]!.seamId = 'not-an-id')))).toBe(false);
+  });
+
+  it('a piece holds sink and cooktop cutouts with W × D, direction and the fixture they came from', () => {
+    const r = parseStoredObject(withData((d) => (d.attributes.cutouts = [sinkCutout()])));
+    if (!r.ok || r.object.type !== 'countertop_piece') throw new Error('refused');
+    expect(r.object.data.attributes.cutouts).toEqual([sinkCutout()]);
+    expect(ok(withData((d) => (d.attributes.cutouts = [{ ...sinkCutout(), kind: 'cooktop', fixtureId: SEAM }])))).toBe(true);
+    expect(ok(withData((d) => (d.attributes.cutouts = [])))).toBe(true);
+  });
+
+  it('refuses a cutout of another kind, a size that is not positive, a non-unit axis or an unknown key', () => {
+    const bad = (c: Rec) => ok(withData((d) => (d.attributes.cutouts = [c])));
+    expect(bad({ ...sinkCutout(), kind: 'hood' })).toBe(false);
+    expect(bad({ ...sinkCutout(), width: 0 })).toBe(false);
+    expect(bad({ ...sinkCutout(), depth: -16 })).toBe(false);
+    expect(bad({ ...sinkCutout(), axis: { x: 2, y: 0 } })).toBe(false);
+    expect(bad({ ...sinkCutout(), linked: true })).toBe(false);
+  });
+});

@@ -27,6 +27,9 @@ export * from './countertops/piece';
 // EZD-412: Trace cabinets and Draw outline.
 export * from './countertops/outline';
 export * from './countertops/trace';
+// EZD-413: seams and cutouts.
+export * from './countertops/seam';
+export * from './countertops/cutout';
 export * from './derived';
 export * from './drawing';
 export * from './fixtures';
