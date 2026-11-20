@@ -1,4 +1,6 @@
-# Calculations and rules: Manual J load calculation
+# Calculations and rules: Manual J load calculation (v2)
+
+**Moved to v2 by Q-0780 (2026-11-20).** Nothing in this file is built in v1. It is kept as the starting point for v2; the ACCA Manual J book would be needed then (vault/questions/phases-18-27-for-josh.md question 10).
 <!-- Added 2026-11-20 for Q-0778. Filled in from a cited source before EZD-740 to EZD-742 build (CLAUDE.md rule 2). -->
 
 **Decided (Q-0778)**

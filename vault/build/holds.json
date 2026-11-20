@@ -236,33 +236,33 @@
     {
       "ticket": "EZD-740",
       "title": "Manual J inputs",
-      "reason": "Manual J is in v1 (Q-0778), but 09t does not yet hold the method, its table values, the Palm Beach County design conditions or a worked example with known answers from a cited source (CLAUDE.md rule 2). Release when 09t is filled in.",
-      "question": "Q-0778",
-      "kind": "held",
+      "reason": "Retired 2026-11-20 by Josh (Q-0780, \"push mechanical calculations to v2. keep duct layout in v1. vent locations can be added to RCP as option for user\"); moved to v2, never built.",
+      "question": "Q-0780",
+      "kind": "retired",
       "since": "2026-11-20"
     },
     {
       "ticket": "EZD-741",
       "title": "Manual J load calculation",
-      "reason": "Manual J is in v1 (Q-0778), but 09t does not yet hold the method, its table values, the Palm Beach County design conditions or a worked example with known answers from a cited source (CLAUDE.md rule 2). Release when 09t is filled in.",
-      "question": "Q-0778",
-      "kind": "held",
+      "reason": "Retired 2026-11-20 by Josh (Q-0780, \"push mechanical calculations to v2. keep duct layout in v1. vent locations can be added to RCP as option for user\"); moved to v2, never built.",
+      "question": "Q-0780",
+      "kind": "retired",
       "since": "2026-11-20"
     },
     {
       "ticket": "EZD-742",
       "title": "Manual J report on the mechanical sheets",
-      "reason": "Manual J is in v1 (Q-0778), but 09t does not yet hold the method, its table values, the Palm Beach County design conditions or a worked example with known answers from a cited source (CLAUDE.md rule 2). Release when 09t is filled in.",
-      "question": "Q-0778",
-      "kind": "held",
+      "reason": "Retired 2026-11-20 by Josh (Q-0780, \"push mechanical calculations to v2. keep duct layout in v1. vent locations can be added to RCP as option for user\"); moved to v2, never built.",
+      "question": "Q-0780",
+      "kind": "retired",
       "since": "2026-11-20"
     },
     {
       "ticket": "EZD-732",
       "title": "Mechanical calculations",
-      "reason": "Josh 2026-11-20: mechanical calculations move to v2 (duct layout stays in v1). Held until the decision is recorded and the ticket retired.",
-      "question": "",
-      "kind": "held",
+      "reason": "Retired 2026-11-20 by Josh (Q-0780, \"push mechanical calculations to v2. keep duct layout in v1. vent locations can be added to RCP as option for user\"); moved to v2, never built.",
+      "question": "Q-0780",
+      "kind": "retired",
       "since": "2026-11-20"
     }
   ]

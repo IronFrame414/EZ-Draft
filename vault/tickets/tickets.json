@@ -8047,14 +8047,16 @@
    ],
    "build_position": 204,
    "acs": [
-    "AC-EZD-512-1"
+    "AC-EZD-512-1",
+    "AC-EZD-512-2"
    ],
-   "acs_source": "done-when",
+   "acs_source": "josh-2026-11-20",
    "spec_phase": 5,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/03-data-model.md#Q-0704",
-    "spec/decisions/05-screens.md#Q-0769"
+    "spec/decisions/05-screens.md#Q-0769",
+    "spec/decisions/09-calculations-and-rules.md#Q-0780"
    ]
   },
   {
@@ -9851,7 +9853,8 @@
    "build_position": 243,
    "acs": [
     "AC-EZD-708a-1",
-    "AC-EZD-708a-2"
+    "AC-EZD-708a-2",
+    "AC-EZD-708a-3"
    ],
    "acs_source": "josh-2026-11-20",
    "spec_phase": 7,
@@ -9859,7 +9862,8 @@
     "spec/decisions/05-screens.md",
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/03-data-model.md#Q-0509",
-    "spec/decisions/09-calculations-and-rules.md#Q-0779"
+    "spec/decisions/09-calculations-and-rules.md#Q-0779",
+    "spec/decisions/09-calculations-and-rules.md#Q-0780"
    ]
   },
   {
@@ -17551,8 +17555,37 @@
    "spec_phase": 7,
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md#Q-0179",
-    "spec/decisions/09-calculations-and-rules.md#Q-0763"
+    "spec/decisions/09-calculations-and-rules.md#Q-0763",
+    "spec/decisions/09-calculations-and-rules.md#Q-0780"
    ]
+  },
+  {
+   "id": "EZD-743",
+   "phase": 23,
+   "title": "Duct runs",
+   "depends_raw": "EZD-731",
+   "spec_ref": "Q-0780; R-012 recommendation 5",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0780",
+    "spec/decisions/09-calculations-and-rules.md#Q-0763",
+    "spec/decisions/05-screens.md#Q-0769",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0561"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-731"
+   ],
+   "build_position": 231.5,
+   "acs": [
+    "AC-EZD-743-1",
+    "AC-EZD-743-2"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 7
   },
   {
    "id": "EZD-732",
@@ -17578,7 +17611,8 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md#Q-0179",
     "spec/decisions/09-calculations-and-rules.md#Q-0763",
-    "spec/decisions/09-calculations-and-rules.md#Q-0778"
+    "spec/decisions/09-calculations-and-rules.md#Q-0778",
+    "spec/decisions/09-calculations-and-rules.md#Q-0780"
    ]
   },
   {
@@ -17735,7 +17769,7 @@
    "id": "EZD-738",
    "phase": 28,
    "title": "Plumbing, mechanical and tile sheets",
-   "depends_raw": "EZD-701, EZD-715, EZD-730, EZD-732, EZD-733",
+   "depends_raw": "EZD-701, EZD-715, EZD-730, EZD-731, EZD-743, EZD-733",
    "spec_ref": "Q-0179; S13 Sheets",
    "spec_files": [
     "spec/sections/screens/S13-sheets-key-issue.md#Sheets"
@@ -17750,20 +17784,23 @@
     "EZD-730",
     "EZD-733",
     "EZD-731",
-    "EZD-727"
+    "EZD-727",
+    "EZD-743"
    ],
    "build_position": 267,
    "acs": [
-    "AC-EZD-738-1"
+    "AC-EZD-738-1",
+    "AC-EZD-738-2"
    ],
-   "acs_source": "done-when",
+   "acs_source": "josh-2026-11-20",
    "spec_phase": 7,
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/09-calculations-and-rules.md#Q-0179",
     "spec/decisions/09-calculations-and-rules.md#Q-0763",
     "spec/decisions/05-screens.md#Q-0771",
-    "spec/decisions/09-calculations-and-rules.md#Q-0778"
+    "spec/decisions/09-calculations-and-rules.md#Q-0778",
+    "spec/decisions/09-calculations-and-rules.md#Q-0780"
    ]
   },
   {
@@ -17778,7 +17815,8 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md#Q-0778",
     "spec/decisions/09-calculations-and-rules.md#Q-0763",
-    "spec/decisions/05-screens.md#Q-0769"
+    "spec/decisions/05-screens.md#Q-0769",
+    "spec/decisions/09-calculations-and-rules.md#Q-0780"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-07.md",
@@ -17805,7 +17843,8 @@
    ],
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md#Q-0778",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0780"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-07.md",
@@ -17833,7 +17872,8 @@
    ],
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md#Q-0778",
-    "spec/decisions/09-calculations-and-rules.md#Q-0763"
+    "spec/decisions/09-calculations-and-rules.md#Q-0763",
+    "spec/decisions/09-calculations-and-rules.md#Q-0780"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-07.md",
