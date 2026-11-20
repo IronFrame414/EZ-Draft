@@ -264,12 +264,12 @@ EZD-238 (vault/plans/EZD-238.md); 02 PDF out; 09h; Q-0507; Q-0508; Q-0574; Q-057
 
 ## Dependencies
 
-Machine-read by check C1. One row per npm package; `Version` is one exact version, no range. `Used in` is one or more of `root`, `app`, `geometry`, `worker`, `spikes`. Versions are the newest stable releases on 2026-10-19 whose peer ranges fit each other, read from the npm registry: `react` 19.3.1 satisfies `next` (`^19.0.0`) and `@react-three/fiber` (`>=19 <19.4`); `three` 0.186.1 satisfies `@react-three/fiber` (`>=0.156`), `three-bvh-csg` (`>=0.179.0`) and `three-gpu-pathtracer` (`>=0.185.0`); `@sentry/nextjs` 11.x accepts `next` `^16`; `@supabase/ssr` 0.12.7 needs `@supabase/supabase-js` `^2.114.0`. `typescript` stays on the 5.x line: 7.0.2 (the registry's `latest` on 2026-10-24, R-024) has a new compiler and no registry evidence that `next` 16.4.2 builds with it; the ticket that moves to 7 edits this row. Most rows are installed by later tickets (EZD-001 and on); they are pinned here first (02 Named tools). EZD-001 (2026-10-19): `eslint` stays on 9.x because `eslint-config-next` 16.4.2 depends on `eslint-plugin-import`, `eslint-plugin-react` and `eslint-plugin-jsx-a11y`, whose peer ranges end at ESLint 9; `@eslint/js` matches the `eslint` major; `@types/node` is the newest 22.x so the types match the Node 22 runtime above (vitest 5.0.5 peers `^22.0.0 || >=24.0.0`).
+Machine-read by check C1. One row per npm package; `Version` is one exact version, no range. `Used in` is one or more of `root`, `app`, `geometry`, `worker`, `spikes`. Versions are the newest stable releases on 2026-10-19 whose peer ranges fit each other, read from the npm registry: `react` 19.3.1 satisfies `next` (`^19.0.0`) and `@react-three/fiber` (`>=19 <19.4`); `three` 0.186.1 satisfies `@react-three/fiber` (`>=0.156`), `three-bvh-csg` (`>=0.179.0`) and `three-gpu-pathtracer` (`>=0.185.0`); `@sentry/nextjs` 11.x accepts `next` `^16`; `@supabase/ssr` 0.12.7 needs `@supabase/supabase-js` `^2.114.0`. `typescript` stays on the 5.x line: 7.0.2 (the registry's `latest` on 2026-10-24, R-024) has a new compiler and no registry evidence that `next` 16.4.2 builds with it; the ticket that moves to 7 edits this row. Most rows are installed by later tickets (EZD-001 and on); they are pinned here first (02 Named tools). EZD-001 (2026-10-19): `eslint` stays on 9.x because `eslint-config-next` 16.4.2 depends on `eslint-plugin-import`, `eslint-plugin-react` and `eslint-plugin-jsx-a11y`, whose peer ranges end at ESLint 9; `@eslint/js` matches the `eslint` major; `@types/node` is the newest 22.x so the types match the Node 22 runtime above (vitest 5.0.5 peers `^22.0.0 || >=24.0.0`). EZD-425 (2026-11-19): `next` and `eslint-config-next` 16.4.2 → 16.4.6 answer GHSA-mfr8-8qww-v76h and GHSA-vc7v-qv4w-wrv8; the Sentry packages 11.8.0 → 11.11.0, the first `@sentry/nextjs` whose `@sentry/bundler-plugins` takes glob `^14.0.3` (with minimatch 11), answer GHSA-3g3m-2fjr-6pw4 (glob) and GHSA-g3hv-75wg-m249 (minimatch); no pnpm override is needed for either.
 
 | Package | Version | Used in | Why | Added by |
 | --- | --- | --- | --- | --- |
 | `pnpm` | `12.14.0` | root | Named tools: Package manager and layout | EZD-000 |
-| `next` | `16.4.2` | app | Named tools: Next.js mode; Stack: App shell | EZD-000 |
+| `next` | `16.4.6` | app | Named tools: Next.js mode; Stack: App shell | EZD-000 |
 | `react` | `19.3.1` | app | Stack: App shell | EZD-000 |
 | `react-dom` | `19.3.1` | app | Stack: App shell | EZD-000 |
 | `typescript` | `5.9.3` | root, app, geometry, worker, spikes | Stack: App shell | EZD-000 |
@@ -290,10 +290,10 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `dxf-parser` | `1.1.2` | root, app, spikes | Named tools: DXF (read); confirmed by EZD-029 | EZD-000 |
 | `@tarikjabiri/dxf` | `2.9.0` | app, spikes | Named tools: DXF (write); confirmed by EZD-029 | EZD-000 |
 | `resend` | `6.34.1` | app | Named tools: Email | EZD-000 |
-| `@sentry/nextjs` | `11.8.0` | app | Named tools: Error reporting (browser and functions) | EZD-000 |
-| `@sentry/core` | `11.8.0` | app | Named tools: Error reporting (envelope parse for the tunnel route; not exported by `@sentry/nextjs`; the browser client start with `initAndBind`, EZD-341) | EZD-024 |
-| `@sentry/browser` | `11.8.0` | app | Named tools: Error reporting (browser client, fetch transport, stack parser and integrations; `@sentry/nextjs` on Node does not export the browser integrations) | EZD-024 |
-| `@sentry/node` | `11.8.0` | worker | Named tools: Error reporting (render worker) | EZD-000 |
+| `@sentry/nextjs` | `11.11.0` | app | Named tools: Error reporting (browser and functions) | EZD-000 |
+| `@sentry/core` | `11.11.0` | app | Named tools: Error reporting (envelope parse for the tunnel route; not exported by `@sentry/nextjs`; the browser client start with `initAndBind`, EZD-341) | EZD-024 |
+| `@sentry/browser` | `11.11.0` | app | Named tools: Error reporting (browser client, fetch transport, stack parser and integrations; `@sentry/nextjs` on Node does not export the browser integrations) | EZD-024 |
+| `@sentry/node` | `11.11.0` | worker | Named tools: Error reporting (render worker) | EZD-000 |
 | `supabase` | `2.121.0` | root | Named tools: Database migrations (CLI); Stack: Database, auth, files | EZD-000 |
 | `@supabase/supabase-js` | `2.118.0` | root, app, worker | Stack: Database, auth, files | EZD-000 |
 | `@supabase/ssr` | `0.12.7` | app | Stack: Database, auth, files (server client per request) | EZD-000 |
@@ -304,7 +304,7 @@ Machine-read by check C1. One row per npm package; `Version` is one exact versio
 | `eslint` | `9.39.5` | root, app, geometry | Machine checks: lint runner for the root flat config (EZD-020, EZD-026a and EZD-133 add rules) | EZD-001 |
 | `@eslint/js` | `9.39.5` | root | Machine checks: ESLint recommended rules for all TS/JS | EZD-001 |
 | `typescript-eslint` | `8.71.2` | root | Machine checks: TypeScript parser and recommended rules | EZD-001 |
-| `eslint-config-next` | `16.4.2` | root, app | Machine checks: Next.js lint rules for `app/**` only | EZD-001 |
+| `eslint-config-next` | `16.4.6` | root, app | Machine checks: Next.js lint rules for `app/**` only | EZD-001 |
 | `prettier` | `3.9.10` | root | Formatting (review, not gated): `format`, `format:check` | EZD-001 |
 | `@types/node` | `22.20.5` | app, geometry | Stack: App shell (Node types for `next.config.ts` and route handlers) | EZD-001 |
 | `@types/react` | `19.3.0` | app | Stack: App shell | EZD-001 |
