@@ -369,4 +369,159 @@ describe('EZD-131 library routes', () => {
       { tenantId: tenantA, actorId: owner.appUserId },
     );
   });
+
+  // EZD-714 (S15h Notes: Add note / Edit / Delete; S15c Required notes: a multi-select from the notes library).
+  // Expected values: a note is its text, general or code, for one or more of kitchen, bath and whole-home
+  // projects; notes list in the order they were added; the Sheet presets switch reads the notes (S15c) but
+  // cannot change them; a deleted note leaves the profiles that required it (migration header).
+  describe('EZD-714 notes', () => {
+    let presets: Member;
+    let presetsCookies: Map<string, string>;
+
+    beforeAll(async () => {
+      presets = await createMember({ tenantId: tenantA, scope: 'all' });
+      await setPermissions(tenantA, presets.membershipId, ['settings_sheet_presets']);
+      presetsCookies = await cookiesFor(presets.email);
+    }, 60000);
+
+    const NOTE = {
+      kind: 'note',
+      text: ' Smoke alarms per FBC R314. ',
+      group: 'code',
+      projectTypes: ['bath', 'kitchen'],
+    };
+
+    it('POST adds a note, GET lists notes in the order added, PATCH edits it, DELETE removes it from profiles', async () => {
+      state.store = new Map(ownerCookies);
+      const made = await create(JSON.stringify(NOTE));
+      expect(made.res.status).toBe(201);
+      const item = (made.json as { item: Record<string, unknown> }).item;
+      expect(item).toMatchObject({
+        kind: 'note',
+        name: 'Smoke alarms per FBC R314.',
+        meaning: null,
+        note: { group: 'code', projectTypes: ['kitchen', 'bath'] },
+      });
+      const id = item.id as string;
+      expect(await rowOf(id)).toEqual({
+        tenant_id: tenantA,
+        kind: 'note',
+        name: 'Smoke alarms per FBC R314.',
+        data: { group: 'code', projectTypes: ['kitchen', 'bath'] },
+      });
+      expect(emitMock).toHaveBeenCalledTimes(1);
+      expect(emitMock.mock.calls[0][0]).toBe('library.item_created');
+      expect(emitMock.mock.calls[0][1]).toEqual({ itemId: id, kind: 'note' });
+
+      // Problems are 400 with the note codes.
+      for (const [body, code] of [
+        [{ ...NOTE, text: '  ' }, 'library_note_required'],
+        [{ ...NOTE, text: 'n'.repeat(1001) }, 'library_note_too_long'],
+        [{ ...NOTE, projectTypes: [] }, 'library_note_project_type_required'],
+        [{ ...NOTE, group: 'other' }, 'invalid_input'],
+        [{ ...NOTE, projectTypes: ['garage'] }, 'invalid_input'],
+      ] as const) {
+        state.store = new Map(ownerCookies);
+        const r = await create(JSON.stringify(body));
+        expect(r.res.status, code).toBe(400);
+        expect(r.json, code).toEqual(err(code));
+      }
+
+      // A later note lists after it, though its text sorts first.
+      state.store = new Map(ownerCookies);
+      const later = await create(
+        JSON.stringify({ ...NOTE, text: 'A later note.', group: 'general' }),
+      );
+      const laterId = (later.json as { item: { id: string } }).item.id;
+      state.store = new Map(ownerCookies);
+      const notes = (await list('?kind=note')).json as { items: { id: string }[] };
+      expect(notes.items.map((i) => i.id)).toEqual([id, laterId]);
+
+      // PATCH: new text, group and project types; nothing changed is no write and no event.
+      emitMock.mockClear();
+      state.store = new Map(ownerCookies);
+      const same = await patch(
+        id,
+        JSON.stringify({
+          text: 'Smoke alarms per FBC R314.',
+          group: 'code',
+          projectTypes: ['kitchen', 'bath'],
+        }),
+      );
+      expect(same.res.status).toBe(200);
+      expect(emitMock).not.toHaveBeenCalled();
+      state.store = new Map(ownerCookies);
+      const edited = await patch(
+        id,
+        JSON.stringify({
+          text: 'Smoke and CO alarms per FBC R314 and R315.',
+          group: 'code',
+          projectTypes: ['whole_home_interior'],
+        }),
+      );
+      expect(edited.res.status).toBe(200);
+      expect((edited.json as { item: unknown }).item).toMatchObject({
+        name: 'Smoke and CO alarms per FBC R314 and R315.',
+        note: { group: 'code', projectTypes: ['whole_home_interior'] },
+      });
+      expect(emitMock.mock.calls[0][1]).toEqual({
+        itemId: id,
+        kind: 'note',
+        fields: ['name', 'data'],
+      });
+      state.store = new Map(ownerCookies);
+      const wrongShape = await patch(id, JSON.stringify({ name: 'x' }));
+      expect(wrongShape.json).toEqual(err('invalid_input'));
+
+      // A profile requires the note; deleting the note takes it off the profile.
+      const profile = (
+        await harnessSql()<{ id: string }[]>`
+          insert into public.submittal_profile (tenant_id, department, required_notes)
+          values (${tenantA}::uuid, ${`Notes ${id.slice(0, 8)}`}, ${[id, laterId]}::uuid[]) returning id`
+      )[0].id;
+      emitMock.mockClear();
+      state.store = new Map(ownerCookies);
+      const gone = await remove(id);
+      expect(gone.res.status).toBe(200);
+      expect(await rowOf(id)).toBeNull();
+      expect(emitMock.mock.calls[0][1]).toEqual({
+        itemId: id,
+        kind: 'note',
+        name: 'Smoke and CO alarms per FBC R314 and R315.',
+      });
+      const left = await harnessSql()<{ required_notes: string[] }[]>`
+        select required_notes from public.submittal_profile where id = ${profile}::uuid`;
+      expect(left[0].required_notes).toEqual([laterId]);
+    });
+
+    it('the Sheet presets switch reads the notes for Required notes but nothing else and cannot change them', async () => {
+      const mine = await insertItem(tenantA, 'note', 'Readable by Sheet presets.', {
+        group: 'general',
+        projectTypes: ['kitchen'],
+      });
+      await insertItem(tenantB, 'note', 'Other company note.', {
+        group: 'general',
+        projectTypes: ['kitchen'],
+      });
+
+      state.store = new Map(presetsCookies);
+      const r = await list('?kind=note');
+      expect(r.res.status).toBe(200);
+      const ids = (r.json as { items: { id: string }[] }).items.map((i) => i.id);
+      expect(ids).toContain(mine);
+      const tenants = await harnessSql()<{ tenant_id: string }[]>`
+        select distinct tenant_id from public.library_item where id = any(${ids}::uuid[])`;
+      expect(tenants.map((x) => x.tenant_id)).toEqual([tenantA]);
+
+      state.store = new Map(presetsCookies);
+      expect((await list('?kind=abbreviation')).json).toEqual(FORBIDDEN);
+      state.store = new Map(presetsCookies);
+      expect((await create(JSON.stringify(NOTE))).json).toEqual(FORBIDDEN);
+      state.store = new Map(presetsCookies);
+      expect((await remove(mine)).json).toEqual(FORBIDDEN);
+      // Without either switch, still 403.
+      state.store = new Map(plainCookies);
+      expect((await list('?kind=note')).json).toEqual(FORBIDDEN);
+    });
+  });
 });

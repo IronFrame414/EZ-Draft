@@ -53,6 +53,8 @@ export type SubmittalProfile = {
   maxFileMb: number | null;
   revisionNaming: 'version_in_name' | 'same_name';
   flatten: boolean;
+  // EZD-714 (S15c Required notes): ids of notes from the notes library, in print order.
+  requiredNotes: string[];
   projectCount: number;
 };
 
@@ -65,6 +67,7 @@ export type ProfileFields = {
   stampBoxHeightIn: number;
   stampBoxPosition: StampPosition;
   signer: Signer;
+  requiredNotes: string[];
 };
 export const PROFILE_FIELDS = [
   'department',
@@ -74,6 +77,7 @@ export const PROFILE_FIELDS = [
   'stampBoxHeightIn',
   'stampBoxPosition',
   'signer',
+  'requiredNotes',
 ] as const satisfies readonly (keyof ProfileFields)[];
 
 // The column each field is stored in.
@@ -85,7 +89,11 @@ export const FIELD_COLUMN: Record<keyof ProfileFields, string> = {
   stampBoxHeightIn: 'stamp_box_height_in',
   stampBoxPosition: 'stamp_box_position',
   signer: 'signer',
+  requiredNotes: 'required_notes',
 };
+
+// EZD-714: a profile names at most this many required notes.
+export const REQUIRED_NOTES_MAX = 100;
 
 type Row = Record<string, unknown>;
 
@@ -116,6 +124,9 @@ export function profileOf(row: Row, projectCount = 0): SubmittalProfile {
       row.max_file_mb === null || row.max_file_mb === undefined ? null : num(row.max_file_mb, 0),
     revisionNaming: row.revision_naming === 'same_name' ? 'same_name' : 'version_in_name',
     flatten: row.flatten === true,
+    requiredNotes: Array.isArray(row.required_notes)
+      ? row.required_notes.filter((x): x is string => typeof x === 'string')
+      : [],
     projectCount,
   };
 }
@@ -128,7 +139,11 @@ export const fieldsOf = (p: SubmittalProfile): ProfileFields => ({
   stampBoxHeightIn: p.stampBoxHeightIn,
   stampBoxPosition: p.stampBoxPosition,
   signer: p.signer,
+  requiredNotes: [...p.requiredNotes],
 });
+
+const sameList = (a: readonly string[], b: readonly string[]) =>
+  a.length === b.length && a.every((x, i) => x === b[i]);
 
 // The list order: the default first, then active by name, then archived by name.
 export function sortProfiles(list: readonly SubmittalProfile[]): SubmittalProfile[] {
@@ -213,6 +228,11 @@ export function changedFields(
   const before = fieldsOf(saved);
   const out: Partial<ProfileFields> = {};
   for (const k of PROFILE_FIELDS) {
+    if (k === 'requiredNotes') {
+      if (!sameList(form.requiredNotes, before.requiredNotes))
+        out.requiredNotes = [...form.requiredNotes];
+      continue;
+    }
     const v = k === 'department' || k === 'namingTemplate' ? (form[k] as string).trim() : form[k];
     if (v !== before[k]) (out as Record<string, unknown>)[k] = v;
   }
@@ -241,7 +261,7 @@ export function parseCreateBody(raw: unknown): CreateProfileBody | null {
 // PATCH /api/settings/sheet-presets/[id]: exactly one of `{ fields }`, `{ setDefault: true }` or
 // `{ archived: boolean }`.
 export type PatchProfileBody =
-  | { kind: 'fields'; columns: Record<string, string | number> }
+  | { kind: 'fields'; columns: Record<string, string | number | string[]> }
   | { kind: 'default' }
   | { kind: 'archive'; archived: boolean };
 
@@ -255,7 +275,7 @@ export function parsePatchBody(raw: unknown): PatchProfileBody | null {
   }
   if (keys[0] !== 'fields' || !isObject(raw.fields)) return null;
   const f = raw.fields;
-  const columns: Record<string, string | number> = {};
+  const columns: Record<string, string | number | string[]> = {};
   for (const [k, v] of Object.entries(f)) {
     if (!(PROFILE_FIELDS as readonly string[]).includes(k)) return null;
     const key = k as keyof ProfileFields;
@@ -278,6 +298,11 @@ export function parsePatchBody(raw: unknown): PatchProfileBody | null {
     } else if (key === 'signer') {
       if (!(SIGNERS as readonly unknown[]).includes(v)) return null;
       columns[FIELD_COLUMN[key]] = v as string;
+    } else if (key === 'requiredNotes') {
+      // Note ids, each once; the database checks they are the company's notes (EZD-714 migration).
+      if (!Array.isArray(v) || v.length > REQUIRED_NOTES_MAX || !v.every(isUuid)) return null;
+      if (new Set(v.map((x) => x.toLowerCase())).size !== v.length) return null;
+      columns[FIELD_COLUMN[key]] = [...v];
     }
   }
   if (Object.keys(columns).length === 0) return null;

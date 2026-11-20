@@ -138,4 +138,42 @@ test.describe('EZD-712 Settings > Sheet presets', () => {
     await expect(tid(page, 'sheet-presets-save')).toBeDisabled();
     await network.set(page, 'on');
   });
+
+  // EZD-714 (S15c Required notes: a multi-select from the notes library, "Notes added to sets for this
+  // department"; AC-EZD-714-1): a ticked note is saved on the profile and the project's set notes return it.
+  test('EZD-714: Required notes are picked from the notes library and saved on the profile', async ({
+    page,
+    signInAs,
+  }) => {
+    const tenant = await open(signInAs, page);
+    const [note] = await harnessSql()<{ id: string }[]>`
+      insert into public.library_item (tenant_id, kind, name, data)
+      values (${tenant}::uuid, 'note', 'Smoke alarms per FBC R314.',
+        '{"group":"code","projectTypes":["kitchen","bath","whole_home_interior"]}'::jsonb)
+      returning id`;
+    await page.reload();
+    const box = page.locator(
+      `[data-testid="sheet-presets-required-note"][data-note-id="${note.id}"]`,
+    );
+    await expect(tid(page, 'sheet-presets-required-notes')).toContainText(
+      'Notes added to sets for this department.',
+    );
+    await expect(box).not.toBeChecked();
+    await box.check();
+    await expect(tid(page, 'sheet-presets-save')).toBeEnabled();
+    const saved = page.waitForResponse(
+      (r) =>
+        r.request().method() === 'PATCH' &&
+        /\/api\/settings\/sheet-presets\/[0-9a-f-]+$/.test(r.url()),
+    );
+    await tid(page, 'sheet-presets-save').click();
+    expect((await saved).status()).toBe(200);
+    await expect(tid(page, 'sheet-presets-save')).toBeDisabled();
+
+    const [profile] = await harnessSql()<{ required_notes: string[] }[]>`
+      select required_notes from public.submittal_profile where tenant_id = ${tenant}::uuid and is_default`;
+    expect(profile.required_notes).toEqual([note.id]);
+    await page.reload();
+    await expect(box).toBeChecked();
+  });
 });

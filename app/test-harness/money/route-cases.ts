@@ -659,6 +659,18 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-712: Project settings picks the profile; 200 { profileId } (no money)',
   },
+  // EZD-714: the notes the project's set prints (general notes for its type and its profile's required notes).
+  {
+    file: `${API}projects/[id]/notes/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/notes/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/notes`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-714: the set notes; 200 { general, required } (no money)',
+  },
   // EZD-233: the Plan editor's saved groups; POST saves one lavatory as a group.
   {
     file: `${API}saved-groups/route.ts`,

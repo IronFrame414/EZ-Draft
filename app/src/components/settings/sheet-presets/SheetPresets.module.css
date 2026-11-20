@@ -430,3 +430,29 @@
     color: var(--ez-cobalt-text);
   }
 }
+
+/* EZD-714: Required notes. */
+.noteList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.noteOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ez-ink);
+}
+
+.noteLink {
+  font-size: 13px;
+  color: var(--ez-cobalt);
+}

@@ -77,3 +77,7 @@ select private.seed_catalog_generic_line(id) from public.tenant;
 -- EZD-712 (S15c; AC-EZD-712-1): the default submittal profile for every seeded company (the migration seeds only
 -- companies that exist when it runs).
 select private.seed_submittal_profile(id) from public.tenant;
+
+-- EZD-714 (S15h Notes; S13 board GENERAL NOTES): the starting general notes for every seeded company (the migration
+-- seeds only companies that exist when it runs).
+select private.seed_general_notes(id) from public.tenant;

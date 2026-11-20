@@ -137,6 +137,10 @@ export const en = {
   'error.library_abbreviation_taken': 'This abbreviation is already in the library.',
   'error.library_item_not_found': 'This library item no longer exists.',
   'error.library_item_read_only': "This library item can't be changed here.",
+  // EZD-714 (S15h Notes): note errors.
+  'error.library_note_required': 'Enter the note text.',
+  'error.library_note_too_long': 'Use 1,000 characters or fewer.',
+  'error.library_note_project_type_required': 'Pick at least one project type.',
   'error.member_not_found': 'This person is no longer in this company.',
   // EZD-105b: an Owner-set password refused for this member (self, not active, no account, an admin, or in
   // another company).
@@ -772,6 +776,25 @@ export const en = {
   'office.libraries.load_failed': "Couldn't load the library.",
   'office.libraries.save_failed': "Couldn't save. Try again.",
   'office.libraries.delete_failed': "Couldn't delete. Try again.",
+  // EZD-714 (S15h Notes; S15c Required notes).
+  'office.libraries.add_note': 'Add note',
+  'office.libraries.new_note': 'New note',
+  'office.libraries.field_note': 'Note text',
+  'office.libraries.field_note_group': 'Type',
+  'office.libraries.field_project_types': 'Project types',
+  'office.libraries.note_group.general': 'General note',
+  'office.libraries.note_group.code': 'Code note',
+  'office.libraries.notes_heading.general': 'General notes',
+  'office.libraries.notes_heading.code': 'Code notes',
+  'office.libraries.notes_filter': 'Project type',
+  'office.libraries.notes_filter.all': 'All',
+  'office.libraries.notes_group_empty': 'None for this project type.',
+  'office.libraries.this_note': 'this note',
+  'office.sheet_presets.required_notes': 'Required notes',
+  'office.sheet_presets.required_notes_hint': 'Notes added to sets for this department.',
+  'office.sheet_presets.required_notes_none': 'No notes in the library yet.',
+  'office.sheet_presets.required_notes_link': 'Edit notes in Libraries',
+  'office.sheet_presets.required_notes_load_failed': "Couldn't load the notes.",
   'office.users.subtitle':
     'Each person sees the field pack, notes and tasks in their own language. Controls a user lacks are hidden.',
   'office.users.search': 'Search users',

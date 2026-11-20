@@ -140,6 +140,9 @@ export const es = {
   'error.library_abbreviation_taken': 'Esta abreviatura ya está en la biblioteca.',
   'error.library_item_not_found': 'Este elemento de la biblioteca ya no existe.',
   'error.library_item_read_only': 'Este elemento de la biblioteca no se puede cambiar aquí.',
+  'error.library_note_required': 'Escribe el texto de la nota.',
+  'error.library_note_too_long': 'Usa 1,000 caracteres o menos.',
+  'error.library_note_project_type_required': 'Elige al menos un tipo de proyecto.',
   'error.member_not_found': 'Esta persona ya no está en esta empresa.',
   'error.password_target_refused': 'No puedes poner una contraseña para esta persona.',
   'error.project_unavailable':

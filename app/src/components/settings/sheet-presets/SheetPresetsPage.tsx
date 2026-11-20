@@ -6,10 +6,13 @@
 // default. The inspector edits the EZD-712 fields: department name, submittal type, permit sheet size (fixed
 // 24x36), electrical signature, file naming template with its tokens, stamp box size and position, and shows the
 // PDF output line. File split, max size, revision naming, flatten, bookmarks, resubmittal, minimum scale and
-// export unsigned are EZD-713; required notes wait for the notes library (EZD-714) (assumptions EZD-712).
+// export unsigned are EZD-713. EZD-714 (S15c Required notes): a multi-select from the notes library, kept in
+// library order (the order the set prints them), with a link to Settings > Libraries.
 // Offline: read-only.
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { LibraryItem } from '../../../lib/libraries/libraries';
 import { useT } from '../../../lib/messages';
 import { useOnline } from '../../../lib/network';
 import {
@@ -749,6 +752,12 @@ function ProfileInspector({
             </p>
           ) : null}
         </div>
+
+        <RequiredNotesField
+          value={form.requiredNotes}
+          readOnly={readOnly}
+          onChange={(ids) => set('requiredNotes', ids)}
+        />
       </div>
       {saveError ? (
         <div data-testid="sheet-presets-save-error" className={styles.saveError}>
@@ -778,6 +787,84 @@ function ProfileInspector({
         </StateButton>
       </div>
     </aside>
+  );
+}
+
+// EZD-714 (S15c Required notes): the company's notes as checkboxes; the chosen ids are kept in library order.
+function RequiredNotesField({
+  value,
+  readOnly,
+  onChange,
+}: {
+  value: readonly string[];
+  readOnly: boolean;
+  onChange: (ids: string[]) => void;
+}) {
+  const t = useT();
+  const [notes, setNotes] = useState<LibraryItem[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    const ac = new AbortController();
+    fetch('/api/settings/libraries?kind=note', {
+      cache: 'no-store',
+      credentials: 'same-origin',
+      signal: ac.signal,
+    })
+      .then(async (res) => {
+        if (res.status !== 200) throw new Error('notes_load_failed');
+        const body = (await res.json()) as { items: LibraryItem[] };
+        setNotes(body.items);
+      })
+      .catch(() => {
+        if (!ac.signal.aborted) setFailed(true);
+      });
+    return () => ac.abort();
+  }, []);
+  const toggle = (id: string) => {
+    const on = new Set(value);
+    if (on.has(id)) on.delete(id);
+    else on.add(id);
+    onChange((notes ?? []).filter((n) => on.has(n.id)).map((n) => n.id));
+  };
+  return (
+    <div data-testid="sheet-presets-required-notes" className={styles.field}>
+      <h3 className={styles.section}>{t('office.sheet_presets.required_notes')}</h3>
+      <span className={styles.muted}>{t('office.sheet_presets.required_notes_hint')}</span>
+      {failed ? (
+        <p role="alert" className={styles.error}>
+          {t('office.sheet_presets.required_notes_load_failed')}
+        </p>
+      ) : notes === null ? null : notes.length === 0 ? (
+        <span data-testid="sheet-presets-required-notes-none" className={styles.muted}>
+          {t('office.sheet_presets.required_notes_none')}
+        </span>
+      ) : (
+        <ul className={styles.noteList}>
+          {notes.map((n) => (
+            <li key={n.id}>
+              <label className={styles.noteOption}>
+                <input
+                  type="checkbox"
+                  data-testid="sheet-presets-required-note"
+                  data-note-id={n.id}
+                  checked={value.includes(n.id)}
+                  disabled={readOnly}
+                  onChange={() => toggle(n.id)}
+                />
+                <span>{n.name}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      )}
+      <Link
+        href="/settings/libraries"
+        data-testid="sheet-presets-required-notes-link"
+        className={styles.noteLink}
+      >
+        {t('office.sheet_presets.required_notes_link')}
+      </Link>
+    </div>
   );
 }
 

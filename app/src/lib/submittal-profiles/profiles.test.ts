@@ -154,4 +154,39 @@ describe('EZD-712 profile rows and bodies', () => {
     expect(parsePatchBody({ fields: { stampBoxWidthIn: 0 } })).toBeNull();
     expect(parsePatchBody({ fields: { signer: 'engineer' } })).toBeNull();
   });
+
+  // EZD-714 (S15c Required notes: a multi-select from the notes library; 03c required_notes uuid[]).
+  describe('EZD-714 required notes', () => {
+    const N1 = '22222222-2222-4222-8222-222222222222';
+    const N2 = '33333333-3333-4333-8333-333333333333';
+
+    it('profileOf reads required_notes; a row without them has none', () => {
+      expect(P.requiredNotes).toEqual([]);
+      expect(profileOf({ ...ROW, required_notes: [N1, N2] }).requiredNotes).toEqual([N1, N2]);
+    });
+
+    it('changedFields compares the list by value and order', () => {
+      const withNotes = profileOf({ ...ROW, required_notes: [N1, N2] });
+      const f = fieldsOf(withNotes);
+      expect(changedFields(withNotes, { ...f, requiredNotes: [N1, N2] })).toBeNull();
+      expect(changedFields(withNotes, { ...f, requiredNotes: [N2, N1] })).toEqual({
+        requiredNotes: [N2, N1],
+      });
+      expect(changedFields(withNotes, { ...f, requiredNotes: [] })).toEqual({ requiredNotes: [] });
+    });
+
+    it('parsePatchBody: requiredNotes is a list of distinct note ids stored as required_notes', () => {
+      expect(parsePatchBody({ fields: { requiredNotes: [N1, N2] } })).toEqual({
+        kind: 'fields',
+        columns: { required_notes: [N1, N2] },
+      });
+      expect(parsePatchBody({ fields: { requiredNotes: [] } })).toEqual({
+        kind: 'fields',
+        columns: { required_notes: [] },
+      });
+      expect(parsePatchBody({ fields: { requiredNotes: [N1, N1] } })).toBeNull();
+      expect(parsePatchBody({ fields: { requiredNotes: ['nope'] } })).toBeNull();
+      expect(parsePatchBody({ fields: { requiredNotes: N1 } })).toBeNull();
+    });
+  });
 });
