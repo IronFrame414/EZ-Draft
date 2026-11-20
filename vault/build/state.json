@@ -410,7 +410,8 @@
     "EZD-713",
     "EZD-601",
     "EZD-1102",
-    "EZD-412"
+    "EZD-412",
+    "EZD-134"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1072,6 +1073,14 @@
       "ts": "2026-11-20T11:12:32Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-134",
+      "title": "App-shell cache and device storage",
+      "commit": "c99a7b12",
+      "ts": "2026-11-20T11:40:30Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1195,11 +1204,11 @@
     }
   },
   "running": {
-    "EZD-134": {
-      "lane": 1,
-      "title": "App-shell cache and device storage",
-      "started": "2026-11-20T08:18:44Z",
-      "develop": "43ee2216"
+    "EZD-413": {
+      "lane": 2,
+      "title": "Seams and cutouts",
+      "started": "2026-11-20T11:13:11Z",
+      "develop": "9991d2fc"
     }
   },
   "advisories_checked_at": "2026-11-20T10:58:15Z"
