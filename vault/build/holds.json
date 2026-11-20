@@ -256,6 +256,14 @@
       "question": "Q-0778",
       "kind": "held",
       "since": "2026-11-20"
+    },
+    {
+      "ticket": "EZD-732",
+      "title": "Mechanical calculations",
+      "reason": "Josh 2026-11-20: mechanical calculations move to v2 (duct layout stays in v1). Held until the decision is recorded and the ticket retired.",
+      "question": "",
+      "kind": "held",
+      "since": "2026-11-20"
     }
   ]
 }
