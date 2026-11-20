@@ -7,6 +7,8 @@
 // EZD-505 (AC-EZD-505-1 "A level beam above the ridge shows a warning"; S05 Controls "Beam", inspector beams, spacing
 // pill; S05 Validation): the Beam tool places a set in a vaulted room (ridge 13' 0", walls 8' 0"); typing a Height
 // AFF above the ridge shows the warning in the inspector.
+// EZD-506 (AC-EZD-506-1 "The preview updates when Height AFF changes"; S05 Controls "Section A-A preview"; board
+// S05Ceiling "beams 9' 0"", "ridge 13' 0""): the section under the beam fields re-draws when Height AFF is typed.
 import {
   CURRENT_SCHEMA_VERSION,
   createWallData,
@@ -270,5 +272,38 @@ test.describe('EZD-502 RCP view and ceiling rail', () => {
     await id(page, 'beam-heightAff').fill("9'");
     await id(page, 'beam-heightAff').press('Enter');
     await expect(id(page, 'beam-warning-above_ridge')).toHaveCount(0);
+  });
+
+  test('AC-EZD-506-1: the Section A-A preview updates when Height AFF changes', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids, user } = await fixtureS(['view_projects', 'edit_model']);
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await seedRoom(page, true);
+    await id(page, 'surface-ceiling').click();
+    await expect.poll(async () => (await drawn(page)).surface).toBe('ceiling');
+    await tool(page, 'beam').click();
+    const box = await page.locator('[data-shell-region="canvas"]').boundingBox();
+    if (!box) throw new Error('canvas region has no box');
+    const s = await page.evaluate(
+      (p) => (window as unknown as Window2).__ezdraftPlan.handle.modelToScreen(p),
+      { x: 72, y: 30 },
+    );
+    await page.mouse.click(box.x + s.x, box.y + s.y);
+    await expect(id(page, 'inspector')).toHaveAttribute('data-inspector-kind', 'beam');
+
+    // Placed at the 8' 0" plate under the 13' 0" ridge.
+    await expect(id(page, 'beam-section')).toContainText('Section A-A');
+    await expect(id(page, 'beam-section-beams-label')).toHaveText('beams 8\' 0"');
+    await expect(id(page, 'beam-section-ridge-label')).toHaveText('ridge 13\' 0"');
+    const before = await id(page, 'beam-section-beam').getAttribute('points');
+
+    await id(page, 'beam-heightAff').fill("9'");
+    await id(page, 'beam-heightAff').press('Enter');
+    await expect(id(page, 'beam-section-beams-label')).toHaveText('beams 9\' 0"');
+    await expect(id(page, 'beam-section-beam')).not.toHaveAttribute('points', before ?? '');
+    await expect(id(page, 'beam-section-ridge-label')).toHaveText('ridge 13\' 0"');
   });
 });

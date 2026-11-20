@@ -18,6 +18,7 @@ import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ModelStore } from '../model/model-store';
 import { beamEdit, beamView, type BeamEdit, type BeamView } from './beam-edits';
+import { BeamSection } from '../inspector/BeamSection';
 import styles from '../inspector/InspectorPanel.module.css';
 
 export type BeamPanelProps = {
@@ -301,6 +302,8 @@ export function BeamPanel({ store, beamId, canEdit }: BeamPanelProps): ReactElem
           </p>
         )}
       </div>
+      {/* EZD-506: Section A-A, read only, re-drawn from the same snapshot on every edit. */}
+      <BeamSection objects={objects} beamId={beamId} />
     </div>
   );
 }

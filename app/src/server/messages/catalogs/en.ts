@@ -2263,6 +2263,12 @@ export const en = {
   'office.beam.count_refused': 'Type a whole number from 1 to 200',
   'office.beam.edit_failed': 'The beams could not be changed',
   'office.beam.click_room': 'Click inside a room to place beams',
+  'office.beam.section.title': 'Section A-A',
+  'office.beam.section.aria': 'Section through the beams: adjoining ceiling, beams and ceiling heights',
+  'office.beam.section.adjoining': 'adj. {height}',
+  'office.beam.section.beams': 'beams {height}',
+  'office.beam.section.ridge': 'ridge {height}',
+  'office.beam.section.ceiling': 'clg {height}',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;
