@@ -16,6 +16,8 @@ Everything else in these phases was settled from the spec, your decisions and th
 
 Eight questions need you. **None of them holds a ticket.** Each piece is built the recommended way, and a different answer becomes a small follow-on ticket. Answer whenever it suits you.
 
+**Answered 2026-11-20 (Q-0781 to Q-0785):** 1 yes; 2 one signature, plus a simple pen for the client (new ticket EZD-1216); 3 yes; 4 the architect's own colours; 6 both buttons. **Still open:** 5 and 7 (explained in plain words under each), and 8, now split into one short question per item.
+
 ---
 
 ## 1. Screens with no drawing in phases 38 to 47: OK to build them from the written spec?
@@ -38,6 +40,8 @@ Eight questions need you. **None of them holds a ticket.** Each piece is built t
 - (a) Build them from the spec in the style of the nearest approved drawing, with no new drawings (recommended)
 - (b) Make drawings first for the ones you name; only those tickets wait
 
+**Josh's answer (2026-11-20): (a), "yes".** Recorded as Q-0781.
+
 ---
 
 ## 2. How does the client sign off the tile layout?
@@ -52,6 +56,8 @@ Eight questions need you. **None of them holds a ticket.** Each piece is built t
 
 - (a) When you send the tile sheet (A7.0) with a design approval, the client's one signature also signs off the tile layout. The signature card says "Includes the tile layout (sheet A7.0)." The editor shows "Tile layout signed off by [name] · [date]" until the layout changes (recommended)
 - (b) The tile layout gets its own tick box or signature on the phone page, separate from the design approval
+
+**Josh's answer (2026-11-20): (a), "1 signature. allow client to mark up and add notes. simple pen is all they need".** Recorded as Q-0782. New ticket EZD-1216 (phase 40): on the phone page the client gets "Mark up", a pen in one colour and width with Undo and Clear, plus a typed note, on any shared sheet or rendering. Your office sees the strokes and note with the client's comments.
 
 ---
 
@@ -68,6 +74,8 @@ Eight questions need you. **None of them holds a ticket.** Each piece is built t
 - (a) Your office's own pins stay internal. When the client leaves a comment, anyone on the project can Reply from the render view, and the client sees that reply under the person's first name (recommended)
 - (b) Also add a "Show to client" switch on an office pin, so you can start a comment the client sees
 
+**Josh's answer (2026-11-20): (a), "yes".** Recorded as Q-0783.
+
 ---
 
 ## 4. The architect's drawing under your model: gray, or the architect's layer colours?
@@ -82,6 +90,8 @@ Eight questions need you. **None of them holds a ticket.** Each piece is built t
 
 - (a) Every layer gray at first; recolour any layer you want (recommended)
 - (b) Each layer in the architect's own colour at first; recolour any layer you want
+
+**Josh's answer (2026-11-20): (b), "original colors".** Recorded as Q-0784. A colour too pale to see on the screen background is drawn a shade darker; Reset color goes back to the architect's colour.
 
 ---
 
@@ -98,6 +108,14 @@ Eight questions need you. **None of them holds a ticket.** Each piece is built t
 - (a) The line snaps to the architect's lines, and the detail holds your model's walls cut at that line, the same as a section on the plan. The architect's lines only guide where you draw (recommended)
 - (b) Also copy the architect's linework near the line into the detail as gray lines to trace over
 
+**Josh's reply (2026-11-20): "explain".** Still open; holds nothing.
+
+**In plain words:** say the architect's plan shows a kitchen wall with a soffit, and you want a section through it for the permit set. You draw a line across that wall on the architect's drawing, and EZ Draft opens a new detail.
+- With (a), the detail starts with the walls you drew in EZ Draft, cut where your line crosses them: stud, drywall, and so on, as on a section from your own plan. The architect's lines only helped you put the line in the right place. If you haven't drawn that wall in EZ Draft yet, the detail starts empty and you draw it.
+- With (b), the detail also gets a faint gray copy of the architect's lines near your cut (their wall lines, soffit, cabinet outline), so you can trace over them. The gray copy is a guide only and doesn't print as yours unless you trace it.
+
+(b) helps most when the architect drew something you haven't modeled. (a) is simpler and is how a section from your own plan already works. My recommendation stays (a) for v1, with (b) as a later add-on if you find yourself retracing architect details.
+
 ---
 
 ## 6. Suggested finishes from a supplier's rendering: what does Confirm do?
@@ -112,6 +130,8 @@ Eight questions need you. **None of them holds a ticket.** Each piece is built t
 
 - (a) Confirm saves it as the finish chosen for that supplier file, shown as "Confirmed". You still set the cabinets' finish yourself in the cabinet inspector (recommended: no plan change, no edit lock needed)
 - (b) Confirm also changes every cabinet linked to that rendering to the confirmed door style, colour and countertop
+
+**Josh's answer (2026-11-20): "give user both options".** Recorded as Q-0785. Each suggestion gets "Confirm" (saves it for the supplier file only) and "Confirm and apply" (also sets it on the cabinets linked to that rendering; needs the edit lock). Hardware has nothing in the model to set, so it offers Confirm only.
 
 ---
 
@@ -128,20 +148,49 @@ Eight questions need you. **None of them holds a ticket.** Each piece is built t
 - (a) Keep it as a checklist item in v1 (recommended)
 - (b) Add a hatched work-area plan with the SF and % to the permit set (a new ticket)
 
+**Josh's reply (2026-11-20): "explain".** Still open; holds nothing.
+
+**In plain words:** under the Existing Building code, how much paperwork and upgrading a remodel needs depends on how much of the house you're working on. That share is the "work area": the rooms you're reconfiguring, as a percentage of the whole house. Under 50% is usually a Level 2 alteration; over 50% is Level 3, which pulls in more requirements. EZ Draft already works this out from your plan and shows it in the code check ("Work area 420 SF of 1,800 SF (23%), Alteration level 2").
+
+The code also wants the work area shown on the drawings, so the plan reviewer can see which rooms count. The question is how:
+- With (a), the code check shows a reminder, "Show the work area on the drawings", and you handle it as you do today (a note on the cover sheet or a hand-marked plan). EZ Draft prints nothing new.
+- With (b), EZ Draft adds a small plan to the permit set with the work-area rooms hatched and a note like "Work area 420 SF / 1,800 SF total = 23%, Level 2". It's built from the same numbers, so it's always right.
+
+If your plan reviewers ask for it on most remodels, (b) saves you a step every job. If they rarely do, (a) is enough for v1.
+
 ---
 
-## 8. More things the code rules ask about that EZ Draft can't draw (adds to question 8 of phases 18 to 27, still open)
+## 8. Things the code rules ask about that EZ Draft can't draw: one question per item
 
-**What it is:** you asked "why can't they be drawn?" about stairs, guard rails, skylights, garage doors, carports, pools and spas. These phases' rules add more items to that list: fireplaces, chimneys and hearths, glass block walls, ramps, lofts, gas furnaces, unvented gas heaters, floor drains, boilers, and valves and backflow devices.
+**Josh's reply (2026-11-20): "give all questions".** Here is each item on its own, covering this question and question 8 of phases 18 to 27 (which these answers also settle).
 
-**Why you're being asked:** same as the earlier question: each new drawing piece is a product choice.
+**Why they can't be drawn today:** EZ Draft only checks what it can see in your model. It draws walls, doors, windows, rooms, cabinets, fixtures, lights, outlets, ceilings and beams. It has no drawing tool for the items below, so their code rules are kept but never run. Each one shows at the bottom of every Check list under "Not checked by EZ Draft".
 
-**What waits on it:** nothing. They are listed under "Not checked by EZ Draft" at the bottom of every Check list until you pick.
+**What a yes means:** a new drawing piece (a tool, its inspector fields and how it prints), plus its code rules switched on. Each yes is one or two new tickets in a later phase. Nothing built so far changes, and nothing waits on any answer.
 
-**My recommendation:** answer both lists together. Interior remodels rarely add these, so (a).
+Answer each with **yes** (add it to v1) or **no** (leave it as "not checked" in v1). My pick is in brackets.
 
-- (a) List them as not checked in v1 (recommended)
-- (b) Name the ones to add as drawing pieces (each becomes a new ticket, and its rules wait for it)
+1. **Stairs.** The rules check step height and depth, headroom, width, handrails and the landing at top and bottom. This is the biggest group of rules on this list. *[yes, if you redo stairs on remodels; otherwise no]*
+2. **Guard rails** (open sides of stairs, lofts, balconies). The rules check guard height and baluster spacing. *[same answer as stairs]*
+3. **Ramps.** The rules check slope, landings and handrails. *[no]*
+4. **Lofts.** The rules check floor area, ceiling height and how you get up there. *[no]*
+5. **Skylights.** The rules check glazing type and the curb on the roof. *[no]*
+6. **Garage doors.** The rules check wind rating. *[no]*
+7. **Carports.** The rules check that the sides stay open. *[no]*
+8. **Pools.** The rules check barriers, alarms and electrical bonding. *[no, a separate trade]*
+9. **Spas and hot tubs.** Same rules as pools. *[no]*
+10. **Fireplaces, chimneys and hearths.** The rules check hearth size, clearance to wood trim and the chimney's height above the roof. *[no]*
+11. **Glass block walls.** The rules check panel size and how the panel is braced. *[no]*
+12. **Gas furnaces.** The rules check combustion air, venting and clearances. Gas ranges, dryers and water heaters are already checked through the gas line you draw. *[no]*
+13. **Unvented gas heaters.** The rules check which rooms they're allowed in and the room's size. *[no]*
+14. **Boilers.** The rules check relief valves and clearances. *[no]*
+15. **Oil- or wood-burning appliances** (wood stoves, oil furnaces). The rules check clearances, venting and the floor under them. *[no]*
+16. **Saunas.** The rules check the heater guard and the door. *[no]*
+17. **Generators.** The rules check placement and fuel connection. *[no]*
+18. **Floor drains.** The rules check the trap and the trap primer. *[no]*
+19. **Valves, regulators and backflow devices** (shutoffs, pressure regulators, backflow preventers). The rules check that they're there and reachable. *[no]*
+
+If you answer "yes" to any, I'll add the tickets after phase 47 so they don't hold up what's already released.
 
 ---
 
