@@ -2,6 +2,7 @@
 // Ceiling fan, Acoustical grid, HVAC diffuser or return, Smoke or CO detector, Speaker or low voltage, Access panel,
 // Soffit/tray/coffer, Height and material tag"; S05 States "Locked / view-only ... Rail tools other than Select
 // disabled"; S06 paused tools; board S05Ceiling rail). Pure; no DOM.
+import { bindingsOf } from '../../lib/defaults/shortcut-keys';
 import { describe, expect, it } from 'vitest';
 import { editorRail } from '../selection/selection-controller';
 import {
@@ -10,6 +11,7 @@ import {
   ceilingRail,
   createSurfaceSetting,
   isFloorToolKey,
+  isSelectKey,
 } from './surface';
 
 const base = { editor: 'ready' as const, canvasFailed: false, controllerEnabled: true };
@@ -106,5 +108,20 @@ describe('EZD-502 floor tool keys', () => {
     expect(isFloorToolKey(key('v'))).toBe(false);
     expect(isFloorToolKey(key('Delete'))).toBe(false);
     expect(isFloorToolKey(key('z', { metaKey: true }))).toBe(false);
+  });
+
+  // EZD-222 (S15d Keyboard shortcuts; AC-EZD-222-1 scenario on the Ceiling view): with Wall moved to B, B is the
+  // floor key and W is not; a moved Select key is the one that ends the ceiling tool.
+  it('EZD-222 the floor keys and the Select key follow the company key map', () => {
+    const wallB = bindingsOf({ wall: 'B' });
+    expect(isFloorToolKey(key('b'), wallB)).toBe(true);
+    expect(isFloorToolKey(key('w'), wallB)).toBe(false);
+    expect(isFloorToolKey(key('r'), wallB)).toBe(true);
+    expect(isFloorToolKey(key('?', { shiftKey: true }), wallB)).toBe(false);
+    const selectJ = bindingsOf({ select: 'J' });
+    expect(isSelectKey(key('j'), selectJ)).toBe(true);
+    expect(isSelectKey(key('v'), selectJ)).toBe(false);
+    expect(isFloorToolKey(key('j'), selectJ)).toBe(false);
+    expect(isSelectKey(key('v'))).toBe(true);
   });
 });

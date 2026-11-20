@@ -6,6 +6,7 @@
 import type { RailEntry, RailTool } from '../../components/shell/rail-types';
 import type { ToolKeyEvent } from '../tools/drawing-controller';
 import { isTypingTarget } from '../typed-entry/typed-entry';
+import { DEFAULT_BINDINGS, commandForKey, type ShortcutBindings } from '../../lib/defaults/shortcut-keys';
 
 export const PLAN_SURFACES = ['floor', 'ceiling', 'both'] as const;
 export type PlanSurface = (typeof PLAN_SURFACES)[number];
@@ -122,14 +123,18 @@ export function ceilingRail(
   return { top, disabled: standard.disabled, only: standard.only };
 }
 
-// The standard tools' keys do nothing on the ceiling surfaces (their tools are not on the ceiling rail); V and the
-// edit keys stay. Shift+L is Measure, which is not on the ceiling rail either.
-// EZD-412: K (Countertops) too.
-const FLOOR_KEYS = new Set(['w', 'r', 'd', 'n', 'm', 'f', 's', 'c', 'k', 'e']);
-export function isFloorToolKey(e: ToolKeyEvent): boolean {
+// The standard tools' keys do nothing on the ceiling surfaces (their tools are not on the ceiling rail); Select, Help
+// and the edit keys stay. Measure is not on the ceiling rail either.
+// EZD-222 (S15d Keyboard shortcuts): the keys are the company's, so a rebound tool key is swallowed and its old
+// letter is not.
+const KEPT_COMMANDS: ReadonlySet<string> = new Set(['select', 'help', 'undo', 'redo', 'copy', 'paste']);
+export function isFloorToolKey(e: ToolKeyEvent, bindings: ShortcutBindings = DEFAULT_BINDINGS): boolean {
   if (e.defaultPrevented || isTypingTarget(e.target)) return false;
-  if (e.ctrlKey || e.metaKey || e.altKey) return false;
-  const key = e.key.toLowerCase();
-  if (e.shiftKey) return key === 'l';
-  return FLOOR_KEYS.has(key);
+  const command = commandForKey(bindings, e);
+  return command !== null && !KEPT_COMMANDS.has(command);
+}
+
+/** EZD-222: whether the key is the company's Select key, which ends the ceiling tool as Esc does. */
+export function isSelectKey(e: ToolKeyEvent, bindings: ShortcutBindings = DEFAULT_BINDINGS): boolean {
+  return !e.defaultPrevented && !isTypingTarget(e.target) && commandForKey(bindings, e) === 'select';
 }

@@ -102,11 +102,19 @@ export type DrawingRailProps = {
   assistant?: { open: boolean; onToggle: () => void } | null;
   // EZD-502: the plan's surface; without it there is no Ceiling tool.
   surface?: SurfaceSetting | null;
+  // EZD-222: the Help button and its key; without it there is no Help button.
+  help?: { shortcut: string | undefined; onOpen: () => void } | null;
 };
 
 const floorSurface = () => null;
 
-export function DrawingRail({ drawing, selection, rail, assistant, surface }: DrawingRailProps) {
+// EZD-222 (04 Tool rail "Help | ? | Shortcuts and help | Every editor tab"; S03 Help "Rail, bottom"; board S03Plan):
+// the last button at the bottom of the rail; its key is the company's.
+export function helpRailTool(shortcut: string | undefined): RailTool {
+  return { kind: 'tool', id: 'help', icon: 'help', label: 'office.tool.help', shortcut };
+}
+
+export function DrawingRail({ drawing, selection, rail, assistant, surface, help }: DrawingRailProps) {
   const ui = useSyncExternalStore<DrawingUi | null>(
     drawing ? drawing.subscribe : noSubscribe,
     () => drawing?.getUi() ?? null,
@@ -117,7 +125,10 @@ export function DrawingRail({ drawing, selection, rail, assistant, surface }: Dr
     surface ? surface.get : floorSurface,
     surface ? surface.get : floorSurface,
   );
-  const bottom = assistant ? [ASSISTANT_RAIL_TOOL] : [];
+  const bottom = [
+    ...(assistant ? [ASSISTANT_RAIL_TOOL] : []),
+    ...(help ? [helpRailTool(help.shortcut)] : []),
+  ];
   const pressedIds = assistant ? (assistant.open ? ['assistant'] : []) : undefined;
   const select = rail.tools.find((t) => t.id === 'select');
   if (surface && shown !== null && shown.surface !== 'floor' && select !== undefined) {
@@ -130,6 +141,7 @@ export function DrawingRail({ drawing, selection, rail, assistant, surface }: Dr
         pressedIds={pressedIds}
         onSelect={(id) => {
           if (assistant && id === 'assistant') assistant.onToggle();
+          else if (help && id === 'help') help.onOpen();
           else if (id === 'select') {
             surface.setTool(null);
             selection?.selectTool();
@@ -149,6 +161,7 @@ export function DrawingRail({ drawing, selection, rail, assistant, surface }: Dr
       pressedIds={pressedIds}
       onSelect={(id) => {
         if (assistant && id === 'assistant') assistant.onToggle();
+        else if (help && id === 'help') help.onOpen();
         else if (surface && id === CEILING_RAIL_TOOL.id) {
           selection?.selectTool();
           surface.setSurface('ceiling');

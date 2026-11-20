@@ -1,0 +1,83 @@
+/* EZD-222 (S03 Help; 04 Frame): the Help panel, a card over the editor. Card as ProjectSwitcher.module.css .panel;
+   colours, radii, fonts and shadow are tokens only. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  width: 360px;
+  max-height: 80vh;
+  box-sizing: border-box;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  box-shadow: var(--ez-shadow-popover);
+  font: 400 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.head h2 {
+  margin: 0;
+  font: 600 15px var(--ez-font-sans);
+}
+
+.close {
+  border: none;
+  background: none;
+  padding: 4px;
+  border-radius: var(--ez-radius-8);
+  color: var(--ez-slate-500);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--ez-hover);
+}
+
+.sub {
+  margin: 0;
+  font: 600 12px var(--ez-font-sans);
+  color: var(--ez-slate-500);
+}
+
+.list {
+  margin: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  row-gap: 6px;
+}
+
+.list dt,
+.list dd {
+  margin: 0;
+}
+
+.list dd {
+  font-family: var(--ez-font-mono);
+  color: var(--ez-slate-700);
+}
+
+.note {
+  margin: 0;
+  color: var(--ez-slate-500);
+}
+
+.item {
+  display: contents;
+}

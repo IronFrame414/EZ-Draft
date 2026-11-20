@@ -2452,6 +2452,31 @@ export const en = {
   'office.countertops.cutout_depth': 'D',
   'office.countertops.cutout_label_sink': 'SINK',
   'office.countertops.cutout_label_cooktop': 'COOKTOP',
+  // EZD-222 Keyboard shortcuts and Help (S15d, board S15dDefaults, S03 Help; wording not on the board is listed in
+  // vault/build/assumptions.md EZD-222).
+  'office.defaults.group.keyboard_shortcuts': 'Keyboard shortcuts',
+  'office.defaults.row.keyboard_shortcuts': 'Keyboard shortcuts',
+  'office.defaults.error.shortcuts': 'A key is used twice or kept by the browser. Pick another key',
+  'office.shortcuts.reset_map': 'Reset to default map',
+  'office.shortcuts.reset_row': 'Reset shortcut',
+  'office.shortcuts.col_command': 'Command',
+  'office.shortcuts.col_key': 'Key',
+  'office.shortcuts.press': 'Press a key',
+  'office.shortcuts.used_by': 'Already used by {command} in {view} · not saved',
+  'office.shortcuts.subtitle': 'Click a key, then press the new one · {count} commands',
+  'office.shortcuts.filter_all': 'All',
+  'office.shortcuts.filter_label': 'Show commands for',
+  'office.shortcuts.note':
+    'Reset fills empty rows only and never overwrites a key you set. Keys are checked within the same view. Ctrl means Cmd on Mac; Ctrl+W, T and N are reserved by the browser.',
+  'office.shortcuts.browser': 'The browser keeps this key. Pick another',
+  'office.help.title': 'Help',
+  'office.help.shortcuts': 'Keyboard shortcuts',
+  'office.help.settings_note': 'Keys are set in Settings → Defaults.',
+  'office.help.close': 'Close',
+  'office.shortcuts.cmd.undo': 'Undo',
+  'office.shortcuts.cmd.redo': 'Redo',
+  'office.shortcuts.cmd.copy': 'Copy',
+  'office.shortcuts.cmd.paste': 'Paste',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

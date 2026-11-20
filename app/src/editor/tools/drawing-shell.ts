@@ -254,7 +254,7 @@ export function createDrawingShell(deps: DrawingDeps, opts: ShellOptions): Drawi
     keyDown(event) {
       if (disposed) return false;
       if (engine !== null) return engine.keyDown(event);
-      const tool = toolForKey(event, canEdit());
+      const tool = toolForKey(event, canEdit(), deps.keys?.());
       const plain = !event.defaultPrevented && !isTypingTarget(event.target);
       // With a tool on, Esc and Enter are the tool's (the engine reads them when it loads).
       const toolKey =

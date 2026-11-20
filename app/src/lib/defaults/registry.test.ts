@@ -28,7 +28,7 @@ const row = (key: string) => {
 const parse = (key: string, text: string) => parseFormValue(row(key), text);
 
 describe('EZD-116 registry (AC-EZD-116-2)', () => {
-  it('lists every S15d row in the board groups, Walls after Increments, no Keyboard shortcuts', () => {
+  it('lists every S15d row in the board groups, Walls after Increments, Keyboard shortcuts last', () => {
     expect(DEFAULT_GROUPS).toEqual([
       'units',
       'increments',
@@ -45,8 +45,11 @@ describe('EZD-116 registry (AC-EZD-116-2)', () => {
       'history',
       'client',
       'integrations',
+      'keyboard_shortcuts',
     ]);
-    expect(DEFAULT_COLUMNS.flat()).toHaveLength(DEFAULT_GROUPS.length);
+    // EZD-222: Keyboard shortcuts is a table under the three columns.
+    expect(DEFAULT_COLUMNS.flat()).toHaveLength(DEFAULT_GROUPS.length - 1);
+    expect(DEFAULT_COLUMNS.flat()).not.toContain('keyboard_shortcuts');
     const keys = DEFAULTS_REGISTRY.map((r) => r.key);
     expect(new Set(keys).size).toBe(keys.length);
     // S15d Controls, one key per row (row 44 is two keys), plus Walls and Snap increment.
@@ -102,8 +105,10 @@ describe('EZD-116 registry (AC-EZD-116-2)', () => {
     ]) {
       expect(keys, k).toContain(k);
     }
-    expect(keys.some((k) => /shortcut|keyboard/.test(k))).toBe(false);
-    expect(DEFAULTS_REGISTRY.some((r) => (r.group as string) === 'keyboard_shortcuts')).toBe(false);
+    // EZD-222: the one Keyboard shortcuts row holds the whole key map.
+    expect(DEFAULTS_REGISTRY.filter((r) => r.group === 'keyboard_shortcuts').map((r) => r.key)).toEqual([
+      'keyboard_shortcuts',
+    ]);
     for (const r of DEFAULTS_REGISTRY) {
       expect(r.label, r.key).toMatch(/^office\.defaults\.row\./);
       expect(DEFAULT_GROUPS, r.key).toContain(r.group);

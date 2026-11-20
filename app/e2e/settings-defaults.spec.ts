@@ -113,8 +113,8 @@ test.describe('EZD-116 Settings > Defaults', () => {
     await expect(rows(page)).toHaveCount(1);
     await expect(rows(page)).toHaveAttribute('data-key', 'measurement_tolerance');
     await tid(page, 'defaults-search').fill('Countertop');
-    // Increments, Waste factors: rows in two groups
-    await expect(page.locator('[data-testid="defaults-group"]')).toHaveCount(2);
+    // Increments, Waste factors: rows in two groups; EZD-222: and the Countertops row of Keyboard shortcuts
+    await expect(page.locator('[data-testid="defaults-group"]')).toHaveCount(3);
     await tid(page, 'defaults-search-clear').click();
     await expect(rows(page)).toHaveCount(all);
   });

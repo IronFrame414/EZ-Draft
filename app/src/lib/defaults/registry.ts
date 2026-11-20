@@ -1,7 +1,6 @@
 // EZD-116 (S15d Controls; board S15dDefaults; Q-0697 decisions 03 "Defaults data" and 05 "Settings → Defaults";
 // Q-0558; Q-0664; Q-0706; Q-0392; Q-0207; glossary 00i "Defaults registry"): the one typed list of company
-// defaults. Browser and server. Every S15d row except the Keyboard shortcuts rows (not shown until EZD-222,
-// Q-0226), plus the Walls group after Increments, the Snap increment under Increments and the two version
+// defaults. Browser and server. Every S15d row, plus the Walls group after Increments, the Snap increment under Increments and the two version
 // cleanup keys. A row whose source says "Owner enters" has no registry default (reads "Not set"); mockup
 // numbers are sample data, never defaults. Answers to open questions are in vault/build/assumptions.md
 // (EZD-116). Lengths are stored in inches; percents, minutes, days and counts as numbers.
@@ -29,6 +28,8 @@ export const DEFAULT_GROUPS = [
   'history',
   'client',
   'integrations',
+  // EZD-222: S15d's last group, a table under the three columns (not in DEFAULT_COLUMNS).
+  'keyboard_shortcuts',
 ] as const;
 export type DefaultGroup = (typeof DEFAULT_GROUPS)[number];
 
@@ -51,10 +52,12 @@ export type DefaultType =
   | 'choice' // one of choices
   | 'switch' // on or off
   | 'scales' // a set of the detail scales
+  | 'shortcuts' // EZD-222: the key map changes, { <command>: <key> } (lib/defaults/shortcuts.ts)
   | 'values'; // a set of named values edited in a popover (Q-0710); fields still owed by Josh
 
 export type LengthRange = { min: number; max: number };
-export type DefaultValue = number | string | boolean | readonly string[] | LengthRange;
+export type ShortcutMap = Readonly<Record<string, string>>;
+export type DefaultValue = number | string | boolean | readonly string[] | LengthRange | ShortcutMap;
 
 export type DefaultRow = {
   key: string;
@@ -456,6 +459,14 @@ export const DEFAULTS_REGISTRY: readonly DefaultRow[] = [
     default: 5,
     min: 0,
     max: 10,
+  }),
+  // EZD-222 (S15d Keyboard shortcuts): the owner's changes to the default key map; {} is the default map.
+  row({
+    key: 'keyboard_shortcuts',
+    group: 'keyboard_shortcuts',
+    label: L('keyboard_shortcuts'),
+    type: 'shortcuts',
+    default: {},
   }),
 ];
 

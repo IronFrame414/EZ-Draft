@@ -2,3 +2,5 @@
 // (EZD-505) shows only on the Ceiling or Both view, which the user picks, so it loads when that view is first shown
 // and leaves room in the editor's first download for the offline cache and icon.
 export { BeamSpacingPill } from '../../editor/tools/BeamSpacingPill';
+// EZD-222 (11 Budgets; same precedent): the Beam tool's placement, used only on the Ceiling or Both view, comes with it.
+export { placeBeamSet } from '../../editor/tools/beam-edits';

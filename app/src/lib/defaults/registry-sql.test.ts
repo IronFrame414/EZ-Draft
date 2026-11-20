@@ -38,6 +38,7 @@ const jsonType = (type: string) =>
     switch: 'boolean',
     scales: 'array',
     length_range: 'object',
+    shortcuts: 'object',
   })[type];
 
 describe('EZD-116 registry and migration key lists', () => {

@@ -286,4 +286,23 @@ describe('EZD-116 /api/settings/defaults', () => {
     state.store = new Map(ownerCookies);
     expect((await projectDefaults('00000000-0000-4000-8000-000000000000')).res.status).toBe(404);
   });
+
+  // EZD-222 (S15d Keyboard shortcuts "Keys are checked for collisions within the same view"; phase-02.md EZD-222
+  // "Already used by check, browser keys refused"): the server refuses what the table refuses.
+  it('EZD-222: a key used twice in a view or kept by the browser is refused; a free key saves and loads', async () => {
+    for (const map of [{ wall: 'R' }, { wall: 'Mod+W' }, { nope: 'B' }, { wall: 'b' }]) {
+      state.store = new Map(ownerCookies);
+      const r = await patch({ changes: { keyboard_shortcuts: map } });
+      expect(r.res.status, JSON.stringify(map)).toBe(400);
+      expect((r.json as { error: { fields: Record<string, string> } }).error.fields).toEqual({
+        keyboard_shortcuts: 'office.defaults.error.shortcuts',
+      });
+    }
+    state.store = new Map(ownerCookies);
+    expect((await patch({ changes: { keyboard_shortcuts: { wall: 'B' } } })).res.status).toBe(200);
+    expect((await stored()).keyboard_shortcuts).toEqual({ wall: 'B' });
+    state.store = new Map(ownerCookies);
+    const r = await get();
+    expect((r.json as { effective: Record<string, unknown> }).effective.keyboard_shortcuts).toEqual({ wall: 'B' });
+  });
 });

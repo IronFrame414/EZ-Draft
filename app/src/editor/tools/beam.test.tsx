@@ -245,6 +245,7 @@ describe('EZD-505 Beam tool', () => {
       newId: () => BEAM_ID,
       select,
       onMessage,
+      place: placeBeamSet,
     });
     receive(click(P(500, 500)));
     expect(onMessage).toHaveBeenCalledWith('office.beam.click_room');

@@ -12,6 +12,7 @@
 // its whole group.
 // EZD-218 (Q-0677 (a); AC-EZD-218-5): rooms are picked by a click, a box and Select all, but a press with no other
 // object under it still starts a box, even inside a room, and a room is never dragged. A room draws its outline.
+import { DEFAULT_BINDINGS, commandForKey, type ShortcutBindings } from '../../lib/defaults/shortcut-keys';
 import type { Point } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { ModelStore } from '../model/model-store';
@@ -78,6 +79,8 @@ export type SelectionDeps = {
   phase?: PhaseFilter & { subscribe(listener: () => void): () => void };
   // EZD-6001 D-Wire: the floor the user chose; without it the lowest floor is picked from.
   floors?: FloorChoice;
+  // EZD-222 (S15d Keyboard shortcuts): the company key map in force; the default map without it.
+  keys?: () => ShortcutBindings;
 };
 
 export type ReceiverSlots = {
@@ -432,7 +435,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     keyDown(e) {
       if (disposed || e.defaultPrevented || isTypingTarget(e.target)) return false;
       if (e.key === 'Escape') return escape(e);
-      if ((e.key === 'v' || e.key === 'V') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (commandForKey(deps.keys?.() ?? DEFAULT_BINDINGS, e) === 'select') {
         return selectToolStep();
       }
       if ((e.key === 'a' || e.key === 'A') && (e.ctrlKey || e.metaKey) && !e.altKey) {

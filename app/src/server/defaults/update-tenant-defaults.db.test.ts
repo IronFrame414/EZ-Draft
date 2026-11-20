@@ -129,4 +129,19 @@ describe('EZD-116 update_tenant_defaults', () => {
       expect(r.error?.code, JSON.stringify(bad)).toBe('22023');
     }
   });
+
+  // EZD-222 (S15d Keyboard shortcuts; migration 20261120170000): the key map changes are one JSON object; any other
+  // JSON type is refused; another company's save leaves this company's map alone.
+  it('EZD-222 keyboard_shortcuts is stored as an object and refused as anything else', async () => {
+    const r = await call(owner, { keyboard_shortcuts: { wall: 'B' } });
+    expect(r.error).toBeNull();
+    expect((r.data as Row[])[0].changed).toEqual(['keyboard_shortcuts']);
+    expect((await stored(tenantA)).keyboard_shortcuts).toEqual({ wall: 'B' });
+    expect((await call(owner, { keyboard_shortcuts: 'B' })).error?.code).toBe('22023');
+    expect((await call(owner, { keyboard_shortcuts: ['B'] })).error?.code).toBe('22023');
+    expect((await call(plain, { keyboard_shortcuts: { wall: 'J' } })).error?.code).toBe('42501');
+    expect((await call(ownerB, { keyboard_shortcuts: { wall: 'J' } })).error).toBeNull();
+    expect((await stored(tenantA)).keyboard_shortcuts).toEqual({ wall: 'B' });
+    expect((await stored(tenantB)).keyboard_shortcuts).toEqual({ wall: 'J' });
+  });
 });

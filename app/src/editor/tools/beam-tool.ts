@@ -9,7 +9,9 @@ import type { SurfaceSetting } from '../ceiling/surface';
 import type { ModelStore } from '../model/model-store';
 import { openFloorId } from '../plan/batches';
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
-import { placeBeamSet } from './beam-edits';
+// EZD-222 (11 Budgets; EZD-1401 precedent): the placement code is given by the caller, so it loads with the Ceiling
+// view's lazy module rather than in the editor's first download. Type only.
+type PlaceBeamSet = typeof import('./beam-edits').placeBeamSet;
 
 /** The types drawn and picked only on Ceiling and Both. */
 export const CEILING_ONLY_TYPES: ReadonlySet<string> = new Set(['beam']);
@@ -78,6 +80,7 @@ export type BeamToolDeps = {
   newId: () => string;
   select: (ids: readonly string[]) => void;
   onMessage: (key: MessageKey) => void;
+  place: PlaceBeamSet;
 };
 
 /** The Beam tool's pointer receiver: each click places one set. */
@@ -87,7 +90,7 @@ export function beamToolReceiver(deps: BeamToolDeps): PlanPointerReceiver {
     const objects = deps.store.getState().objects;
     const level = openFloorId(objects, deps.chosenFloor());
     if (level === null) return;
-    const change = placeBeamSet(objects, level, e.model, deps.newStatus(), deps.newId);
+    const change = deps.place(objects, level, e.model, deps.newStatus(), deps.newId);
     if (change === null) {
       deps.onMessage('office.beam.click_room');
       return;

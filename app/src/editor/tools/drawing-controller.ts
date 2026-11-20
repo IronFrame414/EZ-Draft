@@ -137,6 +137,7 @@ import {
 } from './index';
 import { fixturesModule } from './fixtures-module';
 import { VIEW_TOOL_IDS } from './tool-defs';
+import { DEFAULT_BINDINGS, commandForKey, type ShortcutBindings } from '../../lib/defaults/shortcut-keys';
 import { sketchModule } from './sketch-module';
 import { initialSketchState, reduceSketch, type SketchState } from './sketch-tool';
 import {
@@ -238,6 +239,8 @@ export type DrawingDeps = {
   phase?: PhaseSource;
   // EZD-6001 D-Wire: the floor the user chose; without it new objects go on the lowest floor.
   floors?: FloorChoice;
+  // EZD-222 (S15d Keyboard shortcuts): the company key map in force, read on every key; the default map without it.
+  keys?: () => ShortcutBindings;
 };
 
 export type DrawingController = {
@@ -309,6 +312,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   const snapSettings = deps.snapSettings ?? (() => DEFAULT_SNAP_SETTINGS);
   const ipadDrawing = deps.ipadDrawing ?? (() => 'finger' as const);
   const clock = deps.clock ?? (() => performance.now());
+  const keys = deps.keys ?? (() => DEFAULT_BINDINGS);
 
   const floorOf = (o: Objects) => openFloorId(o, chosenFloor(deps.floors));
   let objects: Objects = store.getState().objects;
@@ -1403,40 +1407,19 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   function keyDown(e: ToolKeyEvent): boolean {
     if (disposed || e.defaultPrevented || isTypingTarget(e.target)) return false;
-    // EZD-231: Shift+L and, while measuring, Esc work without Edit model; plain L stays free.
-    if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'l') {
-      selectTool('measure');
+    // EZD-222: the tool keys come from the company key map (S15d Keyboard shortcuts).
+    const command = commandForKey(keys(), e);
+    // EZD-231 Measure, EZD-404 Cabinets, EZD-412 Countertops and EZD-601 Electrical keys work without Edit model, and
+    // so does Esc while one of them is on.
+    if (command === 'measure' || command === 'cabinets' || command === 'countertops' || command === 'electrical') {
+      selectTool(command);
       return true;
     }
     if (tool !== null && tool.id === 'measure' && e.key === 'Escape') {
       measureInput({ type: 'escape' });
       return true;
     }
-    // EZD-404: C and, while the cabinet screen is open, Esc work without Edit model.
-    if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'c') {
-      selectTool('cabinets');
-      return true;
-    }
-    if (tool !== null && tool.id === 'cabinets' && e.key === 'Escape') {
-      selectTool(null);
-      return true;
-    }
-    // EZD-412 (S04b Entry points "Countertops (K) tool on the rail"; S04b Permissions "View projects: view pieces"): K
-    // and, while the countertop screen is open, Esc work without Edit model.
-    if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'k') {
-      selectTool('countertops');
-      return true;
-    }
-    if (tool !== null && tool.id === 'countertops' && e.key === 'Escape') {
-      selectTool(null);
-      return true;
-    }
-    // EZD-601: E (electrical mode) and, while it is on, Esc work without Edit model.
-    if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'e') {
-      selectTool('electrical');
-      return true;
-    }
-    if (tool !== null && tool.id === 'electrical' && e.key === 'Escape') {
+    if (tool !== null && (tool.id === 'cabinets' || tool.id === 'countertops' || tool.id === 'electrical') && e.key === 'Escape') {
       selectTool(null);
       return true;
     }
@@ -1494,34 +1477,16 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       emitFrame();
       return true;
     }
-    if (e.ctrlKey || e.metaKey || e.altKey) return false;
-    const key = e.key.toLowerCase();
-    if (key === 'w') {
-      selectTool('wall');
-      return true;
-    }
-    if (key === 'r') {
-      selectTool('room-rect');
-      return true;
-    }
-    if (key === 'd') {
-      selectTool('door');
-      return true;
-    }
-    if (key === 'n') {
-      selectTool('window');
-      return true;
-    }
-    if (key === 'm') {
-      selectTool('move');
-      return true;
-    }
-    if (key === 'f') {
-      selectTool('fixtures');
-      return true;
-    }
-    if (key === 's') {
-      selectTool('sketch');
+    if (
+      command === 'wall' ||
+      command === 'room-rect' ||
+      command === 'door' ||
+      command === 'window' ||
+      command === 'move' ||
+      command === 'fixtures' ||
+      command === 'sketch'
+    ) {
+      selectTool(command);
       return true;
     }
     return false;

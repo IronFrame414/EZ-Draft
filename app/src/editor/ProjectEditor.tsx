@@ -71,6 +71,9 @@ import {
   type ReactNode,
 } from 'react';
 import { DeviceLayout } from '../components/device/DeviceLayout';
+import { bindingsOf, commandForKey, type ShortcutBindings } from '../lib/defaults/shortcut-keys';
+import { railToolsWithKeys, shortcutText } from './help/rail-keys';
+import { isTypingTarget } from './typed-entry/typed-entry';
 import { EditorFrame } from '../components/shell/EditorFrame';
 import { EditorHeader } from '../components/shell/EditorHeader';
 import { EditorReview } from './review/EditorReview';
@@ -95,7 +98,13 @@ import { createAssistantLoader, type AssistantLoader } from './assistant/assista
 import type { PreviewStore } from './assistant/preview-store';
 import { createRoutedStore } from './model/routed-store';
 import { newObjectId } from './tools/model-changes';
-import { beamToolReceiver, ceilingAware, receiverRouter, wireBeamTool } from './tools/beam-tool';
+import {
+  beamToolReceiver,
+  ceilingAware,
+  receiverRouter,
+  wireBeamTool,
+  type BeamToolDeps,
+} from './tools/beam-tool';
 import type { PlanPointerReceiver } from './plan/input';
 import type { BeamSpacingPillProps } from './tools/BeamSpacingPill';
 import { assistantShown } from './assistant/assistant-ui';
@@ -353,6 +362,8 @@ export function ProjectEditor({
         const router = receiverRouter(plan.handle.setPointerReceiver);
         const slots = shareReceiver(router.base);
         const unsubscribeScale = scale.subscribe(() => plan.handle.setScale(scale.get()));
+        // EZD-222: the tools read the company key map on every key, so a resync applies at once.
+        const shortcutKeys = () => bindingsOf(result.session.defaults.get()['keyboard_shortcuts']);
         // EZD-423: the drawing engine loads on the first input in the page or the first tool asked for.
         const drawing = createDrawingShell(
           {
@@ -364,6 +375,7 @@ export function ProjectEditor({
             phase,
             ipadDrawing: () => result.session.model.viewer.ipadDrawing ?? 'finger',
             floors,
+            keys: shortcutKeys,
           },
           { load: () => drawingEngine.load(), inputs: window },
         );
@@ -375,6 +387,7 @@ export function ProjectEditor({
           claim: drawing.claimSelectPointer,
           phase: ceilingAware(layers.selectable, surface),
           floors,
+          keys: shortcutKeys,
         });
         drawing.attachSelection(selection);
         const edit = createEditController({
@@ -385,6 +398,7 @@ export function ProjectEditor({
           canEdit: result.session.model.viewer.canEdit,
           newStatus: () => phase.newObjectStatus(),
           floors,
+          keys: shortcutKeys,
         });
         // EZD-5603a Decided "Editor wiring": one Assistant session per page load, editors only.
         const sync = result.session.sync;
@@ -553,6 +567,33 @@ export function ProjectEditor({
     readFitTolerance,
     readFitTolerance,
   );
+  // EZD-222 (S15d Keyboard shortcuts; phase-02.md EZD-222 "rail and tooltips read bindings"): the company key map,
+  // re-read on every defaults resync; the rail's tooltips and the Help list show it.
+  const readShortcuts = () => JSON.stringify(sessionDefaults?.get()['keyboard_shortcuts'] ?? null);
+  const shortcutsText = useSyncExternalStore(
+    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
+    readShortcuts,
+    readShortcuts,
+  );
+  const bindings = useMemo(
+    () => bindingsOf(JSON.parse(shortcutsText) as unknown),
+    [shortcutsText],
+  );
+  // EZD-222 (S03 Help): the Help panel, opened by the rail button or the Help key on a loaded editor.
+  const [helpOpen, setHelpOpen] = useState(false);
+  const closeHelp = useCallback(() => setHelpOpen(false), []);
+  const helpReady = state.kind === 'ready';
+  useEffect(() => {
+    if (!helpReady) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || isTypingTarget(e.target)) return;
+      if (commandForKey(bindings, e) !== 'help') return;
+      e.preventDefault();
+      setHelpOpen(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [helpReady, bindings]);
   // EZD-408: the Defaults "Cabinet auto-fill increment" (per project) for Auto-fill run; null while not read.
   const readAutoFillIncrement = () => {
     const v = sessionDefaults?.get()['cabinet_autofill_increment'];
@@ -690,7 +731,9 @@ export function ProjectEditor({
     };
   }, [plan, selection, shownSurface]);
   const ceilingSelect = useCallback(() => selection?.selectTool(), [selection]);
-  useCeilingKeys(surface, ceilingSelect);
+  // EZD-222: the Ceiling view swallows the company's floor tool keys.
+  const ceilingKeys = useCallback(() => bindings, [bindings]);
+  useCeilingKeys(surface, ceilingSelect, ceilingKeys);
   const [versionRows, setVersionRows] = useState<VersionRow[] | null>(null);
   const [versionsFailed, setVersionsFailed] = useState(false);
   const [reverting, setReverting] = useState(false);
@@ -735,15 +778,35 @@ export function ProjectEditor({
   const routedStore = state.kind === 'ready' ? state.routed : null;
   useEffect(() => {
     if (toolRoute === null || routedStore === null || selection === null || phase === null) return;
-    const receiver = beamToolReceiver({
-      store: routedStore,
-      chosenFloor: () => chosenFloor(floors),
-      newStatus: () => phase.newObjectStatus(),
-      newId: newObjectId,
-      select: (ids) => selection.select(ids),
-      onMessage: (key) => messageRef.current(key),
-    });
-    return wireBeamTool(surface, toolRoute, receiver, mayEdit);
+    // EZD-222 (11 Budgets; EZD-1401 precedent): the placement code comes with the Ceiling view's lazy module, which
+    // loads when that view first shows; a click before it arrives is placed once it has.
+    let live = true;
+    const receiverWith = (mod: { placeBeamSet: BeamToolDeps['place'] }) =>
+      beamToolReceiver({
+        store: routedStore,
+        chosenFloor: () => chosenFloor(floors),
+        newStatus: () => phase.newObjectStatus(),
+        newId: newObjectId,
+        select: (ids) => selection.select(ids),
+        onMessage: (key) => messageRef.current(key),
+        place: mod.placeBeamSet,
+      });
+    const receiver: PlanPointerReceiver = (e) => {
+      const mod = beamSpacingModule.peek();
+      if (mod) return receiverWith(mod)(e);
+      if (e.kind !== 'click') return;
+      beamSpacingModule.load().then(
+        (m) => {
+          if (live) receiverWith(m)(e);
+        },
+        () => {},
+      );
+    };
+    const off = wireBeamTool(surface, toolRoute, receiver, mayEdit);
+    return () => {
+      live = false;
+      off();
+    };
   }, [toolRoute, routedStore, selection, phase, floors, surface, mayEdit]);
   const pdfUnderlay = usePdfUnderlay({ projectId, plan, canEdit: mayEdit });
 
@@ -1050,15 +1113,28 @@ export function ProjectEditor({
     </div>
   );
   const shown = assistant !== null && assistantShown({ canEdit, view: 'plan' }) ? assistant : null;
+  // EZD-222: each rail tool shows the company's key for it.
+  const railSpec =
+    spec === null
+      ? null
+      : {
+          ...spec,
+          tools: railToolsWithKeys(spec.tools, bindings),
+        };
   const rail =
-    spec === null ? null : (
+    railSpec === null ? null : (
       <DrawingRail
         drawing={drawing}
         selection={selection}
         // EZD-5605 D-Tools off (Q-0641 row 56-4): during Adjust every rail tool but Select is off, Assistant too.
-        rail={adjusting ? { ...spec, only: 'select' } : spec}
+        rail={adjusting ? { ...railSpec, only: 'select' } : railSpec}
         assistant={shown !== null ? { open: assistantOpen, onToggle: shown.toggle } : null}
         surface={surface}
+        help={
+          state.kind === 'ready'
+            ? { shortcut: shortcutText(bindings, 'help'), onOpen: () => setHelpOpen(true) }
+            : null
+        }
       />
     );
   const panel =
@@ -1147,12 +1223,14 @@ export function ProjectEditor({
       ) : null}
       {stateArea}
       {panel}
+      {helpOpen ? <LazyHelpPanel bindings={bindings} onClose={closeHelp} /> : null}
       {part('canvas')}
     </>
   ) : (
     <>
       {stateArea}
       {panel}
+      {helpOpen ? <LazyHelpPanel bindings={bindings} onClose={closeHelp} /> : null}
       {part('canvas')}
     </>
   );
@@ -1572,6 +1650,14 @@ function LazyNotice({
 }
 
 // Shows nothing until the panel code is there; a failed download is tried again when the list is next opened.
+// EZD-222 (11 Budgets): the Help panel loads when Help is first opened.
+const helpPanelModule = lazyModule(() => import('../lazy/help-panel'));
+
+function LazyHelpPanel(props: { bindings: ShortcutBindings; onClose: () => void }) {
+  const mod = useLazy(helpPanelModule);
+  return mod ? <mod.HelpPanel {...props} /> : null;
+}
+
 function LazyConflictPanel(props: ConflictPanelProps) {
   const mod = useLazy(conflictPanelModule);
   return mod ? <mod.ConflictPanel {...props} /> : null;
