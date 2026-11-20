@@ -193,7 +193,8 @@ test.describe('EZD-225 editor states', () => {
     await expect(tid(V.page, 'lock-request-edit')).toHaveCount(0);
     // Hidden, not greyed (Q-0214; Q-0697 decisions 05): Select, Cabinets (EZD-404, view only) and Measure, nothing paused, no note.
     // EZD-601: and Electrical (S06 Permissions: viewing circuits needs View projects only).
-    await expect(rail(V.page).locator('[data-rail="top"] [data-rail-tool]')).toHaveCount(5);
+    // EZD-412: and Countertops (S04b Permissions: viewing pieces needs View projects only).
+    await expect(rail(V.page).locator('[data-rail="top"] [data-rail-tool]')).toHaveCount(6);
     await expect(tool(V.page, 'select')).toBeEnabled();
     await expect(tool(V.page, 'measure')).toBeEnabled();
     for (const id of DRAWING) await expect(tool(V.page, id)).toHaveCount(0);
@@ -237,8 +238,8 @@ test.describe('EZD-225 editor states', () => {
       await expect(button).toHaveCSS('opacity', '0.55');
     }
     // EZD-404: Cabinets only views (S04 Permissions), so it is not paused either.
-    // EZD-601: Electrical only views too.
-    for (const id of ['select', 'cabinets', 'electrical', 'measure']) {
+    // EZD-601: Electrical only views too. EZD-412: so does Countertops.
+    for (const id of ['select', 'cabinets', 'countertops', 'electrical', 'measure']) {
       await expect(tool(B.page, id)).toBeEnabled();
       await expect(tool(B.page, id)).not.toHaveAttribute('data-rail-paused', '');
     }

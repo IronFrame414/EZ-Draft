@@ -336,8 +336,8 @@ test.describe('EZD-221b New project wizard: template step', () => {
     await expectReady(page);
     await expect(tid(page, 'save-state')).toHaveCount(0);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
-    // EZD-601: plus Electrical, on every viewer's rail.
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(5);
+    // EZD-601: plus Electrical, on every viewer's rail. EZD-412: and Countertops.
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(6);
     await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]').first()).toHaveAttribute(
       'data-rail-tool',
       'select',
@@ -364,8 +364,8 @@ test.describe('EZD-221b New project wizard: template step', () => {
     await expectReady(page);
     await expect(tid(page, 'save-state')).toHaveCount(0);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
-    // EZD-601: plus Electrical, on every viewer's rail.
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(5);
+    // EZD-601: plus Electrical, on every viewer's rail. EZD-412: and Countertops.
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(6);
     await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]').first()).toHaveAttribute(
       'data-rail-tool',
       'select',

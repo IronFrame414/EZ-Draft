@@ -197,7 +197,8 @@ describe('EZD-601 Electrical rail tool', () => {
   });
 
   it('is a view tool, not a drawing tool, so view only never pauses it', () => {
-    expect(VIEW_TOOL_IDS).toEqual(['measure', 'cabinets', 'electrical']);
+    // EZD-412: Countertops is a view tool too (S04b Permissions "View projects: view pieces").
+    expect(VIEW_TOOL_IDS).toEqual(['measure', 'cabinets', 'countertops', 'electrical']);
     expect(DRAWING_RAIL_TOOLS.map((t) => t.id)).not.toContain('electrical');
   });
 });

@@ -278,6 +278,7 @@ type ToolState =
   | { id: 'sketch'; state: SketchState }
   | { id: 'measure'; state: MeasureState }
   | { id: 'cabinets'; state: null }
+  | { id: 'countertops'; state: null }
   | { id: 'electrical'; state: null };
 
 type OpeningTool = Extract<ToolState, { id: 'door' | 'window' }>;
@@ -525,6 +526,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       tool.id === 'sketch' ||
       tool.id === 'measure' ||
       tool.id === 'cabinets' ||
+      tool.id === 'countertops' ||
       tool.id === 'electrical'
     )
       return NO_CONTEXT;
@@ -748,7 +750,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (tool.id === 'move') return moveFrame(tool.state.base, tool.state.ids);
     if (isOpeningTool(tool)) return { ...EMPTY_FRAME, opening: openingFrame(tool) };
-    if (tool.id === 'sketch' || tool.id === 'cabinets' || tool.id === 'electrical') return null;
+    if (
+      tool.id === 'sketch' ||
+      tool.id === 'cabinets' ||
+      tool.id === 'countertops' ||
+      tool.id === 'electrical'
+    )
+      return null;
     if (tool.id === 'measure') {
       const { from, to } = tool.state;
       return {
@@ -925,7 +933,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       onPick(event);
       return;
     }
-    if (tool === null || tool.id === 'cabinets' || tool.id === 'electrical') return;
+    if (
+      tool === null ||
+      tool.id === 'cabinets' ||
+      tool.id === 'countertops' ||
+      tool.id === 'electrical'
+    )
+      return;
     if (tool.id === 'move') {
       onMovePointer(event, tool.state);
       return;
@@ -1286,13 +1300,14 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
                   ? { id, state: initialSketchState() }
                   : id === 'measure'
                     ? { id, state: initialMeasureState() }
-                    : id === 'cabinets' || id === 'electrical'
+                    : id === 'cabinets' || id === 'countertops' || id === 'electrical'
                       ? { id, state: null }
                     : { id, state: initialOpeningToolState(id) };
     if (id === 'fixtures') loadFixtures();
     if (id === 'sketch') sketchModule.preload();
     // EZD-404: the cabinet screen covers the plan, so no plan object stays selected under it.
-    if (id === 'cabinets') link?.select([]);
+    // EZD-412: so does the countertop screen.
+    if (id === 'cabinets' || id === 'countertops') link?.select([]);
     touchPoint = null;
     lastSnap = null;
     lastContext = NO_CONTEXT;
@@ -1406,6 +1421,16 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       selectTool(null);
       return true;
     }
+    // EZD-412 (S04b Entry points "Countertops (K) tool on the rail"; S04b Permissions "View projects: view pieces"): K
+    // and, while the countertop screen is open, Esc work without Edit model.
+    if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'k') {
+      selectTool('countertops');
+      return true;
+    }
+    if (tool !== null && tool.id === 'countertops' && e.key === 'Escape') {
+      selectTool(null);
+      return true;
+    }
     // EZD-601: E (electrical mode) and, while it is on, Esc work without Edit model.
     if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'e') {
       selectTool('electrical');
@@ -1461,6 +1486,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         tool.id === 'sketch' ||
         tool.id === 'measure' ||
         tool.id === 'cabinets' ||
+        tool.id === 'countertops' ||
         tool.id === 'electrical'
       )
         return false;
@@ -1706,7 +1732,12 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     pause() {
       if (disposed || !enabled) return;
       // Measure is allowed in view only (S06 States), so it stays on; any other tool ends as Escape ends it.
-      if (tool?.id === 'measure' || tool?.id === 'cabinets' || tool?.id === 'electrical')
+      if (
+        tool?.id === 'measure' ||
+        tool?.id === 'cabinets' ||
+        tool?.id === 'countertops' ||
+        tool?.id === 'electrical'
+      )
         cancelEntry();
       else selectTool(null);
       enabled = false;

@@ -24,6 +24,9 @@ export * from './cabinets/hosting';
 export * from './cabinets/fit';
 export * from './cabinets/autofill';
 export * from './countertops/piece';
+// EZD-412: Trace cabinets and Draw outline.
+export * from './countertops/outline';
+export * from './countertops/trace';
 export * from './derived';
 export * from './drawing';
 export * from './fixtures';

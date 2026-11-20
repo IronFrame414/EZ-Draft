@@ -118,6 +118,7 @@ import { expandGroups } from './selection/groups';
 import { EmptyPlanHint } from './EmptyPlanHint';
 import type { BenchmarkRunnerProps } from '../lazy/benchmark-runner';
 import type { CabinetInspectorProps, CabinetRunViewProps } from '../lazy/cabinet-run';
+import type { CountertopsViewProps } from '../lazy/countertops';
 import { createCabinetSelectionStore } from './cabinets/cabinet-selection-store';
 import { InspectorEmpty } from './inspector/InspectorEmpty';
 import type { InspectorPanelProps } from '../lazy/inspector-panel';
@@ -514,6 +515,15 @@ export function ProjectEditor({
     readCabinets,
     readCabinets,
   );
+  // EZD-412 (S04b Entry points "Countertops (K) tool on the rail"): the countertop screen is shown while the
+  // Countertops tool is on. Like the cabinet screen it covers the plan, so the plan's edit keys and zoom are off.
+  const readCountertops = () => drawing?.getUi().tool === 'countertops';
+  const countertopsOn = useSyncExternalStore(
+    drawing ? drawing.subscribe : noSubscribe,
+    readCountertops,
+    readCountertops,
+  );
+  const screenOn = cabinetsOn || countertopsOn;
   // EZD-601 (S06 Entry points "Plan tab, Electrical tool (E)"): electrical mode is on while the Electrical tool is.
   const readElectrical = () => drawing?.getUi().tool === 'electrical';
   const electricalOn = useSyncExternalStore(
@@ -548,6 +558,34 @@ export function ProjectEditor({
     sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
     readAutoFillIncrement,
     readAutoFillIncrement,
+  );
+  // EZD-412: the Defaults the countertop screen reads (per project): Trace's overhangs and the countertop increment.
+  const readDefaultNumber = (key: string) => () => {
+    const v = sessionDefaults?.get()[key];
+    return typeof v === 'number' ? v : null;
+  };
+  const overhangStandard = useSyncExternalStore(
+    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
+    readDefaultNumber('overhang_standard'),
+    readDefaultNumber('overhang_standard'),
+  );
+  const overhangAgainstWall = useSyncExternalStore(
+    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
+    readDefaultNumber('overhang_against_wall'),
+    readDefaultNumber('overhang_against_wall'),
+  );
+  const countertopIncrement = useSyncExternalStore(
+    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
+    readDefaultNumber('countertop_increment'),
+    readDefaultNumber('countertop_increment'),
+  );
+  const countertopDefaults = useMemo(
+    () => ({
+      overhang_standard: overhangStandard,
+      overhang_against_wall: overhangAgainstWall,
+      countertop_increment: countertopIncrement,
+    }),
+    [overhangStandard, overhangAgainstWall, countertopIncrement],
   );
   // Leaving the Cabinets tool drops its selection, as the screen's own selection did before EZD-406.
   useEffect(() => {
@@ -956,7 +994,7 @@ export function ProjectEditor({
         {showPlan && coarse && selection !== null ? (
           <LazyEditBar
             selection={selection}
-            edit={mayEdit && !cabinetsOn ? edit : null}
+            edit={mayEdit && !screenOn ? edit : null}
             clipboardOff={adjusting}
           />
         ) : null}
@@ -1022,7 +1060,7 @@ export function ProjectEditor({
   const canvas = showPlan ? (
     <>
       <PlanInputSurface controller={plan} />
-      {cabinetsOn ? null : <ZoomStack handle={plan.handle} />}
+      {screenOn ? null : <ZoomStack handle={plan.handle} />}
       {shownSurface === 'floor' ? null : <CeilingLegend />}
       {shownSurface !== 'floor' && selection !== null && routedStore !== null ? (
         <BeamSpacingPill
@@ -1045,8 +1083,9 @@ export function ProjectEditor({
         />
       ) : null}
       {selection !== null ? (
-        // EZD-404: under the cabinet screen the plan's edit keys (Delete, copy, paste, undo) are off.
-        <SelectionLayer selection={selection} edit={mayEdit && !cabinetsOn ? edit : null} />
+        // EZD-404: under the cabinet screen the plan's edit keys (Delete, copy, paste, undo) are off. EZD-412: and
+        // under the countertop screen.
+        <SelectionLayer selection={selection} edit={mayEdit && !screenOn ? edit : null} />
       ) : null}
       {session !== null ? (
         <EmptyPlanHint store={session.store} canEdit={canEdit} floors={floors ?? undefined} />
@@ -1079,6 +1118,16 @@ export function ProjectEditor({
           selectionStore={cabinetSelection ?? undefined}
           fitTolerance={fitTolerance}
           autoFillIncrement={autoFillIncrement}
+        />
+      ) : null}
+      {countertopsOn && session !== null ? (
+        // EZD-412: tops are traced and drawn here with Edit model and the lock.
+        <LazyCountertops
+          store={session.store}
+          floors={floors ?? undefined}
+          canEdit={mayEdit}
+          newId={newObjectId}
+          defaults={countertopDefaults}
         />
       ) : null}
       {stateArea}
@@ -1476,6 +1525,14 @@ function LazyCabinetInspector(props: CabinetInspectorProps) {
 function LazyCabinetStatus(props: CabinetRunViewProps) {
   const mod = useLazy(cabinetRunModule);
   return mod ? <mod.CabinetRunStatus {...props} /> : null;
+}
+
+// EZD-412 (11 Budgets; 11 rule 7): the countertop screen loads when the Countertops tool is first turned on.
+const countertopsModule = lazyModule(() => import('../lazy/countertops'));
+
+function LazyCountertops(props: CountertopsViewProps) {
+  const mod = useLazy(countertopsModule);
+  return mod ? <mod.CountertopsView {...props} /> : null;
 }
 
 // EZD-126 (11 Budgets): the phone and no-access notices and the conflict banner load when shown; a ready desktop

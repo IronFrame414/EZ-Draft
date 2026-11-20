@@ -2409,6 +2409,15 @@ export const en = {
   'office.electrical.status.service_amps': '{amps}A',
   'office.electrical.status.code': 'Code',
   'office.electrical.status.code.fbc9_nec2023': 'NEC 2023 · FBC 9th ed.',
+  // EZD-412 (S04b): the Countertops tool and its screen; board text "Trace cabinets", "Draw outline".
+  'office.tool.countertops': 'Countertops',
+  'office.countertops.region': 'Countertops',
+  'office.countertops.tools': 'Countertop tools',
+  'office.countertops.trace': 'Trace cabinets',
+  'office.countertops.draw': 'Draw outline',
+  'office.countertops.length': 'Length',
+  'office.countertops.hint_no_cabinets': 'Add cabinets to trace tops from them, or draw an outline.',
+  'office.countertops.hint_draw': 'Click each corner, or type a length. Click the first corner to finish.',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

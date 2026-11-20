@@ -30,6 +30,7 @@ import type { DrawingController, ToolKeyEvent } from '../tools/drawing-controlle
 import { railMode } from '../tools/rail-mode';
 import {
   CABINETS_RAIL_TOOL,
+  COUNTERTOPS_RAIL_TOOL,
   DRAWING_RAIL_TOOLS,
   ELECTRICAL_RAIL_TOOL,
   MEASURE_RAIL_TOOL,
@@ -436,7 +437,8 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       }
       if ((e.key === 'a' || e.key === 'A') && (e.ctrlKey || e.metaKey) && !e.altKey) {
         // EZD-404: the plan is hidden under the cabinet screen; Select all would pick objects no one can see.
-        if (drawing?.getUi().tool === 'cabinets') return false;
+        if (drawing?.getUi().tool === 'cabinets' || drawing?.getUi().tool === 'countertops')
+          return false;
         selectAll();
         return true;
       }
@@ -515,11 +517,14 @@ export function shareReceiver(set: (r: PlanPointerReceiver | null) => void): Rec
 // EZD-404 (S04 Permissions; board S04 rail): Cabinets follows Window for every viewer and is never paused.
 // EZD-601 (S06 Permissions "View ... circuits: View projects"; board S06Electrical rail): Electrical follows Cabinets,
 // for every viewer and never paused.
+// EZD-412 (S04b Entry points "Countertops (K) tool on the rail"; S04b Permissions "View projects: view pieces"; board
+// S04bCountertops rail, after Cabinets): Countertops follows Cabinets, for every viewer and never paused.
 const withCabinets = (tools: readonly RailTool[]): RailTool[] => {
   const i = tools.findIndex((t) => t.id === 'window');
   return [
     ...tools.slice(0, i + 1),
     CABINETS_RAIL_TOOL,
+    COUNTERTOPS_RAIL_TOOL,
     ELECTRICAL_RAIL_TOOL,
     ...tools.slice(i + 1),
   ];
@@ -532,6 +537,7 @@ const ALL_TOOLS: readonly RailTool[] = [
 const SELECT_ONLY: readonly RailTool[] = [
   SELECT_RAIL_TOOL,
   CABINETS_RAIL_TOOL,
+  COUNTERTOPS_RAIL_TOOL,
   ELECTRICAL_RAIL_TOOL,
   MEASURE_RAIL_TOOL,
 ];

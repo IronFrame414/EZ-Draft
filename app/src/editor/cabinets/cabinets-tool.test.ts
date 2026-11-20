@@ -62,6 +62,7 @@ describe('EZD-404 Cabinets tool', () => {
     expect(ids(editorRail({ ...base, canEdit: false }))).toEqual([
       'select',
       'cabinets',
+      'countertops', // EZD-412: Countertops follows Cabinets on a viewer's rail (S04b Permissions).
       'electrical',
       'measure',
     ]);

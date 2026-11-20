@@ -82,7 +82,8 @@ describe('EZD-601 electrical mode', () => {
     const base = { canvasFailed: false, controllerEnabled: true };
     const editor = editorRail({ ...base, editor: 'ready', canEdit: true });
     const ids = editor?.tools.map((t) => t.id) ?? [];
-    expect(ids[ids.indexOf('cabinets') + 1]).toBe('electrical');
+    // EZD-412: Countertops now stands between them (board S04bCountertops rail).
+    expect(ids[ids.indexOf('cabinets') + 2]).toBe('electrical');
     const locked = editorRail({ ...base, editor: 'ready', canEdit: false, canEditModel: true });
     expect(locked?.tools.map((t) => t.id)).toContain('electrical');
     expect(locked?.paused).not.toContain('electrical');

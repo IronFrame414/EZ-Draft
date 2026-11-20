@@ -22,7 +22,12 @@ import {
   type PickState,
 } from '../tools/index';
 import { DOOR, baseObjects, F1, uid, withWalls } from '../tools/test-utils/fixtures';
-import { CABINETS_RAIL_TOOL, ELECTRICAL_RAIL_TOOL, MEASURE_RAIL_TOOL } from '../tools/tool-defs';
+import {
+  CABINETS_RAIL_TOOL,
+  COUNTERTOPS_RAIL_TOOL,
+  ELECTRICAL_RAIL_TOOL,
+  MEASURE_RAIL_TOOL,
+} from '../tools/tool-defs';
 import {
   SAME_SPOT_PX,
   SELECT_RAIL_TOOL,
@@ -377,6 +382,7 @@ describe('EZD-208a selection controller', () => {
       drawing.findIndex((t) => t.id === 'window') + 1,
       0,
       CABINETS_RAIL_TOOL,
+      COUNTERTOPS_RAIL_TOOL, // EZD-412: Countertops follows Cabinets
       ELECTRICAL_RAIL_TOOL,
     );
     const all = [SELECT_RAIL_TOOL, ...drawing, MEASURE_RAIL_TOOL];
@@ -398,6 +404,7 @@ describe('EZD-208a selection controller', () => {
       'door',
       'window',
       'cabinets',
+      'countertops', // EZD-412
       'electrical',
       'fixtures',
       'sketch',
@@ -412,6 +419,7 @@ describe('EZD-208a selection controller', () => {
     expect(view?.tools).toEqual([
       SELECT_RAIL_TOOL,
       CABINETS_RAIL_TOOL,
+      COUNTERTOPS_RAIL_TOOL, // EZD-412: Countertops follows Cabinets
       ELECTRICAL_RAIL_TOOL,
       MEASURE_RAIL_TOOL,
     ]);
@@ -420,6 +428,7 @@ describe('EZD-208a selection controller', () => {
     expect(failed?.tools).toEqual([
       SELECT_RAIL_TOOL,
       CABINETS_RAIL_TOOL,
+      COUNTERTOPS_RAIL_TOOL, // EZD-412: Countertops follows Cabinets
       ELECTRICAL_RAIL_TOOL,
       MEASURE_RAIL_TOOL,
     ]);
@@ -434,6 +443,7 @@ describe('EZD-208a selection controller', () => {
       drawing.findIndex((t) => t.id === 'window') + 1,
       0,
       CABINETS_RAIL_TOOL,
+      COUNTERTOPS_RAIL_TOOL, // EZD-412: Countertops follows Cabinets
       ELECTRICAL_RAIL_TOOL,
     );
     const all = [SELECT_RAIL_TOOL, ...drawing, MEASURE_RAIL_TOOL];
@@ -468,6 +478,7 @@ describe('EZD-208a selection controller', () => {
     expect(view?.tools).toEqual([
       SELECT_RAIL_TOOL,
       CABINETS_RAIL_TOOL,
+      COUNTERTOPS_RAIL_TOOL, // EZD-412: Countertops follows Cabinets
       ELECTRICAL_RAIL_TOOL,
       MEASURE_RAIL_TOOL,
     ]);
