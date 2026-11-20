@@ -21,9 +21,9 @@
   "footprint_lookahead": 25,
   "max_phase": 37,
   "lanes": [
-    0,
     1,
-    2
+    2,
+    3
   ],
-  "lanes_note": "Josh 2026-11-17: 3 lanes; the multi-lane trial ends Thursday 2026-11-19 06:00 ET, then compare tickets per hour against 1 lane (Nov 13)"
+  "lanes_note": "Josh 2026-11-17: 3 lanes; the multi-lane trial ends Thursday 2026-11-19 06:00 ET, then compare tickets per hour against 1 lane (Nov 13) 2026-11-20: lanes 1-3 instead of 0-2 (still 3 lanes): lane 0 serves e2e on port 3000, which Josh's command-center app uses."
 }
