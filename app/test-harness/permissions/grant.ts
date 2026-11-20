@@ -3,6 +3,7 @@
 // then inserts one row per PERMISSION_KEYS key in one statement, granted = key in `granted` (the table's
 // only columns, EZD-101 Data). Test-only; never imported by app code.
 import { PERMISSION_KEYS, type PermissionKey } from '../../src/lib/permissions/catalog';
+import { retryOnDeadlock } from '../rls/deadlock-retry';
 import { harnessSql } from '../rls/fixtures';
 
 export async function setPermissions(
@@ -19,8 +20,11 @@ export async function setPermissions(
     granted: on.has(key),
   }));
   // One transaction: EZD-106's deferred last-holder guard sees the final rows, not the empty middle.
-  await sql.begin(async (tx) => {
-    await tx`delete from public.user_permission where membership_id = ${membershipId}::uuid`;
-    await tx`insert into public.user_permission ${tx(rows, 'tenant_id', 'membership_id', 'permission_key', 'granted')}`;
-  });
+  // EZD-426: a deadlock with another worker's cleanup reruns the whole transaction.
+  await retryOnDeadlock(() =>
+    sql.begin(async (tx) => {
+      await tx`delete from public.user_permission where membership_id = ${membershipId}::uuid`;
+      await tx`insert into public.user_permission ${tx(rows, 'tenant_id', 'membership_id', 'permission_key', 'granted')}`;
+    }),
+  );
 }

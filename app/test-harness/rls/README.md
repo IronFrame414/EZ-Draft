@@ -19,3 +19,7 @@ Source: vault/plans/EZD-006.md Steps 6 and 7; vault/tickets/README.md ("a tenant
 ## Files
 
 `db.ts` (postgres.js client to `EZD_TEST_DB_URL`, `withRollback`), `fixtures.ts` (tenants, projects, members, sign-in through the Auth admin API, `serverDb` with the gate header / `browserDb` without, `anonDb`, `claimsOf`, `sessionCount`, `asClaims`, `cleanup`), `isolation.ts`, `audit.ts`, `tenancy-exemptions.ts`, `table-grants.ts`, `private-execute.ts`, `test-only-functions.ts`, `gate.ts`. The global setup `app/test-harness/supabase-env.global-setup.ts` sets `EZD_TEST_DB_URL` and a per-run `SUPABASE_API_GATE_SECRET`.
+
+## Cleanup under parallel workers (EZD-426)
+
+Browser-test workers clean up at the same time against one database. `cleanupCreated` locks its tenant and person rows in id order, and every harness delete of shared tables (`fixtures.ts`, `auth-users.ts`, `permissions/grant.ts`, `users/fixtures.ts`) runs through `retryOnDeadlock` (`deadlock-retry.ts`): on Postgres 40P01 the whole transaction or statement is rerun, at most 3 tries, after a short jittered wait. `cleanup-concurrency.db.test.ts` races two overlapping cleanups.

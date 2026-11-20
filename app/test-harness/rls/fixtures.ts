@@ -5,6 +5,7 @@
 import { randomUUID } from 'node:crypto';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { adminSql, type Sql, type TransactionSql, withRollback } from './db';
+import { retryOnDeadlock } from './deadlock-retry';
 
 export const GATE_HEADER = 'x-ezd-api-gate';
 
@@ -118,10 +119,13 @@ export async function createAuthUserPastGate(email: string): Promise<string> {
     if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);
     return data.user.id;
   } finally {
+    // Autocommit deletes, each rerun on a deadlock with another worker's cleanup (EZD-426).
     const s = harnessSql();
-    if (membershipId) await s`delete from public.membership where id = ${membershipId}::uuid`;
-    if (appUserId) await s`delete from public.app_user where id = ${appUserId}::uuid`;
-    await s`delete from public.tenant where id = ${tenantId}::uuid`;
+    const mid = membershipId;
+    const uid = appUserId;
+    if (mid) await retryOnDeadlock(() => s`delete from public.membership where id = ${mid}::uuid`);
+    if (uid) await retryOnDeadlock(() => s`delete from public.app_user where id = ${uid}::uuid`);
+    await retryOnDeadlock(() => s`delete from public.tenant where id = ${tenantId}::uuid`);
   }
 }
 
@@ -246,7 +250,17 @@ export async function cleanupCreated(refs: CreatedRefs): Promise<void> {
   // One transaction: a company delete removes its memberships first, and EZD-106's deferred last-holder
   // guard lets it pass only when the tenant row is gone by commit. Memberships of listed people in other
   // companies go with their tenants or are no holders.
-  await s.begin(async (tx) => {
+  // EZD-426: browser-test workers clean up at the same time. The parent rows are locked first in id order,
+  // and a deadlock (40P01) that still happens in the cascades reruns the whole transaction.
+  const tenantIds = [...refs.tenantIds].sort();
+  const appUserIds = [...refs.appUserIds].sort();
+  await retryOnDeadlock(() => s.begin(async (tx) => {
+    if (tenantIds.length) {
+      await tx`select id from public.tenant where id = any(${tenantIds}::uuid[]) order by id for update`;
+    }
+    if (appUserIds.length) {
+      await tx`select id from public.app_user where id = any(${appUserIds}::uuid[]) order by id for update`;
+    }
     if (refs.tenantIds.length) {
       await tx`delete from public.membership where tenant_id = any(${refs.tenantIds}::uuid[])`;
       await tx`delete from public.project where tenant_id = any(${refs.tenantIds}::uuid[])`;
@@ -256,7 +270,7 @@ export async function cleanupCreated(refs: CreatedRefs): Promise<void> {
       await tx`delete from public.membership where user_id = any(${refs.appUserIds}::uuid[])`;
       await tx`delete from public.app_user where id = any(${refs.appUserIds}::uuid[])`;
     }
-  });
+  }));
   for (const id of refs.authUserIds) await adminDb().auth.admin.deleteUser(id);
   for (const key of ['tenantIds', 'authUserIds', 'appUserIds'] as const) {
     const gone = new Set(refs[key]);

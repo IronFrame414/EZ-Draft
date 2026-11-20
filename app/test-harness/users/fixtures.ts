@@ -5,6 +5,7 @@
 import { randomBytes } from 'node:crypto';
 import { PERMISSION_KEYS, type PermissionKey } from '../../src/lib/permissions/catalog';
 import { setPermissions } from '../permissions/grant';
+import { retryOnDeadlock } from '../rls/deadlock-retry';
 import {
   adminDb,
   createMember,
@@ -130,7 +131,10 @@ export async function addBulkMembers(tenant: string, n: number, prefix: string):
 
 // Run after cleanup(): the bulk app_user rows have no tenant to cascade from.
 export async function deleteBulkUsers(prefix: string): Promise<void> {
-  await harnessSql()`delete from public.app_user where starts_with(email, ${prefix + '-'})`;
+  // EZD-426: rerun on a deadlock with another worker's cleanup.
+  await retryOnDeadlock(
+    () => harnessSql()`delete from public.app_user where starts_with(email, ${prefix + '-'})`,
+  );
 }
 
 export async function lastActiveOf(membershipId: string): Promise<Date | null> {
