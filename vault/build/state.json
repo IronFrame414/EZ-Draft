@@ -416,7 +416,8 @@
     "EZD-739",
     "EZD-1401",
     "EZD-426",
-    "EZD-427"
+    "EZD-427",
+    "EZD-222"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1126,6 +1127,14 @@
       "ts": "2026-11-20T19:35:19Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-222",
+      "title": "Keyboard shortcuts and Help",
+      "commit": "c98830e6",
+      "ts": "2026-11-20T21:47:41Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -1233,13 +1242,6 @@
       "reason": "builder timed out after 90 min with no commits"
     }
   },
-  "running": {
-    "EZD-222": {
-      "lane": 1,
-      "title": "Keyboard shortcuts and Help",
-      "started": "2026-11-20T18:27:43Z",
-      "develop": "55c6a206"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-20T18:26:37Z"
 }
