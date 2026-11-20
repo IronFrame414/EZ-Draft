@@ -1137,3 +1137,4 @@ The builder records here every choice the spec, decisions and mockups did not se
 
 ## EZD-424 (2026-11-19)
 | EZD-424 | How a status value that does not fit is shown | Cut with an ellipsis, full text in a title on hover; the disclaimer keeps its full width. Wording unchanged | S11 disclaimer on every page (EZD-136); CI gate red on develop 7465b58e, release PR #9 blocked |
+| EZD-424 | How the settings status bar gives way when its values do not fit | At 1600 px and wider the disclaimer keeps its full width and the readouts give way, each value cut with "…" (full text in a title; one value never wider than 24ch). Below 1600 px Q-0272 (a) stands: readouts keep their room and the disclaimer gives way first. Measured: on Sheet presets the labels and fixed values alone nearly fill the room left of the disclaimer at 1600, so a width cap by itself could not keep the disclaimer whole | Q-0272 (a); AC-EZD-424-1, -3; ARCH device sizes (desktop 1600 x 1000) |

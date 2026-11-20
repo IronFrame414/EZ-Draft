@@ -151,14 +151,22 @@ export function SettingsShell({
           <footer data-settings-region="status-bar" className={styles.status}>
             <div className={styles.statusItem}>
               <span className={styles.statusLabel}>{t('office.settings.status_company')}</span>
-              <span data-settings-status="company" className={styles.statusValue}>
+              <span
+                data-settings-status="company"
+                className={styles.statusValue}
+                title={companyName}
+              >
                 {companyName}
               </span>
             </div>
             {statusItems.map((item) => (
               <div key={item.id} className={styles.statusItem}>
                 <span className={styles.statusLabel}>{t(item.label)}</span>
-                <span data-settings-status={item.id} className={styles.statusValue}>
+                <span
+                  data-settings-status={item.id}
+                  className={styles.statusValue}
+                  title={item.value}
+                >
                   {item.value}
                 </span>
               </div>
