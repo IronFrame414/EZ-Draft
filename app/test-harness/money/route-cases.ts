@@ -919,6 +919,28 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-613: save the company code edition; 200 { edition, optionalLoadCalc, available } (no money)',
   },
   {
+    file: `${API}settings/render-models/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/render-models/route'),
+    request: get('/api/settings/render-models'),
+    expectStatus: 200,
+    note: 'EZD-1102: tiers and models; cost per render and allowance only with See company costs',
+  },
+  {
+    file: `${API}settings/render-models/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/settings/render-models/route'),
+    request: sendJson('PATCH', '/api/settings/render-models', {
+      tiers: [
+        { tier: 'fast', model: 'gemini-3.1-flash-lite-image-1k' },
+        { tier: 'standard', model: 'gemini-3.1-flash-image-1k' },
+        { tier: 'photoreal', model: 'gemini-3.1-flash-image-4k' },
+      ],
+    }),
+    expectStatus: 200,
+    note: 'EZD-1102: save the tier models (no dollars sent); 200 as GET, dollars only with See company costs',
+  },
+  {
     file: `${API}settings/company/route.ts`,
     method: 'PATCH',
     load: () => import('../../src/app/api/settings/company/route'),

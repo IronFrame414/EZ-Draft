@@ -723,6 +723,46 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"render_allowance": {
+                  Row: {
+                    "amount_usd": number,"balance_usd": number,"created_at": string,"last_refilled_at": string,"refill_amount_usd": number,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_usd": number,"balance_usd": number,"created_at"?: string,"last_refilled_at"?: string,"refill_amount_usd": number,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "amount_usd"?: number,"balance_usd"?: number,"created_at"?: string,"last_refilled_at"?: string,"refill_amount_usd"?: number,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "render_allowance_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: true
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"render_tier_model": {
+                  Row: {
+                    "cost_usd_per_render": number | null,"created_at": string,"model_id": string,"output_size": string,"provider": string,"tenant_id": string,"tier": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cost_usd_per_render"?: number | null,"created_at"?: string,"model_id": string,"output_size": string,"provider": string,"tenant_id": string,"tier": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "cost_usd_per_render"?: number | null,"created_at"?: string,"model_id"?: string,"output_size"?: string,"provider"?: string,"tenant_id"?: string,"tier"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "render_tier_model_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"review_item": {
                   Row: {
                     "created_at": string,"id": string,"project_id": string,"resolved_at": string | null,"source": string,"source_ref": string,"tenant_id": string
@@ -1347,6 +1387,11 @@ isOneToOne: false
                            },
 "save_objects_resolving":
 { Args: { "p_changes": Json,"p_lock_epoch": number,"p_project": string,"p_resolves": (string)[] }; Returns: Json
+                           },
+"save_render_settings":
+{ Args: { "p_allowance"?: Json,"p_tiers": Json }; Returns: {
+              "changed": (string)[],"tenant_id": string
+            }[]
                            },
 "send_test_notification":
 { Args: { "p_kind": string,"p_membership_id": string,"p_payload": Json,"p_project_id": string }; Returns: string

@@ -28,6 +28,7 @@ export const es = {
     'Resuelve cada elemento y cada hueco de habitación antes de terminar la importación.',
   'error.job_not_found': 'Esa tarea ya no existe.',
   'error.invalid_input': 'Parte de esa información no es válida. Revísala e inténtalo de nuevo.',
+  'error.tier_model_required': 'Elige un modelo para cada nivel para guardar.',
   'common.invite.email_subject': 'Te invitaron a unirte a {company} en EZ Draft',
   'common.invite.email_intro':
     '{company} te invitó a EZ Draft. Abre el enlace y presiona Aceptar para unirte.',

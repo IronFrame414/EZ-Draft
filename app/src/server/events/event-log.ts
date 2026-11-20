@@ -133,6 +133,11 @@ export const EVENT_LOG: EventLogRules = {
     mode: 'sink',
     object: (e) => ({ type: 'tenant', id: e.tenantId }),
   },
+  // EZD-1102 (S15f Events emitted): Settings > Render models saved.
+  'render.model_config_updated': {
+    mode: 'sink',
+    object: (e) => ({ type: 'tenant', id: e.tenantId }),
+  },
   // EZD-125 (Q-0697 decisions 10): written by cancel_edit_request in the lock transaction.
   'lock.request_cancelled': TRANSACTION,
   // EZD-712 (S15c Events emitted): Settings > Sheet presets.
