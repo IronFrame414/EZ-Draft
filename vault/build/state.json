@@ -1247,7 +1247,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1269,7 +1269,8 @@
     "EZD-739": 1,
     "EZD-1402": 1,
     "EZD-403": 1,
-    "EZD-414": 1
+    "EZD-414": 1,
+    "EZD-503": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1359,15 +1360,13 @@
     "EZD-414": {
       "ts": "2026-11-21T04:19:16Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-503": {
+      "ts": "2026-11-21T13:01:51Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-503": {
-      "lane": 2,
-      "title": "Ceiling type editor",
-      "started": "2026-11-21T11:15:13Z",
-      "develop": "cd285e4b"
-    },
     "EZD-515": {
       "lane": 3,
       "title": "Fan clearance and hosted flags",
@@ -1375,5 +1374,5 @@
       "develop": "cd285e4b"
     }
   },
-  "advisories_checked_at": "2026-11-21T06:27:17Z"
+  "advisories_checked_at": "2026-11-21T12:27:43Z"
 }
