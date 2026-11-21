@@ -417,7 +417,8 @@
     "EZD-1401",
     "EZD-426",
     "EZD-427",
-    "EZD-222"
+    "EZD-222",
+    "EZD-230"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1133,6 +1134,14 @@
       "title": "Keyboard shortcuts and Help",
       "commit": "c98830e6",
       "ts": "2026-11-20T21:47:41Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-230",
+      "title": "Default key map and full rail",
+      "commit": "042ea352",
+      "ts": "2026-11-21T00:01:50Z",
       "kind": "ticket",
       "lane": 1
     }
