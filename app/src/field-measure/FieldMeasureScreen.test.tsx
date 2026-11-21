@@ -10,7 +10,12 @@ import { catalogFor } from '../server/messages/catalog';
 import { FieldMeasureScreen } from './FieldMeasureScreen';
 import { emptyRoom, initialRooms, withShape, type FieldRoom } from './rooms';
 
-function render(rooms: FieldRoom[], canEdit = true, language: 'en' | 'es' = 'en'): string {
+function render(
+  rooms: FieldRoom[],
+  canEdit = true,
+  language: 'en' | 'es' = 'en',
+  tolerance?: number,
+): string {
   return renderToStaticMarkup(
     <MessagesProvider language={language} messages={catalogFor('field', language)}>
       <FieldMeasureScreen
@@ -18,6 +23,7 @@ function render(rooms: FieldRoom[], canEdit = true, language: 'en' | 'es' = 'en'
         projectName="Hendricks residence"
         initialRooms={rooms}
         canEdit={canEdit}
+        tolerance={tolerance}
       />
     </MessagesProvider>,
   );
@@ -96,5 +102,62 @@ describe('EZD-1415 Field measure screen', () => {
     const html = render([withShape(initialRooms()[0] as FieldRoom, 'l')], true, 'es');
     expect(html).toContain('Edificio');
     expect(html).toContain('aria-label="Pared A"');
+  });
+});
+
+// EZD-1416 (AC-EZD-1416-1, AC-EZD-1416-2; S17b Auto-fill wall, Closure check). The board's L-shaped Family room
+// (S17bFieldMeasure): A 18' 2" = 218", B 9' 0 1/2" = 108.5", C 10' 4 1/2" = 124.5", D 7' 3" = 87",
+// F 16' 3 1/2" = 195.5". E = A - C = 93.5" = 7' 9 1/2"; B + D = F, so the room closes. Typing taps are covered by
+// e2e/field-measure-keypad.spec.ts.
+describe('EZD-1416 Field measure keypad and closure', () => {
+  const lRoom = (lengths: (number | null)[]): FieldRoom => ({
+    ...withShape(initialRooms()[0] as FieldRoom, 'l'),
+    lengths,
+  });
+  const closureTag = (html: string) => attrs(html, 'data-testid="closure"')[0] ?? '';
+
+  it('AC-EZD-1416-1: five of six walls typed, wall E fills itself (grey) and the room closes, 6 / 6', () => {
+    const html = render([lRoom([218, 108.5, 124.5, 87, null, 195.5])]);
+    expect(html).toMatch(/data-length="E"[^>]*data-auto=""[^>]*>7&#x27; 9 1\/2&quot;</);
+    expect(closureTag(html)).toContain('data-closure="closes"');
+    expect(html).toMatch(/data-testid="closure"[^>]*>.*Closes</);
+    expect(html).toContain('6 / 6');
+  });
+
+  it('AC-EZD-1416-2: a 1" error shows Off by 1" in amber (over the 1/2" tolerance)', () => {
+    const html = render([lRoom([218, 108.5, 124.5, 87, null, 196.5])]);
+    expect(closureTag(html)).toContain('data-closure="off"');
+    expect(closureTag(html)).toContain('data-over-tolerance="true"');
+    expect(html).toMatch(/data-testid="closure"[^>]*>.*Off by 1&quot;</);
+  });
+
+  it('within the company tolerance the gap still shows, not amber', () => {
+    const html = render([lRoom([218, 108.5, 124.5, 87, null, 196.5])], true, 'en', 2);
+    expect(closureTag(html)).toContain('data-over-tolerance="false"');
+    expect(html).toMatch(/data-testid="closure"[^>]*>.*Off by 1&quot;</);
+  });
+
+  it('two walls left: the badge says which wall fills in and that wall shows a grey dash', () => {
+    const html = render([lRoom([218, 108.5, null, 87, null, 195.5])]);
+    expect(closureTag(html)).toContain('data-closure="pending"');
+    expect(html).toContain('E fills in when the room closes');
+    expect(html).toMatch(/data-length="E"[^>]*>—</);
+    expect(html).toContain('4 / 6');
+  });
+
+  it('the keypad shows for Send field measurement and not view only; no laser wording (Q-0759)', () => {
+    const shaped = [withShape(initialRooms()[0] as FieldRoom, 'l')];
+    const html = render(shaped);
+    expect(attrs(html, 'data-testid="keypad"')).toHaveLength(1);
+    expect(html).toContain('Next wall</button>');
+    expect(html).not.toMatch(/laser/i);
+    expect(attrs(render(shaped, false), 'data-testid="keypad"')).toHaveLength(0);
+  });
+
+  it('Spanish: Cierra and the Spanish fill-in line', () => {
+    expect(render([lRoom([218, 108.5, 124.5, 87, null, 195.5])], true, 'es')).toContain('Cierra');
+    expect(render([lRoom([218, 108.5, null, 87, null, 195.5])], true, 'es')).toContain(
+      'E se completa cuando el cuarto cierra',
+    );
   });
 });

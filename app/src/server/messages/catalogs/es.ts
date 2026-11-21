@@ -242,4 +242,10 @@ export const es = {
   'field.measure.empty': 'Elige una forma',
   'field.measure.walls_start': 'Toca para agregar esquinas. Toca la primera esquina para cerrar.',
   'field.measure.length_refused': 'Escribe una medida, como 9\' 0"',
+  'field.measure.keypad': 'Teclado de medidas',
+  'field.measure.key.backspace': 'Borrar',
+  'field.measure.next_wall': 'Siguiente pared',
+  'field.measure.closes': 'Cierra',
+  'field.measure.off_by': 'Desfase de {gap}',
+  'field.measure.fills_in': '{letter} se completa cuando el cuarto cierra',
 } as const satisfies Record<SpanishKey, Message>;

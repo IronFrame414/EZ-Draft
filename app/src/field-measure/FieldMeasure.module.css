@@ -347,3 +347,73 @@
 .progress {
   flex: none;
 }
+
+/* EZD-1416: auto-filled length (grey), closure badge, keypad (board S17bFieldMeasure). */
+
+.wallLengthAuto {
+  fill: var(--ez-slate-400);
+}
+
+.fieldAuto {
+  color: var(--ez-slate-400);
+}
+
+.closure {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0 4px;
+  padding: 4px 10px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-canvas);
+  color: var(--ez-slate-500);
+  font-size: 12px;
+}
+
+.closureOk {
+  background: var(--ez-green-tint);
+  color: var(--ez-green);
+}
+
+.closureAmber {
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin: 4px -14px 0;
+  padding: 8px;
+  background: var(--ez-canvas-grid);
+}
+
+.key {
+  min-height: var(--ez-touch-target);
+  height: 46px;
+  border: 0;
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-family: var(--ez-font-mono);
+  font-size: 18px;
+}
+
+.keyMark {
+  background: var(--ez-canvas);
+  font-size: 14px;
+}
+
+.keyNext {
+  grid-column: span 2;
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+  font-family: var(--ez-font-sans);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.key:disabled {
+  opacity: 0.5;
+}

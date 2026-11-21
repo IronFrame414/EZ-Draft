@@ -4,6 +4,8 @@
 // unless held"). Each wall letter is a button named "Wall A" with a 44 px target; tapping the wall line selects it
 // too. In Walls mode a tap on the canvas adds a corner; a press held for HOLD_MS or longer places it without the
 // snap (vault/build/assumptions.md EZD-1415).
+// EZD-1416 (S17b Auto-fill wall "Shown grey until computed"): the auto-filled wall's length is grey (data-auto) and
+// the wall that will fill itself shows a grey dash until it is computed.
 import { useRef, type PointerEvent } from 'react';
 import { formatLength } from '@ezdraft/geometry';
 import { useT } from '../lib/messages';
@@ -45,6 +47,8 @@ export function ShapeCanvas({
   closed,
   freeMode,
   lengths,
+  auto = null,
+  pending = null,
   selected,
   editable,
   onSelect,
@@ -54,6 +58,10 @@ export function ShapeCanvas({
   closed: boolean;
   freeMode: boolean;
   lengths: readonly (number | null)[];
+  /** The auto-filled wall (its length is worked out, not typed). */
+  auto?: number | null;
+  /** The wall that will fill itself once the others are typed. */
+  pending?: number | null;
   selected: number | null;
   editable: boolean;
   onSelect: (index: number) => void;
@@ -121,15 +129,21 @@ export function ShapeCanvas({
               y2={w.end.y}
               onClick={() => onSelect(w.index)}
             />
-            {lengths[w.index] != null ? (
+            {lengths[w.index] != null || w.index === pending ? (
               <text
-                className={styles.wallLength}
+                className={
+                  lengths[w.index] != null && w.index !== auto
+                    ? styles.wallLength
+                    : `${styles.wallLength} ${styles.wallLengthAuto}`
+                }
                 x={(w.start.x + w.end.x) / 2}
                 y={(w.start.y + w.end.y) / 2}
                 textAnchor="middle"
                 dominantBaseline="middle"
+                data-length={w.letter}
+                data-auto={w.index === auto ? '' : undefined}
               >
-                {formatLength(lengths[w.index] as number, 16)}
+                {lengths[w.index] != null ? formatLength(lengths[w.index] as number, 16) : '—'}
               </text>
             ) : null}
           </g>

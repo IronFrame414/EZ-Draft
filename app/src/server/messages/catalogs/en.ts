@@ -2527,6 +2527,12 @@ export const en = {
   'field.measure.empty': 'Pick a shape',
   'field.measure.walls_start': 'Tap to add corners. Tap the first corner to close.',
   'field.measure.length_refused': 'Type a length, like 9\' 0"',
+  'field.measure.keypad': 'Measurement keypad',
+  'field.measure.key.backspace': 'Backspace',
+  'field.measure.next_wall': 'Next wall',
+  'field.measure.closes': 'Closes',
+  'field.measure.off_by': 'Off by {gap}',
+  'field.measure.fills_in': '{letter} fills in when the room closes',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;
