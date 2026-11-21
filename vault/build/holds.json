@@ -418,78 +418,6 @@
       "since": "2026-11-20"
     },
     {
-      "ticket": "EZD-1609",
-      "title": "Catalog settings",
-      "reason": "Phase 52 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 52 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1611a",
-      "title": "Takeoff framework and room finishes",
-      "reason": "Phase 52 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 52 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1611b",
-      "title": "Takeoff: cabinets, tops, fixtures and electrical",
-      "reason": "Phase 52 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 52 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1611c",
-      "title": "Takeoff: ACT, option costs and snapshot",
-      "reason": "Phase 52 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 52 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1612",
-      "title": "Waste factors",
-      "reason": "Phase 52 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 52 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1613",
-      "title": "Takeoff screen",
-      "reason": "Phase 52 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 52 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1614",
-      "title": "Tile layout preview",
-      "reason": "Phase 52 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 52 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1615",
-      "title": "Takeoff CSV",
-      "reason": "Phase 52 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 52 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1617",
-      "title": "Catalog settings: markup per category and edge library",
-      "reason": "Phase 52 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 52 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
       "ticket": "EZD-1701",
       "title": "Performance targets",
       "reason": "Phase 55 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 55 is prepared.",
@@ -557,30 +485,6 @@
       "ticket": "EZD-1710",
       "title": "Code rule list and verification",
       "reason": "Phase 54 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 54 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1711",
-      "title": "Billing and paywall for other companies",
-      "reason": "Phase 53 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 53 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1712",
-      "title": "Seats meter",
-      "reason": "Phase 53 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 53 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1713",
-      "title": "Onboarding a new company",
-      "reason": "Phase 53 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 53 is prepared.",
       "question": "phase 57 release, 2026-11-20",
       "kind": "held",
       "since": "2026-11-20"
