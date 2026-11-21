@@ -422,7 +422,8 @@
     "EZD-1415",
     "EZD-1314",
     "EZD-1416",
-    "EZD-701"
+    "EZD-701",
+    "EZD-416"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1180,6 +1181,14 @@
       "ts": "2026-11-21T06:09:45Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-416",
+      "title": "Left panel and status bar",
+      "commit": "819a4bb7",
+      "ts": "2026-11-21T06:35:49Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -1299,12 +1308,12 @@
     }
   },
   "running": {
-    "EZD-416": {
-      "lane": 3,
-      "title": "Left panel and status bar",
-      "started": "2026-11-21T04:19:59Z",
-      "develop": "541d406e"
+    "EZD-726": {
+      "lane": 1,
+      "title": "Sheet sets",
+      "started": "2026-11-21T06:10:41Z",
+      "develop": "ebe52a69"
     }
   },
-  "advisories_checked_at": "2026-11-21T00:27:16Z"
+  "advisories_checked_at": "2026-11-21T06:27:17Z"
 }
