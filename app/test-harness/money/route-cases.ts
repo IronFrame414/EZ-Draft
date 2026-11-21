@@ -686,6 +686,42 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-714: the set notes; 200 { general, required } (no money)',
   },
+  // EZD-1415: Field measure rooms; GET reads them (a new project: the Building alone), PUT saves an L-shaped room.
+  {
+    file: `${API}projects/[id]/field-measure/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/field-measure/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/field-measure`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-1415: the field measure rooms; 200 { rooms } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/field-measure/route.ts`,
+    method: 'PUT',
+    load: () => import('../../src/app/api/projects/[id]/field-measure/route'),
+    request: async (env) => ({
+      ...(await sendJson('PUT', `/api/projects/${env.projectId}/field-measure`, {
+        rooms: [
+          {
+            id: 'building',
+            kind: 'building',
+            name: 'Building',
+            shape: 'l',
+            corners: [],
+            closed: true,
+            lengths: [null, null, null, null, null, null],
+            ceiling: null,
+          },
+        ],
+      })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-1415: saves the field measure rooms; 200 { status } (no money)',
+  },
   // EZD-233: the Plan editor's saved groups; POST saves one lavatory as a group.
   {
     file: `${API}saved-groups/route.ts`,

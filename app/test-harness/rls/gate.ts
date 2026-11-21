@@ -330,4 +330,6 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     fn: 'update_project_settings',
     args: { p_project: '00000000-0000-4000-8000-000000000000', p_changes: {} },
   },
+  // EZD-1415: the field measure save, authenticated only.
+  { fn: 'save_field_measure_session', args: { p_project: null, p_rooms: null } },
 ];

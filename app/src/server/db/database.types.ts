@@ -313,6 +313,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"field_measure_session": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"id": string,"project_id": string,"rooms": NonNullable<Json>,"tenant_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"project_id": string,"rooms"?: NonNullable<Json>,"tenant_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"project_id"?: string,"rooms"?: NonNullable<Json>,"tenant_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "field_measure_session_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "field_measure_session_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "field_measure_session_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "field_measure_session_updated_by_fkey"
+      columns: ["updated_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"import_review_item": {
                   Row: {
                     "created_at": string,"decision": string | null,"fix": Json | null,"id": string,"item_id": string,"job_id": string,"project_id": string,"tenant_id": string,"updated_at": string,"updated_by": string | null
@@ -1366,6 +1404,9 @@ isOneToOne: false
                            },
 "rewrap_my_ai_key":
 { Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean
+                           },
+"save_field_measure_session":
+{ Args: { "p_project": string,"p_rooms": Json }; Returns: Json
                            },
 "save_import_review":
 { Args: { "p_changes": Json,"p_job": string,"p_mode": string,"p_project": string }; Returns: Json
