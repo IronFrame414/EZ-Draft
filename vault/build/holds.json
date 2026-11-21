@@ -362,83 +362,59 @@
       "since": "2026-11-20"
     },
     {
-      "ticket": "EZD-1501",
-      "title": "Translation store",
-      "reason": "Phase 50 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 50 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1502",
-      "title": "AI drafting",
-      "reason": "Phase 50 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 50 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1503",
-      "title": "Spanish display",
-      "reason": "Phase 51 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 51 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
       "ticket": "EZD-1504",
       "title": "Review table",
-      "reason": "Phase 50 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 50 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
+      "reason": "RETIRED 2026-11-20 by Q-0234 (no translation review queue, Translations page, glossary or approval); never built. Applied at phases 48-55 prep.",
+      "question": "Q-0234",
+      "kind": "retired",
       "since": "2026-11-20"
     },
     {
       "ticket": "EZD-1505",
       "title": "Review card actions",
-      "reason": "Phase 50 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 50 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
+      "reason": "RETIRED 2026-11-20 by Q-0234 (no translation review queue, Translations page, glossary or approval); never built. Applied at phases 48-55 prep.",
+      "question": "Q-0234",
+      "kind": "retired",
       "since": "2026-11-20"
     },
     {
       "ticket": "EZD-1506",
       "title": "Draft warnings",
-      "reason": "Phase 50 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 50 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
+      "reason": "RETIRED 2026-11-20 by Q-0234 (no translation review queue, Translations page, glossary or approval); never built. Applied at phases 48-55 prep.",
+      "question": "Q-0234",
+      "kind": "retired",
       "since": "2026-11-20"
     },
     {
       "ticket": "EZD-1507",
       "title": "Glossary",
-      "reason": "Phase 50 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 50 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
+      "reason": "RETIRED 2026-11-20 by Q-0234 (no translation review queue, Translations page, glossary or approval); never built. Applied at phases 48-55 prep.",
+      "question": "Q-0234",
+      "kind": "retired",
       "since": "2026-11-20"
     },
     {
       "ticket": "EZD-1508",
       "title": "Bulk approve",
-      "reason": "Phase 51 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 51 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
+      "reason": "RETIRED 2026-11-20 by Q-0234 (no translation review queue, Translations page, glossary or approval); never built. Applied at phases 48-55 prep.",
+      "question": "Q-0234",
+      "kind": "retired",
       "since": "2026-11-20"
     },
     {
       "ticket": "EZD-1509",
       "title": "Propagation",
-      "reason": "Phase 51 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 51 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
+      "reason": "RETIRED 2026-11-20 by Q-0234 (no translation review queue, Translations page, glossary or approval); never built. Applied at phases 48-55 prep.",
+      "question": "Q-0234",
+      "kind": "retired",
       "since": "2026-11-20"
     },
     {
       "ticket": "EZD-1510",
       "title": "Translation settings",
-      "reason": "Phase 51 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 51 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
+      "reason": "RETIRED 2026-11-20 by Q-0234 (no translation review queue, Translations page, glossary or approval); never built. Applied at phases 48-55 prep.",
+      "question": "Q-0234",
+      "kind": "retired",
       "since": "2026-11-20"
     },
     {

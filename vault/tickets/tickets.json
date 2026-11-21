@@ -14871,7 +14871,8 @@
    "acs_source": "done-when",
    "spec_phase": 15,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234"
    ]
   },
   {
@@ -14893,8 +14894,14 @@
     "EZD-1501",
     "EZD-009",
     "EZD-021",
-    "EZD-110a",
-    "EZD-110b"
+    "EZD-714",
+    "EZD-704",
+    "EZD-805",
+    "EZD-1408",
+    "EZD-1420",
+    "EZD-1421",
+    "EZD-1404",
+    "EZD-1411"
    ],
    "build_position": 414,
    "acs": [
@@ -14904,7 +14911,11 @@
    "spec_phase": 15,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/02-product-overview.md"
+    "spec/decisions/02-product-overview.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/10-permissions-and-settings.md#Q-0121",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0059",
+    "spec/decisions/13a-rounds-24-25.md"
    ]
   },
   {
@@ -14926,7 +14937,17 @@
     "EZD-026a",
     "EZD-026b",
     "EZD-026c",
-    "EZD-026d"
+    "EZD-026d",
+    "EZD-1502",
+    "EZD-1405",
+    "EZD-1406",
+    "EZD-1407",
+    "EZD-1409",
+    "EZD-1410",
+    "EZD-1411",
+    "EZD-1412",
+    "EZD-1415",
+    "EZD-1424"
    ],
    "build_position": 419,
    "acs": [
@@ -14937,7 +14958,13 @@
    "spec_phase": 15,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/10-permissions-and-settings.md#Q-0121",
+    "spec/decisions/10-permissions-and-settings.md#Q-0030",
+    "spec/decisions/10-permissions-and-settings.md#Q-0029",
+    "spec/decisions/10-permissions-and-settings.md#Q-0002",
+    "spec/decisions/13b-round-26.md#R17"
    ]
   },
   {
@@ -14965,7 +14992,9 @@
    "acs_source": "done-when",
    "spec_phase": 15,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/05-screens.md#Q-0695"
    ]
   },
   {
@@ -14992,7 +15021,8 @@
    "spec_phase": 15,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234"
    ]
   },
   {
@@ -15020,7 +15050,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234"
    ]
   },
   {
@@ -15046,7 +15077,9 @@
    "acs_source": "done-when",
    "spec_phase": 15,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/10-permissions-and-settings.md#Q-0223"
    ]
   },
   {
@@ -15072,7 +15105,8 @@
    "acs_source": "done-when",
    "spec_phase": 15,
    "decisions": [
-    "spec/decisions/05-screens.md"
+    "spec/decisions/05-screens.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234"
    ]
   },
   {
@@ -15100,7 +15134,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234"
    ]
   },
   {
@@ -15128,7 +15163,8 @@
    "spec_phase": 15,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234"
    ]
   },
   {
