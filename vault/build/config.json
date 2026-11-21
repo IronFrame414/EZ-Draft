@@ -21,7 +21,7 @@
     "app/src/server/messages/catalogs/es.ts"
   ],
   "footprint_lookahead": 20,
-  "max_phase": 47,
+  "max_phase": 57,
   "lanes": [
     1,
     2,
