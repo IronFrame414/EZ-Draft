@@ -423,7 +423,8 @@
     "EZD-1314",
     "EZD-1416",
     "EZD-701",
-    "EZD-416"
+    "EZD-416",
+    "EZD-418"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1189,6 +1190,14 @@
       "ts": "2026-11-21T06:35:49Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-418",
+      "title": "Top schedule",
+      "commit": "9954b68e",
+      "ts": "2026-11-21T07:29:48Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
