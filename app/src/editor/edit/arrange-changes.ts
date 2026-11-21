@@ -14,6 +14,7 @@ import {
   type OpeningObject,
   type Point,
   type WallObject,
+  hasLevel,
 } from '@ezdraft/geometry';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import type { MessageKey } from '../../server/messages/catalog';
@@ -68,7 +69,7 @@ function selectedOn(ctx: ArrangeContext, types: ReadonlySet<string>): ModelObjec
     const value = ctx.objects.get(key)!;
     if (!types.has(value.type)) continue;
     const o = parse(key, value);
-    if (o === null || o.type === 'floor' || lower(o.data.level) !== lvl) continue;
+    if (o === null || !hasLevel(o) || lower(o.data.level) !== lvl) continue;
     seen.add(lower(key));
     out.push(o);
   }

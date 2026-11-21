@@ -1227,6 +1227,19 @@
       }
     },
     {
+      "id": "9c3a2e5f-7d4b-4a1c-9e83-2f6b5d4c3a01",
+      "type": "sheet_set",
+      "schema_version": 7,
+      "data": {
+        "kind": "client",
+        "sheetIds": [],
+        "size": "11x17",
+        "keyPlacement": "cover_only",
+        "submittalProfileId": null,
+        "lastIssuedVersionId": null
+      }
+    },
+    {
       "id": "b7e2c4a1-5d3f-4e8a-9c61-2f0a7d5e9b13",
       "type": "room",
       "schema_version": 7,

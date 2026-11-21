@@ -674,6 +674,18 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-712: Project settings picks the profile; 200 { profileId } (no money)',
   },
+  // EZD-726: the set selector query (the project's permit and client sets with their sheets).
+  {
+    file: `${API}projects/[id]/sheet-sets/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/sheet-sets/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/sheet-sets`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-726: the sets and their sheets; 200 { sets } (no money)',
+  },
   // EZD-714: the notes the project's set prints (general notes for its type and its profile's required notes).
   {
     file: `${API}projects/[id]/notes/route.ts`,

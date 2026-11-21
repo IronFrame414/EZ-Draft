@@ -4,6 +4,7 @@
 // boxes do not change the set (Q-0764: they feed the scope-match check). Titles are the S13 mockup's sheet list.
 // The set is derived from the project for now; sheets become stored model objects (03b rule 3) when a later
 // ticket makes them adjustable (vault/build/assumptions.md EZD-701). The fields follow the 03c `sheet` row.
+import type { KeyPlacement, SheetSetData, SheetSetKind, SheetSize } from '@ezdraft/geometry';
 import type { ScopeTrade } from '../projects/new-project';
 
 // The sheet list's groups (S13 Layout: Architectural / Electrical / Renderings).
@@ -38,4 +39,43 @@ export function defaultSheetSet(scopeTrades: readonly ScopeTrade[]): Sheet[] {
   return DEFAULT_SET.filter((s) => s.needs === undefined || scopeTrades.includes(s.needs)).map(
     ({ number, title, group }) => ({ number, title, group, viewports: [] }),
   );
+}
+
+// EZD-726 (03b rule 3; 03d sheet_set; S13 Set selector, Decision 10; AC-EZD-726-1): each project has one permit
+// set and one client set. A set is a sheet_set model object (packages/geometry schema/sheet-set.ts); a set that has
+// never been changed is not stored and reads as the default below. The client set holds the renders and finish
+// schedule (R1.0) and, with EZD-720, the countertop plan and top schedule; it has no stamp areas. Sheets are not
+// objects yet, so a set's sheets are still worked out from the project (EZD-701).
+
+// One row of the set selector: the set and its sheets (the selector shows the count, size and revision).
+export type SheetSetSummary = {
+  // The stored object's id; null while the set is the unchanged default.
+  id: string | null;
+  kind: SheetSetKind;
+  size: SheetSize;
+  keyPlacement: KeyPlacement;
+  // Null until the set is first issued (EZD-717).
+  lastIssuedVersionId: string | null;
+  sheets: Sheet[];
+};
+
+// The set of a kind before anyone changes it: permit 24x36, client 11x17 (S13 size toggle: "11x17 is for client and
+// field copies"), the key on every sheet (S13 Decision 8), no profile of its own, never issued.
+export function defaultSheetSetData(kind: SheetSetKind): SheetSetData {
+  return {
+    kind,
+    sheetIds: [],
+    size: kind === 'permit' ? '24x36' : '11x17',
+    keyPlacement: 'every_sheet',
+    submittalProfileId: null,
+    lastIssuedVersionId: null,
+  };
+}
+
+const CLIENT_SET: readonly string[] = ['R1.0'];
+
+// The sheets of one set for a project with these scope boxes ticked, in set order.
+export function sheetsForSet(kind: SheetSetKind, scopeTrades: readonly ScopeTrade[]): Sheet[] {
+  const all = defaultSheetSet(scopeTrades);
+  return kind === 'permit' ? all : all.filter((s) => CLIENT_SET.includes(s.number));
 }

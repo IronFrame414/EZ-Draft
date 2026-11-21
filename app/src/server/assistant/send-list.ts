@@ -262,6 +262,8 @@ export const PROJECTORS: {
   // EZD-601: panels and circuits are not sent until a ticket decides what of them the assistant reads.
   panel: notSent,
   circuit: notSent,
+  // EZD-726: sheet sets are not sent until a ticket decides what of them the assistant reads.
+  sheet_set: notSent,
 };
 
 const LABEL_WORDS = new Set(ROOM_LABEL_WORDS.map((w) => w.toLowerCase()));

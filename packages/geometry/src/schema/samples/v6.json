@@ -1223,6 +1223,19 @@
           "load": 12000
         }
       }
+    },
+    {
+      "id": "9c3a2e5f-7d4b-4a1c-9e83-2f6b5d4c3a01",
+      "type": "sheet_set",
+      "schema_version": 6,
+      "data": {
+        "kind": "client",
+        "sheetIds": [],
+        "size": "11x17",
+        "keyPlacement": "cover_only",
+        "submittalProfileId": null,
+        "lastIssuedVersionId": null
+      }
     }
   ]
 }

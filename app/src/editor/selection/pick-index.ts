@@ -46,6 +46,7 @@ import {
   type TileShowerObject,
   type UtilityPointObject,
   type WallObject,
+  hasLevel,
 } from '@ezdraft/geometry';
 import { objectShownBy, type PhaseFilter } from '../../lib/plan/phase-view';
 import type { Objects } from '../model/patches';
@@ -140,7 +141,7 @@ function parseOnFloor(
     schema_version: value.schemaVersion,
     data: value.data,
   });
-  if (!r.ok || r.object.type === 'floor') return null;
+  if (!r.ok || !hasLevel(r.object)) return null;
   // EZD-729: the kind puts a water or drain point in the Plumbing layer.
   const d = r.object.data as { status?: unknown; attributes?: { kind?: unknown } };
   if (!objectShownBy(phase, r.object.type, d.status, d.attributes?.kind)) return null;

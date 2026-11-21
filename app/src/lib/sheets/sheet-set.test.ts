@@ -2,7 +2,7 @@
 // (A6.0 only with the Reflected ceiling plan box ticked), Q-0764 (the other boxes do not change the set), titles
 // from the S13 mockup sheet list.
 import { describe, expect, it } from 'vitest';
-import { defaultSheetSet } from './sheet-set';
+import { defaultSheetSet, defaultSheetSetData, sheetsForSet } from './sheet-set';
 
 const NINE = ['A0.0', 'A1.0', 'A2.0', 'A3.0', 'A4.0', 'A5.0', 'E1.0', 'E2.0', 'R1.0'];
 const TEN = ['A0.0', 'A1.0', 'A2.0', 'A3.0', 'A4.0', 'A5.0', 'A6.0', 'E1.0', 'E2.0', 'R1.0'];
@@ -32,8 +32,12 @@ describe('EZD-701 default sheet set', () => {
   });
 
   it('the Electrical, Plumbing and Mechanical boxes do not change the set', () => {
-    expect(defaultSheetSet(['electrical', 'plumbing', 'mechanical']).map((s) => s.number)).toEqual(NINE);
-    expect(defaultSheetSet(['electrical', 'plumbing', 'mechanical', 'rcp']).map((s) => s.number)).toEqual(TEN);
+    expect(defaultSheetSet(['electrical', 'plumbing', 'mechanical']).map((s) => s.number)).toEqual(
+      NINE,
+    );
+    expect(
+      defaultSheetSet(['electrical', 'plumbing', 'mechanical', 'rcp']).map((s) => s.number),
+    ).toEqual(TEN);
   });
 
   it('groups the sheets Architectural, Electrical, Renderings', () => {
@@ -43,5 +47,36 @@ describe('EZD-701 default sheet set', () => {
       'electrical',
       'renderings',
     ]);
+  });
+});
+
+// EZD-726 (AC-EZD-726-1). Expected sets: S13 Decision 10 (the client set holds the renders and finish schedule,
+// R1.0; countertop sheets come with EZD-720), S13 Decision 1 and Q-0779 for the permit set.
+describe('EZD-726 sheets of each set', () => {
+  it('the permit set is the default set', () => {
+    expect(sheetsForSet('permit', []).map((s) => s.number)).toEqual(NINE);
+    expect(sheetsForSet('permit', ['rcp']).map((s) => s.number)).toEqual(TEN);
+  });
+
+  it('the client set holds R1.0 Finish schedule + renders, whatever the scope boxes', () => {
+    const r1 = {
+      number: 'R1.0',
+      title: 'Finish schedule + renders',
+      group: 'renderings',
+      viewports: [],
+    };
+    expect(sheetsForSet('client', [])).toEqual([r1]);
+    expect(sheetsForSet('client', ['rcp', 'electrical', 'plumbing', 'mechanical'])).toEqual([r1]);
+  });
+
+  it('an unchanged set: permit 24x36, client 11x17, key on every sheet, never issued (03d; S13 size toggle)', () => {
+    const rest = {
+      sheetIds: [],
+      keyPlacement: 'every_sheet',
+      submittalProfileId: null,
+      lastIssuedVersionId: null,
+    };
+    expect(defaultSheetSetData('permit')).toEqual({ kind: 'permit', size: '24x36', ...rest });
+    expect(defaultSheetSetData('client')).toEqual({ kind: 'client', size: '11x17', ...rest });
   });
 });

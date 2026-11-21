@@ -11,6 +11,7 @@
 // the version stays.
 // EZD-505: the `beam` type (a beam set on one room's ceiling); a new type, so the version stays.
 // EZD-601: the `panel` and `circuit` types (S06 left panel); new types, so the version stays.
+// EZD-726: the `sheet_set` type (03b rule 3); a new type, so the version stays. Like a floor it names no level.
 import { z } from 'zod';
 import { beamDataSchema, type BeamData } from './beam';
 import { blockingDataSchema, type BlockingData } from './blocking';
@@ -30,12 +31,7 @@ import {
   type CabinetShelfData,
   type CabinetTrimData,
 } from './cabinet';
-import {
-  circuitDataSchema,
-  panelDataSchema,
-  type CircuitData,
-  type PanelData,
-} from './electrical';
+import { circuitDataSchema, panelDataSchema, type CircuitData, type PanelData } from './electrical';
 import { countertopPieceDataSchema, type CountertopPieceData } from './countertop';
 import { engineerNoteDataSchema, type EngineerNoteData } from './engineer-note';
 import {
@@ -60,6 +56,7 @@ import { floorDataSchema, type FloorData } from './floor';
 import { migrateStoredObject } from './migrate';
 import { openingDataSchema, type OpeningData } from './opening';
 import { roomDataSchema, type RoomData } from './room';
+import { sheetSetDataSchema, type SheetSetData } from './sheet-set';
 import { wallDataSchema, type WallData } from './wall';
 
 export * from './beam';
@@ -80,6 +77,7 @@ export * from './utility-point';
 export * from './migrate';
 export * from './opening';
 export * from './room';
+export * from './sheet-set';
 export * from './wall';
 
 export const OBJECT_TYPES = [
@@ -111,6 +109,7 @@ export const OBJECT_TYPES = [
   'beam',
   'panel',
   'circuit',
+  'sheet_set',
 ] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
@@ -145,10 +144,17 @@ type DataByType = {
   beam: BeamData;
   panel: PanelData;
   circuit: CircuitData;
+  sheet_set: SheetSetData;
 };
 export type ModelObject = {
   [T in ObjectType]: { id: string; type: T; data: DataByType[T] };
 }[ObjectType];
+
+// The types that sit on no floor: floors themselves and the project's sheet sets (EZD-726). Every other object
+// names its floor in `data.level`.
+export type LevelObject = Exclude<ModelObject, { type: 'floor' | 'sheet_set' }>;
+export const hasLevel = (o: ModelObject): o is LevelObject =>
+  o.type !== 'floor' && o.type !== 'sheet_set';
 
 export type ObjectIssueCode =
   | 'invalid_document'
@@ -192,6 +198,7 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
   beam: beamDataSchema,
   panel: panelDataSchema,
   circuit: circuitDataSchema,
+  sheet_set: sheetSetDataSchema,
 };
 
 // A source_file id held in an object, with the source_file kinds that field accepts. An empty `kinds` refuses
@@ -236,6 +243,7 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   beam: none,
   panel: none,
   circuit: none,
+  sheet_set: none,
 };
 
 export function fileRefs(object: ModelObject): FileRef[] {
@@ -299,7 +307,7 @@ export function parseModelDocument(
     parsed.filter((o) => o?.type === 'floor').map((o) => (o as ModelObject).id.toLowerCase()),
   );
   parsed.forEach((o, i) => {
-    if (o === null || o.type === 'floor' || issues[i] !== null) return;
+    if (o === null || !hasLevel(o) || issues[i] !== null) return;
     if (!floorIds.has(o.data.level.toLowerCase()))
       issues[i] = { id: o.id, issue: 'level_not_found' };
   });

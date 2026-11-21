@@ -1,5 +1,6 @@
 // EZD-235 D1-D5 (vault/plans/EZD-235.md section 4): the derived-value cache. Expected values are the plan's rows.
 import { describe, expect, it } from 'vitest';
+import { hasLevel } from '../schema';
 import type { ModelObject, Point } from '../schema';
 import { F2, FA, roomObj, uid, wallObj } from '../rooms/test-utils/fixtures';
 import { ROOM_AREA, createDerivedCache, type DerivedDef, type DerivedSource } from './derived';
@@ -22,6 +23,7 @@ function fakeSource(objects: readonly ModelObject[]): DerivedSource {
       objects.filter(
         (o) =>
           o.type === type &&
+          hasLevel(o) &&
           o.data.level.toLowerCase() === level.toLowerCase(),
       ) as never,
   };
