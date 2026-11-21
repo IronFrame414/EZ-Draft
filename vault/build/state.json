@@ -426,7 +426,8 @@
     "EZD-416",
     "EZD-418",
     "EZD-726",
-    "EZD-1001a"
+    "EZD-1001a",
+    "EZD-1201"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1216,6 +1217,14 @@
       "ts": "2026-11-21T09:20:56Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1201",
+      "title": "Share links",
+      "commit": "66aa28f2",
+      "ts": "2026-11-21T09:39:17Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -1335,11 +1344,11 @@
     }
   },
   "running": {
-    "EZD-1201": {
-      "lane": 1,
-      "title": "Share links",
-      "started": "2026-11-21T08:04:16Z",
-      "develop": "e9445ee3"
+    "EZD-507": {
+      "lane": 2,
+      "title": "Ceiling devices",
+      "started": "2026-11-21T09:21:01Z",
+      "develop": "d853c90f"
     }
   },
   "advisories_checked_at": "2026-11-21T06:27:17Z"
