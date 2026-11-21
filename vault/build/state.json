@@ -419,7 +419,8 @@
     "EZD-427",
     "EZD-222",
     "EZD-230",
-    "EZD-1415"
+    "EZD-1415",
+    "EZD-1314"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1153,6 +1154,14 @@
       "ts": "2026-11-21T03:29:31Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1314",
+      "title": "Canonical event registry",
+      "commit": "9a20d935",
+      "ts": "2026-11-21T03:54:25Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1273,11 +1282,11 @@
       "started": "2026-11-21T01:41:42Z",
       "develop": "3965e2af"
     },
-    "EZD-1314": {
-      "lane": 2,
-      "title": "Canonical event registry",
-      "started": "2026-11-21T02:06:35Z",
-      "develop": "bc0eb658"
+    "EZD-1416": {
+      "lane": 1,
+      "title": "Field measure: keypad and closure",
+      "started": "2026-11-21T03:30:03Z",
+      "develop": "d8c36a30"
     }
   },
   "advisories_checked_at": "2026-11-21T00:27:16Z"
