@@ -424,7 +424,8 @@
     "EZD-1416",
     "EZD-701",
     "EZD-416",
-    "EZD-418"
+    "EZD-418",
+    "EZD-726"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1198,6 +1199,14 @@
       "ts": "2026-11-21T07:29:48Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-726",
+      "title": "Sheet sets",
+      "commit": "a1ca695e",
+      "ts": "2026-11-21T08:03:02Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -1317,11 +1326,11 @@
     }
   },
   "running": {
-    "EZD-726": {
-      "lane": 1,
-      "title": "Sheet sets",
-      "started": "2026-11-21T06:10:41Z",
-      "develop": "ebe52a69"
+    "EZD-1001a": {
+      "lane": 2,
+      "title": "3D scene core",
+      "started": "2026-11-21T07:29:54Z",
+      "develop": "720920b6"
     }
   },
   "advisories_checked_at": "2026-11-21T06:27:17Z"
