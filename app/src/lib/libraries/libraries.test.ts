@@ -53,8 +53,9 @@ describe('EZD-131 library tabs and items', () => {
     ]);
     expect(isLibraryKind('saved_group')).toBe(true);
     expect(isLibraryKind('detail')).toBe(false);
-    expect([...CREATABLE_KINDS]).toEqual(['note', 'abbreviation']);
-    expect([...EDITABLE_KINDS]).toEqual(['note', 'abbreviation', 'saved_group']);
+    // EZD-1408 (S15h Field task templates: editable, one per room type): templates are added and changed.
+    expect([...CREATABLE_KINDS]).toEqual(['note', 'abbreviation', 'task_template']);
+    expect([...EDITABLE_KINDS]).toEqual(['note', 'abbreviation', 'saved_group', 'task_template']);
   });
 
   it('checkLibraryDraft names the first problem in field order', () => {

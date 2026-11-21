@@ -524,4 +524,247 @@ describe('EZD-131 library routes', () => {
       expect((await list('?kind=note')).json).toEqual(FORBIDDEN);
     });
   });
+
+  // EZD-1408 (S15h Tab: Field task templates; Permissions "Edit field tasks may also edit field task templates";
+  // AC-EZD-1408-1 "A Kitchen template with reordered phases saves"). Expected values: one template per room type
+  // from the default sequence Demo, Rough-in, Inspection, Drywall, Finish (S15h; board S15hLibraries); phases are
+  // added, renamed, deleted and reordered; Edit field tasks reaches templates and nothing else.
+  describe('EZD-1408 field task templates', () => {
+    let foreman: Member;
+    let foremanCookies: Map<string, string>;
+
+    beforeAll(async () => {
+      foreman = await createMember({ tenantId: tenantA, scope: 'all' });
+      await setPermissions(tenantA, foreman.membershipId, ['view_projects', 'edit_field_tasks']);
+      foremanCookies = await cookiesFor(foreman.email);
+    }, 60000);
+
+    const DEFAULT = [
+      { id: 'p1', name: 'Demo', tasks: [] },
+      { id: 'p2', name: 'Rough-in', tasks: ['Mark cabinet layout'] },
+      { id: 'p3', name: 'Inspection', tasks: [] },
+      { id: 'p4', name: 'Drywall', tasks: [] },
+      { id: 'p5', name: 'Finish', tasks: [] },
+    ];
+
+    it('AC-EZD-1408-1 a Kitchen template with reordered phases saves and lists in its new order', async () => {
+      state.store = new Map(ownerCookies);
+      const made = await create(
+        JSON.stringify({
+          kind: 'task_template',
+          roomType: 'kitchen',
+          name: 'Kitchen',
+          phases: DEFAULT,
+        }),
+      );
+      expect(made.res.status).toBe(201);
+      const item = (made.json as { item: { id: string; template: unknown } }).item;
+      expect(item.template).toEqual({ roomType: 'kitchen', phases: DEFAULT });
+      expect(emitMock).toHaveBeenCalledWith(
+        'library.item_created',
+        { itemId: item.id, kind: 'task_template' },
+        { tenantId: tenantA, actorId: owner.appUserId },
+      );
+
+      // Rough-in moved first; Drywall renamed; a phase added at the end.
+      const reordered = [
+        DEFAULT[1],
+        DEFAULT[0],
+        DEFAULT[2],
+        { id: 'p4', name: ' Hang drywall ', tasks: [] },
+        DEFAULT[4],
+        { id: 'p6', name: 'Punch list', tasks: [' Walk the job '] },
+      ];
+      emitMock.mockClear();
+      state.store = new Map(ownerCookies);
+      const saved = await patch(item.id, JSON.stringify({ name: 'Kitchen', phases: reordered }));
+      expect(saved.res.status).toBe(200);
+      expect(emitMock).toHaveBeenCalledWith(
+        'library.item_updated',
+        { itemId: item.id, kind: 'task_template', fields: ['data'] },
+        { tenantId: tenantA, actorId: owner.appUserId },
+      );
+
+      state.store = new Map(ownerCookies);
+      const listed = await list('?kind=task_template');
+      const items = (
+        listed.json as { items: { id: string; template: { phases: { name: string }[] } }[] }
+      ).items;
+      const kitchen = items.find((i) => i.id === item.id);
+      expect(kitchen?.template.phases.map((p) => p.name)).toEqual([
+        'Rough-in',
+        'Demo',
+        'Inspection',
+        'Hang drywall',
+        'Finish',
+        'Punch list',
+      ]);
+      // Stored trimmed, in the new order.
+      expect(await rowOf(item.id)).toMatchObject({
+        kind: 'task_template',
+        data: {
+          roomType: 'kitchen',
+          phases: [
+            DEFAULT[1],
+            DEFAULT[0],
+            DEFAULT[2],
+            { id: 'p4', name: 'Hang drywall', tasks: [] },
+            DEFAULT[4],
+            { id: 'p6', name: 'Punch list', tasks: ['Walk the job'] },
+          ],
+        },
+      });
+
+      // Deleting a phase saves too; saving the same phases again is 200 with no event.
+      const five = [
+        DEFAULT[1],
+        DEFAULT[0],
+        DEFAULT[2],
+        { id: 'p4', name: 'Hang drywall', tasks: [] },
+        DEFAULT[4],
+      ];
+      state.store = new Map(ownerCookies);
+      const fewer = await patch(item.id, JSON.stringify({ name: 'Kitchen', phases: five }));
+      expect(fewer.res.status).toBe(200);
+      expect((fewer.json as { item: { template: unknown } }).item.template).toEqual({
+        roomType: 'kitchen',
+        phases: five,
+      });
+      emitMock.mockClear();
+      state.store = new Map(ownerCookies);
+      const same = await patch(item.id, JSON.stringify({ name: 'Kitchen', phases: five }));
+      expect(same.res.status).toBe(200);
+      expect(emitMock).not.toHaveBeenCalled();
+
+      // One template per room type.
+      state.store = new Map(ownerCookies);
+      const second = await create(
+        JSON.stringify({
+          kind: 'task_template',
+          roomType: 'kitchen',
+          name: 'Kitchen 2',
+          phases: DEFAULT,
+        }),
+      );
+      expect(second.res.status).toBe(400);
+      expect(second.json).toEqual(err('task_template_exists'));
+
+      // A template is changed, never deleted.
+      state.store = new Map(ownerCookies);
+      expect((await remove(item.id)).json).toEqual(err('library_item_read_only'));
+    });
+
+    it('refuses bad phases with the first problem', async () => {
+      const base = { kind: 'task_template', roomType: 'bath', name: 'Bath' };
+      const bad: [unknown, string][] = [
+        [{ ...base, phases: [] }, 'task_template_phase_required'],
+        [
+          { ...base, phases: [{ id: 'p1', name: ' ', tasks: [] }] },
+          'task_template_phase_name_required',
+        ],
+        [
+          { ...base, phases: [{ id: 'p1', name: 'x'.repeat(61), tasks: [] }] },
+          'task_template_phase_name_too_long',
+        ],
+        [
+          {
+            ...base,
+            phases: [
+              { id: 'p1', name: 'Demo', tasks: [] },
+              { id: 'p2', name: 'demo', tasks: [] },
+            ],
+          },
+          'task_template_phase_name_taken',
+        ],
+        [
+          { ...base, phases: [{ id: 'p1', name: 'Demo', tasks: [' '] }] },
+          'task_template_task_required',
+        ],
+        [
+          { ...base, phases: [{ id: 'p1', name: 'Demo', tasks: ['t'.repeat(301)] }] },
+          'task_template_task_too_long',
+        ],
+        [
+          {
+            ...base,
+            phases: Array.from({ length: 21 }, (_, i) => ({
+              id: `p${i}`,
+              name: `P${i}`,
+              tasks: [],
+            })),
+          },
+          'task_template_too_many_phases',
+        ],
+        [{ ...base, name: '', phases: DEFAULT }, 'library_name_required'],
+        [{ ...base, roomType: 'garage', phases: DEFAULT }, 'invalid_input'],
+        [
+          {
+            ...base,
+            phases: [
+              { id: 'p1', name: 'A', tasks: [] },
+              { id: 'p1', name: 'B', tasks: [] },
+            ],
+          },
+          'invalid_input',
+        ],
+      ];
+      for (const [body, code] of bad) {
+        state.store = new Map(ownerCookies);
+        const r = await create(JSON.stringify(body));
+        expect(r.res.status, code).toBe(400);
+        expect(r.json, code).toEqual(err(code));
+      }
+    });
+
+    it('Edit field tasks alone lists, adds and changes templates but no other library kind', async () => {
+      state.store = new Map(foremanCookies);
+      const made = await create(
+        JSON.stringify({
+          kind: 'task_template',
+          roomType: 'laundry',
+          name: 'Laundry',
+          phases: DEFAULT,
+        }),
+      );
+      expect(made.res.status).toBe(201);
+      const id = (made.json as { item: { id: string } }).item.id;
+
+      state.store = new Map(foremanCookies);
+      const r = await list('?kind=task_template');
+      expect(r.res.status).toBe(200);
+      expect((r.json as { items: { id: string }[] }).items.map((i) => i.id)).toContain(id);
+
+      state.store = new Map(foremanCookies);
+      const moved = [DEFAULT[4], ...DEFAULT.slice(0, 4)];
+      expect((await patch(id, JSON.stringify({ name: 'Laundry', phases: moved }))).res.status).toBe(
+        200,
+      );
+
+      const abbr = await insertItem(tenantA, 'abbreviation', 'EFT', { meaning: 'x' });
+      state.store = new Map(foremanCookies);
+      expect((await list('?kind=abbreviation')).json).toEqual(FORBIDDEN);
+      state.store = new Map(foremanCookies);
+      expect(
+        (await create(JSON.stringify({ kind: 'abbreviation', name: 'X', meaning: 'Y' }))).json,
+      ).toEqual(FORBIDDEN);
+      state.store = new Map(foremanCookies);
+      expect((await patch(abbr, JSON.stringify({ name: 'EFT', meaning: 'z' }))).json).toEqual(
+        FORBIDDEN,
+      );
+      state.store = new Map(foremanCookies);
+      expect((await remove(abbr)).json).toEqual(FORBIDDEN);
+
+      // Without either switch, templates are 403; another company's template is not found.
+      state.store = new Map(plainCookies);
+      expect((await list('?kind=task_template')).json).toEqual(FORBIDDEN);
+      const foreign = await insertItem(tenantB, 'task_template', 'Theirs', {
+        roomType: 'other',
+        phases: DEFAULT,
+      });
+      state.store = new Map(foremanCookies);
+      expect(
+        (await patch(foreign, JSON.stringify({ name: 'Mine', phases: DEFAULT }))).json,
+      ).toEqual(err('library_item_not_found'));
+    });
+  });
 });

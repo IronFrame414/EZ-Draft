@@ -307,3 +307,205 @@
   font-size: 13px;
   color: var(--ez-ink);
 }
+
+/* EZD-1408 (S15h Field task templates; board S15hLibraries). */
+.ttBody {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 16px;
+  min-width: 0;
+}
+
+.ttRooms,
+.ttPhases {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ttHead {
+  font: 600 12px var(--ez-font-sans);
+  color: var(--ez-slate-700);
+}
+
+.ttPhasesHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ttRoom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font: 400 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ttRoomText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ttRoomName {
+  font-weight: 600;
+}
+
+.ttMuted {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.ttFootnote {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-cobalt-tint);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ez-slate-700);
+}
+
+.ttLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: 500 12px var(--ez-font-sans);
+  color: var(--ez-cobalt);
+  cursor: pointer;
+}
+
+.ttPhaseList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ttPhase {
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+}
+
+.ttPhaseOpen {
+  border-color: var(--ez-cobalt);
+}
+
+.ttPhaseRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.ttHandle,
+.ttIconButton {
+  display: inline-flex;
+  padding: 2px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--ez-slate-500);
+  cursor: pointer;
+}
+
+.ttHandle {
+  cursor: grab;
+}
+
+.ttNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--ez-border);
+  font: 500 12px var(--ez-font-mono);
+  color: var(--ez-slate-700);
+}
+
+.ttNumOn {
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+}
+
+.ttPhaseName {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 4px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  font: 500 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.ttPhaseName:focus-visible {
+  outline: none;
+  border-color: var(--ez-cobalt);
+}
+
+.ttCount {
+  font: 400 12px var(--ez-font-mono);
+  color: var(--ez-slate-500);
+}
+
+.ttTasks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 12px 10px 44px;
+}
+
+.ttTask {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ttTaskInput {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: 6px;
+  font: 400 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.ttSequence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ez-slate-500);
+}
+
+.ttSequenceItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

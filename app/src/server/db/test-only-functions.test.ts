@@ -216,6 +216,8 @@ describe('EZD-323 test-only database functions', () => {
       'app/src/server/jobs/ai-key-rewrap.ts',
       'app/src/server/jobs/db.ts',
       'app/src/server/jobs/default-hooks.ts',
+      // EZD-1408: the field task draft job reads the project's rooms and the company's templates and writes draft field_task rows (no member write policy on field_task; S22).
+      'app/src/server/jobs/handlers/field-task-draft.ts',
       // EZD-302: the import job reads the project's source files and writes import_session rows (service_role writes only).
       'app/src/server/jobs/handlers/import.ts',
       'app/src/server/jobs/handlers/notification-email.ts',

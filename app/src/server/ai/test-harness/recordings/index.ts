@@ -1,4 +1,6 @@
 // EZD-021 Step 3: the built-in recordings, keyed "<provider>/<purpose>". A later ticket adds its own entries.
+// EZD-1408 adds the field task draft (server/jobs/handlers/field-task-draft-recording.ts).
+import { fieldTaskRecordings } from '../../../jobs/handlers/field-task-draft-recording';
 import type { Recording } from '../recorded-fetch';
 import { anthropicRecordings } from './anthropic';
 import { bflRecordings } from './bfl';
@@ -10,4 +12,5 @@ export const BUILT_IN_RECORDINGS: Record<string, Recording> = {
   ...geminiRecordings,
   ...openaiRecordings,
   ...bflRecordings,
+  ...fieldTaskRecordings,
 };

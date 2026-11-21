@@ -61,3 +61,17 @@ describe('EZD-131 LibrariesPanel markup', () => {
     expect(notes).not.toContain('Add abbreviation');
   });
 });
+
+// EZD-1408 (S15h Permissions "Edit field tasks may also edit field task templates"): with Edit field tasks and no
+// Libraries switch the page passes onlyTemplates, so Field task templates is the only tab.
+describe('EZD-1408 LibrariesPanel for Edit field tasks only', () => {
+  it('shows only the Field task templates tab, with no Add button', () => {
+    const markup = renderToStaticMarkup(
+      <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
+        <LibrariesPanel initialTab="task_templates" onlyTemplates />
+      </MessagesProvider>,
+    );
+    expect(tabs(markup)).toEqual([{ text: 'Field task templates', on: true }]);
+    expect(markup).not.toContain('data-testid="libraries-add"');
+  });
+});

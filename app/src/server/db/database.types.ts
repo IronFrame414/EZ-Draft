@@ -351,6 +351,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"field_task": {
+                  Row: {
+                    "created_at": string,"done_at": string | null,"done_by": string | null,"id": string,"job_id": string | null,"linked_objects": NonNullable<Json>,"phase": string,"phase_position": number,"photos": NonNullable<Json>,"position": number,"project_id": string,"room": string,"room_id": string | null,"status": string,"tenant_id": string,"text_en": string,"text_es": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"done_at"?: string | null,"done_by"?: string | null,"id"?: string,"job_id"?: string | null,"linked_objects"?: NonNullable<Json>,"phase": string,"phase_position": number,"photos"?: NonNullable<Json>,"position": number,"project_id": string,"room"?: string,"room_id"?: string | null,"status"?: string,"tenant_id": string,"text_en": string,"text_es"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"done_at"?: string | null,"done_by"?: string | null,"id"?: string,"job_id"?: string | null,"linked_objects"?: NonNullable<Json>,"phase"?: string,"phase_position"?: number,"photos"?: NonNullable<Json>,"position"?: number,"project_id"?: string,"room"?: string,"room_id"?: string | null,"status"?: string,"tenant_id"?: string,"text_en"?: string,"text_es"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "field_task_done_by_fkey"
+      columns: ["done_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "field_task_job_id_fkey"
+      columns: ["job_id"]
+isOneToOne: false
+      referencedRelation: "job"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "field_task_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "field_task_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"import_review_item": {
                   Row: {
                     "created_at": string,"decision": string | null,"fix": Json | null,"id": string,"item_id": string,"job_id": string,"project_id": string,"tenant_id": string,"updated_at": string,"updated_by": string | null
