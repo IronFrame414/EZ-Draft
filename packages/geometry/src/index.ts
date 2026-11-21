@@ -32,6 +32,8 @@ export * from './countertops/seam';
 export * from './countertops/cutout';
 // EZD-416: the left panel and status bar readouts.
 export * from './countertops/panel';
+// EZD-418: the top schedule rows.
+export * from './countertops/schedule';
 export * from './derived';
 export * from './drawing';
 export * from './fixtures';

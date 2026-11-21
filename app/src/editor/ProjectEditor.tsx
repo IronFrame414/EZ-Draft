@@ -126,6 +126,7 @@ import { EmptyPlanHint } from './EmptyPlanHint';
 import type { BenchmarkRunnerProps } from '../lazy/benchmark-runner';
 import type { CabinetInspectorProps, CabinetRunViewProps } from '../lazy/cabinet-run';
 import type {
+  CountertopsInspectorProps,
   CountertopsPanelProps,
   CountertopsStatusProps,
   CountertopsViewProps,
@@ -1318,6 +1319,10 @@ export function ProjectEditor({
         floors={floors ?? undefined}
         canEdit={mayEdit}
       />
+    ) : showPlan && countertopsOn && session !== null ? (
+      // EZD-418 (S04b Layout "Inspector: ... Top schedule"): while the Countertops tool is on, the inspector place
+      // holds the countertop inspector (its footer's Top schedule for now; the piece inspector is EZD-414).
+      <LazyCountertopsInspector store={session.store} floors={floors ?? undefined} />
     ) : showPlan && session !== null && selection !== null ? (
       <InspectorStack>
         <LazyInspectorPanel
@@ -1727,6 +1732,12 @@ function LazyCountertopsPanel(props: CountertopsPanelProps) {
 function LazyCountertopsStatus(props: CountertopsStatusProps) {
   const mod = useLazy(countertopsModule);
   return mod ? <mod.CountertopsStatus {...props} /> : null;
+}
+
+// EZD-418: the countertop inspector place (footer Top schedule), from the same module.
+function LazyCountertopsInspector(props: CountertopsInspectorProps) {
+  const mod = useLazy(countertopsModule);
+  return mod ? <mod.CountertopsInspector {...props} /> : null;
 }
 
 // EZD-126 (11 Budgets): the phone and no-access notices and the conflict banner load when shown; a ready desktop

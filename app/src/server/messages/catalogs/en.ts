@@ -2496,6 +2496,19 @@ export const en = {
   'office.countertops.status_exposed': 'Exposed edge',
   'office.countertops.status_exposed_value': '{lf} lf',
   'office.countertops.status_increment': 'Increment',
+  // EZD-418 top schedule (board S04bCountertops "Top schedule"; other wording listed in vault/build/assumptions.md
+  // EZD-418).
+  'office.countertops.schedule.title': 'Top schedule',
+  'office.countertops.schedule.piece': 'Piece',
+  'office.countertops.schedule.material': 'Material',
+  'office.countertops.schedule.thickness': 'Thickness',
+  'office.countertops.schedule.area': 'Area (sq ft)',
+  'office.countertops.schedule.profile': 'Edge profile',
+  'office.countertops.schedule.edge': 'Edge length (lf)',
+  'office.countertops.schedule.none': '—',
+  'office.countertops.schedule.empty': 'No tops on this floor yet.',
+  'office.countertops.schedule.export': 'Export CSV',
+  'office.countertops.schedule.file': 'Top schedule.csv',
   // EZD-222 Keyboard shortcuts and Help (S15d, board S15dDefaults, S03 Help; wording not on the board is listed in
   // vault/build/assumptions.md EZD-222).
   'office.defaults.group.keyboard_shortcuts': 'Keyboard shortcuts',

@@ -116,6 +116,8 @@ export const fixtureValue = (
 // packages/geometry/src/countertops/panel.test.ts): A "Back wall" 141 1/2 × 25 1/2, B "Left return" 63 × 25 1/2
 // (A and B share one seam), C "Island" 76 1/2 × 37 1/2 with a 12" seating back. 3 pieces, 1 seam, 56.1 sq ft,
 // exposed 432.5" = 36 lf.
+// EZD-418 top schedule from the same tops (hand counts in top-schedule.test.ts): A 25.1 sq ft, 9.7 lf; B 11.2 sq ft,
+// 7.4 lf; C 19.9 sq ft, 19.0 lf; each 3 cm, no material, no profile.
 export const CT_SEAM = 'e0000000-0000-4000-8000-000000000001';
 type BoardEdge = 'exposed' | 'wall' | 'seating' | 'seam';
 const boardEdge = (kind: BoardEdge) =>

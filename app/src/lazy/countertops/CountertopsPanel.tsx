@@ -57,7 +57,7 @@ export type CountertopsPanelProps = {
 export type CountertopCatalogLoad = () => Promise<CatalogItem[]>;
 
 // As the cabinet inspector's read (lazy/cabinet-run), kept here so the countertop module does not carry it.
-const fetchCatalog: CountertopCatalogLoad = async () => {
+export const fetchCatalog: CountertopCatalogLoad = async () => {
   const res = await fetch('/api/catalog', { cache: 'no-store', credentials: 'same-origin' });
   if (res.status !== 200) throw new Error('catalog_load_failed');
   return ((await res.json()) as { items: CatalogItem[] }).items;
