@@ -7,6 +7,12 @@
 // - access: attic hatch (EZD-507 adds access panel), a rectangle like a fixture.
 // - soffit: a polygon; `dropHeight` is measured down from the room's ceiling height.
 // - chase: a polygon.
+// EZD-507 (S05 Controls "Recessed light", "Ceiling fan", "Smoke or CO detector", "Speaker or low voltage", "Access
+// panel", "Fixture type tag edit"; 03f:13 "lights (type tag), fans, detectors, low voltage (... speakers, cameras,
+// Wi-Fi APs)"; Q-0704 03-data-model row 2 "EZD-507 adds access_panel"): the ceiling devices join `device` as kinds,
+// with the optional fixture type fields (type tag, lumens, color temperature, trim, catalog item); the access panel
+// joins `access`. Added enum values and optional fields only, so every stored object stays valid and the version
+// stays.
 import { z } from 'zod';
 import {
   levelSchema,
@@ -33,7 +39,23 @@ export const hvacDataSchema = z.strictObject({
 });
 export type HvacData = z.infer<typeof hvacDataSchema>;
 
-export const DEVICE_KINDS = ['smoke_detector', 'co_detector', 'smoke_co_detector'] as const;
+export const DEVICE_KINDS = [
+  'smoke_detector',
+  'co_detector',
+  'smoke_co_detector',
+  'recessed_light',
+  'ceiling_fan',
+  'speaker',
+  'camera',
+  'wifi_ap',
+] as const;
+export type DeviceKind = (typeof DEVICE_KINDS)[number];
+// EZD-507: the kinds that carry a fixture type (S05 "Fixture type tag edit ... on a light"; board S05Ceiling fixture
+// schedule "A 4" can", "F Fan 52""; vault/build/assumptions.md EZD-507).
+export const FIXTURE_TYPE_DEVICE_KINDS = [
+  'recessed_light',
+  'ceiling_fan',
+] as const satisfies readonly DeviceKind[];
 export const deviceDataSchema = z.strictObject({
   geometry: z.strictObject({ point: pointSchema }),
   status: objectStatusSchema,
@@ -45,11 +67,18 @@ export const deviceDataSchema = z.strictObject({
     kind: z.enum(DEVICE_KINDS),
     circuit: z.uuid().nullable().optional(),
     protection: circuitProtectionSchema.nullable().optional(),
+    // EZD-507: the fixture type; absent reads as not set. Color temperature is in kelvin.
+    typeTag: z.string().trim().min(1).nullable().optional(),
+    lumens: z.number().int().positive().nullable().optional(),
+    colorTemp: z.number().int().positive().nullable().optional(),
+    trim: z.string().trim().min(1).nullable().optional(),
+    catalogItemId: z.uuid().nullable().optional(),
   }),
 });
 export type DeviceData = z.infer<typeof deviceDataSchema>;
 
-export const ACCESS_KINDS = ['attic_hatch'] as const;
+export const ACCESS_KINDS = ['attic_hatch', 'access_panel'] as const;
+export type AccessKind = (typeof ACCESS_KINDS)[number];
 export const accessDataSchema = z.strictObject({
   geometry: rectGeometry,
   status: objectStatusSchema,

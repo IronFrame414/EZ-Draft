@@ -7,6 +7,7 @@
 // EZD-215 (AC-EZD-215-3, -4, -6): one engineer note alone shows its form (EngineerNoteForm); a wall with a note
 // whose letter is not on file shows "Engineer required", with or without Edit model.
 // EZD-505: one beam set alone shows the beam inspector (tools/BeamPanel.tsx).
+// EZD-507: one light or fan alone shows its inspector with the Fixture type (tools/DevicePanel.tsx).
 import type { FloorChoice } from '../floors/floors';
 import { useChosenFloor } from '../floors/use-chosen-floor';
 import {
@@ -67,6 +68,8 @@ import {
 import { ResolveGap, type ResolveGapProps } from './ResolveGap';
 import { PinPanel } from './PinPanel';
 import { BeamPanel } from '../tools/BeamPanel';
+import { DevicePanel } from '../tools/DevicePanel';
+import { fixtureTypeView } from '../tools/ceiling-device-tool';
 import { EngineerNoteForm } from './EngineerNoteForm';
 import styles from './InspectorPanel.module.css';
 
@@ -157,6 +160,9 @@ export function InspectorPanel({
   const noteAlone = ids.length === 1 && isType(objects, ids[0]!, 'engineer_note') ? ids[0]! : null;
   // EZD-505: one beam set alone shows the beam inspector.
   const beamAlone = ids.length === 1 && isType(objects, ids[0]!, 'beam') ? ids[0]! : null;
+  // EZD-507: one light or fan alone.
+  const fixtureAlone =
+    ids.length === 1 && fixtureTypeView(objects, ids[0]!) !== null ? ids[0]! : null;
 
   // EZD-213c D-Panel: the gap of the one selected wall.
   const drawingUi = useSyncExternalStore(
@@ -246,6 +252,11 @@ export function InspectorPanel({
 
   if (beamAlone !== null)
     return <BeamPanel key={beamAlone} store={store} beamId={beamAlone} canEdit={canEdit} />;
+
+  if (fixtureAlone !== null)
+    return (
+      <DevicePanel key={fixtureAlone} store={store} deviceId={fixtureAlone} canEdit={canEdit} />
+    );
 
   // EZD-215: one engineer note alone shows its form.
   if (noteAlone !== null)

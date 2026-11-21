@@ -7,6 +7,10 @@
 // EZD-505 (S05 Controls "Beam"; S05 Validation "Level beams in a vault must sit below the ridge and at or above the
 // wall plate; warn otherwise"; Q-0630 "The whole object turns error red"; AC-EZD-505-1): each beam set on a shown
 // room draws its beams' outlines in its status colour, or all in error red while the set has a warning.
+// EZD-507 (S05 Controls "Recessed light ... Same object as on the electrical plan (06)", "Smoke or CO detector ... Same
+// object as electrical plan"; S05 Data shown "Ceiling objects: ... cans, fans, ... detectors, speakers, low voltage,
+// access panels"; AC-EZD-507-1): the ceiling devices keep the floor plan's own items (one object id on both); a device
+// of another kind (a wall device of the electrical plan) is a floor item.
 import {
   DRAWING_FONTS,
   beamOutlines,
@@ -31,7 +35,25 @@ export const GREYED_FLOOR_TOKEN = '--ez-border';
 /** The ridge line's dash pattern in model inches: long dash, gap, short dash, gap (board S05Ceiling). */
 export const RIDGE_DASH_IN: readonly number[] = [12, 4, 2, 4];
 
-const RCP_TYPES: ReadonlySet<string> = new Set(['wall', 'room']);
+const RCP_TYPES: ReadonlySet<string> = new Set(['wall', 'room', 'access']);
+/** EZD-507: the device kinds that sit on the ceiling. */
+export const RCP_DEVICE_KINDS: ReadonlySet<string> = new Set([
+  'recessed_light',
+  'ceiling_fan',
+  'smoke_detector',
+  'co_detector',
+  'smoke_co_detector',
+  'speaker',
+  'camera',
+  'wifi_ap',
+]);
+
+function onRcp(type: string, data: unknown): boolean {
+  if (RCP_TYPES.has(type)) return true;
+  if (type !== 'device') return false;
+  const kind = (data as { attributes?: { kind?: unknown } } | null)?.attributes?.kind;
+  return typeof kind === 'string' && RCP_DEVICE_KINDS.has(kind);
+}
 
 type Ridge = { start: Point; end: Point; height: number };
 
@@ -97,7 +119,11 @@ const STATUS_LAYER: Readonly<Record<string, DrawingLayer>> = {
 };
 
 /** The beam sets on the shown rooms: each beam's outline, on the flagged layer while the set warns. */
-export function beamItems(objects: Objects, level: string, rooms: ReadonlySet<string>): DrawingItem[] {
+export function beamItems(
+  objects: Objects,
+  level: string,
+  rooms: ReadonlySet<string>,
+): DrawingItem[] {
   let hasBeams = false;
   for (const [, v] of objects) if (v.type === 'beam') hasBeams = true;
   if (!hasBeams) return [];
@@ -127,16 +153,24 @@ export function beamItems(objects: Objects, level: string, rooms: ReadonlySet<st
   return items;
 }
 
-/** The RCP drawing list: the floor list's wall and room items (dimensions left out), each shown room's ridge and beams. */
+/**
+ * The RCP drawing list: the floor list's wall, room, access and ceiling device items (dimensions left out), each shown
+ * room's ridge and beams.
+ */
 export function rcpList(floor: DrawingList | null, objects: Objects): DrawingList | null {
   if (floor === null) return null;
   const typeOf = new Map<string, string>();
-  for (const [id, v] of objects) typeOf.set(id.toLowerCase(), v.type);
+  const kept = new Set<string>();
+  for (const [id, v] of objects) {
+    typeOf.set(id.toLowerCase(), v.type);
+    if (onRcp(v.type, v.data)) kept.add(id.toLowerCase());
+  }
   const items: DrawingItem[] = [];
   const rooms = new Set<string>();
   for (const item of floor.items) {
-    const type = typeOf.get(item.objectId.toLowerCase());
-    if (type === undefined || !RCP_TYPES.has(type) || item.layer === 'dimensions') continue;
+    const key = item.objectId.toLowerCase();
+    const type = typeOf.get(key);
+    if (type === undefined || !kept.has(key) || item.layer === 'dimensions') continue;
     items.push(item);
     if (type === 'room') rooms.add(item.objectId.toLowerCase());
   }

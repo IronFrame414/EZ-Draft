@@ -15,11 +15,21 @@ import { roomTransitions } from '../../editor/layers/floor-transitions';
 export const DETECTOR_RADIUS_IN = 4;
 
 // The letters inside a detector's circle.
+// EZD-507 (vault/build/assumptions.md EZD-507): and inside a speaker's, camera's or Wi-Fi AP's. The smoke detector
+// is lettered "SD" as on board S05Ceiling (it was "S" while EZD-229's boards were waived).
 export const DETECTOR_TEXT = {
-  smoke_detector: 'S',
+  smoke_detector: 'SD',
   co_detector: 'CO',
   smoke_co_detector: 'S/CO',
+  speaker: 'SPK',
+  camera: 'CAM',
+  wifi_ap: 'WAP',
 } as const;
+
+// EZD-507 (board S05Ceiling cans and fan; vault/build/assumptions.md EZD-507): a recessed light is a plain circle of
+// the detector's radius; a ceiling fan is a circle of this radius with three blades from its centre.
+export const FAN_RADIUS_IN = 12;
+const FAN_BLADE_DEG = [90, 210, 330] as const;
 
 // EZD-731 (AC-EZD-731-1; vault/build/assumptions.md EZD-731): the letters inside a piece of mechanical equipment's
 // outline.
@@ -30,6 +40,8 @@ export const EQUIPMENT_TEXT = { air_handler: 'AH', condenser: 'CU' } as const;
 // hatch is a hidden outline with both diagonals (it is overhead); a detector is a circle with its letters; a soffit is
 // its hidden outline; a chase is its outline.
 // EZD-731: an air handler or a condenser is its outline with its letters at the centre.
+// EZD-507: an access panel draws as the attic hatch; a recessed light is a plain circle; a ceiling fan is its circle
+// with three blades; a speaker, camera or Wi-Fi AP is a circle with its letters, as a detector.
 export function existingDetailItems(
   objects: readonly ModelObject[],
   textPt: number,
@@ -54,9 +66,13 @@ export function existingDetailItems(
       to,
     });
     const ringItems = (ring: readonly Point[], role: 'beyond' | 'hidden') => {
-      for (let i = 0; i < ring.length; i++) out.push(line(role, ring[i]!, ring[(i + 1) % ring.length]!));
+      for (let i = 0; i < ring.length; i++)
+        out.push(line(role, ring[i]!, ring[(i + 1) % ring.length]!));
     };
-    if (o.type === 'hvac' && (o.data.attributes.kind === 'air_handler' || o.data.attributes.kind === 'condenser')) {
+    if (
+      o.type === 'hvac' &&
+      (o.data.attributes.kind === 'air_handler' || o.data.attributes.kind === 'condenser')
+    ) {
       ringItems(fixtureOutline(o.data), 'beyond');
       const text = EQUIPMENT_TEXT[o.data.attributes.kind];
       out.push({
@@ -79,17 +95,35 @@ export function existingDetailItems(
         out.push(line(role, ring[1], ring[3]));
     } else if (o.type === 'device') {
       const center = o.data.geometry.point;
-      const text = DETECTOR_TEXT[o.data.attributes.kind];
-      const sizePt = textPt;
-      out.push({
+      const kind = o.data.attributes.kind;
+      const circle = (radius: number): DrawingItem => ({
         ...base,
         kind: 'arc',
         role: 'beyond',
         center,
-        radius: DETECTOR_RADIUS_IN,
+        radius,
         startAngle: 0,
         endAngle: 360,
       });
+      if (kind === 'recessed_light') {
+        out.push(circle(DETECTOR_RADIUS_IN));
+        continue;
+      }
+      if (kind === 'ceiling_fan') {
+        out.push(circle(FAN_RADIUS_IN));
+        for (const deg of FAN_BLADE_DEG) {
+          const r = (deg * Math.PI) / 180;
+          const tip = {
+            x: center.x + FAN_RADIUS_IN * Math.cos(r),
+            y: center.y + FAN_RADIUS_IN * Math.sin(r),
+          };
+          out.push(line('beyond', center, tip));
+        }
+        continue;
+      }
+      const text = DETECTOR_TEXT[kind];
+      const sizePt = textPt;
+      out.push(circle(DETECTOR_RADIUS_IN));
       out.push({
         ...base,
         kind: 'text',

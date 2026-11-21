@@ -108,9 +108,18 @@ import {
   beamToolReceiver,
   ceilingAware,
   receiverRouter,
-  wireBeamTool,
   type BeamToolDeps,
 } from './tools/beam-tool';
+import {
+  CEILING_DEVICE_TOOL_IDS,
+  createDeviceChoice,
+  deviceToolReceiver,
+  isDeviceTool,
+  wireCeilingTools,
+  type DeviceChoice,
+  type DeviceToolDeps,
+} from './tools/ceiling-device-tool';
+import type { DeviceChooserProps } from '../lazy/rcp/DeviceChooser';
 import type { PlanPointerReceiver } from './plan/input';
 import type { BeamSpacingPillProps } from './tools/BeamSpacingPill';
 import { assistantShown } from './assistant/assistant-ui';
@@ -184,7 +193,7 @@ import { createPhaseSetting, type PhaseSetting } from './status/phase-setting';
 import { createLayerSetting, type LayerSetting } from './layers/layer-setting';
 import { LeftPanel, type Tab as LeftTab } from './layers/LeftPanel';
 import type { ElectricalPanelProps } from './electrical/ElectricalPanel';
-import { createSurfaceSetting } from './ceiling/surface';
+import { createSurfaceSetting, type SurfaceSetting } from './ceiling/surface';
 import { rcpModule } from './ceiling/rcp-module';
 import {
   CeilingLegend,
@@ -322,6 +331,8 @@ export function ProjectEditor({
   // EZD-502 (S05 Entry points; AC-EZD-502-1): the plan's surface for this page. EZD-505: made before the session so
   // selection can leave ceiling items out on Floor.
   const [surface] = useState(createSurfaceSetting);
+  // EZD-507: the kind each ceiling device tool places next.
+  const [deviceChoice] = useState(createDeviceChoice);
   const [attempt, setAttempt] = useState(0);
   const [canvasFailed, setCanvasFailed] = useState(false);
   const [canvasAttempt, setCanvasAttempt] = useState(0);
@@ -598,10 +609,7 @@ export function ProjectEditor({
     readShortcuts,
     readShortcuts,
   );
-  const bindings = useMemo(
-    () => bindingsOf(JSON.parse(shortcutsText) as unknown),
-    [shortcutsText],
-  );
+  const bindings = useMemo(() => bindingsOf(JSON.parse(shortcutsText) as unknown), [shortcutsText]);
   // EZD-230 (Q-0038 "each user can set the order of the tools on the rail"; Q-0122): the user's own tool order, read
   // by the page. A move shows at once and is saved; a failed save shows a toast and the rail keeps the new order for
   // this page.
@@ -920,12 +928,41 @@ export function ProjectEditor({
         () => {},
       );
     };
-    const off = wireBeamTool(surface, toolRoute, receiver, mayEdit);
+    // EZD-507: each ceiling device tool places through the lazy RCP module the same way.
+    const deviceReceiver = (tool: DeviceToolDeps['tool']): PlanPointerReceiver => {
+      const withMod = (mod: { placeCeilingDevice: DeviceToolDeps['place'] }) =>
+        deviceToolReceiver({
+          store: routedStore,
+          tool,
+          choice: deviceChoice,
+          chosenFloor: () => chosenFloor(floors),
+          newStatus: () => phase.newObjectStatus(),
+          newId: newObjectId,
+          select: (ids) => selection.select(ids),
+          onMessage: (key) => messageRef.current(key),
+          place: mod.placeCeilingDevice,
+        });
+      return (e) => {
+        const mod = ceilingDeviceModule.peek();
+        if (mod) return withMod(mod)(e);
+        if (e.kind !== 'click') return;
+        ceilingDeviceModule.load().then(
+          (m) => {
+            if (live) withMod(m)(e);
+          },
+          () => {},
+        );
+      };
+    };
+    const receivers: Partial<Record<string, PlanPointerReceiver>> = { beam: receiver };
+    for (const tool of CEILING_DEVICE_TOOL_IDS) receivers[tool] = deviceReceiver(tool);
+    // One wire for every ceiling tool, so one tool turning off never clears another's receiver.
+    const off = wireCeilingTools(surface, toolRoute, receivers, mayEdit);
     return () => {
       live = false;
       off();
     };
-  }, [toolRoute, routedStore, selection, phase, floors, surface, mayEdit]);
+  }, [toolRoute, routedStore, selection, phase, floors, surface, mayEdit, deviceChoice]);
   const pdfUnderlay = usePdfUnderlay({ projectId, plan, canEdit: mayEdit });
 
   // EZD-130: a Project settings save (in the switcher) draws the header again with the new name and client.
@@ -1231,7 +1268,10 @@ export function ProjectEditor({
       {body}
     </div>
   );
-  const shown = assistant !== null && assistantShown({ canEdit, view: show3d ? '3d' : 'plan' }) ? assistant : null;
+  const shown =
+    assistant !== null && assistantShown({ canEdit, view: show3d ? '3d' : 'plan' })
+      ? assistant
+      : null;
   // EZD-222: each rail tool shows the company's key for it.
   const railSpec =
     spec === null
@@ -1286,6 +1326,9 @@ export function ProjectEditor({
       <PlanInputSurface controller={plan} />
       {screenOn ? null : <ZoomStack handle={plan.handle} />}
       {shownSurface === 'floor' ? null : <CeilingLegend />}
+      {shownSurface !== 'floor' && mayEdit ? (
+        <CeilingDeviceChooser surface={surface} choice={deviceChoice} />
+      ) : null}
       {shownSurface !== 'floor' && selection !== null && routedStore !== null ? (
         <LazyBeamSpacingPill
           store={routedStore}
@@ -1369,101 +1412,100 @@ export function ProjectEditor({
     </>
   );
   // EZD-213b (vault/plans/EZD-213b.md D-Editor): the inspector aside for every viewer of a ready plan.
-  const inspector = show3d
-    ? null
-    : showPlan && viewing !== null && session !== null ? (
-      <LazyVersionInspector
-        row={versionRows?.find((r) => r.id === viewing.id) ?? viewing}
-        rows={versionRows ?? []}
-        canEditModel={session.lock.canEditModel}
-        canRevert={holdsLock}
-        onName={nameSnapshot}
-        onRevert={() => void revert()}
-        reverting={reverting}
-        error={versionError?.id === viewing.id ? t(versionError.key) : null}
-      />
-    ) : showPlan && cabinetsOn && session !== null && cabinetSelection !== null ? (
-      <LazyCabinetInspector
+  const inspector = show3d ? null : showPlan && viewing !== null && session !== null ? (
+    <LazyVersionInspector
+      row={versionRows?.find((r) => r.id === viewing.id) ?? viewing}
+      rows={versionRows ?? []}
+      canEditModel={session.lock.canEditModel}
+      canRevert={holdsLock}
+      onName={nameSnapshot}
+      onRevert={() => void revert()}
+      reverting={reverting}
+      error={versionError?.id === viewing.id ? t(versionError.key) : null}
+    />
+  ) : showPlan && cabinetsOn && session !== null && cabinetSelection !== null ? (
+    <LazyCabinetInspector
+      store={session.store}
+      selectionStore={cabinetSelection}
+      floors={floors ?? undefined}
+      canEdit={mayEdit}
+    />
+  ) : showPlan && countertopsOn && session !== null ? (
+    // EZD-418 (S04b Layout "Inspector: ... Top schedule"): while the Countertops tool is on, the inspector place
+    // holds the countertop inspector (its footer's Top schedule for now; the piece inspector is EZD-414).
+    <LazyCountertopsInspector store={session.store} floors={floors ?? undefined} />
+  ) : showPlan && session !== null && selection !== null ? (
+    <InspectorStack>
+      <LazyInspectorPanel
         store={session.store}
-        selectionStore={cabinetSelection}
-        floors={floors ?? undefined}
-        canEdit={mayEdit}
-      />
-    ) : showPlan && countertopsOn && session !== null ? (
-      // EZD-418 (S04b Layout "Inspector: ... Top schedule"): while the Countertops tool is on, the inspector place
-      // holds the countertop inspector (its footer's Top schedule for now; the piece inspector is EZD-414).
-      <LazyCountertopsInspector store={session.store} floors={floors ?? undefined} />
-    ) : showPlan && session !== null && selection !== null ? (
-      <InspectorStack>
-        <LazyInspectorPanel
-          store={session.store}
-          selection={selection}
-          canEdit={canEdit}
-          drawing={drawing}
-          newStatus={phase === null ? undefined : phase.newObjectStatus}
-          floors={floors ?? undefined}
-          projectId={projectId}
-        />
-        <InspectorMore
-          selection={selection}
-          canEdit={canEdit}
-          onOpen={(at) => setMenu({ kind: 'more', at })}
-        />
-      </InspectorStack>
-    ) : null;
-  // EZD-416 (S04b Layout "Left panel: tabs Pieces / Edges / Material"): while the Countertops tool is on, the
-  // countertop panel takes the left panel.
-  const leftPanel = show3d
-    ? null
-    : showPlan && countertopsOn && session !== null && countertopSelection !== null ? (
-      <LazyCountertopsPanel
-        store={session.store}
-        floors={floors ?? undefined}
-        canEdit={mayEdit}
-        selection={countertopSelection}
-        defaults={countertopDefaults}
-        canManageDefaults={canManageDefaults}
-      />
-    ) : showPlan && session !== null && selection !== null && layers !== null && plan !== null ? (
-      <LeftPanel
-        store={session.store}
-        layers={layers}
         selection={selection}
-        showObject={plan.handle.showObject}
         canEdit={canEdit}
-        roomArea={derived?.roomAreaSqFt}
+        drawing={drawing}
+        newStatus={phase === null ? undefined : phase.newObjectStatus}
         floors={floors ?? undefined}
         projectId={projectId}
-        tab={leftTab}
-        onTab={setLeftTab}
-        surface={surface}
-        electrical={
-          electricalOn ? (
-            <LazyElectricalPanel
-              store={session.store}
-              selection={selection}
-              showObject={plan.handle.showObject}
-              layers={layers}
-              floors={floors ?? undefined}
-            />
-          ) : undefined
-        }
-        versions={
-          versionView !== null ? (
-            <LazyVersions
-              rows={versionRows}
-              failed={versionsFailed}
-              openFailed={view.failed}
-              viewingId={viewing?.id ?? null}
-              openingId={view.opening}
-              cleanupAgeDays={typeof cleanupAge === 'number' ? cleanupAge : CLEANUP_AGE_DEFAULT}
-              onOpen={(row) => void versionView.open(row)}
-              onBack={versionView.back}
-            />
-          ) : undefined
-        }
       />
-    ) : null;
+      <InspectorMore
+        selection={selection}
+        canEdit={canEdit}
+        onOpen={(at) => setMenu({ kind: 'more', at })}
+      />
+    </InspectorStack>
+  ) : null;
+  // EZD-416 (S04b Layout "Left panel: tabs Pieces / Edges / Material"): while the Countertops tool is on, the
+  // countertop panel takes the left panel.
+  const leftPanel = show3d ? null : showPlan &&
+    countertopsOn &&
+    session !== null &&
+    countertopSelection !== null ? (
+    <LazyCountertopsPanel
+      store={session.store}
+      floors={floors ?? undefined}
+      canEdit={mayEdit}
+      selection={countertopSelection}
+      defaults={countertopDefaults}
+      canManageDefaults={canManageDefaults}
+    />
+  ) : showPlan && session !== null && selection !== null && layers !== null && plan !== null ? (
+    <LeftPanel
+      store={session.store}
+      layers={layers}
+      selection={selection}
+      showObject={plan.handle.showObject}
+      canEdit={canEdit}
+      roomArea={derived?.roomAreaSqFt}
+      floors={floors ?? undefined}
+      projectId={projectId}
+      tab={leftTab}
+      onTab={setLeftTab}
+      surface={surface}
+      electrical={
+        electricalOn ? (
+          <LazyElectricalPanel
+            store={session.store}
+            selection={selection}
+            showObject={plan.handle.showObject}
+            layers={layers}
+            floors={floors ?? undefined}
+          />
+        ) : undefined
+      }
+      versions={
+        versionView !== null ? (
+          <LazyVersions
+            rows={versionRows}
+            failed={versionsFailed}
+            openFailed={view.failed}
+            viewingId={viewing?.id ?? null}
+            openingId={view.opening}
+            cleanupAgeDays={typeof cleanupAge === 'number' ? cleanupAge : CLEANUP_AGE_DEFAULT}
+            onOpen={(row) => void versionView.open(row)}
+            onBack={versionView.back}
+          />
+        ) : undefined
+      }
+    />
+  ) : null;
   const openAssistant = shown !== null && assistantOpen ? assistantSession : null;
   const backdrop = showPlan ? (
     <PlanCanvas key={canvasAttempt} controller={plan} onFailed={() => setCanvasFailed(true)} />
@@ -1676,6 +1718,37 @@ function LazyVersionsStatus(props: VersionsStatusProps) {
 
 // EZD-1401 (11 Budgets; EZD-120c B11): the beam spacing pill loads when the Ceiling or Both view first shows.
 const beamSpacingModule = lazyModule(() => import('../lazy/beam-spacing'));
+
+// EZD-507 (11 Budgets; EZD-1401 precedent): the ceiling device tools' placement and kind chooser load when a device
+// tool is first turned on.
+const ceilingDeviceModule = lazyModule(() => import('../lazy/rcp'));
+
+function LazyDeviceChooser(props: DeviceChooserProps) {
+  const mod = useLazy(ceilingDeviceModule);
+  return mod ? <mod.DeviceChooser {...props} /> : null;
+}
+
+// EZD-507: the kind chooser of the ceiling device tool that is on.
+function CeilingDeviceChooser({
+  surface,
+  choice,
+}: {
+  surface: Pick<SurfaceSetting, 'get' | 'subscribe'>;
+  choice: DeviceChoice;
+}) {
+  const tool = useSyncExternalStore(
+    surface.subscribe,
+    () => surface.get().tool,
+    () => surface.get().tool,
+  );
+  const kind = useSyncExternalStore(
+    choice.subscribe,
+    () => (isDeviceTool(tool) ? choice.get(tool) : null),
+    () => (isDeviceTool(tool) ? choice.get(tool) : null),
+  );
+  if (!isDeviceTool(tool) || kind === null) return null;
+  return <LazyDeviceChooser tool={tool} kind={kind} onChoose={(k) => choice.set(tool, k)} />;
+}
 
 function LazyBeamSpacingPill(props: BeamSpacingPillProps) {
   const mod = useLazy(beamSpacingModule);

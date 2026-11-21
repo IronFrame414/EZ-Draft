@@ -64,6 +64,12 @@ const DEVICE_LABEL: Readonly<Record<(typeof DEVICE_KINDS)[number], MessageKey>> 
   smoke_detector: 'office.fixtures.detail.smoke_detector',
   co_detector: 'office.fixtures.detail.co_detector',
   smoke_co_detector: 'office.fixtures.detail.smoke_co_detector',
+  // EZD-507: the ceiling devices are the same objects here.
+  recessed_light: 'office.fixtures.detail.recessed_light',
+  ceiling_fan: 'office.fixtures.detail.ceiling_fan',
+  speaker: 'office.fixtures.detail.speaker',
+  camera: 'office.fixtures.detail.camera',
+  wifi_ap: 'office.fixtures.detail.wifi_ap',
 };
 
 const PROTECTION_LABEL: Readonly<Record<CircuitProtection, MessageKey>> = {

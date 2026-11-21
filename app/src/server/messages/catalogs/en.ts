@@ -2607,6 +2607,26 @@ export const en = {
   'field.measure.closes': 'Closes',
   'field.measure.off_by': 'Off by {gap}',
   'field.measure.fills_in': '{letter} fills in when the room closes',
+  // EZD-507: the ceiling devices (S05 Controls; board S05Ceiling; vault/build/assumptions.md EZD-507).
+  'office.fixtures.detail.recessed_light': 'Recessed light',
+  'office.fixtures.detail.ceiling_fan': 'Ceiling fan',
+  'office.fixtures.detail.speaker': 'Speaker, in-ceiling',
+  'office.fixtures.detail.camera': 'Camera',
+  'office.fixtures.detail.wifi_ap': 'Wi-Fi access point',
+  'office.fixtures.detail.access_panel': 'Access panel',
+  'office.ceiling.device.place_failed': 'The device could not be placed',
+  'office.ceiling.device.chooser': 'Kind to place',
+  'office.device.type.heading': 'Fixture type',
+  'office.device.type.tag': 'Type tag',
+  'office.device.type.lumens': 'Lumens',
+  'office.device.type.color_temp': 'Color temperature (K)',
+  'office.device.type.trim': 'Trim',
+  'office.device.type.catalog': 'Catalog item',
+  'office.device.type.catalog_none': 'None',
+  'office.device.type.catalog_pick': 'Choose',
+  'office.device.type.catalog_clear': 'Clear',
+  'office.device.type.whole_number': 'Type a whole number above 0',
+  'office.device.type.edit_failed': 'The fixture type could not be changed',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;
