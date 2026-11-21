@@ -25072,6 +25072,432 @@
    ],
    "acs_source": "josh-2026-11-20",
    "spec_phase": 57
+  },
+  {
+   "id": "EZD-665",
+   "phase": 58,
+   "title": "Electrical object types",
+   "depends_raw": "EZD-234, EZD-601, EZD-602, EZD-630, EZD-218, EZD-620, EZD-644",
+   "spec_ref": "Q-0791; Objects inside model_json",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0791",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/03-data-model.md#Q-0776"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-58.md",
+   "depends_on": [
+    "EZD-234",
+    "EZD-601",
+    "EZD-602",
+    "EZD-630",
+    "EZD-218",
+    "EZD-620",
+    "EZD-644"
+   ],
+   "build_position": 646,
+   "acs": [
+    "AC-EZD-665-1",
+    "AC-EZD-665-2",
+    "AC-EZD-665-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 58
+  },
+  {
+   "id": "EZD-666",
+   "phase": 58,
+   "title": "Microwave and wall oven fixtures",
+   "depends_raw": "EZD-665, EZD-234, EZD-422, EZD-213b, EZD-214, EZD-238, EZD-620, EZD-702b",
+   "spec_ref": "Q-0791; S03 Fixtures",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/screens/S03-plan-editor.md",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0791",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0705",
+    "spec/decisions/05-screens.md#Q-0790"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png"
+   ],
+   "phase_file": "tickets/phases/phase-58.md",
+   "depends_on": [
+    "EZD-665",
+    "EZD-234",
+    "EZD-422",
+    "EZD-213b",
+    "EZD-214",
+    "EZD-238",
+    "EZD-620",
+    "EZD-702b"
+   ],
+   "build_position": 647,
+   "acs": [
+    "AC-EZD-666-1",
+    "AC-EZD-666-2",
+    "AC-EZD-666-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 58
+  },
+  {
+   "id": "EZD-667",
+   "phase": 58,
+   "title": "Microwave and wall oven code rules switched on",
+   "depends_raw": "EZD-666, EZD-611a, EZD-620, EZD-612, EZD-617, EZD-625, EZD-626, EZD-631, EZD-632, EZD-634, EZD-636, EZD-637, EZD-638",
+   "spec_ref": "Q-0791; Code rules catalog",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09b-electrical-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0791",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-58.md",
+   "depends_on": [
+    "EZD-666",
+    "EZD-611a",
+    "EZD-620",
+    "EZD-612",
+    "EZD-617",
+    "EZD-625",
+    "EZD-626",
+    "EZD-631",
+    "EZD-632",
+    "EZD-634",
+    "EZD-636",
+    "EZD-637",
+    "EZD-638"
+   ],
+   "build_position": 648,
+   "acs": [
+    "AC-EZD-667-1",
+    "AC-EZD-667-2",
+    "AC-EZD-667-3",
+    "AC-EZD-667-4"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 58
+  },
+  {
+   "id": "EZD-668",
+   "phase": 58,
+   "title": "Disconnect on the device toolbar",
+   "depends_raw": "EZD-665, EZD-602, EZD-604, EZD-630, EZD-731, EZD-234, EZD-238, EZD-620, EZD-702b",
+   "spec_ref": "Q-0791; S06 Device toolbar",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/screens/S06-electrical-edit-lock.md#Device toolbar",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0791",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0705",
+    "spec/decisions/05-screens.md#Q-0790"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-58.md",
+   "depends_on": [
+    "EZD-665",
+    "EZD-602",
+    "EZD-604",
+    "EZD-630",
+    "EZD-731",
+    "EZD-234",
+    "EZD-238",
+    "EZD-620",
+    "EZD-702b"
+   ],
+   "build_position": 649,
+   "acs": [
+    "AC-EZD-668-1",
+    "AC-EZD-668-2",
+    "AC-EZD-668-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 58
+  },
+  {
+   "id": "EZD-669",
+   "phase": 58,
+   "title": "Disconnect code rules switched on",
+   "depends_raw": "EZD-668, EZD-667, EZD-611a, EZD-620, EZD-612, EZD-630, EZD-638, EZD-639",
+   "spec_ref": "Q-0791; Code rules catalog",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09b-electrical-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0791",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-58.md",
+   "depends_on": [
+    "EZD-668",
+    "EZD-667",
+    "EZD-611a",
+    "EZD-620",
+    "EZD-612",
+    "EZD-630",
+    "EZD-638",
+    "EZD-639"
+   ],
+   "build_position": 650,
+   "acs": [
+    "AC-EZD-669-1",
+    "AC-EZD-669-2",
+    "AC-EZD-669-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 58
+  },
+  {
+   "id": "EZD-670",
+   "phase": 58,
+   "title": "Porch or lanai, Sunroom and Foyer rooms and their code rules",
+   "depends_raw": "EZD-665, EZD-218, EZD-651, EZD-602, EZD-620, EZD-611a, EZD-612, EZD-611b, EZD-611c, EZD-618, EZD-630, EZD-631, EZD-632, EZD-636",
+   "spec_ref": "Q-0791; Q-0762; Code rules catalog",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09b-electrical-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md",
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0791",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/03-data-model.md#Q-0762",
+    "spec/decisions/05-screens.md#Q-0705",
+    "spec/decisions/09-calculations-and-rules.md#Q-0559"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png",
+    "mockups/S03dDoorSelected.png"
+   ],
+   "phase_file": "tickets/phases/phase-58.md",
+   "depends_on": [
+    "EZD-665",
+    "EZD-218",
+    "EZD-651",
+    "EZD-602",
+    "EZD-620",
+    "EZD-611a",
+    "EZD-612",
+    "EZD-611b",
+    "EZD-611c",
+    "EZD-618",
+    "EZD-630",
+    "EZD-631",
+    "EZD-632",
+    "EZD-636"
+   ],
+   "build_position": 651,
+   "acs": [
+    "AC-EZD-670-1",
+    "AC-EZD-670-2",
+    "AC-EZD-670-3",
+    "AC-EZD-670-4"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 58
+  },
+  {
+   "id": "EZD-671",
+   "phase": 58,
+   "title": "EV charger on the device toolbar",
+   "depends_raw": "EZD-665, EZD-602, EZD-603, EZD-604, EZD-630, EZD-668, EZD-238, EZD-620, EZD-702b",
+   "spec_ref": "Q-0791; S06 Device toolbar",
+   "spec_files": [
+    "spec/sections/03f-model-json-objects.md",
+    "spec/sections/screens/S06-electrical-edit-lock.md#Device toolbar",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0791",
+    "spec/decisions/03-data-model.md#Q-0704",
+    "spec/decisions/05-screens.md#Q-0705",
+    "spec/decisions/05-screens.md#Q-0790"
+   ],
+   "mockups": [
+    "mockups/S06Electrical.png"
+   ],
+   "phase_file": "tickets/phases/phase-58.md",
+   "depends_on": [
+    "EZD-665",
+    "EZD-602",
+    "EZD-603",
+    "EZD-604",
+    "EZD-630",
+    "EZD-668",
+    "EZD-238",
+    "EZD-620",
+    "EZD-702b"
+   ],
+   "build_position": 652,
+   "acs": [
+    "AC-EZD-671-1",
+    "AC-EZD-671-2",
+    "AC-EZD-671-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 58
+  },
+  {
+   "id": "EZD-672",
+   "phase": 58,
+   "title": "EV charger code rules switched on",
+   "depends_raw": "EZD-671, EZD-669, EZD-670, EZD-611a, EZD-620, EZD-612, EZD-607, EZD-616, EZD-631, EZD-638, EZD-639",
+   "spec_ref": "Q-0791; Code rules catalog",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09b-electrical-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0791",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/09-calculations-and-rules.md#Q-0761"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-58.md",
+   "depends_on": [
+    "EZD-671",
+    "EZD-669",
+    "EZD-670",
+    "EZD-611a",
+    "EZD-620",
+    "EZD-612",
+    "EZD-607",
+    "EZD-616",
+    "EZD-631",
+    "EZD-638",
+    "EZD-639"
+   ],
+   "build_position": 653,
+   "acs": [
+    "AC-EZD-672-1",
+    "AC-EZD-672-2",
+    "AC-EZD-672-3",
+    "AC-EZD-672-4"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 58
+  },
+  {
+   "id": "EZD-673",
+   "phase": 58,
+   "title": "Load calc and takeoff read the new kinds",
+   "depends_raw": "EZD-666, EZD-668, EZD-670, EZD-671, EZD-607, EZD-614, EZD-1611b",
+   "spec_ref": "Q-0791; Calculations · Electrical load calculation; Calculations · Takeoff rules",
+   "spec_files": [
+    "spec/sections/09a-load-calc.md#Electrical load calculation",
+    "spec/sections/09r-load-calc-examples.md",
+    "spec/sections/09i-takeoff.md#Takeoff rules",
+    "spec/code-rules.json"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0791",
+    "spec/decisions/09-calculations-and-rules.md#Q-0761",
+    "spec/decisions/09-calculations-and-rules.md#Q-0766",
+    "spec/decisions/09-calculations-and-rules.md#Q-0770"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-58.md",
+   "depends_on": [
+    "EZD-666",
+    "EZD-668",
+    "EZD-670",
+    "EZD-671",
+    "EZD-607",
+    "EZD-614",
+    "EZD-1611b"
+   ],
+   "build_position": 654,
+   "acs": [
+    "AC-EZD-673-1",
+    "AC-EZD-673-2",
+    "AC-EZD-673-3",
+    "AC-EZD-673-4"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 58
+  },
+  {
+   "id": "EZD-674",
+   "phase": 58,
+   "title": "Not checked list after phase 58",
+   "depends_raw": "EZD-667, EZD-669, EZD-670, EZD-672, EZD-673, EZD-664, EZD-612, EZD-620",
+   "spec_ref": "Q-0791; 09d last paragraph",
+   "spec_files": [
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09c-code-check-engine.md#Code rules catalog",
+    "spec/sections/09b-electrical-rules.md",
+    "spec/code-rules.json",
+    "spec/code-check-rules.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0791",
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/09-calculations-and-rules.md#Q-0789"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-58.md",
+   "depends_on": [
+    "EZD-667",
+    "EZD-669",
+    "EZD-670",
+    "EZD-672",
+    "EZD-673",
+    "EZD-664",
+    "EZD-612",
+    "EZD-620"
+   ],
+   "build_position": 655,
+   "acs": [
+    "AC-EZD-674-1",
+    "AC-EZD-674-2"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 58
   }
  ],
  "recut_applied": "2026-10-20"
