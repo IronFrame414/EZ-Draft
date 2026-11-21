@@ -362,6 +362,10 @@ export const en = {
   'office.plan.text_failed':
     "Couldn't show the room names and measurements on the plan. Reload the page to try again.",
   'office.plan.zoom_in': 'Zoom in',
+  // EZD-1001a (S07 Layout footer, States "Empty", "Model out of sync").
+  'office.scene3d.synced': 'Model synced with plan',
+  'office.scene3d.updating': 'Updating from plan',
+  'office.scene3d.empty': 'Draw walls in Plan to see 3D',
   'office.plan.zoom_out': 'Zoom out',
   'office.plan.fit': 'Fit to screen',
   'office.plan.empty_hint': 'Draw walls with Wall (W) or Room rectangle (R).',

@@ -4,12 +4,15 @@
 // EZD-224b Build step 6 (vault/plans/EZD-224b.md Decided "WebGL read", "The one extra frame"; R-058): captureFrame
 // asks for one more frame of the same view and reads the drawing buffer in three's `scene.onAfterRender`. The
 // capture code (frame-capture.ts) loads with import() on the first capture, outside the editor's first download.
+// EZD-1001a (11 rule 4 "Plan, 3D ... are scenes drawn into it, and a tab switch never creates or destroys a WebGL
+// context"): `setScene` draws another scene (the lazy 3D scene) with its own camera into this same renderer, and
+// `null` brings the plan back with its orthographic camera. Still drawn on demand.
 import { createRoot, invalidate, type RootState } from '@react-three/fiber';
 import { createElement } from 'react';
-import { Color, OrthographicCamera, SRGBColorSpace, WebGLRenderer } from 'three';
+import { Color, OrthographicCamera, PerspectiveCamera, SRGBColorSpace, WebGLRenderer, type Camera } from 'three';
 import type { ThumbnailCapture } from '../../lib/thumbnail/thumbnail';
 import { tokenRgb } from './color';
-import type { CreateRenderRoot } from './controller';
+import type { CreateRenderRoot, SceneView } from './controller';
 import type { FrameCapture } from './frame-capture';
 import type { Size } from './view';
 
@@ -24,6 +27,8 @@ export const createR3fRoot: CreateRenderRoot = (canvas, scene) => {
   let state: (() => RootState) | null = null;
   let capture: FrameCapture<ThumbnailCapture> | null = null;
   let unmounted = false;
+  let shown: SceneView | null = null;
+  let planCamera: Camera | null = null;
 
   const config = (size: Size) => ({
     gl: (defaults: ConstructorParameters<typeof WebGLRenderer>[0]) => {
@@ -72,6 +77,35 @@ export const createR3fRoot: CreateRenderRoot = (canvas, scene) => {
     invalidate() {
       if (state !== null) invalidate(state());
     },
+    setScene(view) {
+      if (state === null || view === shown) return;
+      const s = state();
+      const frame = () => {
+        if (state !== null) invalidate(state());
+      };
+      if (shown !== null) {
+        s.scene.remove(shown.object);
+        shown.setInvalidate(null);
+      } else {
+        planCamera = s.camera;
+      }
+      shown = view;
+      if (view !== null) {
+        s.scene.add(view.object);
+        scene.group.visible = false;
+        if (view.camera instanceof PerspectiveCamera && s.size.height > 0) {
+          view.camera.aspect = s.size.width / s.size.height;
+          view.camera.updateProjectionMatrix();
+        }
+        s.set({ camera: view.camera as RootState['camera'] });
+        view.setInvalidate(frame);
+      } else {
+        scene.group.visible = true;
+        if (planCamera !== null) s.set({ camera: planCamera as RootState['camera'] });
+        planCamera = null;
+      }
+      invalidate(s);
+    },
     stats() {
       if (state === null) return { frames: 0, drawCalls: 0 };
       const { render } = state().gl.info;
@@ -89,6 +123,8 @@ export const createR3fRoot: CreateRenderRoot = (canvas, scene) => {
     },
     unmount() {
       unmounted = true;
+      shown?.setInvalidate(null);
+      shown = null;
       capture?.dispose();
       if (state !== null) state().scene.onAfterRender = () => {};
       state = null;

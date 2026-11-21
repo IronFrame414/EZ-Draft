@@ -60,6 +60,11 @@
 // and what was removed since (red dashed) over the canvas, and the status bar shows its counts and Show changes.
 // EZD-1401 (11 Offline; S17 Offline status icon; AC-EZD-1401-1): the model load is stored on the device and, with no
 // network, answered read-only from that copy (lib/pwa/project-cache.ts); the header shows the offline icon.
+// EZD-1001a (phase-10.md EZD-1001a; S07 Data shown, States; 11 rules 4, 6, 7): the 3D tab. Its scene loads as the
+// lazy `scene-3d` module on the first press of 3D, is built from the routed store (the model in memory) and kept
+// current per changed object, and is drawn into the plan's one renderer (`plan.showScene`), so a tab switch makes no
+// WebGL context. Plan's overlays, rail, left panel and inspector are off while 3D shows; the canvas region shows the
+// sync footer ("Updating from plan" while the scene loads, then "Model synced with plan") and the empty message.
 import {
   useCallback,
   useEffect,
@@ -155,6 +160,7 @@ import type { CheckpointOutcome } from './thumbnail/checkpoint';
 import type { ConflictPanelProps } from '../lazy/conflict-panel';
 import type { ConflictBannerProps } from './conflicts/ConflictBanner';
 import { lazyModule, type LazyModule } from '../lib/lazy/lazy-module';
+import type { Scene3d, Scene3dStats } from '../lazy/scene-3d';
 import { useConflictInputs } from './conflicts/use-conflicts';
 import { SelectionLayer } from './selection/SelectionLayer';
 import type { EditBarProps } from '../lazy/edit-bar';
@@ -272,6 +278,10 @@ type CanvasState =
     };
 
 const PLAN_VIEWS: EditorView[] = ['plan'];
+// EZD-1001a: 3D ships, so its tab shows once the plan canvas is up (Q-0500).
+const PLAN_3D_VIEWS: EditorView[] = ['plan', '3d'];
+
+type Scene3dTestHook = { stats(): Scene3dStats & { contexts: number; shown: boolean } };
 
 const noop = () => {};
 const noSubscribe = () => noop;
@@ -837,6 +847,53 @@ export function ProjectEditor({
   // EZD-505 (S05 Controls "Beam"): the Beam tool takes the plan's clicks while it is on and editing is allowed.
   const toolRoute = state.kind === 'ready' ? state.toolRoute : null;
   const routedStore = state.kind === 'ready' ? state.routed : null;
+
+  // EZD-1001a: the 3D view. The scene is made on the first press of 3D and kept while the session lasts, so a
+  // later switch back to 3D draws it at once; it is dropped with the session.
+  const [editorView, setEditorView] = useState<EditorView>('plan');
+  const [opened3d, setOpened3d] = useState(false);
+  const [scene3d, setScene3d] = useState<Scene3d | null>(null);
+  const show3d = plan !== null && !canvasFailed && editorView === '3d';
+  const changeView = useCallback((v: EditorView) => {
+    if (v === '3d') setOpened3d(true);
+    if (v === 'plan' || v === '3d') setEditorView(v);
+  }, []);
+  useEffect(() => {
+    if (!opened3d || routedStore === null || phase === null || floors === null) return;
+    let live = true;
+    let made: Scene3d | null = null;
+    scene3dModule.load().then(
+      (m) => {
+        if (!live) return;
+        made = m.createScene3d({ store: routedStore, phase, floors });
+        setScene3d(made);
+      },
+      () => {
+        // The footer stays on "Updating from plan"; the next press of 3D tries the load again.
+        if (live) setOpened3d(false);
+      },
+    );
+    return () => {
+      live = false;
+      made?.dispose();
+      setScene3d(null);
+    };
+  }, [opened3d, routedStore, phase, floors]);
+  useEffect(() => {
+    if (plan === null) return;
+    plan.showScene(show3d ? scene3d : null);
+  }, [plan, show3d, scene3d]);
+  useEffect(() => {
+    if (plan === null || scene3d === null || !devHooks) return;
+    const hook: Scene3dTestHook = {
+      stats: () => ({ ...scene3d.stats(), contexts: webglContextsCreated(), shown: show3d }),
+    };
+    const w = window as unknown as { __ezdraft3d?: Scene3dTestHook };
+    w.__ezdraft3d = hook;
+    return () => {
+      delete w.__ezdraft3d;
+    };
+  }, [plan, scene3d, show3d, devHooks]);
   useEffect(() => {
     if (toolRoute === null || routedStore === null || selection === null || phase === null) return;
     // EZD-222 (11 Budgets; EZD-1401 precedent): the placement code comes with the Ceiling view's lazy module, which
@@ -1032,9 +1089,9 @@ export function ProjectEditor({
           // EZD-128: the name opens the project switcher once the lock UI is there.
           onProjectMenu={lock?.ui.switcher.toggle}
           subtitle={subtitle}
-          activeView="plan"
-          views={PLAN_VIEWS}
-          onViewChange={noop}
+          activeView={show3d ? '3d' : 'plan'}
+          views={plan !== null && !canvasFailed ? PLAN_3D_VIEWS : PLAN_VIEWS}
+          onViewChange={changeView}
           presence={part('presence')}
           stopEditing={part('stop')}
           share={
@@ -1130,7 +1187,7 @@ export function ProjectEditor({
     };
     body = (
       <>
-        {showPlan && coarse && selection !== null ? (
+        {showPlan && !show3d && coarse && selection !== null ? (
           <LazyEditBar
             selection={selection}
             edit={mayEdit && !screenOn ? edit : null}
@@ -1158,8 +1215,9 @@ export function ProjectEditor({
         {canvasFailed ? (
           <InlineError message="office.plan.canvas_failed" onRetry={retryCanvas} />
         ) : null}
-        {showPlan ? <PlanTextFailedBanner controller={plan} /> : null}
-        {showPlan ? pdfUnderlay.part : null}
+        {/* EZD-1001a: plan-only parts are off on the 3D tab. */}
+        {showPlan && !show3d ? <PlanTextFailedBanner controller={plan} /> : null}
+        {showPlan && !show3d ? pdfUnderlay.part : null}
       </>
     );
   }
@@ -1173,7 +1231,7 @@ export function ProjectEditor({
       {body}
     </div>
   );
-  const shown = assistant !== null && assistantShown({ canEdit, view: 'plan' }) ? assistant : null;
+  const shown = assistant !== null && assistantShown({ canEdit, view: show3d ? '3d' : 'plan' }) ? assistant : null;
   // EZD-222: each rail tool shows the company's key for it.
   const railSpec =
     spec === null
@@ -1208,11 +1266,22 @@ export function ProjectEditor({
         projectId={projectId}
         inputs={conflicts.inputs}
         server={conflicts.server}
-        plan={showPlan ? plan : null}
+        plan={showPlan && !show3d ? plan : null}
         onClose={() => setListOpen(false)}
       />
     ) : null;
-  const canvas = showPlan ? (
+  const canvas = show3d ? (
+    <>
+      {scene3d !== null ? <LazyScene3dOverlay scene={scene3d} /> : null}
+      <p className={styles.sync3d} data-testid="scene-3d-sync" role="status">
+        {t(scene3d !== null ? 'office.scene3d.synced' : 'office.scene3d.updating')}
+      </p>
+      {stateArea}
+      {panel}
+      {helpOpen ? <LazyHelpPanel bindings={bindings} onClose={closeHelp} /> : null}
+      {part('canvas')}
+    </>
+  ) : showPlan ? (
     <>
       <PlanInputSurface controller={plan} />
       {screenOn ? null : <ZoomStack handle={plan.handle} />}
@@ -1300,8 +1369,9 @@ export function ProjectEditor({
     </>
   );
   // EZD-213b (vault/plans/EZD-213b.md D-Editor): the inspector aside for every viewer of a ready plan.
-  const inspector =
-    showPlan && viewing !== null && session !== null ? (
+  const inspector = show3d
+    ? null
+    : showPlan && viewing !== null && session !== null ? (
       <LazyVersionInspector
         row={versionRows?.find((r) => r.id === viewing.id) ?? viewing}
         rows={versionRows ?? []}
@@ -1343,8 +1413,9 @@ export function ProjectEditor({
     ) : null;
   // EZD-416 (S04b Layout "Left panel: tabs Pieces / Edges / Material"): while the Countertops tool is on, the
   // countertop panel takes the left panel.
-  const leftPanel =
-    showPlan && countertopsOn && session !== null && countertopSelection !== null ? (
+  const leftPanel = show3d
+    ? null
+    : showPlan && countertopsOn && session !== null && countertopSelection !== null ? (
       <LazyCountertopsPanel
         store={session.store}
         floors={floors ?? undefined}
@@ -1416,7 +1487,7 @@ export function ProjectEditor({
               ) : null}
             </>
           }
-          rail={rail}
+          rail={show3d ? null : rail}
           leftPanel={leftPanel ?? undefined}
           leftPanelLabel={leftPanel === null ? undefined : 'office.shell.left_panel'}
           canvas={canvas}
@@ -1437,7 +1508,7 @@ export function ProjectEditor({
           statusBar={
             <StatusBar
               start={
-                showPlan && scale && phase ? (
+                !show3d && showPlan && scale && phase ? (
                   <>
                     {session !== null && floors !== null ? (
                       <FloorSwitcher store={session.store} floors={floors} canEdit={canEdit} />
@@ -1472,7 +1543,7 @@ export function ProjectEditor({
                   </>
                 ) : undefined
               }
-              end={showPlan ? <PlanStatusEnd handle={plan.handle} /> : undefined}
+              end={showPlan && !show3d ? <PlanStatusEnd handle={plan.handle} /> : undefined}
             />
           }
           backdrop={backdrop}
@@ -1691,6 +1762,14 @@ function LazyAssistantPanel(props: { session: AssistantSession; preview: Preview
 
 // EZD-237: the benchmark runner loads only with `?benchmark=run` (the Benchmark card's frame).
 const benchmarkRunnerModule = lazyModule(() => import('../lazy/benchmark-runner'));
+
+// EZD-1001a (11 rule 7): the 3D scene loads on the first press of the 3D tab.
+const scene3dModule = lazyModule(() => import('../lazy/scene-3d'));
+
+function LazyScene3dOverlay({ scene }: { scene: Scene3d }) {
+  const mod = useLazy(scene3dModule);
+  return mod ? <mod.Scene3dOverlay scene={scene} /> : null;
+}
 
 function LazyBenchmarkRunner(props: BenchmarkRunnerProps) {
   const mod = useLazy(benchmarkRunnerModule);

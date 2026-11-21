@@ -657,7 +657,7 @@ EZD-020 (vault/plans/EZD-020.md Steps 1-4); 11 Performance (Budgets Download siz
 
 | Folder | Holds | Owner |
 | --- | --- | --- |
-| `scene-3d/` | perspective 3D scene and meshes | EZD-1001a; EZD-1013 (phone viewer) reuses it or adds `phone-3d/` |
+| `scene-3d/` | perspective 3D scene and meshes (`### 3D scene (EZD-1001a)`) | EZD-1001a; EZD-1013 (phone viewer) reuses it or adds `phone-3d/` |
 | `pathtracer/` | three-gpu-pathtracer | EZD-1105 |
 | `pdf/` | pdf.js underlay | EZD-304 |
 | `dxf-writer/` | DXF writer (browser use only, if any) | EZD-913 |
@@ -782,6 +782,16 @@ EZD-207a (vault/plans/EZD-207a.md Build steps 1-17, section 3); S03 Layout, Canv
 - **Glyph atlas (EZD-207b).** All plan text comes from one 1024 px atlas texture holding both drawing fonts (`ATLAS_CHARS`: U+0020 to U+007E and U+00B7, 64 px cells, 40 px font), drawn once per controller with the fonts named by `--ez-font-mono` and `--ez-font-sans` (no font file URL); only the first family of each variable is loaded and drawn, never the `local(Arial)` fallback faces `next/font` adds (EZD-373). White glyphs on black, read as the text mesh's `alphaMap`; one mesh with vertex colours (`--ez-ink` dimensions, `--ez-slate-300` room labels). Text is model geometry (1 pt = 0.5 model inch), so it scales with the zoom and is never rebuilt on a pan or zoom. A failed atlas is reported as `plan.glyph_atlas` and the plan draws without text; `atlasFailed()` turns true, `subscribeAtlasFailed` listeners are told once, and the editor shows `PlanTextFailedBanner` (`plan-text-failed-banner`, `office.plan.text_failed`) in `editor-state` (EZD-376).
 - **Show (EZD-207b).** `showObject(id)` fits the view to that object's drawing-list items (the same point set as Fit); `false` when the object is not on the plan.
 - **Test hook.** Ready and `devHooks`: `window.__ezdraftPlan` (`{ handle, stats() }`, stats `frames`, `drawCalls`, `bufferUploads`, `glyphs`, `highlightUploads`, `selectionUploads`, `contexts`), for editors and view-only alike; removed on unmount. Never in production.
+
+### 3D scene (EZD-1001a)
+
+EZD-1001a (phase-10.md EZD-1001a; S07 Data shown, States; 11 rules 4, 6, 7; vault/spikes/EZD-030.md).
+
+- **Files.** `packages/geometry/src/scene3d/wall-face.ts` (`wallFace`, `wallSolid`: a wall's face in its own frame, x along the wall and y up, with door notches and window holes, and where it sits; pure). `app/src/lazy/scene-3d/` (lazy module, loaded by `scene3dModule` in `ProjectEditor.tsx` on the first press of the 3D tab): `scene.ts` (`createScene3d`), `Scene3dOverlay.tsx` (the empty message).
+- **One renderer.** `PlanController.showScene(view)` hands a `SceneView` (`object`, `camera`, `setInvalidate`) to the render root, which adds it to the R3F scene, hides the plan group and sets the camera; `null` brings the plan and its orthographic camera back. No second WebGL context and no frame loop: the scene calls the function it is given for one frame after a change. The thumbnail is never taken while 3D is shown. `<PlanCanvas>` stays mounted on every tab.
+- **Built per object.** The scene subscribes to the routed store (the model in memory, never a saved version), the phase setting and the floor view. Each wall's mesh is cached by id with the values it was built from (the wall and its hosted openings) and is rebuilt only when one of them changes; a room's floor mesh likewise. The open floor only (Q-0776; EZD-1022 stacks floors). Walls are the face extruded through the thickness (no CSG). The extrusion is built in `scene.ts` from `BufferGeometry` and `ShapeUtils.triangulateShape`, which the plan already ships: three is one module shared with the editor entry, so any other three class the chunk names (three's `ExtrudeGeometry`, `Shape`, `ShapeGeometry`) would be bundled into the editor's first download (measured: about 4,000 compressed bytes); faces straight extrusion cannot express become solid rectangles (vault/build/assumptions.md EZD-1001a).
+- **Editor.** The header shows Plan and 3D once the plan canvas is up. On 3D the plan's overlays, rail, left panel, inspector and status-bar start are off; the canvas region shows `scene-3d-sync` ("Updating from plan" while loading, then "Model synced with plan") and `scene-3d-empty`.
+- **Test hook.** With `devHooks`, `window.__ezdraft3d` (`{ stats() }`: `walls`, `floors`, `built`, `lastRebuilt`, `frames`, `contexts`, `shown`) once the scene is made.
 
 ### Sign-out and app-wide drain (EZD-120d)
 

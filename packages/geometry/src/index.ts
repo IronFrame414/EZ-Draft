@@ -53,3 +53,5 @@ export * from './tile';
 export * from './tolerance';
 export * from './walls';
 export * from './turn';
+// EZD-1001a: the wall face the lazy 3D scene extrudes.
+export * from './scene3d/wall-face';
