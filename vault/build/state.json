@@ -1166,7 +1166,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1187,7 +1187,8 @@
     "EZD-1009": 1,
     "EZD-739": 1,
     "EZD-1402": 1,
-    "EZD-403": 1
+    "EZD-403": 1,
+    "EZD-414": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1273,20 +1274,24 @@
     "EZD-1402": {
       "ts": "2026-11-21T01:41:38Z",
       "reason": "check red after a review fix"
+    },
+    "EZD-414": {
+      "ts": "2026-11-21T04:19:16Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-414": {
-      "lane": 3,
-      "title": "Edges and overhangs",
-      "started": "2026-11-21T01:41:42Z",
-      "develop": "3965e2af"
-    },
     "EZD-1416": {
       "lane": 1,
       "title": "Field measure: keypad and closure",
       "started": "2026-11-21T03:30:03Z",
       "develop": "d8c36a30"
+    },
+    "EZD-701": {
+      "lane": 2,
+      "title": "Sheet model and default set",
+      "started": "2026-11-21T03:54:33Z",
+      "develop": "7eed1508"
     }
   },
   "advisories_checked_at": "2026-11-21T00:27:16Z"
