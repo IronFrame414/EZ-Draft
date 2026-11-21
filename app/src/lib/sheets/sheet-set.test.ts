@@ -80,3 +80,54 @@ describe('EZD-726 sheets of each set', () => {
     expect(defaultSheetSetData('client')).toEqual({ kind: 'client', size: '11x17', ...rest });
   });
 });
+
+// EZD-702a (S13 Controls: Sheet row dot, Previous / Next, sheet label "4 of 10", Add sheet types, draft watermark
+// "REV n DRAFT · NOT FOR CONSTRUCTION"; S13 Validation Numbering: Rev 0 at permit issue; S13 size toggle 24x36 / 11x17).
+import {
+  ADD_SHEET_TYPES,
+  draftRevision,
+  draftWatermark,
+  neighbourSheet,
+  paperInches,
+  sheetDot,
+  sheetPosition,
+} from './sheet-set';
+
+describe('EZD-702a Sheets screen helpers', () => {
+  const ten = defaultSheetSet(['rcp']);
+  const nine = defaultSheetSet([]);
+
+  it('A3.0 is 4 of 10 with the RCP box and 4 of 9 without', () => {
+    expect(sheetPosition(ten, 'A3.0')).toEqual({ index: 4, of: 10 });
+    expect(sheetPosition(nine, 'A3.0')).toEqual({ index: 4, of: 9 });
+    expect(sheetPosition(nine, 'A6.0')).toBeNull();
+  });
+
+  it('Previous and Next walk the set order and stop at the ends', () => {
+    expect(neighbourSheet(ten, 'A5.0', 1)?.number).toBe('A6.0');
+    expect(neighbourSheet(nine, 'A5.0', 1)?.number).toBe('E1.0');
+    expect(neighbourSheet(ten, 'E1.0', -1)?.number).toBe('A6.0');
+    expect(neighbourSheet(ten, 'A0.0', -1)).toBeNull();
+    expect(neighbourSheet(ten, 'R1.0', 1)).toBeNull();
+  });
+
+  it('the Add sheet picker offers plan, elevation, details, schedule, renders, blank', () => {
+    expect([...ADD_SHEET_TYPES]).toEqual(['plan', 'elevation', 'details', 'schedule', 'renders', 'blank']);
+  });
+
+  it('a sheet with open items needs approval; otherwise it is ready to issue', () => {
+    expect(sheetDot({ openItems: 0, delta: null })).toBe('ready');
+    expect(sheetDot({ openItems: 2, delta: null })).toBe('needs_approval');
+  });
+
+  it('a set never issued drafts Rev 0 and its watermark says so', () => {
+    expect(draftRevision({ lastIssuedVersionId: null })).toBe(0);
+    expect(draftWatermark(0)).toBe('REV 0 DRAFT · NOT FOR CONSTRUCTION');
+    expect(draftWatermark(1)).toBe('REV 1 DRAFT · NOT FOR CONSTRUCTION');
+  });
+
+  it('24x36 is ARCH D landscape and 11x17 tabloid landscape', () => {
+    expect(paperInches('24x36')).toEqual({ width: 36, height: 24 });
+    expect(paperInches('11x17')).toEqual({ width: 17, height: 11 });
+  });
+});

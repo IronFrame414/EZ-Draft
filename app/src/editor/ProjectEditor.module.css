@@ -70,3 +70,13 @@
   border-radius: var(--ez-radius-7);
   pointer-events: none;
 }
+
+/* EZD-702a: on the Sheets tab the plan canvas stays mounted (its WebGL context is kept) but is not shown. */
+.backdropLayer {
+  position: absolute;
+  inset: 0;
+}
+
+.backdropHidden {
+  visibility: hidden;
+}

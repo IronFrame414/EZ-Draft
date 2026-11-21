@@ -419,7 +419,8 @@ test.describe('EZD-207a plan canvas', () => {
     await openReady(page, ids.P1);
     // EZD-1001a: 3D ships, so its tab follows Plan (Q-0500); Plan is the open view.
     const tabs = page.locator('header nav button');
-    await expect(tabs).toHaveText(['Plan', '3D']);
+    // EZD-702a: Sheets ships and follows 3D.
+    await expect(tabs).toHaveText(['Plan', '3D', 'Sheets']);
     await expect(tabs.first()).toHaveAttribute('aria-current', 'page');
     // EZD-218: the plan editor has its left panel (S03 Layout).
     await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(1);

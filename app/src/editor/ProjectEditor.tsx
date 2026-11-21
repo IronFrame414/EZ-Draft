@@ -145,6 +145,7 @@ import type {
   CountertopsStatusProps,
   CountertopsViewProps,
 } from '../lazy/countertops';
+import type { SheetsPartProps } from '../lazy/sheets-screen';
 import { createCountertopSelectionStore } from './countertops/selection-store';
 import { createCabinetSelectionStore } from './cabinets/cabinet-selection-store';
 import { InspectorEmpty } from './inspector/InspectorEmpty';
@@ -286,9 +287,10 @@ type CanvasState =
       toolRoute: (r: PlanPointerReceiver | null) => void;
     };
 
-const PLAN_VIEWS: EditorView[] = ['plan'];
+// EZD-702a: the Sheets tab needs no plan canvas, so it shows with the plan alone too.
+const PLAN_VIEWS: EditorView[] = ['plan', 'sheets'];
 // EZD-1001a: 3D ships, so its tab shows once the plan canvas is up (Q-0500).
-const PLAN_3D_VIEWS: EditorView[] = ['plan', '3d'];
+const PLAN_3D_VIEWS: EditorView[] = ['plan', '3d', 'sheets'];
 
 type Scene3dTestHook = { stats(): Scene3dStats & { contexts: number; shown: boolean } };
 
@@ -862,9 +864,22 @@ export function ProjectEditor({
   const [opened3d, setOpened3d] = useState(false);
   const [scene3d, setScene3d] = useState<Scene3d | null>(null);
   const show3d = plan !== null && !canvasFailed && editorView === '3d';
+  // EZD-702a (S13 Entry points "Header tab Sheets"): the Sheets screen covers the plan like 3D. Its module and store
+  // are made on the first press of Sheets and kept while the editor is open, so the open sheet stays on a return.
+  const showSheets = session !== null && editorView === 'sheets';
+  const [openedSheets, setOpenedSheets] = useState(false);
+  const sheetsMod = useLazy(sheetsScreenModule, openedSheets);
+  const sheetsScreen = useMemo(
+    () => (sheetsMod === undefined ? null : sheetsMod.createSheetsScreen(projectId)),
+    [sheetsMod, projectId],
+  );
+  useEffect(() => {
+    if (sheetsScreen !== null) void sheetsScreen.load();
+  }, [sheetsScreen]);
   const changeView = useCallback((v: EditorView) => {
     if (v === '3d') setOpened3d(true);
-    if (v === 'plan' || v === '3d') setEditorView(v);
+    if (v === 'sheets') setOpenedSheets(true);
+    if (v === 'plan' || v === '3d' || v === 'sheets') setEditorView(v);
   }, []);
   useEffect(() => {
     if (!opened3d || routedStore === null || phase === null || floors === null) return;
@@ -1126,7 +1141,7 @@ export function ProjectEditor({
           // EZD-128: the name opens the project switcher once the lock UI is there.
           onProjectMenu={lock?.ui.switcher.toggle}
           subtitle={subtitle}
-          activeView={show3d ? '3d' : 'plan'}
+          activeView={show3d ? '3d' : showSheets ? 'sheets' : 'plan'}
           views={plan !== null && !canvasFailed ? PLAN_3D_VIEWS : PLAN_VIEWS}
           onViewChange={changeView}
           presence={part('presence')}
@@ -1224,7 +1239,7 @@ export function ProjectEditor({
     };
     body = (
       <>
-        {showPlan && !show3d && coarse && selection !== null ? (
+        {showPlan && !show3d && !showSheets && coarse && selection !== null ? (
           <LazyEditBar
             selection={selection}
             edit={mayEdit && !screenOn ? edit : null}
@@ -1253,8 +1268,8 @@ export function ProjectEditor({
           <InlineError message="office.plan.canvas_failed" onRetry={retryCanvas} />
         ) : null}
         {/* EZD-1001a: plan-only parts are off on the 3D tab. */}
-        {showPlan && !show3d ? <PlanTextFailedBanner controller={plan} /> : null}
-        {showPlan && !show3d ? pdfUnderlay.part : null}
+        {showPlan && !show3d && !showSheets ? <PlanTextFailedBanner controller={plan} /> : null}
+        {showPlan && !show3d && !showSheets ? pdfUnderlay.part : null}
       </>
     );
   }
@@ -1269,7 +1284,7 @@ export function ProjectEditor({
     </div>
   );
   const shown =
-    assistant !== null && assistantShown({ canEdit, view: show3d ? '3d' : 'plan' })
+    assistant !== null && assistantShown({ canEdit, view: show3d ? '3d' : showSheets ? 'sheets' : 'plan' })
       ? assistant
       : null;
   // EZD-222: each rail tool shows the company's key for it.
@@ -1306,11 +1321,19 @@ export function ProjectEditor({
         projectId={projectId}
         inputs={conflicts.inputs}
         server={conflicts.server}
-        plan={showPlan && !show3d ? plan : null}
+        plan={showPlan && !show3d && !showSheets ? plan : null}
         onClose={() => setListOpen(false)}
       />
     ) : null;
-  const canvas = show3d ? (
+  const canvas = showSheets ? (
+    <>
+      {sheetsScreen && <LazySheets part="canvas" screen={sheetsScreen} />}
+      {stateArea}
+      {panel}
+      {helpOpen ? <LazyHelpPanel bindings={bindings} onClose={closeHelp} /> : null}
+      {part('canvas')}
+    </>
+  ) : show3d ? (
     <>
       {scene3d !== null ? <LazyScene3dOverlay scene={scene3d} /> : null}
       <p className={styles.sync3d} data-testid="scene-3d-sync" role="status">
@@ -1412,7 +1435,7 @@ export function ProjectEditor({
     </>
   );
   // EZD-213b (vault/plans/EZD-213b.md D-Editor): the inspector aside for every viewer of a ready plan.
-  const inspector = show3d ? null : showPlan && viewing !== null && session !== null ? (
+  const inspector = show3d || showSheets ? null : showPlan && viewing !== null && session !== null ? (
     <LazyVersionInspector
       row={versionRows?.find((r) => r.id === viewing.id) ?? viewing}
       rows={versionRows ?? []}
@@ -1454,7 +1477,9 @@ export function ProjectEditor({
   ) : null;
   // EZD-416 (S04b Layout "Left panel: tabs Pieces / Edges / Material"): while the Countertops tool is on, the
   // countertop panel takes the left panel.
-  const leftPanel = show3d ? null : showPlan &&
+  const leftPanel = show3d ? null : showSheets ? (
+    sheetsScreen && <LazySheets part="panel" screen={sheetsScreen} canEdit={mayEdit} />
+  ) : showPlan &&
     countertopsOn &&
     session !== null &&
     countertopSelection !== null ? (
@@ -1507,8 +1532,11 @@ export function ProjectEditor({
     />
   ) : null;
   const openAssistant = shown !== null && assistantOpen ? assistantSession : null;
+  // EZD-702a: one wrapper on every tab, so a switch to Sheets and back never remounts the plan canvas.
   const backdrop = showPlan ? (
-    <PlanCanvas key={canvasAttempt} controller={plan} onFailed={() => setCanvasFailed(true)} />
+    <div className={showSheets ? `${styles.backdropLayer} ${styles.backdropHidden}` : styles.backdropLayer}>
+      <PlanCanvas key={canvasAttempt} controller={plan} onFailed={() => setCanvasFailed(true)} />
+    </div>
   ) : undefined;
 
   return (
@@ -1529,7 +1557,7 @@ export function ProjectEditor({
               ) : null}
             </>
           }
-          rail={show3d ? null : rail}
+          rail={show3d || showSheets ? null : rail}
           leftPanel={leftPanel ?? undefined}
           leftPanelLabel={leftPanel === null ? undefined : 'office.shell.left_panel'}
           canvas={canvas}
@@ -1550,7 +1578,9 @@ export function ProjectEditor({
           statusBar={
             <StatusBar
               start={
-                !show3d && showPlan && scale && phase ? (
+                showSheets ? (
+                  sheetsScreen && <LazySheets part="start" screen={sheetsScreen} />
+                ) : !show3d && showPlan && scale && phase ? (
                   <>
                     {session !== null && floors !== null ? (
                       <FloorSwitcher store={session.store} floors={floors} canEdit={canEdit} />
@@ -1585,7 +1615,13 @@ export function ProjectEditor({
                   </>
                 ) : undefined
               }
-              end={showPlan && !show3d ? <PlanStatusEnd handle={plan.handle} /> : undefined}
+              end={
+                showSheets ? (
+                  sheetsScreen && <LazySheets part="end" screen={sheetsScreen} />
+                ) : showPlan && !show3d ? (
+                  <PlanStatusEnd handle={plan.handle} />
+                ) : undefined
+              }
             />
           }
           backdrop={backdrop}
@@ -1865,6 +1901,15 @@ function LazyCabinetInspector(props: CabinetInspectorProps) {
 function LazyCabinetStatus(props: CabinetRunViewProps) {
   const mod = useLazy(cabinetRunModule);
   return mod ? <mod.CabinetRunStatus {...props} /> : null;
+}
+
+// EZD-702a (11 Budgets; 11 rule 7): the Sheets screen loads when the Sheets tab is first pressed.
+const sheetsScreenModule = lazyModule(() => import('../lazy/sheets-screen'));
+
+// One wrapper for the panel, canvas and status parts (EZD-120c B11: the entry's size).
+function LazySheets(props: SheetsPartProps) {
+  const mod = useLazy(sheetsScreenModule);
+  return mod ? <mod.SheetsPart {...props} /> : null;
 }
 
 // EZD-412 (11 Budgets; 11 rule 7): the countertop screen loads when the Countertops tool is first turned on.

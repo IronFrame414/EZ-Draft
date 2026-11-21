@@ -79,3 +79,55 @@ export function sheetsForSet(kind: SheetSetKind, scopeTrades: readonly ScopeTrad
   const all = defaultSheetSet(scopeTrades);
   return kind === 'permit' ? all : all.filter((s) => CLIENT_SET.includes(s.number));
 }
+
+// EZD-702a (S13 Layout, Controls; phase-07 EZD-702a; AC-EZD-702a-1): what the Sheets screen reads from a set.
+
+// S13 Controls "Add sheet": the type picker's types, in the spec's order.
+export const ADD_SHEET_TYPES = ['plan', 'elevation', 'details', 'schedule', 'renders', 'blank'] as const;
+export type AddSheetType = (typeof ADD_SHEET_TYPES)[number];
+
+// A sheet row's status dot (S13 Controls "Sheet row": ready to issue / needs approval). Open items come with the
+// issue checklist (EZD-716) and the Δ tag with revision clouds (EZD-718); until then a sheet has neither.
+export type SheetMarks = { openItems: number; delta: number | null };
+export type SheetDot = 'ready' | 'needs_approval';
+
+export function sheetDot(marks: SheetMarks): SheetDot {
+  return marks.openItems > 0 ? 'needs_approval' : 'ready';
+}
+
+// The open sheet's place in its set, 1-based ("4 of 10"); null when the number is not in the set.
+export function sheetPosition(
+  sheets: readonly Sheet[],
+  number: string,
+): { index: number; of: number } | null {
+  const i = sheets.findIndex((s) => s.number === number);
+  return i < 0 ? null : { index: i + 1, of: sheets.length };
+}
+
+// Previous / Next sheet (S13 Controls): the neighbour in set order, or null at either end.
+export function neighbourSheet(
+  sheets: readonly Sheet[],
+  number: string,
+  step: -1 | 1,
+): Sheet | null {
+  const i = sheets.findIndex((s) => s.number === number);
+  if (i < 0) return null;
+  return sheets[i + step] ?? null;
+}
+
+// The revision the set is drafting (S13 Validation "Numbering": Rev 0 at permit issue, then Rev 1, 2...). A set never
+// issued drafts Rev 0. Issued revision numbers come with EZD-717; until then an issued set's number is unknown (null).
+export function draftRevision(set: Pick<SheetSetSummary, 'lastIssuedVersionId'>): number | null {
+  return set.lastIssuedVersionId === null ? 0 : null;
+}
+
+// S13 Controls "Sheet canvas": the draft watermark. English only (S13 Decision 7: permit sheets are English only), so
+// it is not a catalog message.
+export function draftWatermark(rev: number | null): string {
+  return rev === null ? 'DRAFT · NOT FOR CONSTRUCTION' : `REV ${rev} DRAFT · NOT FOR CONSTRUCTION`;
+}
+
+// The paper of a set size in inches, landscape (24x36 ARCH D, 11x17 tabloid).
+export function paperInches(size: SheetSize): { width: number; height: number } {
+  return size === '24x36' ? { width: 36, height: 24 } : { width: 17, height: 11 };
+}
