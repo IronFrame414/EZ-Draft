@@ -111,3 +111,58 @@ export const fixtureValue = (
     attributes: { kind, width, depth },
   },
 });
+
+// EZD-416: the board's three tops after the seam (board S04bCountertops; hand counts in
+// packages/geometry/src/countertops/panel.test.ts): A "Back wall" 141 1/2 × 25 1/2, B "Left return" 63 × 25 1/2
+// (A and B share one seam), C "Island" 76 1/2 × 37 1/2 with a 12" seating back. 3 pieces, 1 seam, 56.1 sq ft,
+// exposed 432.5" = 36 lf.
+export const CT_SEAM = 'e0000000-0000-4000-8000-000000000001';
+type BoardEdge = 'exposed' | 'wall' | 'seating' | 'seam';
+const boardEdge = (kind: BoardEdge) =>
+  kind === 'seam'
+    ? { kind: 'wall', overhang: 0, backsplashHeight: null, profileId: null, seamId: CT_SEAM }
+    : {
+        kind,
+        overhang: kind === 'seating' ? 12 : kind === 'exposed' ? 1.5 : 0,
+        backsplashHeight: kind === 'wall' ? 4 : null,
+        profileId: null,
+      };
+const pieceValue = (label: string, name: string, outline: Point[], kinds: BoardEdge[]): ObjectValue => ({
+  type: 'countertop_piece',
+  schemaVersion: 7,
+  data: {
+    geometry: { outline },
+    status: 'new',
+    level: CT_FLOOR,
+    attributes: { label, name, materialItemId: null, thickness: 3 / 2.54, edges: kinds.map(boardEdge) },
+  },
+});
+const rectPts = (x0: number, y0: number, x1: number, y1: number): Point[] => [
+  { x: x0, y: y0 },
+  { x: x1, y: y0 },
+  { x: x1, y: y1 },
+  { x: x0, y: y1 },
+];
+
+export function boardPiecesModel(): Objects {
+  return new Map<string, ObjectValue>([
+    [CT_FLOOR, { type: 'floor', schemaVersion: 6, data: { name: 'Floor 1', order: 1 } }],
+    [
+      ctId(301),
+      pieceValue(
+        'A',
+        'Back wall',
+        [
+          { x: 0, y: 0 },
+          { x: 141.5, y: 0 },
+          { x: 141.5, y: 25.5 },
+          { x: 25.5, y: 25.5 },
+          { x: 0, y: 25.5 },
+        ],
+        ['wall', 'wall', 'exposed', 'seam', 'wall'],
+      ),
+    ],
+    [ctId(302), pieceValue('B', 'Left return', rectPts(0, 25.5, 25.5, 88.5), ['seam', 'exposed', 'exposed', 'wall'])],
+    [ctId(303), pieceValue('C', 'Island', rectPts(0, 120, 76.5, 157.5), ['exposed', 'exposed', 'seating', 'exposed'])],
+  ]);
+}

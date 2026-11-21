@@ -125,7 +125,12 @@ import { expandGroups } from './selection/groups';
 import { EmptyPlanHint } from './EmptyPlanHint';
 import type { BenchmarkRunnerProps } from '../lazy/benchmark-runner';
 import type { CabinetInspectorProps, CabinetRunViewProps } from '../lazy/cabinet-run';
-import type { CountertopsViewProps } from '../lazy/countertops';
+import type {
+  CountertopsPanelProps,
+  CountertopsStatusProps,
+  CountertopsViewProps,
+} from '../lazy/countertops';
+import { createCountertopSelectionStore } from './countertops/selection-store';
 import { createCabinetSelectionStore } from './cabinets/cabinet-selection-store';
 import { InspectorEmpty } from './inspector/InspectorEmpty';
 import type { InspectorPanelProps } from '../lazy/inspector-panel';
@@ -217,6 +222,8 @@ export type ProjectEditorProps = {
   canSend?: boolean;
   // EZD-230 (Q-0038): the user's own rail tool order, read by the page; the default order without it.
   railOrder?: readonly string[];
+  // EZD-416: the viewer holds Settings → Defaults (the countertop panel's "Change in company settings" link).
+  canManageDefaults?: boolean;
 };
 
 export type EditorTestHook = {
@@ -285,6 +292,7 @@ export function ProjectEditor({
   benchmark,
   canSend = false,
   railOrder: initialRailOrder,
+  canManageDefaults = false,
 }: ProjectEditorProps): ReactElement {
   const t = useT();
   // EZD-111: the Send dialog, and Project settings opened from its no-client message.
@@ -648,14 +656,42 @@ export function ProjectEditor({
     readDefaultNumber('countertop_increment'),
     readDefaultNumber('countertop_increment'),
   );
+  // EZD-416: the seating overhangs the countertop left panel shows under Default overhangs.
+  const overhangSeatingCounter = useSyncExternalStore(
+    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
+    readDefaultNumber('overhang_seating_counter'),
+    readDefaultNumber('overhang_seating_counter'),
+  );
+  const overhangSeatingBar = useSyncExternalStore(
+    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
+    readDefaultNumber('overhang_seating_bar'),
+    readDefaultNumber('overhang_seating_bar'),
+  );
   const countertopDefaults = useMemo(
     () => ({
       overhang_standard: overhangStandard,
       overhang_against_wall: overhangAgainstWall,
       countertop_increment: countertopIncrement,
+      overhang_seating_counter: overhangSeatingCounter,
+      overhang_seating_bar: overhangSeatingBar,
     }),
-    [overhangStandard, overhangAgainstWall, countertopIncrement],
+    [
+      overhangStandard,
+      overhangAgainstWall,
+      countertopIncrement,
+      overhangSeatingCounter,
+      overhangSeatingBar,
+    ],
   );
+  // EZD-416: the countertop selection the screen and its left panel share; a new model session starts with none,
+  // and leaving the Countertops tool drops it.
+  const countertopSelection = useMemo(
+    () => (sessionStore === null ? null : createCountertopSelectionStore()),
+    [sessionStore],
+  );
+  useEffect(() => {
+    if (!countertopsOn) countertopSelection?.getState().select(null);
+  }, [countertopsOn, countertopSelection]);
   // Leaving the Cabinets tool drops its selection, as the screen's own selection did before EZD-406.
   useEffect(() => {
     if (!cabinetsOn) cabinetSelection?.getState().send({ type: 'set', ids: [] });
@@ -1246,6 +1282,7 @@ export function ProjectEditor({
           canEdit={mayEdit}
           newId={newObjectId}
           defaults={countertopDefaults}
+          selection={countertopSelection ?? undefined}
         />
       ) : null}
       {stateArea}
@@ -1299,8 +1336,19 @@ export function ProjectEditor({
         />
       </InspectorStack>
     ) : null;
+  // EZD-416 (S04b Layout "Left panel: tabs Pieces / Edges / Material"): while the Countertops tool is on, the
+  // countertop panel takes the left panel.
   const leftPanel =
-    showPlan && session !== null && selection !== null && layers !== null && plan !== null ? (
+    showPlan && countertopsOn && session !== null && countertopSelection !== null ? (
+      <LazyCountertopsPanel
+        store={session.store}
+        floors={floors ?? undefined}
+        canEdit={mayEdit}
+        selection={countertopSelection}
+        defaults={countertopDefaults}
+        canManageDefaults={canManageDefaults}
+      />
+    ) : showPlan && session !== null && selection !== null && layers !== null && plan !== null ? (
       <LeftPanel
         store={session.store}
         layers={layers}
@@ -1391,6 +1439,13 @@ export function ProjectEditor({
                     ) : null}
                     {cabinetsOn && session !== null ? (
                       <LazyCabinetStatus store={session.store} floors={floors ?? undefined} />
+                    ) : null}
+                    {countertopsOn && session !== null ? (
+                      <LazyCountertopsStatus
+                        store={session.store}
+                        floors={floors ?? undefined}
+                        defaults={countertopDefaults}
+                      />
                     ) : null}
                     {shownSurface === 'floor' ? null : <CeilingViewStatus />}
                     {electricalOn && shownSurface === 'floor' && session !== null ? (
@@ -1661,6 +1716,17 @@ const countertopsModule = lazyModule(() => import('../lazy/countertops'));
 function LazyCountertops(props: CountertopsViewProps) {
   const mod = useLazy(countertopsModule);
   return mod ? <mod.CountertopsView {...props} /> : null;
+}
+
+// EZD-416: the countertop left panel and status readouts, from the same module.
+function LazyCountertopsPanel(props: CountertopsPanelProps) {
+  const mod = useLazy(countertopsModule);
+  return mod ? <mod.CountertopsPanel {...props} /> : null;
+}
+
+function LazyCountertopsStatus(props: CountertopsStatusProps) {
+  const mod = useLazy(countertopsModule);
+  return mod ? <mod.CountertopsStatus {...props} /> : null;
 }
 
 // EZD-126 (11 Budgets): the phone and no-access notices and the conflict banner load when shown; a ready desktop

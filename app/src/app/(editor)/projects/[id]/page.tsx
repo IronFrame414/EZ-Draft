@@ -58,6 +58,9 @@ export default async function EditorPage({
     ctx !== null && ctx !== 'failed' && can(ctx, 'send_to_client', { projectId: id })
       ? { canSend: true }
       : {};
+  // EZD-416: Settings → Defaults decides the countertop panel's "Change in company settings" link.
+  const defaultsLink =
+    ctx !== null && ctx !== 'failed' && can(ctx, 'settings_defaults') ? { canManageDefaults: true } : {};
   return (
     <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
       <StateHost>
@@ -69,6 +72,7 @@ export default async function EditorPage({
           {...open}
           {...bench}
           {...send}
+          {...defaultsLink}
         />
       </StateHost>
     </MessagesProvider>

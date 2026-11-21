@@ -14,6 +14,7 @@ import {
   createMember,
   createTenant,
   expect,
+  harnessSql,
   setPermissions,
   test,
 } from '../test-harness/e2e/test';
@@ -223,6 +224,93 @@ test.describe('EZD-412 Trace and Draw outline', () => {
     // Esc ends the tool.
     await page.keyboard.press('Escape');
     await expect(id(page, 'countertops')).toHaveCount(0);
+    await saved(page);
+  });
+
+  // EZD-416 (AC-EZD-416-1 "Footer totals match the pieces"; S04b left panel and status bar). Hand counts for the
+  // traced L: A 144 × 25 1/2 (3672 sq in), B 63 × 25 1/2 (1606.5 sq in): 5278.5 / 144 = 36.66 → 36.7 sq ft; exposed
+  // A's front 144" + B's front 63" + B's open end 25 1/2" = 232.5" = 19.4 → 19 lf. A seam on A adds a piece and a
+  // seam and leaves the area and exposed edge as they were.
+  test('AC-EZD-416-1 the left panel footer and status bar match the traced pieces; a row selects its top', async ({
+    page,
+    signInAs,
+  }) => {
+    const { tenant, ids: project, user } = await fixtureS();
+    await harnessSql()`insert into public.catalog_item
+      (tenant_id, category, subcategory, line, name, brand, model, width, depth, height, finish)
+      values (${tenant}::uuid, 'countertops', null, null, 'Quartz', null, null, null, null, null, null)`;
+    await signInAs(user.email);
+    await openReady(page, project.P1);
+    await seedKitchen(page);
+    await saved(page);
+
+    await page.keyboard.press('k');
+    await expect(id(page, 'countertop-panel')).toBeVisible();
+    await expect(id(page, 'countertop-panel-counts')).toHaveText('0 pieces · 0 seams');
+    await expect(id(page, 'countertop-panel-area')).toHaveText('0.0 sq ft');
+    await expect(id(page, 'status-countertop-exposed')).toHaveText('0 lf');
+    await expect(id(page, 'status-countertop-increment')).toHaveText('1/2"');
+
+    await id(page, 'countertop-trace').click();
+    await expect(id(page, 'countertop-panel-piece')).toHaveCount(2);
+    await expect(id(page, 'countertop-panel-counts')).toHaveText('2 pieces · 0 seams');
+    await expect(id(page, 'countertop-panel-area')).toHaveText('36.7 sq ft');
+    await expect(id(page, 'status-countertop-exposed')).toHaveText('19 lf');
+    await expect(id(page, 'countertop-panel-size')).toHaveText(['144 × 25 1/2', '63 × 25 1/2']);
+
+    // A row selects its top on the canvas; a click on the canvas selects its row.
+    await page.locator('[data-testid="countertop-panel-piece"][data-label="B"]').click();
+    await expect(
+      page.locator('[data-testid="countertop-piece"][data-selected="true"]'),
+    ).toHaveAttribute('data-label', 'B');
+    await clickTop(page, 72, 12);
+    await expect(
+      page.locator('[data-testid="countertop-panel-piece"][aria-pressed="true"]'),
+    ).toHaveAttribute('data-label', 'A');
+
+    // A seam on A at x = 100: three pieces, one seam, the same area and exposed edge.
+    await id(page, 'countertop-seam-tool').click();
+    await clickTop(page, 100.2, 12);
+    await expect(id(page, 'countertop-panel-counts')).toHaveText('3 pieces · 1 seam');
+    await expect(id(page, 'countertop-panel-area')).toHaveText('36.7 sq ft');
+    await expect(id(page, 'status-countertop-exposed')).toHaveText('19 lf');
+    await saved(page);
+
+    // The swatch row opens the catalog picker on Countertops; a pick names the material on every top.
+    await expect(id(page, 'countertop-panel-material')).toHaveText('No material chosen · 3 cm');
+    await id(page, 'countertop-panel-material').click();
+    await expect(id(page, 'catalog-category-countertops')).toHaveAttribute('aria-pressed', 'true');
+    await id(page, 'countertop-panel-picker').getByTestId('catalog-item').filter({ hasText: 'Quartz' }).click();
+    await expect(id(page, 'countertop-panel-picker')).toHaveCount(0);
+    await expect(id(page, 'countertop-panel-material')).toHaveText('Quartz · 3 cm');
+    await expect
+      .poll(async () =>
+        page.evaluate(
+          () =>
+            new Set(
+              (window as unknown as Window2).__ezdraftEditor
+                .objects()
+                .filter((o) => o.type === 'countertop_piece')
+                .map((o) => (o.data as { attributes: { materialItemId: string | null } }).attributes.materialItemId),
+            ).size,
+        ),
+      )
+      .toBe(1);
+    await saved(page);
+
+    // The Material tab sets the behind-range splash on every top.
+    await id(page, 'countertop-panel-tab-material').click();
+    await id(page, 'countertop-panel-behind').selectOption('full_height');
+    await expect
+      .poll(async () =>
+        page.evaluate(() =>
+          (window as unknown as Window2).__ezdraftEditor
+            .objects()
+            .filter((o) => o.type === 'countertop_piece')
+            .map((o) => (o.data as { attributes: { behindRange?: string } }).attributes.behindRange),
+        ),
+      )
+      .toEqual(['full_height', 'full_height', 'full_height']);
     await saved(page);
   });
 

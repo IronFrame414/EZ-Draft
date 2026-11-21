@@ -63,6 +63,10 @@ export const countertopCutoutSchema = z.strictObject({
 });
 export type CountertopCutout = z.infer<typeof countertopCutoutSchema>;
 
+// EZD-416 (S04b Material tab "behind-range splash"; vault/build/assumptions.md EZD-416).
+export const COUNTERTOP_BEHIND_RANGE = ['splash', 'full_height'] as const;
+export type CountertopBehindRange = (typeof COUNTERTOP_BEHIND_RANGE)[number];
+
 export const countertopPieceDataSchema = z
   .strictObject({
     geometry: z.strictObject({
@@ -78,6 +82,9 @@ export const countertopPieceDataSchema = z
       edges: z.array(countertopEdgeSchema).max(COUNTERTOP_OUTLINE_MAX),
       // EZD-413: absent on pieces saved before cutouts existed; read as none.
       cutouts: z.array(countertopCutoutSchema).max(COUNTERTOP_CUTOUTS_MAX).optional(),
+      // EZD-416 (S04b "Behind range row | Edit behind-range splash"): the splash behind the range, the backsplash
+      // height or full height. Absent on pieces saved before it; read as the backsplash height.
+      behindRange: z.enum(COUNTERTOP_BEHIND_RANGE).optional(),
     }),
   })
   .refine((d) => d.attributes.edges.length === d.geometry.outline.length)

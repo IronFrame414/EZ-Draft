@@ -2,3 +2,8 @@
 // first turned on.
 export { CountertopsView } from './CountertopsView';
 export type { CountertopsViewProps } from './CountertopsView';
+// EZD-416: the left panel and status bar readouts, from the same module.
+export { CountertopsPanel } from './CountertopsPanel';
+export type { CountertopsPanelProps } from './CountertopsPanel';
+export { CountertopsStatus } from './CountertopsStatus';
+export type { CountertopsStatusProps } from './CountertopsStatus';

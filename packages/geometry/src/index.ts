@@ -30,6 +30,8 @@ export * from './countertops/trace';
 // EZD-413: seams and cutouts.
 export * from './countertops/seam';
 export * from './countertops/cutout';
+// EZD-416: the left panel and status bar readouts.
+export * from './countertops/panel';
 export * from './derived';
 export * from './drawing';
 export * from './fixtures';

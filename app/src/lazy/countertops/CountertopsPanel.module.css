@@ -1,0 +1,260 @@
+/* EZD-416 (board S04bCountertops left panel): tabs as the plan's left panel (.seg, .segon, .lbl), piece rows with
+   the letter, name and mono size line, the selected row on the cobalt tint, key-value rows and the footer totals. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  font-size: 14px;
+  color: var(--ez-ink);
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px;
+  border-bottom: 1px solid var(--ez-border);
+}
+
+.seg {
+  flex: 1;
+  text-align: center;
+  min-height: 44px;
+  padding: 7px;
+  color: var(--ez-slate-500);
+  border-radius: var(--ez-radius-8);
+  border: 0;
+  background: transparent;
+  font: 500 13px var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.segOn {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+  font-weight: 600;
+}
+
+.body {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+  padding-bottom: 12px;
+}
+
+.lbl {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+  padding: 14px 14px 6px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  padding: 0 6px;
+}
+
+.empty {
+  margin: 0;
+  padding: 4px 8px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.piece,
+.edge {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 44px;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.piece:hover,
+.edge:hover {
+  background: var(--ez-hover);
+}
+
+.pieceOn,
+.pieceOn:hover {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.edge {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr auto auto;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.letter {
+  width: 16px;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.pieceOn .letter {
+  color: inherit;
+}
+
+.pieceText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pieceName {
+  font-size: 14px;
+}
+
+.size,
+.mono {
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 14px 6px;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.swatchRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.swatchRow:hover:enabled {
+  background: var(--ez-hover);
+}
+
+.swatchRow:disabled,
+.pick:disabled {
+  cursor: default;
+}
+
+.pick {
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font: inherit;
+  color: var(--ez-ink);
+  cursor: pointer;
+}
+
+/* The catalog picker, over the editor beside the rail (the left panel is too narrow for its two columns). */
+.pickerLayer {
+  position: fixed;
+  top: 96px;
+  bottom: 56px;
+  left: 88px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  width: min(640px, calc(100vw - 120px));
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  overflow: auto;
+}
+
+.pickerHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.close {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  color: var(--ez-slate-500);
+  cursor: pointer;
+}
+
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ez-radius-8);
+  border: 1px solid var(--ez-border);
+  background: var(--ez-surface);
+  flex: none;
+}
+
+.kv {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 24px;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.kv > :last-child {
+  color: var(--ez-ink);
+}
+
+.input,
+.kv select {
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font: inherit;
+  color: var(--ez-ink);
+}
+
+.input {
+  width: 96px;
+}
+
+.link {
+  padding-top: 6px;
+  font-size: 13px;
+  color: var(--ez-cobalt-text);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-top: 1px solid var(--ez-border);
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.footer .mono {
+  color: var(--ez-ink);
+}

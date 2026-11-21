@@ -16,10 +16,10 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type PointerEvent as ReactPointerEvent,
   type ReactElement,
 } from 'react';
-import { useStore } from 'zustand';
 import {
   cabinetFootprints,
   COUNTERTOP_CUTOUT_DEFAULT_SIZE,
@@ -39,13 +39,10 @@ import type { ModelStore } from '../../editor/model/model-store';
 import type { Change } from '../../editor/model/patches';
 import { isTypingTarget } from '../../editor/typed-entry/typed-entry';
 import type { FloorChoice } from '../../editor/floors/floors';
-import { useChosenFloor } from '../../editor/floors/use-chosen-floor';
-import { openFloorId } from '../../editor/plan/batches';
-import { modelObjects } from '../../editor/cabinets/cabinet-view';
+import type { CountertopSelectionStore } from '../../editor/countertops/selection-store';
 import {
   canTraceCabinets,
   countertopPieceAt,
-  countertopPieces,
   countertopTraceChanges,
   countertopTraceDefaults,
   type CountertopPiece,
@@ -65,6 +62,7 @@ import {
   countertopCutoutChanges,
   countertopCutoutSizeChanges,
 } from '../../editor/countertops/cutout-tool';
+import { countertopIncrement, useCountertopFloor } from './use-countertop-floor';
 import styles from './CountertopsView.module.css';
 
 export type CountertopsViewProps = {
@@ -75,7 +73,11 @@ export type CountertopsViewProps = {
   newId?: () => string;
   // The effective Defaults (overhang_standard, overhang_against_wall, countertop_increment); null while not read.
   defaults?: Readonly<Record<string, unknown>> | null;
+  // EZD-416: the selection shared with the left panel and the inspector; without it the screen keeps its own.
+  selection?: CountertopSelectionStore;
 };
+
+const noSubscribe = () => () => {};
 
 // The pick, snap and close radius on screen.
 const PICK_PX = 10;
@@ -99,23 +101,11 @@ export function CountertopsView({
   canEdit = false,
   newId,
   defaults = null,
+  selection,
 }: CountertopsViewProps): ReactElement {
   const t = useT();
-  const chosen = useChosenFloor(floors);
-  const objects = useStore(store, (s) => s.objects);
-  const floorId = useMemo(
-    () => (floors === undefined ? null : openFloorId(objects, chosen)),
-    [objects, chosen, floors],
-  );
-  const parsed = useMemo(() => modelObjects(objects), [objects]);
   // The floor the screen shows: the open floor, or (with no floor list) the floor of the first run or top.
-  const level = useMemo(() => {
-    if (floorId !== null) return floorId;
-    const o = parsed.find((x) => x.type === 'cabinet_run' || x.type === 'countertop_piece');
-    return o !== undefined && 'level' in o.data ? (o.data.level as string) : null;
-  }, [floorId, parsed]);
-
-  const pieces = useMemo(() => countertopPieces(parsed, level), [parsed, level]);
+  const { parsed, level, pieces } = useCountertopFloor(store, floors);
   const cabinets = useMemo(
     () => (level === null ? [] : cabinetFootprints(parsed, level)),
     [parsed, level],
@@ -123,12 +113,20 @@ export function CountertopsView({
   const walls = useMemo(() => wallBodies(parsed, level), [parsed, level]);
   const traceable = useMemo(() => canTraceCabinets(parsed, level), [parsed, level]);
   const targets = useMemo(() => outlineSnapTargets(parsed, level), [parsed, level]);
-  const increment = useMemo(() => {
-    const v = defaults?.['countertop_increment'];
-    return typeof v === 'number' && v > 0 ? v : 0.5;
-  }, [defaults]);
+  const increment = useMemo(() => countertopIncrement(defaults), [defaults]);
 
-  const [selected, setSelected] = useState<string | null>(null);
+  // EZD-416: the selection is the editor's when it passes one (the left panel shares it), else the screen's own.
+  const [ownSelected, setOwnSelected] = useState<string | null>(null);
+  const shared = useSyncExternalStore(
+    selection ? selection.subscribe : noSubscribe,
+    () => selection?.getState().selection.pieceId ?? null,
+    () => selection?.getState().selection.pieceId ?? null,
+  );
+  const selected = selection ? shared : ownSelected;
+  const setSelected = useCallback(
+    (id: string | null) => (selection ? selection.getState().select(id) : setOwnSelected(id)),
+    [selection],
+  );
   const [drawing, setDrawing] = useState(false);
   const [outline, setOutline] = useState<OutlineToolState>(INITIAL_OUTLINE_STATE);
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -234,7 +232,7 @@ export function CountertopsView({
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [drawing, placeTool, drag, selected, canEdit, store]);
+  }, [drawing, placeTool, drag, selected, setSelected, canEdit, store]);
 
   const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
     if (e.button !== 0) return;
