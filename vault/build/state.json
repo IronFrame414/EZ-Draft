@@ -418,7 +418,8 @@
     "EZD-426",
     "EZD-427",
     "EZD-222",
-    "EZD-230"
+    "EZD-230",
+    "EZD-1415"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1144,11 +1145,19 @@
       "ts": "2026-11-21T00:01:50Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1415",
+      "title": "Field measure: shapes and walls",
+      "commit": "01c8a6a7",
+      "ts": "2026-11-21T03:29:31Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1258,17 +1267,17 @@
     }
   },
   "running": {
-    "EZD-1415": {
-      "lane": 1,
-      "title": "Field measure: shapes and walls",
-      "started": "2026-11-21T01:41:42Z",
-      "develop": "3965e2af"
-    },
     "EZD-414": {
       "lane": 3,
       "title": "Edges and overhangs",
       "started": "2026-11-21T01:41:42Z",
       "develop": "3965e2af"
+    },
+    "EZD-1314": {
+      "lane": 2,
+      "title": "Canonical event registry",
+      "started": "2026-11-21T02:06:35Z",
+      "develop": "bc0eb658"
     }
   },
   "advisories_checked_at": "2026-11-21T00:27:16Z"
