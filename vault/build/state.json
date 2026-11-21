@@ -427,7 +427,8 @@
     "EZD-418",
     "EZD-726",
     "EZD-1001a",
-    "EZD-1201"
+    "EZD-1201",
+    "EZD-507"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1225,6 +1226,14 @@
       "ts": "2026-11-21T09:39:17Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-507",
+      "title": "Ceiling devices",
+      "commit": "db74594a",
+      "ts": "2026-11-21T11:14:39Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1344,11 +1353,11 @@
     }
   },
   "running": {
-    "EZD-507": {
-      "lane": 2,
-      "title": "Ceiling devices",
-      "started": "2026-11-21T09:21:01Z",
-      "develop": "d853c90f"
+    "EZD-1408": {
+      "lane": 1,
+      "title": "Field task templates and publishing",
+      "started": "2026-11-21T09:39:23Z",
+      "develop": "5e9ef853"
     }
   },
   "advisories_checked_at": "2026-11-21T06:27:17Z"
