@@ -1148,7 +1148,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1167,7 +1167,8 @@
     "EZD-424": 1,
     "EZD-412": 1,
     "EZD-1009": 1,
-    "EZD-739": 1
+    "EZD-739": 1,
+    "EZD-1402": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1249,8 +1250,19 @@
     "EZD-739": {
       "ts": "2026-11-20T13:13:29Z",
       "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-1402": {
+      "ts": "2026-11-21T01:41:38Z",
+      "reason": "check red after a review fix"
     }
   },
-  "running": {},
-  "advisories_checked_at": "2026-11-20T18:26:37Z"
+  "running": {
+    "EZD-403": {
+      "lane": 2,
+      "title": "Cabinet library panel",
+      "started": "2026-11-21T00:03:12Z",
+      "develop": "711158a1"
+    }
+  },
+  "advisories_checked_at": "2026-11-21T00:27:16Z"
 }
