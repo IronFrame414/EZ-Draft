@@ -425,7 +425,8 @@
     "EZD-701",
     "EZD-416",
     "EZD-418",
-    "EZD-726"
+    "EZD-726",
+    "EZD-1001a"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1207,6 +1208,14 @@
       "ts": "2026-11-21T08:03:02Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1001a",
+      "title": "3D scene core",
+      "commit": "a8d15b52",
+      "ts": "2026-11-21T09:20:56Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1326,11 +1335,11 @@
     }
   },
   "running": {
-    "EZD-1001a": {
-      "lane": 2,
-      "title": "3D scene core",
-      "started": "2026-11-21T07:29:54Z",
-      "develop": "720920b6"
+    "EZD-1201": {
+      "lane": 1,
+      "title": "Share links",
+      "started": "2026-11-21T08:04:16Z",
+      "develop": "e9445ee3"
     }
   },
   "advisories_checked_at": "2026-11-21T06:27:17Z"
