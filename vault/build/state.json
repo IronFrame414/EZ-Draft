@@ -420,7 +420,8 @@
     "EZD-222",
     "EZD-230",
     "EZD-1415",
-    "EZD-1314"
+    "EZD-1314",
+    "EZD-1416"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1162,11 +1163,19 @@
       "ts": "2026-11-21T03:54:25Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1416",
+      "title": "Field measure: keypad and closure",
+      "commit": "ecc5dab5",
+      "ts": "2026-11-21T05:39:33Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1281,17 +1290,17 @@
     }
   },
   "running": {
-    "EZD-1416": {
-      "lane": 1,
-      "title": "Field measure: keypad and closure",
-      "started": "2026-11-21T03:30:03Z",
-      "develop": "d8c36a30"
-    },
     "EZD-701": {
       "lane": 2,
       "title": "Sheet model and default set",
       "started": "2026-11-21T03:54:33Z",
       "develop": "7eed1508"
+    },
+    "EZD-416": {
+      "lane": 3,
+      "title": "Left panel and status bar",
+      "started": "2026-11-21T04:19:59Z",
+      "develop": "541d406e"
     }
   },
   "advisories_checked_at": "2026-11-21T00:27:16Z"
