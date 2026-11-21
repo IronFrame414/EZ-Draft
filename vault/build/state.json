@@ -429,7 +429,8 @@
     "EZD-1001a",
     "EZD-1201",
     "EZD-507",
-    "EZD-1408"
+    "EZD-1408",
+    "EZD-709"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1243,11 +1244,19 @@
       "ts": "2026-11-21T11:39:37Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-709",
+      "title": "Title block settings",
+      "commit": "dbee8c03",
+      "ts": "2026-11-21T14:10:51Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1376,12 +1385,6 @@
       "lane": 1,
       "title": "Sheets screen",
       "started": "2026-11-21T13:01:54Z",
-      "develop": "c6679012"
-    },
-    "EZD-709": {
-      "lane": 2,
-      "title": "Title block settings",
-      "started": "2026-11-21T13:01:55Z",
       "develop": "c6679012"
     }
   },
