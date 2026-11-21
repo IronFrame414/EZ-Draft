@@ -1168,7 +1168,8 @@
     "EZD-412": 1,
     "EZD-1009": 1,
     "EZD-739": 1,
-    "EZD-1402": 1
+    "EZD-1402": 1,
+    "EZD-403": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1220,8 +1221,8 @@
       "reason": "builder crashed (no result)"
     },
     "EZD-403": {
-      "ts": "2026-11-18T13:04:15Z",
-      "reason": "check still red after 2 fix rounds"
+      "ts": "2026-11-21T02:05:35Z",
+      "reason": "check red after a review fix"
     },
     "EZD-701": {
       "ts": "2026-11-19T13:10:45Z",
@@ -1257,11 +1258,17 @@
     }
   },
   "running": {
-    "EZD-403": {
-      "lane": 2,
-      "title": "Cabinet library panel",
-      "started": "2026-11-21T00:03:12Z",
-      "develop": "711158a1"
+    "EZD-1415": {
+      "lane": 1,
+      "title": "Field measure: shapes and walls",
+      "started": "2026-11-21T01:41:42Z",
+      "develop": "3965e2af"
+    },
+    "EZD-414": {
+      "lane": 3,
+      "title": "Edges and overhangs",
+      "started": "2026-11-21T01:41:42Z",
+      "develop": "3965e2af"
     }
   },
   "advisories_checked_at": "2026-11-21T00:27:16Z"
