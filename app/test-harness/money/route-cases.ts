@@ -997,6 +997,22 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-613: save the company code edition; 200 { edition, optionalLoadCalc, available } (no money)',
   },
   {
+    file: `${API}settings/title-block/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/title-block/route'),
+    request: get('/api/settings/title-block'),
+    expectStatus: 200,
+    note: 'EZD-709: the company title block; 200 { config, company, codeEdition } (no money)',
+  },
+  {
+    file: `${API}settings/title-block/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/settings/title-block/route'),
+    request: sendJson('PATCH', '/api/settings/title-block', { showCompany: false }),
+    expectStatus: 200,
+    note: 'EZD-709: save the company-block switch; 200 { showCompany } (no money)',
+  },
+  {
     file: `${API}settings/render-models/route.ts`,
     method: 'GET',
     load: () => import('../../src/app/api/settings/render-models/route'),

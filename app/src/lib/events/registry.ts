@@ -77,6 +77,8 @@ export const EVENTS = {
   'tenant.defaults_updated': { kind: 'log_only' },
   // EZD-613 (S15g Events emitted): Settings > Code edition saved; what changed.
   'tenant.code_edition_updated': { kind: 'log_only' },
+  // EZD-709 (S15b Events emitted "tenant.title_block_updated (new)"): Settings > Title block saved.
+  'tenant.title_block_updated': { kind: 'log_only' },
   // EZD-1102 (S15f Events emitted "render.model_config_updated (new)"): Settings > Render models saved.
   'render.model_config_updated': { kind: 'log_only' },
   // EZD-125 (Q-0697 decisions 10): Cancel request; written as the event_log row by cancel_edit_request.
@@ -215,6 +217,7 @@ export interface EventPayloads {
   'tenant.updated': { fields: TenantField[] };
   'tenant.defaults_updated': { keys: string[] };
   'tenant.code_edition_updated': { keys: ('code_edition' | 'optional_load_calc')[] };
+  'tenant.title_block_updated': { keys: 'show_company'[] };
   // EZD-1102: the tiers whose model or cost changed, and whether the allowance changed.
   'render.model_config_updated': {
     tiers: ('fast' | 'standard' | 'photoreal')[];

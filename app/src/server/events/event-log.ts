@@ -134,6 +134,11 @@ export const EVENT_LOG: EventLogRules = {
     mode: 'sink',
     object: (e) => ({ type: 'tenant', id: e.tenantId }),
   },
+  // EZD-709 (S15b Events emitted): Settings > Title block saved.
+  'tenant.title_block_updated': {
+    mode: 'sink',
+    object: (e) => ({ type: 'tenant', id: e.tenantId }),
+  },
   // EZD-1102 (S15f Events emitted): Settings > Render models saved.
   'render.model_config_updated': {
     mode: 'sink',

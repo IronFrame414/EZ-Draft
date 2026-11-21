@@ -24,6 +24,7 @@ const PAGE_FILES = [
   'app/src/app/(office)/settings/render-models/page.tsx',
   'app/src/app/(office)/settings/sheet-presets/page.tsx',
   'app/src/app/(office)/settings/system-status/page.tsx',
+  'app/src/app/(office)/settings/title-block/page.tsx',
   'app/src/app/(office)/page.tsx',
   'app/src/app/(office)/settings/page.tsx',
   'app/src/app/(office)/settings/users/page.tsx',
@@ -79,6 +80,7 @@ const OWN_PAGES = new Set([
   'code-edition',
   'sheet-presets',
   'render-models',
+  'title-block',
 ]);
 
 function pathsFor(file: string, env: { projectId: string }): string[] {

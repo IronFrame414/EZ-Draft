@@ -1572,6 +1572,11 @@ isOneToOne: false
 { Args: { "p_contact": Json,"p_license_no": string,"p_logo_path": string,"p_name": string,"p_set_logo": boolean }; Returns: {
               "changed": (string)[],"tenant_contact": Json,"tenant_id": string,"tenant_license_no": string,"tenant_logo_path": string,"tenant_name": string,"tenant_updated_at": string
             }[]
+                           },
+"update_tenant_title_block":
+{ Args: { "p_show_company": boolean }; Returns: {
+              "changed": (string)[],"tenant_id": string,"title_block": Json
+            }[]
                            }
           }
           Enums: {
