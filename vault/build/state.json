@@ -1270,7 +1270,8 @@
     "EZD-1402": 1,
     "EZD-403": 1,
     "EZD-414": 1,
-    "EZD-503": 1
+    "EZD-503": 1,
+    "EZD-515": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1364,14 +1365,24 @@
     "EZD-503": {
       "ts": "2026-11-21T13:01:51Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-515": {
+      "ts": "2026-11-21T13:17:54Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-515": {
-      "lane": 3,
-      "title": "Fan clearance and hosted flags",
-      "started": "2026-11-21T11:18:59Z",
-      "develop": "cd285e4b"
+    "EZD-702a": {
+      "lane": 1,
+      "title": "Sheets screen",
+      "started": "2026-11-21T13:01:54Z",
+      "develop": "c6679012"
+    },
+    "EZD-709": {
+      "lane": 2,
+      "title": "Title block settings",
+      "started": "2026-11-21T13:01:55Z",
+      "develop": "c6679012"
     }
   },
   "advisories_checked_at": "2026-11-21T12:27:43Z"
