@@ -849,14 +849,14 @@ isOneToOne: false
                   ]
                 },"sent_package": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"email_sent_at": string | null,"expires_at": string,"id": string,"kind": string,"model_version_id": string,"note": string | null,"project_id": string,"recipients": NonNullable<Json>,"revoked_at": string | null,"tenant_id": string,"token_hash": string
+                    "created_at": string,"created_by": string | null,"email_sent_at": string | null,"expires_at": string,"id": string,"kind": string,"model_version_id": string,"note": string | null,"project_id": string,"recipients": NonNullable<Json>,"reminder_sent_at": string | null,"renewed_at": string | null,"revoked_at": string | null,"tenant_id": string,"token_hash": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"email_sent_at"?: string | null,"expires_at": string,"id"?: string,"kind": string,"model_version_id": string,"note"?: string | null,"project_id": string,"recipients": NonNullable<Json>,"revoked_at"?: string | null,"tenant_id": string,"token_hash": string
+                    "created_at"?: string,"created_by"?: string | null,"email_sent_at"?: string | null,"expires_at": string,"id"?: string,"kind": string,"model_version_id": string,"note"?: string | null,"project_id": string,"recipients": NonNullable<Json>,"reminder_sent_at"?: string | null,"renewed_at"?: string | null,"revoked_at"?: string | null,"tenant_id": string,"token_hash": string
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"email_sent_at"?: string | null,"expires_at"?: string,"id"?: string,"kind"?: string,"model_version_id"?: string,"note"?: string | null,"project_id"?: string,"recipients"?: NonNullable<Json>,"revoked_at"?: string | null,"tenant_id"?: string,"token_hash"?: string
+                    "created_at"?: string,"created_by"?: string | null,"email_sent_at"?: string | null,"expires_at"?: string,"id"?: string,"kind"?: string,"model_version_id"?: string,"note"?: string | null,"project_id"?: string,"recipients"?: NonNullable<Json>,"reminder_sent_at"?: string | null,"renewed_at"?: string | null,"revoked_at"?: string | null,"tenant_id"?: string,"token_hash"?: string
                   }
                   Relationships: [
                     {
@@ -1309,6 +1309,9 @@ isOneToOne: false
 "list_scope_projects":
 { Args: { "p_search"?: string }; Returns: Json
                            },
+"list_share_links":
+{ Args: { "p_project": string }; Returns: Json
+                           },
 "list_users":
 { Args: { "p_page": number,"p_search": string }; Returns: Json
                            },
@@ -1376,6 +1379,9 @@ isOneToOne: false
 "rename_project":
 { Args: { "p_name": string,"p_project": string }; Returns: Json
                            },
+"renew_share_link":
+{ Args: { "p_expiry_days": number,"p_ip"?: unknown,"p_sent_package": string }; Returns: Json
+                           },
 "reopen_project":
 { Args: { "p_project": string }; Returns: Json
                            },
@@ -1390,6 +1396,9 @@ isOneToOne: false
               "expires_at": string,"kind": string,"model_version_id": string,"project_id": string,"sent_package_id": string,"tenant_id": string
             }[]
                            },
+"resolve_share_link":
+{ Args: { "p_token_hash": string,"p_view"?: boolean }; Returns: Json
+                           },
 "respond_edit_request":
 { Args: { "p_ip"?: unknown,"p_project": string,"p_request": string,"p_response": string }; Returns: Json
                            },
@@ -1401,6 +1410,9 @@ isOneToOne: false
                            },
 "revert_to_version":
 { Args: { "p_label": string,"p_lock_epoch": number,"p_objects": Json,"p_project": string,"p_version": string }; Returns: Json
+                           },
+"revoke_share_link":
+{ Args: { "p_sent_package": string }; Returns: Json
                            },
 "rewrap_my_ai_key":
 { Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean
@@ -1470,6 +1482,9 @@ isOneToOne: false
 { Args: { "p_project": string,"p_version": string }; Returns: string
                            },
 "sweep_edit_locks":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"sweep_share_link_reminders":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
 "system_backup_status":

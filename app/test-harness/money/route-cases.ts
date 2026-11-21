@@ -2,7 +2,7 @@
 // exported method of every route, in the plan's order. Each request is the success request of that route's own
 // route.test.ts unless the plan says otherwise; the status is the plan's (200 when not shown). `after` keeps the
 // ids a later case needs in env.created. Test-only.
-import { randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { adminDb, type Member } from '../rls/fixtures';
 import { NOTIFICATION_KINDS } from '../../src/lib/notifications/kinds';
 import { DEV_SAMPLE_PARAMS } from '../../src/app/dev/notifications/NotificationsProbe';
@@ -53,6 +53,21 @@ const field = (body: unknown, ...keys: string[]): string => {
   if (typeof v !== 'string') throw new Error(`response has no string at ${keys.join('.')}`);
   return v;
 };
+
+// EZD-1201: the project's newest sent package (the share link the send case made).
+async function latestSentPackage(
+  env: CaseEnv,
+): Promise<{ id: string; model_version_id: string; recipients: unknown }> {
+  const { data, error } = await adminDb()
+    .from('sent_package')
+    .select('id, model_version_id, recipients')
+    .eq('project_id', env.projectId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+  if (error || !data) throw new Error(`sent_package read failed: ${error?.code}`);
+  return data as { id: string; model_version_id: string; recipients: unknown };
+}
 
 const KIND = NOTIFICATION_KINDS[0];
 const ALL_ON = NOTIFICATION_KINDS.map((kind) => ({ kind, inApp: true, email: true }));
@@ -1327,6 +1342,68 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     },
     expectStatus: 201,
     note: 'EZD-111: one send; 201 { send } (no money)',
+  },
+  // EZD-1201: the share link routes, on the link the send case made. resolve runs on a second row of the same
+  // send with a fresh token this case knows (the send's token is only in its email). No money field in any answer.
+  {
+    file: `${API}share-links/resolve/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/share-links/resolve/route'),
+    request: async (env) => {
+      const sent = await latestSentPackage(env);
+      const token = randomBytes(32).toString('base64url');
+      const { error } = await adminDb()
+        .from('sent_package')
+        .insert({
+          tenant_id: env.tenantId,
+          project_id: env.projectId,
+          model_version_id: sent.model_version_id,
+          kind: 'client',
+          recipients: sent.recipients,
+          token_hash: createHash('sha256').update(token).digest('hex'),
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        });
+      if (error) throw new Error(`sent_package insert failed: ${error.code}`);
+      return sendJson('POST', '/api/share-links/resolve', { token })();
+    },
+    expectStatus: 200,
+    note: 'EZD-1201: an active link; 200 { link: { status, expiresAt } } (no money)',
+  },
+  {
+    file: `${API}share-links/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/share-links/route'),
+    request: async (env) => get(`/api/share-links?projectId=${env.projectId}`)(),
+    expectStatus: 200,
+    note: 'EZD-1201: the Share panel list; 200 { links } (no money)',
+  },
+  {
+    file: `${API}share-links/[id]/renew/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/share-links/[id]/renew/route'),
+    request: async (env) => {
+      const { id } = await latestSentPackage(env);
+      return {
+        request: new Request(`${BASE}/api/share-links/${id}/renew`, { method: 'POST' }),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-1201: Renew; 200 { link } (no money)',
+  },
+  {
+    file: `${API}share-links/[id]/revoke/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/share-links/[id]/revoke/route'),
+    request: async (env) => {
+      const { id } = await latestSentPackage(env);
+      return {
+        request: new Request(`${BASE}/api/share-links/${id}/revoke`, { method: 'POST' }),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-1201: Turn off; 200 { link } (no money)',
   },
   // EZD-122: the Versions panel routes, after the send so the thumbnail cases' version stays the newest.
   {

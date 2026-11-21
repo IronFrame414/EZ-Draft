@@ -32,6 +32,12 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   },
   { fn: 'mark_sent_package_emailed', args: { p_sent_package: null } },
   { fn: 'resolve_sent_package', args: { p_token_hash: null } },
+  // EZD-1201: the share link functions (authenticated) and the share link status (anon only);
+  // sweep_share_link_reminders is service_role only.
+  { fn: 'resolve_share_link', args: { p_token_hash: null, p_view: null } },
+  { fn: 'renew_share_link', args: { p_sent_package: null, p_expiry_days: null, p_ip: null } },
+  { fn: 'revoke_share_link', args: { p_sent_package: null } },
+  { fn: 'list_share_links', args: { p_project: null } },
   // EZD-122: Name snapshot and Revert (authenticated only).
   { fn: 'name_snapshot', args: { p_project: null, p_version: null, p_name: null } },
   {

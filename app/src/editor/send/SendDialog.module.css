@@ -120,3 +120,61 @@
   opacity: 0.45;
   cursor: default;
 }
+
+/* EZD-1201: the Share panel's links under the send (Q-0213; Q-0781 in this dialog's style). */
+.links {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ez-border);
+}
+
+.linksTitle {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+
+.linkList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.linkRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.linkText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.linkVersion {
+  font: 400 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.linkState {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.linkActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}

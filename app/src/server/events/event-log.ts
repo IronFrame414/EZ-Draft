@@ -98,7 +98,8 @@ export const EVENT_LOG: EventLogRules = {
   'field.measurement_rejected': SINK,
   'field.measure_sent': SINK,
   'field_pack.issued': SINK,
-  'share_link.expiring': SINK,
+  // EZD-1201: written by sweep_share_link_reminders in the reminder transaction.
+  'share_link.expiring': TRANSACTION,
   'cleanup.due': SINK,
   'code_check.completed': SINK,
   'design_option.created': SINK,
@@ -222,6 +223,10 @@ export const EVENT_LOG: EventLogRules = {
   // EZD-409: one row per save that wrote cabinet objects, on the project (at most one per save, within the
   // rows-per-save budget Q-0735 keeps for model.saved).
   'cabinet_schedule.updated': SINK,
+  // EZD-1201: written by resolve_share_link and renew_share_link in their own transactions.
+  'share_link.viewed': TRANSACTION,
+  'share_link.expired': TRANSACTION,
+  'share_link.renewed': TRANSACTION,
 };
 
 // The first x-forwarded-for entry when it is one IPv4 or IPv6 address (no port, brackets or zone id), else

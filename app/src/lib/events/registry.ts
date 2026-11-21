@@ -50,7 +50,8 @@ export const EVENTS = {
   'field.measurement_rejected': { kind: 'internal', later: 'EZD-1413' },
   'field.measure_sent': { kind: 'internal', later: 'EZD-1417' },
   'field_pack.issued': { kind: 'internal', later: 'EZD-1421' },
-  'share_link.expiring': { kind: 'internal', later: 'EZD-1201' },
+  // EZD-1201 (07 share_link.expiring): written as the event_log row by sweep_share_link_reminders.
+  'share_link.expiring': { kind: 'internal' },
   'cleanup.due': { kind: 'internal', later: 'EZD-123' },
   'code_check.completed': { kind: 'internal', later: 'EZD-612' },
   'design_option.created': { kind: 'internal', later: 'EZD-1009' },
@@ -125,6 +126,11 @@ export const EVENTS = {
   'import.cancelled': { kind: 'log_only' },
   // EZD-409 (S04 Events emitted "cabinet_schedule.updated (new)"): a save changed the project's cabinets.
   'cabinet_schedule.updated': { kind: 'log_only' },
+  // EZD-1201 (S18 Events emitted "share_link.viewed (new); share_link.expired (new); share_link.renewed (new)"):
+  // written only as the event_log row by resolve_share_link and renew_share_link; never emitted.
+  'share_link.viewed': { kind: 'log_only' },
+  'share_link.expired': { kind: 'log_only' },
+  'share_link.renewed': { kind: 'log_only' },
 } as const satisfies Record<string, EventEntry>;
 
 export type EventName = keyof typeof EVENTS;
@@ -189,7 +195,7 @@ export interface EventPayloads {
   'field.measurement_rejected': Record<string, unknown>;
   'field.measure_sent': Record<string, unknown>;
   'field_pack.issued': Record<string, unknown>;
-  'share_link.expiring': Record<string, unknown>;
+  'share_link.expiring': { projectId: string; expiresAt: string };
   'cleanup.due': Record<string, unknown>;
   'code_check.completed': Record<string, unknown>;
   'design_option.created': Record<string, unknown>;
@@ -276,4 +282,8 @@ export interface EventPayloads {
   'import.cancelled': { projectId: string; jobId: string };
   // EZD-409: the cabinet runs and members (boxes, fillers, panels, corners, shelves, trim) the save wrote.
   'cabinet_schedule.updated': { objectIds: string[] };
+  // EZD-1201: the event_log details; the row's object is the sent_package (the share link).
+  'share_link.viewed': { projectId: string };
+  'share_link.expired': { projectId: string; expiresAt: string };
+  'share_link.renewed': { projectId: string; expiresAt: string };
 }

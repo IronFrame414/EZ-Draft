@@ -38,4 +38,9 @@ export const WRITE_PERMISSION_EXEMPTIONS: ReadonlyArray<{ path: string; reason: 
     reason:
       'Owner preset, no switch; checked inside owner_password_target and record_member_password_set, Q-0096 P4 (EZD-105b)',
   },
+  {
+    path: 'app/src/app/api/share-links/resolve/route.ts',
+    reason:
+      'the signed-out client link lookup (no member session; POST keeps the token out of URLs); anon may only run resolve_share_link, which writes nothing but its event_log row (EZD-1201; Q-0700)',
+  },
 ];

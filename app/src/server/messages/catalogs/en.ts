@@ -80,6 +80,10 @@ export const en = {
     "For design and planning only. All calculations and codes must be verified by the user and a licensed professional in the project's jurisdiction.",
   'common.no_access': "You don't have access to this. Ask your supervisor.",
   'error.project_not_found': "That project isn't available.",
+  // EZD-1201: share links (S18 States Expired).
+  'error.share_link_expired': 'This link has expired. Ask {company} to renew it.',
+  'error.share_link_not_found': "That link isn't available.",
+  'error.share_link_revoked': 'That link was turned off and cannot be renewed.',
   'error.version_not_found': "That version isn't available.",
   'error.thumbnail_invalid': "That plan image couldn't be saved.",
   'error.thumbnail_not_found': "That plan image isn't available.",
@@ -2133,6 +2137,15 @@ export const en = {
   'office.send.email_body':
     '{company} sent you the design for {project}. Open it with the link below.',
   'office.send.email_link': 'Open the design',
+  // EZD-1201: the Share panel's links in the Send dialog (Q-0213).
+  'office.share.links': 'Links sent',
+  'office.share.row': 'Version {n} · {name}',
+  'office.share.on': 'On · expires {date}',
+  'office.share.expired': 'Expired {date}',
+  'office.share.off': 'Off',
+  'office.share.renew': 'Renew',
+  'office.share.turn_off': 'Turn off',
+  'office.share.failed': "Couldn't update the links. Try again.",
   // EZD-313: Finish import and Cancel import (S02 Controls; Decisions "opens 03 Plan with a short notice of the
   // counts imported").
   'office.review.cancel_title': 'Cancel this import?',

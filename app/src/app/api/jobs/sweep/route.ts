@@ -8,6 +8,7 @@ import { rewrapStaleAiKeys } from '../../../../server/jobs/ai-key-rewrap';
 import { defaultJobHooks } from '../../../../server/jobs/default-hooks';
 import { runJobs } from '../../../../server/jobs/runner';
 import { sweepExpiredLocks } from '../../../../server/lock/sweep';
+import { sweepShareLinkReminders } from '../../../../server/share-links/sweep';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
@@ -46,6 +47,16 @@ export async function GET(request: Request): Promise<Response> {
     await sweepExpiredLocks();
   } catch {
     await reportError(new Error('edit_lock_sweep_failed'), {
+      source: 'job',
+      location: '/api/jobs/sweep',
+    });
+  }
+  // EZD-1201 (07 share_link.expiring): one pass of the share link expiry reminder per sweep; a failure is
+  // reported by code and does not change the answer.
+  try {
+    await sweepShareLinkReminders();
+  } catch {
+    await reportError(new Error('share_link_reminder_sweep_failed'), {
       source: 'job',
       location: '/api/jobs/sweep',
     });
