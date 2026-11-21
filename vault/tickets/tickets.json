@@ -13542,7 +13542,9 @@
    "decisions": [
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/13b-round-26.md#R18",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/11-non-functional-requirements.md#Q-0018",
+    "spec/decisions/11-non-functional-requirements.md#Q-0020"
    ]
   },
   {
@@ -14177,7 +14179,8 @@
    "spec_phase": 13,
    "decisions": [
     "spec/decisions/07-hooks-events-and-integrations.md",
-    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190"
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234"
    ]
   },
   {
@@ -15918,7 +15921,8 @@
     "EZD-1001b",
     "EZD-1001c",
     "EZD-901a",
-    "EZD-901b"
+    "EZD-901b",
+    "EZD-1110"
    ],
    "build_position": 437,
    "acs": [
@@ -15928,7 +15932,12 @@
    "acs_source": "done-when",
    "spec_phase": 17,
    "decisions": [
-    "spec/decisions/11-non-functional-requirements.md"
+    "spec/decisions/11-non-functional-requirements.md",
+    "spec/decisions/13b-round-26.md#R10",
+    "spec/decisions/11-non-functional-requirements.md#Q-0454",
+    "spec/decisions/11-non-functional-requirements.md#Q-0586",
+    "spec/decisions/11-non-functional-requirements.md#Q-0097",
+    "spec/decisions/11-non-functional-requirements.md#Q-0293"
    ]
   },
   {
@@ -15943,7 +15952,8 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-17.md",
    "depends_on": [
-    "EZD-1701"
+    "EZD-1701",
+    "EZD-916"
    ],
    "build_position": 438,
    "acs": [
@@ -15953,7 +15963,8 @@
    "spec_phase": 17,
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/03-data-model.md#Q-0514"
    ]
   },
   {
@@ -15995,7 +16006,12 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-17.md",
    "depends_on": [
-    "EZD-1211"
+    "EZD-1211",
+    "EZD-1206",
+    "EZD-1212",
+    "EZD-1213",
+    "EZD-1411",
+    "EZD-1104a"
    ],
    "build_position": 434,
    "acs": [
@@ -16007,7 +16023,13 @@
    "spec_phase": 17,
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md",
-    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190"
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
+    "spec/decisions/10-permissions-and-settings.md#Q-0049",
+    "spec/decisions/11-non-functional-requirements.md#Q-0035",
+    "spec/decisions/10-permissions-and-settings.md#Q-0235",
+    "spec/decisions/03-data-model.md#Q-0700",
+    "spec/decisions/13b-round-26.md#R2",
+    "spec/decisions/13b-round-26.md#R29"
    ]
   },
   {
@@ -16022,7 +16044,11 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-17.md",
    "depends_on": [
-    "EZD-109"
+    "EZD-109",
+    "EZD-1114",
+    "EZD-1211",
+    "EZD-1413",
+    "EZD-1421"
    ],
    "build_position": 435,
    "acs": [
@@ -16031,7 +16057,9 @@
    "acs_source": "done-when",
    "spec_phase": 17,
    "decisions": [
-    "spec/decisions/11-non-functional-requirements.md"
+    "spec/decisions/11-non-functional-requirements.md",
+    "spec/decisions/03-data-model.md#Q-0695",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234"
    ]
   },
   {
@@ -16080,7 +16108,8 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-17.md",
    "depends_on": [
-    "EZD-222"
+    "EZD-222",
+    "EZD-1709c"
    ],
    "build_position": 439,
    "acs": [
@@ -16089,7 +16118,8 @@
    "acs_source": "done-when",
    "spec_phase": 17,
    "decisions": [
-    "spec/decisions/11-non-functional-requirements.md"
+    "spec/decisions/11-non-functional-requirements.md",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214"
    ]
   },
   {
@@ -16105,7 +16135,11 @@
    "phase_file": "tickets/phases/phase-17.md",
    "depends_on": [
     "EZD-016a",
-    "EZD-016b"
+    "EZD-016b",
+    "EZD-817",
+    "EZD-1617",
+    "EZD-1104a",
+    "EZD-1710"
    ],
    "build_position": 440,
    "acs": [
@@ -16114,7 +16148,10 @@
    "acs_source": "done-when",
    "spec_phase": 17,
    "decisions": [
-    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214"
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
+    "spec/decisions/02-product-overview.md#Q-0372"
    ]
   },
   {
@@ -16130,7 +16167,15 @@
    "phase_file": "tickets/phases/phase-17.md",
    "depends_on": [
     "EZD-1709a",
-    "EZD-1613"
+    "EZD-1613",
+    "EZD-1015",
+    "EZD-809",
+    "EZD-814",
+    "EZD-1113",
+    "EZD-1115",
+    "EZD-922a",
+    "EZD-922b",
+    "EZD-722"
    ],
    "build_position": 441,
    "acs": [
@@ -16139,7 +16184,9 @@
    "acs_source": "done-when",
    "spec_phase": 17,
    "decisions": [
-    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214"
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
+    "spec/decisions/02-product-overview.md#Q-0372",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190"
    ]
   },
   {
@@ -16154,7 +16201,11 @@
    "mockups": [],
    "phase_file": "tickets/phases/phase-17.md",
    "depends_on": [
-    "EZD-1709b"
+    "EZD-1709b",
+    "EZD-1412",
+    "EZD-1424",
+    "EZD-1203",
+    "EZD-1209"
    ],
    "build_position": 442,
    "acs": [
@@ -16163,7 +16214,11 @@
    "acs_source": "done-when",
    "spec_phase": 17,
    "decisions": [
-    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214"
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
+    "spec/decisions/11-non-functional-requirements.md#Q-0035",
+    "spec/decisions/10-permissions-and-settings.md#Q-0049"
    ]
   },
   {
@@ -16185,7 +16240,8 @@
     "EZD-611b",
     "EZD-611c",
     "EZD-613",
-    "EZD-620"
+    "EZD-620",
+    "EZD-643"
    ],
    "build_position": 436,
    "acs": [
@@ -16199,7 +16255,11 @@
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/05-screens.md",
     "spec/decisions/13b-round-26.md#R19",
-    "spec/decisions/13b-round-26.md"
+    "spec/decisions/13b-round-26.md",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001",
+    "spec/decisions/10-permissions-and-settings.md#Q-0210",
+    "spec/decisions/13b-round-26.md#R34",
+    "spec/decisions/09-calculations-and-rules.md#Q-0765"
    ]
   },
   {

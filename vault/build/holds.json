@@ -268,16 +268,8 @@
     {
       "ticket": "EZD-1120",
       "title": "Local worker: real runner",
-      "reason": "Phase 54 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 54 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1314",
-      "title": "Canonical event registry",
-      "reason": "Phase 54 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 54 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
+      "reason": "Waits on a GPU machine and Josh's GPU test (13c open item; Q-0018: the build PC has no GPU; Q-0020: only the protocol and worker program are built, EZD-1104a/b). Re-reasoned at phases 48-55 prep 2026-11-20.",
+      "question": "Q-0018, Q-0020",
       "kind": "held",
       "since": "2026-11-20"
     },
@@ -335,78 +327,6 @@
       "reason": "RETIRED 2026-11-20 by Q-0234 (no translation review queue, Translations page, glossary or approval); never built. Applied at phases 48-55 prep.",
       "question": "Q-0234",
       "kind": "retired",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1701",
-      "title": "Performance targets",
-      "reason": "Phase 55 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 55 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1702",
-      "title": "DXF size limits",
-      "reason": "Phase 55 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 55 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1705",
-      "title": "Security review",
-      "reason": "Phase 54 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 54 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1706",
-      "title": "Event log coverage",
-      "reason": "Phase 54 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 54 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1708",
-      "title": "Accessibility pass",
-      "reason": "Phase 55 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 55 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1709a",
-      "title": "Screen states: Projects and Settings",
-      "reason": "Phase 55 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 55 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1709b",
-      "title": "Screen states: editor tabs",
-      "reason": "Phase 55 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 55 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1709c",
-      "title": "Screen states: phone and client screens",
-      "reason": "Phase 55 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 55 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
-      "since": "2026-11-20"
-    },
-    {
-      "ticket": "EZD-1710",
-      "title": "Code rule list and verification",
-      "reason": "Phase 54 is not prepared yet. Josh 2026-11-20 (\"Hold 48-56, release 57\"): max_phase went to 57 so phase 57 can build, and phases 48-55 stay held until they are prepared the way 38-47 were. Release by deleting this entry once phase 54 is prepared.",
-      "question": "phase 57 release, 2026-11-20",
-      "kind": "held",
       "since": "2026-11-20"
     }
   ]
