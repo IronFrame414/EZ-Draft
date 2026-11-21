@@ -9409,7 +9409,8 @@
     "spec/decisions/09-calculations-and-rules.md#Q-0789",
     "spec/decisions/05-screens.md#Q-0705",
     "spec/decisions/02-product-overview.md#Q-0767",
-    "spec/decisions/13b-round-26.md#R19"
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -9453,7 +9454,8 @@
     "spec/decisions/09-calculations-and-rules.md#Q-0765",
     "spec/decisions/09-calculations-and-rules.md#Q-0704",
     "spec/decisions/03-data-model.md#Q-0697",
-    "spec/decisions/13b-round-26.md#R19"
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -9499,7 +9501,8 @@
     "spec/decisions/09-calculations-and-rules.md#Q-0765",
     "spec/decisions/09-calculations-and-rules.md#Q-0559",
     "spec/decisions/09-calculations-and-rules.md#Q-0789",
-    "spec/decisions/13b-round-26.md#R19"
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -9546,7 +9549,8 @@
     "spec/decisions/09-calculations-and-rules.md#Q-0761",
     "spec/decisions/02-product-overview.md#Q-0767",
     "spec/decisions/09-calculations-and-rules.md#Q-0789",
-    "spec/decisions/13b-round-26.md#R19"
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -9588,7 +9592,8 @@
     "spec/decisions/09-calculations-and-rules.md#Q-0765",
     "spec/decisions/09-calculations-and-rules.md#Q-0761",
     "spec/decisions/09-calculations-and-rules.md#Q-0789",
-    "spec/decisions/13b-round-26.md#R19"
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -9627,7 +9632,8 @@
     "spec/decisions/09-calculations-and-rules.md#Q-0001",
     "spec/decisions/03-data-model.md#Q-0762",
     "spec/decisions/09-calculations-and-rules.md#Q-0765",
-    "spec/decisions/13b-round-26.md#R19"
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -9668,7 +9674,8 @@
     "spec/decisions/09-calculations-and-rules.md#Q-0001",
     "spec/decisions/03-data-model.md#Q-0762",
     "spec/decisions/09-calculations-and-rules.md#Q-0765",
-    "spec/decisions/13b-round-26.md#R19"
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -9710,7 +9717,8 @@
     "spec/decisions/03-data-model.md#Q-0762",
     "spec/decisions/09-calculations-and-rules.md#Q-0765",
     "spec/decisions/09-calculations-and-rules.md#Q-0789",
-    "spec/decisions/13b-round-26.md#R19"
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -9754,7 +9762,8 @@
     "spec/decisions/09-calculations-and-rules.md#Q-0704",
     "spec/decisions/09-calculations-and-rules.md#Q-0780",
     "spec/decisions/09-calculations-and-rules.md#Q-0789",
-    "spec/decisions/13b-round-26.md#R19"
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -9799,7 +9808,8 @@
     "spec/decisions/09-calculations-and-rules.md#Q-0761",
     "spec/decisions/09-calculations-and-rules.md#Q-0780",
     "spec/decisions/09-calculations-and-rules.md#Q-0789",
-    "spec/decisions/13b-round-26.md#R19"
+    "spec/decisions/13b-round-26.md#R19",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -13544,7 +13554,8 @@
     "spec/decisions/13b-round-26.md#R18",
     "spec/decisions/13b-round-26.md",
     "spec/decisions/11-non-functional-requirements.md#Q-0018",
-    "spec/decisions/11-non-functional-requirements.md#Q-0020"
+    "spec/decisions/11-non-functional-requirements.md#Q-0020",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -14180,7 +14191,8 @@
    "decisions": [
     "spec/decisions/07-hooks-events-and-integrations.md",
     "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
-    "spec/decisions/10-permissions-and-settings.md#Q-0234"
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -14963,7 +14975,8 @@
    "spec_phase": 15,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/10-permissions-and-settings.md#Q-0234"
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -14996,7 +15009,8 @@
    ],
    "build_position": 414,
    "acs": [
-    "AC-EZD-1502-1"
+    "AC-EZD-1502-1",
+    "AC-EZD-1502-2"
    ],
    "acs_source": "done-when",
    "spec_phase": 15,
@@ -15006,7 +15020,9 @@
     "spec/decisions/10-permissions-and-settings.md#Q-0234",
     "spec/decisions/10-permissions-and-settings.md#Q-0121",
     "spec/decisions/07-hooks-events-and-integrations.md#Q-0059",
-    "spec/decisions/13a-rounds-24-25.md"
+    "spec/decisions/13a-rounds-24-25.md",
+    "spec/decisions/05-screens.md#Q-0790",
+    "spec/decisions/10-permissions-and-settings.md#Q-0792"
    ]
   },
   {
@@ -15055,7 +15071,9 @@
     "spec/decisions/10-permissions-and-settings.md#Q-0030",
     "spec/decisions/10-permissions-and-settings.md#Q-0029",
     "spec/decisions/10-permissions-and-settings.md#Q-0002",
-    "spec/decisions/13b-round-26.md#R17"
+    "spec/decisions/13b-round-26.md#R17",
+    "spec/decisions/05-screens.md#Q-0790",
+    "spec/decisions/10-permissions-and-settings.md#Q-0792"
    ]
   },
   {
@@ -15085,7 +15103,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0234",
-    "spec/decisions/05-screens.md#Q-0695"
+    "spec/decisions/05-screens.md#Q-0695",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15113,7 +15132,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/10-permissions-and-settings.md#Q-0234"
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15142,7 +15162,8 @@
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/13b-round-26.md",
-    "spec/decisions/10-permissions-and-settings.md#Q-0234"
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15170,7 +15191,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/10-permissions-and-settings.md#Q-0234",
-    "spec/decisions/10-permissions-and-settings.md#Q-0223"
+    "spec/decisions/10-permissions-and-settings.md#Q-0223",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15197,7 +15219,8 @@
    "spec_phase": 15,
    "decisions": [
     "spec/decisions/05-screens.md",
-    "spec/decisions/10-permissions-and-settings.md#Q-0234"
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15226,7 +15249,8 @@
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/13b-round-26.md",
-    "spec/decisions/10-permissions-and-settings.md#Q-0234"
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15255,7 +15279,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/10-permissions-and-settings.md#Q-0234"
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15556,7 +15581,9 @@
     "spec/decisions/05-screens.md",
     "spec/decisions/13b-round-26.md#R29",
     "spec/decisions/13b-round-26.md#R2",
-    "spec/decisions/10-permissions-and-settings.md#Q-0234"
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/05-screens.md#Q-0790",
+    "spec/decisions/05-screens.md#Q-0793"
    ]
   },
   {
@@ -15632,7 +15659,8 @@
     "spec/decisions/03-data-model.md#Q-0697",
     "spec/decisions/09-calculations-and-rules.md#Q-0789",
     "spec/decisions/13b-round-26.md#R8",
-    "spec/decisions/13a-rounds-24-25.md#P3"
+    "spec/decisions/13a-rounds-24-25.md#P3",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15661,7 +15689,8 @@
    "spec_phase": 16,
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
-    "spec/decisions/09-calculations-and-rules.md#Q-0789"
+    "spec/decisions/09-calculations-and-rules.md#Q-0789",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15700,7 +15729,8 @@
     "spec/decisions/13b-round-26.md",
     "spec/decisions/13b-round-26.md#R22",
     "spec/decisions/13b-round-26.md#R2",
-    "spec/decisions/13b-round-26.md#R8"
+    "spec/decisions/13b-round-26.md#R8",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15735,7 +15765,8 @@
    "decisions": [
     "spec/decisions/05-screens.md",
     "spec/decisions/09-calculations-and-rules.md",
-    "spec/decisions/03-data-model.md#Q-0697"
+    "spec/decisions/03-data-model.md#Q-0697",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15772,7 +15803,8 @@
     "spec/decisions/05-screens.md#Q-0664",
     "spec/decisions/05-screens.md#Q-0185",
     "spec/decisions/05-screens.md#Q-0214",
-    "spec/decisions/13b-round-26.md#R2"
+    "spec/decisions/13b-round-26.md#R2",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15803,7 +15835,8 @@
    "decisions": [
     "spec/decisions/09-calculations-and-rules.md",
     "spec/decisions/09-calculations-and-rules.md#Q-0179",
-    "spec/decisions/05-screens.md#Q-0769"
+    "spec/decisions/05-screens.md#Q-0769",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15836,7 +15869,8 @@
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/13b-round-26.md",
     "spec/decisions/13b-round-26.md#R2",
-    "spec/decisions/08-import-and-export.md#Q-0209"
+    "spec/decisions/08-import-and-export.md#Q-0209",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15902,8 +15936,41 @@
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/13b-round-26.md",
     "spec/decisions/13b-round-26.md#R2",
-    "spec/decisions/05-screens.md#Q-0760"
+    "spec/decisions/05-screens.md#Q-0760",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
+  },
+  {
+   "id": "EZD-1618",
+   "phase": 52,
+   "title": "Allowance budgets per project",
+   "depends_raw": "EZD-1609, EZD-1212, EZD-130",
+   "spec_ref": "Q-0793; S15e Allowance categories; 08 Exports Selections PDF",
+   "spec_files": [
+    "spec/sections/screens/S15e-settings-catalog.md",
+    "spec/sections/08-import-and-export.md"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md#Q-0793",
+    "spec/decisions/13b-round-26.md#R29",
+    "spec/decisions/13b-round-26.md#R2",
+    "spec/decisions/05-screens.md#Q-0790"
+   ],
+   "mockups": [],
+   "phase_file": "tickets/phases/phase-16.md",
+   "depends_on": [
+    "EZD-1609",
+    "EZD-1212",
+    "EZD-130"
+   ],
+   "build_position": 423.5,
+   "acs": [
+    "AC-EZD-1618-1",
+    "AC-EZD-1618-2",
+    "AC-EZD-1618-3"
+   ],
+   "acs_source": "josh-2026-11-20",
+   "spec_phase": 16
   },
   {
    "id": "EZD-1701",
@@ -15937,7 +16004,8 @@
     "spec/decisions/11-non-functional-requirements.md#Q-0454",
     "spec/decisions/11-non-functional-requirements.md#Q-0586",
     "spec/decisions/11-non-functional-requirements.md#Q-0097",
-    "spec/decisions/11-non-functional-requirements.md#Q-0293"
+    "spec/decisions/11-non-functional-requirements.md#Q-0293",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -15964,7 +16032,8 @@
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md",
     "spec/decisions/13a-rounds-24-25.md",
-    "spec/decisions/03-data-model.md#Q-0514"
+    "spec/decisions/03-data-model.md#Q-0514",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -16029,7 +16098,8 @@
     "spec/decisions/10-permissions-and-settings.md#Q-0235",
     "spec/decisions/03-data-model.md#Q-0700",
     "spec/decisions/13b-round-26.md#R2",
-    "spec/decisions/13b-round-26.md#R29"
+    "spec/decisions/13b-round-26.md#R29",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -16059,7 +16129,8 @@
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md",
     "spec/decisions/03-data-model.md#Q-0695",
-    "spec/decisions/10-permissions-and-settings.md#Q-0234"
+    "spec/decisions/10-permissions-and-settings.md#Q-0234",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -16119,7 +16190,8 @@
    "spec_phase": 17,
    "decisions": [
     "spec/decisions/11-non-functional-requirements.md",
-    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214"
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -16151,7 +16223,8 @@
     "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
     "spec/decisions/10-permissions-and-settings.md#Q-0234",
     "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
-    "spec/decisions/02-product-overview.md#Q-0372"
+    "spec/decisions/02-product-overview.md#Q-0372",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -16186,7 +16259,8 @@
    "decisions": [
     "spec/decisions/04-app-shell-and-global-ui.md#Q-0214",
     "spec/decisions/02-product-overview.md#Q-0372",
-    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190"
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -16218,7 +16292,8 @@
     "spec/decisions/10-permissions-and-settings.md#Q-0234",
     "spec/decisions/07-hooks-events-and-integrations.md#Q-0190",
     "spec/decisions/11-non-functional-requirements.md#Q-0035",
-    "spec/decisions/10-permissions-and-settings.md#Q-0049"
+    "spec/decisions/10-permissions-and-settings.md#Q-0049",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -16259,7 +16334,8 @@
     "spec/decisions/09-calculations-and-rules.md#Q-0001",
     "spec/decisions/10-permissions-and-settings.md#Q-0210",
     "spec/decisions/13b-round-26.md#R34",
-    "spec/decisions/09-calculations-and-rules.md#Q-0765"
+    "spec/decisions/09-calculations-and-rules.md#Q-0765",
+    "spec/decisions/05-screens.md#Q-0790"
    ]
   },
   {
@@ -18909,7 +18985,9 @@
     "spec/decisions/02-product-overview.md#Q-0237",
     "spec/decisions/02-product-overview.md#Q-0236",
     "spec/decisions/02-product-overview.md#Q-0372",
-    "spec/decisions/13b-round-26.md#R2"
+    "spec/decisions/13b-round-26.md#R2",
+    "spec/decisions/05-screens.md#Q-0790",
+    "spec/decisions/02-product-overview.md#Q-0795"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-17.md",
@@ -18924,7 +19002,8 @@
    "build_position": 0,
    "acs": [
     "AC-EZD-1711-1",
-    "AC-EZD-1711-2"
+    "AC-EZD-1711-2",
+    "AC-EZD-1711-3"
    ],
    "acs_source": "done-when"
   },
@@ -18940,7 +19019,9 @@
    ],
    "decisions": [
     "spec/decisions/02-product-overview.md#Q-0220",
-    "spec/decisions/02-product-overview.md#Q-0237"
+    "spec/decisions/02-product-overview.md#Q-0237",
+    "spec/decisions/05-screens.md#Q-0790",
+    "spec/decisions/02-product-overview.md#Q-0794"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-17.md",
@@ -18971,7 +19052,8 @@
     "spec/decisions/02-product-overview.md#Q-0220",
     "spec/decisions/02-product-overview.md#Q-0237",
     "spec/decisions/05-screens.md#Q-0214",
-    "spec/decisions/10-permissions-and-settings.md#Q-0121"
+    "spec/decisions/10-permissions-and-settings.md#Q-0121",
+    "spec/decisions/05-screens.md#Q-0790"
    ],
    "mockups": [],
    "phase_file": "tickets/phases/phase-17.md",
@@ -19004,7 +19086,8 @@
    "decisions": [
     "spec/decisions/02-product-overview.md#Q-0372",
     "spec/decisions/02-product-overview.md#Q-0237",
-    "spec/decisions/13b-round-26.md#R2"
+    "spec/decisions/13b-round-26.md#R2",
+    "spec/decisions/05-screens.md#Q-0790"
    ],
    "mockups": [
     "mockups/S15fRender.png"

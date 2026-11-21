@@ -10,7 +10,7 @@ Written 2026-11-20 when phases 48 to 55 were prepared for the build loop:
 
 Everything else was settled from the spec, your decisions and the drawings. The choices are in `vault/build/assumptions.md` under "Phases 48-49 prep" to "Phases 54-55 prep", with proposed wording marked "Wording for Josh to confirm".
 
-**Six questions. None holds a ticket**; each piece builds the recommended way and a different answer becomes a small follow-on ticket. One ticket stays held, as before: the real office render runner (EZD-1120) waits on a GPU computer (Q-0018).
+**Six questions, all answered 2026-11-20 (Q-0790 to Q-0795). None held a ticket**; each piece builds the recommended way and a different answer becomes a small follow-on ticket. One ticket stays held, as before: the real office render runner (EZD-1120) waits on a GPU computer (Q-0018).
 
 **Retired, not built:** the Spanish review screen, review card buttons, draft warnings, glossary, bulk approve, propagation and translation settings (EZD-1504 to EZD-1510). Your decision Q-0234 removed the review queue they belonged to. Nothing else depended on them.
 
@@ -37,6 +37,8 @@ One button on your Catalog drawing won't be built: "Edit in Detail" on a custom 
 - (a) Build them from the spec in the style of the nearest approved drawing (recommended)
 - (b) Make drawings first for the ones you name (for example billing, paywall and sign-up)
 
+**Josh's answer (2026-11-20): (a), "yes".** Recorded as Q-0790.
+
 ---
 
 ## 2. More electrical things EZ Draft can't draw
@@ -52,6 +54,8 @@ One button on your Catalog drawing won't be built: "Edit in Detail" on a custom 
 - (a) Add the common remodel ones: EV charger, A/C disconnect, microwave and wall oven as fixtures, and room types Porch or lanai, Sunroom and Foyer (new tickets after phase 57) (recommended)
 - (b) Add all of them, as you did for Q-0789
 - (c) Leave them as not checked in v1
+
+**Josh's answer (2026-11-20): (a), "yes".** Recorded as Q-0791. New phase 58 adds the EV charger, A/C and appliance disconnect, microwave and wall oven, and room types Porch or lanai, Sunroom and Foyer, with their rules switched on.
 
 ---
 
@@ -69,6 +73,8 @@ One button on your Catalog drawing won't be built: "Edit in Detail" on a custom 
 - (b) Add the measurement check: if the Spanish changes any number, the crew sees the English for that line
 - (c) (b) plus a company word list in Settings
 
+**Josh's answer (2026-11-20): "yes" to the measurement check, (b).** Recorded as Q-0792: if the Spanish changes any number, crew see the English for that line.
+
 ---
 
 ## 4. The allowance summary on the client's selections PDF
@@ -83,6 +89,8 @@ One button on your Catalog drawing won't be built: "Edit in Detail" on a custom 
 
 - (a) Items and sell prices per category, with a total (recommended)
 - (b) Also a budget per category for each project, with "over" or "under" shown (a small follow-on ticket)
+
+**Josh's answer (2026-11-20): "both", (b).** Recorded as Q-0793. New ticket EZD-1618 adds a budget per allowance category per project, with over or under on the PDF.
 
 ---
 
@@ -99,6 +107,8 @@ One button on your Catalog drawing won't be built: "Edit in Detail" on a custom 
 - (a) By role: Foreman and Crew are free; everyone else (Owner, Designer, any custom role) is an office user (recommended)
 - (b) By permissions: anyone who can edit drawings, create projects, issue, send to the client or change settings is an office user, whatever the role is called
 
+**Josh's answer (2026-11-20): "permissions", (b).** Recorded as Q-0794.
+
 ---
 
 ## 6. What a company that hasn't paid can still do
@@ -113,6 +123,8 @@ One button on your Catalog drawing won't be built: "Edit in Detail" on a custom 
 
 - (a) View-only: everyone can still open and export projects, and client links already sent keep working; nothing can be edited, created, rendered or sent until someone pays (recommended)
 - (b) Full block: only the paywall page shows; client links keep working
+
+**Josh's answer (2026-11-20): "view and export for 14 days after they stop paying".** Recorded as Q-0795: 14 days of view and export (client links keep working), then only the paywall page and client links stop; no data is deleted.
 
 ---
 
