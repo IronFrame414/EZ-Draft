@@ -430,7 +430,8 @@
     "EZD-1201",
     "EZD-507",
     "EZD-1408",
-    "EZD-709"
+    "EZD-709",
+    "EZD-702a"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1252,6 +1253,14 @@
       "ts": "2026-11-21T14:10:51Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-702a",
+      "title": "Sheets screen",
+      "commit": "2b5a1e21",
+      "ts": "2026-11-21T14:39:26Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -1381,11 +1390,11 @@
     }
   },
   "running": {
-    "EZD-702a": {
-      "lane": 1,
-      "title": "Sheets screen",
-      "started": "2026-11-21T13:01:54Z",
-      "develop": "c6679012"
+    "EZD-901a": {
+      "lane": 2,
+      "title": "Reference conversion job",
+      "started": "2026-11-21T14:12:14Z",
+      "develop": "a2b875cb"
     }
   },
   "advisories_checked_at": "2026-11-21T12:27:43Z"
