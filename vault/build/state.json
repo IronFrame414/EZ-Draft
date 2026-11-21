@@ -421,7 +421,8 @@
     "EZD-230",
     "EZD-1415",
     "EZD-1314",
-    "EZD-1416"
+    "EZD-1416",
+    "EZD-701"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1171,6 +1172,14 @@
       "ts": "2026-11-21T05:39:33Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-701",
+      "title": "Sheet model and default set",
+      "commit": "821cc952",
+      "ts": "2026-11-21T06:09:45Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1290,12 +1299,6 @@
     }
   },
   "running": {
-    "EZD-701": {
-      "lane": 2,
-      "title": "Sheet model and default set",
-      "started": "2026-11-21T03:54:33Z",
-      "develop": "7eed1508"
-    },
     "EZD-416": {
       "lane": 3,
       "title": "Left panel and status bar",
