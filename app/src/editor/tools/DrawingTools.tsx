@@ -29,7 +29,10 @@ import {
   useSyncExternalStore,
 } from 'react';
 import type { RefObject } from 'react';
-import type { RailTool } from '../../components/shell/rail-types';
+import { orderRailTools, type RailTool } from '../../components/shell/rail-types';
+import { commandForKey, type ShortcutBindings } from '../../lib/defaults/shortcut-keys';
+import { railToolsWithKeys } from '../help/rail-keys';
+import { isTypingTarget } from '../typed-entry/typed-entry';
 import { ToolRail } from '../../components/shell/ToolRail';
 import { useCoarsePointer } from '../../lib/device/useDeviceLayout';
 import { useT } from '../../lib/messages';
@@ -104,6 +107,10 @@ export type DrawingRailProps = {
   surface?: SurfaceSetting | null;
   // EZD-222: the Help button and its key; without it there is no Help button.
   help?: { shortcut: string | undefined; onOpen: () => void } | null;
+  // EZD-230: the company key map (the Ceiling tool's key and tooltip), and the user's tool order with its change.
+  bindings?: ShortcutBindings;
+  order?: readonly string[];
+  onReorder?: (ids: string[]) => void;
 };
 
 const floorSurface = () => null;
@@ -114,7 +121,17 @@ export function helpRailTool(shortcut: string | undefined): RailTool {
   return { kind: 'tool', id: 'help', icon: 'help', label: 'office.tool.help', shortcut };
 }
 
-export function DrawingRail({ drawing, selection, rail, assistant, surface, help }: DrawingRailProps) {
+export function DrawingRail({
+  drawing,
+  selection,
+  rail,
+  assistant,
+  surface,
+  help,
+  bindings,
+  order,
+  onReorder,
+}: DrawingRailProps) {
   const ui = useSyncExternalStore<DrawingUi | null>(
     drawing ? drawing.subscribe : noSubscribe,
     () => drawing?.getUi() ?? null,
@@ -131,6 +148,30 @@ export function DrawingRail({ drawing, selection, rail, assistant, surface, help
   ];
   const pressedIds = assistant ? (assistant.open ? ['assistant'] : []) : undefined;
   const select = rail.tools.find((t) => t.id === 'select');
+  // EZD-230 (04 Tool rail "Ceiling | G"; Q-0038): the standard rail with every tool's company key, in the user's order.
+  const floorTools = surface ? [...rail.tools, CEILING_RAIL_TOOL] : [...rail.tools];
+  const floorTop = orderRailTools(
+    bindings ? railToolsWithKeys(floorTools, bindings) : floorTools,
+    order ?? [],
+  );
+  // EZD-230: the Ceiling key does what its button does, while the button is on (not during Adjust or loading).
+  const ceilingOn =
+    surface !== undefined &&
+    surface !== null &&
+    !rail.disabled &&
+    (rail.only ?? 'ceiling') === 'ceiling';
+  useEffect(() => {
+    if (!ceilingOn || !surface || !bindings) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || isTypingTarget(e.target)) return;
+      if (commandForKey(bindings, e) !== 'ceiling' || surface.get().surface !== 'floor') return;
+      e.preventDefault();
+      selection?.selectTool();
+      surface.setSurface('ceiling');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [ceilingOn, surface, bindings, selection]);
   if (surface && shown !== null && shown.surface !== 'floor' && select !== undefined) {
     const ceiling = ceilingRail(select, rail);
     return (
@@ -155,7 +196,8 @@ export function DrawingRail({ drawing, selection, rail, assistant, surface, help
   }
   return (
     <ToolRail
-      top={surface ? [...rail.tools, CEILING_RAIL_TOOL] : [...rail.tools]}
+      top={floorTop}
+      onReorder={rail.disabled || rail.only !== undefined ? undefined : onReorder}
       bottom={bottom}
       activeId={ui?.tool ?? 'select'}
       pressedIds={pressedIds}

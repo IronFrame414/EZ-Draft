@@ -73,6 +73,7 @@ import {
 import { DeviceLayout } from '../components/device/DeviceLayout';
 import { bindingsOf, commandForKey, type ShortcutBindings } from '../lib/defaults/shortcut-keys';
 import { railToolsWithKeys, shortcutText } from './help/rail-keys';
+import { nextRailOrder } from '../components/shell/rail-types';
 import { isTypingTarget } from './typed-entry/typed-entry';
 import { EditorFrame } from '../components/shell/EditorFrame';
 import { EditorHeader } from '../components/shell/EditorHeader';
@@ -214,6 +215,8 @@ export type ProjectEditorProps = {
   benchmark?: boolean;
   // EZD-111: the viewer holds Send to client for this project (the page decides; the route checks again).
   canSend?: boolean;
+  // EZD-230 (Q-0038): the user's own rail tool order, read by the page; the default order without it.
+  railOrder?: readonly string[];
 };
 
 export type EditorTestHook = {
@@ -281,6 +284,7 @@ export function ProjectEditor({
   conflictsOpen,
   benchmark,
   canSend = false,
+  railOrder: initialRailOrder,
 }: ProjectEditorProps): ReactElement {
   const t = useT();
   // EZD-111: the Send dialog, and Project settings opened from its no-client message.
@@ -579,6 +583,26 @@ export function ProjectEditor({
     () => bindingsOf(JSON.parse(shortcutsText) as unknown),
     [shortcutsText],
   );
+  // EZD-230 (Q-0038 "each user can set the order of the tools on the rail"; Q-0122): the user's own tool order, read
+  // by the page. A move shows at once and is saved; a failed save shows a toast and the rail keeps the new order for
+  // this page.
+  const [railOrder, setRailOrder] = useState<readonly string[]>(initialRailOrder ?? []);
+  const onRailReorder = useCallback((shown: string[]) => {
+    setRailOrder((stored) => {
+      const next = nextRailOrder(shown, stored);
+      void fetch('/api/profile/rail-order', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ order: next }),
+      })
+        .then((r) => r.ok)
+        .catch(() => false)
+        .then((ok) => {
+          if (!ok) messageRef.current('office.rail.order_save_failed');
+        });
+      return next;
+    });
+  }, []);
   // EZD-222 (S03 Help): the Help panel, opened by the rail button or the Help key on a loaded editor.
   const [helpOpen, setHelpOpen] = useState(false);
   const closeHelp = useCallback(() => setHelpOpen(false), []);
@@ -1135,6 +1159,9 @@ export function ProjectEditor({
             ? { shortcut: shortcutText(bindings, 'help'), onOpen: () => setHelpOpen(true) }
             : null
         }
+        bindings={bindings}
+        order={railOrder}
+        onReorder={onRailReorder}
       />
     );
   const panel =

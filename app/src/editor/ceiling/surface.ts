@@ -54,11 +54,13 @@ export function createSurfaceSetting(surface: PlanSurface = 'floor'): SurfaceSet
 }
 
 // S05 Entry points "the Ceiling tool (roofing icon) in the standard tool rail".
+// EZD-230 (04 Tool rail "Ceiling | G"): its key is the company's, shown through railToolsWithKeys.
 export const CEILING_RAIL_TOOL: RailTool = {
   kind: 'tool',
   id: 'ceiling',
   icon: 'roofing',
   label: 'office.tool.ceiling',
+  shortcut: 'G',
 };
 
 // S05 Layout, in its order; the separator after Select as on board S05Ceiling.
@@ -127,7 +129,25 @@ export function ceilingRail(
 // and the edit keys stay. Measure is not on the ceiling rail either.
 // EZD-222 (S15d Keyboard shortcuts): the keys are the company's, so a rebound tool key is swallowed and its old
 // letter is not.
-const KEPT_COMMANDS: ReadonlySet<string> = new Set(['select', 'help', 'undo', 'redo', 'copy', 'paste']);
+// EZD-230: the tab keys (digits, which also open the typed boxes), Save, Check (on every mode rail, 04), Pan, Look up
+// and Ceiling itself are not floor tool keys either.
+const KEPT_COMMANDS: ReadonlySet<string> = new Set([
+  'select',
+  'help',
+  'undo',
+  'redo',
+  'copy',
+  'paste',
+  'ceiling',
+  'check',
+  'pan',
+  'look-up',
+  'tab-plan',
+  'tab-3d',
+  'tab-sheets',
+  'tab-render',
+  'save',
+]);
 export function isFloorToolKey(e: ToolKeyEvent, bindings: ShortcutBindings = DEFAULT_BINDINGS): boolean {
   if (e.defaultPrevented || isTypingTarget(e.target)) return false;
   const command = commandForKey(bindings, e);

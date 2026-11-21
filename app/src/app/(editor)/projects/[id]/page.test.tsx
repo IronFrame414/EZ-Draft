@@ -13,6 +13,9 @@ vi.mock('../../../../server/auth/session', () => ({
   })),
 }));
 vi.mock('../../../../editor/ProjectEditor', () => ({ ProjectEditor: vi.fn(() => null) }));
+// EZD-230: the page reads the user's rail tool order with the page and passes it on.
+vi.mock('../../../../server/auth/supabase-server', () => ({ createSessionClient: vi.fn(() => ({})) }));
+vi.mock('../../../../server/profile/rail-order', () => ({ loadRailOrder: vi.fn(async () => ['wall']) }));
 // EZD-111: the page reads the permission context for Share; no member here, so no Share.
 vi.mock('../../../../server/settings/shell-data', () => ({
   settingsPermissionContext: vi.fn(async () => null),
@@ -37,7 +40,7 @@ describe('EZD-120c editor page', () => {
       (await EditorPage({ params: Promise.resolve({ id: ID }) })) as ReactElement,
     );
     expect(requireSession).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(ProjectEditor).mock.calls[0][0]).toEqual({ projectId: ID, devHooks: false });
+    expect(vi.mocked(ProjectEditor).mock.calls[0][0]).toEqual({ projectId: ID, railOrder: ['wall'], devHooks: false });
 
     vi.mocked(ProjectEditor).mockClear();
     vi.stubEnv('VERCEL_ENV', 'preview');
@@ -45,7 +48,7 @@ describe('EZD-120c editor page', () => {
       (await EditorPage({ params: Promise.resolve({ id: ID }) })) as ReactElement,
     );
     expect(requireSession).toHaveBeenCalledTimes(2);
-    expect(vi.mocked(ProjectEditor).mock.calls[0][0]).toEqual({ projectId: ID, devHooks: true });
+    expect(vi.mocked(ProjectEditor).mock.calls[0][0]).toEqual({ projectId: ID, railOrder: ['wall'], devHooks: true });
   });
 });
 
@@ -66,11 +69,12 @@ describe('EZD-299 editor page conflicts query', () => {
     };
     expect(await propsFor({ conflicts: 'open' })).toEqual({
       projectId: ID,
+      railOrder: ['wall'],
       devHooks: true,
       conflictsOpen: true,
     });
-    expect(await propsFor({ conflicts: ['open'] })).toEqual({ projectId: ID, devHooks: true });
-    expect(await propsFor({ conflicts: 'OPEN' })).toEqual({ projectId: ID, devHooks: true });
-    expect(await propsFor({})).toEqual({ projectId: ID, devHooks: true });
+    expect(await propsFor({ conflicts: ['open'] })).toEqual({ projectId: ID, railOrder: ['wall'], devHooks: true });
+    expect(await propsFor({ conflicts: 'OPEN' })).toEqual({ projectId: ID, railOrder: ['wall'], devHooks: true });
+    expect(await propsFor({})).toEqual({ projectId: ID, railOrder: ['wall'], devHooks: true });
   });
 });

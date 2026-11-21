@@ -515,9 +515,10 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 - Sizes are the 04 sizes, border-box, taken from the frame tokens in `tokens.css` (left panel 248, inspector 336, status bar 30, grid 32, body padding and gap 16).
 - With `backdrop` the frame drops its CSS grid and the plan canvas draws it (EZD-207a).
 - Rail entries are props. EZD-230 owns the tool list, the "More tools" flyout and the per-user order (Q-0038 (b), Q-0122 (a)); a tool appears only when its feature exists. The tooltip is CSS only (EZD-012a).
+- **Full rail (EZD-230).** The key map (`lib/defaults/shortcut-keys.ts` `DEFAULT_KEYS`, `shortcuts.ts` `SHORTCUT_COMMANDS`) has every 04 rail tool plus Pan, Look up, tabs 1 to 4 and Save; a tool not built yet has a row but no button. A stored map reads through `resolveOverrides` (an owner key beats a default key, which reads cleared); saving stays strict (`checkOverrides`). `ToolRail` takes `onReorder`: a top tool is dragged (8 px threshold) or moved with Alt+Up/Down; `DrawingRail` applies the user's order (`orderRailTools`) and the editor page reads it with the page (no extra editor request) and `ProjectEditor` saves it at `/api/profile/rail-order` (`app_user.rail_order`, written only by `update_my_rail_order`). When the top tools do not fit, the last place is "More tools" with a flyout; the rail measures its top group with a `ResizeObserver` (a size change only; no pointer, scroll or resize listener), and listens for a press outside and Esc only while the flyout is open.
 - Status bar readouts that change per pointer move write through a ref, never React state (11 rule 4). The disclaimer line goes in the status bar (EZD-136, Q-0229).
 - The left panel and the inspector `<aside>` render only when their label (`leftPanelLabel`, `inspectorLabel`) is given; an aside always has a label (EZD-120c).
-- The shell adds no pointer, scroll or resize listener.
+- The shell adds no pointer, scroll or resize listener, except the rail's own (EZD-230 below).
 
 ### Typed dimension bar (EZD-209)
 

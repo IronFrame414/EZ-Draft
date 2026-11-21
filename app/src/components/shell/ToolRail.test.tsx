@@ -9,7 +9,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { MessagesProvider } from '../../lib/messages';
 import { catalogFor } from '../../server/messages/catalog';
 import { ToolRail } from './index';
-import type { RailEntry, RailTool } from './rail-types';
+import { moveRailTool, nextRailOrder, orderRailTools, type RailEntry, type RailTool } from './rail-types';
 import { DRAWING_RAIL_TOOLS } from '../../editor/tools';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -260,5 +260,37 @@ describe('EZD-225 ToolRail paused tools', () => {
     expect(rule).not.toBeNull();
     expect(rule![1]).toMatch(/opacity:\s*0?\.55;/);
     expect(rule![1]).toMatch(/color:\s*var\(--ez-slate-700\);/);
+  });
+});
+
+// EZD-230 (Q-0038 "each user can set the order of the tools on the rail"; Q-0122).
+describe('EZD-230 rail order', () => {
+  it('orderRailTools: listed tools first in the list order, the rest in default order, unknown ids skipped', () => {
+    const tools = ['select', 'move', 'wall', 'door'].map((id) => ({ id }));
+    expect(orderRailTools(tools, []).map((t) => t.id)).toEqual(['select', 'move', 'wall', 'door']);
+    expect(orderRailTools(tools, ['door', 'nope', 'select']).map((t) => t.id)).toEqual([
+      'door',
+      'select',
+      'move',
+      'wall',
+    ]);
+  });
+
+  it('moveRailTool moves one id to a place, clamped; nextRailOrder keeps ids this rail does not show', () => {
+    expect(moveRailTool(['a', 'b', 'c', 'd'], 'd', 0)).toEqual(['d', 'a', 'b', 'c']);
+    expect(moveRailTool(['a', 'b', 'c', 'd'], 'a', 2)).toEqual(['b', 'c', 'a', 'd']);
+    expect(moveRailTool(['a', 'b', 'c'], 'a', -1)).toEqual(['a', 'b', 'c']);
+    expect(moveRailTool(['a', 'b', 'c'], 'c', 9)).toEqual(['a', 'b', 'c']);
+    expect(nextRailOrder(['select', 'measure'], ['wall', 'measure', 'select'])).toEqual([
+      'select',
+      'measure',
+      'wall',
+    ]);
+  });
+
+  it('only the top tools are movable slots', () => {
+    const html = render(<ToolRail top={top} bottom={[help]} activeId="select" onSelect={fn} onReorder={fn} />);
+    expect(count(html, 'data-rail-slot')).toBe(top.filter((e) => e.kind === 'tool').length);
+    expect(html).not.toMatch(/data-rail-slot=""[^>]*>\s*<button[^>]*data-rail-tool="help"/);
   });
 });

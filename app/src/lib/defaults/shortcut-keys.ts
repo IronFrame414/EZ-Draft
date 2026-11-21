@@ -7,6 +7,8 @@
 // S15dDefaults writes it).
 
 // 04 Tool rail table and "Other default keys"; S15d Reset to default map. In command order.
+// EZD-230 (phase-02.md EZD-230 "all tools ... default keys including Shift combos"): every rail tool of the 04 table,
+// Pan, Look up, the four tabs and Save. A tool not built yet has its row but no rail button.
 export const DEFAULT_KEYS = {
   select: 'V',
   move: 'M',
@@ -18,13 +20,30 @@ export const DEFAULT_KEYS = {
   countertops: 'K',
   fixtures: 'F',
   electrical: 'E',
+  ceiling: 'G',
+  catalog: 'P',
+  dimension: 'L',
+  text: 'T',
   sketch: 'S',
+  'detail-callout': 'X',
+  'revision-cloud': 'Q',
+  reference: 'Shift+R',
+  markup: 'Shift+M',
+  'supplier-markup': 'Shift+S',
   measure: 'Shift+L',
+  check: 'Shift+C',
   help: '?',
+  pan: 'H',
+  'look-up': 'U',
+  'tab-plan': '1',
+  'tab-3d': '2',
+  'tab-sheets': '3',
+  'tab-render': '4',
   undo: 'Mod+Z',
   redo: 'Mod+Shift+Z',
   copy: 'Mod+C',
   paste: 'Mod+V',
+  save: 'Mod+S',
 } as const;
 
 export type ShortcutId = string;
@@ -77,7 +96,8 @@ const commandBound = (bindings: ShortcutBindings, key: string): string | null =>
 };
 
 // The command a key event runs, or null. A shifted letter no command has runs the plain letter's command, as the
-// tool keys always have (Shift+R is Room rectangle; Shift+L is Measure while L is free).
+// tool keys always have (Shift+W is Wall). EZD-230: Shift+R, Shift+M, Shift+S and Shift+C are Reference, Markup,
+// Supplier markup and Check (04 Tool rail), so they no longer fall back to Room rectangle, Move, Sketch, Cabinets.
 export function commandForKey(bindings: ShortcutBindings, e: KeyEventLike): string | null {
   const key = keyOfEvent(e);
   if (key === null) return null;

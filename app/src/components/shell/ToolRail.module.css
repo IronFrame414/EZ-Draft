@@ -115,3 +115,15 @@
     height: var(--ez-touch-target);
   }
 }
+
+/* EZD-230 (Q-0038): the tool being dragged to a new place on the rail. */
+.slot[data-rail-dragging] .tool {
+  background: var(--ez-cobalt-tint);
+  cursor: grabbing;
+}
+
+/* EZD-230 (Q-0038; Q-0630): a finger or pencil drag on a movable tool reorders it, so the browser must not take the
+   drag as a pan (which cancels the pointer). The rail itself never scrolls (More tools). */
+.tool[data-rail-movable] {
+  touch-action: none;
+}

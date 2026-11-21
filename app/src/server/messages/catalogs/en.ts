@@ -2467,7 +2467,7 @@ export const en = {
   'office.shortcuts.filter_all': 'All',
   'office.shortcuts.filter_label': 'Show commands for',
   'office.shortcuts.note':
-    'Reset fills empty rows only and never overwrites a key you set. Keys are checked within the same view. Ctrl means Cmd on Mac; Ctrl+W, T and N are reserved by the browser.',
+    'Reset fills empty rows only and never overwrites a key you set. Keys are checked within the same view. Tabs 1 to 4: Plan, 3D, Sheets, Render. Ctrl means Cmd on Mac; Ctrl+W, T and N are reserved by the browser.',
   'office.shortcuts.browser': 'The browser keeps this key. Pick another',
   'office.help.title': 'Help',
   'office.help.shortcuts': 'Keyboard shortcuts',
@@ -2477,6 +2477,26 @@ export const en = {
   'office.shortcuts.cmd.redo': 'Redo',
   'office.shortcuts.cmd.copy': 'Copy',
   'office.shortcuts.cmd.paste': 'Paste',
+  // EZD-230 Default key map and full rail (04 Tool rail names; the other wording is listed in vault/build/assumptions.md
+  // EZD-230).
+  'office.tool.catalog': 'Catalog',
+  'office.tool.dimension': 'Dimension',
+  'office.tool.text': 'Text',
+  'office.tool.detail_callout': 'Detail callout',
+  'office.tool.revision_cloud': 'Revision cloud',
+  'office.tool.reference': 'Reference',
+  'office.tool.markup': 'Markup',
+  'office.tool.supplier_markup': 'Supplier markup',
+  'office.tool.check': 'Check',
+  'office.shortcuts.cmd.pan': 'Pan',
+  'office.shortcuts.cmd.look_up': 'Look up',
+  'office.shortcuts.cmd.tab_plan': 'Plan tab',
+  'office.shortcuts.cmd.tab_3d': '3D tab',
+  'office.shortcuts.cmd.tab_sheets': 'Sheets tab',
+  'office.shortcuts.cmd.tab_render': 'Render tab',
+  'office.shortcuts.cmd.save': 'Save',
+  'office.rail.order_save_failed': 'Tool order not saved. Try again',
+  'office.rail.more_tools': 'More tools',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

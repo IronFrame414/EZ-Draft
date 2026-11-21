@@ -199,7 +199,10 @@ describe('EZD-423 drawing shell', () => {
     expect(shell.keyDown(ke('Escape'))).toBe(false);
     expect(shell.keyDown(ke('Enter'))).toBe(false);
     expect(load).not.toHaveBeenCalled();
-    expect(shell.keyDown(ke('R', { shiftKey: true }))).toBe(true);
+    // EZD-230: Shift+R is Reference (04 Tool rail), not a tool key yet; Shift+W still falls back to Wall.
+    expect(shell.keyDown(ke('R', { shiftKey: true }))).toBe(false);
+    expect(load).not.toHaveBeenCalled();
+    expect(shell.keyDown(ke('W', { shiftKey: true }))).toBe(true);
     expect(load).toHaveBeenCalledTimes(1);
   });
 

@@ -14,7 +14,7 @@ import {
   type LengthRange,
   type ShortcutMap,
 } from './registry';
-import { checkOverrides, overridesOf, effectiveBindings } from './shortcuts';
+import { checkOverrides, overridesOf, effectiveBindings, resolveOverrides } from './shortcuts';
 
 export type StoredDefaults = Record<string, unknown>;
 export type EffectiveDefaults = Record<string, DefaultValue | null>;
@@ -110,6 +110,11 @@ export function effectiveValue(key: string, stored: StoredDefaults | null | unde
   const row = defaultRow(key);
   if (!row) return null;
   const v = stored?.[key];
+  // EZD-230: a stored key map reads with the owner's keys over the defaults (shortcuts.ts resolveOverrides).
+  if (row.type === 'shortcuts') {
+    const own = v === undefined || v === null ? null : resolveOverrides(v);
+    return own === null ? row.default : (own as DefaultValue);
+  }
   if (v !== undefined && v !== null && checkValue(row, v).ok) return v as DefaultValue;
   return row.default;
 }

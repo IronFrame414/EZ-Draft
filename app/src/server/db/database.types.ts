@@ -85,14 +85,14 @@ isOneToOne: false
                   ]
                 },"app_user": {
                   Row: {
-                    "auth_user_id": string | null,"created_at": string,"email": string,"id": string,"ipad_input_mode": string | null,"language": string,"name": string | null,"role_preset": string | null,"updated_at": string
+                    "auth_user_id": string | null,"created_at": string,"email": string,"id": string,"ipad_input_mode": string | null,"language": string,"name": string | null,"rail_order": (string)[],"role_preset": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "auth_user_id"?: string | null,"created_at"?: string,"email": string,"id"?: string,"ipad_input_mode"?: string | null,"language"?: string,"name"?: string | null,"role_preset"?: string | null,"updated_at"?: string
+                    "auth_user_id"?: string | null,"created_at"?: string,"email": string,"id"?: string,"ipad_input_mode"?: string | null,"language"?: string,"name"?: string | null,"rail_order"?: (string)[],"role_preset"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "auth_user_id"?: string | null,"created_at"?: string,"email"?: string,"id"?: string,"ipad_input_mode"?: string | null,"language"?: string,"name"?: string | null,"role_preset"?: string | null,"updated_at"?: string
+                    "auth_user_id"?: string | null,"created_at"?: string,"email"?: string,"id"?: string,"ipad_input_mode"?: string | null,"language"?: string,"name"?: string | null,"rail_order"?: (string)[],"role_preset"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -1451,6 +1451,9 @@ isOneToOne: false
 { Args: { "p_ipad_input_mode": string,"p_language": string }; Returns: {
               "language_changed": boolean,"saved_ipad_input_mode": string,"saved_language": string
             }[]
+                           },
+"update_my_rail_order":
+{ Args: { "p_order": (string)[] }; Returns: (string)[]
                            },
 "update_project_settings":
 { Args: { "p_changes": Json,"p_lock_epoch"?: number,"p_project": string }; Returns: Json

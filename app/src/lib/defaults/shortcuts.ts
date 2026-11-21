@@ -38,26 +38,63 @@ export type ShortcutCommand = {
   views: readonly ShortcutView[];
 };
 
-// 04 Tool rail table order, the built tools only; default keys from 04 and S15d Reset to default map.
+// 04 Tool rail table order; default keys from 04 and S15d Reset to default map.
+// EZD-230 (phase-02.md EZD-230 "all tools, Shown on per tab"): every rail tool of the 04 table, then the S15d default
+// map's Pan, Look up, tabs 1 to 4 and Save. A tool whose feature is not built yet has its row and key here but no
+// rail button. Walk movement, Mirror and Align have no default key in S15d and get their rows from EZD-1003 and
+// EZD-233 (vault/build/assumptions.md EZD-230).
+const cmd = (
+  id: keyof typeof DEFAULT_KEYS,
+  label: MessageKey,
+  views: readonly ShortcutView[],
+): ShortcutCommand => ({
+  id,
+  label,
+  defaultKey: DEFAULT_KEYS[id],
+  views,
+});
+// 04 "Plan, 3D, Render"; "Plan, Sheets"; "Plan".
+const CATALOG_VIEWS: readonly ShortcutView[] = ['plan', '3d', 'render'];
+const PLAN_SHEETS: readonly ShortcutView[] = ['plan', 'sheets'];
+const PLAN: readonly ShortcutView[] = ['plan'];
 export const SHORTCUT_COMMANDS: readonly ShortcutCommand[] = [
-  { id: 'select', label: 'office.tool.select', defaultKey: DEFAULT_KEYS['select'], views: EVERY_TAB },
-  { id: 'move', label: 'office.tool.move', defaultKey: DEFAULT_KEYS['move'], views: PLAN_3D },
-  { id: 'wall', label: 'office.tool.wall', defaultKey: DEFAULT_KEYS['wall'], views: PLAN_3D },
-  { id: 'room-rect', label: 'office.tool.room_rect', defaultKey: DEFAULT_KEYS['room-rect'], views: PLAN_3D },
-  { id: 'door', label: 'office.tool.door', defaultKey: DEFAULT_KEYS['door'], views: PLAN_3D },
-  { id: 'window', label: 'office.tool.window', defaultKey: DEFAULT_KEYS['window'], views: PLAN_3D },
-  { id: 'cabinets', label: 'office.tool.cabinets', defaultKey: DEFAULT_KEYS['cabinets'], views: PLAN_3D },
-  { id: 'countertops', label: 'office.tool.countertops', defaultKey: DEFAULT_KEYS['countertops'], views: PLAN_3D },
-  { id: 'fixtures', label: 'office.tool.fixtures', defaultKey: DEFAULT_KEYS['fixtures'], views: PLAN_3D },
-  { id: 'electrical', label: 'office.tool.electrical', defaultKey: DEFAULT_KEYS['electrical'], views: PLAN_3D },
-  { id: 'sketch', label: 'office.tool.sketch', defaultKey: DEFAULT_KEYS['sketch'], views: ['plan'] },
-  { id: 'measure', label: 'office.tool.measure', defaultKey: DEFAULT_KEYS['measure'], views: EVERY_TAB },
-  { id: 'help', label: 'office.tool.help', defaultKey: DEFAULT_KEYS['help'], views: EVERY_TAB },
-  // 04 "Other default keys": Undo Ctrl/Cmd+Z, Redo Ctrl/Cmd+Shift+Z, Copy / Paste Ctrl/Cmd+C / V (S15d table rows).
-  { id: 'undo', label: 'office.shortcuts.cmd.undo', defaultKey: DEFAULT_KEYS['undo'], views: EVERY_TAB },
-  { id: 'redo', label: 'office.shortcuts.cmd.redo', defaultKey: DEFAULT_KEYS['redo'], views: EVERY_TAB },
-  { id: 'copy', label: 'office.shortcuts.cmd.copy', defaultKey: DEFAULT_KEYS['copy'], views: EVERY_TAB },
-  { id: 'paste', label: 'office.shortcuts.cmd.paste', defaultKey: DEFAULT_KEYS['paste'], views: EVERY_TAB },
+  cmd('select', 'office.tool.select', EVERY_TAB),
+  cmd('move', 'office.tool.move', PLAN_3D),
+  cmd('wall', 'office.tool.wall', PLAN_3D),
+  cmd('room-rect', 'office.tool.room_rect', PLAN_3D),
+  cmd('door', 'office.tool.door', PLAN_3D),
+  cmd('window', 'office.tool.window', PLAN_3D),
+  cmd('cabinets', 'office.tool.cabinets', PLAN_3D),
+  cmd('countertops', 'office.tool.countertops', PLAN_3D),
+  cmd('fixtures', 'office.tool.fixtures', PLAN_3D),
+  cmd('electrical', 'office.tool.electrical', PLAN_3D),
+  cmd('ceiling', 'office.tool.ceiling', PLAN_3D),
+  cmd('catalog', 'office.tool.catalog', CATALOG_VIEWS),
+  cmd('dimension', 'office.tool.dimension', PLAN_3D),
+  cmd('text', 'office.tool.text', PLAN_SHEETS),
+  cmd('sketch', 'office.tool.sketch', PLAN),
+  cmd('detail-callout', 'office.tool.detail_callout', PLAN_SHEETS),
+  cmd('revision-cloud', 'office.tool.revision_cloud', PLAN_SHEETS),
+  // 04 "Plan" and "Plan (reference mode)": both on the Plan tab.
+  cmd('reference', 'office.tool.reference', PLAN),
+  cmd('markup', 'office.tool.markup', PLAN),
+  cmd('supplier-markup', 'office.tool.supplier_markup', PLAN),
+  cmd('measure', 'office.tool.measure', EVERY_TAB),
+  cmd('check', 'office.tool.check', EVERY_TAB),
+  cmd('help', 'office.tool.help', EVERY_TAB),
+  // 04 Other default keys: Pan H (Sheets), Look up U (3D), the tabs 1 to 4 (every tab).
+  cmd('pan', 'office.shortcuts.cmd.pan', ['sheets']),
+  cmd('look-up', 'office.shortcuts.cmd.look_up', ['3d']),
+  cmd('tab-plan', 'office.shortcuts.cmd.tab_plan', EVERY_TAB),
+  cmd('tab-3d', 'office.shortcuts.cmd.tab_3d', EVERY_TAB),
+  cmd('tab-sheets', 'office.shortcuts.cmd.tab_sheets', EVERY_TAB),
+  cmd('tab-render', 'office.shortcuts.cmd.tab_render', EVERY_TAB),
+  // 04 Other default keys: Undo Ctrl/Cmd+Z, Redo Ctrl/Cmd+Shift+Z, Copy / Paste Ctrl/Cmd+C / V, Save Ctrl/Cmd+S.
+  cmd('undo', 'office.shortcuts.cmd.undo', EVERY_TAB),
+  cmd('redo', 'office.shortcuts.cmd.redo', EVERY_TAB),
+  cmd('copy', 'office.shortcuts.cmd.copy', EVERY_TAB),
+  cmd('paste', 'office.shortcuts.cmd.paste', EVERY_TAB),
+  cmd('save', 'office.shortcuts.cmd.save', EVERY_TAB),
 ];
 
 // What is stored: the owner's changes only.
@@ -113,9 +150,9 @@ export function isKeyText(key: string): boolean {
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
 
-// The key in force for every command: the stored change, else the default.
+// The key in force for every command: the stored change, else the default (resolveOverrides).
 export function effectiveBindings(stored: unknown): ShortcutBindings {
-  const own = isRecord(stored) && checkOverrides(stored) === null ? stored : {};
+  const own = resolveOverrides(stored) ?? {};
   const out: Record<string, string> = {};
   for (const c of SHORTCUT_COMMANDS) {
     const v = own[c.id];
@@ -187,6 +224,44 @@ export function resetToDefaultMap(bindings: ShortcutBindings): ShortcutBindings 
   for (const c of SHORTCUT_COMMANDS) {
     if ((out[c.id] ?? '') !== '') continue;
     if (usedBy(out, c.id, c.defaultKey) === null) out[c.id] = c.defaultKey;
+  }
+  return out;
+}
+
+// EZD-230 (S15d Reset to default map "Never overwrites a key already set"; vault/build/assumptions.md EZD-222, the
+// open clash): how a stored map reads. A key the owner set wins over a default key: a command still on its default
+// whose key a set key uses in a shared view reads as cleared (''), "Not set", as when a later ticket adds a command
+// whose default key the owner already gave to another. The map reads as the default map ({}, null here) only when
+// it is not a map, names no known command, holds bad or browser keys, or two set keys clash. Saving stays strict
+// (checkOverrides), so the owner's next save stores the cleared row.
+export function resolveOverrides(v: unknown): ShortcutOverrides | null {
+  if (!isRecord(v)) return null;
+  const set: Record<string, string> = {};
+  for (const [id, key] of Object.entries(v)) {
+    if (!BY_ID.has(id) || typeof key !== 'string') return null;
+    if (key !== '' && !isKeyText(key)) return null;
+    if (isBrowserKey(key)) return null;
+    set[id] = key;
+  }
+  for (const id of Object.keys(set)) {
+    const me = BY_ID.get(id)!;
+    for (const other of Object.keys(set)) {
+      if (
+        other !== id &&
+        set[id] !== '' &&
+        set[other] === set[id] &&
+        shareView(me, BY_ID.get(other)!)
+      )
+        return null;
+    }
+  }
+  const out: Record<string, string> = { ...set };
+  for (const c of SHORTCUT_COMMANDS) {
+    if (c.id in set) continue;
+    const taken = Object.keys(set).some(
+      (id) => set[id] === c.defaultKey && shareView(c, BY_ID.get(id)!),
+    );
+    if (taken) out[c.id] = '';
   }
   return out;
 }

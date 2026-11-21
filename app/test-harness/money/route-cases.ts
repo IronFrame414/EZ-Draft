@@ -116,6 +116,21 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     request: sendJson('PUT', '/api/profile/notifications', { settings: SETTINGS_CHANGED }),
     expectStatus: 200,
   },
+  // EZD-230: the user's own rail tool order.
+  {
+    file: `${API}profile/rail-order/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/profile/rail-order/route'),
+    request: get('/api/profile/rail-order'),
+    expectStatus: 200,
+  },
+  {
+    file: `${API}profile/rail-order/route.ts`,
+    method: 'PUT',
+    load: () => import('../../src/app/api/profile/rail-order/route'),
+    request: sendJson('PUT', '/api/profile/rail-order', { order: ['wall', 'select'] }),
+    expectStatus: 200,
+  },
   {
     file: `${API}realtime/token/route.ts`,
     method: 'GET',
