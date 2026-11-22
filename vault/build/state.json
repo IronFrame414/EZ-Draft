@@ -442,7 +442,8 @@
     "EZD-504",
     "EZD-414",
     "EZD-1419",
-    "EZD-702b"
+    "EZD-702b",
+    "EZD-914"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1360,6 +1361,14 @@
       "ts": "2026-11-22T10:35:25Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-914",
+      "title": "Supplier files panel",
+      "commit": "1c0116a3",
+      "ts": "2026-11-22T11:48:20Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1504,11 +1513,11 @@
     }
   },
   "running": {
-    "EZD-914": {
-      "lane": 2,
-      "title": "Supplier files panel",
-      "started": "2026-11-22T09:14:30Z",
-      "develop": "fbe4a3af"
+    "EZD-403": {
+      "lane": 1,
+      "title": "Cabinet library panel",
+      "started": "2026-11-22T10:36:22Z",
+      "develop": "5c7e78be"
     }
   },
   "advisories_checked_at": "2026-11-22T10:10:59Z",
