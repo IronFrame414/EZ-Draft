@@ -438,7 +438,8 @@
     "EZD-1402",
     "EZD-503",
     "EZD-1417",
-    "EZD-515"
+    "EZD-515",
+    "EZD-504"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1324,11 +1325,19 @@
       "ts": "2026-11-22T06:39:16Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-504",
+      "title": "Walls cut under slopes",
+      "commit": "03e8cd32",
+      "ts": "2026-11-22T08:12:40Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1474,11 +1483,11 @@
       "started": "2026-11-22T06:39:21Z",
       "develop": "f7596814"
     },
-    "EZD-504": {
-      "lane": 3,
-      "title": "Walls cut under slopes",
-      "started": "2026-11-22T06:39:22Z",
-      "develop": "f7596814"
+    "EZD-1419": {
+      "lane": 2,
+      "title": "Field measure entry points and states",
+      "started": "2026-11-22T07:31:09Z",
+      "develop": "89c48089"
     }
   },
   "advisories_checked_at": "2026-11-22T04:10:20Z"
