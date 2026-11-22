@@ -100,6 +100,8 @@ export const EVENTS = {
   'customer.created': { kind: 'log_only' },
   'customer.updated': { kind: 'log_only' },
   'project.created': { kind: 'log_only' },
+  // EZD-711 (phase-07 EZD-711 "property_record.imported"): a member saved the confirmed appraiser fields.
+  'property_record.imported': { kind: 'log_only' },
   // EZD-130 (Q-0697 decisions 03): Project settings saved; the changed keys.
   'project.updated': { kind: 'log_only' },
   // EZD-124 (Q-0708; Q-0700 decisions 03): the card menu's writes. Written only as the event_log row inside each
@@ -271,6 +273,13 @@ export interface EventPayloads {
   // EZD-130: field names (name, address, scope_of_work, type, customer_id) and per-project default keys.
   // EZD-613 adds code_edition; EZD-739 adds scope_trades (the scope tick boxes).
   'project.updated': { projectId: string; keys: string[] };
+  // EZD-711: the confirmed field names and the lead flag; never the owner or other values.
+  'property_record.imported': {
+    projectId: string;
+    recordId: string;
+    fields: ('parcelNo' | 'owner' | 'legalDescription' | 'yearBuilt' | 'livingArea')[];
+    leadFlag: boolean;
+  };
   'project.renamed': { projectId: string; from: string; to: string };
   'project.status_changed': { projectId: string; from: string; to: string };
   'project.archived': { projectId: string };

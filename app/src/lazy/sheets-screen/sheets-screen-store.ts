@@ -40,6 +40,8 @@ export type SheetsScreenDeps = { loadRenderer?: () => Promise<SheetRenderer> };
 const sheetsRenderer = lazyModule(() => import('../sheets'));
 
 export type SheetsScreen = {
+  // EZD-711: the project, for the Property appraiser import dialog.
+  readonly projectId: string;
   get(): SheetsScreenState;
   subscribe(listener: () => void): () => void;
   load(): Promise<void>;
@@ -126,6 +128,7 @@ export function createSheetsScreen(
   };
 
   return {
+    projectId,
     get: () => state,
     subscribe(listener) {
       listeners.add(listener);

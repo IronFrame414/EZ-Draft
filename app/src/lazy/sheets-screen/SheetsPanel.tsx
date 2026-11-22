@@ -4,9 +4,14 @@
 // AC-EZD-702a-1): a row opens its sheet. The set selector switches between the Permit set and the Client set and
 // shows the sheet count, size and revision. Add sheet (Edit model and the edit lock) opens the type picker; its types
 // are shown but cannot be picked until sheets are stored objects (vault/build/assumptions.md EZD-702a).
+// EZD-711 (S13 Controls "Property appraiser import ... Title block tool or checklist row ... Edit model"): with no
+// sheet rail or issue checklist built yet, the panel carries a Property appraiser import button under Add sheet (Edit
+// model and the edit lock, as Add sheet); saving reloads the sets, so the title block shows the confirmed owner and PCN
+// (vault/build/assumptions.md EZD-711).
 import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
 import type { SheetSetKind } from '@ezdraft/geometry';
 import { Icon } from '../../components/icon/Icon';
+import { PropertyRecordDialog } from '../../components/property-record/PropertyRecordDialog';
 import { InlineError } from '../../components/states/InlineError';
 import { useT } from '../../lib/messages';
 import {
@@ -160,6 +165,31 @@ function AddSheet(): ReactElement {
   );
 }
 
+function PropertyImport({ screen }: { screen: SheetsScreen }): ReactElement {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        className={styles.add}
+        data-testid="sheets-property-import"
+        onClick={() => setOpen(true)}
+      >
+        <Icon name="content_paste" size={18} />
+        {t('office.property_record.open')}
+      </button>
+      {open ? (
+        <PropertyRecordDialog
+          projectId={screen.projectId}
+          onClose={() => setOpen(false)}
+          onSaved={() => void screen.load()}
+        />
+      ) : null}
+    </>
+  );
+}
+
 export function SheetsPanel({ screen, canEdit }: SheetsPanelProps): ReactElement {
   const t = useT();
   const state = useSheetsScreen(screen);
@@ -221,6 +251,7 @@ export function SheetsPanel({ screen, canEdit }: SheetsPanelProps): ReactElement
           );
         })}
         {canEdit ? <AddSheet /> : null}
+        {canEdit ? <PropertyImport screen={screen} /> : null}
       </nav>
       <ul className={styles.legend} aria-label={t('office.sheets.legend')}>
         <li>

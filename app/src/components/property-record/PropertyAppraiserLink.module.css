@@ -1,0 +1,179 @@
+/* EZD-711: board S01bWizard column 1 "Property appraiser link" box. */
+.box {
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  padding: 12px 14px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ez-ink);
+}
+
+.pill {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+}
+
+.pillDone {
+  background: var(--ez-green-tint);
+  color: var(--ez-green);
+}
+
+.linkRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  font: 400 12px var(--ez-font-sans);
+  color: var(--ez-ink);
+  padding: 6px 10px;
+  min-height: 34px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+}
+
+.input:focus-visible,
+.textarea:focus-visible {
+  outline: none;
+  border-color: var(--ez-cobalt);
+  box-shadow: 0 0 0 3px var(--ez-cobalt-tint);
+}
+
+.ok {
+  display: inline-flex;
+  color: var(--ez-green);
+}
+
+.hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--ez-slate-400);
+}
+
+.error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ez-red);
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--ez-cobalt);
+  cursor: pointer;
+}
+
+.link:disabled {
+  color: var(--ez-slate-400);
+  cursor: default;
+}
+
+.paste {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pasteLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ez-slate-500);
+}
+
+.textarea {
+  font: 400 12px var(--ez-font-sans);
+  color: var(--ez-ink);
+  padding: 6px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  resize: vertical;
+}
+
+.pasteActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fields {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  border-top: 1px solid var(--ez-divider-row);
+  font-size: 13px;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  cursor: pointer;
+}
+
+.tick {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--ez-cobalt);
+}
+
+.name {
+  color: var(--ez-slate-500);
+}
+
+.value {
+  color: var(--ez-ink);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+}
+
+.note {
+  font-size: 11px;
+  color: var(--ez-slate-400);
+}
+
+.missing {
+  color: var(--ez-slate-400);
+  font-style: italic;
+}

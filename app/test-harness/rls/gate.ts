@@ -41,6 +41,19 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   // EZD-417: the edge profile library (seeds a company's first read) and Edit offered edges (authenticated only).
   { fn: 'edge_profile_library', args: {} },
   { fn: 'save_edge_offer', args: { p_project: null, p_piece: null, p_choices: null, p_rates: null } },
+  // EZD-711: the property appraiser import's save (authenticated only).
+  {
+    fn: 'set_property_record',
+    args: {
+      p_project: null,
+      p_parcel_no: null,
+      p_owner: null,
+      p_legal_description: null,
+      p_year_built: null,
+      p_living_area: null,
+      p_source_url: null,
+    },
+  },
   // EZD-122: Name snapshot and Revert (authenticated only).
   { fn: 'name_snapshot', args: { p_project: null, p_version: null, p_name: null } },
   {

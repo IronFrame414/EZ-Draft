@@ -1,5 +1,7 @@
 // EZD-021 Step 3: the built-in recordings, keyed "<provider>/<purpose>". A later ticket adds its own entries.
 // EZD-1408 adds the field task draft (server/jobs/handlers/field-task-draft-recording.ts).
+// EZD-711 adds the property appraiser reads (server/jobs/ai-purposes/property-appraiser-recording.ts).
+import { appraiserRecordings } from '../../../jobs/ai-purposes/property-appraiser-recording';
 import { fieldTaskRecordings } from '../../../jobs/handlers/field-task-draft-recording';
 import type { Recording } from '../recorded-fetch';
 import { anthropicRecordings } from './anthropic';
@@ -13,4 +15,5 @@ export const BUILT_IN_RECORDINGS: Record<string, Recording> = {
   ...openaiRecordings,
   ...bflRecordings,
   ...fieldTaskRecordings,
+  ...appraiserRecordings,
 };

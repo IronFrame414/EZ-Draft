@@ -172,6 +172,11 @@ export const EVENT_LOG: EventLogRules = {
     mode: 'sink',
     object: (e) => ({ type: 'project', id: e.payload.projectId }),
   },
+  // EZD-711: the property appraiser import, on the project.
+  'property_record.imported': {
+    mode: 'sink',
+    object: (e) => ({ type: 'project', id: e.payload.projectId }),
+  },
   // EZD-130: Project settings saved.
   'project.updated': {
     mode: 'sink',

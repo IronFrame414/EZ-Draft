@@ -49,6 +49,15 @@ export interface UserChannelEvents {
   // open_notification (the opened id) and mark_all_notifications_read (null); the bell refetches its list.
   'notification.created': { notificationId: string };
   'notification.read': { notificationId: string | null };
+  // EZD-711: pushed by the appraiser_read_broadcast trigger for the member's own property appraiser reads (the
+  // wizard's read has no project, so it has no project channel); same payload as the project channel's.
+  'job.progress': {
+    jobId: string;
+    kind: JobKind;
+    status: JobStatus;
+    progress: number;
+    attempts: number;
+  };
 }
 
 // realtime.send adds the message id as payload key `id` when the payload has none, and the same id

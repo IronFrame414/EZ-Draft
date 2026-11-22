@@ -10,6 +10,8 @@
 // the dialog on a file source with those files; Continue to review creates the project (source file), sends the
 // originals unchanged and starts the import, then opens the project. After the project exists, a failed upload
 // keeps it and Continue to review sends only the files not yet sent.
+// EZD-711 (S01 Step 1 "Property appraiser link"; board S01bWizard): the link box under Address, for a member who
+// may also Edit model (S13 Decision 9); the confirmed fields are sent with Create as `propertyRecord`.
 import { Dialog } from 'radix-ui';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import type { TemplateDraft } from '../../lazy/template-picker';
@@ -48,6 +50,8 @@ import { Icon } from '../icon/Icon';
 import { CustomerDialog } from '../settings/company/CustomerDialog';
 import { useConfirm } from '../states';
 import { StateButton } from '../states/StateButton';
+import { PropertyAppraiserLink } from '../property-record/PropertyAppraiserLink';
+import type { ConfirmedRecord } from '../../lib/property-record/property-record';
 import { CustomerPicker } from './CustomerPicker';
 import styles from './NewProject.module.css';
 import { NewProjectStep2, type InputSource } from './NewProjectStep2';
@@ -108,6 +112,8 @@ export function NewProjectDialog({
     start === 'file' ? uploads.source : 'blank',
   );
   const [createdId, setCreatedId] = useState<string | null>(null);
+  // EZD-711: the appraiser fields the user ticked (null: none).
+  const [propertyRecord, setPropertyRecord] = useState<ConfirmedRecord | null>(null);
   const done = useRef(new Map<string, string>());
   // EZD-306: the conversion choice of each DXF drawing, asked after its upload.
   const dxf = useDxfConversion();
@@ -211,6 +217,7 @@ export function NewProjectDialog({
             ? { source: 'file' }
             : { template: read?.ok === true ? read.template : null }),
           ...(foreman !== null ? { foremanId: foreman.membershipId } : {}),
+          ...(canImport && propertyRecord !== null ? { propertyRecord } : {}),
         }),
       });
       if (res.status === 201) {
@@ -370,6 +377,14 @@ export function NewProjectDialog({
                   }}
                 />
               </label>
+              {canImport ? (
+                <PropertyAppraiserLink
+                  projectId={null}
+                  initial={propertyRecord}
+                  onChange={setPropertyRecord}
+                  disabled={!online}
+                />
+              ) : null}
               <label className={styles.field}>
                 {t('office.new_project.scope')}
                 <textarea

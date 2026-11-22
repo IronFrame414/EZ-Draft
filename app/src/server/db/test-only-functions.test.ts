@@ -214,6 +214,8 @@ describe('EZD-323 test-only database functions', () => {
       'app/src/app/api/dev/notifications/route.ts',
       // EZD-370: the sweep's AI key rewrap (ai-key-rewrap.ts line 26, called from api/jobs/sweep/route.ts line 35) reads every tenant's user_ai_key rows, granted to service_role only (EZD-5601; Q-0638).
       'app/src/server/jobs/ai-key-rewrap.ts',
+      // EZD-711: the property appraiser screenshot read stores and reads its image in the jobs bucket (no member policy; S01 "Paste screenshot").
+      'app/src/server/jobs/ai-purposes/property-appraiser-screenshot.ts',
       'app/src/server/jobs/db.ts',
       'app/src/server/jobs/default-hooks.ts',
       // EZD-1408: the field task draft job reads the project's rooms and the company's templates and writes draft field_task rows (no member write policy on field_task; S22).

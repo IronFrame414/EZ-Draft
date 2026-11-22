@@ -1686,6 +1686,49 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-214: the phase view; 200 { phase } (no money)',
   },
   {
+    file: `${API}projects/[id]/property-record/route.ts`,
+    method: 'PUT',
+    load: () => import('../../src/app/api/projects/[id]/property-record/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/property-record`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({
+          fields: { parcelNo: null, owner: 'Money case', legalDescription: null, yearBuilt: 1975, livingArea: null },
+          sourceUrl: null,
+        }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-711: the property appraiser import save; 200 { record } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/property-record/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/property-record/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/property-record`),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-711: the project property record; 200 { record } (no money)',
+  },
+  {
+    file: `${API}property-records/read/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/property-records/read/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/property-records/read`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ projectId: env.projectId, url: 'https://example.com/parcel' }),
+      }),
+    }),
+    expectStatus: 200,
+    note: 'EZD-711: a link the server may not fetch answers unreadable with no job; 200 { output } (no money)',
+  },
+  {
     file: `${API}projects/[id]/defaults/route.ts`,
     method: 'GET',
     load: () => import('../../src/app/api/projects/[id]/defaults/route'),

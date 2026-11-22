@@ -1723,6 +1723,9 @@ isOneToOne: false
 "set_project_submittal_profile":
 { Args: { "p_profile": string,"p_project": string }; Returns: boolean
                            },
+"set_property_record":
+{ Args: { "p_legal_description": string,"p_living_area": number,"p_owner": string,"p_parcel_no": string,"p_project": string,"p_source_url": string,"p_year_built": number }; Returns: string
+                           },
 "sign_in_throttle_settle":
 { Args: { "p_attempt_id": string,"p_ip_attempt_id": string }; Returns: undefined
                            },
