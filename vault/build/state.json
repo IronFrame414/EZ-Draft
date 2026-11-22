@@ -446,7 +446,8 @@
     "EZD-914",
     "EZD-710",
     "EZD-915",
-    "EZD-510"
+    "EZD-510",
+    "EZD-417"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1396,6 +1397,14 @@
       "ts": "2026-11-22T16:23:26Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-417",
+      "title": "Edge profiles",
+      "commit": "bdcf3c5d",
+      "ts": "2026-11-22T17:19:56Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1554,11 +1563,11 @@
     }
   },
   "running": {
-    "EZD-417": {
-      "lane": 2,
-      "title": "Edge profiles",
-      "started": "2026-11-22T15:39:22Z",
-      "develop": "958e67c2"
+    "EZD-602": {
+      "lane": 1,
+      "title": "Device toolbar",
+      "started": "2026-11-22T16:23:32Z",
+      "develop": "0160edca"
     }
   },
   "advisories_checked_at": "2026-11-22T16:11:22Z",
@@ -1568,13 +1577,6 @@
         "EZD-1422"
       ],
       "ts": "2026-11-22T12:02:49Z",
-      "why": "needs a file held by EZD-1422"
-    },
-    "EZD-417": {
-      "holders": [
-        "EZD-1422"
-      ],
-      "ts": "2026-11-22T13:18:19Z",
       "why": "needs a file held by EZD-1422"
     }
   }
