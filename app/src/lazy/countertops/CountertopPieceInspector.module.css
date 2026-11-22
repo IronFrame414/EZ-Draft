@@ -1,0 +1,156 @@
+/* EZD-414: the countertop piece inspector (board S04bCountertops inspector: header, Overhang by side, preset chips). */
+.inspector {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font: 600 18px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.summary {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.lbl {
+  margin: 0;
+  font: 600 13px var(--ez-font-sans);
+  color: var(--ez-slate-700);
+}
+
+/* Front on top, Left and Right beside the cabinets, Back below (board). */
+.diagram {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-areas:
+    '. front .'
+    'left cab right'
+    '. back .';
+  gap: 8px;
+  align-items: center;
+}
+
+.front {
+  grid-area: front;
+}
+.left {
+  grid-area: left;
+}
+.right {
+  grid-area: right;
+}
+.back {
+  grid-area: back;
+}
+
+.cabinets {
+  grid-area: cab;
+  min-height: 64px;
+  border: 1px dashed var(--ez-cobalt);
+  border-radius: var(--ez-radius-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 11px;
+  color: var(--ez-slate-500);
+}
+
+.mono {
+  font-family: var(--ez-font-mono);
+  color: var(--ez-ink);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.sideLabel {
+  font-size: 11px;
+  color: var(--ez-slate-500);
+}
+
+.input,
+.inputOn {
+  width: 100%;
+  max-width: 72px;
+  height: 32px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: 500 13px var(--ez-font-mono);
+  text-align: center;
+}
+
+/* S04b "Active side has blue border". */
+.inputOn {
+  border: 2px solid var(--ez-cobalt);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: 999px;
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: 500 13px var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.chip[aria-pressed='true'] {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.chip:disabled {
+  cursor: default;
+  opacity: 0.5;
+}

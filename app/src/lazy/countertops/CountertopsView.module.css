@@ -233,3 +233,55 @@
   background: var(--ez-cobalt-tint);
   color: var(--ez-cobalt-text);
 }
+
+/* EZD-414: the picked edge, and the overhang chip on each exposed edge (board "1 1/2"; seating filled "12" seating"). */
+.edgeOn {
+  stroke: var(--ez-cobalt);
+  stroke-width: 4px;
+  pointer-events: none;
+}
+
+.chipHit {
+  cursor: pointer;
+}
+
+.chip {
+  fill: var(--ez-surface);
+  stroke: var(--ez-border);
+  stroke-width: 1px;
+}
+
+.chipText {
+  fill: var(--ez-ink);
+  font-family: var(--ez-font-mono);
+}
+
+.chipSeating {
+  fill: var(--ez-cobalt);
+  stroke: var(--ez-cobalt);
+  stroke-width: 1px;
+}
+
+.chipSeatingText {
+  fill: var(--ez-surface);
+  font-family: var(--ez-font-mono);
+}
+
+.chipForm {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.chipInput {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 0 4px;
+  border: 1px solid var(--ez-cobalt);
+  border-radius: 999px;
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-family: var(--ez-font-mono);
+  text-align: center;
+}

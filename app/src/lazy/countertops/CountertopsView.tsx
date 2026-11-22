@@ -10,6 +10,11 @@
 // "Cutout | Place a sink or cooktop cutout"; board S04bCountertops legend "Cutout", "Seam"; AC-EZD-413-1, -2;
 // vault/build/assumptions.md EZD-413): the Seam and Cutout tools, seams drawn red dashed, cutouts dashed with their
 // kind, and the typed W × D of a cutout.
+// EZD-414 (S04b Controls "Click edge | Canvas | Selects that edge; inspector highlights the side | Hint: "Click any
+// edge, then pick its overhang"", "Overhang chip on edge | Canvas | Click to type a value | Seating overhang shows as
+// filled chip"; board S04bCountertops chips "1 1/2", "12" seating"; AC-EZD-414-1; vault/build/assumptions.md
+// EZD-414): a click near an edge picks it; every exposed edge carries its overhang chip, typed into with Edit model
+// and the lock.
 import {
   useCallback,
   useEffect,
@@ -27,6 +32,7 @@ import {
   cutoutCorners,
   parseLength,
   wallFaceLines,
+  countertopEdgeSegment,
   type CountertopCutout,
   type CountertopCutoutKind,
   type ModelObject,
@@ -62,6 +68,8 @@ import {
   countertopCutoutChanges,
   countertopCutoutSizeChanges,
 } from '../../editor/countertops/cutout-tool';
+import { countertopEdgeAt, countertopTypedChanges } from '../../editor/countertops/overhang-tool';
+import { formatInches } from '../../lib/catalog/catalog';
 import { countertopIncrement, useCountertopFloor } from './use-countertop-floor';
 import styles from './CountertopsView.module.css';
 
@@ -91,6 +99,10 @@ type Drag = { id: string; index: number; from: Point; at: Point };
 // The Seam or Cutout tool, when one is on (Draw outline keeps its own state).
 type PlaceTool = 'seam' | 'cutout' | null;
 type CutoutPick = { pieceId: string; cutoutId: string };
+// EZD-414: the overhang chip being typed into.
+type ChipTyping = { pieceId: string; edge: number; text: string };
+type Picked = { pieceId: string | null; edge: number | null };
+const NOTHING: Picked = { pieceId: null, edge: null };
 
 // A size as typed back into the W × D fields: decimal inches without trailing zeros.
 const sizeText = (n: number) => String(Math.round(n * 10000) / 10000);
@@ -116,17 +128,24 @@ export function CountertopsView({
   const increment = useMemo(() => countertopIncrement(defaults), [defaults]);
 
   // EZD-416: the selection is the editor's when it passes one (the left panel shares it), else the screen's own.
-  const [ownSelected, setOwnSelected] = useState<string | null>(null);
+  const [own, setOwn] = useState<Picked>(NOTHING);
   const shared = useSyncExternalStore(
     selection ? selection.subscribe : noSubscribe,
-    () => selection?.getState().selection.pieceId ?? null,
-    () => selection?.getState().selection.pieceId ?? null,
+    () => selection?.getState().selection ?? NOTHING,
+    () => selection?.getState().selection ?? NOTHING,
   );
-  const selected = selection ? shared : ownSelected;
-  const setSelected = useCallback(
-    (id: string | null) => (selection ? selection.getState().select(id) : setOwnSelected(id)),
+  const picked = selection ? shared : own;
+  const selected = picked.pieceId;
+  // EZD-414: a piece and, when one was clicked, its edge.
+  const select = useCallback(
+    (id: string | null, edge: number | null = null) =>
+      selection
+        ? selection.getState().select(id, edge)
+        : setOwn(id === null ? NOTHING : { pieceId: id, edge }),
     [selection],
   );
+  const setSelected = useCallback((id: string | null) => select(id), [select]);
+  const [typing, setTyping] = useState<ChipTyping | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [outline, setOutline] = useState<OutlineToolState>(INITIAL_OUTLINE_STATE);
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -209,7 +228,9 @@ export function CountertopsView({
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented) return;
       if (e.key === 'Escape') {
-        if (drawing) {
+        if (typing !== null) {
+          setTyping(null);
+        } else if (drawing) {
           setDrawing(false);
           setOutline(INITIAL_OUTLINE_STATE);
           setLengthText('');
@@ -232,7 +253,7 @@ export function CountertopsView({
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [drawing, placeTool, drag, selected, setSelected, canEdit, store]);
+  }, [typing, drawing, placeTool, drag, selected, setSelected, canEdit, store]);
 
   const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
     if (e.button !== 0) return;
@@ -269,7 +290,29 @@ export function CountertopsView({
         pickCutout(r.pieceId, r.cutout);
       return;
     }
-    setSelected(countertopPieceAt(pieces, at));
+    // EZD-414: a click near an edge picks that edge (and its top); elsewhere on a top, the top.
+    const edgeHit = countertopEdgeAt(pieces, at, PICK_PX * scale);
+    if (edgeHit !== null) select(edgeHit.pieceId, edgeHit.edge);
+    else setSelected(countertopPieceAt(pieces, at));
+    setTyping(null);
+  };
+
+  // EZD-414: a chip picks its edge; with Edit model and the lock it opens for typing.
+  const chipDown = (e: ReactPointerEvent, pieceId: string, edge: number, overhang: number) => {
+    // While Draw outline, Seam or Cutout is on, the click is theirs.
+    if (draw || seamOn || cutoutOn) return;
+    e.stopPropagation();
+    // Keeps the browser's mousedown from taking focus back off the chip's field as it opens.
+    e.preventDefault();
+    if (e.button !== 0) return;
+    select(pieceId, edge);
+    setTyping(editing && !draw ? { pieceId, edge, text: formatInches(overhang) } : null);
+  };
+  const typedChip = () => {
+    if (typing === null) return;
+    const r = parseLength(typing.text, 'other');
+    if (r.ok && r.inches >= 0) apply(countertopTypedChanges(pieces, typing.pieceId, typing.edge, r.inches));
+    setTyping(null);
   };
 
   // A cutout picked (placed or clicked): it and its top are selected and the W × D fields show its size.
@@ -334,7 +377,9 @@ export function CountertopsView({
         ? t('office.countertops.hint_cutout')
         : !traceable
           ? t('office.countertops.hint_no_cabinets')
-          : null;
+          : pieces.length > 0
+            ? t('office.countertops.hint_edge')
+            : null;
   const seams = countertopSeamLines(pieces.map((p) => p.data));
 
   const shownOutline = (p: CountertopPiece): Point[] =>
@@ -594,6 +639,108 @@ export function CountertopsView({
             );
           }),
         )}
+        {pieces.flatMap((p) => {
+          const pts = shownOutline(p);
+          const isOn = selected !== null && p.id.toLowerCase() === selected.toLowerCase();
+          const ccw = signedArea(pts) > 0;
+          return p.data.attributes.edges.flatMap((edge, i) => {
+            const out: ReactElement[] = [];
+            const [a, b] = countertopEdgeSegment(pts, i);
+            if (isOn && picked.edge === i)
+              out.push(
+                <line
+                  key={`on${p.id}${i}`}
+                  className={styles.edgeOn}
+                  data-testid="countertop-edge-selected"
+                  data-id={p.id}
+                  data-edge={i}
+                  x1={a.x}
+                  y1={-a.y}
+                  x2={b.x}
+                  y2={-b.y}
+                  vectorEffect="non-scaling-stroke"
+                />,
+              );
+            if (edge.kind === 'wall') return out;
+            const len = Math.hypot(b.x - a.x, b.y - a.y);
+            if (!(len > 0)) return out;
+            const nx = ((b.y - a.y) / len) * (ccw ? 1 : -1);
+            const ny = (-(b.x - a.x) / len) * (ccw ? 1 : -1);
+            const seating = edge.kind === 'seating';
+            // Seating chips sit inside the top over the overhang (board "12" seating"); others just outside.
+            const off = (seating ? -14 : 12) * scale;
+            const cx = (a.x + b.x) / 2 + nx * off;
+            const cy = (a.y + b.y) / 2 + ny * off;
+            const text = seating
+              ? t('office.countertops.chip_seating', { value: `${formatInches(edge.overhang)}"` })
+              : formatInches(edge.overhang);
+            const w = (text.length * 6.5 + 16) * scale;
+            const h = 18 * scale;
+            const isTyping =
+              typing !== null && typing.pieceId === p.id && typing.edge === i;
+            out.push(
+              <g
+                key={`chip${p.id}${i}`}
+                data-testid="countertop-overhang-chip"
+                data-id={p.id}
+                data-label={p.data.attributes.label}
+                data-edge={i}
+                data-kind={edge.kind}
+                className={styles.chipHit}
+                onPointerDown={(e) => chipDown(e, p.id, i, edge.overhang)}
+              >
+                {isTyping ? (
+                  <foreignObject x={cx - 36 * scale} y={-cy - h / 2} width={72 * scale} height={h}>
+                    <form
+                      className={styles.chipForm}
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        typedChip();
+                      }}
+                    >
+                      <input
+                        className={styles.chipInput}
+                        data-testid="countertop-overhang-input"
+                        aria-label={t('office.countertops.overhang_input')}
+                        style={{ fontSize: `${11 * scale}px` }}
+                        value={typing.text}
+                        inputMode="decimal"
+                        autoComplete="off"
+                        autoFocus
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onChange={(e) => setTyping({ ...typing, text: e.target.value })}
+                        onBlur={() => setTyping(null)}
+                      />
+                    </form>
+                  </foreignObject>
+                ) : (
+                  <>
+                    <rect
+                      className={seating ? styles.chipSeating : styles.chip}
+                      x={cx - w / 2}
+                      y={-cy - h / 2}
+                      width={w}
+                      height={h}
+                      rx={h / 2}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <text
+                      className={seating ? styles.chipSeatingText : styles.chipText}
+                      x={cx}
+                      y={-cy}
+                      fontSize={10 * scale}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                    >
+                      {text}
+                    </text>
+                  </>
+                )}
+              </g>,
+            );
+            return out;
+          });
+        })}
         {seams.map((s) => (
           <g key={`${s.seamId}${s.a.x},${s.a.y}`} data-testid="countertop-seam" data-id={s.seamId}>
             <line
@@ -660,6 +807,16 @@ function snapDrag(at: Point, targets: readonly Point[], radius: number, incremen
     x: Math.round(at.x / increment) * increment,
     y: Math.round(at.y / increment) * increment,
   };
+}
+
+function signedArea(pts: readonly Point[]): number {
+  let a = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i]!;
+    const q = pts[(i + 1) % pts.length]!;
+    a += p.x * q.y - q.x * p.y;
+  }
+  return a / 2;
 }
 
 function centre(pts: readonly Point[]): Point {

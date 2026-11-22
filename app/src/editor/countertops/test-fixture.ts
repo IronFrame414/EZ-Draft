@@ -168,3 +168,17 @@ export function boardPiecesModel(): Objects {
     [ctId(303), pieceValue('C', 'Island', rectPts(0, 120, 76.5, 157.5), ['exposed', 'exposed', 'seating', 'exposed'])],
   ]);
 }
+
+// EZD-414: the board island before its seating side is set: cabinets 73 1/2 × 24 (x 1.5 to 75, y 121.5 to 145.5)
+// under a top at the Standard 1 1/2" all round, x 0 to 76.5, y 120 to 147 (76 1/2 × 27). Side 1 (y = 120) is the
+// back, side 3 (y = 147) the front, as Trace orders a top's sides.
+export const CT_ISLAND = ctId(401);
+export function islandModel(): Objects {
+  return new Map<string, ObjectValue>([
+    [CT_FLOOR, { type: 'floor', schemaVersion: 6, data: { name: 'Floor 1', order: 1 } }],
+    [
+      CT_ISLAND,
+      pieceValue('C', 'Island', rectPts(0, 120, 76.5, 147), ['exposed', 'exposed', 'exposed', 'exposed']),
+    ],
+  ]);
+}

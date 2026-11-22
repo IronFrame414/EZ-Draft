@@ -5,7 +5,7 @@
 // AC-EZD-418-1; vault/build/assumptions.md EZD-418): the countertop inspector place with its footer's Top schedule
 // button, and the schedule opened over it. Every viewer sees the table; Export CSV shows only with Export (as the
 // cabinet schedule, EZD-409: the CSV is built in the browser from the model the viewer already reads). The piece
-// inspector above the footer is EZD-414; Edit offered edges is EZD-417.
+// inspector above the footer is EZD-414 (CountertopPieceInspector); Edit offered edges is EZD-417.
 import { useEffect, useMemo, useState, type ReactElement } from 'react';
 import type { CountertopPieceData } from '@ezdraft/geometry';
 import { fetchPermissions } from '../../lib/permissions/PermissionsProvider';
@@ -18,6 +18,8 @@ import { countertopMaterialName } from '../../editor/countertops/material';
 import { topScheduleCsv, topScheduleLines } from '../../editor/countertops/top-schedule';
 import { fetchCatalog, type CountertopCatalogLoad } from './CountertopsPanel';
 import { useCountertopFloor } from './use-countertop-floor';
+import type { CountertopSelectionStore } from '../../editor/countertops/selection-store';
+import { CountertopPieceInspector } from './CountertopPieceInspector';
 import styles from './TopSchedule.module.css';
 
 export type PermissionsLoad = () => Promise<readonly PermissionKey[]>;
@@ -176,10 +178,16 @@ export type CountertopsInspectorProps = {
   // The schedule already open (tests).
   initialOpen?: boolean;
   save?: CsvSave;
+  // EZD-414: the shared countertop selection; with it the selected top's piece inspector shows above the footer.
+  selection?: CountertopSelectionStore;
+  // Edit model and holding the lock; without it the piece inspector only reads.
+  canEdit?: boolean;
+  // The effective Defaults (the four overhangs the preset chips set); null while not read.
+  defaults?: Readonly<Record<string, unknown>> | null;
 };
 
-// The countertop inspector place while the Countertops tool is on: for now only its footer (vault/build/assumptions.md
-// EZD-418; EZD-414 adds the piece inspector above it).
+// The countertop inspector place while the Countertops tool is on: the selected top's piece inspector (EZD-414) and
+// the footer (vault/build/assumptions.md EZD-418).
 export function CountertopsInspector({
   store,
   floors,
@@ -187,14 +195,19 @@ export function CountertopsInspector({
   loadPermissions = fetchPermissions,
   initialOpen = false,
   save,
+  selection,
+  canEdit = false,
+  defaults = null,
 }: CountertopsInspectorProps): ReactElement {
   const t = useT();
   const { pieces } = useCountertopFloor(store, floors);
   const [open, setOpen] = useState(initialOpen);
   const canExport = useCanExport(loadPermissions);
   const [catalog, setCatalog] = useState<readonly CatalogItem[] | null>(null);
+  // EZD-414: the piece header names the top's material, so a floor with a material on a top reads the catalog too.
+  const needsCatalog = open || (selection !== undefined && pieces.some((p) => p.data.attributes.materialItemId !== null));
   useEffect(() => {
-    if (!open || catalog !== null) return;
+    if (!needsCatalog || catalog !== null) return;
     let live = true;
     loadCatalog().then(
       (items) => live && setCatalog(items),
@@ -203,10 +216,20 @@ export function CountertopsInspector({
     return () => {
       live = false;
     };
-  }, [open, catalog, loadCatalog]);
+  }, [needsCatalog, catalog, loadCatalog]);
   const data = useMemo(() => pieces.map((p) => p.data), [pieces]);
   return (
     <div className={styles.panel} data-testid="countertop-inspector">
+      {selection !== undefined ? (
+        <CountertopPieceInspector
+          store={store}
+          pieces={pieces}
+          selection={selection}
+          canEdit={canEdit}
+          defaults={defaults}
+          catalog={catalog}
+        />
+      ) : null}
       <span className={styles.grow} />
       <footer className={styles.footer}>
         {/* Every viewer opens the schedule (S04b Permissions "View projects: view pieces"). */}

@@ -598,6 +598,18 @@ export function ProjectEditor({
     const v = sessionDefaults?.get()[key];
     return typeof v === 'number' ? v : null;
   };
+  const readCountertopDefaults = () =>
+    JSON.stringify(
+      Object.fromEntries(
+        [
+          'overhang_standard',
+          'overhang_against_wall',
+          'countertop_increment',
+          'overhang_seating_counter',
+          'overhang_seating_bar',
+        ].map((k) => [k, readDefaultNumber(k)()]),
+      ),
+    );
   const fitTolerance = useSyncExternalStore(
     sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
     readDefaultNumber('cabinet_fit_tolerance'),
@@ -657,33 +669,6 @@ export function ProjectEditor({
     readAutoFillIncrement,
     readAutoFillIncrement,
   );
-  // EZD-412: the Defaults the countertop screen reads (per project): Trace's overhangs and the countertop increment.
-  const overhangStandard = useSyncExternalStore(
-    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
-    readDefaultNumber('overhang_standard'),
-    readDefaultNumber('overhang_standard'),
-  );
-  const overhangAgainstWall = useSyncExternalStore(
-    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
-    readDefaultNumber('overhang_against_wall'),
-    readDefaultNumber('overhang_against_wall'),
-  );
-  const countertopIncrement = useSyncExternalStore(
-    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
-    readDefaultNumber('countertop_increment'),
-    readDefaultNumber('countertop_increment'),
-  );
-  // EZD-416: the seating overhangs the countertop left panel shows under Default overhangs.
-  const overhangSeatingCounter = useSyncExternalStore(
-    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
-    readDefaultNumber('overhang_seating_counter'),
-    readDefaultNumber('overhang_seating_counter'),
-  );
-  const overhangSeatingBar = useSyncExternalStore(
-    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
-    readDefaultNumber('overhang_seating_bar'),
-    readDefaultNumber('overhang_seating_bar'),
-  );
   // EZD-515 (S05 Validation; S05 Decision 4): the Defaults "Fan blade clearance" for the RCP and the inspector, re-read
   // on every defaults resync; null while Not set (no fan check).
   const fanClearance = useSyncExternalStore(
@@ -691,21 +676,17 @@ export function ProjectEditor({
     readDefaultNumber('fan_blade_clearance'),
     readDefaultNumber('fan_blade_clearance'),
   );
+  // EZD-412, EZD-416, EZD-414: the Defaults the countertop screen, panel and inspector read (per project): Trace's
+  // and the presets' overhangs and the countertop increment. One read of all five, as text so the snapshot stays
+  // the same between changes (one hook instead of five keeps the editor route within its budget).
+  const countertopDefaultsText = useSyncExternalStore(
+    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
+    readCountertopDefaults,
+    readCountertopDefaults,
+  );
   const countertopDefaults = useMemo(
-    () => ({
-      overhang_standard: overhangStandard,
-      overhang_against_wall: overhangAgainstWall,
-      countertop_increment: countertopIncrement,
-      overhang_seating_counter: overhangSeatingCounter,
-      overhang_seating_bar: overhangSeatingBar,
-    }),
-    [
-      overhangStandard,
-      overhangAgainstWall,
-      countertopIncrement,
-      overhangSeatingCounter,
-      overhangSeatingBar,
-    ],
+    () => JSON.parse(countertopDefaultsText) as Record<string, number | null>,
+    [countertopDefaultsText],
   );
   // EZD-416: the countertop selection the screen and its left panel share; a new model session starts with none,
   // and leaving the Countertops tool drops it.
@@ -1477,8 +1458,14 @@ export function ProjectEditor({
     />
   ) : showPlan && countertopsOn && session !== null ? (
     // EZD-418 (S04b Layout "Inspector: ... Top schedule"): while the Countertops tool is on, the inspector place
-    // holds the countertop inspector (its footer's Top schedule for now; the piece inspector is EZD-414).
-    <LazyCountertopsInspector store={session.store} floors={floors ?? undefined} />
+    // holds the countertop inspector: the selected top's piece inspector (EZD-414) above its footer's Top schedule.
+    <LazyCountertopsInspector
+      store={session.store}
+      floors={floors ?? undefined}
+      selection={countertopSelection ?? undefined}
+      canEdit={mayEdit}
+      defaults={countertopDefaults}
+    />
   ) : showPlan && session !== null && selection !== null ? (
     <InspectorStack>
       <LazyInspectorPanel

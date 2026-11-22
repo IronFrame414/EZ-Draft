@@ -35,6 +35,8 @@ export * from './countertops/cutout';
 export * from './countertops/panel';
 // EZD-418: the top schedule rows.
 export * from './countertops/schedule';
+// EZD-414: edges and overhangs.
+export * from './countertops/overhang';
 export * from './derived';
 export * from './drawing';
 export * from './fixtures';
