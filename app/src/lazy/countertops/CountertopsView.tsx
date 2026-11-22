@@ -71,6 +71,8 @@ import {
 import { countertopEdgeAt, countertopTypedChanges } from '../../editor/countertops/overhang-tool';
 import { formatInches } from '../../lib/catalog/catalog';
 import { countertopIncrement, useCountertopFloor } from './use-countertop-floor';
+import { edgeOfferPillState, type EdgeOffer, type EdgeOffersLoad } from '../../editor/countertops/edge-profile';
+import { EdgeProfilePill, useEdgeOffers, useProjectId } from './EdgeProfileCard';
 import styles from './CountertopsView.module.css';
 
 export type CountertopsViewProps = {
@@ -83,6 +85,11 @@ export type CountertopsViewProps = {
   defaults?: Readonly<Record<string, unknown>> | null;
   // EZD-416: the selection shared with the left panel and the inspector; without it the screen keeps its own.
   selection?: CountertopSelectionStore;
+  // EZD-417 (S04b "Edge profile status pill"): the project (else the editor route's id) and its offers' load; tests
+  // may pass the offers already read.
+  projectId?: string | null;
+  loadOffers?: EdgeOffersLoad;
+  offers?: readonly EdgeOffer[];
 };
 
 const noSubscribe = () => () => {};
@@ -114,8 +121,15 @@ export function CountertopsView({
   newId,
   defaults = null,
   selection,
+  projectId: givenProjectId,
+  loadOffers,
+  offers: givenOffers,
 }: CountertopsViewProps): ReactElement {
   const t = useT();
+  // EZD-417: the project's edge offers, shared with the inspector (a save there updates the pill).
+  const projectId = useProjectId(givenProjectId);
+  const sharedOffers = useEdgeOffers(givenOffers === undefined ? projectId : null, loadOffers);
+  const offers = givenOffers ?? sharedOffers;
   // The floor the screen shows: the open floor, or (with no floor list) the floor of the first run or top.
   const { parsed, level, pieces } = useCountertopFloor(store, floors);
   const cabinets = useMemo(
@@ -520,6 +534,19 @@ export function CountertopsView({
               />
             </label>
           </form>
+        ) : null}
+        {/* EZD-417 (S04b "Edge profile status pill ... Shows Open, Chosen states"; board "Edge profile: client
+            choosing"): the selected top's state, else the tops' on this floor. */}
+        {pieces.length > 0 ? (
+          <span className={styles.pillSlot}>
+            <EdgeProfilePill
+              state={edgeOfferPillState(
+                offers,
+                pieces.map((p) => p.id),
+                selected,
+              )}
+            />
+          </span>
         ) : null}
       </div>
       <svg

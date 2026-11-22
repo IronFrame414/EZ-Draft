@@ -285,3 +285,8 @@
   font-family: var(--ez-font-mono);
   text-align: center;
 }
+
+/* EZD-417: the edge profile pill at the right of the tool bar row (board S04bCountertops). */
+.pillSlot {
+  margin-left: auto;
+}

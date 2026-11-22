@@ -84,6 +84,16 @@ export const MONEY_FIELDS: readonly MoneyField[] = [
     responseKeys: [],
     source: 'EZD-1009; 03c design_option; 13b R2',
   },
+  // EZD-417 (03c selection_offer price_deltas; S04b "Price hidden without See sell prices"; 13b R2 "edge-profile price
+  // differences" are See sell prices). The routes name each rate ratePerLf.
+  {
+    schema: 'public',
+    table: 'selection_offer',
+    column: 'price_deltas',
+    moneyClass: 'sell_price',
+    responseKeys: ['ratePerLf'],
+    source: 'EZD-417; 03c selection_offer; S04b Permissions; 13b R2',
+  },
 ];
 
 export const MONEY_PERMISSIONS: Readonly<Record<MoneyClass, PermissionKey>> = {

@@ -38,6 +38,9 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'renew_share_link', args: { p_sent_package: null, p_expiry_days: null, p_ip: null } },
   { fn: 'revoke_share_link', args: { p_sent_package: null } },
   { fn: 'list_share_links', args: { p_project: null } },
+  // EZD-417: the edge profile library (seeds a company's first read) and Edit offered edges (authenticated only).
+  { fn: 'edge_profile_library', args: {} },
+  { fn: 'save_edge_offer', args: { p_project: null, p_piece: null, p_choices: null, p_rates: null } },
   // EZD-122: Name snapshot and Revert (authenticated only).
   { fn: 'name_snapshot', args: { p_project: null, p_version: null, p_name: null } },
   {

@@ -3,7 +3,7 @@
 // route.test.ts unless the plan says otherwise; the status is the plan's (200 when not shown). `after` keeps the
 // ids a later case needs in env.created. Test-only.
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { adminDb, type Member } from '../rls/fixtures';
+import { adminDb, harnessSql, type Member } from '../rls/fixtures';
 import { NOTIFICATION_KINDS } from '../../src/lib/notifications/kinds';
 import { DEV_SAMPLE_PARAMS } from '../../src/app/dev/notifications/NotificationsProbe';
 import { logoPathFor } from '../../src/server/company/company';
@@ -1547,6 +1547,53 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     },
     expectStatus: 200,
     note: 'EZD-1201: Turn off; 200 { link } (no money)',
+  },
+  // EZD-417: the edge profile library and Edit offered edges. The PUT offers the company's first profile on a top
+  // with a rate; the GET reads it back. ratePerLf only with See sell prices.
+  {
+    file: `${API}edge-profiles/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/edge-profiles/route'),
+    request: get('/api/edge-profiles'),
+    expectStatus: 200,
+    note: 'EZD-417: the library; 200 { profiles } (no price is stored on a profile)',
+  },
+  {
+    file: `${API}projects/[id]/edge-offer/route.ts`,
+    method: 'PUT',
+    load: () => import('../../src/app/api/projects/[id]/edge-offer/route'),
+    request: async (env) => {
+      await harnessSql()`select private.seed_edge_profiles(${env.tenantId}::uuid)`;
+      const { data, error } = await adminDb()
+        .from('edge_profile')
+        .select('id')
+        .eq('tenant_id', env.tenantId)
+        .order('position')
+        .limit(1)
+        .single();
+      if (error || !data) throw new Error(`edge_profile read failed: ${error?.code}`);
+      return {
+        request: new Request(`${BASE}/api/projects/${env.projectId}/edge-offer`, {
+          method: 'PUT',
+          headers: JSON_HEADERS,
+          body: JSON.stringify({ pieceId: randomUUID(), choices: [{ profileId: data.id, ratePerLf: 12 }] }),
+        }),
+        params: { id: env.projectId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-417: Edit offered edges; 200 { offer } (ratePerLf only with See sell prices)',
+  },
+  {
+    file: `${API}projects/[id]/edge-offer/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/edge-offer/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/edge-offer`),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-417: the offers; 200 { offers } (ratePerLf only with See sell prices)',
   },
   // EZD-122: the Versions panel routes, after the send so the thumbnail cases' version stays the newest.
   {

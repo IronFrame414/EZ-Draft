@@ -209,6 +209,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"edge_profile": {
+                  Row: {
+                    "created_at": string,"id": string,"key": string,"name": string,"position": number,"section_svg": string,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"key": string,"name": string,"position": number,"section_svg": string,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"key"?: string,"name"?: string,"position"?: number,"section_svg"?: string,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "edge_profile_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"edit_lock": {
                   Row: {
                     "device_id": string | null,"holder_app_user_id": string | null,"lock_epoch": number,"offline": boolean,"project_id": string,"since": string | null,"tenant_id": string
@@ -1025,6 +1045,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"selection_offer": {
+                  Row: {
+                    "choices": (string)[],"created_at": string,"id": string,"kind": string,"offered_by": string | null,"price_deltas": (number)[],"project_id": string,"status": string,"subject_id": string,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "choices": (string)[],"created_at"?: string,"id"?: string,"kind": string,"offered_by"?: string | null,"price_deltas": (number)[],"project_id": string,"status"?: string,"subject_id": string,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "choices"?: (string)[],"created_at"?: string,"id"?: string,"kind"?: string,"offered_by"?: string | null,"price_deltas"?: (number)[],"project_id"?: string,"status"?: string,"subject_id"?: string,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "selection_offer_offered_by_fkey"
+      columns: ["offered_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "selection_offer_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "selection_offer_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"sent_package": {
                   Row: {
                     "created_at": string,"created_by": string | null,"email_sent_at": string | null,"expires_at": string,"id": string,"kind": string,"model_version_id": string,"note": string | null,"project_id": string,"recipients": NonNullable<Json>,"reminder_sent_at": string | null,"renewed_at": string | null,"revoked_at": string | null,"tenant_id": string,"token_hash": string
@@ -1349,6 +1401,23 @@ isOneToOne: false
 "delete_submittal_profile":
 { Args: { "p_id": string }; Returns: number
                            },
+"edge_profile_library":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "created_at": string,
+"id": string,
+"key": string,
+"name": string,
+"position": number,
+"section_svg": string,
+"tenant_id": string,
+"updated_at": string
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "edge_profile"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
                            },
@@ -1597,6 +1666,9 @@ isOneToOne: false
                            },
 "rewrap_my_ai_key":
 { Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean
+                           },
+"save_edge_offer":
+{ Args: { "p_choices": (string)[],"p_piece": string,"p_project": string,"p_rates"?: (number)[] }; Returns: Json
                            },
 "save_field_measure_session":
 { Args: { "p_project": string,"p_rooms": Json }; Returns: Json

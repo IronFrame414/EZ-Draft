@@ -233,6 +233,8 @@ export const EVENT_LOG: EventLogRules = {
   'share_link.viewed': TRANSACTION,
   'share_link.expired': TRANSACTION,
   'share_link.renewed': TRANSACTION,
+  // EZD-417: written by save_edge_offer in its own transaction.
+  'edge_profile.offered': TRANSACTION,
 };
 
 // The first x-forwarded-for entry when it is one IPv4 or IPv6 address (no port, brackets or zone id), else

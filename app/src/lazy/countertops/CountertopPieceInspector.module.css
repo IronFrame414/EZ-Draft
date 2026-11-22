@@ -154,3 +154,155 @@
   cursor: default;
   opacity: 0.5;
 }
+
+/* EZD-417: the Edge profile card, its offered list (board S04bCountertops inspector) and the canvas pill. */
+.edgeSection {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.edgeHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.edgeNote {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.edgeCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+}
+
+.edgeCardText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.edgeName {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ez-ink);
+}
+
+.edgeSub {
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.edgeBadge,
+.edgeBadgeOpen {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.edgeBadgeOpen {
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+}
+
+.edgePick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ez-slate-700);
+}
+
+.edgeSelect {
+  min-width: 0;
+  flex: 1;
+  max-width: 200px;
+  height: 32px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font: 14px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.profileDrawing {
+  width: 42px;
+  height: 28px;
+  flex: none;
+  object-fit: contain;
+}
+
+.profileDrawingLarge {
+  width: 60px;
+  height: 40px;
+  flex: none;
+  object-fit: contain;
+}
+
+.offered {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.offeredTitle {
+  margin: 0;
+  font: 400 13px var(--ez-font-sans);
+  color: var(--ez-slate-500);
+}
+
+.offeredList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.offeredRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.offeredName {
+  flex: 1;
+}
+
+.offeredPrice {
+  font-family: var(--ez-font-mono);
+  font-size: 13px;
+  color: var(--ez-slate-500);
+}
+
+.pill,
+.pillOpen {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ez-surface);
+  color: var(--ez-slate-700);
+  font: 500 13px var(--ez-font-sans);
+  box-shadow: var(--ez-shadow-floating);
+  cursor: pointer;
+}
+
+.pillOpen {
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+}

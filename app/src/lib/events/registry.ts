@@ -143,6 +143,9 @@ export const EVENTS = {
   'share_link.viewed': { kind: 'log_only' },
   'share_link.expired': { kind: 'log_only' },
   'share_link.renewed': { kind: 'log_only' },
+  // EZD-417 (S04b Events emitted "edge_profile.offered (new)"): written only as the event_log row by save_edge_offer,
+  // with ids only (the rates are sell prices).
+  'edge_profile.offered': { kind: 'log_only' },
 } as const satisfies Record<string, EventEntry>;
 
 export type EventName = keyof typeof EVENTS;
@@ -227,6 +230,7 @@ export interface EventPayloads {
   };
   'field_pack.issued': Record<string, unknown>;
   'share_link.expiring': { projectId: string; expiresAt: string };
+  'edge_profile.offered': { projectId: string; pieceId: string; choices: string[] };
   'cleanup.due': Record<string, unknown>;
   'code_check.completed': Record<string, unknown>;
   // EZD-1009: the saved option, its group and label, and its status after the save.
