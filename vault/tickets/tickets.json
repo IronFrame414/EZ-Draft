@@ -14936,7 +14936,8 @@
    "phase_file": "tickets/phases/phase-14.md",
    "depends_on": [
     "EZD-118",
-    "EZD-1419"
+    "EZD-1419",
+    "EZD-1418"
    ],
    "build_position": 171,
    "acs": [
