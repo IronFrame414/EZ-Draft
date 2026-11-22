@@ -33,6 +33,9 @@ type Obj = { id: string; type: string; data: Record<string, unknown> };
 type Hook = {
   __ezdraftEditor: { objects(): Obj[]; edit(changes: unknown[]): string[] };
   __ezdraftSelection: { ids(): string[] };
+  __ezdraftPlan: {
+    handle: { modelToScreen(p: { x: number; y: number }): { x: number; y: number }; fit(): void };
+  };
 };
 
 const tid = (page: Page, testId: string) => page.getByTestId(testId);
@@ -100,7 +103,8 @@ async function seed(page: Page) {
           level: floor,
           attributes: { kind, circuit, protection: null },
         });
-      const circuitId = (n: number) => `6a010000-0000-4000-8000-0000000001${String(n).padStart(2, '0')}`;
+      const circuitId = (n: number) =>
+        `6a010000-0000-4000-8000-0000000001${String(n).padStart(2, '0')}`;
       hook.edit([
         { id: ids.kitchen, value: room('Kitchen', 0) },
         { id: ids.family, value: room('Family room', 140) },
@@ -124,7 +128,16 @@ async function seed(page: Page) {
           value: value('circuit', {
             status: 'new',
             level: floor,
-            attributes: { panel: ids.panel, space, poles, name, breaker, protection, dedicated, load },
+            attributes: {
+              panel: ids.panel,
+              space,
+              poles,
+              name,
+              breaker,
+              protection,
+              dedicated,
+              load,
+            },
           }),
         })),
         { id: ids.device1, value: device(70, 'smoke_co_detector', circuitId(24)) },
@@ -202,5 +215,160 @@ test.describe('EZD-601 electrical mode and left panel', () => {
     await expect(tool(page, 'electrical')).toHaveAttribute('aria-pressed', 'true');
     await expect(tid(page, 'electrical-tab-circuits')).toHaveAttribute('aria-selected', 'true');
     await expect(tid(page, 'electrical-footer-counts')).toHaveText('0 circuits · 0 spaces');
+  });
+});
+
+// EZD-602 AC-EZD-602-1 "Each device type places with its attributes." (S06 Controls Device toolbar: Receptacle
+// "circuit, GFCI/AFCI, type (duplex, 240V)", Switch "single, 3-way, dimmer", Light, Low voltage "data, TV, doorbell,
+// speakers" (phase-06 EZD-602 adds cameras, Wi-Fi APs), Smoke/CO, Fan; "Canvas right-click: assign to circuit, set
+// GFCI/AFCI, delete"; "Canvas drag device: Moves device"; S06 Permissions "hidden, not disabled").
+async function screenOf(page: Page, p: { x: number; y: number }) {
+  const box = await page.locator('[data-shell-region="canvas"]').boundingBox();
+  if (!box) throw new Error('canvas region has no box');
+  const s = await page.evaluate(
+    (q) => (window as unknown as Hook).__ezdraftPlan.handle.modelToScreen(q),
+    p,
+  );
+  return { x: box.x + s.x, y: box.y + s.y };
+}
+
+async function clickModel(page: Page, p: { x: number; y: number }) {
+  const s = await screenOf(page, p);
+  await page.mouse.click(s.x, s.y);
+}
+
+type Placed = { id: string; point: { x: number; y: number }; attributes: Record<string, unknown> };
+const placedDevices = (page: Page) =>
+  page.evaluate(
+    (known) => {
+      return (window as unknown as Hook).__ezdraftEditor
+        .objects()
+        .filter((o) => o.type === 'device' && !known.includes(o.id))
+        .map((o) => ({
+          id: o.id,
+          point: (o.data.geometry as { point: { x: number; y: number } }).point,
+          attributes: o.data.attributes as Record<string, unknown>,
+        }));
+    },
+    [DEVICE_1, '6a010000-0000-4000-8000-000000000012'],
+  ) as Promise<Placed[]>;
+
+test.describe('EZD-602 device toolbar', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  test('AC-1 each device type places with its attributes; right-click and drag edit it', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids, user } = await fixtureS(EDITOR);
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await page.keyboard.press('e');
+    await seed(page);
+    // Fit the plan to the two rooms, so every spot below is on the canvas.
+    await page.evaluate(() => (window as unknown as Hook).__ezdraftPlan.handle.fit());
+    await expect(tid(page, 'device-toolbar')).toBeVisible();
+    await expect(tid(page, 'device-toolbar-paused')).toHaveCount(0);
+
+    // Every toolbar item and kind, one per spot along y = 120 in the two rooms.
+    const plan: [string, string, string | null][] = [
+      ['receptacle', 'receptacle_duplex', 'gfci'],
+      ['receptacle', 'receptacle_240v', null],
+      ['switch', 'switch_single', null],
+      ['switch', 'switch_3way', null],
+      ['switch', 'switch_dimmer', null],
+      ['light', 'recessed_light', null],
+      ['low-voltage', 'data', null],
+      ['low-voltage', 'tv', null],
+      ['low-voltage', 'doorbell', null],
+      ['low-voltage', 'speaker', null],
+      ['low-voltage', 'camera', null],
+      ['low-voltage', 'wifi_ap', null],
+      ['detector', 'smoke_detector', null],
+      ['detector', 'co_detector', null],
+      ['detector', 'smoke_co_detector', null],
+      ['fan', 'ceiling_fan', null],
+    ];
+    const want: { kind: string; protection?: string; x: number }[] = [];
+    let x = 10;
+    for (const [item, kind, protection] of plan) {
+      if ((await tid(page, `device-tool-${item}`).getAttribute('aria-pressed')) !== 'true')
+        await tid(page, `device-tool-${item}`).click();
+      await expect(tid(page, `device-tool-${item}`)).toHaveAttribute('aria-pressed', 'true');
+      if ((await tid(page, `device-kind-${kind}`).count()) > 0)
+        await tid(page, `device-kind-${kind}`).click();
+      if (item === 'receptacle')
+        await tid(page, `device-protection-${protection ?? 'none'}`).click();
+      await clickModel(page, { x, y: 140 });
+      want.push(protection === null ? { kind, x } : { kind, protection, x });
+      x += 16;
+    }
+    await expect.poll(async () => (await placedDevices(page)).length).toBe(plan.length);
+    const placed = await placedDevices(page);
+    const got = placed
+      .map((d) => ({ ...d.attributes, x: Math.round(d.point.x) }))
+      .sort((a, b) => a.x - b.x);
+    expect(got).toEqual(want);
+    // The Devices tab lists them by their names.
+    await tid(page, 'electrical-tab-devices').click();
+    await expect(page.getByText('Duplex receptacle')).toBeVisible();
+
+    // Disarm, so clicks select; right-click the duplex receptacle: assign it to circuit 14, set AFCI.
+    await tid(page, 'device-tool-fan').click();
+    await expect(tid(page, 'device-tool-fan')).toHaveAttribute('aria-pressed', 'false');
+    const duplex = placed.find((d) => d.attributes.kind === 'receptacle_duplex')!;
+    const at = await screenOf(page, duplex.point);
+    await page.mouse.click(at.x, at.y, { button: 'right' });
+    await expect(tid(page, 'device-menu')).toBeVisible();
+    await tid(page, 'menu-assign-circuit').click();
+    await tid(page, 'menu-circuit-14').click();
+    await page.mouse.click(at.x, at.y, { button: 'right' });
+    await tid(page, 'menu-set-protection').click();
+    await tid(page, 'menu-protection-afci').click();
+    await expect
+      .poll(async () => (await placedDevices(page)).find((d) => d.id === duplex.id)?.attributes)
+      .toEqual({
+        kind: 'receptacle_duplex',
+        protection: 'afci',
+        circuit: '6a010000-0000-4000-8000-000000000114',
+      });
+
+    // Drag it 40" up (S06 "Canvas drag device: Moves device").
+    const to = await screenOf(page, { x: duplex.point.x, y: duplex.point.y - 40 });
+    await page.mouse.move(at.x, at.y);
+    await page.mouse.down();
+    await page.mouse.move((at.x + to.x) / 2, (at.y + to.y) / 2, { steps: 4 });
+    await page.mouse.move(to.x, to.y, { steps: 4 });
+    await page.mouse.up();
+    await expect
+      .poll(async () => (await placedDevices(page)).find((d) => d.id === duplex.id)?.point.y)
+      .toBeLessThan(duplex.point.y - 30);
+
+    // Delete from the menu.
+    const tv = placed.find((d) => d.attributes.kind === 'tv')!;
+    const tvAt = await screenOf(page, tv.point);
+    await page.mouse.click(tvAt.x, tvAt.y, { button: 'right' });
+    await tid(page, 'menu-delete').click();
+    await expect
+      .poll(async () => (await placedDevices(page)).some((d) => d.id === tv.id))
+      .toBe(false);
+  });
+
+  test('without Edit model the device toolbar is hidden (S06 Permissions)', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids, user } = await fixtureS(VIEWER);
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await tool(page, 'electrical').click();
+    await expect(tid(page, 'electrical-tab-circuits')).toHaveAttribute('aria-selected', 'true');
+    await expect(tid(page, 'device-toolbar')).toHaveCount(0);
   });
 });

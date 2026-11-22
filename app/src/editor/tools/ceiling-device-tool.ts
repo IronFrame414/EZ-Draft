@@ -67,23 +67,36 @@ export function createDeviceChoice(): DeviceChoice {
 
 /**
  * Routes the receiver of the ceiling tool that is on while the surface shows the ceiling and editing is allowed, and
- * none otherwise. Replaces one wire per tool, which would race on the shared route.
+ * none otherwise. Replaces one wire per tool, which would race on the shared route. EZD-602: on the floor plan it
+ * routes `floorTool`'s receiver (the electrical device toolbar's armed item) instead.
  */
 export function wireCeilingTools(
   surface: Pick<SurfaceSetting, 'get' | 'subscribe'>,
   route: (r: PlanPointerReceiver | null) => void,
   receivers: Partial<Record<CeilingToolId, PlanPointerReceiver>>,
   mayEdit: boolean,
+  floorTool?: {
+    getState(): { tool: PlanPointerReceiver | null };
+    subscribe(listener: () => void): () => void;
+  },
 ): () => void {
   const sync = () => {
     const s = surface.get();
-    const r = s.tool === null ? undefined : receivers[s.tool];
-    route(mayEdit && s.surface !== 'floor' && r !== undefined ? r : null);
+    // EZD-602: on the floor plan the one route carries the electrical device toolbar's armed item, if any.
+    const r =
+      s.surface === 'floor'
+        ? floorTool?.getState().tool
+        : s.tool === null
+          ? undefined
+          : receivers[s.tool];
+    route(mayEdit && r ? r : null);
   };
   sync();
   const off = surface.subscribe(sync);
+  const offFloor = floorTool?.subscribe(sync);
   return () => {
     off();
+    offFloor?.();
     route(null);
   };
 }
@@ -211,4 +224,3 @@ export function fixtureTypeEdit(
     },
   };
 }
-

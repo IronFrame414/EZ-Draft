@@ -24,6 +24,15 @@ export const DETECTOR_TEXT = {
   speaker: 'SPK',
   camera: 'CAM',
   wifi_ap: 'WAP',
+  // EZD-602 (vault/build/assumptions.md EZD-602): the toolbar's other devices, lettered the same way; a duplex
+  // receptacle draws as its circle with two parallel lines instead.
+  receptacle_240v: '240',
+  switch_single: 'S',
+  switch_3way: 'S3',
+  switch_dimmer: 'SDM',
+  data: 'D',
+  tv: 'TV',
+  doorbell: 'DB',
 } as const;
 
 // EZD-507 (board S05Ceiling cans and fan; vault/build/assumptions.md EZD-507): a recessed light is a plain circle of
@@ -119,6 +128,21 @@ export function existingDetailItems(
           };
           out.push(line('beyond', center, tip));
         }
+        continue;
+      }
+      if (kind === 'receptacle_duplex') {
+        // EZD-602: the duplex receptacle symbol, a circle crossed by two parallel lines a third of its radius apart.
+        out.push(circle(DETECTOR_RADIUS_IN));
+        const r = DETECTOR_RADIUS_IN * 1.5;
+        const g = DETECTOR_RADIUS_IN / 3;
+        for (const dx of [-g, g])
+          out.push(
+            line(
+              'beyond',
+              { x: center.x + dx, y: center.y - r },
+              { x: center.x + dx, y: center.y + r },
+            ),
+          );
         continue;
       }
       const text = DETECTOR_TEXT[kind];

@@ -48,6 +48,18 @@ export const DEVICE_KINDS = [
   'speaker',
   'camera',
   'wifi_ap',
+  // EZD-602 (S06 Controls "Device toolbar: Receptacle ... type (duplex, 240V)", "Switch: Places single, 3-way, dimmer
+  // switches", "Low voltage: Places data, TV, doorbell, speakers"; 03f:13; vault/build/assumptions.md EZD-602): the
+  // wall devices of the electrical plan, one kind per toolbar choice as EZD-507 split the detectors. Added enum
+  // values only, so every stored object stays valid and the version stays.
+  'receptacle_duplex',
+  'receptacle_240v',
+  'switch_single',
+  'switch_3way',
+  'switch_dimmer',
+  'data',
+  'tv',
+  'doorbell',
 ] as const;
 export type DeviceKind = (typeof DEVICE_KINDS)[number];
 // EZD-507: the kinds that carry a fixture type (S05 "Fixture type tag edit ... on a light"; board S05Ceiling fixture

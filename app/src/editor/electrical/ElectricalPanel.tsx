@@ -70,6 +70,15 @@ const DEVICE_LABEL: Readonly<Record<(typeof DEVICE_KINDS)[number], MessageKey>> 
   speaker: 'office.fixtures.detail.speaker',
   camera: 'office.fixtures.detail.camera',
   wifi_ap: 'office.fixtures.detail.wifi_ap',
+  // EZD-602: the toolbar's wall and low-voltage devices.
+  receptacle_duplex: 'office.fixtures.detail.receptacle_duplex',
+  receptacle_240v: 'office.fixtures.detail.receptacle_240v',
+  switch_single: 'office.fixtures.detail.switch_single',
+  switch_3way: 'office.fixtures.detail.switch_3way',
+  switch_dimmer: 'office.fixtures.detail.switch_dimmer',
+  data: 'office.fixtures.detail.data',
+  tv: 'office.fixtures.detail.tv',
+  doorbell: 'office.fixtures.detail.doorbell',
 };
 
 const PROTECTION_LABEL: Readonly<Record<CircuitProtection, MessageKey>> = {

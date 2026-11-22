@@ -246,7 +246,7 @@ export function wallEditChanges(
 
 // EZD-212b D6: one Move as one edit (one undo step). Walls go through `wallEditChanges`; moved openings are written
 // with their re-hosting, and a door moved off every wall is flagged. EZD-234: moved fixtures and utility points
-// follow.
+// follow. EZD-602: and moved electrical devices.
 export function moveEditChanges(
   objects: Objects,
   level: string,
@@ -258,12 +258,12 @@ export function moveEditChanges(
   if (changed.length === 0) return [];
   const loose = changed.filter(isLooseObject).map(looseChange);
   const beams: Change[] = changed.flatMap((o) =>
-    o.type === 'beam'
+    o.type === 'beam' || o.type === 'device'
       ? [
           {
             id: o.id,
             value: {
-              type: 'beam',
+              type: o.type,
               schemaVersion: CURRENT_SCHEMA_VERSION,
               data: o.data as unknown as Record<string, unknown>,
             },

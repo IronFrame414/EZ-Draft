@@ -187,6 +187,8 @@ import { createPhaseSetting, type PhaseSetting } from './status/phase-setting';
 import { createLayerSetting, type LayerSetting } from './layers/layer-setting';
 import { LeftPanel, type Tab as LeftTab } from './layers/LeftPanel';
 import type { ElectricalPanelProps } from './electrical/ElectricalPanel';
+import type { DeviceToolsProps, ToolBase } from './electrical';
+import { createReceiverSlot } from './electrical/receiver-slot';
 import { createSurfaceSetting, type SurfaceSetting } from './ceiling/surface';
 import { rcpModule } from './ceiling/rcp-module';
 import { useCeilingKeys } from './ceiling/CeilingParts';
@@ -327,6 +329,8 @@ export function ProjectEditor({
   const [surface] = useState(createSurfaceSetting);
   // EZD-507: the kind each ceiling device tool places next.
   const [deviceChoice] = useState(createDeviceChoice);
+  // EZD-602: where the electrical device toolbar puts its armed item's receiver.
+  const [deviceSlot] = useState(createReceiverSlot<ToolBase>);
   const [attempt, setAttempt] = useState(0);
   const [canvasFailed, setCanvasFailed] = useState(false);
   const [canvasAttempt, setCanvasAttempt] = useState(0);
@@ -965,13 +969,26 @@ export function ProjectEditor({
     // EZD-510: the Switching zones tool, turned on from the left panel's Lighting section (shown once the RCP
     // module is in); the tool and its placement come with that module.
     if (rcp) receivers['switch-zone'] = rcp.zoneReceiver(surface, base);
-    // One wire for every ceiling tool, so one tool turning off never clears another's receiver.
-    const off = wireCeilingTools(surface, toolRoute, receivers, mayEdit);
+    // One wire for every ceiling tool, so one tool turning off never clears another's receiver. EZD-602: and, on
+    // the floor plan, the electrical device toolbar's armed item.
+    deviceSlot.setState({ base });
+    const off = wireCeilingTools(surface, toolRoute, receivers, mayEdit, deviceSlot);
     return () => {
       live = false;
       off();
     };
-  }, [toolRoute, routedStore, selection, phase, floors, surface, mayEdit, deviceChoice, rcp]);
+  }, [
+    toolRoute,
+    routedStore,
+    selection,
+    phase,
+    floors,
+    surface,
+    mayEdit,
+    deviceChoice,
+    rcp,
+    deviceSlot,
+  ]);
   const pdfUnderlay = usePdfUnderlay({ projectId, plan, canEdit: mayEdit });
 
   // EZD-130: a Project settings save (in the switcher) draws the header again with the new name and client.
@@ -1345,6 +1362,15 @@ export function ProjectEditor({
       {shownSurface === 'floor' || rcp === undefined ? null : <rcp.CeilingLegend />}
       {shownSurface !== 'floor' && mayEdit ? (
         <CeilingDeviceChooser surface={surface} choice={deviceChoice} />
+      ) : null}
+      {electricalOn && shownSurface === 'floor' && session?.lock.canEditModel && selection ? (
+        // EZD-602: shown with Edit model, paused (not hidden) in view only or while a version is open.
+        <LazyDeviceTools
+          slot={deviceSlot}
+          paused={!mayEdit}
+          handle={plan.handle}
+          selection={selection}
+        />
       ) : null}
       {shownSurface !== 'floor' && selection !== null && routedStore !== null ? (
         <LazyBeamSpacingPill
@@ -1731,6 +1757,11 @@ const electricalModule = lazyModule(() => import('./electrical'));
 function LazyElectricalPanel(props: ElectricalPanelProps) {
   const mod = useLazy(electricalModule);
   return mod ? <mod.ElectricalPanel {...props} /> : null;
+}
+
+function LazyDeviceTools(props: DeviceToolsProps) {
+  const mod = useLazy(electricalModule);
+  return mod ? <mod.DeviceTools {...props} /> : null;
 }
 
 function LazyElectricalStatus(props: { store: EditorSession['store'] }) {

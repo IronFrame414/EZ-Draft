@@ -44,6 +44,7 @@ import {
   selectionChips,
   swingSideOf,
   wallChips,
+  deviceChips,
   wallLength,
   type ChipSide,
   type DoorSwing,
@@ -135,6 +136,7 @@ import {
   type FixtureChoice,
   type LooseObject,
 } from './index';
+import { devicesOn } from './device-move';
 import { fixturesModule } from './fixtures-module';
 import { VIEW_TOOL_IDS } from './tool-defs';
 import { DEFAULT_BINDINGS, commandForKey, type ShortcutBindings } from '../../lib/defaults/shortcut-keys';
@@ -329,6 +331,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   // EZD-227: the level's grab-bar blocking, which moves and is placed against the walls.
   let blockings: ModelObject[] = level === null ? [] : blockingsOn(objects, level);
   let beams: ModelObject[] = level === null ? [] : beamsOn(objects, level);
+  // EZD-602: the electrical devices, which a drag in electrical mode moves.
+  let devices: ModelObject[] = level === null ? [] : devicesOn(objects, level);
   // EZD-225: `let`, so `pause` can turn editing off when the lock is lost.
   let enabled = viewer.canEdit && level !== null;
 
@@ -473,6 +477,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
           loose = level === null ? [] : looseOn(objects, level);
           blockings = level === null ? [] : blockingsOn(objects, level);
           beams = level === null ? [] : beamsOn(objects, level);
+          devices = level === null ? [] : devicesOn(objects, level);
           moveCache = null;
           index = createWallSnapIndex(snapWalls(models));
           drawingIds = currentDrawingIds();
@@ -491,6 +496,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     loose = level === null ? [] : looseOn(objects, level);
     blockings = level === null ? [] : blockingsOn(objects, level);
     beams = level === null ? [] : beamsOn(objects, level);
+    devices = level === null ? [] : devicesOn(objects, level);
     moveCache = null;
     if (level !== prevLevel || level === null) {
       index = createWallSnapIndex(snapWalls(models));
@@ -517,7 +523,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   // D7 (a): the walls and openings a move reads.
   function moveModels(): ModelObject[] {
-    if (moveCache === null) moveCache = [...models, ...openings, ...blockings, ...loose, ...beams];
+    if (moveCache === null)
+      moveCache = [...models, ...openings, ...blockings, ...loose, ...beams, ...devices];
     return moveCache;
   }
 
@@ -644,6 +651,14 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (o?.type === 'opening') {
       return { ...result, opening: selectedOpeningFrame(o, after, false), selection: null };
+    }
+    // EZD-602 (S06 "Canvas drag device: Moves device; live distances"): a dragged device shows its distances.
+    if (o?.type === 'device') {
+      return {
+        ...result,
+        opening: null,
+        selection: { handles: [], active: null, wallChips: deviceChips(after, o.id), size: null },
+      };
     }
     return result;
   }
@@ -1251,7 +1266,9 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   // D7 (h): a Select drag handed over by the selection controller.
   function startDrag(ids: readonly string[], press: Point): void {
-    if (disposed || !enabled || level === null || tool !== null || ids.length === 0) return;
+    // EZD-602: electrical mode leaves the plan's presses to selection, so its drags move as under Select.
+    if (disposed || !enabled || level === null || ids.length === 0) return;
+    if (tool !== null && tool.id !== 'electrical') return;
     const base = moveSnap(press, null, []);
     drag = startMoveDrag(moveModels(), ids, base);
     emitFrame();

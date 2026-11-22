@@ -1,0 +1,52 @@
+/* EZD-602: the device right-click menu, in the EZD-233 context menu's look (lazy/edit-menu/EditMenu.module.css). */
+
+.menu {
+  position: fixed;
+  z-index: 40;
+  min-width: 196px;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-divider);
+  border-radius: var(--ez-radius-10);
+  box-shadow: var(--ez-shadow-popover);
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+  font-size: 13px;
+  text-align: left;
+  color: var(--ez-ink);
+  background: none;
+  border: none;
+  border-radius: var(--ez-radius-7);
+  cursor: pointer;
+}
+
+.item:hover:not(:disabled),
+.item:focus-visible {
+  background: var(--ez-hover);
+  outline: none;
+}
+
+.item:disabled {
+  color: var(--ez-slate-500);
+  cursor: default;
+}
+
+.sub {
+  padding-left: 22px;
+}
+
+.separator {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--ez-divider);
+}
