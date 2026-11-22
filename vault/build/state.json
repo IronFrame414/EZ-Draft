@@ -447,7 +447,8 @@
     "EZD-710",
     "EZD-915",
     "EZD-510",
-    "EZD-417"
+    "EZD-417",
+    "EZD-711"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1403,6 +1404,14 @@
       "title": "Edge profiles",
       "commit": "bdcf3c5d",
       "ts": "2026-11-22T17:19:56Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-711",
+      "title": "Property appraiser import",
+      "commit": "0b537495",
+      "ts": "2026-11-22T18:33:09Z",
       "kind": "ticket",
       "lane": 2
     }
