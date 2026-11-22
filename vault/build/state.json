@@ -432,7 +432,8 @@
     "EZD-1408",
     "EZD-709",
     "EZD-702a",
-    "EZD-1009"
+    "EZD-1009",
+    "EZD-508"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1270,11 +1271,19 @@
       "ts": "2026-11-22T00:21:14Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-508",
+      "title": "Fixture schedule panel",
+      "commit": "3d586656",
+      "ts": "2026-11-22T02:11:13Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1409,11 +1418,11 @@
     }
   },
   "running": {
-    "EZD-508": {
-      "lane": 1,
-      "title": "Fixture schedule panel",
-      "started": "2026-11-22T00:16:57Z",
-      "develop": "2385f9a0"
+    "EZD-901a": {
+      "lane": 2,
+      "title": "Reference conversion job",
+      "started": "2026-11-22T00:43:40Z",
+      "develop": "075b5ca4"
     }
   },
   "advisories_checked_at": "2026-11-21T22:10:10Z"
