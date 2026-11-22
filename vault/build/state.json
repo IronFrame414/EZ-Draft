@@ -440,7 +440,8 @@
     "EZD-1417",
     "EZD-515",
     "EZD-504",
-    "EZD-414"
+    "EZD-414",
+    "EZD-1419"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1342,6 +1343,14 @@
       "ts": "2026-11-22T08:43:53Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1419",
+      "title": "Field measure entry points and states",
+      "commit": "370fe8c3",
+      "ts": "2026-11-22T09:13:33Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1486,11 +1495,17 @@
     }
   },
   "running": {
-    "EZD-1419": {
-      "lane": 2,
-      "title": "Field measure entry points and states",
-      "started": "2026-11-22T07:31:09Z",
-      "develop": "89c48089"
+    "EZD-702b": {
+      "lane": 1,
+      "title": "Sheet renderer",
+      "started": "2026-11-22T08:44:38Z",
+      "develop": "9873633f"
+    },
+    "EZD-415": {
+      "lane": 3,
+      "title": "Seating support check",
+      "started": "2026-11-22T08:44:38Z",
+      "develop": "9873633f"
     }
   },
   "advisories_checked_at": "2026-11-22T04:10:20Z"
