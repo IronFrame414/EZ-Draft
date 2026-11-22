@@ -1434,9 +1434,18 @@
       "lane": 1
     }
   ],
-  "set_aside": {},
+  "set_aside": {
+    "EZD-1418": {
+      "title": "Field measure into Import review",
+      "ts": "2026-11-22T23:36:10Z",
+      "reason": "check red after merging newer develop (first try: check red after merging newer develop)",
+      "detail": ": Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nEZD-1001a first open of 3D on the benchmark project: 265 ms\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n  ✘  586 [ipad-landscape] › e2e/settings-users.spec.ts:310:7 › EZD-104 users table › B8 touch targets @ipad (2.5s)\n  1) [ipad-landscape] › e2e/settings-users.spec.ts:310:7 › EZD-104 users table › B8 touch targets @ipad \n    Error: touch targets\n    expect(received).toEqual(expected) // deep equality\n    - Expected  - 1\n    + Received  + 3\n    - Array []\n    + Array [\n    +   \"INPUT \\\"\\\" covered at center 142x44\",\n    + ]\n       at ../test-harness/touch-targets.ts:58\n      56 |     return { failures, checked };\n      57 |   }, TOUCH_TARGET_SELECTOR);\n    > 58 |   expect(result.failures, 'touch targets').toEqual([]);\n         |                                            ^\n      59 |   return result.checked;\n      60 | }\n      61 |\n        at expectTouchTargets (/Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1418/app/test-harness/touch-targets.ts:58:44)\n        at /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1418/app/e2e/settings-users.spec.ts:342:14\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results/settings-users-EZD-104-users-table-B8-touch-targets-ipad-ipad-landscape/test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n    Error Context: test-results/settings-users-EZD-104-users-table-B8-touch-targets-ipad-ipad-landscape/error-context.md\n    Error Context: test-results/settings-users-EZD-104-users-table-B8-touch-targets-ipad-ipad-landscape/error-context.md\n    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results/settings-users-EZD-104-users-table-B8-touch-targets-ipad-ipad-landscape/trace.zip\n    Usage:\n        pnpm exec playwright show-trace test-results/settings-users-EZD-104-users-table-B8-touch-targets-ipad-ipad-landscape/trace.zip\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n  1 failed\n    [ipad-landscape] › e2e/settings-users.spec.ts:310:7 › EZD-104 users table › B8 touch targets @ipad \n  7 did not run\n  629 passed (6.8m)\n[ELIFECYCLE] Command failed with exit code 1.\nError: ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL\n  × \"pnpm recursive run\" failed in /Users/josh/Projects/ezdraft/.claude/\n  │ worktrees/EZD-1418/app\n",
+      "branch": "t/EZD-1418",
+      "worktree": ".claude/worktrees/EZD-1418"
+    }
+  },
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1586,14 +1595,20 @@
     }
   },
   "running": {
-    "EZD-1418": {
-      "lane": 2,
-      "title": "Field measure into Import review",
-      "started": "2026-11-22T20:29:07Z",
-      "develop": "ff9ea6da"
+    "EZD-403": {
+      "lane": 1,
+      "title": "Cabinet library panel",
+      "started": "2026-11-22T21:56:15Z",
+      "develop": "98a69d30"
+    },
+    "EZD-603": {
+      "lane": 3,
+      "title": "Device height notes",
+      "started": "2026-11-22T21:56:19Z",
+      "develop": "98a69d30"
     }
   },
-  "advisories_checked_at": "2026-11-22T16:11:22Z",
+  "advisories_checked_at": "2026-11-22T22:12:20Z",
   "hold": {
     "EZD-415": {
       "holders": [
