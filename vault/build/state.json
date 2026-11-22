@@ -1373,7 +1373,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1518,16 +1518,22 @@
       "title": "Cabinet library panel",
       "started": "2026-11-22T10:36:22Z",
       "develop": "5c7e78be"
+    },
+    "EZD-1422": {
+      "lane": 2,
+      "title": "Field measure as wizard input",
+      "started": "2026-11-22T11:49:22Z",
+      "develop": "dffb5f1f"
     }
   },
   "advisories_checked_at": "2026-11-22T10:10:59Z",
   "hold": {
     "EZD-415": {
       "holders": [
-        "EZD-914"
+        "EZD-1422"
       ],
-      "ts": "2026-11-22T09:47:53Z",
-      "why": "needs a file held by EZD-914"
+      "ts": "2026-11-22T12:02:49Z",
+      "why": "needs a file held by EZD-1422"
     }
   }
 }
