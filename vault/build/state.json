@@ -1355,7 +1355,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1501,12 +1501,21 @@
       "started": "2026-11-22T08:44:38Z",
       "develop": "9873633f"
     },
-    "EZD-415": {
-      "lane": 3,
-      "title": "Seating support check",
-      "started": "2026-11-22T08:44:38Z",
-      "develop": "9873633f"
+    "EZD-914": {
+      "lane": 2,
+      "title": "Supplier files panel",
+      "started": "2026-11-22T09:14:30Z",
+      "develop": "fbe4a3af"
     }
   },
-  "advisories_checked_at": "2026-11-22T04:10:20Z"
+  "advisories_checked_at": "2026-11-22T04:10:20Z",
+  "hold": {
+    "EZD-415": {
+      "holders": [
+        "EZD-914"
+      ],
+      "ts": "2026-11-22T09:47:53Z",
+      "why": "needs a file held by EZD-914"
+    }
+  }
 }
