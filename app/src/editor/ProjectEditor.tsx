@@ -593,14 +593,15 @@ export function ProjectEditor({
   // EZD-407: the Defaults "Cabinet fit" tolerance for the fit chip, re-read on every defaults resync; null while not
   // set.
   const sessionDefaults = session?.defaults ?? null;
-  const readFitTolerance = () => {
-    const v = sessionDefaults?.get()['cabinet_fit_tolerance'];
+  // EZD-515: one reader of a number Default (null while not set), shared by every number Default below.
+  const readDefaultNumber = (key: string) => () => {
+    const v = sessionDefaults?.get()[key];
     return typeof v === 'number' ? v : null;
   };
   const fitTolerance = useSyncExternalStore(
     sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
-    readFitTolerance,
-    readFitTolerance,
+    readDefaultNumber('cabinet_fit_tolerance'),
+    readDefaultNumber('cabinet_fit_tolerance'),
   );
   // EZD-222 (S15d Keyboard shortcuts; phase-02.md EZD-222 "rail and tooltips read bindings"): the company key map,
   // re-read on every defaults resync; the rail's tooltips and the Help list show it.
@@ -657,10 +658,6 @@ export function ProjectEditor({
     readAutoFillIncrement,
   );
   // EZD-412: the Defaults the countertop screen reads (per project): Trace's overhangs and the countertop increment.
-  const readDefaultNumber = (key: string) => () => {
-    const v = sessionDefaults?.get()[key];
-    return typeof v === 'number' ? v : null;
-  };
   const overhangStandard = useSyncExternalStore(
     sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
     readDefaultNumber('overhang_standard'),
@@ -686,6 +683,13 @@ export function ProjectEditor({
     sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
     readDefaultNumber('overhang_seating_bar'),
     readDefaultNumber('overhang_seating_bar'),
+  );
+  // EZD-515 (S05 Validation; S05 Decision 4): the Defaults "Fan blade clearance" for the RCP and the inspector, re-read
+  // on every defaults resync; null while Not set (no fan check).
+  const fanClearance = useSyncExternalStore(
+    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
+    readDefaultNumber('fan_blade_clearance'),
+    readDefaultNumber('fan_blade_clearance'),
   );
   const countertopDefaults = useMemo(
     () => ({
@@ -805,7 +809,6 @@ export function ProjectEditor({
     rcpModule.load().then(
       (m) => {
         if (!live) return;
-        plan.setSurface(shownSurface, m.rcpView);
         setRcp(m);
       },
       () => {},
@@ -814,6 +817,14 @@ export function ProjectEditor({
       live = false;
     };
   }, [plan, selection, shownSurface]);
+  // EZD-515: the RCP draws through a builder holding the Defaults fan clearance; a new clearance makes a new builder,
+  // so the canvas redraws its flags without ending the tool.
+  useEffect(() => {
+    if (plan === null || shownSurface === 'floor' || !rcp) return;
+    plan.setSurface(shownSurface, (floor, objects, sf) =>
+      rcp.rcpView(floor, objects, sf, { fanClearance }),
+    );
+  }, [plan, shownSurface, rcp, fanClearance]);
   // EZD-503: Read heights from scan reads the page's GLB link through EZD-303's reader, loaded on the first press.
   const readScan = useMemo(
     () =>
@@ -1478,6 +1489,7 @@ export function ProjectEditor({
         newStatus={phase === null ? undefined : phase.newObjectStatus}
         floors={floors ?? undefined}
         projectId={projectId}
+        fanClearance={fanClearance}
       />
       <InspectorMore
         selection={selection}

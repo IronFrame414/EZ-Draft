@@ -307,3 +307,46 @@ describe('EZD-507 fixture type on a light', () => {
     }
   });
 });
+
+// EZD-515 (S05 Validation "Ceiling fan blade clearance"; vault/build/assumptions.md EZD-515 "bladeSpan ... starting
+// 52"", "Blade span" in the inspector; Q-0561 lengths): a fan's blade span is one edit, a length above 0.
+describe('EZD-515 blade span on a fan', () => {
+  it('reads 52" until set; a typed length is stored in inches and persists; empty clears it', () => {
+    const { store, added } = placeWith('ceiling-fan', 'ceiling_fan', 'new');
+    const id = added[0]!;
+    expect(fixtureTypeView(store.getState().objects, id)!.bladeSpan).toBe('4\' 4"');
+    const r = fixtureTypeEdit(store.getState().objects, id, { field: 'bladeSpan', text: "5'" });
+    expect(r.ok).toBe(true);
+    if (r.ok) store.applyEdit([r.change]);
+    const v = store.getState().objects.get(id)!;
+    expect((v.data as { attributes: Record<string, unknown> }).attributes.bladeSpan).toBe(60);
+    expect(
+      parseStoredObject({
+        id,
+        type: v.type,
+        schema_version: v.schemaVersion,
+        data: JSON.parse(JSON.stringify(v.data)),
+      }).ok,
+    ).toBe(true);
+    expect(fixtureTypeView(store.getState().objects, id)!.bladeSpan).toBe('5\' 0"');
+    const cleared = fixtureTypeEdit(store.getState().objects, id, { field: 'bladeSpan', text: '' });
+    expect(cleared.ok).toBe(true);
+    if (cleared.ok) store.applyEdit([cleared.change]);
+    expect(fixtureTypeView(store.getState().objects, id)!.bladeSpan).toBe('4\' 4"');
+  });
+
+  it('refuses a span that is not a length above 0, and a span on a light', () => {
+    const { store, added } = placeWith('ceiling-fan', 'ceiling_fan', 'new');
+    for (const text of ['0', '-4', 'abc'])
+      expect(
+        fixtureTypeEdit(store.getState().objects, added[0]!, { field: 'bladeSpan', text }),
+      ).toEqual({ ok: false, messageKey: 'office.length.refused' });
+    const light = placeWith('recessed-light', 'recessed_light', 'new');
+    expect(
+      fixtureTypeEdit(light.store.getState().objects, light.added[0]!, {
+        field: 'bladeSpan',
+        text: '52',
+      }).ok,
+    ).toBe(false);
+  });
+});

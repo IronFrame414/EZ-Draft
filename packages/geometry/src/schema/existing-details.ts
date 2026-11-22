@@ -56,6 +56,8 @@ export const FIXTURE_TYPE_DEVICE_KINDS = [
   'recessed_light',
   'ceiling_fan',
 ] as const satisfies readonly DeviceKind[];
+/** EZD-515: a fan with no blade span set reads as 52" (board S05Ceiling "F Fan 52""). */
+export const DEFAULT_FAN_BLADE_SPAN_IN = 52;
 export const deviceDataSchema = z.strictObject({
   geometry: z.strictObject({ point: pointSchema }),
   status: objectStatusSchema,
@@ -73,6 +75,9 @@ export const deviceDataSchema = z.strictObject({
     colorTemp: z.number().int().positive().nullable().optional(),
     trim: z.string().trim().min(1).nullable().optional(),
     catalogItemId: z.uuid().nullable().optional(),
+    // EZD-515 (S05 Validation "Ceiling fan blade clearance"; vault/build/assumptions.md EZD-515): a fan's blade span,
+    // tip to tip, in inches; absent reads as DEFAULT_FAN_BLADE_SPAN_IN. Optional, so the version stays.
+    bladeSpan: z.number().positive().nullable().optional(),
   }),
 });
 export type DeviceData = z.infer<typeof deviceDataSchema>;

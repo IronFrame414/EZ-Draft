@@ -10,6 +10,7 @@ import {
 } from '@ezdraft/geometry';
 import { describe, expect, it } from 'vitest';
 import type { ObjectValue } from '../../lib/outbox/model-api';
+import { planDetailItems } from '../../lazy/room-fields/details-drawing';
 import { planDrawingList } from '../plan/batches';
 import { tokenRgb } from '../plan/color';
 import { DOOR, F1, roomValue, uid } from '../tools/test-utils/fixtures';
@@ -182,5 +183,51 @@ describe('EZD-505 beams on the RCP', () => {
     const objects = withBeam(108);
     const floor = planDrawingList(objects, {}, null, null)!;
     expect(floor.items.some((i) => i.objectId === BEAM_ID)).toBe(false);
+  });
+});
+
+// EZD-515 (AC-EZD-515-1 "A fan closer than the clearance warns"; S05 Validation "Ceiling fan blade clearance to walls
+// and beams", "Hosted ceiling item left off any ceiling surface: red flag"; Q-0630 "The whole object turns error
+// red"). The 144" x 120" room, its walls' inner faces on the outline; a fan's default 52" span is a 26" radius. The
+// clearance is the owner's Defaults value, fixture input here.
+const FAN_ID = uid(80);
+const DET_ID = uid(81);
+function withDevice(id: string, kind: string, at: Point): Map<string, ObjectValue> {
+  const objects = vaulted();
+  objects.set(id, {
+    type: 'device',
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: { geometry: { point: at }, status: 'new', level: F1, attributes: { kind } },
+  });
+  return objects;
+}
+const layersOf = (objects: Map<string, ObjectValue>, id: string, fanClearance: number | null) => {
+  const floor = planDrawingList(objects, { extraItems: planDetailItems }, null, null);
+  const items = rcpList(floor, objects, { fanClearance })!.items;
+  const own = items.filter((i) => i.objectId.toLowerCase() === id);
+  expect(own.length).toBeGreaterThan(0);
+  return new Set(own.map((i) => i.layer));
+};
+
+describe('EZD-515 fan clearance and hosted flags on the RCP', () => {
+  it('AC-EZD-515-1: a fan closer than the clearance turns error red', () => {
+    // Centre 40" off the south wall: the blade tip is 14" off it, under 18".
+    const objects = withDevice(FAN_ID, 'ceiling_fan', P(60, 40));
+    expect(layersOf(objects, FAN_ID, 18)).toEqual(new Set(['flagged']));
+  });
+
+  it('the same fan keeps its status colour at a clearance it meets, and with no clearance set', () => {
+    const objects = withDevice(FAN_ID, 'ceiling_fan', P(60, 40));
+    expect(layersOf(objects, FAN_ID, 14)).toEqual(new Set(['new']));
+    expect(layersOf(objects, FAN_ID, null)).toEqual(new Set(['new']));
+  });
+
+  it('a detector off every ceiling is flagged red; inside the room it is not', () => {
+    expect(layersOf(withDevice(DET_ID, 'smoke_detector', P(200, 60)), DET_ID, null)).toEqual(
+      new Set(['flagged']),
+    );
+    expect(layersOf(withDevice(DET_ID, 'smoke_detector', P(72, 60)), DET_ID, null)).toEqual(
+      new Set(['new']),
+    );
   });
 });

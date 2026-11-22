@@ -3,6 +3,11 @@
 // temperature, trim, catalog item. | Edit model."; vault/build/assumptions.md EZD-507): the inspector for one selected
 // light or fan: its kind and status, and its Fixture type. Each change is one edit (one undo step); without Edit model every
 // field is read only. The catalog item is picked from the lighting catalog (EZD-401 picker).
+// EZD-515 (S05 Validation "Ceiling fan blade clearance to walls and beams: warning when closer than the clearance in
+// company settings under Defaults", "Hosted ceiling item left off any ceiling surface: red flag"; Q-0630 "the words
+// show in the inspector on click"; AC-EZD-515-1; vault/build/assumptions.md EZD-515): a fan's Blade span, and the
+// flag lines of a fan closer than the clearance or a hosted ceiling item off any ceiling.
+import { fanClearanceWarnings, formatLength, isOffCeiling } from '@ezdraft/geometry';
 import {
   useEffect,
   useState,
@@ -15,7 +20,9 @@ import { Icon } from '../../components/icon/Icon';
 import type { CatalogItem } from '../../lib/catalog/catalog';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
+import { levelModelObjects } from '../inspector/inspector-edits';
 import type { ModelStore } from '../model/model-store';
+import type { Objects } from '../model/patches';
 import {
   fixtureTypeEdit,
   fixtureTypeView,
@@ -30,6 +37,8 @@ export type DevicePanelProps = {
   canEdit: boolean;
   // Tests pass their own; the page reads GET /api/catalog.
   loadCatalog?: () => Promise<CatalogItem[]>;
+  // EZD-515: the Defaults "Fan blade clearance"; null or absent is Not set (no fan check).
+  fanClearance?: number | null;
 };
 
 async function fetchCatalogItems(): Promise<CatalogItem[]> {
@@ -105,11 +114,106 @@ function TypeText({
   );
 }
 
+
+// ---- EZD-515 fan clearance and hosted flags (S05 Validation "Ceiling fan blade clearance to walls and beams: warning
+// when closer than the clearance in company settings under Defaults", "Hosted ceiling item left off any ceiling
+// surface: red flag"; Q-0630 "the words show in the inspector on click"; AC-EZD-515-1) ----
+
+export type CeilingFlagView = {
+  /** True when the item is a hosted ceiling item in no room on its floor. */
+  offCeiling: boolean;
+  /** The fan's clearance warnings: the gap and the clearance as shown. */
+  clearance: { against: 'wall' | 'beam'; gap: string; clearance: string }[];
+};
+
+/** The flags of one selected object, or null when it has none. `fanClearance` null is Not set (no fan check). */
+export function ceilingFlagView(
+  objects: Objects,
+  id: string,
+  fanClearance: number | null,
+): CeilingFlagView | null {
+  const key = id.toLowerCase();
+  let level: string | null = null;
+  for (const [k, v] of objects)
+    if (k.toLowerCase() === key) {
+      if (v.type !== 'device' && v.type !== 'access' && v.type !== 'hvac') return null;
+      const l = (v.data as { level?: unknown }).level;
+      level = typeof l === 'string' ? l : null;
+    }
+  if (level === null) return null;
+  const all = levelModelObjects(objects, level);
+  const o = all.find((x) => x.id.toLowerCase() === key);
+  if (o === undefined) return null;
+  const offCeiling = isOffCeiling(o, all);
+  const clearance =
+    fanClearance === null
+      ? []
+      : fanClearanceWarnings(o, all, fanClearance).map((w) => ({
+          against: w.against,
+          gap: formatLength(w.gap, 16),
+          clearance: formatLength(fanClearance, 16),
+        }));
+  return offCeiling || clearance.length > 0 ? { offCeiling, clearance } : null;
+}
+
+const CLEARANCE_KEYS: Record<'wall' | 'beam', MessageKey> = {
+  wall: 'office.device.fan_clearance.wall',
+  beam: 'office.device.fan_clearance.beam',
+};
+
+/** The flag lines of one selected ceiling item, or nothing when it has none. */
+export function CeilingFlags({
+  objects,
+  id,
+  canEdit,
+  fanClearance,
+}: {
+  objects: Objects;
+  id: string;
+  canEdit: boolean;
+  fanClearance: number | null;
+}): ReactElement | null {
+  const t = useT();
+  const flags = ceilingFlagView(objects, id, fanClearance);
+  if (flags === null) return null;
+  return (
+    <>
+      {flags.offCeiling ? (
+        <div className={styles.flag} role="alert" data-testid="inspector-not-on-ceiling">
+          <span className={styles.flagTitle}>
+            <Icon name="error" size={18} />
+            {t('office.device.not_on_ceiling')}
+          </span>
+          {canEdit ? (
+            <span className={`${styles.hint} ${styles.flagHint}`}>
+              {t('office.device.not_on_ceiling_hint')}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+      {flags.clearance.map((w) => (
+        <div
+          key={w.against}
+          className={styles.flag}
+          role="alert"
+          data-testid={`device-fan-clearance-${w.against}`}
+        >
+          <span className={styles.flagTitle}>
+            <Icon name="error" size={18} />
+            {t(CLEARANCE_KEYS[w.against], { gap: w.gap, clearance: w.clearance })}
+          </span>
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function DevicePanel({
   store,
   deviceId,
   canEdit,
   loadCatalog = fetchCatalogItems,
+  fanClearance = null,
 }: DevicePanelProps): ReactElement | null {
   const t = useT();
   const objects = useSyncExternalStore(
@@ -170,6 +274,7 @@ export function DevicePanel({
           </span>
         )}
       </div>
+      <CeilingFlags objects={objects} id={deviceId} canEdit={canEdit} fanClearance={fanClearance} />
       <div className={styles.section} data-testid="device-type">
         <span className={styles.head}>{t('office.device.type.heading')}</span>
         <div className={styles.grid2}>
@@ -204,6 +309,17 @@ export function DevicePanel({
             onText={onText}
           />
         </div>
+        {view.kind === 'ceiling_fan' ? (
+          <div className={styles.grid2}>
+            <TypeText
+              field="bladeSpan"
+              label="office.device.blade_span"
+              value={view.bladeSpan}
+              disabled={!canEdit}
+              onText={onText}
+            />
+          </div>
+        ) : null}
         <div className={styles.field}>
           {t('office.device.type.catalog')}
           <span data-testid="device-catalog">{itemText}</span>

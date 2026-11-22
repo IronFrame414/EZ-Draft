@@ -13,7 +13,7 @@ import { DeviceChooser } from '../../lazy/rcp/DeviceChooser';
 import { InspectorPanel } from '../inspector/InspectorPanel';
 import { createModelStore } from '../model/model-store';
 import { placeCeilingDevice, type CeilingDeviceKind } from './fixture-tool';
-import { baseObjects, F1, uid } from './test-utils/fixtures';
+import { baseObjects, F1, ROOM, roomValue, uid } from './test-utils/fixtures';
 
 const ID = uid(800);
 const at: Point = { x: 30, y: 40 };
@@ -28,13 +28,23 @@ function withDevice(kind: CeilingDeviceKind, attrs: Record<string, unknown> = {}
   return objects;
 }
 
-function render(objects: Map<string, ObjectValue>, canEdit = true): string {
+function render(
+  objects: Map<string, ObjectValue>,
+  canEdit = true,
+  fanClearance: number | null = null,
+): string {
   const store = createModelStore({ objects });
   const ui = { ids: [ID], selectMore: false };
   const selection = { getUi: () => ui, subscribe: () => () => {}, onDoubleClick: () => () => {} };
   return renderToStaticMarkup(
     <MessagesProvider language="en" messages={catalogFor('office', 'en') as never}>
-      <InspectorPanel store={store} selection={selection} canEdit={canEdit} drawing={null} />
+      <InspectorPanel
+        store={store}
+        selection={selection}
+        canEdit={canEdit}
+        drawing={null}
+        fanClearance={fanClearance}
+      />
     </MessagesProvider>,
   ).replace(/&#x27;/g, "'");
 }
@@ -117,5 +127,59 @@ describe('EZD-507 kind chooser of a ceiling device tool', () => {
     expect(elements(chooser('ceiling-fan', 'ceiling_fan'), 'ceiling-device-chooser')).toHaveLength(
       0,
     );
+  });
+});
+
+// EZD-515 (AC-EZD-515-1 "A fan closer than the clearance warns"; S05 Validation "Ceiling fan blade clearance to walls
+// and beams", "Hosted ceiling item left off any ceiling surface: red flag"; Q-0630 "the words show in the inspector on
+// click"). The 144" x 120" ROOM walls, inner faces on the room outline; a 52" fan is a 26" radius. The clearance is the
+// owner's Defaults value, passed as fixture input.
+const P = (x: number, y: number): Point => ({ x, y });
+const unquote = (s: string | null | undefined) => (s ?? '').replace(/&quot;/g, '"');
+function inRoom(kind: CeilingDeviceKind, point: Point, attrs: Record<string, unknown> = {}) {
+  const change = placeCeilingDevice(kind, point, { level: F1, newId: () => ID, status: 'new' })!;
+  const value = change.value! as ObjectValue;
+  const data = value.data as { attributes: Record<string, unknown> };
+  data.attributes = { ...data.attributes, ...attrs };
+  const objects = new Map(ROOM);
+  objects.set(uid(860), roomValue([P(0, 0), P(144, 0), P(144, 120), P(0, 120)], 'Bedroom', null));
+  objects.set(ID, value);
+  return objects;
+}
+
+describe('EZD-515 fan clearance and hosted flags in the inspector', () => {
+  it('AC-EZD-515-1: a fan closer than the clearance warns', () => {
+    // 40" off the south wall: the blade tip is 14" off it, under the 18" clearance.
+    const html = render(inRoom('ceiling_fan', P(60, 40)), true, 18);
+    expect(unquote(textOf(one(html, 'device-fan-clearance-wall').inner))).toBe(
+      'Fan blade is 1\' 2" from a wall. Clearance is 1\' 6".',
+    );
+    expect(elements(html, 'inspector-not-on-ceiling')).toHaveLength(0);
+  });
+
+  it('no warning when the fan meets the clearance, or when no clearance is set', () => {
+    expect(
+      elements(render(inRoom('ceiling_fan', P(60, 44)), true, 18), 'device-fan-clearance-wall'),
+    ).toHaveLength(0);
+    expect(
+      elements(render(inRoom('ceiling_fan', P(60, 40)), true, null), 'device-fan-clearance-wall'),
+    ).toHaveLength(0);
+  });
+
+  it('a fan shows its Blade span, 52" until set', () => {
+    expect(unquote(attr(one(render(inRoom('ceiling_fan', P(72, 60))), 'device-bladeSpan').attrs, 'value'))).toBe(
+      '4\' 4"',
+    );
+    const own = render(inRoom('ceiling_fan', P(72, 60), { bladeSpan: 60 }));
+    expect(unquote(attr(one(own, 'device-bladeSpan').attrs, 'value'))).toBe('5\' 0"');
+    expect(elements(render(inRoom('recessed_light', P(72, 60))), 'device-bladeSpan')).toHaveLength(0);
+  });
+
+  it('a hosted item in no room reads Not on a ceiling; inside a room it does not', () => {
+    for (const kind of ['ceiling_fan', 'smoke_detector', 'speaker', 'access_panel'] as const) {
+      const out = render(inRoom(kind, P(200, 60)));
+      expect(textOf(one(out, 'inspector-not-on-ceiling').inner)).toContain('Not on a ceiling');
+      expect(elements(render(inRoom(kind, P(72, 60))), 'inspector-not-on-ceiling')).toHaveLength(0);
+    }
   });
 });

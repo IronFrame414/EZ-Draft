@@ -16,6 +16,7 @@ import {
   createMember,
   createTenant,
   expect,
+  harnessSql,
   setPermissions,
   test,
 } from '../test-harness/e2e/test';
@@ -36,7 +37,7 @@ async function fixtureS(permissions: string[]) {
   const ids = await seedFixtureS(tenant);
   const user = await createMember({ tenantId: tenant, scope: 'all', listed: [] });
   await setPermissions(tenant, user.membershipId, permissions as never);
-  return { ids, user };
+  return { ids, user, tenant };
 }
 
 const id = (page: Page, testId: string) => page.getByTestId(testId);
@@ -208,5 +209,41 @@ test.describe('EZD-507 ceiling devices', () => {
     expect(new Set(back.map((d) => `${d.id}:${d.kind}`))).toEqual(
       new Set(placed.map((d) => `${d.id}:${d.kind}`)),
     );
+  });
+
+  // EZD-515 (AC-EZD-515-1 "A fan closer than the clearance warns"; S05 Validation "Ceiling fan blade clearance to walls
+  // and beams", "Hosted ceiling item left off any ceiling surface: red flag"). The owner's Defaults clearance is set to
+  // 18" as fixture input; the 52" fan placed 40" off the south wall face has its blade tip 14" off it.
+  test('AC-EZD-515-1: a fan closer than the clearance warns; a detector off the ceiling is flagged', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids, user, tenant } = await fixtureS(['view_projects', 'edit_model']);
+    await harnessSql()`update public.tenant
+      set defaults = coalesce(defaults, '{}'::jsonb) || '{"fan_blade_clearance": 18}'::jsonb
+      where id = ${tenant}::uuid`;
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await seedRoom(page);
+    await id(page, 'surface-ceiling').click();
+    await expect.poll(async () => (await drawn(page)).surface).toBe('ceiling');
+
+    await tool(page, 'ceiling-fan').click();
+    await clickModel(page, { x: 60, y: 40 });
+    await expect(id(page, 'inspector-title')).toHaveText('Ceiling fan');
+    await expect(id(page, 'device-bladeSpan')).toHaveValue('4\' 4"');
+    await expect(id(page, 'device-fan-clearance-wall')).toHaveText(
+      'Fan blade is 1\' 2" from a wall. Clearance is 1\' 6".',
+    );
+
+    // A fan in the middle of the room is clear: 60 - 26 = 34".
+    await clickModel(page, { x: 72, y: 60 });
+    await expect(id(page, 'inspector-title')).toHaveText('Ceiling fan');
+    await expect(id(page, 'device-fan-clearance-wall')).toHaveCount(0);
+
+    // A detector placed outside every room reads Not on a ceiling.
+    await tool(page, 'detector').click();
+    await clickModel(page, { x: -40, y: 60 });
+    await expect(id(page, 'inspector-not-on-ceiling')).toContainText('Not on a ceiling');
   });
 });

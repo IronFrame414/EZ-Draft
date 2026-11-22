@@ -5,7 +5,7 @@
 // access_panel"; migrate.ts version rule: a change that keeps every stored object valid keeps the version).
 import { describe, expect, it } from 'vitest';
 import { CURRENT_SCHEMA_VERSION } from './migrate';
-import { ACCESS_KINDS, DEVICE_KINDS, parseStoredObject } from './index';
+import { ACCESS_KINDS, DEFAULT_FAN_BLADE_SPAN_IN, DEVICE_KINDS, parseStoredObject } from './index';
 import v7 from './samples/v7.json';
 
 const LEVEL = '11111111-1111-4111-8111-111111111111';
@@ -109,5 +109,21 @@ describe('EZD-507 ceiling device schema', () => {
       expect(parseStoredObject(structuredClone(o) as never).ok).toBe(true);
     // A detector stored before EZD-507, with no fixture type fields, still parses.
     expect(parseStoredObject(device({ kind: 'smoke_detector' })).ok).toBe(true);
+  });
+});
+
+// EZD-515 (S05 Validation "Ceiling fan blade clearance"; vault/build/assumptions.md EZD-515 "bladeSpan ... starting
+// 52""): a fan's blade span is an optional positive length, so a stored fan without one still parses.
+describe('EZD-515 fan blade span', () => {
+  it('a fan without a blade span still parses, and the default span is 52"', () => {
+    expect(parseStoredObject(device({ kind: 'ceiling_fan' })).ok).toBe(true);
+    expect(DEFAULT_FAN_BLADE_SPAN_IN).toBe(52);
+  });
+
+  it('a positive blade span is kept; 0 or below is refused', () => {
+    expect(parseStoredObject(device({ kind: 'ceiling_fan', bladeSpan: 60 })).ok).toBe(true);
+    expect(parseStoredObject(device({ kind: 'ceiling_fan', bladeSpan: null })).ok).toBe(true);
+    expect(parseStoredObject(device({ kind: 'ceiling_fan', bladeSpan: 0 })).ok).toBe(false);
+    expect(parseStoredObject(device({ kind: 'ceiling_fan', bladeSpan: -4 })).ok).toBe(false);
   });
 });

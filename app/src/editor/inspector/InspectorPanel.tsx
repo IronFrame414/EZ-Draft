@@ -68,7 +68,7 @@ import {
 import { ResolveGap, type ResolveGapProps } from './ResolveGap';
 import { PinPanel } from './PinPanel';
 import { BeamPanel } from '../tools/BeamPanel';
-import { DevicePanel } from '../tools/DevicePanel';
+import { CeilingFlags, DevicePanel } from '../tools/DevicePanel';
 import { fixtureTypeView } from '../tools/ceiling-device-tool';
 import { EngineerNoteForm } from './EngineerNoteForm';
 import styles from './InspectorPanel.module.css';
@@ -106,6 +106,8 @@ export type InspectorPanelProps = {
   floors?: FloorChoice;
   // EZD-220: the project a pin photo is sent to; without it a pin's photo is shown but not attached.
   projectId?: string;
+  // EZD-515: the Defaults "Fan blade clearance"; null or absent is Not set (no fan check).
+  fanClearance?: number | null;
 };
 
 export type InspectorContentProps = {
@@ -132,6 +134,7 @@ export function InspectorPanel({
   newStatus,
   floors,
   projectId,
+  fanClearance = null,
 }: InspectorPanelProps): ReactElement {
   const chosen = useChosenFloor(floors);
   const objects = useSyncExternalStore(
@@ -255,7 +258,13 @@ export function InspectorPanel({
 
   if (fixtureAlone !== null)
     return (
-      <DevicePanel key={fixtureAlone} store={store} deviceId={fixtureAlone} canEdit={canEdit} />
+      <DevicePanel
+        key={fixtureAlone}
+        store={store}
+        deviceId={fixtureAlone}
+        canEdit={canEdit}
+        fanClearance={fanClearance}
+      />
     );
 
   // EZD-215: one engineer note alone shows its form.
@@ -270,7 +279,7 @@ export function InspectorPanel({
       />
     );
 
-  return (
+  const content = (
     <InspectorContent
       key={idsKey}
       view={view}
@@ -284,6 +293,17 @@ export function InspectorPanel({
       gap={gap}
     />
   );
+  // EZD-515 (S05 Validation "Hosted ceiling item left off any ceiling surface: red flag"; Q-0630 "the words show in
+  // the inspector on click"): one other hosted ceiling item alone (detector, low voltage, access panel, register)
+  // shows its flag above its inspector.
+  if (ids.length === 1)
+    return (
+      <>
+        <CeilingFlags objects={objects} id={ids[0]!} canEdit={canEdit} fanClearance={fanClearance} />
+        {content}
+      </>
+    );
+  return content;
 }
 
 export function InspectorContent(props: InspectorContentProps): ReactElement {

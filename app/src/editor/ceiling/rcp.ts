@@ -11,7 +11,13 @@
 // object as electrical plan"; S05 Data shown "Ceiling objects: ... cans, fans, ... detectors, speakers, low voltage,
 // access panels"; AC-EZD-507-1): the ceiling devices keep the floor plan's own items (one object id on both); a device
 // of another kind (a wall device of the electrical plan) is a floor item.
+// EZD-515 (S05 Validation "Ceiling fan blade clearance to walls and beams: warning when closer than the clearance in
+// company settings under Defaults", "Hosted ceiling item left off any ceiling surface: red flag"; Q-0630 "The whole
+// object turns error red"; AC-EZD-515-1): a fan closer than the clearance, and a hosted ceiling item in no room, draw
+// on the flagged layer (as the EZD-505 beam warning; vault/build/assumptions.md EZD-515).
 import {
+  fanClearanceWarnings,
+  isOffCeiling,
   DRAWING_FONTS,
   beamOutlines,
   beamSetWarnings,
@@ -160,12 +166,38 @@ export function beamItems(
   return items;
 }
 
+/** EZD-515: what the RCP checks need from company settings. `fanClearance` null is Not set (no fan check). */
+export type RcpChecks = { fanClearance: number | null };
+const NO_CHECKS: RcpChecks = { fanClearance: null };
+
+/** EZD-515: the ids of the hosted ceiling items that are flagged: off any ceiling, or a fan closer than the clearance. */
+export function flaggedCeilingIds(
+  objects: Objects,
+  level: string,
+  checks: RcpChecks = NO_CHECKS,
+): Set<string> {
+  const out = new Set<string>();
+  let hosted = false;
+  for (const [, v] of objects) if (v.type === 'device' || v.type === 'access' || v.type === 'hvac') hosted = true;
+  if (!hosted) return out;
+  const all = levelModelObjects(objects, level);
+  for (const o of all)
+    if (isOffCeiling(o, all) || fanClearanceWarnings(o, all, checks.fanClearance).length > 0)
+      out.add(o.id.toLowerCase());
+  return out;
+}
+
 /**
  * The RCP drawing list: the floor list's wall, room, access and ceiling device items (dimensions left out), each shown
- * room's ridge and beams.
+ * room's ridge and beams. EZD-515: a flagged ceiling item's items are on the flagged layer.
  */
-export function rcpList(floor: DrawingList | null, objects: Objects): DrawingList | null {
+export function rcpList(
+  floor: DrawingList | null,
+  objects: Objects,
+  checks: RcpChecks = NO_CHECKS,
+): DrawingList | null {
   if (floor === null) return null;
+  const flagged = flaggedCeilingIds(objects, floor.level, checks);
   const typeOf = new Map<string, string>();
   const kept = new Set<string>();
   for (const [id, v] of objects) {
@@ -178,7 +210,7 @@ export function rcpList(floor: DrawingList | null, objects: Objects): DrawingLis
     const key = item.objectId.toLowerCase();
     const type = typeOf.get(key);
     if (type === undefined || !kept.has(key) || item.layer === 'dimensions') continue;
-    items.push(item);
+    items.push(flagged.has(key) ? { ...item, layer: 'flagged' } : item);
     if (type === 'room') rooms.add(item.objectId.toLowerCase());
   }
   for (const [id, v] of objects) {
@@ -208,8 +240,9 @@ export function rcpView(
   floor: DrawingList | null,
   objects: Objects,
   surface: Exclude<PlanSurface, 'floor'>,
+  checks: RcpChecks = NO_CHECKS,
 ): SurfaceView {
-  const list = rcpList(floor, objects);
+  const list = rcpList(floor, objects, checks);
   const rcp = buildPlanBatches(list);
   return { list, batches: surface === 'both' ? [...greyedBatches(floor), ...rcp] : rcp };
 }

@@ -2164,6 +2164,9 @@ export const en = {
   'office.inspector.bulk_subtitle': 'Changes apply to all {count}.',
   'office.inspector.not_on_wall': 'Not on a wall',
   'office.inspector.not_on_wall_hint': 'Drag it onto a wall, or delete it.',
+  // EZD-515: a hosted ceiling item in no room (S05 Validation "left off any ceiling surface").
+  'office.device.not_on_ceiling': 'Not on a ceiling',
+  'office.device.not_on_ceiling_hint': 'Drag it inside a room, or delete it.',
   'office.inspector.mixed': 'Mixed',
   'office.inspector.field.length': 'Length',
   'office.inspector.field.thickness': 'Thickness',
@@ -2769,6 +2772,10 @@ export const en = {
   'office.device.type.catalog_clear': 'Clear',
   'office.device.type.whole_number': 'Type a whole number above 0',
   'office.device.type.edit_failed': 'The fixture type could not be changed',
+  // EZD-515: a fan's blade span and its clearance warning lines (S05 Validation).
+  'office.device.blade_span': 'Blade span',
+  'office.device.fan_clearance.wall': 'Fan blade is {gap} from a wall. Clearance is {clearance}.',
+  'office.device.fan_clearance.beam': 'Fan blade is {gap} from a beam. Clearance is {clearance}.',
   // EZD-508: the left panel's fixture schedule (S05 Fixture schedule rows; board S05Ceiling "Fixture schedule", "×8").
   'office.ceiling.schedule.heading': 'Fixture schedule',
   'office.ceiling.schedule.count': '×{count}',

@@ -6,7 +6,12 @@
 // status and selects it. The object is the plan's own `device` or `access` object, so the floor plan, the electrical
 // Devices tab and the RCP all show the one id. Pure wiring: no React, no DOM.
 // One wire routes every ceiling tool's receiver (`wireCeilingTools`), so turning one tool off never clears another's.
-import { parseStoredObject } from '@ezdraft/geometry';
+import {
+  DEFAULT_FAN_BLADE_SPAN_IN,
+  formatLength,
+  parseLength,
+  parseStoredObject,
+} from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { CeilingToolId, SurfaceSetting } from '../ceiling/surface';
 import type { ModelStore } from '../model/model-store';
@@ -122,7 +127,7 @@ export function wireCeilingTools(
 // ---- EZD-507 fixture type (S05 Controls "Fixture type tag edit | Inspector, on a light | Set type tag, lumens, color
 // temperature, trim, catalog item. | Edit model."; vault/build/assumptions.md EZD-507) ----
 
-export type FixtureTypeField = 'typeTag' | 'lumens' | 'colorTemp' | 'trim';
+export type FixtureTypeField = 'typeTag' | 'lumens' | 'colorTemp' | 'trim' | 'bladeSpan';
 export type FixtureTypeView = {
   id: string;
   kind: string;
@@ -132,6 +137,8 @@ export type FixtureTypeView = {
   colorTemp: string;
   trim: string;
   catalogItemId: string | null;
+  /** EZD-515: a fan's blade span as shown (its own, else 52"); empty for a light. */
+  bladeSpan: string;
 };
 
 /** The device kinds whose inspector shows the fixture type. */
@@ -144,6 +151,7 @@ type DeviceAttrs = {
   colorTemp?: unknown;
   trim?: unknown;
   catalogItemId?: unknown;
+  bladeSpan?: unknown;
 };
 
 function findDevice(objects: Objects, id: string): { id: string; value: ObjectValue } | null {
@@ -175,6 +183,15 @@ export function fixtureTypeView(objects: Objects, id: string): FixtureTypeView |
     colorTemp: text(a.colorTemp),
     trim: text(a.trim),
     catalogItemId: typeof a.catalogItemId === 'string' ? a.catalogItemId : null,
+    bladeSpan:
+      a.kind !== 'ceiling_fan'
+        ? ''
+        : formatLength(
+            typeof a.bladeSpan === 'number' && a.bladeSpan > 0
+              ? a.bladeSpan
+              : DEFAULT_FAN_BLADE_SPAN_IN,
+            16,
+          ),
   };
 }
 
@@ -185,7 +202,8 @@ const WHOLE = /^\d+$/;
 
 /**
  * The change one fixture type edit makes, or the message for a refused value. An empty box clears the field; lumens
- * and color temperature take a whole number above 0.
+ * and color temperature take a whole number above 0. EZD-515: a fan's blade span takes a length above 0 (Q-0561);
+ * cleared, it reads as 52" again.
  */
 export function fixtureTypeEdit(
   objects: Objects,
@@ -194,7 +212,9 @@ export function fixtureTypeEdit(
 ): { ok: true; change: Change } | { ok: false; messageKey: MessageKey } {
   const failed = { ok: false as const, messageKey: 'office.device.type.edit_failed' as MessageKey };
   const d = findDevice(objects, id);
-  if (d === null || fixtureTypeView(objects, id) === null) return failed;
+  const view = d === null ? null : fixtureTypeView(objects, id);
+  if (d === null || view === null) return failed;
+  if (edit.field === 'bladeSpan' && view.kind !== 'ceiling_fan') return failed;
   let value: string | number | null;
   if (edit.field === 'catalogItemId') value = edit.value;
   else {
@@ -204,6 +224,10 @@ export function fixtureTypeEdit(
       if (!WHOLE.test(t) || Number(t) <= 0 || !Number.isSafeInteger(Number(t)))
         return { ok: false, messageKey: 'office.device.type.whole_number' };
       value = Number(t);
+    } else if (edit.field === 'bladeSpan') {
+      const r = parseLength(t, 'positive');
+      if (!r.ok) return { ok: false, messageKey: 'office.length.refused' };
+      value = r.inches;
     } else value = t;
   }
   const data = d.value.data as { attributes: Record<string, unknown> };
@@ -223,3 +247,4 @@ export function fixtureTypeEdit(
     },
   };
 }
+
