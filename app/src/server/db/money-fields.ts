@@ -75,6 +75,15 @@ export const MONEY_FIELDS: readonly MoneyField[] = [
     responseKeys: [],
     source: 'EZD-1102; 03d render_allowance; 13b R2',
   },
+  // EZD-1009 (03c design_option internal_cost_lines; 13b R2: option cost lines are See company costs).
+  {
+    schema: 'public',
+    table: 'design_option_cost_line',
+    column: 'unit_cost',
+    moneyClass: 'company_cost',
+    responseKeys: [],
+    source: 'EZD-1009; 03c design_option; 13b R2',
+  },
 ];
 
 export const MONEY_PERMISSIONS: Readonly<Record<MoneyClass, PermissionKey>> = {

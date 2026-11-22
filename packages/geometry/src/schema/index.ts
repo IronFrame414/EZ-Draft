@@ -12,6 +12,8 @@
 // EZD-505: the `beam` type (a beam set on one room's ceiling); a new type, so the version stays.
 // EZD-601: the `panel` and `circuit` types (S06 left panel); new types, so the version stays.
 // EZD-726: the `sheet_set` type (03b rule 3); a new type, so the version stays. Like a floor it names no level.
+// EZD-1009: the `design_option` type (03b rules 3 and 4); a new type, so the version stays. It names no level; each
+// add or replace object in its delta is checked against its own type's schema and holds that object's file ids.
 import { z } from 'zod';
 import { beamDataSchema, type BeamData } from './beam';
 import { blockingDataSchema, type BlockingData } from './blocking';
@@ -33,6 +35,7 @@ import {
 } from './cabinet';
 import { circuitDataSchema, panelDataSchema, type CircuitData, type PanelData } from './electrical';
 import { countertopPieceDataSchema, type CountertopPieceData } from './countertop';
+import { designOptionDataSchema, type DesignOptionData } from './design-option';
 import { engineerNoteDataSchema, type EngineerNoteData } from './engineer-note';
 import {
   accessDataSchema,
@@ -64,6 +67,7 @@ export * from './blocking';
 export * from './cabinet';
 export * from './common';
 export * from './countertop';
+export * from './design-option';
 export * from './electrical';
 export * from './engineer-note';
 export * from './existing-details';
@@ -110,6 +114,7 @@ export const OBJECT_TYPES = [
   'panel',
   'circuit',
   'sheet_set',
+  'design_option',
 ] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
@@ -145,16 +150,17 @@ type DataByType = {
   panel: PanelData;
   circuit: CircuitData;
   sheet_set: SheetSetData;
+  design_option: DesignOptionData;
 };
 export type ModelObject = {
   [T in ObjectType]: { id: string; type: T; data: DataByType[T] };
 }[ObjectType];
 
-// The types that sit on no floor: floors themselves and the project's sheet sets (EZD-726). Every other object
-// names its floor in `data.level`.
-export type LevelObject = Exclude<ModelObject, { type: 'floor' | 'sheet_set' }>;
+// The types that sit on no floor: floors themselves, the project's sheet sets (EZD-726) and its design options
+// (EZD-1009). Every other object names its floor in `data.level`.
+export type LevelObject = Exclude<ModelObject, { type: 'floor' | 'sheet_set' | 'design_option' }>;
 export const hasLevel = (o: ModelObject): o is LevelObject =>
-  o.type !== 'floor' && o.type !== 'sheet_set';
+  o.type !== 'floor' && o.type !== 'sheet_set' && o.type !== 'design_option';
 
 export type ObjectIssueCode =
   | 'invalid_document'
@@ -168,6 +174,20 @@ export type ObjectIssueCode =
 export type ObjectIssue = { id: string; issue: ObjectIssueCode };
 
 export type ModelDocument = { objects: ModelObject[] };
+
+const isObjectType = (type: string): type is ObjectType =>
+  (OBJECT_TYPES as readonly string[]).includes(type);
+
+// EZD-1009: an add or replace object in a design option's delta is any other type, checked by that type's schema.
+// Read lazily, as DATA_SCHEMAS is declared below.
+const patchObjectsValid = (d: DesignOptionData): boolean =>
+  d.modelDelta.every(
+    (p) =>
+      p.op === 'remove' ||
+      (isObjectType(p.object.type) &&
+        p.object.type !== 'design_option' &&
+        DATA_SCHEMAS[p.object.type].safeParse(p.object.data).success),
+  );
 
 const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
   floor: floorDataSchema,
@@ -199,6 +219,7 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
   panel: panelDataSchema,
   circuit: circuitDataSchema,
   sheet_set: sheetSetDataSchema,
+  design_option: designOptionDataSchema.refine(patchObjectsValid),
 };
 
 // A source_file id held in an object, with the source_file kinds that field accepts. An empty `kinds` refuses
@@ -244,14 +265,15 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   panel: none,
   circuit: none,
   sheet_set: none,
+  // EZD-1009: the file ids of every add or replace object, so a patch cannot carry an id the save check never reads.
+  // Each add or replace object has passed its own type's schema with the option (patchObjectsValid).
+  design_option: (d) =>
+    d.modelDelta.flatMap((p) => (p.op === 'remove' ? [] : fileRefs(p.object as ModelObject))),
 };
 
 export function fileRefs(object: ModelObject): FileRef[] {
   return (FILE_REFS[object.type] as (data: unknown) => FileRef[])(object.data);
 }
-
-const isObjectType = (type: string): type is ObjectType =>
-  (OBJECT_TYPES as readonly string[]).includes(type);
 
 // Order: version, type, data. An object below the current version is migrated before its data is read.
 export function parseStoredObject(

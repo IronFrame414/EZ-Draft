@@ -183,6 +183,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"design_option_cost_line": {
+                  Row: {
+                    "created_at": string,"id": string,"item": string,"option_id": string,"project_id": string,"qty": number,"sort": number,"tenant_id": string,"unit_cost": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"item": string,"option_id": string,"project_id": string,"qty": number,"sort"?: number,"tenant_id": string,"unit_cost": number,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"item"?: string,"option_id"?: string,"project_id"?: string,"qty"?: number,"sort"?: number,"tenant_id"?: string,"unit_cost"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "design_option_cost_line_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "design_option_cost_line_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"edit_lock": {
                   Row: {
                     "device_id": string | null,"holder_app_user_id": string | null,"lock_epoch": number,"offline": boolean,"project_id": string,"since": string | null,"tenant_id": string

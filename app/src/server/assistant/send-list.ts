@@ -264,6 +264,8 @@ export const PROJECTORS: {
   circuit: notSent,
   // EZD-726: sheet sets are not sent until a ticket decides what of them the assistant reads.
   sheet_set: notSent,
+  // EZD-1009: design options are not sent until a ticket decides what of them the assistant reads.
+  design_option: notSent,
 };
 
 const LABEL_WORDS = new Set(ROOM_LABEL_WORDS.map((w) => w.toLowerCase()));

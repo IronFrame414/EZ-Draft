@@ -3,6 +3,14 @@ import type { LibraryKind } from '../libraries/libraries';
 import type { Language } from '../profile/profile';
 import type { PermissionKey } from '../permissions/catalog';
 
+// EZD-1009 (S07 Events emitted; vault/build/assumptions.md EZD-1009 "When the events fire").
+export type DesignOptionEvent = {
+  optionId: string;
+  groupId: string;
+  label: 'A' | 'B' | 'C';
+  status: 'draft' | 'sent' | 'approved' | 'archived';
+};
+
 export type EventKind = 'webhook' | 'internal' | 'log_only';
 
 // EZD-1314 (07 Hooks, Canonical names): a name no code emits yet carries `later` (the ticket in tickets.json that
@@ -54,8 +62,8 @@ export const EVENTS = {
   'share_link.expiring': { kind: 'internal' },
   'cleanup.due': { kind: 'internal', later: 'EZD-123' },
   'code_check.completed': { kind: 'internal', later: 'EZD-612' },
-  'design_option.created': { kind: 'internal', later: 'EZD-1009' },
-  'design_option.updated': { kind: 'internal', later: 'EZD-1009' },
+  'design_option.created': { kind: 'internal' },
+  'design_option.updated': { kind: 'internal' },
   'version.sent': { kind: 'internal' },
   'version.snapshot_named': { kind: 'internal' },
   'version.reverted': { kind: 'internal' },
@@ -200,8 +208,9 @@ export interface EventPayloads {
   'share_link.expiring': { projectId: string; expiresAt: string };
   'cleanup.due': Record<string, unknown>;
   'code_check.completed': Record<string, unknown>;
-  'design_option.created': Record<string, unknown>;
-  'design_option.updated': Record<string, unknown>;
+  // EZD-1009: the saved option, its group and label, and its status after the save.
+  'design_option.created': DesignOptionEvent;
+  'design_option.updated': DesignOptionEvent;
   'version.sent': Record<string, unknown>;
   'version.snapshot_named': Record<string, unknown>;
   'version.reverted': Record<string, unknown>;

@@ -55,9 +55,9 @@ describe('EZD-234 phase 10 schema step', () => {
   it('AC-4 one step: version 5 adds every phase 10 type; v5.json parses whole', () => {
     expect(CURRENT_SCHEMA_VERSION).toBe(7);
     for (const t of PHASE_10_TYPES) expect(OBJECT_TYPES).toContain(t);
-    expect(OBJECT_TYPES).toHaveLength(29); // EZD-233: plus group; EZD-402: plus the seven cabinet types; EZD-411: plus countertop_piece; EZD-733: plus tile_layout; EZD-505: plus beam; EZD-601: plus panel and circuit; EZD-726: plus sheet_set
+    expect(OBJECT_TYPES).toHaveLength(30); // EZD-233: plus group; EZD-402: plus the seven cabinet types; EZD-411: plus countertop_piece; EZD-733: plus tile_layout; EZD-505: plus beam; EZD-601: plus panel and circuit; EZD-726: plus sheet_set; EZD-1009: plus design_option
     // EZD-402: v5.json holds every type up to group; the cabinet types are new at version 6 (end of v6.json).
-    // EZD-411: so is countertop_piece. EZD-733: and tile_layout. EZD-505: and beam. EZD-601: and panel, circuit. EZD-726: and sheet_set.
+    // EZD-411: so is countertop_piece. EZD-733: and tile_layout. EZD-505: and beam. EZD-601: and panel, circuit. EZD-726: and sheet_set. EZD-1009: and design_option.
     expect(new Set(V5.map((o) => o.type))).toEqual(
       new Set(
         OBJECT_TYPES.filter(
@@ -68,7 +68,8 @@ describe('EZD-234 phase 10 schema step', () => {
             t !== 'beam' &&
             t !== 'panel' &&
             t !== 'circuit' &&
-            t !== 'sheet_set',
+            t !== 'sheet_set' &&
+            t !== 'design_option',
         ),
       ),
     );

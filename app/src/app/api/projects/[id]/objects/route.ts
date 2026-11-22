@@ -16,6 +16,11 @@
 // engineer notes the save raised.
 // EZD-409 (S04 Events emitted "cabinet_schedule.updated (new)"): last, one `cabinet_schedule.updated` when the save
 // wrote any cabinet object. A removed member always comes with its run's new row lists, so the run's id stands for it.
+// EZD-1009 (S07 Events emitted; AC-EZD-1009-3; vault/build/assumptions.md EZD-1009): after that, one event per saved
+// design option, in change order: `design_option.created` for a new object (base seq 0, the save's own new-object
+// rule), else `design_option.updated` (a status change included). The three-per-group limit is the database's
+// deferred check (20261121183700), answered 400 invalid_input like any refused save.
+import type { DesignOptionData } from '@ezdraft/geometry';
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { errorType } from '../../../../../server/errors/fingerprint';
@@ -41,6 +46,7 @@ const CLOSURE_EMIT_FAILED = 'room_closure_overridden_event_failed';
 const AI_EMIT_FAILED = 'model_ai_change_accepted_event_failed';
 const ENGINEER_EMIT_FAILED = 'wall_engineer_event_failed';
 const CABINET_EMIT_FAILED = 'cabinet_schedule_updated_event_failed';
+const OPTION_EMIT_FAILED = 'design_option_event_failed';
 
 const fail = (status: number, code: string, messageKey = `error.${code}`) =>
   Response.json({ error: { code, message_key: messageKey } }, { status, headers });
@@ -211,6 +217,34 @@ export async function POST(
             source: 'function',
             location: ROUTE,
             tags: { 'ezd.cause': errorType(e) },
+          });
+        } catch {
+          /* reportError never throws; guarded as route-failure.ts does */
+        }
+      }
+    }
+
+    // EZD-1009: the saved design options (removes carry no type and are left out). The data passed the schema in
+    // saveObjects, so the fields read here are the schema's.
+    for (const c of req.changes) {
+      if (c.deleted || c.type !== 'design_option') continue;
+      const { name } =
+        c.baseSeq === 0
+          ? { name: 'design_option.created' as const }
+          : { name: 'design_option.updated' as const };
+      const d = c.data as DesignOptionData;
+      try {
+        await emit(
+          name,
+          { optionId: c.id, groupId: d.groupId, label: d.label, status: d.status },
+          { tenantId: result.tenantId, projectId: id, actorId: p.session.appUserId },
+        );
+      } catch (e) {
+        try {
+          await reportError(new Error(OPTION_EMIT_FAILED), {
+            source: 'function',
+            location: ROUTE,
+            tags: { 'ezd.cause': errorType(e), 'ezd.event': name },
           });
         } catch {
           /* reportError never throws; guarded as route-failure.ts does */

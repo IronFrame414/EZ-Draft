@@ -1240,6 +1240,24 @@
       }
     },
     {
+      "id": "5e1d9a3c-2b7f-4c8e-a061-3f9b7d2c4e15",
+      "type": "design_option",
+      "schema_version": 7,
+      "data": {
+        "groupId": "0c4f2a8e-6b1d-4e3a-9f57-8d2c1b0e7a64",
+        "groupName": "Beams",
+        "label": "B",
+        "name": "Box beams",
+        "status": "draft",
+        "modelDelta": [
+          {
+            "op": "remove",
+            "id": "7a1e0c3d-5b2f-4e8a-9c61-0d4f3b2a1e03"
+          }
+        ]
+      }
+    },
+    {
       "id": "b7e2c4a1-5d3f-4e8a-9c61-2f0a7d5e9b13",
       "type": "room",
       "schema_version": 7,
