@@ -13,6 +13,8 @@ export function SaveStateText({ sync }: { sync: OutboxSync }): ReactElement {
   const t = useT();
   const status = useStore(sync, (s) => s.status);
   const lastSavedAt = useStore(sync, (s) => s.lastSavedAt);
+  // EZD-1402: the queued count for the offline word.
+  const queued = useStore(sync, (s) => s.queued);
   // The clock as of the last re-render the timeout asked for; a save newer than it reads as just now.
   const [now, setNow] = useState(() => Date.now());
 
@@ -23,7 +25,7 @@ export function SaveStateText({ sync }: { sync: OutboxSync }): ReactElement {
     return () => clearTimeout(handle);
   }, [status, lastSavedAt, now]);
 
-  const word = saveWord({ status, lastSavedAt }, now);
+  const word = saveWord({ status, lastSavedAt, queued }, now);
   return (
     <span data-testid="save-state" data-save-status={status}>
       {t(`office.editor.${word.key}`, word.params)}

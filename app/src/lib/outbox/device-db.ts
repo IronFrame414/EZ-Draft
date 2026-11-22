@@ -4,6 +4,7 @@
 export const DEVICE_DB = 'ezdraft-device';
 export const DEVICE_DB_VERSION = 1;
 export const OUTBOX_STORE = 'outbox';
+export const WORKING_COPY_STORE = 'working_copy';
 
 // Outbox keys are user, company, project, object (EZD-120b); this range holds one actor's entries.
 export function actorRange(appUserId: string, tenantId: string): IDBKeyRange {
@@ -22,6 +23,20 @@ export function conflictRange(appUserId: string, tenantId: string): IDBKeyRange 
   );
 }
 
+// EZD-1402 (03b Architecture rule 9 "One outbox"): queued field actions live in the outbox store under keys that
+// start with this part (field, user, company, project, action), outside every actor's model range and the conflict
+// rows, so the model drain never reads them and no database upgrade is needed.
+export const FIELD_KEY_PART = 'field';
+
+export function fieldRange(appUserId: string, tenantId: string): IDBKeyRange {
+  return IDBKeyRange.bound(
+    [FIELD_KEY_PART, appUserId, tenantId],
+    [FIELD_KEY_PART, appUserId, tenantId, []],
+  );
+}
+
+// EZD-1402: the count covers queued model edits and queued field actions (the sign-out check and the drain start
+// see both; Q-0503).
 // null when the count cannot be read (an error or a blocked open); 0 when there is no database or no store.
 export function countQueued(
   appUserId: string,
@@ -55,18 +70,19 @@ export function countQueued(
           resolve(0);
           return;
         }
-        const count = db
-          .transaction(OUTBOX_STORE, 'readonly')
-          .objectStore(OUTBOX_STORE)
-          .count(actorRange(appUserId, tenantId));
-        count.onsuccess = () => {
+        const store = db.transaction(OUTBOX_STORE, 'readonly').objectStore(OUTBOX_STORE);
+        const edits = store.count(actorRange(appUserId, tenantId));
+        const actions = store.count(fieldRange(appUserId, tenantId));
+        actions.onsuccess = () => {
           db.close();
-          resolve(count.result);
+          resolve(edits.result + actions.result);
         };
-        count.onerror = () => {
+        const failed = () => {
           db.close();
           resolve(null);
         };
+        edits.onerror = failed;
+        actions.onerror = failed;
       } catch {
         db.close();
         resolve(null);

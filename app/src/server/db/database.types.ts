@@ -761,6 +761,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"offline_change": {
+                  Row: {
+                    "app_user_id": string,"base_version_id": string | null,"device_id": string,"id": string,"kind": string,"ops": NonNullable<Json>,"photo_path": string | null,"project_id": string,"queued_at": string,"synced_at": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_user_id": string,"base_version_id"?: string | null,"device_id": string,"id": string,"kind": string,"ops": NonNullable<Json>,"photo_path"?: string | null,"project_id": string,"queued_at": string,"synced_at"?: string,"tenant_id": string
+                  }
+                  Update: {
+                    "app_user_id"?: string,"base_version_id"?: string | null,"device_id"?: string,"id"?: string,"kind"?: string,"ops"?: NonNullable<Json>,"photo_path"?: string | null,"project_id"?: string,"queued_at"?: string,"synced_at"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "offline_change_app_user_id_fkey"
+      columns: ["app_user_id"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "offline_change_base_version_id_fkey"
+      columns: ["base_version_id"]
+isOneToOne: false
+      referencedRelation: "model_version"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "offline_change_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "offline_change_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"project": {
                   Row: {
                     "address": string,"archived_at": string | null,"client_name": string | null,"code_edition": string | null,"completed_at": string | null,"completed_from": string | null,"created_at": string,"customer_id": string | null,"ezbinder_job_id": string | null,"ezbinder_job_no": string | null,"id": string,"is_benchmark": boolean,"name": string,"open_items_count": number,"phase_default": string,"property_record_id": string | null,"scope_of_work": string | null,"scope_trades": (string)[],"settings": NonNullable<Json>,"status": string,"submittal_profile_id": string | null,"tenant_id": string,"thumbnail_path": string | null,"type": string,"updated_at": string
@@ -1583,11 +1621,17 @@ isOneToOne: false
 "start_checkpoint_thumbnail":
 { Args: { "p_project": string,"p_version": string }; Returns: string
                            },
+"start_field_photo":
+{ Args: { "p_action": string,"p_ext": string,"p_kind": string,"p_project": string }; Returns: Json
+                           },
 "sweep_edit_locks":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
 "sweep_share_link_reminders":
 { Args: Record<PropertyKey, never>; Returns: number
+                           },
+"sync_field_action":
+{ Args: { "p_base_version": string,"p_device": string,"p_id": string,"p_kind": string,"p_ops": Json,"p_photo": string,"p_project": string,"p_queued_at": string }; Returns: Json
                            },
 "system_backup_status":
 { Args: Record<PropertyKey, never>; Returns: {

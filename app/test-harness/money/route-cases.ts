@@ -749,6 +749,45 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-1415: saves the field measure rooms; 200 { status } (no money)',
   },
+  // EZD-1402: the field action routes; the photo start signs an upload, the record takes a measurement.
+  {
+    file: `${API}projects/[id]/field-actions/photo/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/field-actions/photo/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/field-actions/photo`, {
+        method: 'POST',
+        headers: { ...JSON_HEADERS, 'x-ezdraft-membership': env.member.membershipId },
+        body: JSON.stringify({ id: randomUUID(), kind: 'photo_pin', photo: 'jpg' }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-1402: signs a field photo upload; 200 { upload } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/field-actions/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/field-actions/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/field-actions`, {
+        method: 'POST',
+        headers: { ...JSON_HEADERS, 'x-ezdraft-membership': env.member.membershipId },
+        body: JSON.stringify({
+          id: randomUUID(),
+          deviceId: randomUUID(),
+          kind: 'measurement',
+          ops: { value: 144 },
+          baseVersionId: null,
+          queuedAt: Date.now(),
+          photo: null,
+        }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-1402: records a queued field action; 200 { status, syncedAt } (no money)',
+  },
   // EZD-233: the Plan editor's saved groups; POST saves one lavatory as a group.
   {
     file: `${API}saved-groups/route.ts`,

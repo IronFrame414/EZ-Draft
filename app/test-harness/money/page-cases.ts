@@ -35,6 +35,7 @@ const PAGE_FILES = [
   'app/src/app/dev/cloud-check/page.tsx',
   'app/src/app/dev/device/page.tsx',
   'app/src/app/dev/errors/page.tsx',
+  'app/src/app/dev/field-outbox/[id]/page.tsx',
   'app/src/app/dev/header/page.tsx',
   'app/src/app/dev/jobs/page.tsx',
   'app/src/app/dev/lazy/page.tsx',

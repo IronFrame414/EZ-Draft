@@ -29,6 +29,10 @@ export const PRIVATE_EXECUTE: Record<ApiRole, readonly PrivateExecuteEntry[]> = 
         'Called by list_users (security invoker) as the viewing member for canCopyLink: last sender or active Owner preset (EZD-105; Q-0706).',
     },
     { fn: 'private.can_see_project(uuid)', reason: ONE_OFF },
+    {
+      fn: 'private.field_photo_upload_allowed(text)',
+      reason: 'Called by the media field photo insert policy as the signing member (EZD-1402).',
+    },
     { fn: 'private.listed_project_ids()', reason: POLICY_HELPER },
     {
       fn: 'private.owner_password_refusal(uuid)',

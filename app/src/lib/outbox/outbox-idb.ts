@@ -24,10 +24,11 @@ import {
   DEVICE_DB,
   DEVICE_DB_VERSION,
   OUTBOX_STORE,
+  WORKING_COPY_STORE,
 } from './device-db';
 
 const OUTBOX = OUTBOX_STORE;
-const WORKING_COPY = 'working_copy';
+const WORKING_COPY = WORKING_COPY_STORE;
 
 type DeviceKey = [string, string, string, string];
 // EZD-299b Decided D-Key: a conflict row's key, outside the actor's range of the same store.
@@ -85,7 +86,7 @@ export function createIdbOutboxStorage(actor: Actor): OutboxStorage {
   };
 
   return {
-    async put(projectId, lockEpoch, changes: Change[], now) {
+    async put(projectId, lockEpoch, changes: Change[], now, offline) {
       const tx = (await db()).transaction([OUTBOX, WORKING_COPY], 'readwrite');
       const outbox = tx.objectStore(OUTBOX);
       const mirror = tx.objectStore(WORKING_COPY);
@@ -106,6 +107,7 @@ export function createIdbOutboxStorage(actor: Actor): OutboxStorage {
               value: c.value,
               rev: old.rev + 1,
               ...(floorDelete ? { queuedAt: now + 1 } : {}),
+              ...(offline ? { offline: true as const } : {}),
             },
             k,
           );
@@ -119,6 +121,7 @@ export function createIdbOutboxStorage(actor: Actor): OutboxStorage {
               value: c.value,
               rev: 1,
               queuedAt: floorDelete ? now + 1 : now,
+              ...(offline ? { offline: true as const } : {}),
             },
             k,
           );

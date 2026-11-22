@@ -44,6 +44,7 @@ const INTERNAL = [
   'field.measurement_rejected',
   'field.measure_sent',
   'field_pack.issued',
+  'offline_change.synced',
   'share_link.expiring',
   'cleanup.due',
   'code_check.completed',
@@ -67,7 +68,7 @@ const keysOfKind = (k: string) => keys().filter((n) => kindOf(n) === k);
 describe('EZD-022 event registry', () => {
   it('T1 registry holds every Hooks name @smoke', () => {
     expect(WEBHOOK).toHaveLength(12);
-    expect(INTERNAL).toHaveLength(38);
+    expect(INTERNAL).toHaveLength(39);
     for (const n of WEBHOOK) expect(kindOf(n), n).toBe('webhook');
     for (const n of INTERNAL) expect(kindOf(n), n).toBe('internal');
     for (const n of LOG_ONLY) expect(kindOf(n), n).toBe('log_only');

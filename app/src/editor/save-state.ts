@@ -3,12 +3,14 @@
 // Pure: no React, no timers.
 import type { SyncState } from '../lib/outbox/outbox-sync';
 
-type S = Pick<SyncState, 'status' | 'lastSavedAt'>;
+// EZD-1402 (04 Header card subtitle "Offline, 3 changes queued"): offline with changes waiting, the word counts them.
+type S = Pick<SyncState, 'status' | 'lastSavedAt'> & Pick<Partial<SyncState>, 'queued'>;
 
 export type SaveWordKey =
   | 'saved'
   | 'saving'
   | 'saved_on_device'
+  | 'offline_queued'
   | 'not_saved'
   | 'saved_just_now'
   | 'saved_min_ago'
@@ -27,7 +29,7 @@ export function saveWord(
   s: S,
   now: number,
   timeZone?: string,
-): { key: SaveWordKey; params?: { minutes: number } | { time: string } } {
+): { key: SaveWordKey; params?: { minutes: number } | { time: string } | { count: number } } {
   switch (s.status) {
     case 'idle':
       return { key: 'saved' };
@@ -35,6 +37,8 @@ export function saveWord(
     case 'saving':
       return { key: 'saving' };
     case 'offline':
+      if (s.queued !== undefined && s.queued > 0)
+        return { key: 'offline_queued', params: { count: s.queued } };
       return { key: 'saved_on_device' };
     case 'error':
       return { key: 'not_saved' };

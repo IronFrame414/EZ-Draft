@@ -13,6 +13,7 @@ import {
   type WebhookFailureRow,
 } from '../../../lib/system-status/system-status';
 import type { Persistence } from '../../../lib/pwa/device-storage';
+import type { QueueReadout } from '../../../lib/outbox/field-action';
 import { Icon } from '../../icon/Icon';
 import { StateButton } from '../../states/StateButton';
 import styles from './SystemStatus.module.css';
@@ -293,7 +294,15 @@ const PERSISTENCE_KEY = {
   unsupported: 'office.system_status.storage_unsupported',
 } as const;
 
-export function DeviceBody({ persistence }: { persistence: Persistence }) {
+// EZD-1402 (phase-14 EZD-1402 "a count and size readout"): `queue` is this person's changes and field actions
+// waiting on this device; absent while it is read or when it cannot be read.
+export function DeviceBody({
+  persistence,
+  queue,
+}: {
+  persistence: Persistence;
+  queue?: QueueReadout | null;
+}) {
   const t = useT();
   return (
     <div className={styles.blocks}>
@@ -307,6 +316,22 @@ export function DeviceBody({ persistence }: { persistence: Persistence }) {
           {t(PERSISTENCE_KEY[persistence])}
         </span>
       </div>
+      {queue ? (
+        <div className={styles.kv}>
+          <span className={styles.key}>{t('office.system_status.queue_label')}</span>
+          <span
+            data-testid="system-status-queue"
+            data-count={queue.count}
+            data-bytes={queue.bytes}
+            className={styles.value}
+          >
+            {t('office.system_status.queue_value', {
+              count: queue.count,
+              size: formatBytes(queue.bytes),
+            })}
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }

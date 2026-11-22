@@ -340,4 +340,19 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   },
   // EZD-1415: the field measure save, authenticated only.
   { fn: 'save_field_measure_session', args: { p_project: null, p_rooms: null } },
+  // EZD-1402: the field action photo start and record, authenticated only.
+  { fn: 'start_field_photo', args: { p_project: null, p_action: null, p_kind: null, p_ext: null } },
+  {
+    fn: 'sync_field_action',
+    args: {
+      p_id: null,
+      p_project: null,
+      p_device: null,
+      p_kind: null,
+      p_ops: null,
+      p_base_version: null,
+      p_queued_at: null,
+      p_photo: null,
+    },
+  },
 ];

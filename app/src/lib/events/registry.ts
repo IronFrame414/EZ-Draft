@@ -58,6 +58,8 @@ export const EVENTS = {
   'field.measurement_rejected': { kind: 'internal', later: 'EZD-1413' },
   'field.measure_sent': { kind: 'internal', later: 'EZD-1417' },
   'field_pack.issued': { kind: 'internal', later: 'EZD-1421' },
+  // EZD-1402 (phase-14 EZD-1402 "offline_change.synced"): a queued field action recorded on reconnect.
+  'offline_change.synced': { kind: 'internal' },
   // EZD-1201 (07 share_link.expiring): written as the event_log row by sweep_share_link_reminders.
   'share_link.expiring': { kind: 'internal' },
   'cleanup.due': { kind: 'internal', later: 'EZD-123' },
@@ -204,6 +206,10 @@ export interface EventPayloads {
   'field.measurement_approved': Record<string, unknown>;
   'field.measurement_rejected': Record<string, unknown>;
   'field.measure_sent': Record<string, unknown>;
+  'offline_change.synced': {
+    id: string;
+    kind: 'measurement' | 'task_check' | 'photo_pin' | 'field_measure_send';
+  };
   'field_pack.issued': Record<string, unknown>;
   'share_link.expiring': { projectId: string; expiresAt: string };
   'cleanup.due': Record<string, unknown>;

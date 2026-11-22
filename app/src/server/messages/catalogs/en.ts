@@ -312,6 +312,11 @@ export const en = {
   'office.editor.saved_min_ago': 'Saved {minutes} min ago',
   'office.editor.saved_at': 'Saved at {time}',
   'office.editor.saved_on_device': 'Saved on this device',
+  // EZD-1402 (04 Header card subtitle "Offline, 3 changes queued").
+  'office.editor.offline_queued': {
+    one: 'Offline, {count} change queued',
+    other: 'Offline, {count} changes queued',
+  },
   'office.editor.not_saved': 'Not saved',
   'office.editor.save_failed': 'Changes not saved',
   'office.editor.load_failed': "Couldn't load this project.",
@@ -454,6 +459,12 @@ export const en = {
   'office.system_status.device_title': 'This device',
   'office.system_status.storage_label': 'Storage',
   'office.system_status.storage_kept': 'Kept on this device',
+  // EZD-1402 (phase-14 EZD-1402 "a count and size readout"; vault/build/assumptions.md EZD-1402 wording).
+  'office.system_status.queue_label': 'Waiting to sync',
+  'office.system_status.queue_value': {
+    one: '{count} change · {size}',
+    other: '{count} changes · {size}',
+  },
   'office.system_status.storage_may_clear': 'The browser may clear it when space runs low',
   'office.system_status.storage_unsupported': 'Not available in this browser',
   'office.defaults.row.device_cache_budget': 'Offline project cache',

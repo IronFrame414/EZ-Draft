@@ -98,6 +98,7 @@ export const EVENT_LOG: EventLogRules = {
   'field.measurement_rejected': SINK,
   'field.measure_sent': SINK,
   'field_pack.issued': SINK,
+  'offline_change.synced': SINK,
   // EZD-1201: written by sweep_share_link_reminders in the reminder transaction.
   'share_link.expiring': TRANSACTION,
   'cleanup.due': SINK,

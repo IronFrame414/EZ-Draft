@@ -20,6 +20,8 @@ import { Skeleton, SkeletonGroup } from '../../states/Skeleton';
 import { StateButton } from '../../states/StateButton';
 import { BenchmarkCard } from './BenchmarkCard';
 import { readPersistence, type Persistence } from '../../../lib/pwa/device-storage';
+import type { QueueReadout } from '../../../lib/outbox/field-action';
+import { useOutboxActor } from '../../outbox/OutboxDrain';
 import {
   BackupsBody,
   DeviceBody,
@@ -176,6 +178,29 @@ export function SystemStatusPanel({ benchmark }: { benchmark?: { canRun: boolean
     };
   }, [tick]);
 
+  // EZD-1402: the count and size of what waits to sync on this device, read in the browser (no request).
+  const actor = useOutboxActor();
+  const [queue, setQueue] = useState<QueueReadout | null>(null);
+  useEffect(() => {
+    if (actor === null) return;
+    let live = true;
+    void (async () => {
+      const { createFieldQueue } = await import('../../../lib/outbox/field-queue');
+      const q = createFieldQueue(actor);
+      try {
+        const r = await q.readout();
+        if (live) setQueue(r);
+      } catch {
+        if (live) setQueue(null);
+      } finally {
+        q.close();
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, [actor, tick]);
+
   return (
     <div data-testid="system-status-panel" className={styles.cards}>
       <Card id="backups" className={styles.backups} title={t('office.system_status.backup_title')}>
@@ -224,7 +249,7 @@ export function SystemStatusPanel({ benchmark }: { benchmark?: { canRun: boolean
         </AsyncView>
       </Card>
       <Card id="device" className={styles.device} title={t('office.system_status.device_title')}>
-        {persistence === null ? null : <DeviceBody persistence={persistence} />}
+        {persistence === null ? null : <DeviceBody persistence={persistence} queue={queue} />}
       </Card>
       {benchmark === undefined ? null : (
         <div className={styles.benchmark}>
