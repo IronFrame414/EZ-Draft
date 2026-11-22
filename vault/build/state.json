@@ -441,7 +441,8 @@
     "EZD-515",
     "EZD-504",
     "EZD-414",
-    "EZD-1419"
+    "EZD-1419",
+    "EZD-702b"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1351,11 +1352,19 @@
       "ts": "2026-11-22T09:13:33Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-702b",
+      "title": "Sheet renderer",
+      "commit": "55b023e4",
+      "ts": "2026-11-22T10:35:25Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1495,12 +1504,6 @@
     }
   },
   "running": {
-    "EZD-702b": {
-      "lane": 1,
-      "title": "Sheet renderer",
-      "started": "2026-11-22T08:44:38Z",
-      "develop": "9873633f"
-    },
     "EZD-914": {
       "lane": 2,
       "title": "Supplier files panel",
@@ -1508,7 +1511,7 @@
       "develop": "fbe4a3af"
     }
   },
-  "advisories_checked_at": "2026-11-22T04:10:20Z",
+  "advisories_checked_at": "2026-11-22T10:10:59Z",
   "hold": {
     "EZD-415": {
       "holders": [
