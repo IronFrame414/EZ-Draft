@@ -431,7 +431,8 @@
     "EZD-507",
     "EZD-1408",
     "EZD-709",
-    "EZD-702a"
+    "EZD-702a",
+    "EZD-1009"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1261,11 +1262,19 @@
       "ts": "2026-11-21T14:39:26Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1009",
+      "title": "Design options data",
+      "commit": "9ec87890",
+      "ts": "2026-11-22T00:21:14Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1401,11 +1410,11 @@
       "started": "2026-11-21T22:13:23Z",
       "develop": "0a737c8f"
     },
-    "EZD-1009": {
-      "lane": 3,
-      "title": "Design options data",
-      "started": "2026-11-21T22:13:24Z",
-      "develop": "0a737c8f"
+    "EZD-508": {
+      "lane": 1,
+      "title": "Fixture schedule panel",
+      "started": "2026-11-22T00:16:57Z",
+      "develop": "2385f9a0"
     }
   },
   "advisories_checked_at": "2026-11-21T22:10:10Z"
