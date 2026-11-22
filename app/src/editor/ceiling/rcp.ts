@@ -30,6 +30,11 @@ import { tokenRgb } from '../plan/color';
 import { UNDERLAY_RENDER_ORDER } from '../plan/scene';
 import type { PlanSurface } from './surface';
 
+// EZD-508: the left panel's fixture schedule, the legend and the ceiling status items load with the RCP drawing (one
+// lazy part for Ceiling and Both).
+export { FixtureSchedule } from './FixtureSchedule';
+export { CeilingLegend, CeilingViewStatus, JoistsStatus } from './CeilingShown';
+
 /** The greyed floor plan's one colour (no spec value; vault/build/assumptions.md EZD-502). */
 export const GREYED_FLOOR_TOKEN = '--ez-border';
 /** The ridge line's dash pattern in model inches: long dash, gap, short dash, gap (board S05Ceiling). */

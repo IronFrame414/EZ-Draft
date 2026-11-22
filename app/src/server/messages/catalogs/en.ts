@@ -2751,6 +2751,11 @@ export const en = {
   'office.device.type.catalog_clear': 'Clear',
   'office.device.type.whole_number': 'Type a whole number above 0',
   'office.device.type.edit_failed': 'The fixture type could not be changed',
+  // EZD-508: the left panel's fixture schedule (S05 Fixture schedule rows; board S05Ceiling "Fixture schedule", "×8").
+  'office.ceiling.schedule.heading': 'Fixture schedule',
+  'office.ceiling.schedule.count': '×{count}',
+  'office.ceiling.schedule.with_color_temp': '{kind}, {kelvin}K',
+  'office.ceiling.schedule.no_tag': '—',
   // EZD-702a (S13 Sheets screen; board S13Sheets).
   'office.sheets.set.permit': 'Permit set',
   'office.sheets.set.client': 'Client set',

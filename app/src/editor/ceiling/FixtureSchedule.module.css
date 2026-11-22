@@ -1,0 +1,59 @@
+/* EZD-508: the fixture schedule (board S05Ceiling left panel: the .lbl heading, rows of tag, description and a mono
+   "×8" count at the right), in the left panel's .lbl, .list and .row style (LeftPanel.module.css). */
+.schedule {
+  display: flex;
+  flex-direction: column;
+}
+
+.lbl {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+  padding: 14px 14px 6px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  padding: 0 6px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: transparent;
+  color: var(--ez-ink);
+  font: 400 14px var(--ez-font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--ez-hover);
+}
+
+.tag {
+  flex: none;
+  width: 20px;
+  font-weight: 500;
+}
+
+.desc {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  flex: none;
+  font: 400 12px var(--ez-font-mono);
+  color: var(--ez-slate-500);
+}
+

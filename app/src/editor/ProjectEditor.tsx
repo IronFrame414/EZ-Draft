@@ -196,12 +196,7 @@ import { LeftPanel, type Tab as LeftTab } from './layers/LeftPanel';
 import type { ElectricalPanelProps } from './electrical/ElectricalPanel';
 import { createSurfaceSetting, type SurfaceSetting } from './ceiling/surface';
 import { rcpModule } from './ceiling/rcp-module';
-import {
-  CeilingLegend,
-  CeilingViewStatus,
-  JoistsStatus,
-  useCeilingKeys,
-} from './ceiling/CeilingParts';
+import { useCeilingKeys } from './ceiling/CeilingParts';
 import type { RoutedStore } from './model/routed-store';
 import type {
   VersionInspectorProps,
@@ -793,6 +788,8 @@ export function ProjectEditor({
     () => surface.get().surface,
     () => surface.get().surface,
   );
+  // EZD-508: the RCP module also holds the ceiling legend, status items and fixture schedule (11 Budgets).
+  const [rcp, setRcp] = useState(rcpModule.peek);
   useEffect(() => {
     if (plan === null) return;
     if (shownSurface === 'floor') {
@@ -803,7 +800,9 @@ export function ProjectEditor({
     let live = true;
     rcpModule.load().then(
       (m) => {
-        if (live) plan.setSurface(shownSurface, m.rcpView);
+        if (!live) return;
+        plan.setSurface(shownSurface, m.rcpView);
+        setRcp(m);
       },
       () => {},
     );
@@ -1348,7 +1347,7 @@ export function ProjectEditor({
     <>
       <PlanInputSurface controller={plan} />
       {screenOn ? null : <ZoomStack handle={plan.handle} />}
-      {shownSurface === 'floor' ? null : <CeilingLegend />}
+      {shownSurface === 'floor' || rcp === undefined ? null : <rcp.CeilingLegend />}
       {shownSurface !== 'floor' && mayEdit ? (
         <CeilingDeviceChooser surface={surface} choice={deviceChoice} />
       ) : null}
@@ -1504,6 +1503,15 @@ export function ProjectEditor({
       tab={leftTab}
       onTab={setLeftTab}
       surface={surface}
+      ceiling={
+        rcp === undefined ? undefined : (
+          <rcp.FixtureSchedule
+            store={session.store}
+            floors={floors ?? undefined}
+            onPick={(ids) => selection.select(ids)}
+          />
+        )
+      }
       electrical={
         electricalOn ? (
           <LazyElectricalPanel
@@ -1595,12 +1603,12 @@ export function ProjectEditor({
                         defaults={countertopDefaults}
                       />
                     ) : null}
-                    {shownSurface === 'floor' ? null : <CeilingViewStatus />}
+                    {shownSurface === 'floor' || rcp === undefined ? null : <rcp.CeilingViewStatus />}
                     {electricalOn && shownSurface === 'floor' && session !== null ? (
                       <LazyElectricalStatus store={session.store} />
                     ) : null}
                     <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
-                    {shownSurface === 'floor' ? null : <JoistsStatus />}
+                    {shownSurface === 'floor' || rcp === undefined ? null : <rcp.JoistsStatus />}
                     {part('status')}
                     {leftTab === 'versions' || viewing !== null ? (
                       <LazyVersionsStatus
