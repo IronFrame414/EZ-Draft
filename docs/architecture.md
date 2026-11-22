@@ -387,7 +387,7 @@ app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/components/         shared UI (shell EZD-011/012, states EZD-015)
   src/styles/              design tokens: tokens.css (the only CSS with literal colors, check C10), tokens.ts (typed copy, TOKENS) (EZD-010a); globals.css (body font), fonts.ts (next/font/local), fonts/ (committed latin woff2 + OFL licences) (EZD-010c)
   src/lib/                code used by browser and server (fetch helper, t() from EZD-026c)
-  src/workers/            Web Workers, files named *.worker.ts (11 rule 3); serve-jobs.ts: serveJobs, the message loop each pooled worker runs; probe-job.ts: probeRoomAreas, the perf probe's room-area job (EZD-235b)
+  src/workers/            Web Workers, files named *.worker.ts (11 rule 3); serve-jobs.ts: serveJobs, the message loop each pooled worker runs; probe-job.ts: probeRoomAreas, the perf probe's room-area job (EZD-235b); sheet-job.ts: sheetJob, the sheet SVG job of sheet.worker.ts (EZD-702b)
   src/lib/realtime/       browser Realtime hub; adapter.ts is the only importer of @supabase/realtime-js (EZD-018)
   src/components/icon/    Icon.tsx, icons.json (sorted list of icons used), svg/ (committed sources + LICENSE), icon-names.generated.ts (EZD-010b); IconSprite.tsx (the in-page sprite the root layout renders) and icon-symbols.generated.ts (EZD-347)
   public/icons/sprite.svg the generated icon sprite file, served at /icons/sprite.svg; the app draws icons from the in-page copy (EZD-347)
@@ -676,7 +676,7 @@ EZD-020 (vault/plans/EZD-020.md Steps 1-4); 11 Performance (Budgets Download siz
 | `pdf/` | pdf.js underlay | EZD-304 |
 | `dxf-writer/` | DXF writer (browser use only, if any) | EZD-913 |
 | `exporters/` | GLB and USDZ (or a worker in `app/src/workers/`) | EZD-1014 |
-| `sheets/` | sheet renderer | EZD-702b |
+| `sheets/` | sheet renderer (`createSheetRenderer`: the open sheet's SVG from the sheet worker `app/src/workers/sheet.worker.ts`, job `sheet-svg` in `sheet-job.ts`, built by `sheetSvg` in `packages/geometry/src/drawing/sheet-svg.ts`; loaded by the Sheets screen on the first plan sheet it draws, and only while Sheets is shown) | EZD-702b |
 | `detail-editor/` | Detail editor | EZD-801 |
 | `catalog-drawer/` | catalog drawer | EZD-1601 |
 | `reference/` | reference drawing in Plan | EZD-901b |

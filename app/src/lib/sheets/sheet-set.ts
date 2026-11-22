@@ -131,3 +131,25 @@ export function draftWatermark(rev: number | null): string {
 export function paperInches(size: SheetSize): { width: number; height: number } {
   return size === '24x36' ? { width: 36, height: 24 } : { width: 17, height: 11 };
 }
+
+// EZD-702b (09h "Scales per viewport: 1/4\" = 1'-0\" plans"; vault/build/assumptions.md EZD-702b): until viewports
+// come (EZD-703), the plan sheets of the default set draw the lowest floor at 1/4" = 1'-0"; the other sheets show
+// their frame and title block only.
+export const PLAN_SHEETS: readonly string[] = ['A1.0', 'A2.0', 'A3.0', 'A6.0', 'E1.0'];
+
+export function sheetShowsPlan(sheet: Pick<Sheet, 'number'>): boolean {
+  return PLAN_SHEETS.includes(sheet.number);
+}
+
+// Board S13Sheets: the border sits h/48 in from the paper edge and the title block column is w/8 wide on the right.
+export function sheetFrame(size: SheetSize): { margin: number; titleBlock: number } {
+  const { width, height } = paperInches(size);
+  return { margin: height / 48, titleBlock: width / 8 };
+}
+
+// The paper inside the border and left of the title block, where a plan is centred (paper inches, y down).
+export function sheetDrawingArea(size: SheetSize): { x: number; y: number; width: number; height: number } {
+  const { width, height } = paperInches(size);
+  const { margin, titleBlock } = sheetFrame(size);
+  return { x: margin, y: margin, width: width - 2 * margin - titleBlock, height: height - 2 * margin };
+}

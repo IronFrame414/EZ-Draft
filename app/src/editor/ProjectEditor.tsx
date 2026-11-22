@@ -879,6 +879,16 @@ export function ProjectEditor({
   useEffect(() => {
     if (sheetsScreen !== null) void sheetsScreen.load();
   }, [sheetsScreen]);
+  // EZD-702b (AC-EZD-702b-2): the screen draws its open sheet from the model only while Sheets is shown.
+  useEffect(() => {
+    if (sheetsScreen === null) return;
+    sheetsScreen.setModel(routedStore);
+    return () => sheetsScreen.setModel(null);
+  }, [sheetsScreen, routedStore]);
+  useEffect(() => {
+    sheetsScreen?.setShown(showSheets);
+  }, [sheetsScreen, showSheets]);
+  useEffect(() => (sheetsScreen === null ? undefined : () => sheetsScreen.dispose()), [sheetsScreen]);
   const changeView = useCallback((v: EditorView) => {
     if (v === '3d') setOpened3d(true);
     if (v === 'sheets') setOpenedSheets(true);

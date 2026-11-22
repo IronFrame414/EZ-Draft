@@ -2,8 +2,15 @@
 // status bar items. It holds the project's two sets (GET /api/projects/[id]/sheet-sets, EZD-726), the chosen set and
 // the open sheet, and the sheet preview's fit zoom. Opening a sheet from the list, the strip or Previous / Next all go
 // through open().
-import type { SheetSetKind } from '@ezdraft/geometry';
-import type { SheetSetSummary } from '../../lib/sheets/sheet-set';
+// EZD-702b (phase-07 EZD-702b; 11 rule 2 "only what is on screen"; AC-EZD-702b-2): while the screen is shown it draws
+// the open sheet through the sheet renderer (app/src/lazy/sheets, loaded on the first plan sheet). It watches the model
+// only while shown, so an edit on the Plan tab draws no sheet; showing the screen again draws the open sheet once if
+// the model changed meanwhile.
+import type { SheetSetKind, SheetSize } from '@ezdraft/geometry';
+import type { Objects } from '../../editor/model/patches';
+import { lazyModule } from '../../lib/lazy/lazy-module';
+import { sheetShowsPlan, type SheetSetSummary } from '../../lib/sheets/sheet-set';
+import type { SheetRenderer } from '../sheets';
 
 export type SheetsScreenState = {
   load: 'loading' | 'ready' | 'failed';
@@ -13,7 +20,21 @@ export type SheetsScreenState = {
   open: string | null;
   // The preview's zoom (shown size over printed size), null until the preview is measured.
   zoom: number | null;
+  // The open sheet's drawing: its SVG markup in paper inches, for the sheet and size it was drawn for.
+  drawing: { sheet: string; size: SheetSize; markup: string } | null;
+  // Sheet renders asked of the renderer since the screen was made.
+  renders: number;
 };
+
+// The model the sheets draw (the editor's routed store).
+export type SheetsModelSource = {
+  getState(): { objects: Objects };
+  subscribe(listener: () => void): () => void;
+};
+
+export type SheetsScreenDeps = { loadRenderer?: () => Promise<SheetRenderer> };
+
+const sheetsRenderer = lazyModule(() => import('../sheets'));
 
 export type SheetsScreen = {
   get(): SheetsScreenState;
@@ -23,12 +44,27 @@ export type SheetsScreen = {
   open(number: string): void;
   setZoom(zoom: number | null): void;
   set(): SheetSetSummary | null;
+  setModel(source: SheetsModelSource | null): void;
+  setShown(shown: boolean): void;
+  dispose(): void;
 };
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 
-export function createSheetsScreen(projectId: string, fetchFn: Fetch = fetch): SheetsScreen {
-  let state: SheetsScreenState = { load: 'loading', sets: [], kind: 'permit', open: null, zoom: null };
+export function createSheetsScreen(
+  projectId: string,
+  fetchFn: Fetch = fetch,
+  deps: SheetsScreenDeps = {},
+): SheetsScreen {
+  let state: SheetsScreenState = {
+    load: 'loading',
+    sets: [],
+    kind: 'permit',
+    open: null,
+    zoom: null,
+    drawing: null,
+    renders: 0,
+  };
   const listeners = new Set<() => void>();
   const update = (next: Partial<SheetsScreenState>) => {
     state = { ...state, ...next };
@@ -36,6 +72,54 @@ export function createSheetsScreen(projectId: string, fetchFn: Fetch = fetch): S
   };
   const setOf = (kind: SheetSetKind) => state.sets.find((s) => s.kind === kind) ?? null;
   const firstOf = (kind: SheetSetKind) => setOf(kind)?.sheets[0]?.number ?? null;
+
+  const loadRenderer =
+    deps.loadRenderer ?? (() => sheetsRenderer.load().then((m) => m.createSheetRenderer()));
+  let renderer: Promise<SheetRenderer> | null = null;
+  let source: SheetsModelSource | null = null;
+  let shown = false;
+  let unwatch: (() => void) | null = null;
+  // What the last render asked for; the same model, sheet and size are not drawn again.
+  let drawn: { objects: Objects; sheet: string; size: SheetSize } | null = null;
+
+  // One render at a time: a change while one is drawing is drawn when it ends.
+  let busy = false;
+  const refresh = () => {
+    if (busy || !shown || source === null || state.load !== 'ready') return;
+    const set = setOf(state.kind);
+    const sheet = set?.sheets.find((s) => s.number === state.open) ?? null;
+    if (set === null || sheet === null || !sheetShowsPlan(sheet)) return;
+    const asked = { objects: source.getState().objects, sheet: sheet.number, size: set.size };
+    if (
+      drawn !== null &&
+      drawn.objects === asked.objects &&
+      drawn.sheet === asked.sheet &&
+      drawn.size === asked.size
+    )
+      return;
+    drawn = asked;
+    busy = true;
+    update({ renders: state.renders + 1 });
+    renderer ??= loadRenderer();
+    renderer
+      .then((r) => r.render({ objects: asked.objects, size: asked.size }))
+      .then(
+        (svg) => {
+          busy = false;
+          if (drawn === asked)
+            update({
+              drawing: svg === null ? null : { sheet: asked.sheet, size: asked.size, markup: svg.markup },
+            });
+          refresh();
+        },
+        () => {
+          // A failed load or job leaves the sheet's frame; the next change or showing tries again.
+          busy = false;
+          renderer = null;
+          if (drawn === asked) drawn = null;
+        },
+      );
+  };
 
   return {
     get: () => state,
@@ -52,6 +136,7 @@ export function createSheetsScreen(projectId: string, fetchFn: Fetch = fetch): S
         state = { ...state, sets: body.sets };
         const keep = setOf(state.kind)?.sheets.some((s) => s.number === state.open);
         update({ load: 'ready', open: keep ? state.open : firstOf(state.kind) });
+        refresh();
       } catch {
         update({ load: 'failed' });
       }
@@ -59,15 +144,42 @@ export function createSheetsScreen(projectId: string, fetchFn: Fetch = fetch): S
     chooseSet(kind) {
       if (kind === state.kind) return;
       update({ kind, open: firstOf(kind) });
+      refresh();
     },
     open(number) {
       if (number === state.open) return;
       if (!setOf(state.kind)?.sheets.some((s) => s.number === number)) return;
       update({ open: number });
+      refresh();
     },
     setZoom(zoom) {
       if (zoom !== state.zoom) update({ zoom });
     },
     set: () => setOf(state.kind),
+    setModel(next) {
+      if (next === source) return;
+      unwatch?.();
+      unwatch = null;
+      source = next;
+      drawn = null;
+      if (shown && source !== null) unwatch = source.subscribe(refresh);
+      refresh();
+    },
+    setShown(next) {
+      if (next === shown) return;
+      shown = next;
+      unwatch?.();
+      unwatch = null;
+      if (shown && source !== null) unwatch = source.subscribe(refresh);
+      refresh();
+    },
+    dispose() {
+      unwatch?.();
+      unwatch = null;
+      shown = false;
+      const r = renderer;
+      renderer = null;
+      void r?.then((x) => x.dispose(), () => {});
+    },
   };
 }

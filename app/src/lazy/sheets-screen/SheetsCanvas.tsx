@@ -4,6 +4,8 @@
 // sheet at its set's paper size with the draft watermark, and a strip with one thumbnail per sheet that opens it
 // (active outlined, open items in amber). The sheet's drawing and the thumbnail images come with the sheet renderer
 // (EZD-702b); until then the page shows its frame and title block number only.
+// EZD-702b (AC-EZD-702b-1): a plan sheet's drawing is the sheet renderer's SVG markup (paper inches, the same
+// viewBox), drawn inside the page once the worker answers. The markup is built by sheetSvg, which escapes every text.
 import { useEffect, useRef, type ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
@@ -12,6 +14,7 @@ import {
   draftWatermark,
   neighbourSheet,
   paperInches,
+  sheetFrame,
   sheetPosition,
   type Sheet,
 } from '../../lib/sheets/sheet-set';
@@ -34,15 +37,16 @@ function SheetPage({
   sheet,
   size,
   watermark,
+  drawing,
 }: {
   sheet: Sheet;
   size: SheetSize;
   watermark: string | null;
+  drawing: string | null;
 }): ReactElement {
   const { width: w, height: h } = paperInches(size);
   // Board S13Sheets: a border inset from the paper edge and the title block column on the right with the number.
-  const m = h / 48;
-  const tb = w / 8;
+  const { margin: m, titleBlock: tb } = sheetFrame(size);
   return (
     <svg
       className={styles.page}
@@ -56,6 +60,9 @@ function SheetPage({
       <rect x={0} y={0} width={w} height={h} className={styles.paper} />
       <rect x={m} y={m} width={w - 2 * m} height={h - 2 * m} className={styles.frame} />
       <line x1={w - m - tb} y1={m} x2={w - m - tb} y2={h - m} className={styles.frame} />
+      {drawing !== null ? (
+        <g data-testid="sheet-drawing" dangerouslySetInnerHTML={{ __html: drawing }} />
+      ) : null}
       {watermark !== null ? (
         <text x={m * 2} y={m * 2.6} className={styles.watermark} fontSize={h / 90} data-testid="sheet-watermark">
           {watermark}
@@ -109,7 +116,7 @@ export function SheetsCanvas({ screen }: SheetsCanvasProps): ReactElement {
   const watermark = set === null ? null : draftWatermark(draftRevision(set));
 
   return (
-    <div className={styles.canvas} data-testid="sheets-canvas">
+    <div className={styles.canvas} data-testid="sheets-canvas" data-sheet-renders={state.renders}>
       <div className={styles.bar}>
         <div className={styles.label} data-testid="sheets-label">
           {sheet !== null ? (
@@ -152,7 +159,18 @@ export function SheetsCanvas({ screen }: SheetsCanvasProps): ReactElement {
       </div>
       <div className={styles.area} ref={areaRef}>
         {sheet !== null && size !== null ? (
-          <SheetPage sheet={sheet} size={size} watermark={watermark} />
+          <SheetPage
+            sheet={sheet}
+            size={size}
+            watermark={watermark}
+            drawing={
+              state.drawing !== null &&
+              state.drawing.sheet === sheet.number &&
+              state.drawing.size === size
+                ? state.drawing.markup
+                : null
+            }
+          />
         ) : null}
       </div>
       <nav className={styles.strip} aria-label={t('office.sheets.strip')} data-testid="sheets-strip">
