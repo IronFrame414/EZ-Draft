@@ -157,3 +157,121 @@ describe('EZD-1001a wallSolid', () => {
     expect(s!.length).toBe(60);
   });
 });
+
+// EZD-504 (S05 States "walls under a slope get their top edge cut to match ... in 3D"): a 144" wall under a 4:12
+// single slope, its top rising from 96" at its start to 144" at its end (4" per 12" over 144": ceiling/wall-top.ts),
+// so the top is 96 + x / 3 at x.
+describe('EZD-504 wallFace under a sloped top', () => {
+  const top = [
+    [0, 96],
+    [144, 144],
+  ] as const;
+
+  it('a plain wall under a slope is its rectangle cut along the slope', () => {
+    expect(wallFace({ length: 144, height: 144, openings: [], top: [...top] })).toEqual({
+      kind: 'outline',
+      outer: [
+        [0, 0],
+        [144, 0],
+        [144, 144],
+        [0, 96],
+      ],
+      holes: [],
+    });
+  });
+
+  it('a window below the slope stays a hole', () => {
+    // Window x 54 to 90, y 36 to 84; the top over it is 114" at its lowest.
+    const face = wallFace({
+      length: 144,
+      height: 144,
+      openings: [{ offset: 54, width: 36, sill: 36, height: 48 }],
+      top: [...top],
+    });
+    expect(face).toEqual({
+      kind: 'outline',
+      outer: [
+        [0, 0],
+        [144, 0],
+        [144, 144],
+        [0, 96],
+      ],
+      holes: [
+        [
+          [54, 36],
+          [90, 36],
+          [90, 84],
+          [54, 84],
+        ],
+      ],
+    });
+  });
+
+  it('a window at the wall end falls to solid pieces whose tops follow the slope', () => {
+    // Window x 0 to 36, y 36 to 84. Strip 0 to 36: below the window, and from 84 up to the top (96 at 0, 108 at 36).
+    // Strip 36 to 144: floor to the top (108 at 36, 144 at 144).
+    expect(
+      wallFace({
+        length: 144,
+        height: 144,
+        openings: [{ offset: 0, width: 36, sill: 36, height: 48 }],
+        top: [...top],
+      }),
+    ).toEqual({
+      kind: 'pieces',
+      pieces: [
+        [
+          [0, 0],
+          [36, 0],
+          [36, 36],
+          [0, 36],
+        ],
+        [
+          [0, 84],
+          [36, 84],
+          [36, 108],
+          [0, 96],
+        ],
+        [
+          [36, 0],
+          [144, 0],
+          [144, 144],
+          [36, 108],
+        ],
+      ],
+    });
+  });
+
+  it('an opening taller than the slope over it is cut to the lowest top over its width', () => {
+    // A door x 0 to 36, 120 high: the top over it is 96 at its lowest, so the door is cut to 96 there.
+    const face = wallFace({
+      length: 144,
+      height: 144,
+      openings: [{ offset: 0, width: 36, sill: 0, height: 120 }],
+      top: [...top],
+    });
+    expect(face.kind).toBe('pieces');
+    if (face.kind !== 'pieces') return;
+    expect(face.pieces[0]).toEqual([
+      [0, 96],
+      [36, 96],
+      [36, 108],
+      [0, 96],
+    ]);
+  });
+
+  it('wallSolid takes the top and is as high as its highest point', () => {
+    const s = wallSolid(wall({ x: 0, y: 0 }, { x: 144, y: 0 }), [], [...top]);
+    expect(s!.height).toBe(144);
+    expect(s!.face).toEqual({
+      kind: 'outline',
+      outer: [
+        [0, 0],
+        [144, 0],
+        [144, 144],
+        [0, 96],
+      ],
+      holes: [],
+    });
+  });
+});

@@ -2,3 +2,4 @@
 export * from './beams';
 export * from './section';
 export * from './fan-clearance';
+export * from './wall-top';

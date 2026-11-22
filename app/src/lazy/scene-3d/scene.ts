@@ -5,7 +5,17 @@
 // rebuilds only the meshes whose inputs changed. Walls are their face extruded through the thickness
 // (`wallSolid`, no CSG); room floors are flat at their floor level. The open floor only (Q-0776; EZD-1022 stacks
 // floors). No frame loop: a change asks the shared renderer for one frame.
-import { wallSolid, type OpeningData, type WallData, type WallSolid } from '@ezdraft/geometry';
+// EZD-504 (S05 States "walls under a slope get their top edge cut to match ... in 3D"): a wall under a single slope
+// or vaulted room takes the ceiling's profile as its top (wallTopProfile). The profile is part of the wall's cache
+// inputs, so a ceiling change (a room edit) rebuilds the walls under it.
+import {
+  wallSolid,
+  wallTopProfile,
+  type ModelObject,
+  type OpeningData,
+  type WallData,
+  type WallSolid,
+} from '@ezdraft/geometry';
 import {
   AmbientLight,
   Box3,
@@ -115,7 +125,9 @@ export function wallGeometry(solid: WallSolid): BufferGeometry {
   const f = solid.face;
   const positions: number[] = [];
   if (f.kind === 'outline') extrudeLoops(positions, f.outer, f.holes, solid.thickness);
-  else {
+  else if (f.kind === 'pieces') {
+    for (const piece of f.pieces) extrudeLoops(positions, piece, [], solid.thickness);
+  } else {
     for (const r of f.rects) {
       const loop: [number, number][] = [
         [r.x0, r.y0],
@@ -272,17 +284,42 @@ export function createScene3d(o: {
     const rebuilt: string[] = [];
     for (const id of [...walls.keys()]) if (!wallIds.has(id)) drop(walls, id);
     for (const id of [...floors.keys()]) if (!roomIds.has(id)) drop(floors, id);
+    // EZD-504: the open floor's walls and rooms, read for the wall tops only when a room's ceiling is sloped.
+    const sloped = [...roomIds].some((id) => {
+      const a = objects.get(id)!.data.attributes as
+        | { ceilingType?: unknown; ceiling?: { ridge?: unknown } | null }
+        | undefined;
+      return (
+        (a?.ceilingType === 'single_slope' || a?.ceilingType === 'vaulted') &&
+        a.ceiling?.ridge != null
+      );
+    });
+    const levelObjects: ModelObject[] = sloped
+      ? [...wallIds, ...roomIds].map(
+          (id) => ({ id, type: objects.get(id)!.type, data: objects.get(id)!.data }) as unknown as ModelObject,
+        )
+      : [];
     for (const id of wallIds) {
       const wall = objects.get(id)!;
       const openings = (hosted.get(id) ?? []).sort((a, b) => (a.id < b.id ? -1 : 1));
+      let top: ReturnType<typeof wallTopProfile> = null;
+      if (sloped) {
+        try {
+          top = wallTopProfile({ id, data: wall.data as unknown as WallData }, levelObjects);
+        } catch {
+          // A room or wall the ceiling code cannot read leaves this wall flat.
+          top = null;
+        }
+      }
       put(
         walls,
         id,
-        [wall, ...openings.map((x) => x.value)],
+        [wall, ...openings.map((x) => x.value), JSON.stringify(top)],
         () => {
           const solid = wallSolid(
             { data: wall.data as unknown as WallData },
             openings.map((x) => ({ data: (x.value as { data: unknown }).data as OpeningData })),
+            top,
           );
           return solid === null ? null : wallGeometry(solid);
         },
