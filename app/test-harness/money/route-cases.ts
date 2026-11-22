@@ -24,9 +24,18 @@ export type MoneyRouteCase = {
   load: () => Promise<Record<string, unknown>>;
   request: (env: CaseEnv) => Promise<{ request: Request; params?: Record<string, string> }>;
   expectStatus: number;
+  // EZD-914: the status for a member without this switch, when the route refuses that member (supplier files are
+  // cost files, so a member without See company costs gets 403 and no body to scan).
+  expectStatusWithout?: { permission: string; status: number };
   after?: (body: unknown, env: CaseEnv) => void;
   note?: string;
 };
+
+/** The status a case expects for a member holding `granted`. */
+export function expectedStatus(c: MoneyRouteCase, granted: readonly string[]): number {
+  const w = c.expectStatusWithout;
+  return w !== undefined && !granted.includes(w.permission) ? w.status : c.expectStatus;
+}
 
 const BASE = 'http://localhost';
 const API = 'app/src/app/api/';
@@ -334,6 +343,73 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     }),
     expectStatus: 200,
     note: 'EZD-304: the project PDFs with their scale (no money)',
+  },
+  // EZD-914: the Supplier files panel. Supplier files are cost files, so a member without See company costs is refused
+  // (403, no body). The answers are source_file ids, names, kinds, sizes, supplier name and email, and a signed
+  // upload (no money). The complete case makes its own unfinished row and object, so it runs for both members.
+  {
+    file: `${API}projects/[id]/supplier-files/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/supplier-files/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/supplier-files`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    expectStatusWithout: { permission: 'see_company_costs', status: 403 },
+    note: 'EZD-914: the project supplier files (no money)',
+  },
+  {
+    file: `${API}projects/[id]/supplier-files/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/supplier-files/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/supplier-files`, {
+        kind: 'order_report',
+        originalName: '2020_order_report.pdf',
+        contentType: 'application/pdf',
+        size: 100,
+        supplierName: 'Cabinet Co',
+        supplierContactEmail: 'orders@cabinet.example',
+      })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 201,
+    expectStatusWithout: { permission: 'see_company_costs', status: 403 },
+    note: 'EZD-914: source_file view and signed upload (no money)',
+  },
+  {
+    file: `${API}supplier-files/[id]/complete/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/supplier-files/[id]/complete/route'),
+    request: async (env) => {
+      const id = randomUUID();
+      const path = `${env.tenantId}/${env.projectId}/${id}`;
+      const row = await adminDb().from('source_file').insert({
+        id,
+        tenant_id: env.tenantId,
+        project_id: env.projectId,
+        kind: 'image',
+        storage_path: path,
+        original_name: '2020_persp_02.png',
+        content_type: 'image/png',
+        size_bytes: 100,
+        uploaded_by: env.member.appUserId,
+        supplier_name: 'Cabinet Co',
+      });
+      if (row.error) throw new Error(`insert failed: ${row.error.message}`);
+      const { error } = await adminDb()
+        .storage.from('sources')
+        .upload(path, PNG_100, { contentType: 'image/png' });
+      if (error) throw new Error(`upload failed: ${error.message}`);
+      env.created.set('supplierCompletePath', path);
+      return {
+        request: new Request(`${BASE}/api/supplier-files/${id}/complete`, { method: 'POST' }),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-914: source_file view (no money)',
   },
   {
     file: `${API}source-files/[id]/scale/route.ts`,

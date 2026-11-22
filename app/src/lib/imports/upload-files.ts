@@ -58,7 +58,9 @@ const EXTENSION_TYPES: Readonly<Record<string, SourceContentType>> = {
   heic: 'image/heic',
 };
 
-export type RefusalReason = 'dwg' | 'unsupported' | 'too_large' | 'empty';
+// EZD-914 (S12 States "proprietary 2020 file uploaded, prompt for DXF/DWG, 3D export and order report"; Round 20):
+// a 2020 Design project file (.kit, vault/build/assumptions.md EZD-914) is refused with its own prompt.
+export type RefusalReason = 'dwg' | 'proprietary_2020' | 'unsupported' | 'too_large' | 'empty';
 
 export type FileCheck =
   { ok: true; contentType: SourceContentType } | { ok: false; reason: RefusalReason };
@@ -72,8 +74,13 @@ export function isDwg(name: string): boolean {
   return extensionOf(name) === 'dwg';
 }
 
+export function isProprietary2020(name: string): boolean {
+  return extensionOf(name) === 'kit';
+}
+
 export function checkFile(name: string, size: number): FileCheck {
   if (isDwg(name)) return { ok: false, reason: 'dwg' };
+  if (isProprietary2020(name)) return { ok: false, reason: 'proprietary_2020' };
   const contentType = EXTENSION_TYPES[extensionOf(name)];
   if (contentType === undefined) return { ok: false, reason: 'unsupported' };
   if (size <= 0) return { ok: false, reason: 'empty' };

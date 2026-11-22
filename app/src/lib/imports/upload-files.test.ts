@@ -127,3 +127,21 @@ describe('EZD-301 upload files', () => {
     expect(pdfs.items[0].size).toBe(10);
   });
 });
+
+// EZD-914 (AC-EZD-914-1; S12 Upload, States "Error: DWG uploaded, prompt for DXF; proprietary 2020 file uploaded,
+// prompt ..."; Q-0513 order reports PDF only). The 2020 extension is vault/build/assumptions.md EZD-914.
+describe('EZD-914 supplier files', () => {
+  it('EZD-914 U1 a proprietary 2020 file is refused with its own reason, in any letter case (AC-EZD-914-1)', async () => {
+    const { isProprietary2020 } = await import('./upload-files');
+    expect(isProprietary2020('Hendricks kitchen.kit')).toBe(true);
+    expect(isProprietary2020('kitchen.KIT')).toBe(true);
+    expect(isProprietary2020('kitchen.dxf')).toBe(false);
+    expect(checkFile('Hendricks kitchen.kit', 1000)).toEqual({ ok: false, reason: 'proprietary_2020' });
+    const list = addFiles(emptyUploadList<string>('supplier_pdf'), [f('job.kit'), f('plan.dwg')], nextId);
+    expect(list.items).toEqual([]);
+    expect(list.refused).toEqual([
+      { name: 'job.kit', reason: 'proprietary_2020' },
+      { name: 'plan.dwg', reason: 'dwg' },
+    ]);
+  });
+});

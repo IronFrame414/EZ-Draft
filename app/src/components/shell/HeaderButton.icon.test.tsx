@@ -101,6 +101,7 @@ const EXPECTED_ICONS = [
   'person',
   'person_book',
   'photo_camera',
+  'photo_library',
   'radio_button_checked',
   'rectangle',
   'redo',

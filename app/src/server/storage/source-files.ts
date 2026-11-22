@@ -120,7 +120,7 @@ function toView(row: ViewRow): SourceFileView {
 
 // EZD-322 D2: the caller's own switch, read live through current_permissions on the caller's client. A missing
 // context or a missing key is permission_denied; a failed read is storage_unavailable (no table call either way).
-async function requireSeeCompanyCosts(client: DbClient, appUserId: string): Promise<void> {
+export async function requireSeeCompanyCosts(client: DbClient, appUserId: string): Promise<void> {
   let ctx: Awaited<ReturnType<typeof loadPermissionContext>>;
   try {
     ctx = await loadPermissionContext(client, appUserId);
@@ -462,4 +462,50 @@ export async function findUploadedSourceFile(
     .maybeSingle();
   if (error) throw new StorageError('storage_unavailable', { cause: error });
   return data?.id ?? null;
+}
+
+// EZD-914 (S12 Data shown "Supplier files: name, type, received date, supplier name ..."; File row; Q-0323 "EZD-132 keeps
+// See company costs on supplier files and order reports"; EZD-322): the Supplier files panel's list. Supplier files are
+// cost files, so the caller's own See company costs switch is checked live before any read (table policies check only
+// tenant and project, Q-0323). Read through the caller's client, so RLS decides the project (another company's or an
+// unlisted project's files are absent). A supplier file is a supplier PDF or order report, or any upload that carries
+// a supplier name (the panel sends one with every file, vault/build/assumptions.md EZD-914). Only finished uploads.
+export type SupplierFileView = {
+  id: string;
+  kind: SourceFileKind;
+  originalName: string;
+  sizeBytes: number;
+  supplierName: string | null;
+  supplierContactEmail: string | null;
+  uploadedAt: string;
+};
+
+export const SUPPLIER_FILE_LIST_LIMIT = 100;
+
+export async function listSupplierFiles(
+  client: DbClient,
+  appUserId: string,
+  projectId: string,
+): Promise<SupplierFileView[]> {
+  if (!z.uuid().safeParse(projectId).success) throw new StorageError('project_not_found');
+  await requireSeeCompanyCosts(client, appUserId);
+  const { data, error } = await client
+    .from('source_file')
+    .select('id, kind, original_name, size_bytes, supplier_name, supplier_contact_email, uploaded_at')
+    .eq('project_id', projectId)
+    .not('uploaded_at', 'is', null)
+    .or('kind.in.(supplier_pdf,order_report),supplier_name.not.is.null')
+    .order('uploaded_at', { ascending: false })
+    .order('id', { ascending: true })
+    .limit(SUPPLIER_FILE_LIST_LIMIT);
+  if (error) throw new StorageError('storage_unavailable', { cause: error });
+  return data.map((row) => ({
+    id: row.id,
+    kind: row.kind as SourceFileKind,
+    originalName: row.original_name,
+    sizeBytes: row.size_bytes,
+    supplierName: row.supplier_name,
+    supplierContactEmail: row.supplier_contact_email,
+    uploadedAt: row.uploaded_at as string,
+  }));
 }

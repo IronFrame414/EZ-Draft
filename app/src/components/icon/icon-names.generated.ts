@@ -72,6 +72,7 @@ export const ICON_NAMES = [
   'person',
   'person_book',
   'photo_camera',
+  'photo_library',
   'radio_button_checked',
   'rectangle',
   'redo',

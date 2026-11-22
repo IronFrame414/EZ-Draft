@@ -12,6 +12,7 @@ const PAGE_FILES = [
   'app/src/app/(editor)/dev/saves/[id]/page.tsx',
   'app/src/app/(editor)/projects/[id]/import/[jobId]/page.tsx',
   'app/src/app/(editor)/projects/[id]/page.tsx',
+  'app/src/app/(editor)/projects/[id]/supplier/page.tsx',
   'app/src/app/(field)/dev/entry/field/page.tsx',
   'app/src/app/(field)/projects/[id]/field-measure/page.tsx',
   'app/src/app/(office)/dev/entry/office/page.tsx',

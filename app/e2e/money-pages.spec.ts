@@ -23,8 +23,8 @@ import {
   type Sessions,
 } from '../test-harness/e2e/test';
 
-// EZD-1402: the /dev/field-outbox test page makes 48.
-const EXPECTED_PATHS = 48;
+// EZD-1402: the /dev/field-outbox test page makes 48. EZD-914: the Supplier markup page makes 49.
+const EXPECTED_PATHS = 49;
 
 async function openEveryPage(sessions: Sessions, without: PermissionKey): Promise<void> {
   const tenant = await createTenant();

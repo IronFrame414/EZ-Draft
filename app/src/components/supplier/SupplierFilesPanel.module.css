@@ -1,0 +1,242 @@
+/* EZD-914 (S12 left panel; board S12RenderMarkup "Supplier files" card): the Supplier files list, Upload, the files
+   ready to upload with the supplier fields, refusals and the source note. Colors from tokens only; :hover only under
+   (hover: hover). */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 12px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ez-ink);
+}
+
+.subTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-700);
+}
+
+.upload {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font: 500 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+  cursor: pointer;
+}
+
+.input {
+  display: none;
+}
+
+.list,
+.refused,
+.stagedList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  color: var(--ez-ink);
+  cursor: pointer;
+}
+
+.rowActive {
+  background: var(--ez-cobalt-tint);
+}
+
+@media (hover: hover) {
+  .row:hover {
+    background: var(--ez-row-hover);
+  }
+
+  .rowActive:hover {
+    background: var(--ez-cobalt-tint);
+  }
+}
+
+.rowIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-6);
+  background: var(--ez-surface);
+  color: var(--ez-slate-500);
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rowName {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--ez-font-mono);
+  font-size: 12px;
+}
+
+.rowActive .rowName {
+  color: var(--ez-cobalt-text);
+}
+
+.rowSummary {
+  font-size: 11px;
+  color: var(--ez-slate-500);
+}
+
+.refusal {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--ez-amber-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-amber-tint);
+  font-size: 12px;
+  color: var(--ez-amber-text);
+}
+
+.refusalName {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.staged {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface-sunken);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--ez-slate-700);
+}
+
+.text,
+.kind {
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-6);
+  background: var(--ez-surface);
+  font: 13px var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.stagedRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
+}
+
+.send {
+  position: relative;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-cobalt);
+  font: 600 13px var(--ez-font-sans);
+  color: var(--ez-surface);
+  cursor: pointer;
+}
+
+.send:disabled,
+.upload:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ez-red-text);
+}
+
+.muted {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--ez-cobalt-link);
+  cursor: pointer;
+}
+
+.loading {
+  height: 40px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface-sunken);
+}
+
+.note {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 10px;
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface-sunken);
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
