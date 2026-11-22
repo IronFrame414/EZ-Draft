@@ -2945,6 +2945,21 @@ export const en = {
   'office.ceiling.zone.title': 'Switching zone',
   'office.ceiling.zone.click_room': 'Click inside a room to start a zone',
   'office.ceiling.zone.place_failed': 'The zone could not be saved',
+  // EZD-513: the Soffit, tray, coffer card and the Height and material tag tool (S05 Controls). Wording not on the
+  // board is listed in vault/build/assumptions.md EZD-513.
+  'office.ceiling.shape.chooser': 'Shape to draw',
+  'office.ceiling.shape.soffit': 'Soffit',
+  'office.ceiling.shape.tray': 'Tray',
+  'office.ceiling.shape.coffer': 'Coffer',
+  'office.ceiling.shape.crown': 'Crown',
+  'office.ceiling.shape.size.soffit': 'Drop',
+  'office.ceiling.shape.size.tray': 'Rise',
+  'office.ceiling.shape.size.coffer': 'Depth',
+  'office.ceiling.shape.size.crown': 'Size',
+  'office.ceiling.shape.hint': 'Click to draw the outline. Click the first point to close.',
+  'office.ceiling.shape.click_room': 'Click inside a room to start the outline',
+  'office.ceiling.shape.place_failed': 'The shape could not be saved',
+  'office.ceiling.tag.click_room': 'Click inside a room to place a tag',
   // EZD-503: the room ceiling summary and the ceiling type editor (S05 Room ceiling summary, Change ceiling, Read
   // heights from scan; board S05Ceiling "Family room ceiling", "Vaulted, ridge east-west", "walls 8' 0" · ridge 13'
   // 0"", "Change ceiling"). Wording not on the board is listed in vault/build/assumptions.md EZD-503.

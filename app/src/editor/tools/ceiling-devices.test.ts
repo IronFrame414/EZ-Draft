@@ -18,11 +18,10 @@ import {
   CEILING_DEVICE_TOOL_IDS,
   DEVICE_TOOL_KINDS,
   createDeviceChoice,
-  fixtureTypeEdit,
-  fixtureTypeView,
   wireCeilingTools,
   type CeilingDeviceToolId,
 } from './ceiling-device-tool';
+import { fixtureTypeEdit, fixtureTypeView } from './fixture-type';
 import { deviceToolReceiver } from './ceiling-device-receiver';
 import { placeCeilingDevice, type CeilingDeviceKind } from './fixture-tool';
 import { F1, ROOM, idSeq, roomValue, uid } from './test-utils/fixtures';

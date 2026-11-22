@@ -110,43 +110,15 @@ export function cabinetViewFit(view: CabinetView, tolerance: number | null): Cab
 export const cabinetFitFillerIds = (view: CabinetView): string[] =>
   view.layout.base.filter((s) => s.kind === 'filler').map((s) => s.id);
 
-export type CabinetSelection = {
-  readonly ids: readonly string[];
-  readonly hoveredId: string | null;
-};
-
-export const NO_CABINET_SELECTION: CabinetSelection = { ids: [], hoveredId: null };
-
-export type CabinetSelectionInput =
-  | { type: 'click'; id: string | null; shift?: boolean }
-  | { type: 'set'; ids: readonly string[] }
-  | { type: 'hover'; id: string | null }
-  | { type: 'escape' };
-
-// A click on a box selects that box alone; Shift+click adds it to the selection or takes it out (S04 "Shift+click
-// box | Adds to selection for bulk edit", EZD-405); a click off every box or Esc clears; hover marks one box. `set`
-// is the selection an edit leaves (the copies after Duplicate, nothing after Delete).
-export function cabinetSelect(s: CabinetSelection, i: CabinetSelectionInput): CabinetSelection {
-  switch (i.type) {
-    case 'click':
-      if (i.id === null) return i.shift === true ? s : { ...s, ids: [] };
-      if (i.shift === true) {
-        const key = i.id.toLowerCase();
-        const has = s.ids.some((x) => x.toLowerCase() === key);
-        return { ...s, ids: has ? s.ids.filter((x) => x.toLowerCase() !== key) : [...s.ids, i.id] };
-      }
-      return { ...s, ids: [i.id] };
-    case 'set':
-      return { ...s, ids: [...i.ids] };
-    case 'hover':
-      return s.hoveredId === i.id ? s : { ...s, hoveredId: i.id };
-    case 'escape':
-      return s.ids.length === 0 ? s : { ...s, ids: [] };
-  }
-}
-
-export const isCabinetSelected = (s: CabinetSelection, id: string): boolean =>
-  s.ids.some((x) => x.toLowerCase() === id.toLowerCase());
+// EZD-513 (11 Budgets): the selection lives in cabinet-selection.ts, which the editor entry's selection store reads, so
+// the rest of this file loads with the lazy cabinet screen and not in the editor's first download.
+export {
+  NO_CABINET_SELECTION,
+  cabinetSelect,
+  isCabinetSelected,
+  type CabinetSelection,
+  type CabinetSelectionInput,
+} from './cabinet-selection';
 
 // EZD-405 (S04 Controls "Drag box side edge", "Drag box", "Chain dimension text | Click to type an exact width",
 // "Height dimension text | Click to type upper height, ... base height", "Delete / Backspace", "Right-click box |

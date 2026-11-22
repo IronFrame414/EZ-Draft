@@ -9,8 +9,16 @@ import type { PlanPointerReceiver } from '../plan/input';
 // EZD-510 (11 Budgets): the tool's click receiver is in beam-receiver.ts, which loads with the Ceiling view's lazy
 // module (lazy/beam-spacing) rather than in the editor's first download.
 
-/** The types drawn and picked only on Ceiling and Both. EZD-510: switching zones too. */
-export const CEILING_ONLY_TYPES: ReadonlySet<string> = new Set(['beam', 'switch_zone']);
+/**
+ * The types drawn and picked only on Ceiling and Both. EZD-510: switching zones too. EZD-513: trays, coffers, crown and
+ * ceiling tags too (a soffit stays: it draws on the floor plan).
+ */
+export const CEILING_ONLY_TYPES: ReadonlySet<string> = new Set([
+  'beam',
+  'switch_zone',
+  'ceiling_shape',
+  'ceiling_tag',
+]);
 
 type Listenable = { subscribe(listener: () => void): () => void };
 

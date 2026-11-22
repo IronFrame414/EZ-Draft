@@ -20,6 +20,10 @@
 // each switching zone on a shown room draws as a closed dashed outline in the accent (the legend chip's colour,
 // whatever the zone's status); a dimmer zone adds the dimmer mark, an S with a subscript D, at its label point. A
 // half-drawn zone draws as an open dashed line through its corners.
+// EZD-513 (S05 Controls "Soffit, tray, coffer ... edges get dimensions", "Height and material tag ... Tag reads from
+// the ceiling data"; AC-EZD-513-1, -2; vault/build/assumptions.md EZD-513): each soffit, tray, coffer and crown draws
+// its outline with a dimension on every edge, and each tag its generated text in a box (ceiling-shapes.ts); an outline
+// being drawn shows as an open line through its corners.
 import {
   fanClearanceWarnings,
   isOffCeiling,
@@ -46,6 +50,13 @@ import type { PlanController } from '../plan/controller';
 import type { PlanPointerReceiver } from '../plan/input';
 import { placeSwitchZone, roomAt } from '../tools/switch-zone';
 import { switchZoneReceiver, zoneDrawingFor, type ZoneToolDeps } from '../tools/switch-zone-tool';
+import { ceilingShapeItems, ceilingTagItems, shapeDraftItems } from './ceiling-shapes';
+import {
+  shapeDrawingFor,
+  shapeReceiver as drawShapeReceiver,
+  tagReceiver,
+  type CeilingToolDeps,
+} from './shape-tool';
 
 // EZD-508: the left panel's fixture schedule, the legend and the ceiling status items load with the RCP drawing (one
 // lazy part for Ceiling and Both).
@@ -57,6 +68,9 @@ export { RoomCeiling } from './RoomCeiling';
 export { Lighting, LightingSection } from '../tools/SwitchZonePanel';
 export { placeSwitchZone, roomAt } from '../tools/switch-zone';
 export { switchZoneReceiver, zoneDrawingFor } from '../tools/switch-zone-tool';
+// EZD-513: the Soffit, tray, coffer card and the two tools' receivers.
+export { ShapeChooser } from './ShapeChooser';
+export { tagReceiver } from './shape-tool';
 
 /** The greyed floor plan's one colour (no spec value; vault/build/assumptions.md EZD-502). */
 export const GREYED_FLOOR_TOKEN = '--ez-border';
@@ -301,6 +315,8 @@ export function rcpList(
   checks: RcpChecks = NO_CHECKS,
   // EZD-510: the corners of the zone being drawn.
   zoneDraft: readonly Point[] = [],
+  // EZD-513: the corners of the soffit, tray, coffer or crown being drawn.
+  shapeDraft: readonly Point[] = [],
 ): DrawingList | null {
   if (floor === null) return null;
   const flagged = flaggedCeilingIds(objects, floor.level, checks);
@@ -326,6 +342,9 @@ export function rcpList(
   }
   items.push(...beamItems(objects, floor.level, rooms));
   items.push(...zoneItems(objects, floor.level, rooms), ...zoneDraftItems(zoneDraft));
+  // EZD-513: added after the floor list's dimensions are left out, so the edge dimensions stay.
+  items.push(...ceilingShapeItems(objects, floor.level, rooms), ...shapeDraftItems(shapeDraft));
+  items.push(...ceilingTagItems(objects, floor.level));
   return { level: floor.level, items, omitted: [] };
 }
 
@@ -349,8 +368,9 @@ export function rcpView(
   surface: Exclude<PlanSurface, 'floor'>,
   checks: RcpChecks = NO_CHECKS,
   zoneDraft: readonly Point[] = [],
+  shapeDraft: readonly Point[] = [],
 ): SurfaceView {
-  const list = rcpList(floor, objects, checks, zoneDraft);
+  const list = rcpList(floor, objects, checks, zoneDraft, shapeDraft);
   const rcp = buildPlanBatches(list);
   return { list, batches: surface === 'both' ? [...greyedBatches(floor), ...rcp] : rcp };
 }
@@ -366,12 +386,27 @@ export function showRcp(
   checks: RcpChecks,
 ): () => void {
   const zones = zoneDrawingFor(surface);
+  // EZD-513: and again whenever the outline being drawn changes.
+  const shapes = shapeDrawingFor(surface);
   const show = () =>
     plan.setSurface(shown, (floor, objects, sf) =>
-      rcpView(floor, objects, sf, checks, zones.get().points),
+      rcpView(floor, objects, sf, checks, zones.get().points, shapes.get().points),
     );
   show();
-  return zones.subscribe(show);
+  const offZones = zones.subscribe(show);
+  const offShapes = shapes.subscribe(show);
+  return () => {
+    offZones();
+    offShapes();
+  };
+}
+
+/** EZD-513 (11 Budgets): the Soffit, tray, coffer receiver over the page's outline drawing. */
+export function shapeReceiver(
+  surface: Pick<SurfaceSetting, 'get' | 'subscribe'>,
+  deps: CeilingToolDeps,
+): PlanPointerReceiver {
+  return drawShapeReceiver({ ...deps, drawing: shapeDrawingFor(surface) });
 }
 
 /** EZD-510 (11 Budgets): the Switching zones receiver over the page's zone drawing, placing through this module. */

@@ -9,7 +9,7 @@ import {
   cabinetSelect,
   type CabinetSelection,
   type CabinetSelectionInput,
-} from './cabinet-view';
+} from './cabinet-selection';
 
 export type CabinetSelectionState = {
   selection: CabinetSelection;

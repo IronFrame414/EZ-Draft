@@ -11,6 +11,7 @@
 // the version stays.
 // EZD-505: the `beam` type (a beam set on one room's ceiling); a new type, so the version stays.
 // EZD-510: the `switch_zone` type (a switching zone on one room's ceiling, existing-details.ts); a new type too.
+// EZD-513: the `ceiling_shape` (tray, coffer, crown) and `ceiling_tag` types (ceiling-shapes.ts); new types too.
 // EZD-601: the `panel` and `circuit` types (S06 left panel); new types, so the version stays.
 // EZD-726: the `sheet_set` type (03b rule 3); a new type, so the version stays. Like a floor it names no level.
 // EZD-1009: the `design_option` type (03b rules 3 and 4); a new type, so the version stays. It names no level; each
@@ -52,6 +53,12 @@ import {
   type HvacData,
   type SoffitData,
 } from './existing-details';
+import {
+  ceilingShapeDataSchema,
+  ceilingTagDataSchema,
+  type CeilingShapeData,
+  type CeilingTagData,
+} from './ceiling-shapes';
 import { fixtureDataSchema, type FixtureData } from './fixture';
 import { groupDataSchema, type GroupData } from './group';
 import { pinDataSchema, type PinData } from './pin';
@@ -68,6 +75,7 @@ import { wallDataSchema, type WallData } from './wall';
 export * from './beam';
 export * from './blocking';
 export * from './cabinet';
+export * from './ceiling-shapes';
 export * from './common';
 export * from './countertop';
 export * from './design-option';
@@ -119,6 +127,8 @@ export const OBJECT_TYPES = [
   'sheet_set',
   'design_option',
   'switch_zone',
+  'ceiling_shape',
+  'ceiling_tag',
 ] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
@@ -156,6 +166,8 @@ type DataByType = {
   sheet_set: SheetSetData;
   design_option: DesignOptionData;
   switch_zone: SwitchZoneData;
+  ceiling_shape: CeilingShapeData;
+  ceiling_tag: CeilingTagData;
 };
 export type ModelObject = {
   [T in ObjectType]: { id: string; type: T; data: DataByType[T] };
@@ -226,6 +238,8 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
   sheet_set: sheetSetDataSchema,
   design_option: designOptionDataSchema.refine(patchObjectsValid),
   switch_zone: switchZoneDataSchema,
+  ceiling_shape: ceilingShapeDataSchema,
+  ceiling_tag: ceilingTagDataSchema,
 };
 
 // A source_file id held in an object, with the source_file kinds that field accepts. An empty `kinds` refuses
@@ -276,6 +290,8 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   design_option: (d) =>
     d.modelDelta.flatMap((p) => (p.op === 'remove' ? [] : fileRefs(p.object as ModelObject))),
   switch_zone: none,
+  ceiling_shape: none,
+  ceiling_tag: none,
 };
 
 export function fileRefs(object: ModelObject): FileRef[] {

@@ -268,6 +268,9 @@ export const PROJECTORS: {
   design_option: notSent,
   // EZD-510: switching zones are not sent until a ticket decides what of them the assistant reads.
   switch_zone: notSent,
+  // EZD-513: trays, coffers, crown and ceiling tags are not sent until a ticket decides what of them the assistant reads.
+  ceiling_shape: notSent,
+  ceiling_tag: notSent,
 };
 
 const LABEL_WORDS = new Set(ROOM_LABEL_WORDS.map((w) => w.toLowerCase()));

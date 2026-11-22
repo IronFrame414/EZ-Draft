@@ -17,6 +17,8 @@
 // from its room, so like an opening on its host wall it is re-placed when its room changes.
 // EZD-510 (S05 Controls "Select"; AC-EZD-510-1): a switching zone picks by its own outline while its room is there, so
 // its inspector can turn the dimmer on or off; like a beam set it is held by its room.
+// EZD-513 (S05 Controls "Select"; AC-EZD-513-1, -2): a tray, coffer or crown picks by its outline as a soffit does,
+// and a ceiling tag at its point as a utility point does.
 import {
   beamSetPickShape,
   blockingPickShape,
@@ -81,7 +83,10 @@ function notePickShape(o: NoteObject): PickShape | null {
 // shares: a soffit or chase by its polygon as a room, a detector at its point as a utility point, a register or attic
 // hatch by its outline as a fixture (11 Budgets: one test and one shape-by-geometry fallthrough keep the editor's first
 // download small).
-type DetailObject = Extract<ModelObject, { type: 'hvac' | 'access' | 'device' | 'soffit' | 'chase' }>;
+type DetailObject = Extract<
+  ModelObject,
+  { type: 'hvac' | 'access' | 'device' | 'soffit' | 'chase' | 'ceiling_shape' | 'ceiling_tag' }
+>;
 type LooseObject =
   | FixtureObject
   | UtilityPointObject
@@ -90,7 +95,7 @@ type LooseObject =
   | DetailObject
   | NoteObject;
 const isLoose = (o: ModelObject): o is LooseObject =>
-  /^(fixture|utility_point|tile_shower|pin|hvac|access|device|soffit|chase|engineer_note)$/.test(o.type);
+  /^(fixture|utility_point|tile_shower|pin|hvac|access|device|soffit|chase|engineer_note|ceiling_shape|ceiling_tag)$/.test(o.type);
 
 export type PickIndex = {
   readonly floorId: string | null;

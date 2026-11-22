@@ -28,7 +28,7 @@ import {
   fixtureTypeView,
   type FixtureTypeEdit,
   type FixtureTypeField,
-} from './ceiling-device-tool';
+} from './fixture-type';
 import styles from '../inspector/InspectorPanel.module.css';
 
 export type DevicePanelProps = {

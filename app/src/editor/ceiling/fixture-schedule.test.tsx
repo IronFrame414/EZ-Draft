@@ -15,11 +15,8 @@ import { createLayerSetting, type LayerPhase } from '../layers/layer-setting';
 import { LeftPanel } from '../layers/LeftPanel';
 import { createModelStore } from '../model/model-store';
 import type { PlanPointerEvent } from '../plan/input';
-import {
-  createDeviceChoice,
-  fixtureTypeEdit,
-  type CeilingDeviceToolId,
-} from '../tools/ceiling-device-tool';
+import { createDeviceChoice, type CeilingDeviceToolId } from '../tools/ceiling-device-tool';
+import { fixtureTypeEdit } from '../tools/fixture-type';
 import { deviceToolReceiver } from '../tools/ceiling-device-receiver';
 import { placeCeilingDevice, type CeilingDeviceKind } from '../tools/fixture-tool';
 import { F1, F2, ROOM, idSeq, roomValue, uid } from '../tools/test-utils/fixtures';

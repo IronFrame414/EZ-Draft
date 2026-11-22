@@ -71,7 +71,7 @@ import { PinPanel } from './PinPanel';
 import { BeamPanel } from '../tools/BeamPanel';
 import { CeilingFlags, DevicePanel } from '../tools/DevicePanel';
 import { SwitchZoneInspector } from '../tools/SwitchZonePanel';
-import { fixtureTypeView } from '../tools/ceiling-device-tool';
+import { fixtureTypeView } from '../tools/fixture-type';
 import { EngineerNoteForm } from './EngineerNoteForm';
 import styles from './InspectorPanel.module.css';
 

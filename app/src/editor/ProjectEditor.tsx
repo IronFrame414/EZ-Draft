@@ -251,6 +251,8 @@ type PlanTestHook = {
   underlay(): ReturnType<PlanController['underlay']>;
   // EZD-502: the surface drawn and its batches.
   drawn(): ReturnType<PlanController['drawn']>;
+  // EZD-513: the text items drawn, with their object ids.
+  drawnTexts(): ReturnType<PlanController['drawnTexts']>;
 };
 
 type SelectionTestHook = {
@@ -969,6 +971,11 @@ export function ProjectEditor({
     // EZD-510: the Switching zones tool, turned on from the left panel's Lighting section (shown once the RCP
     // module is in); the tool and its placement come with that module.
     if (rcp) receivers['switch-zone'] = rcp.zoneReceiver(surface, base);
+    // EZD-513: the Soffit, tray, coffer and Height and material tag tools, from the same module.
+    if (rcp) {
+      receivers.soffit = rcp.shapeReceiver(surface, base);
+      receivers.tag = rcp.tagReceiver(base);
+    }
     // One wire for every ceiling tool, so one tool turning off never clears another's receiver. EZD-602: and, on
     // the floor plan, the electrical device toolbar's armed item.
     deviceSlot.setState({ base });
@@ -1026,6 +1033,7 @@ export function ProjectEditor({
       phase,
       underlay: () => plan.underlay(),
       drawn: () => plan.drawn(),
+      drawnTexts: () => plan.drawnTexts(),
     };
     const w = window as unknown as { __ezdraftPlan?: PlanTestHook };
     w.__ezdraftPlan = hook;
@@ -1362,6 +1370,10 @@ export function ProjectEditor({
       {shownSurface === 'floor' || rcp === undefined ? null : <rcp.CeilingLegend />}
       {shownSurface !== 'floor' && mayEdit ? (
         <CeilingDeviceChooser surface={surface} choice={deviceChoice} />
+      ) : null}
+      {shownSurface !== 'floor' && mayEdit && rcp !== undefined ? (
+        // EZD-513: the Soffit, tray, coffer card, shown while that tool is on.
+        <rcp.ShapeChooser surface={surface} />
       ) : null}
       {electricalOn && shownSurface === 'floor' && session?.lock.canEditModel && selection ? (
         // EZD-602: shown with Edit model, paused (not hidden) in view only or while a version is open.

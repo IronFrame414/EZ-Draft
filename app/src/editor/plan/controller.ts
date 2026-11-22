@@ -162,6 +162,8 @@ export type PlanController = {
     surface: PlanSurface;
     batches: Array<{ key: string; color: PlanBatch['color']; order: number }>;
   };
+  // EZD-513: the text items drawn (dimension lengths, tags), with their object ids, for the test hook.
+  drawnTexts(): Array<{ objectId: string; text: string }>;
   dispose(): void;
 };
 
@@ -739,6 +741,10 @@ export function createPlanController(
       surface: surfaceView === null ? 'floor' : surface,
       batches: drawnBatches.map((b) => ({ key: b.key, color: { ...b.color }, order: b.order })),
     }),
+    drawnTexts: () =>
+      (list?.items ?? []).flatMap((i) =>
+        i.kind === 'text' ? [{ objectId: i.objectId, text: i.text }] : [],
+      ),
     derivedStats: () => derived.stats(),
     stats() {
       const s = root !== null && ready ? root.stats() : { frames: 0, drawCalls: 0 };
