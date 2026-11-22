@@ -448,7 +448,8 @@
     "EZD-915",
     "EZD-510",
     "EZD-417",
-    "EZD-711"
+    "EZD-711",
+    "EZD-602"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1414,6 +1415,14 @@
       "ts": "2026-11-22T18:33:09Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-602",
+      "title": "Device toolbar",
+      "commit": "0c5399cf",
+      "ts": "2026-11-22T19:03:50Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1572,11 +1581,11 @@
     }
   },
   "running": {
-    "EZD-602": {
-      "lane": 1,
-      "title": "Device toolbar",
-      "started": "2026-11-22T16:23:32Z",
-      "develop": "0160edca"
+    "EZD-916": {
+      "lane": 2,
+      "title": "2020 order report import",
+      "started": "2026-11-22T18:33:15Z",
+      "develop": "33f3169d"
     }
   },
   "advisories_checked_at": "2026-11-22T16:11:22Z",
