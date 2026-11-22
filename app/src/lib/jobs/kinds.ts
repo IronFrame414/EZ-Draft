@@ -3,6 +3,7 @@
 // EZD-110a Step 5 adds notification_email (one email job per notification).
 // EZD-124 adds project_purge (a deleted project's files; company-level, Q-0700 decisions 03).
 // EZD-1408 adds field_task_draft (AI drafts of a project's field tasks, S22).
+// EZD-901a adds reference_convert (an architect DXF converted once into layer buffers, S11).
 export const JOB_KINDS = [
   'import',
   'export',
@@ -15,6 +16,7 @@ export const JOB_KINDS = [
   'notification_email',
   'project_purge',
   'field_task_draft',
+  'reference_convert',
 ] as const;
 
 export const JOB_STATUSES = ['queued', 'running', 'done', 'failed'] as const;

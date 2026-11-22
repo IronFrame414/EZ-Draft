@@ -223,6 +223,8 @@ describe('EZD-323 test-only database functions', () => {
       'app/src/server/jobs/handlers/notification-email.ts',
       // EZD-124: the project purge lists a deleted project's files (list_project_purge_files, service_role only) and removes them, sent files included (Q-0700 decisions 03).
       'app/src/server/jobs/handlers/project-purge.ts',
+      // EZD-901a: the reference conversion reads the project's DXF from the sources bucket, writes its layer buffers to the jobs bucket and writes reference_drawing rows (no member write policy; S11).
+      'app/src/server/jobs/handlers/reference-convert.ts',
       'app/src/server/jobs/queue.ts',
       'app/src/server/jobs/runner.ts',
       // EZD-125: the sweep's edit lock pass (called from api/jobs/sweep/route.ts) runs sweep_edit_locks, granted to service_role only (Q-0697 decisions 03).

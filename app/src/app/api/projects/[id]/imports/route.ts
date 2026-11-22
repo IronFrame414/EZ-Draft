@@ -11,6 +11,10 @@
 // EZD-306 (S01 DXF: conversion choice): dxfLayers carries the layers chosen for conversion of each DXF drawing (kind
 // dxf), with the role of each. A drawing it names is converted from those layers only; a drawing it leaves out is
 // kept as reference only. An entry for a file that is not one of this import's dxf drawings is 400.
+// EZD-901a (phase-09 EZD-901a "runs once per upload in a background job"; S01 "Original kept at full fidelity as
+// reference_drawing"): every DXF drawing (kind dxf) of the import, converted or reference only, also queues one
+// reference_convert job that turns it into the S11 reference. jobId stays the import job's (null when only references
+// were queued), since Continue to review opens Import review for that job.
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { endedSessionResponse } from '../../../../../server/auth/ended-session';
@@ -98,6 +102,13 @@ export async function POST(
     if (detectIds.length > 0) {
       const job = await enqueueJob(createSessionClient(), { kind: 'import', projectId: id, payload });
       jobId = job.id;
+    }
+    for (const sourceFileId of checked.dxfIds ?? []) {
+      await enqueueJob(createSessionClient(), {
+        kind: 'reference_convert',
+        projectId: id,
+        payload: { sourceFileId },
+      });
     }
     return Response.json({ projectId: id, sourceFileIds, jobId }, { status: 202, headers });
   } catch (e) {

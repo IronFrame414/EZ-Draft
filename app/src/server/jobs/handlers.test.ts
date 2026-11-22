@@ -42,6 +42,7 @@ describe('EZD-009 job handlers', () => {
       'import',
       'notification_email',
       'project_purge',
+      'reference_convert',
       'test',
     ]);
     const text = testFiles(appSrc)

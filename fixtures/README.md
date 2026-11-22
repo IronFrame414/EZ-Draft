@@ -11,6 +11,9 @@ Test files shared by the app, the geometry package and the spikes (EZD-016b, `va
 | --- | --- | --- | --- | --- | --- | --- |
 | `synthetic-room-dxf` | generated | polycam_dxf | present | `fixtures/synthetic/room-12x10.dxf` | EZD-029, EZD-302 | this ticket (EZD-016b) |
 | `synthetic-room-unjoined-dxf` | generated | polycam_dxf | present | `fixtures/synthetic/room-12x10-unjoined.dxf` | EZD-302 | EZD-302 (Q-0066 (b)): the synthetic room with the east wall stopped 2 in short of the north wall, written by `node scripts/fixtures/generate-unjoined.mjs` |
+| `synthetic-architect-dxf` | generated | dxf | present | `fixtures/synthetic/architect-plan.dxf` | EZD-901a, EZD-901b, EZD-905, EZD-909a | EZD-901a: an architect floor plan (AC1015) with 10 layers, blocks, a solid and an ANSI31 hatch, text, two dimensions, a LEADER (a type the parser does not read) and two paper-space layouts, written by `node scripts/fixtures/generate-architect.mjs`; stand-in for `architect-dxf` |
+| `synthetic-architect-dxf-rev` | generated | dxf | present | `fixtures/synthetic/architect-plan-rev.dxf` | EZD-909a | EZD-901a: the same plan revised (partition wall moved 6 in, a window added, the lavatory removed, a dimension value changed), same generator; stand-in for `architect-dxf-revised` |
+| `synthetic-architect-dxf-rev-nohandles` | generated | dxf | present | `fixtures/synthetic/architect-plan-rev-nohandles.dxf` | EZD-909a | EZD-901a: the revised plan with every handle (group 5) stripped, same generator |
 | `synthetic-room-vector-pdf` | generated | pdf | present | `fixtures/synthetic/room-12x10-vector.pdf` | EZD-304, EZD-305 | this ticket (EZD-016b) |
 | `synthetic-room-glb` | generated | polycam_glb | present | `fixtures/synthetic/room-12x10-sloped.glb` | EZD-303 | this ticket (EZD-016b) |
 | `synthetic-room-scanned-pdf` | generated | pdf | present | `fixtures/synthetic/room-12x10-scanned.pdf` | EZD-305 | this ticket (EZD-016b) |

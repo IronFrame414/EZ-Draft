@@ -444,3 +444,22 @@ export async function listProjectPdfs(
   if (error) throw new StorageError('storage_unavailable', { cause: error });
   return data.map(toPdfScaleView);
 }
+
+// EZD-901a: the id of a completed upload of this kind and file name in the project, read through the caller's
+// client (RLS applies), or null. The benchmark project's reference DXF is attached once (references/benchmark-reference.ts).
+export async function findUploadedSourceFile(
+  client: DbClient,
+  input: { projectId: string; kind: SourceFileKind; originalName: string },
+): Promise<string | null> {
+  const { data, error } = await client
+    .from('source_file')
+    .select('id')
+    .eq('project_id', input.projectId)
+    .eq('kind', input.kind)
+    .eq('original_name', input.originalName)
+    .not('uploaded_at', 'is', null)
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new StorageError('storage_unavailable', { cause: error });
+  return data?.id ?? null;
+}

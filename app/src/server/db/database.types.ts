@@ -825,6 +825,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"reference_drawing": {
+                  Row: {
+                    "convert_status": NonNullable<Json>,"created_at": string,"error": string | null,"id": string,"job_id": string | null,"layer_state": NonNullable<Json>,"manifest_path": string | null,"not_read": NonNullable<Json>,"project_id": string,"rev_label": string | null,"source_file_id": string,"status": string,"tenant_id": string,"units": string | null,"updated_at": string,"version_no": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "convert_status"?: NonNullable<Json>,"created_at"?: string,"error"?: string | null,"id"?: string,"job_id"?: string | null,"layer_state"?: NonNullable<Json>,"manifest_path"?: string | null,"not_read"?: NonNullable<Json>,"project_id": string,"rev_label"?: string | null,"source_file_id": string,"status": string,"tenant_id": string,"units"?: string | null,"updated_at"?: string,"version_no"?: number
+                  }
+                  Update: {
+                    "convert_status"?: NonNullable<Json>,"created_at"?: string,"error"?: string | null,"id"?: string,"job_id"?: string | null,"layer_state"?: NonNullable<Json>,"manifest_path"?: string | null,"not_read"?: NonNullable<Json>,"project_id"?: string,"rev_label"?: string | null,"source_file_id"?: string,"status"?: string,"tenant_id"?: string,"units"?: string | null,"updated_at"?: string,"version_no"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "reference_drawing_job_id_fkey"
+      columns: ["job_id"]
+isOneToOne: false
+      referencedRelation: "job"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "reference_drawing_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "reference_drawing_source_file_id_fkey"
+      columns: ["source_file_id"]
+isOneToOne: true
+      referencedRelation: "source_file"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "reference_drawing_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"render_allowance": {
                   Row: {
                     "amount_usd": number,"balance_usd": number,"created_at": string,"last_refilled_at": string,"refill_amount_usd": number,"tenant_id": string,"updated_at": string

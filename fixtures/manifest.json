@@ -24,6 +24,42 @@
     "source": "EZD-302 (Q-0066 (b); scripts/fixtures/generate-unjoined.mjs)"
   },
   {
+    "id": "synthetic-architect-dxf",
+    "origin": "generated",
+    "kind": "dxf",
+    "status": "present",
+    "path": "fixtures/synthetic/architect-plan.dxf",
+    "expected": "fixtures/synthetic/architect-plan.dxf.expected.json",
+    "neededBy": ["EZD-901a", "EZD-901b", "EZD-905", "EZD-909a"],
+    "withoutIt": null,
+    "standIn": null,
+    "source": "EZD-901a (scripts/fixtures/generate-architect.mjs)"
+  },
+  {
+    "id": "synthetic-architect-dxf-rev",
+    "origin": "generated",
+    "kind": "dxf",
+    "status": "present",
+    "path": "fixtures/synthetic/architect-plan-rev.dxf",
+    "expected": "fixtures/synthetic/architect-plan-rev.dxf.expected.json",
+    "neededBy": ["EZD-909a"],
+    "withoutIt": null,
+    "standIn": null,
+    "source": "EZD-901a (scripts/fixtures/generate-architect.mjs)"
+  },
+  {
+    "id": "synthetic-architect-dxf-rev-nohandles",
+    "origin": "generated",
+    "kind": "dxf",
+    "status": "present",
+    "path": "fixtures/synthetic/architect-plan-rev-nohandles.dxf",
+    "expected": "fixtures/synthetic/architect-plan-rev-nohandles.dxf.expected.json",
+    "neededBy": ["EZD-909a"],
+    "withoutIt": null,
+    "standIn": null,
+    "source": "EZD-901a (scripts/fixtures/generate-architect.mjs)"
+  },
+  {
     "id": "synthetic-room-vector-pdf",
     "origin": "generated",
     "kind": "pdf",

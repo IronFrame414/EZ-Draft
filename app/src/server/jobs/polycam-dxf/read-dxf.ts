@@ -4,7 +4,10 @@
 // $ACADVER; AC1021 (R2007) and later are decoded as UTF-8. A binary DXF is refused (binary_dxf), as is text the
 // parser cannot read (unreadable_dxf). Units come from $INSUNITS; a missing or unitless value is read as inches
 // (vault/build/assumptions.md EZD-302).
-import * as dxfParserModule from 'dxf-parser';
+// EZD-901a: the parser comes from createDxfParser (reference-dxf/parser.ts), the one parser for imports and
+// references (R26 R16), which also reads HATCH; a hatch is still a type this detector does not use (skipped).
+import { decodeDxfBytes, DxfDecodeError } from '../reference-dxf/decode';
+import { createDxfParser } from '../reference-dxf/parser';
 
 export type Pt = { x: number; y: number };
 export type DxfLine = { layer: string; a: Pt; b: Pt };
@@ -42,22 +45,14 @@ const INCHES_PER_UNIT: Record<number, number> = {
   6: 1 / 0.0254,
 };
 
-type ParserCtor = new () => { parseSync(text: string): unknown };
-
-// In Node ESM the class is the default import; the named export is undefined at run time (EZD-029).
-function parserCtor(): ParserCtor {
-  const mod = dxfParserModule as unknown as { default?: unknown; DxfParser?: unknown };
-  const candidate =
-    (mod.default as { default?: unknown } | undefined)?.default ?? mod.default ?? mod.DxfParser;
-  return candidate as ParserCtor;
-}
-
+// EZD-901a: the one decoding rule (reference-dxf/decode.ts), which also reads $DWGCODEPAGE.
 export function decodeDxf(bytes: Uint8Array): string {
-  const latin = Buffer.from(bytes).toString('latin1');
-  if (latin.startsWith('AutoCAD Binary DXF')) throw new DxfReadError('binary_dxf');
-  const ver = /\$ACADVER\s*\r?\n\s*1\s*\r?\n\s*AC(\d{4})/.exec(latin);
-  if (ver && Number(ver[1]) >= 1021) return Buffer.from(bytes).toString('utf8');
-  return latin;
+  try {
+    return decodeDxfBytes(bytes);
+  } catch (e) {
+    if (e instanceof DxfDecodeError) throw new DxfReadError('binary_dxf');
+    throw e;
+  }
 }
 
 type RawPoint = { x?: unknown; y?: unknown };
@@ -78,8 +73,7 @@ export function readDxf(bytes: Uint8Array): DxfDrawing {
   const text = decodeDxf(bytes);
   let parsed: { header?: Record<string, unknown>; entities?: RawEntity[]; tables?: unknown } | null;
   try {
-    const Parser = parserCtor();
-    parsed = new Parser().parseSync(text) as typeof parsed;
+    parsed = createDxfParser().parseSync(text) as typeof parsed;
   } catch {
     throw new DxfReadError('unreadable_dxf');
   }
