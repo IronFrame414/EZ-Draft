@@ -433,7 +433,8 @@
     "EZD-709",
     "EZD-702a",
     "EZD-1009",
-    "EZD-508"
+    "EZD-508",
+    "EZD-901a"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1279,6 +1280,14 @@
       "ts": "2026-11-22T02:11:13Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-901a",
+      "title": "Reference conversion job",
+      "commit": "a020491c",
+      "ts": "2026-11-22T02:40:35Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1418,11 +1427,11 @@
     }
   },
   "running": {
-    "EZD-901a": {
-      "lane": 2,
-      "title": "Reference conversion job",
-      "started": "2026-11-22T00:43:40Z",
-      "develop": "075b5ca4"
+    "EZD-503": {
+      "lane": 1,
+      "title": "Ceiling type editor",
+      "started": "2026-11-22T02:11:19Z",
+      "develop": "1cb0d557"
     }
   },
   "advisories_checked_at": "2026-11-21T22:10:10Z"
