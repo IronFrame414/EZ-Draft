@@ -1409,7 +1409,8 @@
     "EZD-515": 1,
     "EZD-508": 1,
     "EZD-702b": 1,
-    "EZD-1418": 1
+    "EZD-1418": 1,
+    "EZD-1422": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1519,14 +1520,18 @@
     "EZD-1418": {
       "ts": "2026-11-22T07:31:02Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1422": {
+      "ts": "2026-11-22T14:09:32Z",
+      "reason": "review: needs EZD-1418 first"
     }
   },
   "running": {
-    "EZD-1422": {
-      "lane": 2,
-      "title": "Field measure as wizard input",
-      "started": "2026-11-22T11:49:22Z",
-      "develop": "dffb5f1f"
+    "EZD-510": {
+      "lane": 1,
+      "title": "Switching zones",
+      "started": "2026-11-22T13:18:23Z",
+      "develop": "787fdb91"
     }
   },
   "advisories_checked_at": "2026-11-22T10:10:59Z",
