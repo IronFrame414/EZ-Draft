@@ -443,7 +443,8 @@
     "EZD-414",
     "EZD-1419",
     "EZD-702b",
-    "EZD-914"
+    "EZD-914",
+    "EZD-710"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1369,6 +1370,14 @@
       "ts": "2026-11-22T11:48:20Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-710",
+      "title": "Title block on sheets",
+      "commit": "626b6a44",
+      "ts": "2026-11-22T15:07:18Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1382,7 +1391,7 @@
     }
   },
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1532,6 +1541,12 @@
       "title": "Switching zones",
       "started": "2026-11-22T13:18:23Z",
       "develop": "787fdb91"
+    },
+    "EZD-915": {
+      "lane": 3,
+      "title": "Supplier vector PDF import",
+      "started": "2026-11-22T14:10:38Z",
+      "develop": "b4d81a4c"
     }
   },
   "advisories_checked_at": "2026-11-22T10:10:59Z",
