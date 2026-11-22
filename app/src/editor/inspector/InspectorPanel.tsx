@@ -8,6 +8,7 @@
 // whose letter is not on file shows "Engineer required", with or without Edit model.
 // EZD-505: one beam set alone shows the beam inspector (tools/BeamPanel.tsx).
 // EZD-507: one light or fan alone shows its inspector with the Fixture type (tools/DevicePanel.tsx).
+// EZD-510: one switching zone alone shows its inspector with the Dimmer box (tools/SwitchZonePanel.tsx).
 import type { FloorChoice } from '../floors/floors';
 import { useChosenFloor } from '../floors/use-chosen-floor';
 import {
@@ -69,6 +70,7 @@ import { ResolveGap, type ResolveGapProps } from './ResolveGap';
 import { PinPanel } from './PinPanel';
 import { BeamPanel } from '../tools/BeamPanel';
 import { CeilingFlags, DevicePanel } from '../tools/DevicePanel';
+import { SwitchZoneInspector } from '../tools/SwitchZonePanel';
 import { fixtureTypeView } from '../tools/ceiling-device-tool';
 import { EngineerNoteForm } from './EngineerNoteForm';
 import styles from './InspectorPanel.module.css';
@@ -163,6 +165,8 @@ export function InspectorPanel({
   const noteAlone = ids.length === 1 && isType(objects, ids[0]!, 'engineer_note') ? ids[0]! : null;
   // EZD-505: one beam set alone shows the beam inspector.
   const beamAlone = ids.length === 1 && isType(objects, ids[0]!, 'beam') ? ids[0]! : null;
+  // EZD-510: one switching zone alone.
+  const zoneAlone = ids.length === 1 && isType(objects, ids[0]!, 'switch_zone') ? ids[0]! : null;
   // EZD-507: one light or fan alone.
   const fixtureAlone =
     ids.length === 1 && fixtureTypeView(objects, ids[0]!) !== null ? ids[0]! : null;
@@ -255,6 +259,11 @@ export function InspectorPanel({
 
   if (beamAlone !== null)
     return <BeamPanel key={beamAlone} store={store} beamId={beamAlone} canEdit={canEdit} />;
+
+  if (zoneAlone !== null)
+    return (
+      <SwitchZoneInspector key={zoneAlone} store={store} zoneId={zoneAlone} canEdit={canEdit} />
+    );
 
   if (fixtureAlone !== null)
     return (

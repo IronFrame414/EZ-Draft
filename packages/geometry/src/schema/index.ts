@@ -10,6 +10,7 @@
 // EZD-733: the `tile_layout` type (pattern, tile size, joint, start point on a floor or a wall face); a new type, so
 // the version stays.
 // EZD-505: the `beam` type (a beam set on one room's ceiling); a new type, so the version stays.
+// EZD-510: the `switch_zone` type (a switching zone on one room's ceiling, existing-details.ts); a new type too.
 // EZD-601: the `panel` and `circuit` types (S06 left panel); new types, so the version stays.
 // EZD-726: the `sheet_set` type (03b rule 3); a new type, so the version stays. Like a floor it names no level.
 // EZD-1009: the `design_option` type (03b rules 3 and 4); a new type, so the version stays. It names no level; each
@@ -41,11 +42,13 @@ import {
   accessDataSchema,
   chaseDataSchema,
   deviceDataSchema,
+  switchZoneDataSchema,
   hvacDataSchema,
   soffitDataSchema,
   type AccessData,
   type ChaseData,
   type DeviceData,
+  type SwitchZoneData,
   type HvacData,
   type SoffitData,
 } from './existing-details';
@@ -115,6 +118,7 @@ export const OBJECT_TYPES = [
   'circuit',
   'sheet_set',
   'design_option',
+  'switch_zone',
 ] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
@@ -151,6 +155,7 @@ type DataByType = {
   circuit: CircuitData;
   sheet_set: SheetSetData;
   design_option: DesignOptionData;
+  switch_zone: SwitchZoneData;
 };
 export type ModelObject = {
   [T in ObjectType]: { id: string; type: T; data: DataByType[T] };
@@ -220,6 +225,7 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
   circuit: circuitDataSchema,
   sheet_set: sheetSetDataSchema,
   design_option: designOptionDataSchema.refine(patchObjectsValid),
+  switch_zone: switchZoneDataSchema,
 };
 
 // A source_file id held in an object, with the source_file kinds that field accepts. An empty `kinds` refuses
@@ -269,6 +275,7 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   // Each add or replace object has passed its own type's schema with the option (patchObjectsValid).
   design_option: (d) =>
     d.modelDelta.flatMap((p) => (p.op === 'remove' ? [] : fileRefs(p.object as ModelObject))),
+  switch_zone: none,
 };
 
 export function fileRefs(object: ModelObject): FileRef[] {

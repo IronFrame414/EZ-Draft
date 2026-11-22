@@ -14,14 +14,11 @@ import {
 } from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { CeilingToolId, SurfaceSetting } from '../ceiling/surface';
-import type { ModelStore } from '../model/model-store';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import type { Change, Objects } from '../model/patches';
-import { openFloorId } from '../plan/batches';
-import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
-// EZD-222 (11 Budgets; EZD-1401 precedent): the placement code is given by the caller, so it loads with the Ceiling
-// view's lazy module rather than in the editor's first download. Types only.
-type PlaceCeilingDevice = typeof import('./fixture-tool').placeCeilingDevice;
+import type { PlanPointerReceiver } from '../plan/input';
+// EZD-510 (11 Budgets): the tools' click receiver is in ceiling-device-receiver.ts, which loads with the Ceiling view's
+// lazy module (lazy/rcp) rather than in the editor's first download.
 export type CeilingDeviceKind = import('./fixture-tool').CeilingDeviceKind;
 
 export type CeilingDeviceToolId = Extract<
@@ -65,39 +62,6 @@ export function createDeviceChoice(): DeviceChoice {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
-  };
-}
-
-export type DeviceToolDeps = {
-  store: ModelStore;
-  tool: CeilingDeviceToolId;
-  choice: Pick<DeviceChoice, 'get'>;
-  chosenFloor: () => string | null;
-  newStatus: () => 'existing' | 'demo' | 'new';
-  newId: () => string;
-  select: (ids: readonly string[]) => void;
-  onMessage: (key: MessageKey) => void;
-  place: PlaceCeilingDevice;
-};
-
-/** A device tool's pointer receiver: each click places one device of the tool's chosen kind and selects it. */
-export function deviceToolReceiver(deps: DeviceToolDeps): PlanPointerReceiver {
-  return (e: PlanPointerEvent) => {
-    if (e.kind !== 'click') return;
-    const objects = deps.store.getState().objects;
-    const level = openFloorId(objects, deps.chosenFloor());
-    if (level === null) return;
-    const change = deps.place(deps.choice.get(deps.tool), e.model, {
-      level,
-      newId: deps.newId,
-      status: deps.newStatus(),
-    });
-    if (change === null) {
-      deps.onMessage('office.ceiling.device.place_failed');
-      return;
-    }
-    deps.store.applyEdit([change]);
-    deps.select([change.id]);
   };
 }
 

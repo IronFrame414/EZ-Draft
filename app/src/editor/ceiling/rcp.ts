@@ -15,6 +15,11 @@
 // company settings under Defaults", "Hosted ceiling item left off any ceiling surface: red flag"; Q-0630 "The whole
 // object turns error red"; AC-EZD-515-1): a fan closer than the clearance, and a hosted ceiling item in no room, draw
 // on the flagged layer (as the EZD-505 beam warning; vault/build/assumptions.md EZD-515).
+// EZD-510 (S05 Controls "Switching zones ... Draws switching zones and dimmers on the RCP (dashed accent lines)"; board
+// S05Ceiling zone outline "stroke-dasharray 4 3" in the accent; AC-EZD-510-1, -2; vault/build/assumptions.md EZD-510):
+// each switching zone on a shown room draws as a closed dashed outline in the accent (the legend chip's colour,
+// whatever the zone's status); a dimmer zone adds the dimmer mark, an S with a subscript D, at its label point. A
+// half-drawn zone draws as an open dashed line through its corners.
 import {
   fanClearanceWarnings,
   isOffCeiling,
@@ -28,13 +33,19 @@ import {
   type DrawingItem,
   type DrawingList,
   type Point,
+  type SwitchZoneData,
 } from '@ezdraft/geometry';
 import { levelModelObjects } from '../inspector/inspector-edits';
 import type { Objects } from '../model/patches';
 import { buildPlanBatches, PLAN_DIMENSION_TEXT_PT, type PlanBatch } from '../plan/batches';
 import { tokenRgb } from '../plan/color';
+import { PT_TO_MODEL_IN } from '../plan/glyph-atlas';
 import { UNDERLAY_RENDER_ORDER } from '../plan/scene';
-import type { PlanSurface } from './surface';
+import type { PlanSurface, SurfaceSetting } from './surface';
+import type { PlanController } from '../plan/controller';
+import type { PlanPointerReceiver } from '../plan/input';
+import { placeSwitchZone, roomAt } from '../tools/switch-zone';
+import { switchZoneReceiver, zoneDrawingFor, type ZoneToolDeps } from '../tools/switch-zone-tool';
 
 // EZD-508: the left panel's fixture schedule, the legend and the ceiling status items load with the RCP drawing (one
 // lazy part for Ceiling and Both).
@@ -42,6 +53,10 @@ export { FixtureSchedule } from './FixtureSchedule';
 export { CeilingLegend, CeilingViewStatus, JoistsStatus } from './CeilingShown';
 // EZD-503: the room ceiling summary and the ceiling type editor load with them too.
 export { RoomCeiling } from './RoomCeiling';
+// EZD-510: the left panel's Lighting section with Switching zones.
+export { Lighting, LightingSection } from '../tools/SwitchZonePanel';
+export { placeSwitchZone, roomAt } from '../tools/switch-zone';
+export { switchZoneReceiver, zoneDrawingFor } from '../tools/switch-zone-tool';
 
 /** The greyed floor plan's one colour (no spec value; vault/build/assumptions.md EZD-502). */
 export const GREYED_FLOOR_TOKEN = '--ez-border';
@@ -166,6 +181,95 @@ export function beamItems(
   return items;
 }
 
+/** EZD-510: the zone outline's dash pattern in model inches: dash, gap (board S05Ceiling "4 3"). */
+export const ZONE_DASH_IN: readonly number[] = [4, 3];
+/** EZD-510: zones draw in the accent, the legend chip's `--ez-cobalt` (CeilingParts.module.css .zone). */
+export const ZONE_LAYER: DrawingLayer = 'new';
+/** EZD-510: the dimmer mark's letters: S at the plan's text size, the subscript D smaller (the standard symbol). */
+export const DIMMER_MARK_PT = PLAN_DIMENSION_TEXT_PT;
+export const DIMMER_SUB_PT = 7;
+/** EZD-510: the id the half-drawn zone's lines carry; no stored object has it. */
+export const ZONE_DRAFT_ID = 'switch-zone-draft';
+
+/** The area centroid of a closed outline, or the corners' mean when it has no area. */
+export function zoneLabelPoint(boundary: readonly Point[]): Point {
+  let a2 = 0;
+  let cx = 0;
+  let cy = 0;
+  boundary.forEach((p, i) => {
+    const q = boundary[(i + 1) % boundary.length]!;
+    const cross = p.x * q.y - q.x * p.y;
+    a2 += cross;
+    cx += (p.x + q.x) * cross;
+    cy += (p.y + q.y) * cross;
+  });
+  if (Math.abs(a2) < 1e-9) {
+    const n = boundary.length || 1;
+    return {
+      x: boundary.reduce((t, p) => t + p.x, 0) / n,
+      y: boundary.reduce((t, p) => t + p.y, 0) / n,
+    };
+  }
+  return { x: cx / (3 * a2), y: cy / (3 * a2) };
+}
+
+function dashedPath(points: readonly Point[], closed: boolean, objectId: string): DrawingItem[] {
+  const items: DrawingItem[] = [];
+  const n = closed ? points.length : points.length - 1;
+  for (let i = 0; i < n; i++)
+    for (const [from, to] of dashes(points[i]!, points[(i + 1) % points.length]!, ZONE_DASH_IN))
+      items.push({ kind: 'line', role: 'hidden', layer: ZONE_LAYER, objectId, from, to });
+  return items;
+}
+
+function letter(text: string, sizePt: number, at: Point, objectId: string): DrawingItem {
+  return {
+    kind: 'text',
+    layer: ZONE_LAYER,
+    objectId,
+    text,
+    font: 'dm-mono-400',
+    sizePt,
+    widthPt: measureTextPt(DRAWING_FONTS['dm-mono-400'], text, sizePt),
+    at,
+    rotationDeg: 0,
+    align: 'center',
+  };
+}
+
+/** The dimmer mark centred on `at`: S, then a smaller D to its right and below its middle (plan y is up). */
+export function dimmerMark(at: Point, objectId: string): DrawingItem[] {
+  const s = letter('S', DIMMER_MARK_PT, at, objectId);
+  const d = letter('D', DIMMER_SUB_PT, at, objectId);
+  if (s.kind !== 'text' || d.kind !== 'text') return [];
+  const sW = s.widthPt * PT_TO_MODEL_IN;
+  const dW = d.widthPt * PT_TO_MODEL_IN;
+  const left = at.x - (sW + dW) / 2;
+  s.at = { x: left + sW / 2, y: at.y };
+  d.at = { x: left + sW + dW / 2, y: at.y - (DIMMER_MARK_PT * PT_TO_MODEL_IN) / 3 };
+  return [s, d];
+}
+
+/** The switching zones of the shown rooms: each one's dashed outline, and the dimmer mark on a dimmer zone. */
+export function zoneItems(objects: Objects, level: string, rooms: ReadonlySet<string>): DrawingItem[] {
+  let hasZones = false;
+  for (const [, v] of objects) if (v.type === 'switch_zone') hasZones = true;
+  if (!hasZones) return [];
+  const items: DrawingItem[] = [];
+  for (const o of levelModelObjects(objects, level)) {
+    if (o.type !== 'switch_zone' || !rooms.has(o.data.geometry.roomId.toLowerCase())) continue;
+    const data: SwitchZoneData = o.data;
+    items.push(...dashedPath(data.geometry.boundary, true, o.id));
+    if (data.attributes.dimmer) items.push(...dimmerMark(zoneLabelPoint(data.geometry.boundary), o.id));
+  }
+  return items;
+}
+
+/** A half-drawn zone: an open dashed line through its corners. */
+export function zoneDraftItems(points: readonly Point[]): DrawingItem[] {
+  return points.length < 2 ? [] : dashedPath(points, false, ZONE_DRAFT_ID);
+}
+
 /** EZD-515: what the RCP checks need from company settings. `fanClearance` null is Not set (no fan check). */
 export type RcpChecks = { fanClearance: number | null };
 const NO_CHECKS: RcpChecks = { fanClearance: null };
@@ -189,12 +293,14 @@ export function flaggedCeilingIds(
 
 /**
  * The RCP drawing list: the floor list's wall, room, access and ceiling device items (dimensions left out), each shown
- * room's ridge and beams. EZD-515: a flagged ceiling item's items are on the flagged layer.
+ * room's ridge, beams and switching zones (EZD-510), and the zone being drawn. EZD-515: a flagged ceiling item's items are on the flagged layer.
  */
 export function rcpList(
   floor: DrawingList | null,
   objects: Objects,
   checks: RcpChecks = NO_CHECKS,
+  // EZD-510: the corners of the zone being drawn.
+  zoneDraft: readonly Point[] = [],
 ): DrawingList | null {
   if (floor === null) return null;
   const flagged = flaggedCeilingIds(objects, floor.level, checks);
@@ -219,6 +325,7 @@ export function rcpList(
     if (ridge !== null) items.push(...ridgeItems(id, ridge));
   }
   items.push(...beamItems(objects, floor.level, rooms));
+  items.push(...zoneItems(objects, floor.level, rooms), ...zoneDraftItems(zoneDraft));
   return { level: floor.level, items, omitted: [] };
 }
 
@@ -241,8 +348,40 @@ export function rcpView(
   objects: Objects,
   surface: Exclude<PlanSurface, 'floor'>,
   checks: RcpChecks = NO_CHECKS,
+  zoneDraft: readonly Point[] = [],
 ): SurfaceView {
-  const list = rcpList(floor, objects, checks);
+  const list = rcpList(floor, objects, checks, zoneDraft);
   const rcp = buildPlanBatches(list);
   return { list, batches: surface === 'both' ? [...greyedBatches(floor), ...rcp] : rcp };
+}
+
+/**
+ * EZD-510 (11 Budgets): shows the RCP on the canvas and shows it again whenever the zone being drawn changes, so the
+ * editor's first download holds none of this. Returns the call that stops the redraws.
+ */
+export function showRcp(
+  plan: Pick<PlanController, 'setSurface'>,
+  shown: Exclude<PlanSurface, 'floor'>,
+  surface: Pick<SurfaceSetting, 'get' | 'subscribe'>,
+  checks: RcpChecks,
+): () => void {
+  const zones = zoneDrawingFor(surface);
+  const show = () =>
+    plan.setSurface(shown, (floor, objects, sf) =>
+      rcpView(floor, objects, sf, checks, zones.get().points),
+    );
+  show();
+  return zones.subscribe(show);
+}
+
+/** EZD-510 (11 Budgets): the Switching zones receiver over the page's zone drawing, placing through this module. */
+export function zoneReceiver(
+  surface: Pick<SurfaceSetting, 'get' | 'subscribe'>,
+  deps: Omit<ZoneToolDeps, 'drawing' | 'place'>,
+): PlanPointerReceiver {
+  return switchZoneReceiver({
+    ...deps,
+    drawing: zoneDrawingFor(surface),
+    place: { roomAt, placeSwitchZone },
+  });
 }

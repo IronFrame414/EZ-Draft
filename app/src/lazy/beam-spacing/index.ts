@@ -4,3 +4,5 @@
 export { BeamSpacingPill } from '../../editor/tools/BeamSpacingPill';
 // EZD-222 (11 Budgets; same precedent): the Beam tool's placement, used only on the Ceiling or Both view, comes with it.
 export { placeBeamSet } from '../../editor/tools/beam-edits';
+// EZD-510 (11 Budgets): the Beam tool's click receiver comes with it too.
+export { beamReceiver } from '../../editor/tools/beam-receiver';

@@ -18,12 +18,8 @@ import type { PlanPointerEvent } from '../plan/input';
 import { createPickIndex } from '../selection/pick-index';
 import { beamEdit, beamOf, beamPillAnchor, beamView, placeBeamSet } from './beam-edits';
 import { BeamSpacingPill } from './BeamSpacingPill';
-import {
-  beamToolReceiver,
-  ceilingAware,
-  receiverRouter,
-  wireBeamTool,
-} from './beam-tool';
+import { beamToolReceiver } from './beam-receiver';
+import { ceilingAware, receiverRouter, wireBeamTool } from './beam-tool';
 import { beamsOn, moveEditChanges, toModelObjects } from './model-changes';
 import { clickOutcome } from './move-tool';
 import { baseObjects, F1, roomValue, uid, withWalls } from './test-utils/fixtures';

@@ -111,3 +111,15 @@ export const chaseDataSchema = z.strictObject({
   attributes: z.strictObject({}),
 });
 export type ChaseData = z.infer<typeof chaseDataSchema>;
+
+// EZD-510 (S05 Controls "Switching zones | Left panel, Lighting | Draws switching zones and dimmers on the RCP (dashed
+// accent lines)"; S05 Data shown "Switching zones and dimmers"; vault/build/assumptions.md EZD-510 "Zone data"): a
+// switching zone is a closed outline drawn by clicks on one room's ceiling, with a dimmer or not. The lights inside it
+// are worked out from the outline, never stored (EZD-605 syncs them to switch legs). A new type, so the version stays.
+export const switchZoneDataSchema = z.strictObject({
+  geometry: z.strictObject({ roomId: z.uuid(), boundary: polygonSchema }),
+  status: objectStatusSchema,
+  level: levelSchema,
+  attributes: z.strictObject({ dimmer: z.boolean() }),
+});
+export type SwitchZoneData = z.infer<typeof switchZoneDataSchema>;

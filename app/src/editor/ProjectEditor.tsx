@@ -104,20 +104,13 @@ import { createAssistantLoader, type AssistantLoader } from './assistant/assista
 import type { PreviewStore } from './assistant/preview-store';
 import { createRoutedStore } from './model/routed-store';
 import { newObjectId } from './tools/model-changes';
-import {
-  beamToolReceiver,
-  ceilingAware,
-  receiverRouter,
-  type BeamToolDeps,
-} from './tools/beam-tool';
+import { ceilingAware, receiverRouter } from './tools/beam-tool';
 import {
   CEILING_DEVICE_TOOL_IDS,
   createDeviceChoice,
-  deviceToolReceiver,
   isDeviceTool,
   wireCeilingTools,
   type DeviceChoice,
-  type DeviceToolDeps,
 } from './tools/ceiling-device-tool';
 import type { DeviceChooserProps } from '../lazy/rcp/DeviceChooser';
 import type { PlanPointerReceiver } from './plan/input';
@@ -802,10 +795,9 @@ export function ProjectEditor({
   // so the canvas redraws its flags without ending the tool.
   useEffect(() => {
     if (plan === null || shownSurface === 'floor' || !rcp) return;
-    plan.setSurface(shownSurface, (floor, objects, sf) =>
-      rcp.rcpView(floor, objects, sf, { fanClearance }),
-    );
-  }, [plan, shownSurface, rcp, fanClearance]);
+    // EZD-510 (11 Budgets): the RCP module shows the view and redraws it as a zone is drawn.
+    return rcp.showRcp(plan, shownSurface, surface, { fanClearance });
+  }, [plan, shownSurface, rcp, fanClearance, surface]);
   // EZD-503: Read heights from scan reads the page's GLB link through EZD-303's reader, loaded on the first press.
   const readScan = useMemo(
     () =>
@@ -935,62 +927,51 @@ export function ProjectEditor({
     // EZD-222 (11 Budgets; EZD-1401 precedent): the placement code comes with the Ceiling view's lazy module, which
     // loads when that view first shows; a click before it arrives is placed once it has.
     let live = true;
-    const receiverWith = (mod: { placeBeamSet: BeamToolDeps['place'] }) =>
-      beamToolReceiver({
-        store: routedStore,
-        chosenFloor: () => chosenFloor(floors),
-        newStatus: () => phase.newObjectStatus(),
-        newId: newObjectId,
-        select: (ids) => selection.select(ids),
-        onMessage: (key) => messageRef.current(key),
-        place: mod.placeBeamSet,
-      });
-    const receiver: PlanPointerReceiver = (e) => {
-      const mod = beamSpacingModule.peek();
-      if (mod) return receiverWith(mod)(e);
-      if (e.kind !== 'click') return;
-      beamSpacingModule.load().then(
-        (m) => {
-          if (live) receiverWith(m)(e);
-        },
-        () => {},
-      );
+    // What every ceiling tool is given (EZD-510: held once, 11 Budgets).
+    const base = {
+      store: routedStore,
+      chosenFloor: () => chosenFloor(floors),
+      newStatus: () => phase.newObjectStatus(),
+      newId: newObjectId,
+      select: (ids: readonly string[]) => selection.select(ids),
+      onMessage: (key: MessageKey) => messageRef.current(key),
     };
-    // EZD-507: each ceiling device tool places through the lazy RCP module the same way.
-    const deviceReceiver = (tool: DeviceToolDeps['tool']): PlanPointerReceiver => {
-      const withMod = (mod: { placeCeilingDevice: DeviceToolDeps['place'] }) =>
-        deviceToolReceiver({
-          store: routedStore,
-          tool,
-          choice: deviceChoice,
-          chosenFloor: () => chosenFloor(floors),
-          newStatus: () => phase.newObjectStatus(),
-          newId: newObjectId,
-          select: (ids) => selection.select(ids),
-          onMessage: (key) => messageRef.current(key),
-          place: mod.placeCeilingDevice,
-        });
-      return (e) => {
-        const mod = ceilingDeviceModule.peek();
-        if (mod) return withMod(mod)(e);
+    // One receiver shape for every lazily placed ceiling tool: placed at once when the module is in; before that a
+    // click loads it and is placed once it has.
+    const lazily =
+      <M,>(
+        module: { peek(): M | undefined; load(): Promise<M> },
+        make: (mod: M) => PlanPointerReceiver,
+      ): PlanPointerReceiver =>
+      (e) => {
+        const mod = module.peek();
+        if (mod) return make(mod)(e);
         if (e.kind !== 'click') return;
-        ceilingDeviceModule.load().then(
+        module.load().then(
           (m) => {
-            if (live) withMod(m)(e);
+            if (live) make(m)(e);
           },
           () => {},
         );
       };
+    const receivers: Partial<Record<string, PlanPointerReceiver>> = {
+      beam: lazily(beamSpacingModule, (m) => m.beamReceiver(base)),
     };
-    const receivers: Partial<Record<string, PlanPointerReceiver>> = { beam: receiver };
-    for (const tool of CEILING_DEVICE_TOOL_IDS) receivers[tool] = deviceReceiver(tool);
+    // EZD-507: each ceiling device tool places through the lazy RCP module the same way.
+    for (const tool of CEILING_DEVICE_TOOL_IDS)
+      receivers[tool] = lazily(ceilingDeviceModule, (m) =>
+        m.deviceReceiver({ ...base, tool, choice: deviceChoice }),
+      );
+    // EZD-510: the Switching zones tool, turned on from the left panel's Lighting section (shown once the RCP
+    // module is in); the tool and its placement come with that module.
+    if (rcp) receivers['switch-zone'] = rcp.zoneReceiver(surface, base);
     // One wire for every ceiling tool, so one tool turning off never clears another's receiver.
     const off = wireCeilingTools(surface, toolRoute, receivers, mayEdit);
     return () => {
       live = false;
       off();
     };
-  }, [toolRoute, routedStore, selection, phase, floors, surface, mayEdit, deviceChoice]);
+  }, [toolRoute, routedStore, selection, phase, floors, surface, mayEdit, deviceChoice, rcp]);
   const pdfUnderlay = usePdfUnderlay({ projectId, plan, canEdit: mayEdit });
 
   // EZD-130: a Project settings save (in the switcher) draws the header again with the new name and client.
@@ -1534,6 +1515,7 @@ export function ProjectEditor({
               canEdit={canEdit}
               {...(readScan === undefined ? {} : { readScan })}
             />
+            <rcp.Lighting surface={surface} canEdit={mayEdit} />
             <rcp.FixtureSchedule
               store={session.store}
               floors={floors ?? undefined}

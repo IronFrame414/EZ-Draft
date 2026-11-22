@@ -22,7 +22,9 @@ export type CeilingToolId =
   | 'low-voltage'
   | 'access-panel'
   | 'soffit'
-  | 'tag';
+  | 'tag'
+  // EZD-510: Switching zones, turned on from the left panel's Lighting section (board S05Ceiling), not the rail.
+  | 'switch-zone';
 
 export type SurfaceState = { surface: PlanSurface; tool: CeilingToolId | null };
 

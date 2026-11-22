@@ -17,10 +17,10 @@ import { createModelStore } from '../model/model-store';
 import type { PlanPointerEvent } from '../plan/input';
 import {
   createDeviceChoice,
-  deviceToolReceiver,
   fixtureTypeEdit,
   type CeilingDeviceToolId,
 } from '../tools/ceiling-device-tool';
+import { deviceToolReceiver } from '../tools/ceiling-device-receiver';
 import { placeCeilingDevice, type CeilingDeviceKind } from '../tools/fixture-tool';
 import { F1, F2, ROOM, idSeq, roomValue, uid } from '../tools/test-utils/fixtures';
 import { FixtureSchedule } from './FixtureSchedule';

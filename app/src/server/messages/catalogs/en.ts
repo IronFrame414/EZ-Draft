@@ -2854,6 +2854,15 @@ export const en = {
   'office.ceiling.schedule.count': '×{count}',
   'office.ceiling.schedule.with_color_temp': '{kind}, {kelvin}K',
   'office.ceiling.schedule.no_tag': '—',
+  // EZD-510: the left panel's Lighting section and Switching zones (board S05Ceiling "Lighting", "Switching zones").
+  // Wording not on the board is listed in vault/build/assumptions.md EZD-510.
+  'office.ceiling.lighting.heading': 'Lighting',
+  'office.ceiling.zone.button': 'Switching zones',
+  'office.ceiling.zone.dimmer': 'Dimmer',
+  'office.ceiling.zone.hint': 'Click to draw a zone. Click the first point to close.',
+  'office.ceiling.zone.title': 'Switching zone',
+  'office.ceiling.zone.click_room': 'Click inside a room to start a zone',
+  'office.ceiling.zone.place_failed': 'The zone could not be saved',
   // EZD-503: the room ceiling summary and the ceiling type editor (S05 Room ceiling summary, Change ceiling, Read
   // heights from scan; board S05Ceiling "Family room ceiling", "Vaulted, ridge east-west", "walls 8' 0" · ridge 13'
   // 0"", "Change ceiling"). Wording not on the board is listed in vault/build/assumptions.md EZD-503.

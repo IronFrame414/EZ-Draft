@@ -1258,6 +1258,39 @@
       }
     },
     {
+      "id": "9c3e1f7a-4b2d-4e6a-8f15-2d7b0c9e3a41",
+      "type": "switch_zone",
+      "schema_version": 7,
+      "data": {
+        "geometry": {
+          "roomId": "6a5bae36-e7f4-4459-a3b8-b1528fbd8a21",
+          "boundary": [
+            {
+              "x": 12,
+              "y": 12
+            },
+            {
+              "x": 60,
+              "y": 12
+            },
+            {
+              "x": 60,
+              "y": 84
+            },
+            {
+              "x": 12,
+              "y": 84
+            }
+          ]
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "dimmer": true
+        }
+      }
+    },
+    {
       "id": "b7e2c4a1-5d3f-4e8a-9c61-2f0a7d5e9b13",
       "type": "room",
       "schema_version": 7,

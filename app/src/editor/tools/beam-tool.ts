@@ -4,17 +4,13 @@
 // ceiling and selects it; a click outside every room places nothing and says so. Beams are ceiling items, so on the
 // Floor surface they neither draw nor pick (`ceilingAware`). Pure wiring: no React, no DOM.
 import type { PhaseFilter } from '../../lib/plan/phase-view';
-import type { MessageKey } from '../../server/messages/catalog';
 import type { SurfaceSetting } from '../ceiling/surface';
-import type { ModelStore } from '../model/model-store';
-import { openFloorId } from '../plan/batches';
-import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
-// EZD-222 (11 Budgets; EZD-1401 precedent): the placement code is given by the caller, so it loads with the Ceiling
-// view's lazy module rather than in the editor's first download. Type only.
-type PlaceBeamSet = typeof import('./beam-edits').placeBeamSet;
+import type { PlanPointerReceiver } from '../plan/input';
+// EZD-510 (11 Budgets): the tool's click receiver is in beam-receiver.ts, which loads with the Ceiling view's lazy
+// module (lazy/beam-spacing) rather than in the editor's first download.
 
-/** The types drawn and picked only on Ceiling and Both. */
-export const CEILING_ONLY_TYPES: ReadonlySet<string> = new Set(['beam']);
+/** The types drawn and picked only on Ceiling and Both. EZD-510: switching zones too. */
+export const CEILING_ONLY_TYPES: ReadonlySet<string> = new Set(['beam', 'switch_zone']);
 
 type Listenable = { subscribe(listener: () => void): () => void };
 
@@ -70,33 +66,6 @@ export function receiverRouter(set: (r: PlanPointerReceiver | null) => void): {
       tool = r;
       apply();
     },
-  };
-}
-
-export type BeamToolDeps = {
-  store: ModelStore;
-  chosenFloor: () => string | null;
-  newStatus: () => 'existing' | 'demo' | 'new';
-  newId: () => string;
-  select: (ids: readonly string[]) => void;
-  onMessage: (key: MessageKey) => void;
-  place: PlaceBeamSet;
-};
-
-/** The Beam tool's pointer receiver: each click places one set. */
-export function beamToolReceiver(deps: BeamToolDeps): PlanPointerReceiver {
-  return (e: PlanPointerEvent) => {
-    if (e.kind !== 'click') return;
-    const objects = deps.store.getState().objects;
-    const level = openFloorId(objects, deps.chosenFloor());
-    if (level === null) return;
-    const change = deps.place(objects, level, e.model, deps.newStatus(), deps.newId);
-    if (change === null) {
-      deps.onMessage('office.beam.click_room');
-      return;
-    }
-    deps.store.applyEdit([change]);
-    deps.select([change.id]);
   };
 }
 

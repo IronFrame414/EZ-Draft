@@ -15,11 +15,14 @@
 // does not pick.
 // EZD-505 (S05 Controls "Select", "Canvas drag on object"): a beam set picks by the box around its beams, worked out
 // from its room, so like an opening on its host wall it is re-placed when its room changes.
+// EZD-510 (S05 Controls "Select"; AC-EZD-510-1): a switching zone picks by its own outline while its room is there, so
+// its inspector can turn the dimmer on or off; like a beam set it is held by its room.
 import {
   beamSetPickShape,
   blockingPickShape,
   type BlockingObject,
   type BeamData,
+  type SwitchZoneData,
   createSpatialIndex,
   engineerMark,
   engineerMarkCenter,
@@ -158,7 +161,11 @@ export function createPickIndex(): PickIndex {
   let openings = new Map<string, OpeningObject | BlockingObject>();
   let loose = new Map<string, LooseObject>();
   let rooms = new Map<string, RoomObject>();
-  let beams = new Map<string, { id: string; data: BeamData }>();
+  // EZD-510: the room-held objects, beam sets and switching zones, in one map.
+  let beams = new Map<
+    string,
+    { id: string; type: 'beam'; data: BeamData } | { id: string; type: 'switch_zone'; data: SwitchZoneData }
+  >();
   let hostOf = new Map<string, string | null>();
   let byHost = new Map<string, Set<string>>();
 
@@ -200,7 +207,7 @@ export function createPickIndex(): PickIndex {
     } else if (object !== null && (object.type === 'opening' || object.type === 'blocking')) {
       openings.set(key, object);
       hostBy(key, object.data.geometry.hostWallId?.toLowerCase() ?? null);
-    } else if (object !== null && object.type === 'beam') {
+    } else if (object !== null && (object.type === 'beam' || object.type === 'switch_zone')) {
       beams.set(key, object);
       hostBy(key, object.data.geometry.roomId.toLowerCase());
     }
@@ -240,7 +247,13 @@ export function createPickIndex(): PickIndex {
     const beam = beams.get(key);
     if (beam !== undefined) {
       const room = rooms.get(beam.data.geometry.roomId.toLowerCase());
-      const shape = room === undefined ? null : beamSetPickShape(beam.data, room.data);
+      // EZD-510: a zone's outline picks as a room's does (a ring with area).
+      const shape =
+        room === undefined
+          ? null
+          : beam.type === 'beam'
+            ? beamSetPickShape(beam.data, room.data)
+            : roomPickShape(beam as unknown as RoomObject);
       return shape === null ? null : { id: beam.id, shape, hosted: false };
     }
     const opening = openings.get(key);

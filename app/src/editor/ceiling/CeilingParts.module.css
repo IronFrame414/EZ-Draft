@@ -21,3 +21,53 @@
   width: 18px;
   border-top: 1.5px dashed var(--ez-cobalt);
 }
+
+/* EZD-510 (board S05Ceiling left panel "Lighting"): the section label and the full-width "Switching zones" button with
+   its icon at the left, in the RoomCeiling section and button style (RoomCeiling.module.css .section, .button). */
+.lighting {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--ez-border);
+}
+
+.lbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+
+.lightingButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: 500 14px var(--ez-font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+
+.lightingButton:hover:not(:disabled) {
+  background: var(--ez-hover);
+}
+
+.lightingButton:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.lightingOn {
+  border-color: var(--ez-cobalt);
+  color: var(--ez-cobalt);
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ez-slate-500);
+}
