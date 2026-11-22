@@ -1274,7 +1274,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1299,7 +1299,8 @@
     "EZD-414": 1,
     "EZD-503": 1,
     "EZD-515": 1,
-    "EZD-508": 1
+    "EZD-508": 1,
+    "EZD-702b": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1401,15 +1402,13 @@
     "EZD-508": {
       "ts": "2026-11-21T23:43:24Z",
       "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-702b": {
+      "ts": "2026-11-22T00:43:36Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-702b": {
-      "lane": 2,
-      "title": "Sheet renderer",
-      "started": "2026-11-21T22:13:23Z",
-      "develop": "0a737c8f"
-    },
     "EZD-508": {
       "lane": 1,
       "title": "Fixture schedule panel",
