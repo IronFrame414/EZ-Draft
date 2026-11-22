@@ -434,7 +434,8 @@
     "EZD-702a",
     "EZD-1009",
     "EZD-508",
-    "EZD-901a"
+    "EZD-901a",
+    "EZD-1402"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1286,6 +1287,14 @@
       "title": "Reference conversion job",
       "commit": "a020491c",
       "ts": "2026-11-22T02:40:35Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1402",
+      "title": "Offline change queue",
+      "commit": "e3f26abd",
+      "ts": "2026-11-22T04:09:38Z",
       "kind": "ticket",
       "lane": 2
     }
