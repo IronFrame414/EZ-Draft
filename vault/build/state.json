@@ -439,7 +439,8 @@
     "EZD-503",
     "EZD-1417",
     "EZD-515",
-    "EZD-504"
+    "EZD-504",
+    "EZD-414"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1333,6 +1334,14 @@
       "ts": "2026-11-22T08:12:40Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-414",
+      "title": "Edges and overhangs",
+      "commit": "060cba25",
+      "ts": "2026-11-22T08:43:53Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -1477,12 +1486,6 @@
     }
   },
   "running": {
-    "EZD-414": {
-      "lane": 1,
-      "title": "Edges and overhangs",
-      "started": "2026-11-22T06:39:21Z",
-      "develop": "f7596814"
-    },
     "EZD-1419": {
       "lane": 2,
       "title": "Field measure entry points and states",
