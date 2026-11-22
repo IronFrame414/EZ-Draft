@@ -1425,18 +1425,9 @@
       "lane": 1
     }
   ],
-  "set_aside": {
-    "EZD-403": {
-      "title": "Cabinet library panel",
-      "ts": "2026-11-22T12:45:06Z",
-      "reason": "check red after a review fix (first try: check red after a review fix)",
-      "detail": "pping injection.\nstderr | src/app/api/profile/ai-key/route.test.ts > EZD-5601 AI key route > T13 the key never appears in a response, an email, a report, a log or a row, even when the save fails\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/profile/ai-key/route.test.ts > EZD-5601 AI key route > T13 the key never appears in a response, an email, a report, a log or a row, even when the save fails\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/profile/ai-key/route.test.ts > EZD-5601 AI key route > T13 the key never appears in a response, an email, a report, a log or a row, even when the save fails\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/profile/ai-key/route.test.ts > EZD-5601 AI key route > T15 a sixth try within 15 minutes is throttled before Anthropic is asked; a cross-site write is refused\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/profile/ai-key/route.test.ts > EZD-5601 AI key route > T15 a sixth try within 15 minutes is throttled before Anthropic is asked; a cross-site write is refused\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/profile/ai-key/route.test.ts > EZD-5601 AI key route > T15 a sixth try within 15 minutes is throttled before Anthropic is asked; a cross-site write is refused\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/profile/ai-key/route.test.ts > EZD-5601 AI key route > T15 a sixth try within 15 minutes is throttled before Anthropic is asked; a cross-site write is refused\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/profile/ai-key/route.test.ts > EZD-5601 AI key route > T15 a sixth try within 15 minutes is throttled before Anthropic is asked; a cross-site write is refused\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/profile/ai-key/route.test.ts > EZD-5601 AI key route > T16 remove: the row goes and one email names the last four; a second remove is a quiet 200; no session is 401\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route-photo.test.ts > EZD-5603b assistant route photo > T17 a body of exactly 4,000,000 bytes with a 3,500,000-byte photo is accepted and sent as one 1568 x 1176 image\nSentryPropagator: Injecting trace data of a different context than the",
-      "branch": "t/EZD-403",
-      "worktree": ".claude/worktrees/EZD-403"
-    }
-  },
+  "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1464,7 +1455,8 @@
     "EZD-508": 1,
     "EZD-702b": 1,
     "EZD-1418": 1,
-    "EZD-1422": 1
+    "EZD-1422": 1,
+    "EZD-916": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1578,14 +1570,18 @@
     "EZD-1422": {
       "ts": "2026-11-22T14:09:32Z",
       "reason": "review: needs EZD-1418 first"
+    },
+    "EZD-916": {
+      "ts": "2026-11-22T20:29:04Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-916": {
-      "lane": 2,
-      "title": "2020 order report import",
-      "started": "2026-11-22T18:33:15Z",
-      "develop": "33f3169d"
+    "EZD-513": {
+      "lane": 1,
+      "title": "Soffits, trays, coffers, crown, tags",
+      "started": "2026-11-22T19:04:54Z",
+      "develop": "4e8916c8"
     }
   },
   "advisories_checked_at": "2026-11-22T16:11:22Z",
