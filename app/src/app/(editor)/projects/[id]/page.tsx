@@ -13,6 +13,7 @@ import { MessagesProvider } from '../../../../lib/messages';
 import { requireSession } from '../../../../server/auth/session';
 import { createSessionClient } from '../../../../server/auth/supabase-server';
 import { loadRailOrder } from '../../../../server/profile/rail-order';
+import { projectMeshUrl } from '../../../../server/imports/project-mesh';
 import { reportError } from '../../../../server/errors/report';
 import { can } from '../../../../server/permissions';
 import { settingsPermissionContext } from '../../../../server/settings/shell-data';
@@ -39,6 +40,16 @@ export default async function EditorPage({
     await reportError(new Error('editor_rail_order_load_failed'), {
       source: 'function',
       location: 'editor.rail_order',
+    });
+  }
+  // EZD-503: the project's Polycam GLB link for Read heights from scan; a failed read is reported and hides it.
+  let meshUrl: string | null = null;
+  try {
+    meshUrl = await projectMeshUrl(createSessionClient(), id);
+  } catch {
+    await reportError(new Error('editor_mesh_link_failed'), {
+      source: 'function',
+      location: 'editor.mesh_link',
     });
   }
   const query = searchParams === undefined ? undefined : await searchParams;
@@ -68,6 +79,7 @@ export default async function EditorPage({
         <ProjectEditor
           projectId={id}
           railOrder={railOrder}
+          {...(meshUrl === null ? {} : { meshUrl })}
           devHooks={process.env.VERCEL_ENV !== 'production'}
           {...open}
           {...bench}

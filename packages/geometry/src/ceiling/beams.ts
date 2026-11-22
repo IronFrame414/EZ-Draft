@@ -39,8 +39,9 @@ export function moveBeamSet(beam: BeamData, delta: Point): BeamData {
   return { ...beam, geometry: { ...beam.geometry, shift: add(beam.geometry.shift, delta) } };
 }
 
-/** The walls of the room's level whose face lies along one of the room's boundary edges. */
-function roomWalls(room: Room, walls: readonly Wall[]): Wall[] {
+/** The walls of the room's level whose face lies along one of the room's boundary edges. EZD-503: exported for the
+ * ceiling type editor's per-wall heights. */
+export function roomWalls(room: Room, walls: readonly Wall[]): Wall[] {
   const b = room.data.geometry.boundary;
   const level = room.data.level.toLowerCase();
   return walls.filter((w) => {

@@ -9,6 +9,10 @@
 // AFF above the ridge shows the warning in the inspector.
 // EZD-506 (AC-EZD-506-1 "The preview updates when Height AFF changes"; S05 Controls "Section A-A preview"; board
 // S05Ceiling "beams 9' 0"", "ridge 13' 0""): the section under the beam fields re-draws when Height AFF is typed.
+// EZD-503 (S05 Controls "Room ceiling summary", "Change ceiling ... Heights accept typed formats", "Read heights from
+// scan ... Only when a GLB mesh exists for the project"; S05 Validation "Typed heights: invalid format shows inline
+// error, value not applied"): the left panel's summary follows a Change ceiling save. AC-EZD-503-1 (the scan fill)
+// is proved on the fixture GLB in src/editor/ceiling/room-ceiling.test.ts.
 import {
   CURRENT_SCHEMA_VERSION,
   createWallData,
@@ -305,5 +309,54 @@ test.describe('EZD-502 RCP view and ceiling rail', () => {
     await expect(id(page, 'beam-section-beams-label')).toHaveText('beams 9\' 0"');
     await expect(id(page, 'beam-section-beam')).not.toHaveAttribute('points', before ?? '');
     await expect(id(page, 'beam-section-ridge-label')).toHaveText('ridge 13\' 0"');
+  });
+
+  test('EZD-503: Change ceiling saves a vaulted ceiling and the summary follows', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids, user } = await fixtureS(['view_projects', 'edit_model']);
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await seedRoom(page);
+    await id(page, 'surface-ceiling').click();
+
+    // S05 Empty: no ceiling set reads flat at the 8' 0" walls. No GLB, so no Read heights from scan.
+    await expect(id(page, 'room-ceiling-heading')).toHaveText('Family room ceiling');
+    await expect(id(page, 'room-ceiling-type')).toHaveText('Flat');
+    await expect(id(page, 'room-ceiling-heights')).toHaveText('walls 8\' 0"');
+    await id(page, 'room-ceiling-change').click();
+    await expect(id(page, 'ceiling-editor')).toBeVisible();
+    await expect(id(page, 'ceiling-editor-read-scan')).toHaveCount(0);
+
+    await id(page, 'ceiling-editor-type').selectOption('vaulted');
+    await id(page, 'ceiling-editor-ridge-direction').selectOption('east_west');
+    await expect(id(page, 'ceiling-editor-wall-0')).toHaveValue('8\' 0"');
+    // An invalid height shows its error and nothing is saved.
+    await id(page, 'ceiling-editor-ridge').fill('tall');
+    await id(page, 'ceiling-editor-save').click();
+    await expect(id(page, 'ceiling-editor-ridge-error')).toBeVisible();
+    await expect(id(page, 'room-ceiling-type')).toHaveText('Flat');
+
+    // 12' 0" over 8' 0" walls with the ridge across the middle of 120": 12 x 48 / 60 = 9.6/12.
+    await id(page, 'ceiling-editor-ridge').fill('144"');
+    await id(page, 'ceiling-editor-save').click();
+    await expect(id(page, 'ceiling-editor')).toHaveCount(0);
+    await expect(id(page, 'room-ceiling-type')).toHaveText('Vaulted, ridge east-west');
+    await expect(id(page, 'room-ceiling-heights')).toHaveText(
+      'walls 8\' 0" · ridge 12\' 0" · 9.6/12',
+    );
+    const room = await page.evaluate(() =>
+      (window as unknown as Window2).__ezdraftEditor.objects().find((o) => o.type === 'room'),
+    );
+    const attrs = (
+      room!.data as { attributes: { ceilingType: string; ceiling: { ridge: unknown } } }
+    ).attributes;
+    expect(attrs.ceilingType).toBe('vaulted');
+    expect(attrs.ceiling.ridge).toEqual({
+      start: { x: 0, y: 60 },
+      end: { x: 144, y: 60 },
+      height: 144,
+    });
   });
 });

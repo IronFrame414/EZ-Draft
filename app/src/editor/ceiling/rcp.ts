@@ -34,6 +34,8 @@ import type { PlanSurface } from './surface';
 // lazy part for Ceiling and Both).
 export { FixtureSchedule } from './FixtureSchedule';
 export { CeilingLegend, CeilingViewStatus, JoistsStatus } from './CeilingShown';
+// EZD-503: the room ceiling summary and the ceiling type editor load with them too.
+export { RoomCeiling } from './RoomCeiling';
 
 /** The greyed floor plan's one colour (no spec value; vault/build/assumptions.md EZD-502). */
 export const GREYED_FLOOR_TOKEN = '--ez-border';

@@ -236,6 +236,9 @@ export type ProjectEditorProps = {
   railOrder?: readonly string[];
   // EZD-416: the viewer holds Settings → Defaults (the countertop panel's "Change in company settings" link).
   canManageDefaults?: boolean;
+  // EZD-503 (S05 Read heights from scan "Only when a GLB mesh exists for the project"): the project's Polycam GLB
+  // link the page signed; absent without one.
+  meshUrl?: string | null;
 };
 
 export type EditorTestHook = {
@@ -310,6 +313,7 @@ export function ProjectEditor({
   canSend = false,
   railOrder: initialRailOrder,
   canManageDefaults = false,
+  meshUrl = null,
 }: ProjectEditorProps): ReactElement {
   const t = useT();
   // EZD-111: the Send dialog, and Project settings opened from its no-client message.
@@ -810,6 +814,14 @@ export function ProjectEditor({
       live = false;
     };
   }, [plan, selection, shownSurface]);
+  // EZD-503: Read heights from scan reads the page's GLB link through EZD-303's reader, loaded on the first press.
+  const readScan = useMemo(
+    () =>
+      meshUrl === null
+        ? undefined
+        : () => import('./ceiling/scan').then((m) => m.readScanCeiling(meshUrl)),
+    [meshUrl],
+  );
   const ceilingSelect = useCallback(() => selection?.selectTool(), [selection]);
   // EZD-222: the Ceiling view swallows the company's floor tool keys.
   const ceilingKeys = useCallback(() => bindings, [bindings]);
@@ -1505,11 +1517,20 @@ export function ProjectEditor({
       surface={surface}
       ceiling={
         rcp === undefined ? undefined : (
-          <rcp.FixtureSchedule
-            store={session.store}
-            floors={floors ?? undefined}
-            onPick={(ids) => selection.select(ids)}
-          />
+          <>
+            <rcp.RoomCeiling
+              store={session.store}
+              selection={selection}
+              floors={floors ?? undefined}
+              canEdit={canEdit}
+              {...(readScan === undefined ? {} : { readScan })}
+            />
+            <rcp.FixtureSchedule
+              store={session.store}
+              floors={floors ?? undefined}
+              onPick={(ids) => selection.select(ids)}
+            />
+          </>
         )
       }
       electrical={

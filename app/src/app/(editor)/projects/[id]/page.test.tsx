@@ -15,6 +15,8 @@ vi.mock('../../../../server/auth/session', () => ({
 vi.mock('../../../../editor/ProjectEditor', () => ({ ProjectEditor: vi.fn(() => null) }));
 // EZD-230: the page reads the user's rail tool order with the page and passes it on.
 vi.mock('../../../../server/auth/supabase-server', () => ({ createSessionClient: vi.fn(() => ({})) }));
+// EZD-503: the page signs the project's GLB link; none here, so no meshUrl prop.
+vi.mock('../../../../server/imports/project-mesh', () => ({ projectMeshUrl: vi.fn(async () => null) }));
 vi.mock('../../../../server/profile/rail-order', () => ({ loadRailOrder: vi.fn(async () => ['wall']) }));
 // EZD-111: the page reads the permission context for Share; no member here, so no Share.
 vi.mock('../../../../server/settings/shell-data', () => ({
