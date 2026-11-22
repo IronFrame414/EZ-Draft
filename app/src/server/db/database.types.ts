@@ -875,6 +875,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"property_record": {
+                  Row: {
+                    "confirmed_by": string | null,"created_at": string,"id": string,"legal_description": string | null,"living_area": number | null,"owner": string | null,"parcel_no": string | null,"source_url": string | null,"tenant_id": string,"updated_at": string,"year_built": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "confirmed_by"?: string | null,"created_at"?: string,"id"?: string,"legal_description"?: string | null,"living_area"?: number | null,"owner"?: string | null,"parcel_no"?: string | null,"source_url"?: string | null,"tenant_id": string,"updated_at"?: string,"year_built"?: number | null
+                  }
+                  Update: {
+                    "confirmed_by"?: string | null,"created_at"?: string,"id"?: string,"legal_description"?: string | null,"living_area"?: number | null,"owner"?: string | null,"parcel_no"?: string | null,"source_url"?: string | null,"tenant_id"?: string,"updated_at"?: string,"year_built"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "property_record_confirmed_by_fkey"
+      columns: ["confirmed_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "property_record_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"reference_drawing": {
                   Row: {
                     "convert_status": NonNullable<Json>,"created_at": string,"error": string | null,"id": string,"job_id": string | null,"layer_state": NonNullable<Json>,"manifest_path": string | null,"not_read": NonNullable<Json>,"project_id": string,"rev_label": string | null,"source_file_id": string,"status": string,"tenant_id": string,"units": string | null,"updated_at": string,"version_no": number

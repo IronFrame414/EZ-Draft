@@ -10,11 +10,14 @@ import type { SheetSetKind, SheetSize } from '@ezdraft/geometry';
 import type { Objects } from '../../editor/model/patches';
 import { lazyModule } from '../../lib/lazy/lazy-module';
 import { sheetShowsPlan, type SheetSetSummary } from '../../lib/sheets/sheet-set';
+import type { ProjectTitleBlock } from '../../lib/title-block/sheet-title-block';
 import type { SheetRenderer } from '../sheets';
 
 export type SheetsScreenState = {
   load: 'loading' | 'ready' | 'failed';
   sets: SheetSetSummary[];
+  // EZD-710: the project's title block from the same answer; null until loaded.
+  titleBlock: ProjectTitleBlock | null;
   kind: SheetSetKind;
   // The open sheet's number; null while the chosen set has no sheets.
   open: string | null;
@@ -59,6 +62,7 @@ export function createSheetsScreen(
   let state: SheetsScreenState = {
     load: 'loading',
     sets: [],
+    titleBlock: null,
     kind: 'permit',
     open: null,
     zoom: null,
@@ -132,8 +136,8 @@ export function createSheetsScreen(
       try {
         const res = await fetchFn(`/api/projects/${projectId}/sheet-sets`, { cache: 'no-store' });
         if (!res.ok) throw new Error(String(res.status));
-        const body = (await res.json()) as { sets: SheetSetSummary[] };
-        state = { ...state, sets: body.sets };
+        const body = (await res.json()) as { sets: SheetSetSummary[]; titleBlock?: ProjectTitleBlock };
+        state = { ...state, sets: body.sets, titleBlock: body.titleBlock ?? null };
         const keep = setOf(state.kind)?.sheets.some((s) => s.number === state.open);
         update({ load: 'ready', open: keep ? state.open : firstOf(state.kind) });
         refresh();

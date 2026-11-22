@@ -162,4 +162,35 @@ describe('EZD-726 /api/projects/[id]/sheet-sets', () => {
     expect((await get('not-a-uuid')).res.status).toBe(404);
     expect((await get(otherProject)).res.status).toBe(404);
   });
+
+  // EZD-710 (AC-EZD-710-1): the answer carries the project's title block. Expected: S13 Data shown; S15b Decision 2;
+  // the v1 code edition label (S06 "FBC 9th ed. · NEC 2023"); create_project stores the typed address.
+  it('EZD-710 the answer carries the project title block with its owner and parcel', async () => {
+    const tenantRow = await adminDb().from('project').select('tenant_id').eq('id', project).single();
+    const tenant = tenantRow.data!.tenant_id;
+    const rec = await adminDb()
+      .from('property_record')
+      .insert({ tenant_id: tenant, owner: 'Hendricks', parcel_no: '00-43-44-21-01-000-0010' })
+      .select('id')
+      .single();
+    expect(rec.error).toBeNull();
+    await adminDb()
+      .from('project')
+      .update({ scope_of_work: 'Kitchen remodel', property_record_id: rec.data!.id })
+      .eq('id', project);
+    await adminDb().from('tenant').update({ license_no: 'CGC1541042' }).eq('id', tenant);
+    state.store = viewerCookies;
+    const a = await get(project);
+    expect(a.res.status).toBe(200);
+    expect(a.json.titleBlock).toMatchObject({
+      licenseNo: 'CGC1541042',
+      projectName: 'Sheet sets route',
+      address: '1 Test St',
+      codeEdition: 'FBC 9th ed. · NEC 2023',
+      scopeOfWork: 'Kitchen remodel',
+      owner: 'Hendricks',
+      parcel: '00-43-44-21-01-000-0010',
+    });
+    expect(a.json.titleBlock.drawn.length).toBeGreaterThan(0);
+  });
 });

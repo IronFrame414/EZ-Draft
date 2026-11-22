@@ -6,8 +6,12 @@
 // (EZD-702b); until then the page shows its frame and title block number only.
 // EZD-702b (AC-EZD-702b-1): a plan sheet's drawing is the sheet renderer's SVG markup (paper inches, the same
 // viewBox), drawn inside the page once the worker answers. The markup is built by sheetSvg, which escapes every text.
+// EZD-710 (AC-EZD-710-1): every sheet draws the project's title block in its title block column (SheetTitleBlock);
+// until the title block has loaded the column shows the sheet number and title as before.
 import { useEffect, useRef, type ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
+import { SheetTitleBlock } from '../../components/sheets/SheetTitleBlock';
+import type { ProjectTitleBlock } from '../../lib/title-block/sheet-title-block';
 import { useT } from '../../lib/messages';
 import {
   draftRevision,
@@ -17,6 +21,7 @@ import {
   sheetFrame,
   sheetPosition,
   type Sheet,
+  type SheetSetSummary,
 } from '../../lib/sheets/sheet-set';
 import type { SheetSize } from '@ezdraft/geometry';
 import { sheetMarks } from './sheet-labels';
@@ -35,14 +40,18 @@ export function zoomPercent(zoom: number | null): string {
 
 function SheetPage({
   sheet,
+  set,
   size,
   watermark,
   drawing,
+  titleBlock,
 }: {
   sheet: Sheet;
+  set: SheetSetSummary;
   size: SheetSize;
   watermark: string | null;
   drawing: string | null;
+  titleBlock: ProjectTitleBlock | null;
 }): ReactElement {
   const { width: w, height: h } = paperInches(size);
   // Board S13Sheets: a border inset from the paper edge and the title block column on the right with the number.
@@ -68,18 +77,24 @@ function SheetPage({
           {watermark}
         </text>
       ) : null}
-      <text
-        x={w - m - tb / 2}
-        y={h - m * 4}
-        textAnchor="middle"
-        className={styles.pageNumber}
-        fontSize={h / 18}
-      >
-        {sheet.number}
-      </text>
-      <text x={w - m - tb / 2} y={h - m * 8} textAnchor="middle" className={styles.pageTitle} fontSize={h / 70}>
-        {sheet.title.toUpperCase()}
-      </text>
+      {titleBlock !== null ? (
+        <SheetTitleBlock titleBlock={titleBlock} set={set} sheet={sheet} size={size} today={new Date()} />
+      ) : (
+        <>
+          <text
+            x={w - m - tb / 2}
+            y={h - m * 4}
+            textAnchor="middle"
+            className={styles.pageNumber}
+            fontSize={h / 18}
+          >
+            {sheet.number}
+          </text>
+          <text x={w - m - tb / 2} y={h - m * 8} textAnchor="middle" className={styles.pageTitle} fontSize={h / 70}>
+            {sheet.title.toUpperCase()}
+          </text>
+        </>
+      )}
     </svg>
   );
 }
@@ -158,10 +173,12 @@ export function SheetsCanvas({ screen }: SheetsCanvasProps): ReactElement {
         </div>
       </div>
       <div className={styles.area} ref={areaRef}>
-        {sheet !== null && size !== null ? (
+        {sheet !== null && set !== null && size !== null ? (
           <SheetPage
             sheet={sheet}
+            set={set}
             size={size}
+            titleBlock={state.titleBlock}
             watermark={watermark}
             drawing={
               state.drawing !== null &&
