@@ -1,0 +1,54 @@
+{
+  "fixture": "supplier-kitchen.pdf",
+  "generatedBy": "scripts/fixtures/generate-supplier.mjs",
+  "sources": [
+    "phase-09 EZD-915: a generated supplier PDF, plan + one elevation, labels W3030 and B24",
+    "09 Sheet set rules: plans at 1/4\" = 1'-0\" (72 / 48 = 1.5 pt per model inch)",
+    "08 Exports: 11x17 (1224 x 792 pt)",
+    "vault/build/assumptions.md EZD-401: base boxes 24\" deep x 34 1/2\" high, wall boxes 12\" deep",
+    "packages/geometry/src/cabinets/edit.ts: W1530 is width 15 then height 30"
+  ],
+  "pageCount": 2,
+  "mapping": {
+    "ptPerIn": 1.5,
+    "planOriginPt": [300, 450],
+    "elevationOriginPt": [300, 200],
+    "modelPointOfPagePoint": "page point / 1.5 (the PDF default scale, first calibration point at page (0, 0))"
+  },
+  "pages": [
+    { "page": 1, "role": "plan", "title": "PLAN", "labels": ["B24", "W3030"] },
+    { "page": 2, "role": "elevation", "title": "ELEVATION A", "labels": ["B24", "W3030"] }
+  ],
+  "wall": {
+    "count": 1,
+    "lengthIn": 60,
+    "thicknessIn": 4.5,
+    "lineWidthPt": 1.5
+  },
+  "cabinetLineWidthPt": 0.5,
+  "cabinets": [
+    {
+      "code": "B24",
+      "boxType": "base",
+      "width": 24,
+      "depth": 24,
+      "height": 34.5,
+      "centerIn": { "x": 212, "y": 288 },
+      "planOutlineIn": { "width": 24, "depth": 24 },
+      "elevationOutlineIn": { "width": 24, "height": 34.5 },
+      "crossCheck": "agrees"
+    },
+    {
+      "code": "W3030",
+      "boxType": "wall",
+      "width": 30,
+      "depth": 12,
+      "height": 30,
+      "centerIn": { "x": 239, "y": 294 },
+      "planOutlineIn": { "width": 30, "depth": 12 },
+      "elevationOutlineIn": { "width": 30, "height": 30 },
+      "crossCheck": "agrees"
+    }
+  ],
+  "runs": 1
+}

@@ -55,6 +55,8 @@ import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import {
   acceptHighConfidence,
+  cabinetCheckLines,
+  cabinetSizeText,
   decide,
   DEFAULT_REVIEW_MODE,
   firstUnresolved,
@@ -72,6 +74,7 @@ import {
   type Decision,
   type Decisions,
   type Pt,
+  type ReviewCabinet,
   type ReviewFile,
   type ReviewItem,
   type ReviewMode,
@@ -518,6 +521,46 @@ const MODE_LABEL: Record<ReviewMode, MessageKey> = {
   accept_fix: 'office.review.mode_accept_fix',
   by_room: 'office.review.mode_by_room',
 };
+
+// EZD-915 (S02 States "Supplier kitchen PDF: cabinet labels read (W3030, B24) and plan vs elevation cross-check
+// results shown per cabinet"): a supplier cabinet's size from its label and how each view reads against it.
+const CHECK_KEYS = {
+  agrees: 'office.review.cabinet_check_agrees',
+  differs: 'office.review.cabinet_check_differs',
+  missing: 'office.review.cabinet_check_missing',
+} as const;
+
+function CabinetFields({ item }: { item: ReviewCabinet }): ReactElement {
+  const t = useT();
+  return (
+    <>
+      <div className={styles.field}>
+        <span className={styles.fieldLabel}>{t('office.review.cabinet_size')}</span>
+        <span className={styles.scanValue} data-testid="import-review-cabinet-size">
+          {cabinetSizeText(item)}
+        </span>
+      </div>
+      <div className={styles.field}>
+        <span className={styles.fieldLabel}>{t('office.review.cabinet_check')}</span>
+        {cabinetCheckLines(item).map((line) => (
+          <span
+            key={line.view}
+            className={styles.muted}
+            data-testid="import-review-cabinet-check"
+            data-view={line.view}
+            data-state={line.state}
+          >
+            {t(CHECK_KEYS[line.state], {
+              view: t(line.view === 'plan' ? 'office.review.cabinet_view_plan' : 'office.review.cabinet_view_elevation'),
+              code: item.code,
+              size: line.size ?? '',
+            })}
+          </span>
+        ))}
+      </div>
+    </>
+  );
+}
 
 type RowDot = 'selected' | 'accepted' | 'rejected' | 'to_check';
 
@@ -1109,6 +1152,8 @@ export function ReadyBody({
                   readMesh={readSlopeCeiling}
                   onFix={(fix) => onFix(selected.id, fix)}
                 />
+              ) : selected.type === 'cabinet' ? (
+                <CabinetFields item={selected} />
               ) : selected.type === 'room' ? (
                 <div className={styles.field}>
                   <span className={styles.fieldLabel}>{t('office.review.scan_reads')}</span>

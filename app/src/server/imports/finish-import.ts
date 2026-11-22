@@ -12,6 +12,7 @@
 // EZD-312: a ceiling slope is not an object of its own. An accepted slope that rises (pitch above 0) sets its room's
 // ceiling type to single slope (Q-0664 room ceiling type); its heights and pitch wait for the room's ceiling data
 // (EZD-501, phase 5; vault/build/assumptions.md EZD-312).
+// EZD-915: an accepted supplier cabinet resolves its item but is not written (finishObjects).
 import {
   autoRoughOpening,
   createWallData,
@@ -111,8 +112,11 @@ export function importObjects(
       i.type === 'ceiling_slope' && i.pitchPer12 > 0 && i.roomId !== null ? [i.roomId] : [],
     ),
   );
+  // EZD-915: an accepted supplier cabinet is not written yet: finish_import takes walls, openings and rooms only and
+  // new migrations are held by another ticket (vault/build/assumptions.md EZD-915), so it is left out here.
   const built = items.filter(
-    (i): i is Exclude<ReviewItem, { type: 'ceiling_slope' }> => i.type !== 'ceiling_slope',
+    (i): i is Exclude<ReviewItem, { type: 'ceiling_slope' | 'cabinet' }> =>
+      i.type !== 'ceiling_slope' && i.type !== 'cabinet',
   );
   const ids = new Map(built.map((i) => [i.id, ctx.newId()] as const));
   const objects: Stored[] = [];
@@ -205,7 +209,7 @@ export function importedCounts(items: readonly ReviewItem[]): ImportedCounts {
   for (const i of items) {
     if (i.type === 'wall') c.walls += 1;
     else if (i.type === 'room') c.rooms += 1;
-    else if (i.type === 'ceiling_slope') continue;
+    else if (i.type === 'ceiling_slope' || i.type === 'cabinet') continue;
     else if (i.kind === 'door') c.doors += 1;
     else c.windows += 1;
   }

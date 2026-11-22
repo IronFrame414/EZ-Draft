@@ -72,6 +72,18 @@
     "source": "EZD-016b (vault/plans/EZD-016b.md Steps 2-4)"
   },
   {
+    "id": "synthetic-supplier-pdf",
+    "origin": "generated",
+    "kind": "supplier_pdf",
+    "status": "present",
+    "path": "fixtures/synthetic/supplier-kitchen.pdf",
+    "expected": "fixtures/synthetic/supplier-kitchen.pdf.expected.json",
+    "neededBy": ["EZD-915"],
+    "withoutIt": null,
+    "standIn": null,
+    "source": "EZD-915 (phase-09 EZD-915 row): plan + one elevation, labels W3030 and B24, written by scripts/fixtures/generate-supplier.mjs; stand-in for supplier-pdf"
+  },
+  {
     "id": "synthetic-room-glb",
     "origin": "generated",
     "kind": "polycam_glb",

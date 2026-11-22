@@ -15,6 +15,8 @@
 // reference_drawing"): every DXF drawing (kind dxf) of the import, converted or reference only, also queues one
 // reference_convert job that turns it into the S11 reference. jobId stays the import job's (null when only references
 // were queued), since Continue to review opens Import review for that job.
+// EZD-915 (S12 Supplier PDF import; Q-0323 "EZD-132 keeps See company costs on supplier files"): a supplier PDF
+// (kind supplier_pdf) is detected too, and starting an import from one also needs See company costs (403).
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { endedSessionResponse } from '../../../../../server/auth/ended-session';
@@ -75,6 +77,11 @@ export async function POST(
         ? fail(404, 'project_not_found')
         : fail(400, checked.code, 'error.invalid_input');
     }
+    const supplierPdfIds = checked.supplierPdfIds ?? [];
+    if (supplierPdfIds.length > 0) {
+      const noCosts = requirePermission(p.ctx, 'see_company_costs', { projectId: id });
+      if (noCosts) return noCosts;
+    }
     const dxfIds = new Set((checked.dxfIds ?? []).map((i) => i.toLowerCase()));
     if (dxfLayers.some((d) => !dxfIds.has(d.sourceFileId.toLowerCase()))) {
       return fail(400, 'invalid_input');
@@ -84,6 +91,7 @@ export async function POST(
       ...(checked.scanIds ?? []),
       ...dxfLayers.map((d) => d.sourceFileId),
       ...(checked.pdfIds ?? []),
+      ...supplierPdfIds,
     ];
     const meshIds = checked.meshIds ?? [];
     const payload: ImportPayload = { sourceFileIds: detectIds };

@@ -61,6 +61,7 @@ export type ImportReviewView = {
 const pt = z.object({ x: z.number(), y: z.number() });
 const confidence = z.number().min(0).max(100);
 const side = z.enum(['north', 'east', 'south', 'west']);
+const viewCheck = z.enum(['agrees', 'differs', 'missing']);
 const itemSchema = z.discriminatedUnion('type', [
   z.object({
     id: z.string(),
@@ -105,6 +106,27 @@ const itemSchema = z.discriminatedUnion('type', [
     lowHeight: z.number().positive(),
     highHeight: z.number().positive(),
     pitchPer12: z.number().nonnegative(),
+  }),
+  // EZD-915: a cabinet read from a supplier PDF (lib/imports/review.ts ReviewCabinet).
+  z.object({
+    id: z.string(),
+    type: z.literal('cabinet'),
+    number: z.number().int(),
+    confidence,
+    code: z.string(),
+    boxType: z.enum(['base', 'drawer_base', 'sink_base', 'wall']),
+    width: z.number().positive(),
+    depth: z.number().positive(),
+    height: z.number().positive(),
+    center: pt,
+    outline: z.object({ min: pt, max: pt }).nullable(),
+    run: z.number().int().positive(),
+    check: z.object({
+      plan: viewCheck,
+      elevation: viewCheck,
+      planSize: z.object({ long: z.number(), short: z.number() }).nullable(),
+      elevationSize: z.object({ width: z.number(), height: z.number() }).nullable(),
+    }),
   }),
 ]);
 
