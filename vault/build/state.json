@@ -445,7 +445,8 @@
     "EZD-702b",
     "EZD-914",
     "EZD-710",
-    "EZD-915"
+    "EZD-915",
+    "EZD-510"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1387,6 +1388,14 @@
       "ts": "2026-11-22T15:39:16Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-510",
+      "title": "Switching zones",
+      "commit": "467fd783",
+      "ts": "2026-11-22T16:23:26Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1545,14 +1554,14 @@
     }
   },
   "running": {
-    "EZD-510": {
-      "lane": 1,
-      "title": "Switching zones",
-      "started": "2026-11-22T13:18:23Z",
-      "develop": "787fdb91"
+    "EZD-417": {
+      "lane": 2,
+      "title": "Edge profiles",
+      "started": "2026-11-22T15:39:22Z",
+      "develop": "958e67c2"
     }
   },
-  "advisories_checked_at": "2026-11-22T10:10:59Z",
+  "advisories_checked_at": "2026-11-22T16:11:22Z",
   "hold": {
     "EZD-415": {
       "holders": [
