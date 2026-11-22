@@ -436,7 +436,8 @@
     "EZD-508",
     "EZD-901a",
     "EZD-1402",
-    "EZD-503"
+    "EZD-503",
+    "EZD-1417"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1306,6 +1307,14 @@
       "ts": "2026-11-22T04:32:44Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1417",
+      "title": "Field measure: offline save and send",
+      "commit": "2bf0ea0f",
+      "ts": "2026-11-22T05:22:05Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1445,11 +1454,11 @@
     }
   },
   "running": {
-    "EZD-1417": {
-      "lane": 2,
-      "title": "Field measure: offline save and send",
-      "started": "2026-11-22T04:10:19Z",
-      "develop": "38104a36"
+    "EZD-515": {
+      "lane": 1,
+      "title": "Fan clearance and hosted flags",
+      "started": "2026-11-22T04:33:33Z",
+      "develop": "bfcd37e5"
     }
   },
   "advisories_checked_at": "2026-11-22T04:10:20Z"
