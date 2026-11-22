@@ -1328,7 +1328,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1354,7 +1354,8 @@
     "EZD-503": 1,
     "EZD-515": 1,
     "EZD-508": 1,
-    "EZD-702b": 1
+    "EZD-702b": 1,
+    "EZD-1418": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1460,14 +1461,24 @@
     "EZD-702b": {
       "ts": "2026-11-22T00:43:36Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1418": {
+      "ts": "2026-11-22T07:31:02Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-1418": {
-      "lane": 2,
-      "title": "Field measure into Import review",
-      "started": "2026-11-22T05:22:47Z",
-      "develop": "801458dd"
+    "EZD-414": {
+      "lane": 1,
+      "title": "Edges and overhangs",
+      "started": "2026-11-22T06:39:21Z",
+      "develop": "f7596814"
+    },
+    "EZD-504": {
+      "lane": 3,
+      "title": "Walls cut under slopes",
+      "started": "2026-11-22T06:39:22Z",
+      "develop": "f7596814"
     }
   },
   "advisories_checked_at": "2026-11-22T04:10:20Z"
