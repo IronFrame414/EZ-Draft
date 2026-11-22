@@ -437,7 +437,8 @@
     "EZD-901a",
     "EZD-1402",
     "EZD-503",
-    "EZD-1417"
+    "EZD-1417",
+    "EZD-515"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1315,6 +1316,14 @@
       "ts": "2026-11-22T05:22:05Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-515",
+      "title": "Fan clearance and hosted flags",
+      "commit": "450ea4fd",
+      "ts": "2026-11-22T06:39:16Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -1454,11 +1463,11 @@
     }
   },
   "running": {
-    "EZD-515": {
-      "lane": 1,
-      "title": "Fan clearance and hosted flags",
-      "started": "2026-11-22T04:33:33Z",
-      "develop": "bfcd37e5"
+    "EZD-1418": {
+      "lane": 2,
+      "title": "Field measure into Import review",
+      "started": "2026-11-22T05:22:47Z",
+      "develop": "801458dd"
     }
   },
   "advisories_checked_at": "2026-11-22T04:10:20Z"
