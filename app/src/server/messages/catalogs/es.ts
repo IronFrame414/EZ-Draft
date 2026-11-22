@@ -261,4 +261,10 @@ export const es = {
   'field.measure.closes': 'Cierra',
   'field.measure.off_by': 'Desfase de {gap}',
   'field.measure.fills_in': '{letter} se completa cuando el cuarto cierra',
+  'field.measure.saved_on_phone': 'Guardado en el teléfono',
+  'field.measure.menu': 'Menú',
+  'field.measure.send': 'Enviar a la oficina',
+  'field.measure.send_waiting': 'Esperando para enviar',
+  'field.measure.sent': 'Enviado a la oficina',
+  'field.measure.send_refused': 'No enviado',
 } as const satisfies Record<SpanishKey, Message>;

@@ -7,7 +7,8 @@ import { initialRooms, roomsSchema, type FieldRoom } from '../../field-measure/r
 import type { Json } from '../db/database.types';
 import type { DbClient } from '../storage/objects';
 
-export type FieldMeasureView = { projectName: string; rooms: FieldRoom[] };
+// EZD-1417: sentAt is when the rooms were sent to the office (S17b States "sent"), null while not sent.
+export type FieldMeasureView = { projectName: string; rooms: FieldRoom[]; sentAt: string | null };
 
 /** Thrown for the refusals the route answers with 403, 404 or 400. */
 export class FieldMeasureError extends Error {
@@ -30,13 +31,13 @@ export async function readFieldMeasure(
   if (project.data === null) return null;
   const session = await client
     .from('field_measure_session')
-    .select('rooms')
+    .select('rooms, sent_at')
     .eq('project_id', projectId)
     .maybeSingle();
   if (session.error) throw session.error;
   const parsed = session.data === null ? null : roomsSchema.safeParse(session.data.rooms);
   const rooms = parsed?.success ? parsed.data : initialRooms();
-  return { projectName: project.data.name, rooms };
+  return { projectName: project.data.name, rooms, sentAt: session.data?.sent_at ?? null };
 }
 
 /** Saves the rooms whole. Throws FieldMeasureError('invalid_input') before the database for a bad room list. */

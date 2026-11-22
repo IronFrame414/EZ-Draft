@@ -56,7 +56,7 @@ export const EVENTS = {
   'field.measurement_submitted': { kind: 'internal', later: 'EZD-1407' },
   'field.measurement_approved': { kind: 'internal', later: 'EZD-1413' },
   'field.measurement_rejected': { kind: 'internal', later: 'EZD-1413' },
-  'field.measure_sent': { kind: 'internal', later: 'EZD-1417' },
+  'field.measure_sent': { kind: 'internal' },
   'field_pack.issued': { kind: 'internal', later: 'EZD-1421' },
   // EZD-1402 (phase-14 EZD-1402 "offline_change.synced"): a queued field action recorded on reconnect.
   'offline_change.synced': { kind: 'internal' },
@@ -205,7 +205,22 @@ export interface EventPayloads {
   'field.measurement_submitted': Record<string, unknown>;
   'field.measurement_approved': Record<string, unknown>;
   'field.measurement_rejected': Record<string, unknown>;
-  'field.measure_sent': Record<string, unknown>;
+  // EZD-1417 (S17b Events emitted "project, rooms, shapes, values, by, at"): the action id holds the sent rooms
+  // whole (offline_change.ops, field_measure_session.rooms); each room here is named with its shape, wall count and
+  // how many walls have a value, so the event log row stays under its 16 KB limit (vault/build/assumptions.md).
+  'field.measure_sent': {
+    projectId: string;
+    changeId: string;
+    rooms: Array<{
+      id: string;
+      name: string;
+      shape: string | null;
+      walls: number;
+      measured: number;
+    }>;
+    by: string;
+    at: string;
+  };
   'offline_change.synced': {
     id: string;
     kind: 'measurement' | 'task_check' | 'photo_pin' | 'field_measure_send';

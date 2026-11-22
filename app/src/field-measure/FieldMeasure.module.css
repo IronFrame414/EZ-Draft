@@ -417,3 +417,79 @@
 .key:disabled {
   opacity: 0.5;
 }
+
+/* EZD-1417: Saved on phone status (board: green, cloud icon, top right) and the menu holding Send to office. */
+.topEnd {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+}
+
+.statusOk {
+  color: var(--ez-green);
+}
+
+.statusWait {
+  color: var(--ez-slate-500);
+}
+
+.statusBad {
+  color: var(--ez-red-text);
+}
+
+.menuWrap {
+  position: relative;
+}
+
+.menuButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--ez-touch-target);
+  min-height: var(--ez-touch-target);
+  border: 0;
+  background: none;
+  color: var(--ez-slate-700);
+  cursor: pointer;
+}
+
+.menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 10;
+  min-width: 180px;
+  padding: 4px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  box-shadow: var(--ez-shadow-floating);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--ez-touch-target);
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: none;
+  color: var(--ez-ink);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuItem:disabled {
+  color: var(--ez-slate-400);
+  cursor: default;
+}

@@ -9,13 +9,11 @@ import {
   type FieldPhotoExt,
 } from '../../lib/outbox/field-action';
 import type { SignedUpload } from '../../lib/storage/upload';
+import { roomsSchema } from '../../field-measure/rooms';
 import { StorageError, createSignedUpload, type DbClient } from '../storage/objects';
 
 export type FieldActionRefusal =
-  | 'permission_denied'
-  | 'project_not_found'
-  | 'invalid_input'
-  | 'photo_missing';
+  'permission_denied' | 'project_not_found' | 'invalid_input' | 'photo_missing';
 
 const UUID = z.uuid();
 
@@ -34,6 +32,21 @@ export const syncBodySchema = z
 
 export type SyncBody = z.infer<typeof syncBodySchema>;
 
+// EZD-1417 (S17b Send to office): the ops of a field_measure_send are the rooms sent, each checked as the phone
+// saves them (field-measure/rooms.ts); the database applies them to field_measure_session
+// (supabase/migrations/20261121230000_field_measure_send.sql).
+export const fieldMeasureSendOpsSchema = z.object({ rooms: roomsSchema }).strict();
+
+/**
+ * False when a kind's ops are known to be wrong: a field_measure_send whose rooms are not a room list. The route
+ * answers 400 after its permission checks; the database itself only checks the rooms are 1 to 40 objects.
+ */
+export function fieldActionOpsValid(body: Pick<SyncBody, 'kind' | 'ops'>): boolean {
+  return (
+    body.kind !== 'field_measure_send' || fieldMeasureSendOpsSchema.safeParse(body.ops).success
+  );
+}
+
 export const photoBodySchema = z
   .object({ id: UUID, kind: z.enum(FIELD_ACTION_KINDS), photo: z.enum(FIELD_PHOTO_EXTS) })
   .strict();
@@ -47,8 +60,7 @@ function refusal(error: { code?: string; message?: string }): FieldActionRefusal
 }
 
 export type PhotoStart =
-  | { ok: true; upload: SignedUpload | null }
-  | { ok: false; code: FieldActionRefusal };
+  { ok: true; upload: SignedUpload | null } | { ok: false; code: FieldActionRefusal };
 
 // `upload` is null when the photo is already stored (a resend after the upload went through).
 export async function startFieldPhoto(
@@ -108,7 +120,11 @@ export async function syncFieldAction(
     return { ok: false, code };
   }
   const parsed = z
-    .object({ status: z.enum(['synced', 'duplicate']), syncedAt: z.string().min(1), tenantId: UUID })
+    .object({
+      status: z.enum(['synced', 'duplicate']),
+      syncedAt: z.string().min(1),
+      tenantId: UUID,
+    })
     .safeParse(data);
   if (!parsed.success) throw new Error('sync_field_action_unexpected_result');
   return { ok: true, ...parsed.data };

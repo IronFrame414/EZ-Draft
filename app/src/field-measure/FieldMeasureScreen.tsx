@@ -7,11 +7,14 @@
 // EZD-1416 adds the keypad, Next wall, the auto-filled last wall and the closure badge (closure.ts, Keypad.tsx):
 // keys type into the selected wall's field; Next wall (or tapping another wall) keeps a typed length; a refused
 // length stays in the field with the refusal line. The tolerance is the company Measurement tolerance.
-// Not here: Saved on phone and Send to office
-// (EZD-1417), and the confirms and read-only sent state (EZD-1419). Without Send field measurement the screen is
+// EZD-1417 adds Saved on phone and Send to office (device-copy.ts, send.ts): every change is kept on the phone
+// first, then saved to the server when online (again on reconnect); Send to office in the menu queues the rooms in
+// the outbox, so it works offline and goes on reconnect. Once queued or sent the rooms no longer change on this
+// phone. Not here: the confirms and reopening a sent room (EZD-1419). Without Send field measurement the screen is
 // view only: walls can be selected, nothing changes.
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useOutboxActor } from '../components/outbox/OutboxDrain';
 import { formatLength, parseLength } from '@ezdraft/geometry';
 import { DEFAULT_MEASUREMENT_TOLERANCE_IN } from '../lib/imports/review-conflicts';
 import { Icon } from '../components/icon/Icon';
@@ -22,6 +25,8 @@ import { applyKey, Keypad, type KeypadKey } from './Keypad';
 import { RoomChips } from './RoomChips';
 import { ShapeCanvas } from './ShapeCanvas';
 import { ShapePicker } from './ShapePicker';
+import { clearDeviceCopy, readDeviceCopy, writeDeviceCopy } from './device-copy';
+import { useMeasureSend } from './send';
 import { emptyRoom, uniqueName, withOutline, withShape, type FieldRoom } from './rooms';
 import { addCorner, cornersOf, wallLetter, wallsOf, type Pt, type ShapeKind } from './shapes';
 import styles from './FieldMeasure.module.css';
@@ -35,6 +40,8 @@ export type FieldMeasureScreenProps = {
   canEdit: boolean;
   /** The company Measurement tolerance in inches (S15d); 1/2" while Not set. */
   tolerance?: number;
+  /** When the rooms were sent to the office, or null (EZD-1417). */
+  sentAt?: string | null;
 };
 
 function newRoomId(rooms: readonly FieldRoom[]): string {
@@ -47,11 +54,19 @@ export function FieldMeasureScreen({
   projectId,
   projectName,
   initialRooms,
-  canEdit,
+  canEdit: canChange,
   tolerance = DEFAULT_MEASUREMENT_TOLERANCE_IN,
+  sentAt = null,
 }: FieldMeasureScreenProps) {
   const t = useT();
+  const actor = useOutboxActor();
+  const sender = useMeasureSend(projectId, sentAt);
+  // Queued or sent rooms no longer change on this phone (S17b States "sent").
+  const locked = sender.status === 'queued' || sender.status === 'sent';
+  const canEdit = canChange && !locked;
   const [rooms, setRooms] = useState<FieldRoom[]>(initialRooms);
+  const [onPhone, setOnPhone] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [activeId, setActiveId] = useState<string>(initialRooms[0]?.id ?? '');
   const [selected, setSelected] = useState<number | null>(
     (initialRooms[0]?.lengths.length ?? 0) > 0 ? 0 : null,
@@ -61,18 +76,70 @@ export function FieldMeasureScreen({
   const [refused, setRefused] = useState(false);
   const changed = useRef(false);
 
-  // Save the rooms whole once they stop changing. The offline queue and Saved on phone are EZD-1417.
+  const appUserId = actor?.appUserId;
+  const tenantId = actor?.tenantId;
+  const who = appUserId !== undefined && tenantId !== undefined ? { appUserId, tenantId } : null;
+
+  // A copy on the phone the server does not have yet (measured offline, then reloaded) wins over the server's.
+  useEffect(() => {
+    if (appUserId === undefined || tenantId === undefined || !canChange || sentAt !== null) return;
+    const copy = readDeviceCopy({ appUserId, tenantId }, projectId);
+    if (copy === null) return;
+    // State is set from a microtask, not in the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      setOnPhone(true);
+      if (copy.synced) return;
+      changed.current = true;
+      setRooms(copy.rooms);
+    });
+  }, [appUserId, tenantId, canChange, sentAt, projectId]);
+
+  // Sent rooms live on the server: the phone's copy is dropped.
+  useEffect(() => {
+    if (sender.status === 'sent' && appUserId !== undefined && tenantId !== undefined) {
+      clearDeviceCopy({ appUserId, tenantId }, projectId);
+    }
+  }, [sender.status, appUserId, tenantId, projectId]);
+
+  const saveToServer = useCallback(
+    async (next: FieldRoom[]) => {
+      try {
+        const res = await fetch(`/api/projects/${projectId}/field-measure`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rooms: next }),
+        });
+        if (res.ok && appUserId !== undefined && tenantId !== undefined) {
+          const kept = readDeviceCopy({ appUserId, tenantId }, projectId);
+          // Marked synced only when the phone still holds what was saved.
+          if (kept !== null && JSON.stringify(kept.rooms) === JSON.stringify(next)) {
+            writeDeviceCopy({ appUserId, tenantId }, projectId, { rooms: next, synced: true });
+          }
+        }
+      } catch {
+        /* offline: the rooms stay on the phone and are saved on reconnect */
+      }
+    },
+    [projectId, appUserId, tenantId],
+  );
+
+  // Every change is kept on the phone at once, then saved whole to the server once the rooms stop changing, and
+  // again when the phone comes back online.
   useEffect(() => {
     if (!changed.current || !canEdit) return;
-    const timer = setTimeout(() => {
-      void fetch(`/api/projects/${projectId}/field-measure`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rooms }),
-      }).catch(() => undefined);
-    }, SAVE_DELAY_MS);
-    return () => clearTimeout(timer);
-  }, [rooms, canEdit, projectId]);
+    if (appUserId !== undefined && tenantId !== undefined) {
+      if (writeDeviceCopy({ appUserId, tenantId }, projectId, { rooms, synced: false })) {
+        queueMicrotask(() => setOnPhone(true));
+      }
+    }
+    const timer = setTimeout(() => void saveToServer(rooms), SAVE_DELAY_MS);
+    const online = () => void saveToServer(rooms);
+    window.addEventListener('online', online);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('online', online);
+    };
+  }, [rooms, canEdit, projectId, appUserId, tenantId, saveToServer]);
 
   const room = rooms.find((r) => r.id === activeId) ?? (rooms[0] as FieldRoom);
   const corners = cornersOf(room.shape, room.corners);
@@ -177,6 +244,42 @@ export function FieldMeasureScreen({
     setSelected(next.lengths.length > 0 ? next.lengths.length - 1 : null);
   };
 
+  // Send to office: the rooms with any length still being typed, queued in the outbox (sent now when online).
+  const sendToOffice = () => {
+    setMenuOpen(false);
+    if (!canEdit || !sender.ready) return;
+    const typed = withDraft();
+    const next =
+      typed === null || typed === room ? rooms : rooms.map((r) => (r.id === typed.id ? typed : r));
+    clearDraft();
+    setRooms(next);
+    if (who !== null) writeDeviceCopy(who, projectId, { rooms: next, synced: false });
+    void sender.send(next);
+  };
+
+  const status =
+    sender.status === 'sent'
+      ? { icon: 'check_circle' as const, text: t('field.measure.sent'), tone: styles.statusOk }
+      : sender.status === 'queued'
+        ? {
+            icon: 'cloud_off' as const,
+            text: t('field.measure.send_waiting'),
+            tone: styles.statusWait,
+          }
+        : sender.status === 'refused'
+          ? {
+              icon: 'error' as const,
+              text: t('field.measure.send_refused'),
+              tone: styles.statusBad,
+            }
+          : onPhone
+            ? {
+                icon: 'offline_pin' as const,
+                text: t('field.measure.saved_on_phone'),
+                tone: styles.statusOk,
+              }
+            : null;
+
   const wallValue = wall === null ? null : (closure.lengths[wall] ?? null);
   const wallAuto = wall !== null && wall === closure.auto && draft === null;
   const state = closure.state;
@@ -189,6 +292,44 @@ export function FieldMeasureScreen({
             <Icon name="arrow_back" size={16} />
             {t('field.measure.back')}
           </Link>
+          <div className={styles.topEnd}>
+            {status !== null ? (
+              <span
+                className={`${styles.status} ${status.tone}`}
+                data-testid="measure-status"
+                data-status={sender.status === 'idle' ? 'saved' : sender.status}
+                role="status"
+              >
+                <Icon name={status.icon} size={15} />
+                {status.text}
+              </span>
+            ) : null}
+            <div className={styles.menuWrap}>
+              <button
+                type="button"
+                className={styles.menuButton}
+                aria-label={t('field.measure.menu')}
+                aria-expanded={menuOpen}
+                aria-haspopup="menu"
+                onClick={() => setMenuOpen((o) => !o)}
+              >
+                <Icon name="more_horiz" size={20} />
+              </button>
+              {menuOpen ? (
+                <div className={styles.menu} role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.menuItem}
+                    disabled={!canEdit || !sender.ready}
+                    onClick={sendToOffice}
+                  >
+                    {t('field.measure.send')}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
         </div>
         <div className={styles.titleRow}>
           <h1 className={styles.title}>{t('field.measure.title')}</h1>
@@ -217,7 +358,9 @@ export function FieldMeasureScreen({
             onSelect={selectWall}
             onTap={tapCanvas}
           />
-          {room.shape === null ? <p className={styles.canvasHint}>{t('field.measure.empty')}</p> : null}
+          {room.shape === null ? (
+            <p className={styles.canvasHint}>{t('field.measure.empty')}</p>
+          ) : null}
           {room.shape === 'walls' && !room.closed && canEdit ? (
             <p className={styles.canvasHint}>{t('field.measure.walls_start')}</p>
           ) : null}

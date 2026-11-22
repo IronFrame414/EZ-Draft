@@ -2742,6 +2742,13 @@ export const en = {
   'field.measure.closes': 'Closes',
   'field.measure.off_by': 'Off by {gap}',
   'field.measure.fills_in': '{letter} fills in when the room closes',
+  // EZD-1417 (S17b Header "Saved on phone"; Send to office; vault/build/assumptions.md EZD-1417).
+  'field.measure.saved_on_phone': 'Saved on phone',
+  'field.measure.menu': 'Menu',
+  'field.measure.send': 'Send to office',
+  'field.measure.send_waiting': 'Waiting to send',
+  'field.measure.sent': 'Sent to office',
+  'field.measure.send_refused': 'Not sent',
   // EZD-507: the ceiling devices (S05 Controls; board S05Ceiling; vault/build/assumptions.md EZD-507).
   'office.fixtures.detail.recessed_light': 'Recessed light',
   'office.fixtures.detail.ceiling_fan': 'Ceiling fan',

@@ -3,10 +3,12 @@
 // projects for this project; a project that is missing or out of scope is not found. Text is the field surface in
 // the user's language (S17 phone screens follow the user's language), with the disclaimer line last (EZD-136).
 // The entry from the project is EZD-1419. EZD-1416: the closure check reads the company Measurement tolerance
-// (S15d; 1/2" while Not set, as Import review).
+// (S15d; 1/2" while Not set, as Import review). EZD-1417: the page's OutboxDrain is the field sender that sends a
+// queued Send to office on reconnect, and the screen gets the rooms' sent time.
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import type { ReactElement } from 'react';
+import { OutboxDrain } from '../../../../../components/outbox/OutboxDrain';
 import { Disclaimer } from '../../../../../components/disclaimer/Disclaimer';
 import { PhoneFrame } from '../../../../../components/phone/PhoneFrame';
 import { StateHost } from '../../../../../components/states/StateHost';
@@ -19,6 +21,7 @@ import { requireSession } from '../../../../../server/auth/session';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { loadTenantDefaults } from '../../../../../server/defaults/defaults';
 import { readFieldMeasure } from '../../../../../server/field-measure/session';
+import { loadOutboxActor } from '../../../../../server/outbox/actor';
 import { catalogFor } from '../../../../../server/messages/catalog';
 import { can, getPermissionContext } from '../../../../../server/permissions';
 
@@ -38,20 +41,30 @@ export default async function FieldMeasurePage({
   const client = createSessionClient();
   const view = await readFieldMeasure(client, id);
   if (view === null) notFound();
-  const user = await client.from('app_user').select('language').eq('id', session.appUserId).maybeSingle();
-  const tolerance = reviewTolerance(effectiveValue('measurement_tolerance', await loadTenantDefaults(client)));
+  const user = await client
+    .from('app_user')
+    .select('language')
+    .eq('id', session.appUserId)
+    .maybeSingle();
+  const tolerance = reviewTolerance(
+    effectiveValue('measurement_tolerance', await loadTenantDefaults(client)),
+  );
   const language: Language = user.data?.language === 'es' ? 'es' : 'en';
+  const actor = await loadOutboxActor();
   return (
     <MessagesProvider language={language} messages={catalogFor('field', language)}>
       <StateHost>
         <PhoneFrame>
-          <FieldMeasureScreen
-            projectId={id}
-            projectName={view.projectName}
-            initialRooms={view.rooms}
-            canEdit={can(ctx, 'send_field_measurement', { projectId: id })}
-            tolerance={tolerance}
-          />
+          <OutboxDrain actor={actor}>
+            <FieldMeasureScreen
+              projectId={id}
+              projectName={view.projectName}
+              initialRooms={view.rooms}
+              canEdit={can(ctx, 'send_field_measurement', { projectId: id })}
+              tolerance={tolerance}
+              sentAt={view.sentAt}
+            />
+          </OutboxDrain>
           <Disclaimer placement="page" />
         </PhoneFrame>
       </StateHost>

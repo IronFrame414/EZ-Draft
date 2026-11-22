@@ -767,6 +767,14 @@ EZD-1402 (phase-14 EZD-1402; 03c offline_change; 03b rule 9; 11 Offline; Q-0503;
 - **Model edits offline** (`outbox-sync.ts`). An entry put while offline carries `offline: true` (kept when a later online edit replaces it). When a drain has saved marked entries of a project and the outbox is empty, one `POST /api/projects/<id>/checkpoints` follows (a failure is reported as `outbox.offline_checkpoint`, not retried). While offline, `SyncState.queued` holds the outbox count and the header save word reads "Offline, {count} changes queued".
 - **Test page** `/dev/field-outbox/<project id>` (not in production; its own OutboxDrain) queues a task check and a photo pin.
 
+### Field measure send (EZD-1417)
+
+EZD-1417 (S17b Header, Send to office, States; 07 field.measure_sent; AC-EZD-1417-1; vault/build/assumptions.md EZD-1417).
+
+- **Saved on phone** (`app/src/field-measure/device-copy.ts`). Every change to the rooms is written to localStorage `ezdraft-field-measure:<appUserId>:<tenantId>:<projectId>` as `{ rooms, synced }` before the 0.6 s server save; a successful PUT marks it synced, a failed one leaves it and the screen saves again on the `online` event. On open, an unsynced copy wins over the server's rooms (unless the rooms are sent). The copy is dropped once the rooms are sent.
+- **Send to office** (`app/src/field-measure/send.ts`). The menu queues one `field_measure_send` field action with `ops: { rooms }` through the page's `OutboxDrain` field sender (`/projects/[id]/field-measure` wraps the screen in it). Status from the queue: queued, refused, or sent once the action has left the queue; `field_measure_session.sent_at` gives sent after a reload. Queued or sent rooms no longer change on the phone.
+- **Server** (`<ts>_field_measure_send.sql`). `field_measure_session` gains `sent_at`, `sent_by`, `sent_change_id`. The trigger `offline_change_apply_field_measure_send` (after insert, kind `field_measure_send`; `private.apply_field_measure_send`) applies a recorded send in `sync_field_action`'s transaction: rooms checked (1 to 40 objects, ≤ 256 KB; 22023 refuses the record), written to the session and marked sent, and one `field_measurements_received` notification (link `/projects/<id>`) for each active member holding Approve field measurements other than the sender, through `private.create_notification`. A session already sent is left as is and no one is notified again; a resend of the same action is `duplicate` before the insert, so a send notifies once. The route checks the rooms with `fieldActionOpsValid` (`fieldMeasureSendOpsSchema`) after its permission checks and before the database (400) and emits `field.measure_sent` `{ projectId, changeId, rooms: [{ id, name, shape, walls, measured }], by, at }` after a `synced` record.
+
 ### Editor route (EZD-120c)
 
 EZD-120c (vault/plans/EZD-120c.md Build steps 1-10, section 3); 03a; S03 Permissions, Data shown, States; Q-0500; Q-0214; Q-0501; Q-0505; Q-0506.
