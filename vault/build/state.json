@@ -449,7 +449,8 @@
     "EZD-510",
     "EZD-417",
     "EZD-711",
-    "EZD-602"
+    "EZD-602",
+    "EZD-513"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1423,11 +1424,19 @@
       "ts": "2026-11-22T19:03:50Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-513",
+      "title": "Soffits, trays, coffers, crown, tags",
+      "commit": "f41f8a98",
+      "ts": "2026-11-22T21:55:30Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1577,11 +1586,11 @@
     }
   },
   "running": {
-    "EZD-513": {
-      "lane": 1,
-      "title": "Soffits, trays, coffers, crown, tags",
-      "started": "2026-11-22T19:04:54Z",
-      "develop": "4e8916c8"
+    "EZD-1418": {
+      "lane": 2,
+      "title": "Field measure into Import review",
+      "started": "2026-11-22T20:29:07Z",
+      "develop": "ff9ea6da"
     }
   },
   "advisories_checked_at": "2026-11-22T16:11:22Z",
