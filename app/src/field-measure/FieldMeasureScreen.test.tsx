@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MessagesProvider } from '../lib/messages';
 import { catalogFor } from '../server/messages/catalog';
+import { StateHost } from '../components/states/StateHost';
 import { FieldMeasureScreen } from './FieldMeasureScreen';
 import { emptyRoom, initialRooms, withShape, type FieldRoom } from './rooms';
 
@@ -18,18 +19,21 @@ function render(
 ): string {
   return renderToStaticMarkup(
     <MessagesProvider language={language} messages={catalogFor('field', language)}>
-      <FieldMeasureScreen
-        projectId="00000000-0000-4000-8000-000000000001"
-        projectName="Hendricks residence"
-        initialRooms={rooms}
-        canEdit={canEdit}
-        tolerance={tolerance}
-      />
+      <StateHost>
+        <FieldMeasureScreen
+          projectId="00000000-0000-4000-8000-000000000001"
+          projectName="Hendricks residence"
+          initialRooms={rooms}
+          canEdit={canEdit}
+          tolerance={tolerance}
+        />
+      </StateHost>
     </MessagesProvider>,
   );
 }
 
-const attrs = (html: string, attr: string) => html.match(new RegExp(`<[^>]*${attr}[^>]*>`, 'g')) ?? [];
+const attrs = (html: string, attr: string) =>
+  html.match(new RegExp(`<[^>]*${attr}[^>]*>`, 'g')) ?? [];
 
 describe('EZD-1415 Field measure screen', () => {
   it('a new session: the Building chip, + Room, five shapes and Pick a shape', () => {
@@ -41,7 +45,9 @@ describe('EZD-1415 Field measure screen', () => {
     for (const label of ['Rectangle', 'L-shape', 'T-shape', 'U-shape', 'Walls']) {
       expect(html).toContain(`${label}</button>`);
     }
-    expect(attrs(html, 'aria-pressed="true"').filter((t) => t.includes('data-shape'))).toHaveLength(0);
+    expect(attrs(html, 'aria-pressed="true"').filter((t) => t.includes('data-shape'))).toHaveLength(
+      0,
+    );
     expect(html).toContain('Pick a shape');
     expect(html).toContain('Ceiling at wall');
     expect(html).toContain('0 / 0');
@@ -52,7 +58,14 @@ describe('EZD-1415 Field measure screen', () => {
     const building = initialRooms()[0] as FieldRoom;
     const html = render([withShape(building, 'l')]);
     const walls = attrs(html, 'data-wall=');
-    expect(walls.map((t) => /data-wall="([A-Z]+)"/.exec(t)?.[1])).toEqual(['A', 'B', 'C', 'D', 'E', 'F']);
+    expect(walls.map((t) => /data-wall="([A-Z]+)"/.exec(t)?.[1])).toEqual([
+      'A',
+      'B',
+      'C',
+      'D',
+      'E',
+      'F',
+    ]);
     expect(walls.map((t) => /aria-label="([^"]+)"/.exec(t)?.[1])).toEqual([
       'Wall A',
       'Wall B',

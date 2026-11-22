@@ -4,6 +4,9 @@
 // statuses), Rename inline, and the Delete dialog. Items the user lacks permission for are absent; with none the
 // button is absent too.
 // EZD-137 (Q-0191; Q-0702; Q-0700 decisions 10): Mark complete after Set status; a completed card offers Reopen.
+// EZD-1419 (S17b Entry points; Q-0178 "any staff member may be sent mid-job to re-measure"): Field measure, first,
+// opens the project's phone Field measure screen for a member who may measure (Send field measurement) or reopen
+// sent rooms (Approve field measurements), so the menu shows for them too.
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { useT } from '../../lib/messages';
 import {
@@ -19,6 +22,10 @@ import { DeleteProjectDialog } from './DeleteProjectDialog';
 import { ProjectCard } from './ProjectCard';
 import styles from './Projects.module.css';
 
+/** EZD-1419: the phone Field measure screen of a project. */
+export const fieldMeasureHref = (projectId: string): string =>
+  `/projects/${projectId}/field-measure`;
+
 export type CardMenuHandlers = {
   onRename(): void;
   onStatus(status: ProjectStatus): void;
@@ -33,10 +40,14 @@ export function ProjectCardMenu({
   project,
   canEdit,
   canDelete,
+  canMeasure = false,
   ...on
-}: { project: ProjectSummary; canEdit: boolean; canDelete: boolean } & CardMenuHandlers):
-  | ReactElement
-  | null {
+}: {
+  project: ProjectSummary;
+  canEdit: boolean;
+  canDelete: boolean;
+  canMeasure?: boolean;
+} & CardMenuHandlers): ReactElement | null {
   const t = useT();
   const items = cardMenuItems({
     canEdit,
@@ -44,7 +55,7 @@ export function ProjectCardMenu({
     archived: project.archived === true,
     complete: project.status === 'complete',
   });
-  if (items.length === 0) return null;
+  if (items.length === 0 && !canMeasure) return null;
   const item = `${styles.menuItem} ${touch.target}`;
   return (
     <Menu
@@ -55,6 +66,18 @@ export function ProjectCardMenu({
       contentClassName={styles.menu}
       contentTestId="project-card-menu-items"
     >
+      {canMeasure ? (
+        <MenuItem
+          testId="project-card-field-measure"
+          className={item}
+          onSelect={() => window.location.assign(fieldMeasureHref(project.id))}
+        >
+          {t('office.projects.menu.field_measure')}
+        </MenuItem>
+      ) : null}
+      {canMeasure && items.length > 0 ? (
+        <div role="separator" className={styles.menuDivider} />
+      ) : null}
       {items.includes('rename') ? (
         <MenuItem testId="project-card-rename" className={item} onSelect={on.onRename}>
           {t('office.projects.menu.rename')}
@@ -160,6 +183,8 @@ export function RenameField({
 export type CardMenuConfig = {
   canEdit: boolean;
   canDelete: boolean;
+  /** EZD-1419: offer Field measure (Send field measurement or Approve field measurements). */
+  canMeasure?: boolean;
   api: CardActionsApi;
   // After a change committed: the list and counts reload.
   onChanged(): void;
@@ -187,6 +212,7 @@ export function ProjectCardWithMenu({
       project={project}
       canEdit={config.canEdit}
       canDelete={config.canDelete}
+      canMeasure={config.canMeasure === true}
       onRename={() => setRenaming(true)}
       onStatus={(s) => {
         if (s !== project.status) void run(config.api.setStatus(project.id, s));

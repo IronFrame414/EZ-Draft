@@ -10,12 +10,16 @@
 // EZD-1417 adds Saved on phone and Send to office (device-copy.ts, send.ts): every change is kept on the phone
 // first, then saved to the server when online (again on reconnect); Send to office in the menu queues the rooms in
 // the outbox, so it works offline and goes on reconnect. Once queued or sent the rooms no longer change on this
-// phone. Not here: the confirms and reopening a sent room (EZD-1419). Without Send field measurement the screen is
-// view only: walls can be selected, nothing changes.
+// phone. Without Send field measurement the screen is view only: walls can be selected, nothing changes.
+// EZD-1419 (S17b States, Validation & warnings; Shape picker): the screen's state (empty room, measuring, closed, off
+// by X, sent) is on data-state; sent rooms say they are read-only until the office reopens them, and a member with
+// Approve field measurements gets Reopen in the menu. A length over 200 ft asks to confirm (entry.ts); changing the
+// shape of a measured room asks to confirm and keeps the walls with the same letter (rooms.ts withShape).
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useOutboxActor } from '../components/outbox/OutboxDrain';
-import { formatLength, parseLength } from '@ezdraft/geometry';
+import { useConfirm } from '../components/states/ConfirmProvider';
+import { formatLength } from '@ezdraft/geometry';
 import { DEFAULT_MEASUREMENT_TOLERANCE_IN } from '../lib/imports/review-conflicts';
 import { Icon } from '../components/icon/Icon';
 import { useT } from '../lib/messages';
@@ -26,8 +30,9 @@ import { RoomChips } from './RoomChips';
 import { ShapeCanvas } from './ShapeCanvas';
 import { ShapePicker } from './ShapePicker';
 import { clearDeviceCopy, readDeviceCopy, writeDeviceCopy } from './device-copy';
+import { readFieldLength } from './entry';
 import { useMeasureSend } from './send';
-import { emptyRoom, uniqueName, withOutline, withShape, type FieldRoom } from './rooms';
+import { emptyRoom, isMeasured, uniqueName, withOutline, withShape, type FieldRoom } from './rooms';
 import { addCorner, cornersOf, wallLetter, wallsOf, type Pt, type ShapeKind } from './shapes';
 import styles from './FieldMeasure.module.css';
 
@@ -42,6 +47,8 @@ export type FieldMeasureScreenProps = {
   tolerance?: number;
   /** When the rooms were sent to the office, or null (EZD-1417). */
   sentAt?: string | null;
+  /** EZD-1419: the member holds Approve field measurements, so may reopen sent rooms. */
+  canReopen?: boolean;
 };
 
 function newRoomId(rooms: readonly FieldRoom[]): string {
@@ -57,8 +64,11 @@ export function FieldMeasureScreen({
   canEdit: canChange,
   tolerance = DEFAULT_MEASUREMENT_TOLERANCE_IN,
   sentAt = null,
+  canReopen = false,
 }: FieldMeasureScreenProps) {
   const t = useT();
+  const confirm = useConfirm();
+  const [reopenFailed, setReopenFailed] = useState(false);
   const actor = useOutboxActor();
   const sender = useMeasureSend(projectId, sentAt);
   // Queued or sent rooms no longer change on this phone (S17b States "sent").
@@ -161,26 +171,53 @@ export function FieldMeasureScreen({
   };
 
   /**
-   * The room with the typed text kept on the selected wall: empty text clears the wall, a length sets it. Null when
-   * the text is not a length (it stays in the field and the refusal shows).
+   * The room with the typed text kept on the selected wall: empty text clears the wall, a length sets it. Refused
+   * when the text is not a length (it stays in the field and the refusal shows); a length over 200 ft comes with
+   * the inches to confirm.
    */
-  const withDraft = (): FieldRoom | null => {
-    if (draft === null || wall === null) return room;
+  const readDraft = (): { room: FieldRoom; confirm?: number } | { refused: true } => {
+    if (draft === null || wall === null) return { room };
     let value: number | null = null;
+    let ask: number | undefined;
     if (draft.trim() !== '') {
-      const parsed = parseLength(draft, 'wall_room');
-      if (!parsed.ok) return null;
-      value = parsed.inches;
+      const entry = readFieldLength(draft);
+      if (entry.kind === 'refused') return { refused: true };
+      value = entry.inches;
+      if (entry.kind === 'confirm') ask = entry.inches;
     }
-    if (room.lengths[wall] === value) return room;
+    if (room.lengths[wall] === value) return { room };
     const lengths = room.lengths.slice();
     lengths[wall] = value;
-    return { ...room, lengths };
+    return { room: { ...room, lengths }, confirm: ask };
   };
 
-  const selectWall = (index: number) => {
-    const next = withDraft();
-    if (next !== null && next !== room) update(next);
+  /**
+   * The room with the typed text kept, once a length over 200 ft is confirmed (S17b Validation). Null when the
+   * text is refused (refused is true) or the user chose to change the length (the text stays in the field).
+   */
+  const takeDraft = async (): Promise<
+    { room: FieldRoom; refused?: undefined } | { room: null; refused: boolean }
+  > => {
+    const read = readDraft();
+    if ('refused' in read) return { room: null, refused: true };
+    if (read.confirm !== undefined) {
+      const choice = await confirm({
+        title: 'field.measure.confirm_long.title',
+        message: 'field.measure.confirm_long.message',
+        params: { length: formatLength(read.confirm, 16) },
+        confirmLabel: 'field.measure.confirm_long.keep',
+        cancelLabel: 'field.measure.confirm_long.change',
+      });
+      if (choice !== 'confirm') return { room: null, refused: false };
+    }
+    return { room: read.room };
+  };
+
+  const selectWall = async (index: number) => {
+    const next = await takeDraft();
+    // Changing a length to confirm keeps the field on this wall; a refused text is dropped, as before.
+    if (next.room === null && !next.refused) return;
+    if (next.room !== null && next.room !== room) update(next.room);
     clearDraft();
     setSelected(index);
   };
@@ -192,13 +229,14 @@ export function FieldMeasureScreen({
   };
 
   // Next wall: keep the typed length and move on; on the last wall, to the first wall still without a length.
-  const nextWall = () => {
+  const nextWall = async () => {
     if (!canEdit || wall === null) return;
-    const next = withDraft();
-    if (next === null) {
-      setRefused(true);
+    const taken = await takeDraft();
+    if (taken.room === null) {
+      if (taken.refused) setRefused(true);
       return;
     }
+    const next = taken.room;
     if (next !== room) update(next);
     clearDraft();
     if (wall < total - 1) {
@@ -226,8 +264,21 @@ export function FieldMeasureScreen({
     setSelected(null);
   };
 
-  const pickShape = (shape: ShapeKind) => {
+  const pickShape = async (shape: ShapeKind) => {
     if (shape === room.shape) return;
+    // S17b Shape picker: after measuring, a change asks to confirm and keeps the walls with the same letter.
+    if (isMeasured(room)) {
+      const choice = await confirm({
+        title: 'field.measure.confirm_shape.title',
+        message:
+          shape === 'walls'
+            ? 'field.measure.confirm_shape.walls'
+            : 'field.measure.confirm_shape.keep',
+        confirmLabel: 'field.measure.confirm_shape.change',
+        cancelLabel: 'field.measure.cancel',
+      });
+      if (choice !== 'confirm') return;
+    }
     const next = withShape(room, shape);
     clearDraft();
     update(next);
@@ -245,16 +296,37 @@ export function FieldMeasureScreen({
   };
 
   // Send to office: the rooms with any length still being typed, queued in the outbox (sent now when online).
-  const sendToOffice = () => {
+  const sendToOffice = async () => {
     setMenuOpen(false);
     if (!canEdit || !sender.ready) return;
-    const typed = withDraft();
+    const taken = await takeDraft();
+    // Change on the over-200 ft confirm: nothing is sent and the text stays on the wall. A refused text is dropped.
+    if (taken.room === null && !taken.refused) return;
+    const typed = taken.room;
     const next =
       typed === null || typed === room ? rooms : rooms.map((r) => (r.id === typed.id ? typed : r));
     clearDraft();
     setRooms(next);
     if (who !== null) writeDeviceCopy(who, projectId, { rooms: next, synced: false });
     void sender.send(next);
+  };
+
+  // EZD-1419: the office reopens sent rooms; the page loads again with the rooms open on every phone.
+  const reopen = async () => {
+    setMenuOpen(false);
+    setReopenFailed(false);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/field-measure/reopen`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        window.location.reload();
+        return;
+      }
+    } catch {
+      /* offline or the server failed: the line below says so */
+    }
+    setReopenFailed(true);
   };
 
   const status =
@@ -283,9 +355,19 @@ export function FieldMeasureScreen({
   const wallValue = wall === null ? null : (closure.lengths[wall] ?? null);
   const wallAuto = wall !== null && wall === closure.auto && draft === null;
   const state = closure.state;
+  const sent = sender.status === 'sent';
+  const screenState = sent
+    ? 'sent'
+    : room.shape === null
+      ? 'empty'
+      : state.kind === 'closes'
+        ? 'closed'
+        : state.kind === 'off'
+          ? 'off'
+          : 'measuring';
 
   return (
-    <div className={styles.screen} data-testid="field-measure">
+    <div className={styles.screen} data-testid="field-measure" data-state={screenState}>
       <header className={styles.header}>
         <div className={styles.topRow}>
           <Link className={styles.back} href="/">
@@ -322,10 +404,21 @@ export function FieldMeasureScreen({
                     role="menuitem"
                     className={styles.menuItem}
                     disabled={!canEdit || !sender.ready}
-                    onClick={sendToOffice}
+                    onClick={() => void sendToOffice()}
                   >
                     {t('field.measure.send')}
                   </button>
+                  {sent && canReopen ? (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.menuItem}
+                      data-testid="measure-reopen"
+                      onClick={() => void reopen()}
+                    >
+                      {t('field.measure.reopen')}
+                    </button>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -335,6 +428,17 @@ export function FieldMeasureScreen({
           <h1 className={styles.title}>{t('field.measure.title')}</h1>
           <span className={styles.project}>{projectName}</span>
         </div>
+        {sent ? (
+          <p className={styles.readOnly} data-testid="measure-read-only" role="status">
+            <Icon name="lock" size={15} />
+            {t('field.measure.read_only')}
+          </p>
+        ) : null}
+        {reopenFailed ? (
+          <p className={styles.refused} role="alert">
+            {t('field.measure.reopen_failed')}
+          </p>
+        ) : null}
         <RoomChips
           rooms={rooms}
           activeId={room.id}
@@ -344,7 +448,11 @@ export function FieldMeasureScreen({
         />
       </header>
       <div className={styles.body}>
-        <ShapePicker value={room.shape} disabled={!canEdit} onPick={pickShape} />
+        <ShapePicker
+          value={room.shape}
+          disabled={!canEdit}
+          onPick={(shape) => void pickShape(shape)}
+        />
         <div className={styles.canvasCard}>
           <ShapeCanvas
             corners={corners}
@@ -355,7 +463,7 @@ export function FieldMeasureScreen({
             pending={state.kind === 'pending' ? state.fill : null}
             selected={wall}
             editable={canEdit}
-            onSelect={selectWall}
+            onSelect={(i) => void selectWall(i)}
             onTap={tapCanvas}
           />
           {room.shape === null ? (
@@ -424,7 +532,9 @@ export function FieldMeasureScreen({
             {t('field.measure.progress', { done, total })}
           </span>
         </p>
-        {canEdit ? <Keypad disabled={wall === null} onKey={pressKey} onNext={nextWall} /> : null}
+        {canEdit ? (
+          <Keypad disabled={wall === null} onKey={pressKey} onNext={() => void nextWall()} />
+        ) : null}
       </div>
     </div>
   );

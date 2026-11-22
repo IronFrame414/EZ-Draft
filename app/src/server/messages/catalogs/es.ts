@@ -28,6 +28,8 @@ export const es = {
     'Resuelve cada elemento y cada hueco de habitación antes de terminar la importación.',
   'error.job_not_found': 'Esa tarea ya no existe.',
   'error.invalid_input': 'Parte de esa información no es válida. Revísala e inténtalo de nuevo.',
+  // EZD-1419
+  'error.field_measure_sent': 'Estos cuartos se enviaron a la oficina. Son de solo lectura hasta que la oficina los reabra.',
   'error.tier_model_required': 'Elige un modelo para cada nivel para guardar.',
   'common.invite.email_subject': 'Te invitaron a unirte a {company} en EZ Draft',
   'common.invite.email_intro':
@@ -267,4 +269,16 @@ export const es = {
   'field.measure.send_waiting': 'Esperando para enviar',
   'field.measure.sent': 'Enviado a la oficina',
   'field.measure.send_refused': 'No enviado',
+  // EZD-1419
+  'field.measure.read_only': 'Enviado a la oficina. Solo lectura hasta que la oficina lo reabra.',
+  'field.measure.reopen': 'Reabrir para medir',
+  'field.measure.reopen_failed': 'No se pudieron reabrir los cuartos. Inténtalo de nuevo.',
+  'field.measure.confirm_long.title': '{length} pasa de 200 ft',
+  'field.measure.confirm_long.message': 'Revisa la medida. ¿La dejas?',
+  'field.measure.confirm_long.keep': 'Dejar',
+  'field.measure.confirm_long.change': 'Cambiar',
+  'field.measure.confirm_shape.title': '¿Cambiar la forma?',
+  'field.measure.confirm_shape.keep': 'Las paredes con la misma letra conservan sus medidas.',
+  'field.measure.confirm_shape.walls': 'Las paredes empiezan de nuevo.',
+  'field.measure.confirm_shape.change': 'Cambiar forma',
 } as const satisfies Record<SpanishKey, Message>;

@@ -2,6 +2,7 @@
 // the project's field measure rooms. Order as the project notes route: 401, 403, 404 (a malformed id or a project
 // out of scope), then the session client. GET (View projects): 200 { rooms }. PUT (Send field measurement):
 // { rooms } replaces the stored rooms; 400 for a body that is not a room list, 200 { status: 'saved' }.
+// EZD-1419: 409 field_measure_sent while the rooms are sent (read-only until the office reopens them).
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { endedSessionResponse } from '../../../../../server/auth/ended-session';
@@ -71,6 +72,7 @@ export async function PUT(request: Request, { params }: Ctx): Promise<Response> 
       if (!(e instanceof FieldMeasureError)) throw e;
       if (e.code === 'not_found') return fail(404, 'project_not_found');
       if (e.code === 'invalid_input') return fail(400, 'invalid_input');
+      if (e.code === 'sent') return fail(409, 'field_measure_sent');
       return fail(403, 'permission_denied', 'error.not_authorized');
     }
     return Response.json({ status: 'saved' }, { status: 200, headers });

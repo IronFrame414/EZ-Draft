@@ -749,6 +749,18 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-1415: saves the field measure rooms; 200 { status } (no money)',
   },
+  // EZD-1419: the office reopens sent field measure rooms; nothing sent yet answers not_sent.
+  {
+    file: `${API}projects/[id]/field-measure/reopen/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/field-measure/reopen/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/field-measure/reopen`, {})()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-1419: reopens sent field measure rooms; 200 { status } (no money)',
+  },
   // EZD-1402: the field action routes; the photo start signs an upload, the record takes a measurement.
   {
     file: `${API}projects/[id]/field-actions/photo/route.ts`,

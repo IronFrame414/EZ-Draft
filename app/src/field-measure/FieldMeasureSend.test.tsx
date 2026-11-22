@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MessagesProvider } from '../lib/messages';
 import { catalogFor } from '../server/messages/catalog';
+import { StateHost } from '../components/states/StateHost';
 import { FieldMeasureScreen } from './FieldMeasureScreen';
 import { emptyRoom, initialRooms, withShape, type FieldRoom } from './rooms';
 
@@ -17,13 +18,15 @@ const ROOMS: FieldRoom[] = [
 function render(sentAt: string | null, language: 'en' | 'es' = 'en'): string {
   return renderToStaticMarkup(
     <MessagesProvider language={language} messages={catalogFor('field', language)}>
-      <FieldMeasureScreen
-        projectId="00000000-0000-4000-8000-000000000001"
-        projectName="Hendricks residence"
-        initialRooms={ROOMS}
-        canEdit
-        sentAt={sentAt}
-      />
+      <StateHost>
+        <FieldMeasureScreen
+          projectId="00000000-0000-4000-8000-000000000001"
+          projectName="Hendricks residence"
+          initialRooms={ROOMS}
+          canEdit
+          sentAt={sentAt}
+        />
+      </StateHost>
     </MessagesProvider>,
   );
 }

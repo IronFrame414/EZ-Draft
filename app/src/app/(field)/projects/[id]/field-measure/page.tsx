@@ -2,9 +2,10 @@
 // the phone screen at /projects/[id]/field-measure. It requires a session (signed out goes to /sign-in) and View
 // projects for this project; a project that is missing or out of scope is not found. Text is the field surface in
 // the user's language (S17 phone screens follow the user's language), with the disclaimer line last (EZD-136).
-// The entry from the project is EZD-1419. EZD-1416: the closure check reads the company Measurement tolerance
+// EZD-1416: the closure check reads the company Measurement tolerance
 // (S15d; 1/2" while Not set, as Import review). EZD-1417: the page's OutboxDrain is the field sender that sends a
-// queued Send to office on reconnect, and the screen gets the rooms' sent time.
+// queued Send to office on reconnect, and the screen gets the rooms' sent time. EZD-1419: the entry from the project
+// is the Projects card menu's Field measure; Approve field measurements may reopen sent rooms.
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import type { ReactElement } from 'react';
@@ -63,6 +64,7 @@ export default async function FieldMeasurePage({
               canEdit={can(ctx, 'send_field_measurement', { projectId: id })}
               tolerance={tolerance}
               sentAt={view.sentAt}
+              canReopen={can(ctx, 'approve_field_measurements', { projectId: id })}
             />
           </OutboxDrain>
           <Disclaimer placement="page" />

@@ -3,6 +3,7 @@
 // Building is always the first room ("Room chips: Building edits the outside outline"). Wall lengths are kept per
 // wall in inches (null until typed; the keypad is EZD-1416). Shared by the screen and the server.
 import { z } from 'zod';
+import { MAX_FIELD_LENGTH_IN } from './entry';
 import { CANVAS_H, CANVAS_W, SHAPE_KINDS, wallCount, type Pt, type ShapeKind } from './shapes';
 
 export const MAX_ROOMS = 40;
@@ -14,8 +15,9 @@ const point = z.object({
   y: z.number().min(0).max(CANVAS_H),
 });
 
-// 0 to 2400 inches: the wall length limit (packages/geometry length.ts MAX_WALL_LENGTH_IN).
-const inches = z.number().min(0).max(2400).nullable();
+// 0 to MAX_FIELD_LENGTH_IN inches. EZD-1419: a length over 200 ft (2400") is kept once confirmed (S17b Validation;
+// entry.ts), up to 1000 ft.
+const inches = z.number().min(0).max(MAX_FIELD_LENGTH_IN).nullable();
 
 export const roomSchema = z
   .object({
@@ -62,13 +64,21 @@ export function emptyRoom(id: string, kind: FieldRoom['kind'], name: string): Fi
 }
 
 /**
- * The room with a new shape. A template is closed at once with one empty length per wall; Walls starts with no
- * corners. Asking to confirm a change after measuring is EZD-1419.
+ * The room with a new shape. A template is closed at once with one length per wall; Walls starts with no corners.
+ * EZD-1419 (S17b Shape picker "Changing shape after measuring asks to confirm and keeps matching walls"): a template
+ * keeps the length of each wall whose letter it still has (A with A, B with B, ...), the others are empty; Walls
+ * starts a new outline, so it keeps none (vault/build/assumptions.md EZD-1419). The ceiling is kept.
  */
 export function withShape(room: FieldRoom, shape: ShapeKind): FieldRoom {
   if (shape === 'walls') return { ...room, shape, corners: [], closed: false, lengths: [] };
   const count = wallCount(shape, [], true);
-  return { ...room, shape, corners: [], closed: true, lengths: Array<number | null>(count).fill(null) };
+  const lengths = Array.from({ length: count }, (_, i) => room.lengths[i] ?? null);
+  return { ...room, shape, corners: [], closed: true, lengths };
+}
+
+/** EZD-1419: true once any wall of the room has a length (a shape change then asks to confirm). */
+export function isMeasured(room: FieldRoom): boolean {
+  return room.lengths.some((l) => l !== null);
 }
 
 /** The room after a free outline change: lengths kept for walls that still exist, new walls empty. */

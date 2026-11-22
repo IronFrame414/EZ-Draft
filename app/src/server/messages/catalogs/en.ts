@@ -22,6 +22,8 @@ export const en = {
   'error.import_unresolved': 'Resolve every item and room gap before you finish the import.',
   'error.job_not_found': 'That job no longer exists.',
   'error.invalid_input': "Some of that information isn't valid. Check it and try again.",
+  // EZD-1419: a save while the field measure rooms are sent.
+  'error.field_measure_sent': 'These rooms were sent to the office. They are read-only until the office reopens them.',
   'error.tier_model_required': 'Choose a model for each tier to save.',
   'common.sign_in.title': 'Sign in to EZ Draft',
   'common.sign_in.email_label': 'Email',
@@ -1443,6 +1445,8 @@ export const en = {
   // EZD-137 (Q-0191; Q-0702): Mark complete, and Reopen on a completed card.
   'office.projects.menu.complete': 'Mark complete',
   'office.projects.menu.reopen': 'Reopen',
+  // EZD-1419 (S17b Entry points; Q-0178): opens Field measure for the project.
+  'office.projects.menu.field_measure': 'Field measure',
   'office.projects.menu.delete': 'Delete',
   'office.projects.menu.failed': "That change didn't save. Try again.",
   'office.projects.delete.title': 'Delete {name}?',
@@ -2773,6 +2777,19 @@ export const en = {
   'field.measure.send_waiting': 'Waiting to send',
   'field.measure.sent': 'Sent to office',
   'field.measure.send_refused': 'Not sent',
+  // EZD-1419: the sent state, Reopen, and the confirms (S17b States, Validation; Shape picker). Wording listed in
+  // vault/build/assumptions.md EZD-1419.
+  'field.measure.read_only': 'Sent to the office. Read-only until the office reopens it.',
+  'field.measure.reopen': 'Reopen for measuring',
+  'field.measure.reopen_failed': "The rooms couldn't be reopened. Try again.",
+  'field.measure.confirm_long.title': '{length} is over 200 ft',
+  'field.measure.confirm_long.message': 'Check the measurement. Keep it?',
+  'field.measure.confirm_long.keep': 'Keep',
+  'field.measure.confirm_long.change': 'Change',
+  'field.measure.confirm_shape.title': 'Change the shape?',
+  'field.measure.confirm_shape.keep': 'Walls with the same letter keep their lengths.',
+  'field.measure.confirm_shape.walls': 'The walls start over.',
+  'field.measure.confirm_shape.change': 'Change shape',
   // EZD-507: the ceiling devices (S05 Controls; board S05Ceiling; vault/build/assumptions.md EZD-507).
   'office.fixtures.detail.recessed_light': 'Recessed light',
   'office.fixtures.detail.ceiling_fan': 'Ceiling fan',

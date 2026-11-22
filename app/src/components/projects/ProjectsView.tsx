@@ -359,12 +359,15 @@ export function ProjectsView({
   canImport = false,
   canEdit = false,
   canDelete = false,
+  canMeasure = false,
 }: {
   account: ProjectsAccount;
   canCreate: boolean;
   canImport?: boolean;
   canEdit?: boolean;
   canDelete?: boolean;
+  /** EZD-1419: the card menu offers Field measure (Send field measurement or Approve field measurements). */
+  canMeasure?: boolean;
 }): ReactElement {
   const router = useRouter();
   const t = useT();
@@ -383,10 +386,11 @@ export function ProjectsView({
   const canDrop = canImport && online && creating === null;
   const hasFiles = (e: DragEvent<HTMLDivElement>) => e.dataTransfer.types.includes('Files');
   const cardMenu: CardMenuConfig | undefined =
-    canEdit || canDelete
+    canEdit || canDelete || canMeasure
       ? {
           canEdit,
           canDelete,
+          canMeasure,
           api: cardActionsHttpApi,
           onChanged: () => store.refresh(),
           onFailed: () => {

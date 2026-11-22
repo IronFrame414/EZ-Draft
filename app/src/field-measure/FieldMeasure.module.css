@@ -493,3 +493,16 @@
   color: var(--ez-slate-400);
   cursor: default;
 }
+
+/* EZD-1419 (S17b States "sent (read-only until reopened by office)"): the read-only line under the title. */
+.readOnly {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-slate-700);
+  font-size: 12px;
+}

@@ -3,6 +3,7 @@
 // the caller's session client and RLS; a project with no row yet has the Building alone. Saves go through
 // save_field_measure_session, which checks Send field measurement and project scope
 // (supabase/migrations/…_create_field_measure_session.sql). Room fields are checked here with roomsSchema.
+// EZD-1419: a save while the rooms are sent is refused (read-only until the office reopens them).
 import { initialRooms, roomsSchema, type FieldRoom } from '../../field-measure/rooms';
 import type { Json } from '../db/database.types';
 import type { DbClient } from '../storage/objects';
@@ -10,9 +11,9 @@ import type { DbClient } from '../storage/objects';
 // EZD-1417: sentAt is when the rooms were sent to the office (S17b States "sent"), null while not sent.
 export type FieldMeasureView = { projectName: string; rooms: FieldRoom[]; sentAt: string | null };
 
-/** Thrown for the refusals the route answers with 403, 404 or 400. */
+/** Thrown for the refusals the route answers with 403, 404, 400 or (EZD-1419, rooms sent) 409. */
 export class FieldMeasureError extends Error {
-  constructor(readonly code: 'permission_denied' | 'not_found' | 'invalid_input') {
+  constructor(readonly code: 'permission_denied' | 'not_found' | 'invalid_input' | 'sent') {
     super(code);
     this.name = 'FieldMeasureError';
   }
@@ -56,6 +57,24 @@ export async function saveFieldMeasure(
     if (error.code === '42501') throw new FieldMeasureError('permission_denied');
     if (error.code === 'P0002') throw new FieldMeasureError('not_found');
     if (error.code === '22023') throw new FieldMeasureError('invalid_input');
+    if (error.code === '55000') throw new FieldMeasureError('sent');
     throw error;
   }
+}
+
+/**
+ * EZD-1419 (S17b States "sent (read-only until reopened by office)"): the office (Approve field measurements)
+ * reopens sent rooms through reopen_field_measure_session. 'not_sent' when there was nothing sent to reopen.
+ */
+export async function reopenFieldMeasure(
+  client: DbClient,
+  projectId: string,
+): Promise<'reopened' | 'not_sent'> {
+  const { data, error } = await client.rpc('reopen_field_measure_session', { p_project: projectId });
+  if (error) {
+    if (error.code === '42501') throw new FieldMeasureError('permission_denied');
+    if (error.code === 'P0002') throw new FieldMeasureError('not_found');
+    throw error;
+  }
+  return (data as { status?: string } | null)?.status === 'reopened' ? 'reopened' : 'not_sent';
 }

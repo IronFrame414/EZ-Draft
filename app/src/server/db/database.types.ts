@@ -1534,6 +1534,9 @@ isOneToOne: false
 "renew_share_link":
 { Args: { "p_expiry_days": number,"p_ip"?: unknown,"p_sent_package": string }; Returns: Json
                            },
+"reopen_field_measure_session":
+{ Args: { "p_project": string }; Returns: Json
+                           },
 "reopen_project":
 { Args: { "p_project": string }; Returns: Json
                            },
