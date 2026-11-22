@@ -435,7 +435,8 @@
     "EZD-1009",
     "EZD-508",
     "EZD-901a",
-    "EZD-1402"
+    "EZD-1402",
+    "EZD-503"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1297,6 +1298,14 @@
       "ts": "2026-11-22T04:09:38Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-503",
+      "title": "Ceiling type editor",
+      "commit": "6326b3b3",
+      "ts": "2026-11-22T04:32:44Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -1436,12 +1445,12 @@
     }
   },
   "running": {
-    "EZD-503": {
-      "lane": 1,
-      "title": "Ceiling type editor",
-      "started": "2026-11-22T02:11:19Z",
-      "develop": "1cb0d557"
+    "EZD-1417": {
+      "lane": 2,
+      "title": "Field measure: offline save and send",
+      "started": "2026-11-22T04:10:19Z",
+      "develop": "38104a36"
     }
   },
-  "advisories_checked_at": "2026-11-21T22:10:10Z"
+  "advisories_checked_at": "2026-11-22T04:10:20Z"
 }
