@@ -50,3 +50,86 @@ EZD-1001a first open of 3D on the benchmark project: 554 ms
         pnpm exec playwright show-trace test-results/property-appraiser-import--0b7c1-nd-PCN-fill-the-title-block-desktop/trace.zip
     ──────────────────
 ```
+
+## EZD-1934 · Move dev-only glob and minimatch to patched versions
+- When: 2026-11-23T22:18:43Z
+- Reason: check red after merging newer develop (first try: check red after merging newer develop)
+- Branch: t/EZD-1934 · worktree: .claude/worktrees/EZD-1934
+- Last output:
+```
+ and before phase-6 (AC-EZD-360-3)
+    ok 2 - EZD-360 T6 compareReleaseTags orders phase-56 after phase-5.3 and before phase-6 (AC-EZD-360-3)
+      ---
+      duration_ms: 0.094375
+      type: 'test'
+      ...
+    # Subtest: EZD-360 T7 a Phase 6 pull request after phase-56 gets phase-6 (AC-EZD-360-3)
+    ok 3 - EZD-360 T7 a Phase 6 pull request after phase-56 gets phase-6 (AC-EZD-360-3)
+      ---
+      duration_ms: 0.300125
+      type: 'test'
+      ...
+    # Subtest: EZD-360 T8 a Phase 56 pull request after phase-5 gets phase-56 (AC-EZD-360-3)
+    ok 4 - EZD-360 T8 a Phase 56 pull request after phase-5 gets phase-56 (AC-EZD-360-3)
+      ---
+      duration_ms: 0.061542
+      type: 'test'
+      ...
+    # Subtest: EZD-360 T9 a Phase 56 pull request after phase-6 is not_newer (AC-EZD-360-3)
+    ok 5 - EZD-360 T9 a Phase 56 pull request after phase-6 is not_newer (AC-EZD-360-3)
+      ---
+      duration_ms: 0.047375
+      type: 'test'
+      ...
+    1..5
+ok 379 - EZD-023a release tags
+  ---
+  duration_ms: 1.753291
+  type: 'suite'
+  ...
+# Subtest: EZD-023c Vercel client requests
+    # Subtest: EZD-023c T23 (a)-(g) requests and results
+    ok 1 - EZD-023c T23 (a)-(g) requests and results
+      ---
+      duration_ms: 3.476791
+      type: 'test'
+      ...
+    # Subtest: EZD-023c T23 (h) errors name neither ids nor token nor body
+    ok 2 - EZD-023c T23 (h) errors name neither ids nor token nor body
+      ---
+      duration_ms: 0.742625
+      type: 'test'
+      ...
+    # Subtest: EZD-023c T23 (i) evaluateVercelProject and PROTECTED_DEPLOYMENT_TYPES
+    ok 3 - EZD-023c T23 (i) evaluateVercelProject and PROTECTED_DEPLOYMENT_TYPES
+      ---
+      duration_ms: 0.162125
+      type: 'test'
+      ...
+    1..3
+ok 380 - EZD-023c Vercel client requests
+  ---
+  duration_ms: 4.826292
+  type: 'suite'
+  ...
+# Subtest: EZD-023e release workflow
+    # Subtest: EZD-023e done when: the release runs only from release.yml on a push to main in the release environment
+    ok 1 - EZD-023e done when: the release runs only from release.yml on a push to main in the release environment
+      ---
+      duration_ms: 3.88075
+      type: 'test'
+      ...
+    # Subtest: EZD-023e T17 nothing local, nothing in the gate, build scripts denied
+    ok 2 - EZD-023e T17 nothing local, nothing in the gate, build scripts denied
+      ---
+      duration_ms: 2.115167
+      type: 'test'
+      ...
+    1..2
+ok 381 - EZD-023e release workflow
+  ---
+  duration_ms: 6.381625
+  type: 'suite'
+  ...
+# Subtest: EZD-176 wor
+```
