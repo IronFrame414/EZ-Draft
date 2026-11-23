@@ -14,6 +14,9 @@
 // "breaker, wire, name editable; 2-pole numbers like 1-3"; vault/build/assumptions.md EZD-604): New circuit (Panel A
 // first when the model has none), rename, the chosen circuit's Breaker, Poles and Wire, the row's device count, and
 // the Home runs chip, which with the chosen circuit is shared with the plan (circuit-view.ts).
+// EZD-606 (S06 Controls "Existing panel | Inspector, load calc header button; opens a dialog | ... | Edit model";
+// vault/build/assumptions.md EZD-606 "Where the Existing panel button sits"): until the load calc header exists
+// (EZD-608), the Existing panel button sits in the Panel tab, shown with Edit model and disabled while paused.
 import { DEVICE_KINDS, WIRE_SIZES, type CircuitProtection, type WireSize } from '@ezdraft/geometry';
 import { useMemo, useState, useSyncExternalStore, type ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
@@ -47,6 +50,8 @@ import {
 } from './electrical';
 import styles from './ElectricalPanel.module.css';
 import { heightNotesShown } from './height-notes-shown';
+import { ExistingPanelDialog } from './ExistingPanelDialog';
+import { createPanelPhotoReader, type PanelPhotoReader } from './panel-read-client';
 
 export type ElectricalTab = 'circuits' | 'devices' | 'panel';
 
@@ -81,7 +86,13 @@ export type ElectricalPanelProps = {
   // EZD-604: given when the user has Edit model (New circuit, rename and the circuit fields show); `paused` while
   // another user holds the lock or a version is open (shown disabled). The slot's base carries the store's
   // applyEdit, new ids and the new-object status.
-  edit?: { slot: ReceiverSlot<ToolBase>; paused: boolean };
+  // EZD-606: the project the panel photos are read for; `reader` stands in for the photo read in tests.
+  edit?: {
+    slot: ReceiverSlot<ToolBase>;
+    paused: boolean;
+    projectId?: string;
+    reader?: PanelPhotoReader;
+  };
 };
 
 const DEVICE_LABEL: Readonly<Record<(typeof DEVICE_KINDS)[number], MessageKey>> = {
@@ -137,6 +148,13 @@ export function ElectricalPanel({
   const circuitId = view.circuit;
   const setCircuitId = (id: string | null) => circuitView.set({ circuit: id });
   const [renaming, setRenaming] = useState<string | null>(null);
+  const [existingOpen, setExistingOpen] = useState(false);
+  const projectId = edit?.projectId;
+  const givenReader = edit?.reader;
+  const reader = useMemo<PanelPhotoReader | null>(
+    () => givenReader ?? (projectId === undefined ? null : createPanelPhotoReader(projectId)),
+    [givenReader, projectId],
+  );
   const [chipState, setChips] = useState<Record<ShowChip, boolean>>({ ...SHOW_CHIPS_DEFAULT });
   const chips = { ...chipState, home_runs: view.homeRuns };
   const noBase = () => null;
@@ -180,7 +198,9 @@ export function ElectricalPanel({
       c.count.fixtures > 0
         ? t('office.electrical.circuit.count_fix', { count: c.count.fixtures })
         : null,
-      c.count.other > 0 ? t('office.electrical.circuit.count_other', { count: c.count.other }) : null,
+      c.count.other > 0
+        ? t('office.electrical.circuit.count_other', { count: c.count.other })
+        : null,
     ]
       .filter((x): x is string => x !== null)
       .join(' · ');
@@ -473,6 +493,32 @@ export function ElectricalPanel({
         ) : (
           body
         )}
+        {tab === 'panel' && edit !== undefined && reader !== null ? (
+          <button
+            type="button"
+            className={`${styles.newCircuit} ${touch.target}`}
+            data-testid="electrical-existing-panel"
+            disabled={!writable}
+            onClick={() => setExistingOpen(true)}
+          >
+            <span>{t('office.electrical.existing.open')}</span>
+          </button>
+        ) : null}
+        {existingOpen && writable && base !== null && reader !== null ? (
+          <ExistingPanelDialog
+            getObjects={() => base.store.getState().objects}
+            panelId={panel?.id ?? null}
+            reader={reader}
+            ctx={{
+              newId: base.newId,
+              level: openFloorId(base.store.getState().objects, base.chosenFloor()),
+              panelName: t('office.electrical.default_panel'),
+              circuitName: (n) => t('office.electrical.device.circuit', { number: n }),
+            }}
+            onApply={(changes) => base.store.applyEdit(changes)}
+            onClose={() => setExistingOpen(false)}
+          />
+        ) : null}
         {tab === 'circuits' && edit !== undefined ? (
           <button
             type="button"

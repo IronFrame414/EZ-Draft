@@ -249,6 +249,7 @@ export type FileRef = { fileId: string; kinds: readonly string[] };
 const none = (): FileRef[] => [];
 const PHOTO_KINDS = ['photo'] as const;
 const LETTER_KINDS = ['engineer_letter'] as const;
+const PANEL_PHOTO_KINDS = ['panel_photo'] as const;
 
 // Mapped over every type, so a new type cannot be added without saying which file ids it holds.
 const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
@@ -282,7 +283,11 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   countertop_piece: none,
   tile_layout: none,
   beam: none,
-  panel: none,
+  // EZD-606: the label photo, a panel_photo source_file.
+  panel: (d) =>
+    d.attributes.labelPhoto === undefined || d.attributes.labelPhoto === null
+      ? []
+      : [{ fileId: d.attributes.labelPhoto, kinds: PANEL_PHOTO_KINDS }],
   circuit: none,
   sheet_set: none,
   // EZD-1009: the file ids of every add or replace object, so a patch cannot carry an id the save check never reads.

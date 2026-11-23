@@ -509,3 +509,29 @@ export async function listSupplierFiles(
     uploadedAt: row.uploaded_at as string,
   }));
 }
+
+// EZD-606 (S06 Existing panel "panel label photo ... read from directory photo"): a panel photo the panel read may
+// send, read through the caller's client (RLS): a finished panel_photo upload of the project. Null otherwise (no
+// row, another project, another kind, an unfinished upload).
+export type PanelPhotoFile = { storagePath: string; contentType: string };
+
+export async function readPanelPhotoFile(
+  client: DbClient,
+  projectId: string,
+  sourceFileId: string,
+): Promise<PanelPhotoFile | null> {
+  const { data, error } = await client
+    .from('source_file')
+    .select('project_id, kind, storage_path, content_type, uploaded_at')
+    .eq('id', sourceFileId)
+    .maybeSingle();
+  if (error) throw new StorageError('storage_unavailable', { cause: error });
+  if (
+    data === null ||
+    data.project_id.toLowerCase() !== projectId.toLowerCase() ||
+    data.kind !== 'panel_photo' ||
+    data.uploaded_at === null
+  )
+    return null;
+  return { storagePath: data.storage_path, contentType: data.content_type };
+}

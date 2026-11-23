@@ -5,6 +5,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   CURRENT_SCHEMA_VERSION,
+  EXISTING_APPLIANCE_KINDS,
+  fileRefs,
   OBJECT_TYPES,
   parseModelDocument,
   parseStoredObject,
@@ -99,5 +101,57 @@ describe('EZD-604 panel defaults, wire and order', () => {
       ),
     ).toBe(true);
     expect(parse('circuit', (d) => (d.attributes.order = ['not-an-id']))).toBe(false);
+  });
+});
+
+// EZD-606 (phase-06 EZD-606 "Existing panel fields on the panel object in model_json (brand, label photo)"; S06
+// Controls "Existing panel ... existing large appliances (range, dryer, AC, water heater)"; 03c panel
+// "label_photo_id"; 03b rule 5).
+describe('EZD-606 existing panel fields', () => {
+  const PHOTO = '8b2f1d4e-6c3a-4f9b-8d72-1e5a4c3b2f77';
+
+  it('a panel stored before EZD-606 (no brand, label photo or appliances) still parses', () => {
+    expect(parse('panel', () => {})).toBe(true);
+    expect(CURRENT_SCHEMA_VERSION).toBe(7);
+  });
+
+  it('brand is a non-empty name or null; the label photo is a file id or null', () => {
+    expect(parse('panel', (d) => (d.attributes.brand = 'Square D'))).toBe(true);
+    expect(parse('panel', (d) => (d.attributes.brand = null))).toBe(true);
+    expect(parse('panel', (d) => (d.attributes.brand = ''))).toBe(false);
+    expect(parse('panel', (d) => (d.attributes.brand = 'x'.repeat(81)))).toBe(false);
+    expect(parse('panel', (d) => (d.attributes.labelPhoto = PHOTO))).toBe(true);
+    expect(parse('panel', (d) => (d.attributes.labelPhoto = null))).toBe(true);
+    expect(parse('panel', (d) => (d.attributes.labelPhoto = 'photo.jpg'))).toBe(false);
+  });
+
+  it('the existing large appliances are range, dryer, AC and water heater, with VA or null', () => {
+    expect([...EXISTING_APPLIANCE_KINDS]).toEqual(['range', 'dryer', 'ac', 'water_heater']);
+    expect(
+      parse(
+        'panel',
+        (d) =>
+          (d.attributes.appliances = [
+            { kind: 'range', va: 12000 },
+            { kind: 'water_heater', va: null },
+          ]),
+      ),
+    ).toBe(true);
+    expect(parse('panel', (d) => (d.attributes.appliances = [{ kind: 'pool_pump', va: 1 }]))).toBe(
+      false,
+    );
+    expect(parse('panel', (d) => (d.attributes.appliances = [{ kind: 'range', va: 0 }]))).toBe(
+      false,
+    );
+  });
+
+  it('the save check reads the label photo as a panel_photo file', () => {
+    const o = first('panel');
+    (o.data as { attributes: Rec }).attributes.labelPhoto = PHOTO;
+    const r = parseStoredObject(o);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(fileRefs(r.object)).toEqual([{ fileId: PHOTO, kinds: ['panel_photo'] }]);
+    const bare = parseStoredObject(first('panel'));
+    if (bare.ok) expect(fileRefs(bare.object)).toEqual([]);
   });
 });

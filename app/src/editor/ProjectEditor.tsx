@@ -890,7 +890,10 @@ export function ProjectEditor({
   useEffect(() => {
     sheetsScreen?.setShown(showSheets);
   }, [sheetsScreen, showSheets]);
-  useEffect(() => (sheetsScreen === null ? undefined : () => sheetsScreen.dispose()), [sheetsScreen]);
+  useEffect(
+    () => (sheetsScreen === null ? undefined : () => sheetsScreen.dispose()),
+    [sheetsScreen],
+  );
   const changeView = useCallback((v: EditorView) => {
     if (v === '3d') setOpened3d(true);
     if (v === 'sheets') setOpenedSheets(true);
@@ -1307,7 +1310,8 @@ export function ProjectEditor({
     </div>
   );
   const shown =
-    assistant !== null && assistantShown({ canEdit, view: show3d ? '3d' : showSheets ? 'sheets' : 'plan' })
+    assistant !== null &&
+    assistantShown({ canEdit, view: show3d ? '3d' : showSheets ? 'sheets' : 'plan' })
       ? assistant
       : null;
   // EZD-222: each rail tool shows the company's key for it.
@@ -1471,53 +1475,54 @@ export function ProjectEditor({
     </>
   );
   // EZD-213b (vault/plans/EZD-213b.md D-Editor): the inspector aside for every viewer of a ready plan.
-  const inspector = show3d || showSheets ? null : showPlan && viewing !== null && session !== null ? (
-    <LazyVersionInspector
-      row={versionRows?.find((r) => r.id === viewing.id) ?? viewing}
-      rows={versionRows ?? []}
-      canEditModel={session.lock.canEditModel}
-      canRevert={holdsLock}
-      onName={nameSnapshot}
-      onRevert={() => void revert()}
-      reverting={reverting}
-      error={versionError?.id === viewing.id ? t(versionError.key) : null}
-    />
-  ) : showPlan && cabinetsOn && session !== null && cabinetSelection !== null ? (
-    <LazyCabinetInspector
-      store={session.store}
-      selectionStore={cabinetSelection}
-      floors={floors ?? undefined}
-      canEdit={mayEdit}
-    />
-  ) : showPlan && countertopsOn && session !== null ? (
-    // EZD-418 (S04b Layout "Inspector: ... Top schedule"): while the Countertops tool is on, the inspector place
-    // holds the countertop inspector: the selected top's piece inspector (EZD-414) above its footer's Top schedule.
-    <LazyCountertopsInspector
-      store={session.store}
-      floors={floors ?? undefined}
-      selection={countertopSelection ?? undefined}
-      canEdit={mayEdit}
-      defaults={countertopDefaults}
-    />
-  ) : showPlan && session !== null && selection !== null ? (
-    <InspectorStack>
-      <LazyInspectorPanel
+  const inspector =
+    show3d || showSheets ? null : showPlan && viewing !== null && session !== null ? (
+      <LazyVersionInspector
+        row={versionRows?.find((r) => r.id === viewing.id) ?? viewing}
+        rows={versionRows ?? []}
+        canEditModel={session.lock.canEditModel}
+        canRevert={holdsLock}
+        onName={nameSnapshot}
+        onRevert={() => void revert()}
+        reverting={reverting}
+        error={versionError?.id === viewing.id ? t(versionError.key) : null}
+      />
+    ) : showPlan && cabinetsOn && session !== null && cabinetSelection !== null ? (
+      <LazyCabinetInspector
         store={session.store}
-        selection={selection}
-        canEdit={canEdit}
-        drawing={drawing}
-        newStatus={phase === null ? undefined : phase.newObjectStatus}
+        selectionStore={cabinetSelection}
         floors={floors ?? undefined}
-        projectId={projectId}
-        fanClearance={fanClearance}
+        canEdit={mayEdit}
       />
-      <InspectorMore
-        selection={selection}
-        canEdit={canEdit}
-        onOpen={(at) => setMenu({ kind: 'more', at })}
+    ) : showPlan && countertopsOn && session !== null ? (
+      // EZD-418 (S04b Layout "Inspector: ... Top schedule"): while the Countertops tool is on, the inspector place
+      // holds the countertop inspector: the selected top's piece inspector (EZD-414) above its footer's Top schedule.
+      <LazyCountertopsInspector
+        store={session.store}
+        floors={floors ?? undefined}
+        selection={countertopSelection ?? undefined}
+        canEdit={mayEdit}
+        defaults={countertopDefaults}
       />
-    </InspectorStack>
-  ) : null;
+    ) : showPlan && session !== null && selection !== null ? (
+      <InspectorStack>
+        <LazyInspectorPanel
+          store={session.store}
+          selection={selection}
+          canEdit={canEdit}
+          drawing={drawing}
+          newStatus={phase === null ? undefined : phase.newObjectStatus}
+          floors={floors ?? undefined}
+          projectId={projectId}
+          fanClearance={fanClearance}
+        />
+        <InspectorMore
+          selection={selection}
+          canEdit={canEdit}
+          onOpen={(at) => setMenu({ kind: 'more', at })}
+        />
+      </InspectorStack>
+    ) : null;
   // EZD-416 (S04b Layout "Left panel: tabs Pieces / Edges / Material"): while the Countertops tool is on, the
   // countertop panel takes the left panel.
   // EZD-403 (S04 Layout "Left panel 248px 'Cabinet library'"): while the Cabinets tool is on, the cabinet library
@@ -1532,10 +1537,7 @@ export function ProjectEditor({
       selectionStore={cabinetSelection}
       fitTolerance={fitTolerance}
     />
-  ) : showPlan &&
-    countertopsOn &&
-    session !== null &&
-    countertopSelection !== null ? (
+  ) : showPlan && countertopsOn && session !== null && countertopSelection !== null ? (
     <LazyCountertopsPanel
       store={session.store}
       floors={floors ?? undefined}
@@ -1585,8 +1587,11 @@ export function ProjectEditor({
             layers={layers}
             floors={floors ?? undefined}
             // EZD-604: New circuit, rename and the circuit fields with Edit model, paused while view only.
+            // EZD-606: the project the Existing panel dialog reads panel photos for.
             edit={
-              session.lock.canEditModel ? { slot: deviceSlot, paused: !mayEdit } : undefined
+              session.lock.canEditModel
+                ? { slot: deviceSlot, paused: !mayEdit, projectId }
+                : undefined
             }
           />
         ) : undefined
@@ -1610,7 +1615,11 @@ export function ProjectEditor({
   const openAssistant = shown !== null && assistantOpen ? assistantSession : null;
   // EZD-702a: one wrapper on every tab, so a switch to Sheets and back never remounts the plan canvas.
   const backdrop = showPlan ? (
-    <div className={showSheets ? `${styles.backdropLayer} ${styles.backdropHidden}` : styles.backdropLayer}>
+    <div
+      className={
+        showSheets ? `${styles.backdropLayer} ${styles.backdropHidden}` : styles.backdropLayer
+      }
+    >
       <PlanCanvas key={canvasAttempt} controller={plan} onFailed={() => setCanvasFailed(true)} />
     </div>
   ) : undefined;
@@ -1675,7 +1684,9 @@ export function ProjectEditor({
                         defaults={countertopDefaults}
                       />
                     ) : null}
-                    {shownSurface === 'floor' || rcp === undefined ? null : <rcp.CeilingViewStatus />}
+                    {shownSurface === 'floor' || rcp === undefined ? null : (
+                      <rcp.CeilingViewStatus />
+                    )}
                     {electricalOn && shownSurface === 'floor' && session !== null ? (
                       <LazyElectricalStatus store={session.store} />
                     ) : null}

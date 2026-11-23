@@ -6,6 +6,7 @@
 // sees an unfinished upload. A failure keeps the pin as it is; `attempt` remembers how far it got, so Retry sends
 // only what is left. The thumbnail is a short-lived link signed from the file row. Browser only.
 // EZD-215 (AC-EZD-215-4): `opts.kind` sends the same way as another source_file kind (the engineer letter).
+// EZD-606: and the panel label or directory photo (panel_photo).
 import { CURRENT_SCHEMA_VERSION, parseStoredObject, type PinData } from '@ezdraft/geometry';
 import { checkFile, kindTakes } from '../../lib/imports/upload-files';
 import type { SourceContentType } from '../../lib/storage/source-file-kinds';
@@ -57,7 +58,7 @@ export async function uploadPinPhoto(
   opts: {
     fetchImpl?: typeof fetch;
     retryDelaysMs?: readonly number[];
-    kind?: 'photo' | 'engineer_letter';
+    kind?: 'photo' | 'engineer_letter' | 'panel_photo';
   } = {},
 ): Promise<string> {
   const fetchImpl = opts.fetchImpl ?? fetch;

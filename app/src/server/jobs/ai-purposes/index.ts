@@ -2,8 +2,10 @@
 // read per call (as getHandlers()). Production includes only production purposes (none yet); test purposes are
 // never registered there. A later ticket adds its purpose here, with its recording and a run-twice test.
 // EZD-711: the property appraiser reads (link, pasted text, screenshot), registered in production too.
+// EZD-606: the panel label and directory photo reads, registered in production too.
 import type { ZodType } from 'zod';
 import type { AiJobContext } from '../../ai';
+import { panelDirectoryPurpose, panelLabelPurpose } from './panel-read';
 import { appraiserReadPurpose } from './property-appraiser-read';
 import { appraiserScreenshotPurpose } from './property-appraiser-screenshot';
 import { appraiserTextPurpose } from './property-appraiser-text';
@@ -18,7 +20,13 @@ export type AiPurpose<I, O> = {
 
 export function getAiPurposes(): Record<string, AiPurpose<unknown, unknown>> {
   const purposes: Record<string, AiPurpose<unknown, unknown>> = {};
-  for (const p of [appraiserReadPurpose, appraiserTextPurpose, appraiserScreenshotPurpose]) {
+  for (const p of [
+    appraiserReadPurpose,
+    appraiserTextPurpose,
+    appraiserScreenshotPurpose,
+    panelLabelPurpose,
+    panelDirectoryPurpose,
+  ]) {
     purposes[p.purpose] = p as unknown as AiPurpose<unknown, unknown>;
   }
   if (process.env.VERCEL_ENV !== 'production') {

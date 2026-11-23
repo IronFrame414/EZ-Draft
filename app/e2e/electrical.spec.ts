@@ -7,6 +7,7 @@
 // seeded through the editor's test hook.
 import { CURRENT_SCHEMA_VERSION } from '@ezdraft/geometry';
 import type { Page } from '@playwright/test';
+import sharp from 'sharp';
 import {
   cleanup,
   closeHarness,
@@ -523,8 +524,7 @@ test.describe('EZD-604 circuits', () => {
         (window as unknown as Hook).__ezdraftEditor
           .objects()
           .find(
-            (o) =>
-              o.type === 'circuit' && (o.data.attributes as { space: number }).space === 2,
+            (o) => o.type === 'circuit' && (o.data.attributes as { space: number }).space === 2,
           )!.id,
     );
     await expect
@@ -554,5 +554,118 @@ test.describe('EZD-604 circuits', () => {
     await expect(row).toContainText('Island');
     await tid(page, 'circuit-breaker').selectOption('15');
     await expect(row.getByTestId('circuit-meta')).toHaveText('15A · 3 rcpt');
+  });
+});
+
+// EZD-606 AC-EZD-606-1 (S06 Controls "Existing panel ... panel label photo (AI reads brand, rating, spaces; user
+// confirms) ... AI values shown for confirmation, never applied silently"; S06 Decisions "AI-read panel label and
+// directory values must be confirmed before use"; vault/build/assumptions.md EZD-606). The label read runs as a real
+// ai_read job with AI_MODE=stub: Claude answers the built-in stub (server/jobs/ai-purposes/panel-read-recording.ts:
+// Square D, 200 A, 40 spaces), so no live model is called (CLAUDE.md rule 5).
+test.describe('EZD-606 Existing panel dialog', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  const label = async () =>
+    sharp({
+      create: { width: 800, height: 600, channels: 3, background: { r: 200, g: 200, b: 200 } },
+    })
+      .jpeg()
+      .toBuffer();
+  const panels = (page: Page) =>
+    page.evaluate(() =>
+      (window as unknown as Hook).__ezdraftEditor.objects().filter((o) => o.type === 'panel'),
+    );
+
+  test('AC-1 the label read shows brand, rating and spaces Not confirmed and the model takes them only on Confirm', async ({
+    page,
+    signInAs,
+  }) => {
+    test.setTimeout(120_000);
+    const { ids, user } = await fixtureS(EDITOR);
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await page.keyboard.press('e');
+    await tid(page, 'electrical-tab-panel').click();
+    await tid(page, 'electrical-existing-panel').click();
+    await expect(tid(page, 'existing-panel-dialog')).toBeVisible();
+
+    await tid(page, 'existing-panel-label-file').setInputFiles({
+      name: 'label.jpg',
+      mimeType: 'image/jpeg',
+      buffer: await label(),
+    });
+    const read = tid(page, 'existing-panel-label-read');
+    await expect(read).toBeVisible({ timeout: 60_000 });
+    await expect(read).toHaveAttribute('data-confirmed', 'false');
+    await expect(tid(page, 'existing-panel-unconfirmed')).toHaveText('Not confirmed');
+    await expect(tid(page, 'existing-panel-read-brand')).toHaveText('Square D');
+    await expect(tid(page, 'existing-panel-read-rating')).toHaveText('200 A');
+    await expect(tid(page, 'existing-panel-read-spaces')).toHaveText('40');
+    // Not confirmed: nothing is in the model, so nothing is in the calc.
+    expect(await panels(page)).toEqual([]);
+    await expect(tid(page, 'existing-panel-mainBreaker')).toHaveValue('');
+
+    // Discard drops the read; the model is unchanged.
+    await tid(page, 'existing-panel-read-discard').click();
+    await expect(read).toHaveCount(0);
+    expect(await panels(page)).toEqual([]);
+
+    // Read again and Confirm: one change set makes Panel A with the label's values and its photo.
+    await tid(page, 'existing-panel-label-file').setInputFiles({
+      name: 'label.jpg',
+      mimeType: 'image/jpeg',
+      buffer: await label(),
+    });
+    await expect(read).toBeVisible({ timeout: 60_000 });
+    await tid(page, 'existing-panel-read-confirm').click();
+    await expect(read).toHaveCount(0);
+    await expect.poll(async () => (await panels(page)).length).toBe(1);
+    const [panel] = await panels(page);
+    expect(panel!.data).toMatchObject({
+      status: 'existing',
+      attributes: {
+        name: 'Panel A',
+        brand: 'Square D',
+        mainBreaker: 200,
+        spaces: 40,
+        serviceSize: null,
+      },
+    });
+    expect((panel!.data.attributes as { labelPhoto: unknown }).labelPhoto).toEqual(
+      expect.any(String),
+    );
+    await expect(tid(page, 'existing-panel-mainBreaker')).toHaveValue('200');
+    await expect(tid(page, 'existing-panel-label-photo')).toHaveText('Label photo saved');
+
+    // Typed values save with Save; the header shows the confirmed main breaker.
+    await tid(page, 'existing-panel-serviceSize').fill('200');
+    await tid(page, 'existing-panel-save').click();
+    await expect(tid(page, 'existing-panel-dialog')).toHaveCount(0);
+    await expect(tid(page, 'electrical-panel-name')).toHaveText('Panel A · 200A main');
+    await expect
+      .poll(
+        async () =>
+          ((await panels(page))[0]!.data.attributes as { serviceSize: unknown }).serviceSize,
+      )
+      .toBe(200);
+  });
+
+  test('without Edit model there is no Existing panel button (S06 Controls "Edit model")', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids, user } = await fixtureS(VIEWER);
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await tool(page, 'electrical').click();
+    await tid(page, 'electrical-tab-panel').click();
+    await expect(tid(page, 'electrical-body-panel')).toBeVisible();
+    await expect(tid(page, 'electrical-existing-panel')).toHaveCount(0);
   });
 });

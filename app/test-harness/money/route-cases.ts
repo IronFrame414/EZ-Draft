@@ -1727,6 +1727,21 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-711: the project property record; 200 { record } (no money)',
   },
   {
+    file: `${API}projects/[id]/panel-read/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/panel-read/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/panel-read`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ fileId: randomUUID(), read: 'label' }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 404,
+    note: 'EZD-606: a file id with no panel photo row starts no job; 404 file_not_found (no money)',
+  },
+  {
     file: `${API}property-records/read/route.ts`,
     method: 'POST',
     load: () => import('../../src/app/api/property-records/read/route'),

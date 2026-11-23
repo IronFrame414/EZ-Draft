@@ -27,6 +27,8 @@ export const es = {
   'error.import_unresolved':
     'Resuelve cada elemento y cada hueco de habitación antes de terminar la importación.',
   'error.job_not_found': 'Esa tarea ya no existe.',
+  // EZD-606: wording for Josh (assumptions.md EZD-606).
+  'error.file_not_found': 'Ese archivo no está disponible.',
   'error.invalid_input': 'Parte de esa información no es válida. Revísala e inténtalo de nuevo.',
   // EZD-1419
   'error.field_measure_sent': 'Estos cuartos se enviaron a la oficina. Son de solo lectura hasta que la oficina los reabra.',

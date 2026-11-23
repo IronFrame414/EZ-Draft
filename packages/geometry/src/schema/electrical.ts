@@ -14,6 +14,13 @@
 // gains its wire size (AWG; material is EZD-610's) and `order`, the devices in the order they were clicked onto it
 // (the circuit line runs through them in this order). Both optional and the nullable fields only widen, so every
 // stored object stays valid and the version stays.
+// EZD-606 (phase-06 EZD-606 "Existing panel fields on the panel object in model_json (brand, label photo), so every
+// version carries its own panel"; S06 Controls "Existing panel ... Service size, main breaker, panel label photo (AI
+// reads brand, rating, spaces; user confirms), existing circuit list ..., existing large appliances (range, dryer, AC,
+// water heater)"; 03c panel "brand, label_photo_id"; vault/build/assumptions.md EZD-606): the panel gains its brand,
+// its label photo (a panel_photo source_file, checked on save) and the existing large appliances, each with its
+// rating in VA when known (null: the calc's default, EZD-614). The existing circuit list is the panel's circuits of
+// status existing. All three optional, so every stored object stays valid and the version stays.
 import { z } from 'zod';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
 
@@ -22,6 +29,17 @@ export type CircuitProtection = (typeof CIRCUIT_PROTECTIONS)[number];
 export const circuitProtectionSchema = z.enum(CIRCUIT_PROTECTIONS);
 
 const amps = z.number().int().positive();
+
+export const PANEL_BRAND_MAX = 80;
+
+// S06 Controls "existing large appliances (range, dryer, AC, water heater)", each at most once.
+export const EXISTING_APPLIANCE_KINDS = ['range', 'dryer', 'ac', 'water_heater'] as const;
+export type ExistingApplianceKind = (typeof EXISTING_APPLIANCE_KINDS)[number];
+export const existingApplianceSchema = z.strictObject({
+  kind: z.enum(EXISTING_APPLIANCE_KINDS),
+  va: z.number().int().positive().nullable(),
+});
+export type ExistingAppliance = z.infer<typeof existingApplianceSchema>;
 
 export const panelDataSchema = z.strictObject({
   geometry: z.strictObject({ point: pointSchema }),
@@ -33,6 +51,9 @@ export const panelDataSchema = z.strictObject({
     serviceSize: amps.nullable(),
     mainBreaker: amps.nullable(),
     spaces: z.number().int().positive().nullable(),
+    brand: z.string().min(1).max(PANEL_BRAND_MAX).nullable().optional(),
+    labelPhoto: z.uuid().nullable().optional(),
+    appliances: z.array(existingApplianceSchema).max(EXISTING_APPLIANCE_KINDS.length).optional(),
   }),
 });
 export type PanelData = z.infer<typeof panelDataSchema>;
