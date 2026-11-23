@@ -20,6 +20,7 @@ import { Icon } from '../../components/icon/Icon';
 import type { CatalogItem } from '../../lib/catalog/catalog';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
+import { heightNoteEdit, heightNoteView, type HeightNoteEdit } from '../electrical/height-note';
 import { levelModelObjects } from '../inspector/inspector-edits';
 import type { ModelStore } from '../model/model-store';
 import type { Objects } from '../model/patches';
@@ -47,18 +48,18 @@ async function fetchCatalogItems(): Promise<CatalogItem[]> {
   return ((await res.json()) as { items: CatalogItem[] }).items;
 }
 
-function TypeText({
+function TypeText<F extends string = FixtureTypeField>({
   field,
   label,
   value,
   disabled,
   onText,
 }: {
-  field: FixtureTypeField;
+  field: F;
   label: MessageKey;
   value: string;
   disabled: boolean;
-  onText: (field: FixtureTypeField, text: string) => MessageKey | null;
+  onText: (field: F, text: string) => MessageKey | null;
 }): ReactElement {
   const t = useT();
   const testId = `device-${field}`;
@@ -113,7 +114,6 @@ function TypeText({
     </label>
   );
 }
-
 
 // ---- EZD-515 fan clearance and hosted flags (S05 Validation "Ceiling fan blade clearance to walls and beams: warning
 // when closer than the clearance in company settings under Defaults", "Hosted ceiling item left off any ceiling
@@ -225,6 +225,9 @@ export function DevicePanel({
   const [refusal, setRefusal] = useState<MessageKey | null>(null);
   const [names, setNames] = useState<ReadonlyMap<string, string>>(new Map());
   const view = fixtureTypeView(objects, deviceId);
+  // EZD-603: every device has its height note; only a light or fan has the fixture type.
+  const note = heightNoteView(objects, deviceId);
+  const [noteRefusal, setNoteRefusal] = useState<MessageKey | null>(null);
   const itemId = view?.catalogItemId ?? null;
   const known = itemId === null || names.has(itemId);
   useEffect(() => {
@@ -238,7 +241,15 @@ export function DevicePanel({
       live = false;
     };
   }, [known, loadCatalog]);
-  if (view === null) return null;
+  if (note === null) return null;
+
+  const applyNote = (edit: HeightNoteEdit): MessageKey | null => {
+    const r = heightNoteEdit(store.getState().objects, deviceId, edit);
+    if (!r.ok) return r.messageKey;
+    store.applyEdit([r.change]);
+    return null;
+  };
+  const onNoteText = (field: 'heightLabel' | 'height', text: string) => applyNote({ field, text });
 
   const apply = (edit: FixtureTypeEdit): MessageKey | null => {
     const r = fixtureTypeEdit(store.getState().objects, deviceId, edit);
@@ -260,12 +271,12 @@ export function DevicePanel({
       <div className={styles.header}>
         <div className={styles.titleBlock}>
           <span className={styles.title} data-testid="inspector-title">
-            {t(`office.fixtures.detail.${view.kind}` as MessageKey)}
+            {t(`office.fixtures.detail.${note.kind}` as MessageKey)}
           </span>
         </div>
         {canEdit ? (
           <span className={styles.tag} data-testid="device-status">
-            {t(`office.inspector.status.${view.status}` as MessageKey)}
+            {t(`office.inspector.status.${note.status}` as MessageKey)}
           </span>
         ) : (
           <span className={styles.badge} data-testid="inspector-view-only">
@@ -275,81 +286,124 @@ export function DevicePanel({
         )}
       </div>
       <CeilingFlags objects={objects} id={deviceId} canEdit={canEdit} fanClearance={fanClearance} />
-      <div className={styles.section} data-testid="device-type">
-        <span className={styles.head}>{t('office.device.type.heading')}</span>
-        <div className={styles.grid2}>
-          <TypeText
-            field="typeTag"
-            label="office.device.type.tag"
-            value={view.typeTag}
-            disabled={!canEdit}
-            onText={onText}
-          />
-          <TypeText
-            field="lumens"
-            label="office.device.type.lumens"
-            value={view.lumens}
-            disabled={!canEdit}
-            onText={onText}
-          />
-        </div>
-        <div className={styles.grid2}>
-          <TypeText
-            field="colorTemp"
-            label="office.device.type.color_temp"
-            value={view.colorTemp}
-            disabled={!canEdit}
-            onText={onText}
-          />
-          <TypeText
-            field="trim"
-            label="office.device.type.trim"
-            value={view.trim}
-            disabled={!canEdit}
-            onText={onText}
-          />
-        </div>
-        {view.kind === 'ceiling_fan' ? (
+      {view === null ? null : (
+        <div className={styles.section} data-testid="device-type">
+          <span className={styles.head}>{t('office.device.type.heading')}</span>
           <div className={styles.grid2}>
             <TypeText
-              field="bladeSpan"
-              label="office.device.blade_span"
-              value={view.bladeSpan}
+              field="typeTag"
+              label="office.device.type.tag"
+              value={view.typeTag}
+              disabled={!canEdit}
+              onText={onText}
+            />
+            <TypeText
+              field="lumens"
+              label="office.device.type.lumens"
+              value={view.lumens}
               disabled={!canEdit}
               onText={onText}
             />
           </div>
-        ) : null}
-        <div className={styles.field}>
-          {t('office.device.type.catalog')}
-          <span data-testid="device-catalog">{itemText}</span>
-          {canEdit ? (
-            <span>
-              <button
-                type="button"
-                className={styles.select}
-                data-testid="device-catalog-pick"
-                onClick={() => setPicking((p) => !p)}
-              >
-                {t('office.device.type.catalog_pick')}
-              </button>
-              {itemId === null ? null : (
+          <div className={styles.grid2}>
+            <TypeText
+              field="colorTemp"
+              label="office.device.type.color_temp"
+              value={view.colorTemp}
+              disabled={!canEdit}
+              onText={onText}
+            />
+            <TypeText
+              field="trim"
+              label="office.device.type.trim"
+              value={view.trim}
+              disabled={!canEdit}
+              onText={onText}
+            />
+          </div>
+          {view.kind === 'ceiling_fan' ? (
+            <div className={styles.grid2}>
+              <TypeText
+                field="bladeSpan"
+                label="office.device.blade_span"
+                value={view.bladeSpan}
+                disabled={!canEdit}
+                onText={onText}
+              />
+            </div>
+          ) : null}
+          <div className={styles.field}>
+            {t('office.device.type.catalog')}
+            <span data-testid="device-catalog">{itemText}</span>
+            {canEdit ? (
+              <span>
                 <button
                   type="button"
                   className={styles.select}
-                  data-testid="device-catalog-clear"
-                  onClick={() => pickItem(null)}
+                  data-testid="device-catalog-pick"
+                  onClick={() => setPicking((p) => !p)}
                 >
-                  {t('office.device.type.catalog_clear')}
+                  {t('office.device.type.catalog_pick')}
                 </button>
-              )}
-            </span>
+                {itemId === null ? null : (
+                  <button
+                    type="button"
+                    className={styles.select}
+                    data-testid="device-catalog-clear"
+                    onClick={() => pickItem(null)}
+                  >
+                    {t('office.device.type.catalog_clear')}
+                  </button>
+                )}
+              </span>
+            ) : null}
+          </div>
+          {picking && canEdit ? (
+            <CatalogPicker initialCategory="lighting" onPick={pickItem} />
           ) : null}
+          {refusal === null ? null : (
+            <span className={styles.error} role="alert" data-testid="device-type-error">
+              {t(refusal)}
+            </span>
+          )}
         </div>
-        {picking && canEdit ? <CatalogPicker initialCategory="lighting" onPick={pickItem} /> : null}
-        {refusal === null ? null : (
-          <span className={styles.error} role="alert" data-testid="device-type-error">
-            {t(refusal)}
+      )}
+      {/* EZD-603 (S06 Device height note toggle "Inspector, on a selected device ... Off by default. Edit model."). */}
+      <div className={styles.section} data-testid="device-height-note">
+        <span className={styles.head}>{t('office.device.height_note.heading')}</span>
+        <label className={styles.field}>
+          <span>
+            <input
+              type="checkbox"
+              checked={note.on}
+              disabled={!canEdit}
+              data-testid="device-height-note-toggle"
+              onChange={(e) =>
+                setNoteRefusal(applyNote({ field: 'heightNote', value: e.target.checked }))
+              }
+            />{' '}
+            {t('office.device.height_note.show')}
+          </span>
+        </label>
+        <div className={styles.grid2}>
+          <TypeText
+            field="heightLabel"
+            label="office.device.height_note.label"
+            value={note.label}
+            disabled={!canEdit}
+            onText={onNoteText}
+          />
+          <TypeText
+            field="height"
+            label="office.device.height_note.height"
+            value={note.height}
+            disabled={!canEdit}
+            onText={onNoteText}
+          />
+        </div>
+        {noteRefusal === null ? null : (
+          <span className={styles.error} role="alert" data-testid="device-height-note-error">
+            {t(noteRefusal)}
           </span>
         )}
       </div>

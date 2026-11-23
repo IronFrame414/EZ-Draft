@@ -223,3 +223,35 @@
   font: 500 13px var(--ez-font-mono);
   color: var(--ez-ink);
 }
+
+/* EZD-603: the Height notes Off / On switch under the Show chips (board S06Electrical). */
+.notes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  font-size: 13px;
+}
+
+.toggle {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-canvas);
+}
+
+.toggleSeg {
+  padding: 3px 9px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ez-slate-500);
+  font: 400 12px var(--ez-font-mono);
+  cursor: pointer;
+}
+
+.toggleOn {
+  background: var(--ez-surface);
+  border-color: var(--ez-border);
+  color: var(--ez-ink);
+}

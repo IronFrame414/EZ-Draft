@@ -50,3 +50,28 @@ describe('EZD-602 electrical device kinds', () => {
     expect(parseStoredObject(device({ kind: 'receptacle_quad' })).ok).toBe(false);
   });
 });
+
+// EZD-603 (S06 Controls "Device height note toggle ... Off by default."; R24 #36; 03f:13 "receptacles (GFCI/AFCI,
+// height, circuit)"): the per-device note toggle, its label and the device's height, all optional at version 7.
+describe('EZD-603 device height notes', () => {
+  it('a device keeps its height note toggle, label and height, and a device without them stays valid', () => {
+    expect(CURRENT_SCHEMA_VERSION).toBe(7);
+    expect(
+      parseStoredObject(
+        device({ kind: 'receptacle_duplex', heightNote: true, heightLabel: 'MW', height: 66 }),
+      ).ok,
+    ).toBe(true);
+    expect(parseStoredObject(device({ kind: 'switch_single', heightNote: false })).ok).toBe(true);
+    expect(parseStoredObject(device({ kind: 'data', heightLabel: null, height: null })).ok).toBe(
+      true,
+    );
+    expect(parseStoredObject(device({ kind: 'tv' })).ok).toBe(true);
+  });
+
+  it('a height of 0 or below, an empty label and a non-boolean toggle are refused', () => {
+    expect(parseStoredObject(device({ kind: 'tv', height: 0 })).ok).toBe(false);
+    expect(parseStoredObject(device({ kind: 'tv', height: -4 })).ok).toBe(false);
+    expect(parseStoredObject(device({ kind: 'tv', heightLabel: '  ' })).ok).toBe(false);
+    expect(parseStoredObject(device({ kind: 'tv', heightNote: 'yes' })).ok).toBe(false);
+  });
+});

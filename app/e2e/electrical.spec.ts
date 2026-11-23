@@ -372,3 +372,59 @@ test.describe('EZD-602 device toolbar', () => {
     await expect(tid(page, 'device-toolbar')).toHaveCount(0);
   });
 });
+
+// EZD-603 AC-EZD-603-1 "The toggle shows the note on the plan for that device only." (S06 Controls "Device height note
+// toggle ... Inspector, on a selected device | Shows a height note (e.g. "MW +66"") on the plan for that device. | Off
+// by default. Edit model."; board S06Electrical "Height notes Off / On"; vault/build/assumptions.md EZD-603).
+test.describe('EZD-603 device height notes', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  test('AC-1 the inspector toggle shows MW +66" on the plan for that device only', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids, user } = await fixtureS(EDITOR);
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await page.keyboard.press('e');
+    await seed(page);
+    const notes = () =>
+      page.evaluate(() =>
+        (
+          window as unknown as {
+            __ezdraftPlan: { drawnTexts(): Array<{ objectId: string; text: string }> };
+          }
+        ).__ezdraftPlan
+          .drawnTexts()
+          .filter((t) => /\+\d+"$/.test(t.text)),
+      );
+    // Off by default: no device has a note.
+    expect(await notes()).toEqual([]);
+
+    // Select the first device from the Devices tab; its inspector shows the note toggle, off.
+    await tid(page, 'electrical-tab-devices').click();
+    await page.locator(`[data-testid="device-row"][data-device-id="${DEVICE_1}"]`).click();
+    await expect(tid(page, 'device-height-note-toggle')).not.toBeChecked();
+    await tid(page, 'device-heightLabel').fill('MW');
+    await tid(page, 'device-heightLabel').press('Enter');
+    await tid(page, 'device-height').fill('66');
+    await tid(page, 'device-height').press('Enter');
+    // A label and height alone draw nothing while the toggle is off.
+    await expect(tid(page, 'device-height')).toHaveValue(`5' 6"`);
+    expect(await notes()).toEqual([]);
+    await tid(page, 'device-height-note-toggle').check();
+    await expect.poll(notes).toEqual([{ objectId: DEVICE_1, text: 'MW +66"' }]);
+
+    // The left panel's Height notes Off hides it; On shows it again.
+    await tid(page, 'electrical-height-notes-off').click();
+    await expect.poll(notes).toEqual([]);
+    await tid(page, 'electrical-height-notes-on').click();
+    await expect.poll(notes).toEqual([{ objectId: DEVICE_1, text: 'MW +66"' }]);
+  });
+});

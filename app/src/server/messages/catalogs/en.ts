@@ -2646,6 +2646,10 @@ export const en = {
   'office.electrical.chip.lighting': 'Lighting',
   'office.electrical.chip.home_runs': 'Home runs',
   'office.electrical.chip.low_voltage': 'Low voltage',
+  // EZD-603: the left panel's Height notes switch (board S06Electrical "Height notes Off / On").
+  'office.electrical.height_notes': 'Height notes',
+  'office.electrical.height_notes_off': 'Off',
+  'office.electrical.height_notes_on': 'On',
   'office.electrical.footer.circuits': { one: '{count} circuit', other: '{count} circuits' },
   'office.electrical.footer.spaces': { one: '{count} space', other: '{count} spaces' },
   'office.electrical.va': '{va} VA',
@@ -2929,6 +2933,12 @@ export const en = {
   'office.device.type.edit_failed': 'The fixture type could not be changed',
   // EZD-515: a fan's blade span and its clearance warning lines (S05 Validation).
   'office.device.blade_span': 'Blade span',
+  // EZD-603: a device's height note in the inspector (S06 Device height note toggle; vault/build/assumptions.md).
+  'office.device.height_note.heading': 'Height note',
+  'office.device.height_note.show': 'Show on plan',
+  'office.device.height_note.label': 'Label',
+  'office.device.height_note.height': 'Height',
+  'office.device.height_note.edit_failed': 'The height note could not be changed',
   'office.device.fan_clearance.wall': 'Fan blade is {gap} from a wall. Clearance is {clearance}.',
   'office.device.fan_clearance.beam': 'Fan blade is {gap} from a beam. Clearance is {clearance}.',
   // EZD-508: the left panel's fixture schedule (S05 Fixture schedule rows; board S05Ceiling "Fixture schedule", "×8").

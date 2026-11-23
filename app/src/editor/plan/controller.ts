@@ -33,6 +33,7 @@ import type { ModelStore } from '../model/model-store';
 import { chosenFloor, type FloorChoice } from '../floors/floors';
 import type { Objects } from '../model/patches';
 import { roomFieldsModule as planDetails } from '../layers/room-fields-module';
+import { heightNotesShown } from '../electrical/height-notes-shown';
 import {
   buildPlanBatches,
   drawingBounds,
@@ -291,7 +292,14 @@ export function createPlanController(
     const objects = o.store.getState().objects;
     const floor = planDrawingList(
       objects,
-      { roomAreaSqFt: derived.roomAreaSqFt, extraItems: details?.planDetailItems },
+      {
+        roomAreaSqFt: derived.roomAreaSqFt,
+        // EZD-603: the left panel's Height notes switch.
+        extraItems: details
+          ? (objs, lvl, pt) =>
+              details.planDetailItems(objs, lvl, pt, { heightNotes: heightNotesShown.get() })
+          : undefined,
+      },
       phase,
       chosenFloor(o.floors),
     );
@@ -447,6 +455,12 @@ export function createPlanController(
           if (next === shownFloor) return;
           refreshAll();
         });
+
+  // EZD-603: the left panel's Height notes switch redraws as a View change does.
+  const unsubscribeHeightNotes = heightNotesShown.subscribe(() => {
+    if (disposed) return;
+    refreshAll();
+  });
 
   const zoomBy = (factor: number) => {
     const size = regionSize();
@@ -782,6 +796,7 @@ export function createPlanController(
       unsubscribe();
       unsubscribePhase();
       unsubscribeFloors();
+      unsubscribeHeightNotes();
       input?.dispose();
       input = null;
       detachCanvas();

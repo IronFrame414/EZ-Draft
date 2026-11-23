@@ -9,7 +9,9 @@ import {
   type ModelObject,
   type Point,
 } from '@ezdraft/geometry';
+import { heightNoteText } from '../../editor/electrical/height-note';
 import { roomTransitions } from '../../editor/layers/floor-transitions';
+import { PT_TO_MODEL_IN } from '../../editor/plan/glyph-atlas';
 
 // The radius of a detector's circle in model inches (vault/build/assumptions.md EZD-229).
 export const DETECTOR_RADIUS_IN = 4;
@@ -51,9 +53,15 @@ export const EQUIPMENT_TEXT = { air_handler: 'AH', condenser: 'CU' } as const;
 // EZD-731: an air handler or a condenser is its outline with its letters at the centre.
 // EZD-507: an access panel draws as the attic hatch; a recessed light is a plain circle; a ceiling fan is its circle
 // with three blades; a speaker, camera or Wi-Fi AP is a circle with its letters, as a detector.
+// EZD-603 (S06 "Device height note toggle ... Shows a height note (e.g. "MW +66"") on the plan for that device";
+// AC-EZD-603-1; board S06Electrical "W +66"" beside the device; vault/build/assumptions.md EZD-603): a device whose
+// note is on, with a height, gets its note as text to the right of its symbol, on the device's own layer and id.
+// `heightNotes` false (the left panel's Height notes Off) draws none.
+export const HEIGHT_NOTE_GAP_IN = 2;
 export function existingDetailItems(
   objects: readonly ModelObject[],
   textPt: number,
+  opts: { heightNotes?: boolean } = {},
 ): DrawingItem[] {
   const out: DrawingItem[] = [];
   const font = DRAWING_FONTS['dm-mono-400'];
@@ -105,6 +113,25 @@ export function existingDetailItems(
     } else if (o.type === 'device') {
       const center = o.data.geometry.point;
       const kind = o.data.attributes.kind;
+      const note = opts.heightNotes === false ? null : heightNoteText(o.data.attributes);
+      if (note !== null) {
+        const widthPt = measureTextPt(font, note, textPt);
+        const r = kind === 'ceiling_fan' ? FAN_RADIUS_IN : DETECTOR_RADIUS_IN;
+        out.push({
+          ...base,
+          kind: 'text',
+          text: note,
+          font: 'dm-mono-400',
+          sizePt: textPt,
+          widthPt,
+          at: {
+            x: center.x + r + HEIGHT_NOTE_GAP_IN + (widthPt * PT_TO_MODEL_IN) / 2,
+            y: center.y,
+          },
+          rotationDeg: 0,
+          align: 'center',
+        });
+      }
       const circle = (radius: number): DrawingItem => ({
         ...base,
         kind: 'arc',
@@ -200,10 +227,15 @@ export function transitionItems(
 }
 
 // Both, as the plan's `extraItems`.
+// EZD-603: `opts.heightNotes` is the left panel's Height notes switch (on when absent).
 export function planDetailItems(
   objects: readonly ModelObject[],
   level: string,
   textPt: number,
+  opts: { heightNotes?: boolean } = {},
 ): DrawingItem[] {
-  return [...existingDetailItems(objects, textPt), ...transitionItems(objects, level, textPt)];
+  return [
+    ...existingDetailItems(objects, textPt, opts),
+    ...transitionItems(objects, level, textPt),
+  ];
 }

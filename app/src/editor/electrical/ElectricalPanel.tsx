@@ -27,6 +27,7 @@ import {
   type DeviceRow,
 } from './electrical';
 import styles from './ElectricalPanel.module.css';
+import { heightNotesShown } from './height-notes-shown';
 
 export type ElectricalTab = 'circuits' | 'devices' | 'panel';
 
@@ -110,6 +111,12 @@ export function ElectricalPanel({
   const [panelId, setPanelId] = useState<string | null>(null);
   const [circuitId, setCircuitId] = useState<string | null>(null);
   const [chips, setChips] = useState<Record<ShowChip, boolean>>({ ...SHOW_CHIPS_DEFAULT });
+  // EZD-603 (board S06Electrical "Height notes Off / On"): shows or hides every device note that is turned on.
+  const notesShown = useSyncExternalStore(
+    heightNotesShown.subscribe,
+    heightNotesShown.get,
+    heightNotesShown.get,
+  );
 
   const panels = useMemo(() => panelRows(objects), [objects]);
   const panel = panels.find((p) => p.id === panelId) ?? panels[0] ?? null;
@@ -299,6 +306,29 @@ export function ElectricalPanel({
                 {t(`office.electrical.chip.${c}`)}
               </button>
             ))}
+          </div>
+          <div className={styles.notes} data-testid="electrical-height-notes">
+            <span>{t('office.electrical.height_notes')}</span>
+            <span
+              className={styles.toggle}
+              role="group"
+              aria-label={t('office.electrical.height_notes')}
+            >
+              {([false, true] as const).map((v) => (
+                <button
+                  key={String(v)}
+                  type="button"
+                  className={`${styles.toggleSeg} ${notesShown === v ? styles.toggleOn : ''} ${touch.target}`}
+                  aria-pressed={notesShown === v}
+                  data-testid={`electrical-height-notes-${v ? 'on' : 'off'}`}
+                  onClick={() => heightNotesShown.set(v)}
+                >
+                  {t(
+                    v ? 'office.electrical.height_notes_on' : 'office.electrical.height_notes_off',
+                  )}
+                </button>
+              ))}
+            </span>
           </div>
         </div>
       </div>

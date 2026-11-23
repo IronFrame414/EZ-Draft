@@ -90,6 +90,14 @@ export const deviceDataSchema = z.strictObject({
     // EZD-515 (S05 Validation "Ceiling fan blade clearance"; vault/build/assumptions.md EZD-515): a fan's blade span,
     // tip to tip, in inches; absent reads as DEFAULT_FAN_BLADE_SPAN_IN. Optional, so the version stays.
     bladeSpan: z.number().positive().nullable().optional(),
+    // EZD-603 (S06 Controls "Device height note toggle ... Shows a height note (e.g. "MW +66"") on the plan for that
+    // device. | Off by default."; R24 #36; 03f:13 "receptacles (GFCI/AFCI, height, circuit)"; vault/build/assumptions.md
+    // EZD-603): the per-device note toggle (absent reads as off), the note's optional label ("MW") and the device's
+    // height above the floor in inches (to its center). All optional, so every stored device stays valid and the
+    // version stays.
+    heightNote: z.boolean().optional(),
+    heightLabel: z.string().trim().min(1).max(16).nullable().optional(),
+    height: z.number().positive().nullable().optional(),
   }),
 });
 export type DeviceData = z.infer<typeof deviceDataSchema>;

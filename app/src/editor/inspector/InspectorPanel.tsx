@@ -71,7 +71,6 @@ import { PinPanel } from './PinPanel';
 import { BeamPanel } from '../tools/BeamPanel';
 import { CeilingFlags, DevicePanel } from '../tools/DevicePanel';
 import { SwitchZoneInspector } from '../tools/SwitchZonePanel';
-import { fixtureTypeView } from '../tools/fixture-type';
 import { EngineerNoteForm } from './EngineerNoteForm';
 import styles from './InspectorPanel.module.css';
 
@@ -167,9 +166,8 @@ export function InspectorPanel({
   const beamAlone = ids.length === 1 && isType(objects, ids[0]!, 'beam') ? ids[0]! : null;
   // EZD-510: one switching zone alone.
   const zoneAlone = ids.length === 1 && isType(objects, ids[0]!, 'switch_zone') ? ids[0]! : null;
-  // EZD-507: one light or fan alone.
-  const fixtureAlone =
-    ids.length === 1 && fixtureTypeView(objects, ids[0]!) !== null ? ids[0]! : null;
+  // EZD-507: one light or fan alone. EZD-603: any one device alone (each has its height note).
+  const deviceAlone = ids.length === 1 && isType(objects, ids[0]!, 'device') ? ids[0]! : null;
 
   // EZD-213c D-Panel: the gap of the one selected wall.
   const drawingUi = useSyncExternalStore(
@@ -265,12 +263,12 @@ export function InspectorPanel({
       <SwitchZoneInspector key={zoneAlone} store={store} zoneId={zoneAlone} canEdit={canEdit} />
     );
 
-  if (fixtureAlone !== null)
+  if (deviceAlone !== null)
     return (
       <DevicePanel
-        key={fixtureAlone}
+        key={deviceAlone}
         store={store}
-        deviceId={fixtureAlone}
+        deviceId={deviceAlone}
         canEdit={canEdit}
         fanClearance={fanClearance}
       />

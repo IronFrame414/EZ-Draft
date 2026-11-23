@@ -64,7 +64,18 @@ export async function signInAs(page: Page, rawEmail: string): Promise<SignedIn> 
     if (!(await hasActiveMembership(email))) throw new Error(`no active membership for ${email}`);
     await ensureAuthUser(email);
     const token = await hashedToken(email);
-    await page.goto(`/auth/confirm?token_hash=${encodeURIComponent(token)}&type=email`);
+    // EZD-603 (gate flake, conflict-list B6): a page whose session was just ended redirects itself to /sign-in, and
+    // that redirect can land while this goto is under way ("interrupted by another navigation"). The token is only
+    // spent by confirm-submit, so let the redirect finish and go again. Any other error, or a second interruption,
+    // still fails.
+    const confirmUrl = `/auth/confirm?token_hash=${encodeURIComponent(token)}&type=email`;
+    try {
+      await page.goto(confirmUrl);
+    } catch (e) {
+      if (!/interrupted by another navigation/.test(String(e))) throw e;
+      await page.waitForLoadState('load');
+      await page.goto(confirmUrl);
+    }
     await page.getByTestId('confirm-submit').click();
     const errorBox = page.getByTestId('confirm-error');
     await Promise.race([

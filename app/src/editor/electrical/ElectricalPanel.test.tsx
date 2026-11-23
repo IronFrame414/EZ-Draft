@@ -138,3 +138,25 @@ describe('EZD-601 electrical left panel', () => {
     expect(textOf(one(html, 'electrical-footer-va').inner)).toBe('0 VA');
   });
 });
+
+// EZD-603 (board S06Electrical left panel "Height notes  Off | On" with On chosen; vault/build/assumptions.md EZD-603):
+// the switch that shows or hides every device height note that is on.
+describe('EZD-603 Height notes switch', () => {
+  it('Height notes Off and On under the Show chips, On by default; Off hides the notes', async () => {
+    const { heightNotesShown } = await import('./height-notes-shown');
+    const html = render(electricalObjects());
+    expect(textOf(one(html, 'electrical-height-notes').inner)).toContain('Height notes');
+    expect(textOf(one(html, 'electrical-height-notes-off').inner)).toBe('Off');
+    expect(textOf(one(html, 'electrical-height-notes-on').inner)).toBe('On');
+    expect(attr(one(html, 'electrical-height-notes-on').attrs, 'aria-pressed')).toBe('true');
+    expect(attr(one(html, 'electrical-height-notes-off').attrs, 'aria-pressed')).toBe('false');
+    heightNotesShown.set(false);
+    try {
+      const off = render(electricalObjects());
+      expect(attr(one(off, 'electrical-height-notes-off').attrs, 'aria-pressed')).toBe('true');
+      expect(attr(one(off, 'electrical-height-notes-on').attrs, 'aria-pressed')).toBe('false');
+    } finally {
+      heightNotesShown.set(true);
+    }
+  });
+});
