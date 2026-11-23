@@ -26021,6 +26021,612 @@
     "AC-EZD-1922-3"
    ],
    "acs_source": "josh-2026-11-23"
+  },
+  {
+   "id": "EZD-1930",
+   "phase": 10,
+   "title": "Security headers: frame-ancestors 'self', nosniff, Permissions-Policy",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 S6 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1930-1",
+    "AC-EZD-1930-2",
+    "AC-EZD-1930-3",
+    "AC-EZD-1930-4"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1931",
+   "phase": 10,
+   "title": "One gate for /dev and /api/dev in the request proxy",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 S7 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1931-1",
+    "AC-EZD-1931-2",
+    "AC-EZD-1931-3",
+    "AC-EZD-1931-4"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1932",
+   "phase": 10,
+   "title": "Database and server hardening: function defaults fail closed, server-only secret files, deny-all table tests",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 S3, S8, S2 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1932-1",
+    "AC-EZD-1932-2",
+    "AC-EZD-1932-3",
+    "AC-EZD-1932-4",
+    "AC-EZD-1932-5"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1933",
+   "phase": 10,
+   "title": "Signed-out error-alert functions cannot be used to flood the owner with email",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 S3 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1933-1",
+    "AC-EZD-1933-2",
+    "AC-EZD-1933-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1934",
+   "phase": 10,
+   "title": "Move dev-only glob and minimatch to patched versions",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 S10 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1934-1",
+    "AC-EZD-1934-2",
+    "AC-EZD-1934-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1935",
+   "phase": 10,
+   "title": "Fix: conflict-list B6 fails at random after the member's sessions end",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 Area 2 conflict-list B6 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1935-1",
+    "AC-EZD-1935-2",
+    "AC-EZD-1935-3",
+    "AC-EZD-1935-4"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1936",
+   "phase": 10,
+   "title": "Fix: settings-users B8 iPad touch-target test fails at random",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 Area 2 settings-users B8 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1936-1",
+    "AC-EZD-1936-2",
+    "AC-EZD-1936-3",
+    "AC-EZD-1936-4"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1937",
+   "phase": 10,
+   "title": "Fix: project-offline EZD-1401 offline open fails at random on iPad",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 Area 2 project-offline (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1937-1",
+    "AC-EZD-1937-2",
+    "AC-EZD-1937-3",
+    "AC-EZD-1937-4"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1938",
+   "phase": 10,
+   "title": "Permission tests count from the catalog; expected refresh refusals stay out of the gate log",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 Area 2 permissions T11, R4 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1938-1",
+    "AC-EZD-1938-2",
+    "AC-EZD-1938-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1939",
+   "phase": 10,
+   "title": "Loop: failure lines in loop.log name the failing tests",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 Area 2 triage, W5 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1939-1",
+    "AC-EZD-1939-2",
+    "AC-EZD-1939-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1940",
+   "phase": 10,
+   "title": "Loop: retried tickets go first, not last",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 W1 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1940-1",
+    "AC-EZD-1940-2",
+    "AC-EZD-1940-3",
+    "AC-EZD-1940-4"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1941",
+   "phase": 10,
+   "title": "Loop: architecture.md, database.types.ts and single migration files stop blocking lanes",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 W2 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); editor consolidation plan section 5; audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1941-1",
+    "AC-EZD-1941-2",
+    "AC-EZD-1941-3",
+    "AC-EZD-1941-4",
+    "AC-EZD-1941-5"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1942",
+   "phase": 10,
+   "title": "Loop: footprints include the tests of the files they claim",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 W3, R4 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1942-1",
+    "AC-EZD-1942-2",
+    "AC-EZD-1942-3",
+    "AC-EZD-1942-4"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1943",
+   "phase": 10,
+   "title": "Loop: small fixes (check timer SIGKILL, loop.log commit error)",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 W6, W8 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1943-1",
+    "AC-EZD-1943-2",
+    "AC-EZD-1943-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1944",
+   "phase": 10,
+   "title": "Loop: a retry command that keeps a history of set-asides",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 W7 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1944-1",
+    "AC-EZD-1944-2",
+    "AC-EZD-1944-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1945",
+   "phase": 10,
+   "title": "Loop: a git-config refusal pauses lanes instead of burning fix rounds",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 Incident, W10 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1945-1",
+    "AC-EZD-1945-2",
+    "AC-EZD-1945-3",
+    "AC-EZD-1945-4"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1946",
+   "phase": 10,
+   "title": "Performance trend recorded on develop every day",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 B2, B1 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1946-1",
+    "AC-EZD-1946-2",
+    "AC-EZD-1946-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1947",
+   "phase": 10,
+   "title": "Gate: scripts tests run outside the heavy lock",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 P3 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1947-1",
+    "AC-EZD-1947-2",
+    "AC-EZD-1947-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1948",
+   "phase": 10,
+   "title": "Builders run targeted tests and leave the full gate to the loop",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 P4 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1948-1",
+    "AC-EZD-1948-2",
+    "AC-EZD-1948-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1949",
+   "phase": 10,
+   "title": "Speed up the slowest unit and database tests",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 P1 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1949-1",
+    "AC-EZD-1949-2",
+    "AC-EZD-1949-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1950",
+   "phase": 10,
+   "title": "Speed up the money-pages e2e sweep",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 P2 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1950-1",
+    "AC-EZD-1950-2"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1951",
+   "phase": 10,
+   "title": "Remove the retired build machinery from scripts/",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 B4, R1, R2 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1951-1",
+    "AC-EZD-1951-2",
+    "AC-EZD-1951-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1952",
+   "phase": 10,
+   "title": "Shrink the vault in every worktree: snapshots and archive out of the working tree",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 B5 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1952-1",
+    "AC-EZD-1952-2",
+    "AC-EZD-1952-3",
+    "AC-EZD-1952-4"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1953",
+   "phase": 10,
+   "title": "Split assumptions.md per ticket and build Josh's per-screen wording checklist",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 B6, O1 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1953-1",
+    "AC-EZD-1953-2",
+    "AC-EZD-1953-3",
+    "AC-EZD-1953-4"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1954",
+   "phase": 10,
+   "title": "Design tokens: a type scale and no literal font sizes",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 U5 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1954-1",
+    "AC-EZD-1954-2",
+    "AC-EZD-1954-3",
+    "AC-EZD-1954-4"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1955",
+   "phase": 10,
+   "title": "Acceptance criteria are traceable to tests",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 O2 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1955-1",
+    "AC-EZD-1955-2",
+    "AC-EZD-1955-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1956",
+   "phase": 10,
+   "title": "Office lists use the shared EmptyState (look kept)",
+   "depends_raw": "EZD-1920",
+   "spec_ref": "Audit 2026-11-23 U6 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1920"
+   ],
+   "acs": [
+    "AC-EZD-1956-1",
+    "AC-EZD-1956-2",
+    "AC-EZD-1956-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1957",
+   "phase": 10,
+   "title": "Docs: mockup glitch note and setup warnings",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 U10, O7, Incident (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1957-1",
+    "AC-EZD-1957-2"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1958",
+   "phase": 10,
+   "title": "Backups: the loop flags a backup check that has not passed in 8 days",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 O4 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1958-1",
+    "AC-EZD-1958-2",
+    "AC-EZD-1958-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1959",
+   "phase": 10,
+   "title": "Bring the base local database up to date for live UI checks",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23 O7, Area 7 finding 11 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1959-1",
+    "AC-EZD-1959-2",
+    "AC-EZD-1959-3"
+   ],
+   "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1960",
+   "phase": 10,
+   "title": "Live signed-in UI audit pass (report only)",
+   "depends_raw": "EZD-1959",
+   "spec_ref": "Audit 2026-11-23 Area 7 U4, U12, Area 7 finding 11 (audit/REPORT.md on branch claude/audit-2026-11-23-dca1a9); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1959"
+   ],
+   "acs": [
+    "AC-EZD-1960-1",
+    "AC-EZD-1960-2",
+    "AC-EZD-1960-3"
+   ],
+   "acs_source": "audit-2026-11-23"
   }
  ],
  "recut_applied": "2026-10-20"
