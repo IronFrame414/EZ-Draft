@@ -13,7 +13,7 @@
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-12);
   box-shadow: var(--ez-shadow-popover);
-  font: 400 13px var(--ez-font-sans);
+  font: 400 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-ink);
 }
 
@@ -72,7 +72,7 @@
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-7);
   background: var(--ez-surface);
-  font: 500 13px var(--ez-font-sans);
+  font: 500 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-ink);
   cursor: pointer;
 }

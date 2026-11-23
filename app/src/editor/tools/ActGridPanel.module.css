@@ -2,7 +2,7 @@
    label, the Balance button in the RoomCeiling button style, and the legend's border text. Colours and radius are
    tokens; lengths are plain px. */
 .label {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-500);
 }
@@ -13,7 +13,7 @@
   border-radius: var(--ez-radius-8);
   background: var(--ez-surface);
   color: var(--ez-ink);
-  font: 500 14px var(--ez-font-sans);
+  font: 500 var(--ez-text-14) var(--ez-font-sans);
   cursor: pointer;
 }
 

@@ -16,7 +16,7 @@
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-10);
   background: var(--ez-surface);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   font-weight: 500;
   cursor: pointer;
   text-align: left;
@@ -60,7 +60,7 @@
 
 .size {
   font-family: var(--ez-font-mono);
-  font-size: 11px;
+  font-size: var(--ez-text-11);
   color: var(--ez-slate-400);
 }
 
@@ -75,13 +75,13 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
   font-weight: 500;
 }
 
 .input {
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   padding: 8px 10px;
   border: 1px solid var(--ez-border);
@@ -94,7 +94,7 @@
   gap: 8px;
   min-height: 38px;
   font-family: var(--ez-font-mono);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 /* As NewProject.module.css: .input loads after touch.module.css, so its 38px min-height would win over
@@ -113,14 +113,14 @@
 
 .area {
   font-family: var(--ez-font-mono);
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   color: var(--ez-ink);
   padding: 7px 0;
 }
 
 .accepts {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-400);
 }
 
@@ -132,6 +132,6 @@
 
 .error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-red);
 }

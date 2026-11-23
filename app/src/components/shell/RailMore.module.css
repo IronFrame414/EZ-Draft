@@ -27,7 +27,7 @@
   background: transparent;
   color: var(--ez-slate-700);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   text-align: left;
   cursor: pointer;
 }

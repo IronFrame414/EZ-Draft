@@ -28,7 +28,7 @@
 
 .title {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--ez-text-17);
   font-weight: 600;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -38,6 +38,6 @@
 
 .subtitle {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }

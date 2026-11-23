@@ -17,5 +17,5 @@
   z-index: 2;
   margin: 0;
   font-family: var(--ez-font-mono);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
 }

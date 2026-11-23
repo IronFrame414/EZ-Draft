@@ -21,7 +21,7 @@
 
 .heading {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   font-weight: 600;
 }
 

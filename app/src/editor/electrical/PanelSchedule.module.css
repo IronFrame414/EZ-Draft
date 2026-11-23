@@ -20,7 +20,7 @@
   border: 0;
   border-radius: var(--ez-radius-8);
   background: transparent;
-  font: 400 13px var(--ez-font-sans);
+  font: 400 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-ink);
   text-align: left;
 }
@@ -43,7 +43,7 @@ button.space:hover {
   padding: 2px 4px;
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-8);
-  font: 500 11px var(--ez-font-mono);
+  font: 500 var(--ez-text-11) var(--ez-font-mono);
   text-align: center;
 }
 
@@ -76,13 +76,13 @@ button.space:hover {
 }
 
 .meta {
-  font: 400 11px var(--ez-font-mono);
+  font: 400 var(--ez-text-11) var(--ez-font-mono);
   color: var(--ez-slate-500);
 }
 
 .left {
   margin: 8px 4px 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -123,26 +123,26 @@ button.space:hover {
 
 .dialogTitle {
   margin: 0 0 4px;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
 }
 
 .sub {
   margin: 0 0 12px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .table th {
   padding: 6px 8px;
   border-bottom: 1px solid var(--ez-border);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 500;
   color: var(--ez-slate-500);
   text-align: left;
@@ -180,7 +180,7 @@ button.space:hover {
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-8);
   background: transparent;
-  font: 500 14px var(--ez-font-sans);
+  font: 500 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   cursor: pointer;
 }

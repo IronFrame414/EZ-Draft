@@ -67,7 +67,7 @@ describe('EZD-424 settings status bar fit', () => {
     for (const d of [
       'gap: 20px',
       'padding: 0 16px',
-      'font-size: 12px',
+      'font-size: var(--ez-text-12)',
       'font-family: var(--ez-font-mono)',
       'height: var(--ez-status-bar-height)',
     ]) {

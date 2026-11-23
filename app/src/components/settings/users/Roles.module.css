@@ -11,7 +11,7 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .rolesTitle {
@@ -20,7 +20,7 @@
 }
 
 .rolesLimit {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-400);
 }
 
@@ -53,13 +53,13 @@
 }
 
 .cardName {
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .cardSummary {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -70,7 +70,7 @@
   gap: 6px;
   border-style: dashed;
   color: var(--ez-cobalt);
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   font-weight: 600;
 }
 
@@ -96,7 +96,7 @@
   display: flex;
   gap: 6px;
   align-items: flex-start;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -105,7 +105,7 @@
 }
 
 .input {
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   padding: 9px 10px;
   border: 1px solid var(--ez-border);
@@ -127,14 +127,14 @@
 
 .fieldError {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-red);
 }
 
 .labelRow {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -143,7 +143,7 @@
   display: flex;
   gap: 6px;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -167,7 +167,7 @@
   background: none;
   color: var(--ez-cobalt);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   cursor: pointer;
 }
 
@@ -204,7 +204,7 @@
 
 .dialogTitle {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
 }
 
@@ -227,7 +227,7 @@
   background: var(--ez-surface);
   color: var(--ez-slate-700);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   cursor: pointer;
 }
 

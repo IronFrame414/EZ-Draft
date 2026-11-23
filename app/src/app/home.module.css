@@ -11,7 +11,7 @@
 
 .message {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--ez-text-15);
   line-height: 1.45;
   color: var(--ez-ink);
 }

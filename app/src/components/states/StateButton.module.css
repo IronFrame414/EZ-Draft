@@ -4,7 +4,7 @@
   justify-content: center;
   gap: 6px;
   padding: 9px 14px;
-  font: 500 14px var(--ez-font-sans);
+  font: 500 var(--ez-text-14) var(--ez-font-sans);
   border: 1px solid;
   border-radius: var(--ez-radius-8);
   cursor: pointer;
@@ -42,7 +42,7 @@
 
 .compact {
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   font-weight: 600;
 }
 

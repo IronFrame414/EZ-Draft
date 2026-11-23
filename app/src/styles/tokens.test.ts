@@ -1,7 +1,7 @@
 // EZD-010a · T1, T2: app/src/styles/tokens.css and tokens.ts hold the 36 values of
 // vault/spec/sections/04-app-shell-and-global-ui.md "Frame and visual system (Studio)" (lines 7-11).
 // Expected values: vault/plans/EZD-010a.md Step 1 table (copied from 04), never from the code under test.
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -126,12 +126,78 @@ describe('EZD-010a design tokens', () => {
     }
     expectInOrder(TOKENS.map((t) => t.name as string));
 
-    // (b) every group is one of the five
-    const groups = ['color', 'status', 'radius', 'shadow', 'frame'];
+    // (b) every group is one of the five, plus EZD-1954's type scale
+    const groups = ['color', 'status', 'radius', 'shadow', 'frame', 'type'];
     for (const t of TOKENS) expect(groups, t.name).toContain(t.group);
 
     // (c) the full name/value sequence equals the one parsed from tokens.css
     const css = parseCss().decls.map((d) => [d.name, d.value]);
     expect(TOKENS.map((t) => [t.name, t.value])).toEqual(css);
+  });
+});
+
+// EZD-1954 · audit 2026-11-23 U5: the type scale. Expected sizes are read from the Studio mockup HTML
+// (vault/mockups/html/project/*.html), never from the code under test.
+const mockupDir = path.join(here, '..', '..', '..', 'vault', 'mockups', 'html', 'project');
+
+/** Every px font size the mockup HTML writes, in font-size declarations and the font shorthand. */
+function mockupFontSizes(): Set<number> {
+  const sizes = new Set<number>();
+  for (const f of readdirSync(mockupDir).filter((n) => n.endsWith('.html'))) {
+    const html = readFileSync(path.join(mockupDir, f), 'utf8');
+    for (const m of html.matchAll(/font-size:\s*([0-9.]+)px/g)) sizes.add(Number(m[1]));
+    for (const m of html.matchAll(/font:([^;"}]*)/g)) {
+      const px = /(?:^|\s)([0-9.]+)px/.exec(m[1]);
+      if (px) sizes.add(Number(px[1]));
+    }
+  }
+  return sizes;
+}
+
+describe('EZD-1954 type scale', () => {
+  const typeTokens = TOKENS.filter((t) => t.group === 'type');
+  const screen = typeTokens.filter((t) => !t.name.startsWith('--ez-text-drawing-'));
+
+  it('AC-EZD-1954-1: tokens.css has --ez-text-* tokens, each a size the Studio mockup HTML uses', () => {
+    const mockup = mockupFontSizes();
+    // the audit saw 11, 12, 13, 14 and 18 px in the mockups; the scale holds at least those
+    for (const px of [11, 12, 13, 14, 18]) expect(mockup.has(px), `mockup uses ${px}px`).toBe(true);
+    const names = screen.map((t) => t.name);
+    for (const px of [11, 12, 13, 14, 18]) expect(names).toContain(`--ez-text-${px}`);
+    const decls = parseCss().decls;
+    for (const t of screen) {
+      const m = /^([0-9.]+)px$/.exec(t.value);
+      expect(m, t.name).not.toBeNull();
+      const px = Number(m![1]);
+      expect(t.name, 'name carries the size').toBe(`--ez-text-${String(px).replace('.', '-')}`);
+      expect(mockup.has(px), `${t.name}: ${px}px appears in the mockup HTML`).toBe(true);
+      expect(decls.find((d) => d.name === t.name)?.value, t.name).toBe(t.value);
+    }
+  });
+
+  it('AC-EZD-1954-1: the drawing-unit sizes are only the two SVG label sizes of the cabinet run elevation', () => {
+    const drawing = typeTokens.filter((t) => t.name.startsWith('--ez-text-drawing-'));
+    expect(drawing.map((t) => [t.name, t.value])).toEqual([
+      ['--ez-text-drawing-3', '3px'],
+      ['--ez-text-drawing-3-5', '3.5px'],
+    ]);
+  });
+
+  it('AC-EZD-1954-2: every var(--ez-text-*) a CSS module uses is defined in tokens.css', () => {
+    const defined = new Set(parseCss().decls.map((d) => d.name));
+    const srcDir = path.join(here, '..');
+    const used = new Set<string>();
+    const walk = (dir: string) => {
+      for (const e of readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, e.name);
+        if (e.isDirectory()) walk(full);
+        else if (e.name.endsWith('.module.css')) {
+          for (const m of readFileSync(full, 'utf8').matchAll(/var\((--ez-text-[\w-]+)\)/g)) used.add(m[1]);
+        }
+      }
+    };
+    walk(srcDir);
+    expect(used.size).toBeGreaterThan(0);
+    for (const name of used) expect(defined.has(name), name).toBe(true);
   });
 });

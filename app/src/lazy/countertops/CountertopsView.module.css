@@ -41,7 +41,7 @@
   background: transparent;
   color: var(--ez-ink);
   font-family: var(--ez-font-sans);
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   font-weight: 500;
   cursor: pointer;
 }
@@ -59,7 +59,7 @@
 .hint {
   margin: 0;
   max-width: 320px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -67,7 +67,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -80,7 +80,7 @@
   background: var(--ez-surface);
   color: var(--ez-ink);
   font-family: var(--ez-font-mono);
-  font-size: 14px;
+  font-size: var(--ez-text-14);
 }
 
 .plan {
@@ -195,7 +195,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -208,7 +208,7 @@
   background: var(--ez-surface);
   color: var(--ez-ink);
   font-family: var(--ez-font-mono);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .kinds {
@@ -224,7 +224,7 @@
   background: var(--ez-surface);
   color: var(--ez-ink);
   font-family: var(--ez-font-sans);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   cursor: pointer;
 }
 

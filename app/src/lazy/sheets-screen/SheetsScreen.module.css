@@ -6,7 +6,7 @@
   flex-direction: column;
   min-height: 0;
   height: 100%;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-ink);
 }
 
@@ -30,7 +30,7 @@
   border: 0;
   border-radius: var(--ez-radius-6);
   background: transparent;
-  font: 600 15px var(--ez-font-sans);
+  font: 600 var(--ez-text-15) var(--ez-font-sans);
   color: var(--ez-ink);
   cursor: pointer;
 }
@@ -40,7 +40,7 @@
 }
 
 .setSummary {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -65,7 +65,7 @@
   border: 0;
   border-radius: var(--ez-radius-8);
   background: transparent;
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   text-align: left;
   cursor: pointer;
@@ -99,7 +99,7 @@
 .note {
   margin: 12px 8px;
   color: var(--ez-slate-500);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .group {
@@ -110,7 +110,7 @@
 .groupLabel {
   margin: 0;
   padding: 14px 8px 6px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   font-weight: 600;
   color: var(--ez-slate-500);
 }
@@ -124,7 +124,7 @@
   border: 0;
   border-radius: var(--ez-radius-8);
   background: transparent;
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   text-align: left;
   cursor: pointer;
@@ -155,7 +155,7 @@
   flex: none;
   width: 36px;
   font-family: var(--ez-font-mono);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -173,13 +173,13 @@
   padding: 0 4px;
   border: 1px solid var(--ez-cobalt);
   border-radius: var(--ez-radius-3);
-  font-size: 11px;
+  font-size: var(--ez-text-11);
   color: var(--ez-cobalt-text);
 }
 
 .open {
   flex: none;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-amber-text);
 }
@@ -199,7 +199,7 @@
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-8);
   background: var(--ez-surface);
-  font: 500 14px var(--ez-font-sans);
+  font: 500 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   cursor: pointer;
 }
@@ -212,7 +212,7 @@
   flex-direction: column;
   gap: 6px;
   border-top: 1px solid var(--ez-border);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -260,7 +260,7 @@
 
 .labelPos {
   color: var(--ez-slate-500);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .nav {
@@ -294,7 +294,7 @@
 .zoom {
   min-width: 40px;
   text-align: center;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -375,7 +375,7 @@
 
 .thumbNumber {
   font-family: var(--ez-font-mono);
-  font-size: 11px;
+  font-size: var(--ez-text-11);
   color: var(--ez-slate-500);
 }
 

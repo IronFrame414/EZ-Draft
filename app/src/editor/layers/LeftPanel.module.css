@@ -4,7 +4,7 @@
   flex-direction: column;
   min-height: 0;
   height: 100%;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-ink);
 }
 
@@ -24,7 +24,7 @@
   border-radius: var(--ez-radius-8);
   border: 0;
   background: transparent;
-  font: 500 13px var(--ez-font-sans);
+  font: 500 var(--ez-text-13) var(--ez-font-sans);
   cursor: pointer;
 }
 
@@ -45,7 +45,7 @@
 /* .lbl */
 .lbl {
   display: block;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-500);
   padding: 14px 14px 6px;
@@ -80,7 +80,7 @@
   border-radius: 0;
   margin: 8px 6px 0;
   padding: 10px 8px 6px;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-500);
 }
@@ -151,7 +151,7 @@
   border: 0;
   border-radius: var(--ez-radius-8);
   background: transparent;
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   text-align: left;
   cursor: pointer;
@@ -173,7 +173,7 @@
 }
 
 .area {
-  font: 400 13px var(--ez-font-mono);
+  font: 400 var(--ez-text-13) var(--ez-font-mono);
   color: var(--ez-slate-500);
   flex: none;
 }
@@ -181,7 +181,7 @@
 .none {
   margin: 0;
   padding: 8px 14px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -197,13 +197,13 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
 .input,
 .select {
-  font: 400 14px var(--ez-font-mono);
+  font: 400 var(--ez-text-14) var(--ez-font-mono);
   color: var(--ez-ink);
   padding: 9px 10px;
   border: 1px solid var(--ez-border);
@@ -215,7 +215,7 @@
 
 .plain {
   display: block;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-ink);
   font-family: var(--ez-font-mono);
 }

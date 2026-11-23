@@ -37,7 +37,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-ink);
   background: transparent;
   border: 0;
@@ -57,7 +57,7 @@
 
 .note {
   max-width: 200px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-ink);
   opacity: 0.55;
 }
@@ -76,7 +76,7 @@
 }
 
 .label {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-ink);
   opacity: 0.7;
   margin-right: 2px;
@@ -84,7 +84,7 @@
 
 .choice {
   padding: 4px 8px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-ink);
   background: var(--ez-surface);
   border: 1px solid var(--ez-divider);

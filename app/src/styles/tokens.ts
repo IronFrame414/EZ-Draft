@@ -2,7 +2,7 @@
 export const TOKENS: readonly {
   name: `--ez-${string}`;
   value: string;
-  group: 'color' | 'status' | 'radius' | 'shadow' | 'frame';
+  group: 'color' | 'status' | 'radius' | 'shadow' | 'frame' | 'type';
 }[] = [
   { name: '--ez-cobalt', value: 'oklch(0.55 0.17 262)', group: 'color' },
   { name: '--ez-cobalt-text', value: 'oklch(0.45 0.17 262)', group: 'color' },
@@ -95,4 +95,25 @@ export const TOKENS: readonly {
   { name: '--ez-preview-remove', value: 'oklch(0.55 0.19 28)', group: 'color' },
   { name: '--ez-preview-remove-tint', value: 'oklch(0.97 0.02 28)', group: 'color' },
   { name: '--ez-radius-3', value: '3px', group: 'radius' },
+  // Type scale: font sizes the Studio mockup HTML uses (vault/mockups/html/project); audit 2026-11-23 U5; EZD-1954
+  { name: '--ez-text-7', value: '7px', group: 'type' },
+  { name: '--ez-text-9', value: '9px', group: 'type' },
+  { name: '--ez-text-10', value: '10px', group: 'type' },
+  { name: '--ez-text-11', value: '11px', group: 'type' },
+  { name: '--ez-text-11-5', value: '11.5px', group: 'type' },
+  { name: '--ez-text-12', value: '12px', group: 'type' },
+  { name: '--ez-text-12-5', value: '12.5px', group: 'type' },
+  { name: '--ez-text-13', value: '13px', group: 'type' },
+  { name: '--ez-text-14', value: '14px', group: 'type' },
+  { name: '--ez-text-15', value: '15px', group: 'type' },
+  { name: '--ez-text-16', value: '16px', group: 'type' },
+  { name: '--ez-text-17', value: '17px', group: 'type' },
+  { name: '--ez-text-18', value: '18px', group: 'type' },
+  { name: '--ez-text-20', value: '20px', group: 'type' },
+  { name: '--ez-text-22', value: '22px', group: 'type' },
+  { name: '--ez-text-24', value: '24px', group: 'type' },
+  { name: '--ez-text-28', value: '28px', group: 'type' },
+  // SVG text in drawing units (cabinet run elevation), not screen pixels; EZD-1954
+  { name: '--ez-text-drawing-3', value: '3px', group: 'type' },
+  { name: '--ez-text-drawing-3-5', value: '3.5px', group: 'type' },
 ];

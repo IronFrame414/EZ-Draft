@@ -20,7 +20,7 @@
   background: var(--ez-surface);
   box-shadow: var(--ez-shadow-card);
   color: var(--ez-ink);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .text {

@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .listed,
@@ -27,7 +27,7 @@
   border: 0;
   padding: 0;
   background: none;
-  font: 500 13px var(--ez-font-sans);
+  font: 500 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-cobalt-text);
   text-decoration: underline;
   cursor: pointer;
@@ -58,7 +58,7 @@
   border: 0;
   outline: none;
   background: transparent;
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
 }
 
@@ -118,12 +118,12 @@
 }
 
 .rowName {
-  font: 500 14px var(--ez-font-sans);
+  font: 500 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
 }
 
 .rowSub {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -140,7 +140,7 @@
 .note {
   margin: 0;
   padding: 10px 12px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -148,6 +148,6 @@
   padding: 8px 12px;
   border-top: 1px solid var(--ez-border);
   background: var(--ez-surface-sunken);
-  font: 400 12px var(--ez-font-mono);
+  font: 400 var(--ez-text-12) var(--ez-font-mono);
   color: var(--ez-slate-500);
 }

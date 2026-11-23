@@ -28,7 +28,7 @@
 /* Same as app/src/app/home.module.css .message. */
 .notice {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--ez-text-15);
   line-height: 1.45;
   color: var(--ez-ink);
 }
@@ -63,7 +63,7 @@
   bottom: 12px;
   margin: 0;
   padding: 6px 10px;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
   background: var(--ez-surface);
   border: 1px solid var(--ez-border);

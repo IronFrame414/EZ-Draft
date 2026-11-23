@@ -26,7 +26,7 @@
   border: 0;
   border-radius: var(--ez-radius-8);
   background: none;
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   text-align: left;
   cursor: pointer;
@@ -43,7 +43,7 @@
 }
 
 .count {
-  font: 400 12px var(--ez-font-mono);
+  font: 400 var(--ez-text-12) var(--ez-font-mono);
   color: var(--ez-slate-400);
 }
 
@@ -57,7 +57,7 @@
 
 .empty {
   margin: 8px 0;
-  font: 400 13px var(--ez-font-sans);
+  font: 400 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-slate-500);
 }
 
@@ -72,7 +72,7 @@
   align-items: baseline;
   gap: 8px;
   margin: 0;
-  font: 600 13px var(--ez-font-sans);
+  font: 600 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-ink);
 }
 
@@ -109,16 +109,16 @@
 }
 
 .code {
-  font: 600 13px var(--ez-font-sans);
+  font: 600 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-ink);
 }
 
 .name {
-  font: 400 12px var(--ez-font-sans);
+  font: 400 var(--ez-text-12) var(--ez-font-sans);
   color: var(--ez-slate-500);
 }
 
 .size {
-  font: 400 12px var(--ez-font-mono);
+  font: 400 var(--ez-text-12) var(--ez-font-mono);
   color: var(--ez-slate-500);
 }

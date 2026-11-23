@@ -5,7 +5,7 @@
   padding: 10px 12px 10px 14px;
   border-radius: var(--ez-radius-10);
   border: 1px solid;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-ink);
 }
 

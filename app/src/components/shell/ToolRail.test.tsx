@@ -159,7 +159,7 @@ describe('EZD-012a ToolRail CSS', () => {
       'display: none',
       'position: absolute',
       'left: 52px',
-      'font-size: 12px',
+      'font-size: var(--ez-text-12)',
       'background: var(--ez-ink)',
       'color: var(--ez-surface)',
       'border-radius: var(--ez-radius-6)',

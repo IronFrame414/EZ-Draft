@@ -9,7 +9,7 @@
 }
 
 .heading {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-500);
 }
@@ -41,6 +41,6 @@
 }
 
 .label {
-  font: 400 11px var(--ez-font-mono);
+  font: 400 var(--ez-text-11) var(--ez-font-mono);
   fill: var(--ez-slate-500);
 }

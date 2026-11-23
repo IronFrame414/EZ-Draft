@@ -5,12 +5,12 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
 .input {
-  font: 400 14px var(--ez-font-mono);
+  font: 400 var(--ez-text-14) var(--ez-font-mono);
   color: var(--ez-ink);
   padding: 8px 10px;
   border: 1px solid var(--ez-border);
@@ -25,13 +25,13 @@
 
 .error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-red-text);
 }
 
 .hint {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 .panel {
@@ -52,7 +52,7 @@
 
 .heading {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   font-weight: 600;
   color: var(--ez-ink);
 }
@@ -65,7 +65,7 @@
 
 .kind {
   padding: 4px 8px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-ink);
   background: var(--ez-surface);
   border: 1px solid var(--ez-divider);

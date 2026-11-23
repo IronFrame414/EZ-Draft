@@ -21,7 +21,7 @@
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-12);
   box-shadow: var(--ez-shadow-popover);
-  font: 400 13px var(--ez-font-sans);
+  font: 400 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-ink);
 }
 
@@ -33,7 +33,7 @@
 
 .head h2 {
   margin: 0;
-  font: 600 15px var(--ez-font-sans);
+  font: 600 var(--ez-text-15) var(--ez-font-sans);
 }
 
 .close {
@@ -51,7 +51,7 @@
 
 .sub {
   margin: 0;
-  font: 600 12px var(--ez-font-sans);
+  font: 600 var(--ez-text-12) var(--ez-font-sans);
   color: var(--ez-slate-500);
 }
 

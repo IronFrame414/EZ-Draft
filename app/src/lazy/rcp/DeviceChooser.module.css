@@ -19,7 +19,7 @@
 
 .heading {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   font-weight: 600;
   color: var(--ez-ink);
 }
@@ -32,7 +32,7 @@
 
 .kind {
   padding: 4px 8px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-ink);
   background: var(--ez-surface);
   border: 1px solid var(--ez-divider);

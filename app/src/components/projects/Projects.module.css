@@ -38,7 +38,7 @@
 
 .h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: var(--ez-text-24);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -64,7 +64,7 @@
   background: transparent;
   padding: 7px 12px;
   border-radius: var(--ez-radius-7);
-  font: 500 13px var(--ez-font-sans);
+  font: 500 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-slate-500);
   cursor: pointer;
 }
@@ -89,7 +89,7 @@
   align-items: center;
   gap: 6px;
   padding: 9px 14px;
-  font: 500 14px var(--ez-font-sans);
+  font: 500 var(--ez-text-14) var(--ez-font-sans);
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-8);
   background: var(--ez-surface);
@@ -149,7 +149,7 @@
   background: transparent;
   text-align: left;
   cursor: pointer;
-  font: 500 14px var(--ez-font-sans);
+  font: 500 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
 }
 
@@ -221,12 +221,12 @@
 
 .name {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--ez-text-15);
   font-weight: 600;
 }
 
 .pill {
-  font: 600 12px var(--ez-font-sans);
+  font: 600 var(--ez-text-12) var(--ez-font-sans);
   padding: 4px 9px;
   border-radius: var(--ez-radius-999);
   white-space: nowrap;
@@ -264,7 +264,7 @@
 }
 
 .place {
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -272,7 +272,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -330,7 +330,7 @@
   display: flex;
   align-items: baseline;
   gap: 1px;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -346,7 +346,7 @@
 }
 
 .headTitle {
-  font-size: 15px;
+  font-size: var(--ez-text-15);
   font-weight: 600;
 }
 
@@ -374,14 +374,14 @@
   flex: 1;
   min-width: 0;
   background: transparent;
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   height: var(--ez-touch-target);
 }
 
 .chip {
   font-family: var(--ez-font-mono);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-5);
   padding: 1px 6px;
@@ -392,7 +392,7 @@
   align-items: center;
   gap: 6px;
   padding: 9px 10px;
-  font: 500 14px var(--ez-font-sans);
+  font: 500 var(--ez-text-14) var(--ez-font-sans);
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-8);
   background: var(--ez-surface);
@@ -440,7 +440,7 @@
   align-items: flex-start;
   gap: 10px;
   padding: 16px 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -471,7 +471,7 @@
 }
 
 .newItemSub {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 400;
   color: var(--ez-slate-500);
 }
@@ -498,7 +498,7 @@
   border: 2px dashed var(--ez-cobalt);
   border-radius: var(--ez-radius-14);
   background: var(--ez-cobalt-tint);
-  font: 600 16px var(--ez-font-sans);
+  font: 600 var(--ez-text-16) var(--ez-font-sans);
   color: var(--ez-cobalt-text);
   pointer-events: none;
 }
@@ -551,7 +551,7 @@
 
 .menuLabel {
   padding: 8px 12px 4px;
-  font: 600 12px var(--ez-font-sans);
+  font: 600 var(--ez-text-12) var(--ez-font-sans);
   color: var(--ez-slate-500);
 }
 
@@ -573,7 +573,7 @@
   padding: 6px 10px;
   border: 1px solid var(--ez-cobalt);
   border-radius: var(--ez-radius-8);
-  font: 600 15px var(--ez-font-sans);
+  font: 600 var(--ez-text-15) var(--ez-font-sans);
   color: var(--ez-ink);
 }
 
@@ -605,13 +605,13 @@
 
 .deleteTitle {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
 }
 
 .deleteMessage {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-slate-500);
 }
 
@@ -619,7 +619,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font: 600 13px var(--ez-font-sans);
+  font: 600 var(--ez-text-13) var(--ez-font-sans);
 }
 
 .deleteInput {
@@ -628,7 +628,7 @@
   padding: 8px 10px;
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-8);
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
 }
 

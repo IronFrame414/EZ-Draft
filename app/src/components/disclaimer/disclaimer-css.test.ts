@@ -43,7 +43,7 @@ const EXPECTED: { file: string; selector: string; decls: string[] }[] = [
       'text-overflow: ellipsis',
       'white-space: nowrap',
       'font-family: var(--ez-font-sans)',
-      'font-size: 12px',
+      'font-size: var(--ez-text-12)',
       'line-height: 16px',
       'color: var(--ez-slate-500)',
     ],
@@ -55,7 +55,7 @@ const EXPECTED: { file: string; selector: string; decls: string[] }[] = [
       'margin: 0',
       'padding: 16px',
       'font-family: var(--ez-font-sans)',
-      'font-size: 12px',
+      'font-size: var(--ez-text-12)',
       'line-height: 16px',
       'color: var(--ez-slate-500)',
       'text-align: center',
@@ -76,7 +76,7 @@ const EXPECTED: { file: string; selector: string; decls: string[] }[] = [
   {
     file: 'app/home.module.css',
     selector: '.message',
-    decls: ['margin: 0', 'font-size: 15px', 'line-height: 1.45', 'color: var(--ez-ink)'],
+    decls: ['margin: 0', 'font-size: var(--ez-text-15)', 'line-height: 1.45', 'color: var(--ez-ink)'],
   },
 ];
 

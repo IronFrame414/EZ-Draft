@@ -33,7 +33,7 @@
 
 .title {
   margin: 0 0 24px;
-  font-size: 22px;
+  font-size: var(--ez-text-22);
   font-weight: 600;
   color: var(--ez-ink);
 }
@@ -45,21 +45,21 @@
 }
 
 .label {
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   font-weight: 500;
   color: var(--ez-ink);
 }
 
 .text {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--ez-text-15);
   line-height: 1.45;
   color: var(--ez-ink);
 }
 
 .secondaryText {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   line-height: 1.45;
   color: var(--ez-slate-500);
 }
@@ -68,7 +68,7 @@
   min-height: 44px;
   padding: 0 12px;
   font: inherit;
-  font-size: 16px;
+  font-size: var(--ez-text-16);
   color: var(--ez-ink);
   background: var(--ez-surface);
   border: 1px solid var(--ez-border);
@@ -91,7 +91,7 @@
   min-height: 44px;
   padding: 0 16px;
   font: inherit;
-  font-size: 15px;
+  font-size: var(--ez-text-15);
   font-weight: 500;
   border-radius: var(--ez-radius-8);
   cursor: pointer;
@@ -132,7 +132,7 @@
 
 .error {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-red);
 }
 

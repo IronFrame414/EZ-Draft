@@ -33,7 +33,7 @@
 
 .dialogTitle {
   margin: 0 0 14px;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
 }
 
@@ -47,7 +47,7 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -58,12 +58,12 @@
 }
 
 .unit {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
 .input {
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   padding: 7px 9px;
   border: 1px solid var(--ez-border);
@@ -113,7 +113,7 @@
 
 .sectionTitle {
   flex: 1;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-500);
 }
@@ -121,7 +121,7 @@
 .note,
 .message {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -137,12 +137,12 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   font-weight: 600;
 }
 
 .tag {
-  font-size: 11px;
+  font-size: var(--ez-text-11);
   font-weight: 600;
   color: var(--ez-amber-strong);
 }
@@ -152,7 +152,7 @@
   grid-template-columns: auto 1fr;
   gap: 4px 12px;
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .values dt {
@@ -166,7 +166,7 @@
 .readList {
   margin: 0;
   padding-left: 18px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .readActions {
@@ -193,12 +193,12 @@
   align-items: center;
   gap: 6px;
   width: 140px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .error {
   margin: 12px 0 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-red);
 }
 

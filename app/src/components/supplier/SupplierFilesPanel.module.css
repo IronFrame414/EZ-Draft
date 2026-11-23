@@ -19,14 +19,14 @@
 
 .title {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   font-weight: 600;
   color: var(--ez-ink);
 }
 
 .subTitle {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-700);
 }
@@ -40,7 +40,7 @@
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-8);
   background: var(--ez-surface);
-  font: 500 13px var(--ez-font-sans);
+  font: 500 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-ink);
   cursor: pointer;
 }
@@ -113,7 +113,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   font-family: var(--ez-font-mono);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
 }
 
 .rowActive .rowName {
@@ -121,7 +121,7 @@
 }
 
 .rowSummary {
-  font-size: 11px;
+  font-size: var(--ez-text-11);
   color: var(--ez-slate-500);
 }
 
@@ -133,7 +133,7 @@
   border: 1px solid var(--ez-amber-border);
   border-radius: var(--ez-radius-8);
   background: var(--ez-amber-tint);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-amber-text);
 }
 
@@ -156,7 +156,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-700);
 }
 
@@ -167,7 +167,7 @@
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-6);
   background: var(--ez-surface);
-  font: 13px var(--ez-font-sans);
+  font: var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-ink);
 }
 
@@ -183,7 +183,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
 }
 
 .send {
@@ -192,7 +192,7 @@
   border: 0;
   border-radius: var(--ez-radius-8);
   background: var(--ez-cobalt);
-  font: 600 13px var(--ez-font-sans);
+  font: 600 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-surface);
   cursor: pointer;
 }
@@ -205,13 +205,13 @@
 
 .error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-red-text);
 }
 
 .muted {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -237,6 +237,6 @@
   padding: 10px;
   border-radius: var(--ez-radius-10);
   background: var(--ez-surface-sunken);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }

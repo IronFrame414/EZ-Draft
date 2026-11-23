@@ -62,7 +62,7 @@ describe('EZD-126 lock UI CSS', () => {
         'border: 1px solid var(--ez-lock-border)',
         'color: var(--ez-lock-text)',
         'padding: 10px 12px 10px 14px',
-        'font-size: 14px',
+        'font-size: var(--ez-text-14)',
       ]),
     );
     expect(decls('.banner .lockButton')).toEqual(
@@ -75,7 +75,7 @@ describe('EZD-126 lock UI CSS', () => {
         'width: 30px',
         'height: 30px',
         'border: 2px solid var(--ez-surface)',
-        'font-size: 11px',
+        'font-size: var(--ez-text-11)',
       ]),
     );
     expect(decls('.avatar + .avatar')).toEqual(['margin-left: -8px']);
@@ -95,7 +95,7 @@ describe('EZD-126 lock UI CSS', () => {
     expect(decls('.success [data-toast-action]')).toEqual(
       expect.arrayContaining([
         'padding: 5px 10px',
-        'font-size: 12px',
+        'font-size: var(--ez-text-12)',
         'border-color: var(--ez-green-button-border)',
       ]),
     );
