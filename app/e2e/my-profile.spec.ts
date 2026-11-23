@@ -587,6 +587,8 @@ test.describe('EZD-108 my profile', () => {
     await page.goto('/settings');
     await openProfile(page);
     await fillPasswords(page, who.password as string, next);
+    // EZD-1936: the stub's script loads after the dialog opens; issue the token once its widget shows.
+    await expect(tid(page, 'my-profile-dialog').getByTestId('captcha-stub-widget')).toBeVisible();
     await issueToken(page);
     await tid(page, 'profile-password-submit').click();
     await expect(tid(page, 'profile-password-message')).toHaveText(

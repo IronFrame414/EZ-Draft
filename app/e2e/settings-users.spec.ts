@@ -332,6 +332,9 @@ test.describe('EZD-104 users table', () => {
     expect(await expectTouchTargets(page, tid(page, 'users-pager'))).toBe(2);
     await rowOf(page, 'Zed Owner').click();
     await expect(tid(page, 'users-inspector-name')).toHaveText('Zed Owner');
+    // EZD-1936: Project access loads after the row is selected and its control is taller than its skeleton,
+    // so the switch groups under it move down when it arrives. Measure once it is shown, as the user sees it.
+    await expect(tid(page, 'users-access-scope')).toBeVisible();
     expect(await expectTouchTargets(page, tid(page, 'users-inspector-head'))).toBe(1);
     expect(await expectTouchTargets(page, tid(page, 'users-role-field'))).toBe(1);
     expect(await expectTouchTargets(page, tid(page, 'users-language'))).toBe(2);
