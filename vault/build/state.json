@@ -457,7 +457,8 @@
     "EZD-1404",
     "EZD-728",
     "EZD-604",
-    "EZD-1001b"
+    "EZD-1001b",
+    "EZD-606"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1495,6 +1496,14 @@
       "ts": "2026-11-23T04:11:32Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-606",
+      "title": "Panel and existing panel dialog",
+      "commit": "1b07f0d3",
+      "ts": "2026-11-23T06:21:38Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1508,7 +1517,7 @@
     }
   },
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
