@@ -465,7 +465,8 @@
     "EZD-643",
     "EZD-1930",
     "EZD-1933",
-    "EZD-1935"
+    "EZD-1935",
+    "EZD-1937"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1565,6 +1566,14 @@
       "title": "Fix: conflict-list B6 fails at random after the member's sessions end",
       "commit": "62767c3f",
       "ts": "2026-11-23T14:13:48Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1937",
+      "title": "Fix: project-offline EZD-1401 offline open fails at random on iPad",
+      "commit": "9cdac70d",
+      "ts": "2026-11-23T15:16:38Z",
       "kind": "ticket",
       "lane": 3
     }
