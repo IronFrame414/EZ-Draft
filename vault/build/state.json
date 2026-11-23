@@ -473,7 +473,8 @@
     "EZD-1932",
     "EZD-1949",
     "EZD-1942",
-    "EZD-1954"
+    "EZD-1954",
+    "EZD-1957"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1639,6 +1640,14 @@
       "ts": "2026-11-23T21:58:20Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1957",
+      "title": "Docs: mockup glitch note and setup warnings",
+      "commit": "8698ce0c",
+      "ts": "2026-11-23T23:19:28Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {
@@ -1660,7 +1669,7 @@
     }
   },
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1846,11 +1855,11 @@
       "started": "2026-11-23T21:31:51Z",
       "develop": "479beb2e"
     },
-    "EZD-1957": {
-      "lane": 3,
-      "title": "Docs: mockup glitch note and setup warnings",
-      "started": "2026-11-23T21:58:29Z",
-      "develop": "009ed295"
+    "EZD-1947": {
+      "lane": 1,
+      "title": "Gate: scripts tests run outside the heavy lock",
+      "started": "2026-11-23T22:18:44Z",
+      "develop": "a90a11a2"
     }
   },
   "advisories_checked_at": "2026-11-23T22:14:30Z",
