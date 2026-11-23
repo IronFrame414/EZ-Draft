@@ -789,6 +789,18 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-714: the set notes; 200 { general, required } (no money)',
   },
+  // EZD-1404: the phone field pack; a project with no issue answers pack null.
+  {
+    file: `${API}projects/[id]/field-pack/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/field-pack/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/field-pack`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-1404: the field pack; 200 { projectName, clientName, pack } (no money)',
+  },
   // EZD-1415: Field measure rooms; GET reads them (a new project: the Building alone), PUT saves an L-shaped room.
   {
     file: `${API}projects/[id]/field-measure/route.ts`,

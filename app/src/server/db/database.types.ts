@@ -409,6 +409,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"field_pack_issue": {
+                  Row: {
+                    "id": string,"issued_at": string,"issued_by": string | null,"model_version_id": string,"note": string | null,"project_id": string,"task_ids": (string)[],"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"issued_at"?: string,"issued_by"?: string | null,"model_version_id": string,"note"?: string | null,"project_id": string,"task_ids"?: (string)[],"tenant_id": string
+                  }
+                  Update: {
+                    "id"?: string,"issued_at"?: string,"issued_by"?: string | null,"model_version_id"?: string,"note"?: string | null,"project_id"?: string,"task_ids"?: (string)[],"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "field_pack_issue_issued_by_fkey"
+      columns: ["issued_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "field_pack_issue_model_version_id_fkey"
+      columns: ["model_version_id"]
+isOneToOne: false
+      referencedRelation: "model_version"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "field_pack_issue_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "field_pack_issue_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"field_task": {
                   Row: {
                     "created_at": string,"done_at": string | null,"done_by": string | null,"id": string,"job_id": string | null,"linked_objects": NonNullable<Json>,"phase": string,"phase_position": number,"photos": NonNullable<Json>,"position": number,"project_id": string,"room": string,"room_id": string | null,"status": string,"tenant_id": string,"text_en": string,"text_es": string | null,"updated_at": string

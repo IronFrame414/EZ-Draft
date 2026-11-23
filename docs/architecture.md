@@ -768,6 +768,14 @@ EZD-1402 (phase-14 EZD-1402; 03c offline_change; 03b rule 9; 11 Offline; Q-0503;
 - **Model edits offline** (`outbox-sync.ts`). An entry put while offline carries `offline: true` (kept when a later online edit replaces it). When a drain has saved marked entries of a project and the outbox is empty, one `POST /api/projects/<id>/checkpoints` follows (a failure is reported as `outbox.offline_checkpoint`, not retried). While offline, `SyncState.queued` holds the outbox count and the header save word reads "Offline, {count} changes queued".
 - **Test page** `/dev/field-outbox/<project id>` (not in production; its own OutboxDrain) queues a task check and a photo pin.
 
+### Field pack shell (EZD-1404)
+
+EZD-1404 (S17 Layout, Controls, States; 03d field_pack_issue; vault/build/assumptions.md EZD-1404).
+
+- **Table** (`<ts>_create_field_pack_issue.sql`). `field_pack_issue` (tenant, project, `model_version_id`, `task_ids uuid[]`, `issued_by`, `issued_at`, `note`): members read rows of projects in scope; no member write policy (Issue field pack, EZD-1421, writes them). The newest row is the project's pack. Test seed: `app/e2e/fixtures/field-pack.ts` `seedFieldPack`.
+- **Read** (`app/src/server/field-pack/read.ts`; `GET /api/projects/<id>/field-pack`, View projects scoped): `{ projectName, clientName, pack }`, `pack` `{ issueId, revision, issuedAt, note, rooms, openTasks }` or null ("No field pack issued yet."). Rooms are the issued version's `room` objects.
+- **Page** `/projects/<id>/field` (`(field)` group; `app/src/field-pack/`): the server page checks the session and View projects for the project and picks the user's language; `FieldPackScreen` loads the pack through `createProjectCache().wrap` (which now stores `/api/projects/<id>/field-pack` as it stores `/model`), so with no network the pack opens from the phone's copy and the worker serves the page copy. `FieldPackView` draws the header (offline icon with `field.*` labels, revision badge with note, title, subtitle, room chips) and the tab bar (Photo only with Photo notes).
+
 ### Field measure send (EZD-1417)
 
 EZD-1417 (S17b Header, Send to office, States; 07 field.measure_sent; AC-EZD-1417-1; vault/build/assumptions.md EZD-1417).

@@ -2460,6 +2460,19 @@ The builder records here every choice the spec, decisions and mockups did not se
 | EZD-513 | Wording for Josh to confirm (not on a board) | Card: "Shape to draw", "Soffit", "Tray", "Coffer", "Crown", size labels "Drop", "Rise", "Depth", "Size", hint "Click to draw the outline. Click the first point to close."; messages "Click inside a room to start the outline", "The shape could not be saved", "Click inside a room to place a tag"; plan text "CLG" and "drywall" | CLAUDE.md rule 6 |
 | EZD-513 | Editor first-download budget (11 Budgets, 500,000 compressed bytes) | Develop at 4e8916c8 measured 499,977, so the two new schemas alone went over (500,731). Two pieces of code that only lazy parts use were sitting in the first download and are moved to their own files, with no behaviour change: the fixture type view and edit (`tools/fixture-type.ts`, out of ceiling-device-tool.ts) and the cabinet selection (`cabinets/cabinet-selection.ts`, so cabinet-view.ts loads with the cabinet screen). The editor route now measures 495,056; the limit is unchanged | e2e editor.spec.ts B11, editor-drawing-lazy.spec.ts A1, plan-canvas.spec.ts B8 |
 
+## EZD-1404 (2026-11-22)
+
+| Ticket | Question | Choice | Source |
+| --- | --- | --- | --- |
+| EZD-1404 | Where the "seeded issue for tests" lives | A test fixture (`app/e2e/fixtures/field-pack.ts` `seedFieldPack`) that writes a sent version with rooms and a `field_pack_issue` row for a test company, used by the browser, route and database tests; not `supabase/seed.sql`, because tests never use tenant 1 and `seed.test.ts` asserts the seeded crew has no listed projects | phase-14.md EZD-1404 row; seed.test.ts; e2e harness rule "never tenant 1" |
+| EZD-1404 | Revision badge before permit revisions exist | "Version N" from the issued version's `model_version.version_no`; "Rev N" is wired but nothing passes a rev until EZD-717 issues them; a version with no send number shows no badge | S17 Revision badge; R24 #26; EZD-121 version-label.ts |
+| EZD-1404 | Open-task count on the Tasks tab before `field_task` exists | Every task id the issue carries counts as open; no count shows at 0. EZD-1409 replaces it with the tasks' real status | S17 Tab bar "Tasks (count of open tasks)"; EZD-1408/EZD-1409 rows |
+| EZD-1404 | Sheet name in the subtitle | Always "A3.0 Proposed plan" (the Plan tab's default sheet) until EZD-1405 lets the Plan tab show other sheets | S17 Decision 9 |
+| EZD-1404 | What the revision badge tap shows | A note under the header: "Issued <Mon D, YYYY>" and the issue note, or "No revision note."; a second tap hides it | S17 Revision badge "Tap shows the revision note and date" |
+| EZD-1404 | Tab icons (the icon set has no map or 3D icon) | Plan `grid_on`, 3D `category`, Measure `straighten`, Tasks `assignment`, Photo `photo_camera` | board S17Field; app/src/components/icon/icons.json |
+| EZD-1404 | Tab contents | Each tab's panel is empty in this ticket; Plan and 3D are EZD-1405, Measure EZD-1406, Tasks EZD-1409, Photo EZD-1410 | phase-14.md rows |
+| EZD-1404 | When the offline icon turns green on the field pack | It keeps EZD-1401's rule (the pack copy and the page copy are stored). The worker stores the page's JS files just after the page copy, so the icon can turn green a moment before the page works with no network. The offline browser test waits for those files too. Changing the icon rule belongs to EZD-1401 (the editor shares it) | EZD-1401 offline-icon.ts; e2e field-pack.spec.ts |
+| EZD-1404 | Wording for Josh to confirm (not on the board) | "issued {date}" form of the subtitle, "Version {n}", "Issued {date}", "No revision note.", "All" room chip, "{n} open task(s)", "Couldn't open the field pack.", "Saved on this phone for offline use", "Saving for offline use…", "Offline. Changes waiting to sync: {n}"; Spanish for each (Q-0030) | CLAUDE.md rule 6 |
 ## EZD-403 (2026-11-22)
 
 | Ticket | Question | Choice | Source |

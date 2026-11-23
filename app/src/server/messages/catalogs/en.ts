@@ -3087,6 +3087,28 @@ export const en = {
   'office.sheets.status.scale': 'Scale',
   'office.sheets.status.revision': 'Revision',
   'office.sheets.scale_none': '—',
+  // EZD-1404 (S17 Field pack phone shell; wording in vault/build/assumptions.md EZD-1404 unless on the S17 mockup).
+  'field.offline_icon.cached': 'Saved on this phone for offline use',
+  'field.offline_icon.caching': 'Saving for offline use…',
+  'field.offline_icon.queued': 'Offline. Changes waiting to sync: {n}',
+  'field.pack.label': 'Field pack',
+  'field.pack.issued': 'issued {date}',
+  'field.pack.sheet_default': 'A3.0 Proposed plan',
+  'field.pack.version': 'Version {n}',
+  'field.pack.rev': 'Rev {n}',
+  'field.pack.revision_issued': 'Issued {date}',
+  'field.pack.revision_no_note': 'No revision note.',
+  'field.pack.rooms': 'Rooms',
+  'field.pack.all_rooms': 'All',
+  'field.pack.tabs': 'Field pack tabs',
+  'field.pack.tab.plan': 'Plan',
+  'field.pack.tab.3d': '3D',
+  'field.pack.tab.measure': 'Measure',
+  'field.pack.tab.tasks': 'Tasks',
+  'field.pack.tab.photo': 'Photo',
+  'field.pack.open_tasks': { one: '{count} open task', other: '{count} open tasks' },
+  'field.pack.none': 'No field pack issued yet.',
+  'field.pack.load_failed': "Couldn't open the field pack.",
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

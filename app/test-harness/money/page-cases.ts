@@ -15,6 +15,7 @@ const PAGE_FILES = [
   'app/src/app/(editor)/projects/[id]/supplier/page.tsx',
   'app/src/app/(field)/dev/entry/field/page.tsx',
   'app/src/app/(field)/projects/[id]/field-measure/page.tsx',
+  'app/src/app/(field)/projects/[id]/field/page.tsx',
   'app/src/app/(office)/dev/entry/office/page.tsx',
   'app/src/app/(office)/dev/settings/page.tsx',
   'app/src/app/(office)/settings/[section]/page.tsx',

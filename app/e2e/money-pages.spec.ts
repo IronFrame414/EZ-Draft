@@ -24,7 +24,8 @@ import {
 } from '../test-harness/e2e/test';
 
 // EZD-1402: the /dev/field-outbox test page makes 48. EZD-914: the Supplier markup page makes 49.
-const EXPECTED_PATHS = 49;
+// EZD-1404: the field pack page makes 50.
+const EXPECTED_PATHS = 50;
 
 async function openEveryPage(sessions: Sessions, without: PermissionKey): Promise<void> {
   const tenant = await createTenant();

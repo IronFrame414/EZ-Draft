@@ -70,6 +70,13 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
     signedIn: true,
     placement: 'page',
   },
+  // EZD-1404: the field pack; a project that does not exist is not found, which shows the line on the page.
+  {
+    file: 'src/app/(field)/projects/[id]/field/page.tsx',
+    path: '/projects/00000000-0000-4000-8000-000000000000/field',
+    signedIn: true,
+    placement: 'page',
+  },
   {
     file: 'src/app/(field)/dev/entry/field/page.tsx',
     path: '/dev/entry/field',

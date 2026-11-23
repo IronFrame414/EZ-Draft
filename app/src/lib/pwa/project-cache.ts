@@ -24,7 +24,8 @@ export type ProjectCache = {
 
 type Store = Pick<CacheStorage, 'open'>;
 
-const MODEL = /^\/api\/projects\/([^/]+)\/model$/;
+// EZD-1404: the phone's field pack answer (/api/projects/<id>/field-pack) is stored and answered the same way.
+const MODEL = /^\/api\/projects\/([^/]+)\/(?:model|field-pack)$/;
 
 // The stored answer, made read-only.
 async function readOnly(stored: Response): Promise<Response> {
