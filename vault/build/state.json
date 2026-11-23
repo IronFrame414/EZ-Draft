@@ -1537,7 +1537,8 @@
     "EZD-702b": 1,
     "EZD-1418": 1,
     "EZD-1422": 1,
-    "EZD-916": 1
+    "EZD-916": 1,
+    "EZD-605": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1655,14 +1656,18 @@
     "EZD-916": {
       "ts": "2026-11-22T20:29:04Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-605": {
+      "ts": "2026-11-23T05:15:10Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-605": {
-      "lane": 1,
-      "title": "Switch legs",
-      "started": "2026-11-23T03:42:27Z",
-      "develop": "2977492f"
+    "EZD-611a": {
+      "lane": 2,
+      "title": "Code check engine and rule registry",
+      "started": "2026-11-23T05:12:16Z",
+      "develop": "de8915e2"
     }
   },
   "advisories_checked_at": "2026-11-23T04:12:40Z",
