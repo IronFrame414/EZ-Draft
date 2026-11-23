@@ -456,7 +456,8 @@
     "EZD-706",
     "EZD-1404",
     "EZD-728",
-    "EZD-604"
+    "EZD-604",
+    "EZD-1001b"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1486,6 +1487,14 @@
       "ts": "2026-11-23T03:41:33Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1001b",
+      "title": "3D ceilings and beams",
+      "commit": "f6b664b6",
+      "ts": "2026-11-23T04:11:32Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1640,17 +1649,17 @@
     }
   },
   "running": {
-    "EZD-1001b": {
-      "lane": 2,
-      "title": "3D ceilings and beams",
-      "started": "2026-11-23T02:14:31Z",
-      "develop": "e439fc4f"
-    },
     "EZD-1418": {
       "lane": 3,
       "title": "Field measure into Import review",
       "started": "2026-11-23T03:16:58Z",
       "develop": "f090f520"
+    },
+    "EZD-605": {
+      "lane": 1,
+      "title": "Switch legs",
+      "started": "2026-11-23T03:42:27Z",
+      "develop": "2977492f"
     }
   },
   "advisories_checked_at": "2026-11-22T22:12:20Z",
