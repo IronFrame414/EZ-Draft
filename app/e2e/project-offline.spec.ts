@@ -70,6 +70,33 @@ const queued = (page: Page) =>
       }),
   );
 
+// EZD-1937: what an offline open needs, read from the device itself: the worker controls the page (its offline
+// routes answer the reload, sw-rules.mjs), and the page copy, the model answer (project-cache.ts) and every
+// script, style and icon file the page loaded are in the device caches. The green icon alone is not that: it
+// turns green on the page copy and the model, while the worker may still be storing the files (warmFiles).
+const offlineReady = (page: Page, projectId: string) =>
+  page.evaluate(async (id) => {
+    if (navigator.serviceWorker.controller === null) return false;
+    const held = { ignoreVary: true };
+    const projects = await caches.open('ezdraft-projects');
+    const here = new URL(location.href);
+    here.hash = '';
+    if (!(await projects.match(here.href, held))) return false;
+    const model = new URL(`/api/projects/${id}/model`, location.origin).href;
+    if (!(await projects.match(model, held))) return false;
+    const files = await caches.open('ezdraft-static');
+    for (const entry of performance.getEntriesByType('resource')) {
+      const kind = (entry as PerformanceResourceTiming).initiatorType;
+      if (kind === 'fetch' || kind === 'xmlhttprequest' || kind === 'beacon') continue;
+      const url = new URL(entry.name);
+      url.hash = '';
+      if (url.origin !== location.origin) continue;
+      if (!/^\/(_next\/static|app-icons|icons)\//.test(url.pathname)) continue;
+      if (!(await files.match(url.href))) return false;
+    }
+    return true;
+  }, projectId);
+
 test.describe('EZD-1401 service worker cache', () => {
   test.afterAll(async () => {
     try {
@@ -95,6 +122,8 @@ test.describe('EZD-1401 service worker cache', () => {
       const header = page.getByText('bravo', { exact: true }).first();
       await expect(header).toBeVisible();
 
+      // EZD-1937: the network goes off only once the device holds all an offline open needs.
+      await expect.poll(() => offlineReady(page, ids.P1)).toBe(true);
       await network.set(page, 'off');
       await page.reload();
       await expect(page.getByTestId('editor-state')).toHaveAttribute('data-editor-state', 'ready');
