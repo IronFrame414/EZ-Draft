@@ -62,5 +62,7 @@ export * from './walls';
 export * from './turn';
 // EZD-1001a: the wall face the lazy 3D scene extrudes.
 export * from './scene3d/wall-face';
+// EZD-1001b: ceilings, soffits, trays, coffers and beams for the lazy 3D scene.
+export * from './scene3d/ceiling-mesh';
 // EZD-706: the system symbol library and the symbols a sheet uses.
 export * from './drawing/symbol-key';

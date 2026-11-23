@@ -27,6 +27,8 @@ const SCENE_FILES = [
   'app:lazy/scene-3d/scene.ts',
   'app:lazy/scene-3d/Scene3dOverlay.tsx',
   'geometry:scene3d/wall-face.ts',
+  // EZD-1001b: the ceiling, soffit, tray and beam meshes.
+  'geometry:scene3d/ceiling-mesh.ts',
 ];
 
 type Stats = {

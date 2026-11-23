@@ -111,7 +111,8 @@ describe('EZD-1001a 3D scene core', () => {
     const s = scene.stats();
     expect(s.walls).toBe(4);
     expect(s.floors).toBe(1);
-    expect(s.built).toBe(5);
+    // EZD-1001b: the room also builds its ceiling mesh.
+    expect(s.built).toBe(6);
     expect(scene.meshOf(UP)).toBeUndefined();
     expect(scene.isEmpty()).toBe(false);
     // Wall D runs west along y = 0; walking west the right hand points north: x 0..120, y 0..4.5, z 0..96.
@@ -132,7 +133,7 @@ describe('EZD-1001a 3D scene core', () => {
 
     const s = scene.stats();
     expect(s.lastRebuilt).toEqual([C]);
-    expect(s.built).toBe(6);
+    expect(s.built).toBe(7);
     for (const id of [A, B, D, ROOM]) {
       expect(scene.meshOf(id)).toBe(before.get(id));
       expect((scene.meshOf(id) as Mesh).geometry).toBe(geometries.get(id));
