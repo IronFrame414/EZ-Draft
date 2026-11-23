@@ -76,11 +76,34 @@ export function schedule({ candidates, footprints, claims, free, shared = SHARED
   return { start, waiting };
 }
 
-// Files changed on a branch that it never claimed, and which of those another running ticket holds.
-export function drift(changed, claims, self, shared = SHARED_OK) {
-  const mine = new Set((claims?.[self]?.files || []).map(key));
-  const unclaimed = changed.map(normalize).filter((f) => f && !shared.has(f) && !mine.has(key(f)));
-  return { unclaimed, clashes: overlaps(unclaimed, claims, self, shared) };
+// Whether a placeholder for a new file (`folder/<new>`, `folder/<new>.spec.ts`) names the new file `f`: same folder
+// (not a subfolder), and `f` ends with whatever follows `<new>`.
+export function placeholderCovers(placeholder, f) {
+  const i = placeholder.indexOf('<new>');
+  if (i < 0) return false;
+  const dir = placeholder.slice(0, i);
+  const suffix = placeholder.slice(i + 5);
+  if (!dir.endsWith('/') || !f.startsWith(dir)) return false;
+  const rest = f.slice(dir.length);
+  return !rest.includes('/') && rest.length > suffix.length && rest.endsWith(suffix);
+}
+
+// Files changed on a branch that it never claimed, and which of those another running ticket holds. A file the branch
+// added (`added`, from `git diff --diff-filter=A`) is claimed when the claim holds a `<new>` placeholder for its
+// folder: the footprint named the new file the only way it could, and no other lane can be editing a file develop
+// does not have unless it named the same new path, which is still a clash (EZD-1942).
+export function drift(changed, claims, self, shared = SHARED_OK, added = []) {
+  const files = claims?.[self]?.files || [];
+  const mine = new Set(files.map(key));
+  const placeholders = files.filter((f) => f.includes('<new>'));
+  const isNew = new Set(added.map(normalize));
+  const covered = (f) => isNew.has(f) && placeholders.some((p) => placeholderCovers(p, f));
+  const outside = changed.map(normalize).filter((f) => f && !shared.has(f) && !mine.has(key(f)));
+  // `placed`: new files a placeholder covers. They are no DRIFT, but another lane may have named the same new path, so
+  // they are still checked for clashes, and the loop adds them to the claim by name before the merge.
+  const placed = outside.filter(covered);
+  const unclaimed = outside.filter((f) => !covered(f));
+  return { unclaimed, placed, clashes: overlaps([...unclaimed, ...placed], claims, self, shared) };
 }
 
 // Parses the footprint answer: the last JSON object with a "files" array.

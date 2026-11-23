@@ -18,6 +18,7 @@ import { randomUUID } from 'node:crypto';
 import { lastBeat, resetReason, sample, startNote, writeBeat } from './loop/heartbeat.mjs';
 import { TRACK as SECURITY_TRACK, readSeen, recordFixTicket, runAudit, unseen } from './loop/advisories.mjs';
 import { effectiveStatuses } from './loop/holds.mjs';
+import { withImportingTests } from './loop/import-graph.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -491,15 +492,24 @@ async function review(t, wt, s, round, lane) {
 async function predictFootprint(t) {
   const c = cfg();
   const plan = existsSync(path.join(ROOT, 'vault/plans', `${t.id}.md`));
-  const r = await runClaude({ cwd: footprintTree(), prompt: footprintPrompt(t, plan, readingList(t.id)), model: c.builder_model,
+  const tree = footprintTree();
+  const r = await runClaude({ cwd: tree, prompt: footprintPrompt(t, plan, readingList(t.id)), model: c.builder_model,
     effort: c.footprint_effort, name: `${t.id} footprint`, timeoutMin: c.footprint_timeout_min, readOnly: true });
   recordUsage(t.id, 'footprint', c.builder_model, r);
   if (r.limited) return { limited: true, r };
   const fp = parseFootprint(r.res?.result ?? '');
   if (!fp) return { error: `no footprint: ${String(r.res?.result ?? r.text).slice(-300)}` };
+  // The tests that import a claimed file join the claim (EZD-1942): a static import scan of develop's read-only
+  // footprint checkout, cached per develop commit. A scan failure leaves the footprint as predicted.
+  let tests = '';
+  try {
+    const x = withImportingTests(tree, fp.files, { key: git(['rev-parse', 'HEAD'], tree).out.trim() || null, skip: sharedSet(ROOT) });
+    fp.files = impliedFiles(x.files, new Set());
+    tests = `; +${x.added.length} importing tests (scan ${x.ms} ms${x.hubs.length ? `; not followed: ${x.hubs.map((h) => `${h.file} (${h.tests} tests)`).slice(0, 3).join(', ')}` : ''})`;
+  } catch (e) { tests = `; import scan failed: ${e.message}`; }
   const saved = { ...fp, ts: now() };
   saveFootprint(t.id, saved);
-  log(`FOOTPRINT ${t.id}: ${fp.files.length} files${fp.notes ? ` (${fp.notes.slice(0, 120)})` : ''}`);
+  log(`FOOTPRINT ${t.id}: ${fp.files.length} files${tests}${fp.notes ? ` (${fp.notes.slice(0, 120)})` : ''}`);
   return { fp: saved };
 }
 
@@ -580,20 +590,22 @@ async function doTicket(t, s, lane, kind = 'ticket') {
   // is claimed now if free; if another running ticket holds it, this ticket waits for that one to merge first, then
   // takes in develop and re-checks below, so the two changes never land unchecked together.
   const changed = git(['diff', '--name-only', 'develop...HEAD'], wt).out.split('\n').filter(Boolean);
-  let d = drift(changed, readClaims(ROOT), t.id, sharedSet(ROOT));
+  const added = git(['diff', '--name-only', '--diff-filter=A', 'develop...HEAD'], wt).out.split('\n').filter(Boolean);
+  let d = drift(changed, readClaims(ROOT), t.id, sharedSet(ROOT), added);
   if (d.unclaimed.length) {
     log(`DRIFT ${t.id}: changed ${d.unclaimed.length} file(s) outside its claim: ${d.unclaimed.slice(0, 8).join(', ')}`);
-    const free = d.unclaimed.filter((f) => !d.clashes.some((x) => x.file === f || (x.file.endsWith('/') && f.startsWith(x.file))));
-    if (free.length) withClaims(ROOT, (cl) => { if (cl[t.id]) cl[t.id].files = impliedFiles([...cl[t.id].files, ...free], sharedSet(ROOT)); });
   }
+  // Unclaimed files and new files under a <new> placeholder join the claim by name if free.
+  const free = [...d.unclaimed, ...d.placed].filter((f) => !d.clashes.some((x) => x.file === f || (x.file.endsWith('/') && f.startsWith(x.file))));
+  if (free.length) withClaims(ROOT, (cl) => { if (cl[t.id]) cl[t.id].files = impliedFiles([...cl[t.id].files, ...free], sharedSet(ROOT)); });
   const waitStart = Date.now();
   while (d.clashes.length) {
     const holders = [...new Set(d.clashes.map((x) => x.holder))];
     if (Date.now() - waitStart > c.holder_wait_min * 60000) { setAside(s, t, `changed files held by ${holders.join(', ')} for over ${c.holder_wait_min} min`, JSON.stringify(d.clashes), wt); return 'aside'; }
     if (Date.now() - waitStart < 1000) log(`${t.id} changed files ${d.clashes.map((x) => x.file).join(', ')} held by ${holders.join(', ')}; waits for them to finish before merging`);
     await sleep(60000);
-    d = drift(changed, readClaims(ROOT), t.id, sharedSet(ROOT));
-    if (!d.clashes.length) withClaims(ROOT, (cl) => { if (cl[t.id]) cl[t.id].files = impliedFiles([...cl[t.id].files, ...d.unclaimed], sharedSet(ROOT)); });
+    d = drift(changed, readClaims(ROOT), t.id, sharedSet(ROOT), added);
+    if (!d.clashes.length) withClaims(ROOT, (cl) => { if (cl[t.id]) cl[t.id].files = impliedFiles([...cl[t.id].files, ...d.unclaimed, ...d.placed], sharedSet(ROOT)); });
   }
 
   // Merge: develop must be an ancestor of the branch at the moment of the squash. Bringing develop in and re-checking
