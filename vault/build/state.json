@@ -470,7 +470,8 @@
     "EZD-1931",
     "EZD-1936",
     "EZD-1938",
-    "EZD-1932"
+    "EZD-1932",
+    "EZD-1949"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1612,11 +1613,19 @@
       "ts": "2026-11-23T17:26:26Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1949",
+      "title": "Speed up the slowest unit and database tests",
+      "commit": "dc68d41c",
+      "ts": "2026-11-23T18:33:43Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1791,17 +1800,17 @@
     }
   },
   "running": {
-    "EZD-1949": {
-      "lane": 3,
-      "title": "Speed up the slowest unit and database tests",
-      "started": "2026-11-23T16:51:48Z",
-      "develop": "79b18415"
-    },
     "EZD-1934": {
       "lane": 1,
       "title": "Move dev-only glob and minimatch to patched versions",
       "started": "2026-11-23T17:26:33Z",
       "develop": "08ffaaaf"
+    },
+    "EZD-1939": {
+      "lane": 2,
+      "title": "Loop: failure lines in loop.log name the failing tests",
+      "started": "2026-11-23T17:57:50Z",
+      "develop": "685cb440"
     }
   },
   "advisories_checked_at": "2026-11-23T16:13:31Z",
