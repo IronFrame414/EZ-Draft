@@ -2571,3 +2571,5 @@ The builder records here every choice the spec, decisions and mockups did not se
 
 | Ticket | Question or text | Choice made | Source |
 | --- | --- | --- | --- |
+| EZD-1935 | Is EZD-603's retry in sign-in-as.ts enough, or is another fix needed? | Enough; no app or spec change. With the retry removed, B6 failed 2 of 24 runs with "page.goto: Navigation to /auth/confirm… is interrupted by another navigation to /sign-in" (the trace shows GET /sign-in starting 17 ms before the goto: the page's own session.ended redirect). With the retry: 24 of 24 at 4 workers and 20 of 20 in a row while lane 1 ran its e2e. The retry is now pinned by app/test-harness/e2e/sign-in-as.test.ts | AC-EZD-1935-1, -2; runs of 2026-11-23 |
+| EZD-1935 | The audit's lead: poll /api/sync-conflicts until reason = not_open | Not done: list_my_sync_conflicts works the reason out on every read, so there is nothing to wait for; no failing run showed it | supabase/migrations/20261107180001_create_sync_conflict_functions.sql |
