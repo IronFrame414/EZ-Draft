@@ -97,7 +97,7 @@ export function CabinetInspector({
   loadCatalog = fetchCatalog,
   loadPermissions = fetchMemberPermissions,
 }: CabinetInspectorProps): ReactElement {
-  const { parsed, view } = useCabinetModel(store, floors);
+  const { parsed, view } = useCabinetModel(store, floors, selectionStore);
   const ids = useStore(selectionStore, (s) => s.selection.ids);
   const swapFor = useStore(selectionStore, (s) => s.swapFor);
   const catalog = useCatalog(loadCatalog);

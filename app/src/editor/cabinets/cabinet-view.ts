@@ -27,6 +27,7 @@ import {
   cabinetAutoFill,
   CABINET_BASE_DEPTH,
   CABINET_BASE_HEIGHT,
+  insertAtInCabinetRow,
   objectLookup,
   parseStoredObject,
   type CabinetAutoFill,
@@ -39,6 +40,7 @@ import {
   type ModelObject,
 } from '@ezdraft/geometry';
 import type { Change, Objects } from '../model/patches';
+import { libraryObject, type LibraryRow, type LibraryTrim } from './cabinet-library';
 
 export type CabinetView = {
   run: CabinetRun;
@@ -67,17 +69,25 @@ export function modelObjects(objects: Objects): ModelObject[] {
   return out;
 }
 
-// The run the screen opens: the first run on the open floor (the Runs tab, EZD-403, picks another); null when the
-// floor has none. `floorId` null reads every floor.
-export function cabinetView(
-  objects: readonly ModelObject[],
-  floorId: string | null,
-): CabinetView | null {
+// Every run on the open floor, in model order. `floorId` null reads every floor.
+export function cabinetRuns(objects: readonly ModelObject[], floorId: string | null): CabinetRun[] {
   const want = floorId?.toLowerCase() ?? null;
-  const run = objects.find(
+  return objects.filter(
     (o): o is CabinetRun =>
       o.type === 'cabinet_run' && (want === null || o.data.level.toLowerCase() === want),
   );
+}
+
+// The run the screen opens: `runId` when it is a run on the open floor (the Runs tab, EZD-403, picks it), else the
+// first run on the floor; null when the floor has none. `floorId` null reads every floor.
+export function cabinetView(
+  objects: readonly ModelObject[],
+  floorId: string | null,
+  runId: string | null = null,
+): CabinetView | null {
+  const runs = cabinetRuns(objects, floorId);
+  const key = runId?.toLowerCase() ?? null;
+  const run = (key === null ? undefined : runs.find((r) => r.id.toLowerCase() === key)) ?? runs[0];
   if (run === undefined) return null;
   const letter = cabinetElevationLetter(run, objects);
   return {
@@ -392,4 +402,79 @@ export function cabinetAutoFillChanges(
     changes: [...gone.map((id) => ({ id, value: null })), ...made, objectChange(run)],
     fill,
   };
+}
+
+// EZD-403 (S04 Controls "Library row ... | Drag onto plan strip or elevation to insert a box; drop position sets order
+// in the run", "Library row TK / LR / CM | Drag or click to add trim along the run | Each is its own object";
+// AC-EZD-403-1; vault/build/assumptions.md EZD-403): a library row dropped on the run.
+
+// Where a new member dropped at `x` (inches along the run) stands in `row`: after every member of the row whose middle
+// is left of `x`.
+export function cabinetInsertIndex(view: CabinetView, row: CabinetRow, x: number): number {
+  return view.layout[row].filter((s) => s.x + s.width / 2 < x).length;
+}
+
+// The new member, made from the row at `width`, and the run listing it at the drop place: one edit, one undo step.
+// Empty when the run cannot take it (its most members).
+export function cabinetLibraryInsertChanges(
+  view: CabinetView,
+  row: LibraryRow,
+  width: number,
+  x: number,
+  id: string,
+  catalogItemId: string | null,
+): Change[] {
+  const run = insertAtInCabinetRow(view.run, row.row, cabinetInsertIndex(view, row.row, x), id);
+  if (run === null) return [];
+  return [objectChange(libraryObject(row, width, id, view.run.data.level, catalogItemId)), objectChange(run)];
+}
+
+// A width typed for a box just dropped from the library: the member at that width (code following) with the line's
+// catalog item for that width.
+export function cabinetLibraryWidthChanges(
+  view: CabinetView,
+  objects: readonly ModelObject[],
+  id: string,
+  width: number,
+  catalogItemId: string | null,
+): Change[] {
+  const m = inRun(view, id) ? memberOf(objects, id) : null;
+  if (m === null) return [];
+  const next = resizeCabinetMember(m, width) ?? m;
+  if (next === m && m.data.attributes.catalogItemId === catalogItemId) return [];
+  return [
+    objectChange({
+      ...next,
+      data: { ...next.data, attributes: { ...next.data.attributes, catalogItemId } },
+    } as ModelObject),
+  ];
+}
+
+// A trim along its row of the run; empty when the run has that trim on that row already.
+export function cabinetTrimChanges(
+  view: CabinetView,
+  objects: readonly ModelObject[],
+  trim: LibraryTrim,
+  id: string,
+): Change[] {
+  const runKey = view.run.id.toLowerCase();
+  const has = objects.some(
+    (o) =>
+      o.type === 'cabinet_trim' &&
+      o.data.geometry.runId.toLowerCase() === runKey &&
+      o.data.geometry.row === trim.row &&
+      o.data.attributes.kind === trim.kind,
+  );
+  if (has) return [];
+  const object: ModelObject = {
+    id,
+    type: 'cabinet_trim',
+    data: {
+      geometry: { runId: view.run.id, row: trim.row },
+      status: 'new',
+      level: view.run.data.level,
+      attributes: { kind: trim.kind, height: trim.height, catalogItemId: null, finish: null },
+    },
+  };
+  return [objectChange(object)];
 }

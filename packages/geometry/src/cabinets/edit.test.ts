@@ -10,6 +10,7 @@ import {
   cabinetEdgeSteps,
   cabinetSteppedWidth,
   insertAfterInCabinetRun,
+  insertAtInCabinetRow,
   moveInCabinetRow,
   removeFromCabinetRun,
   resizeCabinetMember,
@@ -165,5 +166,29 @@ describe('EZD-405 reorder, delete, duplicate', () => {
   it('a duplicate stands right after its original', () => {
     const r = insertAfterInCabinetRun(run(), id(2), id(50));
     expect(r?.data.attributes.base).toEqual([id(1), id(2), id(50), id(3), id(4), id(5), id(6)]);
+  });
+});
+
+// EZD-403 (AC-EZD-403-1 "Dragging a B24 row into a run inserts a box at the drop position"; S04 "drop position sets
+// order in the run"): board S04's run, a new box placed between DW24 (place 2) and SB36 (place 3).
+describe('EZD-403 insert at a place in a row', () => {
+  it('a box dropped at place 3 of the base row stands between DW24 and SB36; the upper row is kept', () => {
+    const r = insertAtInCabinetRow(run(), 'base', 3, id(60));
+    expect(r?.data.attributes.base).toEqual([id(1), id(2), id(3), id(60), id(4), id(5), id(6)]);
+    expect(r?.data.attributes.upper).toEqual([id(7), id(8)]);
+  });
+
+  it('the place is kept inside the row: before the first, after the last; an upper goes in the upper row', () => {
+    expect(insertAtInCabinetRow(run(), 'base', -4, id(60))?.data.attributes.base[0]).toBe(id(60));
+    expect(insertAtInCabinetRow(run(), 'base', 99, id(60))?.data.attributes.base[6]).toBe(id(60));
+    expect(insertAtInCabinetRow(run(), 'upper', 1, id(60))?.data.attributes.upper).toEqual([
+      id(7),
+      id(60),
+      id(8),
+    ]);
+  });
+
+  it('an id already in the run is not placed twice', () => {
+    expect(insertAtInCabinetRow(run(), 'base', 0, id(4))).toBeNull();
   });
 });

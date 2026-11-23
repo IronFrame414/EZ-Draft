@@ -843,3 +843,103 @@ test.describe('EZD-408 Auto-fill run', () => {
     expect(await countOf(page, 'cabinet_box')).toBe(0);
   });
 });
+
+// EZD-403 (S04 Controls (left panel); AC-EZD-403-1 "Dragging a B24 row into a run inserts a box at the drop position").
+// Board S04's run: a drop on the plan strip just inside SB36's left side (about 43" along the run, left of SB36's
+// middle at 60") places the new box between DW24 and SB36. Width typed after the drop keeps to the row's 3" steps.
+test.describe('EZD-403 Cabinet library panel', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  test('AC-EZD-403-1 dragging the B24 row onto the plan strip inserts B24 between DW24 and SB36', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids: project, user, tenant } = await fixtureS();
+    // R23's Generic line (EZD-401): its B24 is the item the placed box takes.
+    await harnessSql()`select private.seed_catalog_generic_line(${tenant}::uuid)`;
+    const [generic] = await harnessSql()<{ id: string }[]>`select id from public.catalog_item
+      where tenant_id = ${tenant}::uuid and line = 'Generic' and subcategory = 'base' and width = 24`;
+    await signInAs(user.email);
+    await openReady(page, project.P1);
+    const ids = await seedRun(page);
+    await saved(page);
+    await page.keyboard.press('c');
+    await expect(id(page, 'cabinet-run-name')).toHaveText('Back wall run');
+
+    // The library takes the left panel: Boxes tab, search, the Generic line, rows.
+    await expect(id(page, 'cabinet-library-line')).toHaveText('Line: Generic');
+    await expect(id(page, 'cabinet-library')).toBeVisible();
+    await expect(id(page, 'cabinet-library-tab-boxes')).toHaveAttribute('aria-selected', 'true');
+    await id(page, 'cabinet-library-search').fill('B24');
+    const rows = page.getByTestId('cabinet-library-row');
+    await expect(rows).toHaveCount(1);
+    await expect(rows.first()).toHaveAttribute('data-code', 'B24');
+
+    const sb36 = await box(page, ids.SB36, 'plan').boundingBox();
+    if (!sb36) throw new Error('SB36 has no box');
+    await rows.first().dragTo(box(page, ids.SB36, 'plan'), {
+      targetPosition: { x: 2, y: sb36.height / 2 },
+    });
+
+    await expect
+      .poll(() => baseCodes(page))
+      .toEqual(['F3', 'B15', 'DW24', 'B24', 'SB36', 'B18', 'B21']);
+    expect(await chainWidths(page)).toEqual([3, 15, 24, 24, 36, 18, 21]);
+    await expect(id(page, 'cabinet-run-counts')).toHaveText('6 boxes · 1 filler');
+    const added = await page.evaluate(() => {
+      const objects = (window as unknown as Window2).__ezdraftEditor.objects();
+      return objects.find(
+        (o) => o.type === 'cabinet_box' && (o.data.attributes as { code: string }).code === 'B24',
+      );
+    });
+    expect(added?.data.attributes).toMatchObject({
+      boxType: 'base',
+      width: 24,
+      depth: 24,
+      height: 34.5,
+      catalogItemId: generic?.id,
+    });
+    expect(added?.data.status).toBe('new');
+    await expect.poll(() => selectedIn(page, 'plan')).toEqual([added?.id]);
+
+    // The width is typed in the dimension bar: 3" steps from 9" to 24" only.
+    const input = id(page, 'cabinet-dim-input');
+    await expect(input).toBeFocused();
+    await input.fill('20');
+    await input.press('Enter');
+    await expect(id(page, 'cabinet-dim-entry').getByRole('alert')).toHaveText(
+      'Type a width from 9" to 24" in 3" steps',
+    );
+    await input.fill('18');
+    await input.press('Enter');
+    await expect
+      .poll(() => baseCodes(page))
+      .toEqual(['F3', 'B15', 'DW24', 'B18', 'SB36', 'B18', 'B21']);
+    await saved(page);
+
+    // Each is one undo step: the width, then the insert.
+    await page.keyboard.press('ControlOrMeta+z');
+    await expect
+      .poll(() => baseCodes(page))
+      .toEqual(['F3', 'B15', 'DW24', 'B24', 'SB36', 'B18', 'B21']);
+    await page.keyboard.press('ControlOrMeta+z');
+    await expect.poll(() => baseCodes(page)).toEqual(['F3', 'B15', 'DW24', 'SB36', 'B18', 'B21']);
+  });
+
+  test('a view-only user sees the library with no draggable rows', async ({ page, signInAs }) => {
+    const { ids: project, user, tenant } = await fixtureS();
+    await setPermissions(tenant, user.membershipId, VIEWER as never);
+    await signInAs(user.email);
+    await openReady(page, project.P1);
+    await tool(page, 'cabinets').click();
+    await expect(id(page, 'cabinet-library')).toBeVisible();
+    await expect(page.getByTestId('cabinet-library-row')).toHaveCount(10);
+    await expect(page.locator('[data-testid="cabinet-library-row"][draggable="true"]')).toHaveCount(0);
+  });
+});

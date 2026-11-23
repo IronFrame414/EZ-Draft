@@ -131,7 +131,11 @@ import type { EditMenuRequest, EditMenusProps } from '../lazy/edit-menu';
 import { expandGroups } from './selection/groups';
 import { EmptyPlanHint } from './EmptyPlanHint';
 import type { BenchmarkRunnerProps } from '../lazy/benchmark-runner';
-import type { CabinetInspectorProps, CabinetRunViewProps } from '../lazy/cabinet-run';
+import type {
+  CabinetInspectorProps,
+  CabinetLibraryProps,
+  CabinetRunViewProps,
+} from '../lazy/cabinet-run';
 import type {
   CountertopsInspectorProps,
   CountertopsPanelProps,
@@ -1516,8 +1520,18 @@ export function ProjectEditor({
   ) : null;
   // EZD-416 (S04b Layout "Left panel: tabs Pieces / Edges / Material"): while the Countertops tool is on, the
   // countertop panel takes the left panel.
+  // EZD-403 (S04 Layout "Left panel 248px 'Cabinet library'"): while the Cabinets tool is on, the cabinet library
+  // takes the left panel.
   const leftPanel = show3d ? null : showSheets ? (
     sheetsScreen && <LazySheets part="panel" screen={sheetsScreen} canEdit={mayEdit} />
+  ) : showPlan && cabinetsOn && session !== null && cabinetSelection !== null ? (
+    <LazyCabinetLibrary
+      store={session.store}
+      floors={floors ?? undefined}
+      canEdit={mayEdit}
+      selectionStore={cabinetSelection}
+      fitTolerance={fitTolerance}
+    />
   ) : showPlan &&
     countertopsOn &&
     session !== null &&
@@ -1644,7 +1658,11 @@ export function ProjectEditor({
                       <FloorSwitcher store={session.store} floors={floors} canEdit={canEdit} />
                     ) : null}
                     {cabinetsOn && session !== null ? (
-                      <LazyCabinetStatus store={session.store} floors={floors ?? undefined} />
+                      <LazyCabinetStatus
+                        store={session.store}
+                        floors={floors ?? undefined}
+                        selectionStore={cabinetSelection ?? undefined}
+                      />
                     ) : null}
                     {countertopsOn && session !== null ? (
                       <LazyCountertopsStatus
@@ -1959,6 +1977,11 @@ function LazyCabinetRun(props: CabinetRunViewProps) {
 function LazyCabinetInspector(props: CabinetInspectorProps) {
   const mod = useLazy(cabinetRunModule);
   return mod ? <mod.CabinetInspector {...props} /> : null;
+}
+
+function LazyCabinetLibrary(props: CabinetLibraryProps) {
+  const mod = useLazy(cabinetRunModule);
+  return mod ? <mod.CabinetLibrary {...props} /> : null;
 }
 
 function LazyCabinetStatus(props: CabinetRunViewProps) {

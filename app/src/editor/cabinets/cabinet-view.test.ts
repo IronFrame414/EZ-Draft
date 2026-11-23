@@ -12,7 +12,14 @@ import {
   wallTileStart,
   cabinetFitFillerIds,
   cabinetViewFit,
+  cabinetInsertIndex,
+  cabinetLibraryInsertChanges,
+  cabinetLibraryWidthChanges,
+  cabinetRuns,
+  cabinetTrimChanges,
 } from './cabinet-view';
+import { libraryRow, libraryTrim } from './cabinet-library';
+import type { Change, Objects } from '../model/patches';
 import {
   boardModel,
   boardModelWallMoved,
@@ -183,5 +190,107 @@ describe('EZD-407 fit of the run', () => {
   it('a run off every wall has no fit', () => {
     const v = cabinetView(modelObjects(boardModel()), CAB_FLOOR)!;
     expect(cabinetViewFit({ ...v, layout: { ...v.layout, wall: null } }, null)).toBeNull();
+  });
+});
+
+// EZD-403 (AC-EZD-403-1 "Dragging a B24 row into a run inserts a box at the drop position"; S04 "drop position sets
+// order in the run"; "Tab: Runs | ... click to open that run"). Board run: F3 0–3, B15 3–18, DW24 18–42, SB36 42–78,
+// B18 78–96, B21 96–117. A drop at 45" is right of DW24's middle (30") and left of SB36's (60").
+describe('EZD-403 library drop', () => {
+  const apply = (objects: Objects, changes: readonly Change[]): Objects => {
+    const next = new Map(objects);
+    for (const c of changes) {
+      if (c.value === null) next.delete(c.id);
+      else next.set(c.id, c.value);
+    }
+    return next;
+  };
+  const NEW = 'c0000000-0000-4000-8000-000000000900';
+
+  it('AC-EZD-403-1: a B24 dropped at 45" stands between DW24 and SB36 as one edit', () => {
+    const parsed = modelObjects(boardModel());
+    const v = cabinetView(parsed, CAB_FLOOR);
+    if (v === null) throw new Error('no run');
+    const b24 = libraryRow('b1');
+    if (b24 === null) throw new Error('no row');
+    expect(cabinetInsertIndex(v, 'base', 45)).toBe(3);
+    const changes = cabinetLibraryInsertChanges(v, b24, 24, 45, NEW, null);
+    const after = cabinetView(modelObjects(apply(boardModel(), changes)), CAB_FLOOR);
+    expect(after?.run.data.attributes.base).toEqual([
+      cabId(1),
+      cabId(2),
+      cabId(3),
+      NEW,
+      cabId(4),
+      cabId(5),
+      cabId(6),
+    ]);
+    expect(after?.layout.chain.map((c) => c.width)).toEqual([3, 15, 24, 24, 36, 18, 21]);
+    expect(after?.layout.total).toBe(141);
+    expect(after?.summary.boxCount).toBe(6);
+    const slot = after?.layout.base.find((s) => s.id === NEW);
+    expect(slot).toMatchObject({ x: 42, width: 24, code: 'B24' });
+  });
+
+  it('a drop left of everything stands first; right of everything stands last', () => {
+    const v = cabinetView(modelObjects(boardModel()), CAB_FLOOR);
+    if (v === null) throw new Error('no run');
+    expect(cabinetInsertIndex(v, 'base', -5)).toBe(0);
+    expect(cabinetInsertIndex(v, 'base', 200)).toBe(6);
+    expect(cabinetInsertIndex(v, 'upper', 200)).toBe(2);
+  });
+
+  it('a wall box goes in the upper row', () => {
+    const v = cabinetView(modelObjects(boardModel()), CAB_FLOOR);
+    const w = libraryRow('w');
+    if (v === null || w === null) throw new Error('setup');
+    const changes = cabinetLibraryInsertChanges(v, w, 12, 0, NEW, null);
+    const after = cabinetView(modelObjects(apply(boardModel(), changes)), CAB_FLOOR);
+    expect(after?.run.data.attributes.upper[0]).toBe(NEW);
+    expect(after?.run.data.attributes.base).toHaveLength(6);
+  });
+
+  it('crown is added once along the upper row', () => {
+    const parsed = modelObjects(boardModel());
+    const v = cabinetView(parsed, CAB_FLOOR);
+    const cm = libraryTrim('crown');
+    if (v === null || cm === null) throw new Error('setup');
+    const changes = cabinetTrimChanges(v, parsed, cm, NEW);
+    expect(changes).toHaveLength(1);
+    const after = modelObjects(apply(boardModel(), changes));
+    const trim = after.find((o) => o.id === NEW);
+    expect(trim?.type).toBe('cabinet_trim');
+    expect(cabinetTrimChanges(v, after, cm, 'c0000000-0000-4000-8000-000000000901')).toEqual([]);
+  });
+
+  it('opens the run the Runs tab picks; an unknown id opens the first', () => {
+    const second = 'c0000000-0000-4000-8000-000000000002';
+    const model = new Map(boardModel());
+    const run = model.get(CAB_RUN)!;
+    const data = run.data as { attributes: Record<string, unknown> };
+    model.set(second, {
+      ...run,
+      data: { ...run.data, attributes: { ...data.attributes, name: 'Island run', base: [], upper: [] } },
+    });
+    const parsed = modelObjects(model);
+    expect(cabinetRuns(parsed, CAB_FLOOR).map((r) => r.data.attributes.name)).toEqual([
+      'Back wall run',
+      'Island run',
+    ]);
+    expect(cabinetView(parsed, CAB_FLOOR, second)?.run.id).toBe(second);
+    expect(cabinetView(parsed, CAB_FLOOR, 'c0000000-0000-4000-8000-000000000003')?.run.id).toBe(CAB_RUN);
+  });
+});
+
+describe('EZD-403 width typed after a drop', () => {
+  it('B18 typed to 21" becomes B21 with the line item for 21"; the same width and item is no change', () => {
+    const parsed = modelObjects(boardModel());
+    const v = cabinetView(parsed, CAB_FLOOR);
+    if (v === null) throw new Error('no run');
+    const ITEM = 'c0000000-0000-4000-8000-000000000777';
+    const [c] = cabinetLibraryWidthChanges(v, parsed, cabId(5), 21, ITEM);
+    const a = (c?.value?.data as { attributes: Record<string, unknown> }).attributes;
+    expect(a).toMatchObject({ code: 'B21', width: 21, catalogItemId: ITEM });
+    expect(cabinetLibraryWidthChanges(v, parsed, cabId(5), 18, null)).toEqual([]);
   });
 });

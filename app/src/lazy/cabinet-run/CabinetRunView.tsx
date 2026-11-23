@@ -68,6 +68,9 @@ import {
   cabinetReorderChanges,
   cabinetResizeChanges,
   cabinetFitFillerIds,
+  cabinetLibraryInsertChanges,
+  cabinetLibraryWidthChanges,
+  cabinetTrimChanges,
   cabinetView,
   cabinetViewFit,
   isCabinetSelected,
@@ -81,6 +84,16 @@ import {
   type CabinetView,
 } from '../../editor/cabinets/cabinet-view';
 import { isRunSelected } from '../../editor/cabinets/run-inspector';
+import {
+  LIBRARY_DRAG_TYPE,
+  libraryItemFor,
+  libraryRow,
+  libraryTrim,
+  libraryWidthOk,
+  libraryWidths,
+  readLibraryDrag,
+  type LibraryDrag,
+} from '../../editor/cabinets/cabinet-library';
 import styles from './CabinetRunView.module.css';
 
 export type CabinetRunViewProps = {
@@ -105,7 +118,14 @@ export function useCabinetSelectionStore(given?: CabinetSelectionStore): Cabinet
   return given ?? own;
 }
 
-export function useCabinetModel(store: ModelStore, floors?: FloorChoice) {
+// EZD-403: with the shared selection store, the run its Runs tab opened; else the first run on the floor.
+const NO_RUN_STORE = createCabinetSelectionStore();
+export function useCabinetModel(
+  store: ModelStore,
+  floors?: FloorChoice,
+  selectionStore?: CabinetSelectionStore,
+) {
+  const runId = useStore(selectionStore ?? NO_RUN_STORE, (s) => s.runId);
   const chosen = useChosenFloor(floors);
   const objects = useStore(store, (s) => s.objects);
   const floorId = useMemo(
@@ -113,12 +133,16 @@ export function useCabinetModel(store: ModelStore, floors?: FloorChoice) {
     [objects, chosen, floors],
   );
   const parsed = useMemo(() => modelObjects(objects), [objects]);
-  const view = useMemo(() => cabinetView(parsed, floorId), [parsed, floorId]);
-  return { objects, parsed, floorId, view };
+  const view = useMemo(() => cabinetView(parsed, floorId, runId), [parsed, floorId, runId]);
+  return { objects, parsed, floorId, view, runId };
 }
 
-function useCabinetView(store: ModelStore, floors?: FloorChoice): CabinetView | null {
-  return useCabinetModel(store, floors).view;
+function useCabinetView(
+  store: ModelStore,
+  floors?: FloorChoice,
+  selectionStore?: CabinetSelectionStore,
+): CabinetView | null {
+  return useCabinetModel(store, floors, selectionStore).view;
 }
 
 // A drag in progress, in inches along the run. A move becomes a reorder once the pointer travels past MOVE_SLOP.
@@ -127,9 +151,13 @@ type Drag =
   | { kind: 'move'; id: string; startX: number; x: number; moving: boolean };
 const MOVE_SLOP = 1.5;
 
-// The typed entry open in the header: a box's width (chain dimension, double-click) or a row's height.
+// The typed entry open in the header: a box's width (chain dimension, double-click) or a row's height. EZD-403: a box
+// just dropped from the library carries its row, so the typed width keeps to the row's 3" steps within its range
+// (any width on "Custom boxes") and takes the line's item for that width.
+export type CabinetLibraryEntry = { key: string; custom: boolean; items: Record<string, string> };
 export type CabinetEntry =
-  { kind: 'width'; id: string } | { kind: 'height'; which: 'base' | 'upper' };
+  | { kind: 'width'; id: string; library?: CabinetLibraryEntry }
+  | { kind: 'height'; which: 'base' | 'upper' };
 type Menu = { id: string; x: number; y: number };
 
 const preview = (objects: Objects, changes: Change[]): ModelObject[] => {
@@ -150,11 +178,11 @@ export function CabinetRunView({
   fitTolerance = null,
   autoFillIncrement = null,
 }: CabinetRunViewProps): ReactElement {
-  const { objects, parsed, floorId, view } = useCabinetModel(store, floors);
+  const selStore = useCabinetSelectionStore(selectionStore);
+  const { objects, parsed, floorId, view, runId } = useCabinetModel(store, floors, selStore);
   // EZD-408: the Auto-fill result waiting for Confirm, for the model it was made from.
   const [filling, setFilling] = useState<{ objects: Objects; changes: Change[] } | null>(null);
   const fill = filling !== null && filling.objects === objects && canEdit ? filling : null;
-  const selStore = useCabinetSelectionStore(selectionStore);
   const selection = useStore(selStore, (s) => s.selection);
   const send = selStore.getState().send;
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -176,11 +204,11 @@ export function CabinetRunView({
 
   // While dragging, the drawing shows the run as it will be.
   const shown = useMemo(() => {
-    if (fill !== null) return cabinetView(preview(objects, fill.changes), floorId);
+    if (fill !== null) return cabinetView(preview(objects, fill.changes), floorId, runId);
     if (drag === null || view === null) return view;
     const changes = dragChanges(drag, view);
-    return changes.length === 0 ? view : cabinetView(preview(objects, changes), floorId);
-  }, [fill, drag, view, objects, floorId, dragChanges]);
+    return changes.length === 0 ? view : cabinetView(preview(objects, changes), floorId, runId);
+  }, [fill, drag, view, objects, floorId, runId, dragChanges]);
 
   const apply = useCallback(
     (changes: Change[]) => (changes.length === 0 ? [] : store.applyEdit(changes)),
@@ -289,10 +317,24 @@ export function CabinetRunView({
     if (view === null || entry === null) return false;
     const r = parseLength(text, 'positive');
     if (!r.ok) return false;
-    const changes =
-      entry.kind === 'width'
-        ? cabinetResizeChanges(view, parsed, entry.id, r.inches)
-        : cabinetHeightChanges(view, parsed, entry.which, r.inches);
+    let changes: Change[];
+    if (entry.kind === 'width' && entry.library !== undefined) {
+      const lib = entry.library;
+      const row = libraryRow(lib.key);
+      if (row === null || !libraryWidthOk(row, r.inches, lib.custom)) return false;
+      changes = cabinetLibraryWidthChanges(
+        view,
+        parsed,
+        entry.id,
+        r.inches,
+        libraryItemFor(lib.items, r.inches),
+      );
+    } else {
+      changes =
+        entry.kind === 'width'
+          ? cabinetResizeChanges(view, parsed, entry.id, r.inches)
+          : cabinetHeightChanges(view, parsed, entry.which, r.inches);
+    }
     apply(changes);
     setEntry(null);
     return true;
@@ -334,6 +376,41 @@ export function CabinetRunView({
           cancel: () => setFilling(null),
         };
 
+  // EZD-403 (S04 "Library row ... | Drag onto plan strip or elevation to insert a box; drop position sets order in the
+  // run | Width set by typing in the dimension bar on drop"): a row dropped on the drawing is placed where it was let
+  // go (one undo step), selected, and its width is offered to type when the row has more than one; a trim is added
+  // along its row of the run.
+  const libraryDrop: ((d: LibraryDrag, x: number) => void) | undefined =
+    !canEdit || view === null || fill !== null
+      ? undefined
+      : (d, x) => {
+          const id = (newId ?? (() => crypto.randomUUID()))();
+          setMenu(null);
+          setDrag(null);
+          if (d.kind === 'trim') {
+            const trim = libraryTrim(d.trim);
+            if (trim !== null) apply(cabinetTrimChanges(view, parsed, trim, id));
+            return;
+          }
+          const row = libraryRow(d.key);
+          if (row === null) return;
+          const changes = cabinetLibraryInsertChanges(
+            view,
+            row,
+            d.width,
+            x,
+            id,
+            libraryItemFor(d.items, d.width),
+          );
+          if (apply(changes).length === 0) return;
+          send({ type: 'set', ids: [id] });
+          setEntry(
+            d.custom || libraryWidths(row).length > 1
+              ? { kind: 'width', id, library: { key: row.key, custom: d.custom, items: d.items } }
+              : null,
+          );
+        };
+
   const menuIds =
     menu === null ? [] : isCabinetSelected(selection, menu.id) ? selection.ids : [menu.id];
   return (
@@ -351,6 +428,7 @@ export function CabinetRunView({
       entry={canEdit ? entry : null}
       onEntry={typed}
       onEntryClose={() => setEntry(null)}
+      onLibraryDrop={libraryDrop}
       menu={
         canEdit && menu !== null
           ? {
@@ -378,9 +456,13 @@ export function CabinetRunView({
   );
 }
 
-export function CabinetRunStatus({ store, floors }: CabinetRunViewProps): ReactElement | null {
+export function CabinetRunStatus({
+  store,
+  floors,
+  selectionStore,
+}: CabinetRunViewProps): ReactElement | null {
   const t = useT();
-  const view = useCabinetView(store, floors);
+  const view = useCabinetView(store, floors, selectionStore);
   if (view === null) return null;
   return (
     <StatusItem label="office.cabinets.status_view">
@@ -443,6 +525,9 @@ export type CabinetRunScreenProps = {
   // EZD-407: the Defaults fit tolerance in inches; null while not set (counts as 0).
   fitTolerance?: number | null;
   autoFill?: CabinetAutoFillHandlers;
+  // EZD-403: a library row or trim dropped on the drawing at `x` inches along the run; absent without Edit model and
+  // the lock.
+  onLibraryDrop?: (d: LibraryDrag, x: number) => void;
 };
 
 // EZD-407 (S04 Controls "Fit chip ("Run 117" fits wall 117 1/2" · 1/2" scribe") | Canvas header | Display; click zooms
@@ -513,6 +598,7 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
     tile,
     fitTolerance = null,
     autoFill,
+    onLibraryDrop,
   } = props;
   const t = useT();
   const sectionRef = useRef<HTMLElement>(null);
@@ -629,6 +715,7 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
         edit={edit}
         onMenu={openMenu}
         tile={tile}
+        onLibraryDrop={onLibraryDrop}
       />
       {menu !== null ? (
         <div
@@ -845,6 +932,13 @@ function DimEntry({
     );
     value = h === undefined ? 0 : h.to - h.from;
   }
+  // EZD-403: a box just dropped from a vendor line takes the row's widths only.
+  const libRow =
+    entry.kind === 'width' && entry.library !== undefined && !entry.library.custom
+      ? libraryRow(entry.library.key)
+      : null;
+  const libraryRange =
+    libRow === null ? null : { min: inches(libRow.min), max: inches(libRow.max) };
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const text = String(new FormData(e.currentTarget).get('size') ?? '');
@@ -872,7 +966,9 @@ function DimEntry({
       </label>
       {refused ? (
         <span className={styles.entryRefused} role="alert">
-          {t('office.cabinets.entry_refused')}
+          {libraryRange === null
+            ? t('office.cabinets.entry_refused')
+            : t('office.cabinets.library.width_refused', libraryRange)}
         </span>
       ) : null}
     </form>
@@ -895,7 +991,8 @@ function RunDrawing({
   edit,
   onMenu,
   tile,
-}: Pick<CabinetRunScreenProps, 'selection' | 'onInput' | 'edit' | 'tile'> & {
+  onLibraryDrop,
+}: Pick<CabinetRunScreenProps, 'selection' | 'onInput' | 'edit' | 'tile' | 'onLibraryDrop'> & {
   view: CabinetView;
   onMenu?: (id: string, clientX: number, clientY: number) => void;
 }): ReactElement {
@@ -1131,6 +1228,18 @@ function RunDrawing({
       onPointerCancel={() => {
         setTileDrag(null);
         edit?.cancel();
+      }}
+      onDragOver={(e) => {
+        if (onLibraryDrop === undefined || !e.dataTransfer.types.includes(LIBRARY_DRAG_TYPE)) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      }}
+      onDrop={(e) => {
+        if (onLibraryDrop === undefined) return;
+        const d = readLibraryDrag(e.dataTransfer.getData(LIBRARY_DRAG_TYPE));
+        if (d === null) return;
+        e.preventDefault();
+        onLibraryDrop(d, toX(e));
       }}
     >
       <text x={leftEnd} y={planTop - 4} className={styles.sectionLabel}>
