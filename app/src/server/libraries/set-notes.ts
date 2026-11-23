@@ -5,12 +5,11 @@
 // A note that is both is listed once, under required. Code notes print only when a profile requires them
 // (assumptions EZD-714). Reads go through the caller's client (RLS: their own company).
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { NoteGroup } from '../../lib/libraries/libraries';
+import type { SetNote, SetNotes } from '../../lib/sheets/sheet-set';
 import type { Database } from '../db/database.types';
 import { listLibraryItems } from './libraries';
 
-export type SetNote = { id: string; text: string; group: NoteGroup };
-export type SetNotes = { general: SetNote[]; required: SetNote[] };
+export type { SetNote, SetNotes };
 
 // null when the project is not visible to the caller.
 export async function getSetNotes(

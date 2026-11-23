@@ -9,10 +9,13 @@
 // EZD-706 (S13 Validation "Key: only symbols and abbreviations actually used; updates when objects are added or
 // removed; placement per set"; AC-EZD-706-1): while shown, the open sheet's symbol key is worked out from the model
 // (lib/sheets/symbol-key) on the same watch, for every sheet (the cover carries the key under "On cover only").
+// EZD-728 (AC-EZD-728-1): load() also reads the notes the set prints on its cover (GET /api/projects/[id]/notes,
+// EZD-714). A failed notes answer leaves the cover without notes; it never fails the screen.
 import type { SheetSetKind, SheetSize } from '@ezdraft/geometry';
 import type { Objects } from '../../editor/model/patches';
 import { lazyModule } from '../../lib/lazy/lazy-module';
-import { sheetShowsPlan, type SheetSetSummary } from '../../lib/sheets/sheet-set';
+import { sheetShowsPlan, type SetNotes, type SheetSetSummary } from '../../lib/sheets/sheet-set';
+import { parseSetNotes } from './cover-sheet';
 import { sheetSymbolKey, type SheetKey } from './sheet-key';
 import type { ProjectTitleBlock } from '../../lib/title-block/sheet-title-block';
 import type { SheetRenderer } from '../sheets';
@@ -22,6 +25,8 @@ export type SheetsScreenState = {
   sets: SheetSetSummary[];
   // EZD-710: the project's title block from the same answer; null until loaded.
   titleBlock: ProjectTitleBlock | null;
+  // EZD-728: the cover's general and required notes; null until loaded or when they could not be read.
+  notes: SetNotes | null;
   kind: SheetSetKind;
   // The open sheet's number; null while the chosen set has no sheets.
   open: string | null;
@@ -71,6 +76,7 @@ export function createSheetsScreen(
     load: 'loading',
     sets: [],
     titleBlock: null,
+    notes: null,
     kind: 'permit',
     open: null,
     zoom: null,
@@ -162,11 +168,14 @@ export function createSheetsScreen(
     },
     async load() {
       update({ load: 'loading' });
+      const notes = fetchFn(`/api/projects/${projectId}/notes`, { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : null))
+        .then(parseSetNotes, () => null);
       try {
         const res = await fetchFn(`/api/projects/${projectId}/sheet-sets`, { cache: 'no-store' });
         if (!res.ok) throw new Error(String(res.status));
         const body = (await res.json()) as { sets: SheetSetSummary[]; titleBlock?: ProjectTitleBlock };
-        state = { ...state, sets: body.sets, titleBlock: body.titleBlock ?? null };
+        state = { ...state, sets: body.sets, titleBlock: body.titleBlock ?? null, notes: await notes };
         const keep = setOf(state.kind)?.sheets.some((s) => s.number === state.open);
         update({ load: 'ready', open: keep ? state.open : firstOf(state.kind) });
         refresh();

@@ -165,3 +165,9 @@ export function sheetDrawingArea(size: SheetSize): { x: number; y: number; width
   const notes = sheetNotesColumn(size);
   return { x: margin, y: margin, width: notes.x - margin - margin, height: height - 2 * margin };
 }
+
+// EZD-714, EZD-728: the notes a set prints on its cover (GET /api/projects/[id]/notes): the company's general notes
+// for the project's type and the submittal profile's required notes. Shared by the server query and the cover sheet.
+export type SetNoteGroup = 'general' | 'code';
+export type SetNote = { id: string; text: string; group: SetNoteGroup };
+export type SetNotes = { general: SetNote[]; required: SetNote[] };

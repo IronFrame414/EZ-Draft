@@ -432,3 +432,10 @@
 .keyMark .keyDemo {
   stroke-dasharray: 0.0625 0.03125;
 }
+
+/* EZD-728: the cover sheet's project name; its boxes and rows use the symbol key's styles. */
+.coverName {
+  fill: var(--ez-ink);
+  font-family: var(--ez-font-sans);
+  font-weight: 600;
+}

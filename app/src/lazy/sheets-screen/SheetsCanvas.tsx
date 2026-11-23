@@ -10,6 +10,8 @@
 // until the title block has loaded the column shows the sheet number and title as before.
 // EZD-706 (AC-EZD-706-1; S13 Decision 8): the sheet's symbol key at the top of the notes column (sheetNotesColumn),
 // when the set's placement gives this sheet one and it uses any symbol.
+// EZD-728 (AC-EZD-728-1): the cover (A0.0) draws its project block, scope of work, sheet index from the set and notes
+// (CoverSheet); the notes start under the key when the cover carries it.
 import { useEffect, useRef, type ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
 import { SheetTitleBlock } from '../../components/sheets/SheetTitleBlock';
@@ -27,7 +29,11 @@ import {
   type SheetSetSummary,
 } from '../../lib/sheets/sheet-set';
 import type { SheetSize } from '@ezdraft/geometry';
-import type { SheetKey } from './sheet-key';
+import { COVER_SHEET, type SheetKey } from './sheet-key';
+import { CoverSheet } from './CoverSheet';
+import { coverLayout } from './cover-sheet';
+import { symbolKeyHeight } from './SymbolKey';
+import type { SetNotes } from '../../lib/sheets/sheet-set';
 import { sheetMarks } from './sheet-labels';
 import { SymbolKey } from './SymbolKey';
 import type { SheetsScreen } from './sheets-screen-store';
@@ -51,6 +57,7 @@ function SheetPage({
   drawing,
   titleBlock,
   symbolKey,
+  setNotes,
 }: {
   sheet: Sheet;
   set: SheetSetSummary;
@@ -59,6 +66,7 @@ function SheetPage({
   drawing: string | null;
   titleBlock: ProjectTitleBlock | null;
   symbolKey: SheetKey | null;
+  setNotes: SetNotes | null;
 }): ReactElement {
   const { width: w, height: h } = paperInches(size);
   const notes = sheetNotesColumn(size);
@@ -79,6 +87,17 @@ function SheetPage({
       <line x1={w - m - tb} y1={m} x2={w - m - tb} y2={h - m} className={styles.frame} />
       {drawing !== null ? (
         <g data-testid="sheet-drawing" dangerouslySetInnerHTML={{ __html: drawing }} />
+      ) : null}
+      {sheet.number === COVER_SHEET ? (
+        <CoverSheet
+          layout={coverLayout({
+            size,
+            sheets: set.sheets,
+            titleBlock,
+            notes: setNotes,
+            keyHeight: symbolKey === null ? null : symbolKeyHeight(symbolKey.symbols.length),
+          })}
+        />
       ) : null}
       {symbolKey !== null ? <SymbolKey sheetKey={symbolKey} x={notes.x} y={notes.y} width={notes.width} /> : null}
       {watermark !== null ? (
@@ -189,6 +208,7 @@ export function SheetsCanvas({ screen }: SheetsCanvasProps): ReactElement {
             size={size}
             titleBlock={state.titleBlock}
             watermark={watermark}
+            setNotes={state.notes}
             symbolKey={
               state.key !== null && state.key.kind === set.kind && state.key.sheet === sheet.number
                 ? state.key.key
