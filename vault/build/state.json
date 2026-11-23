@@ -454,7 +454,8 @@
     "EZD-603",
     "EZD-403",
     "EZD-706",
-    "EZD-1404"
+    "EZD-1404",
+    "EZD-728"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1468,18 +1469,17 @@
       "ts": "2026-11-23T02:13:30Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-728",
+      "title": "Cover sheet A0.0",
+      "commit": "5e16f199",
+      "ts": "2026-11-23T03:16:49Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
-  "set_aside": {
-    "EZD-1418": {
-      "title": "Field measure into Import review",
-      "ts": "2026-11-22T23:36:10Z",
-      "reason": "check red after merging newer develop (first try: check red after merging newer develop)",
-      "detail": ": Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nEZD-1001a first open of 3D on the benchmark project: 265 ms\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n  ✘  586 [ipad-landscape] › e2e/settings-users.spec.ts:310:7 › EZD-104 users table › B8 touch targets @ipad (2.5s)\n  1) [ipad-landscape] › e2e/settings-users.spec.ts:310:7 › EZD-104 users table › B8 touch targets @ipad \n    Error: touch targets\n    expect(received).toEqual(expected) // deep equality\n    - Expected  - 1\n    + Received  + 3\n    - Array []\n    + Array [\n    +   \"INPUT \\\"\\\" covered at center 142x44\",\n    + ]\n       at ../test-harness/touch-targets.ts:58\n      56 |     return { failures, checked };\n      57 |   }, TOUCH_TARGET_SELECTOR);\n    > 58 |   expect(result.failures, 'touch targets').toEqual([]);\n         |                                            ^\n      59 |   return result.checked;\n      60 | }\n      61 |\n        at expectTouchTargets (/Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1418/app/test-harness/touch-targets.ts:58:44)\n        at /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1418/app/e2e/settings-users.spec.ts:342:14\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results/settings-users-EZD-104-users-table-B8-touch-targets-ipad-ipad-landscape/test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n    Error Context: test-results/settings-users-EZD-104-users-table-B8-touch-targets-ipad-ipad-landscape/error-context.md\n    Error Context: test-results/settings-users-EZD-104-users-table-B8-touch-targets-ipad-ipad-landscape/error-context.md\n    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results/settings-users-EZD-104-users-table-B8-touch-targets-ipad-ipad-landscape/trace.zip\n    Usage:\n        pnpm exec playwright show-trace test-results/settings-users-EZD-104-users-table-B8-touch-targets-ipad-ipad-landscape/trace.zip\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n  1 failed\n    [ipad-landscape] › e2e/settings-users.spec.ts:310:7 › EZD-104 users table › B8 touch targets @ipad \n  7 did not run\n  629 passed (6.8m)\n[ELIFECYCLE] Command failed with exit code 1.\nError: ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL\n  × \"pnpm recursive run\" failed in /Users/josh/Projects/ezdraft/.claude/\n  │ worktrees/EZD-1418/app\n",
-      "branch": "t/EZD-1418",
-      "worktree": ".claude/worktrees/EZD-1418"
-    }
-  },
+  "set_aside": {},
   "red_streak": 0,
   "push_pending": true,
   "trial_report_written": true,
@@ -1637,11 +1637,11 @@
       "started": "2026-11-23T01:14:48Z",
       "develop": "b9074dc2"
     },
-    "EZD-728": {
-      "lane": 3,
-      "title": "Cover sheet A0.0",
-      "started": "2026-11-23T01:39:48Z",
-      "develop": "0577a250"
+    "EZD-1001b": {
+      "lane": 2,
+      "title": "3D ceilings and beams",
+      "started": "2026-11-23T02:14:31Z",
+      "develop": "e439fc4f"
     }
   },
   "advisories_checked_at": "2026-11-22T22:12:20Z",
