@@ -458,7 +458,8 @@
     "EZD-728",
     "EZD-604",
     "EZD-1001b",
-    "EZD-606"
+    "EZD-606",
+    "EZD-611a"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1504,6 +1505,14 @@
       "ts": "2026-11-23T06:21:38Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-611a",
+      "title": "Code check engine and rule registry",
+      "commit": "880fa94c",
+      "ts": "2026-11-23T07:16:52Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1672,11 +1681,11 @@
     }
   },
   "running": {
-    "EZD-611a": {
-      "lane": 2,
-      "title": "Code check engine and rule registry",
-      "started": "2026-11-23T05:12:16Z",
-      "develop": "de8915e2"
+    "EZD-609": {
+      "lane": 1,
+      "title": "Panel schedule",
+      "started": "2026-11-23T06:21:44Z",
+      "develop": "a1390eca"
     }
   },
   "advisories_checked_at": "2026-11-23T04:12:40Z",
