@@ -354,7 +354,7 @@ Ticket Scope; 02 Named tools; vault/tickets/README.md spike rule; vault/spikes/R
 playwright.config.ts      root re-export of app/playwright.config.ts, so CI's browser install finds a root config (EZD-016d)
 app/                      @ezdraft/app — the Next.js App Router app (EZD-001)
   src/app/                routes; entry points per EZD-020; route handlers under src/app/api/**
-  src/app/dev/<name>/      developer test pages; notFound() when VERCEL_ENV is production (EZD-010c); exception /dev/cloud-check, which answers a signed-in request in production (Q-0306 (a), EZD-171)
+  src/app/dev/<name>/      developer test pages, local only: app/src/proxy.ts answers 404 for every path under /dev and /api/dev when VERCEL_ENV is production or preview, before any page or route code runs (gate in app/src/server/dev-gate.ts, EZD-1931); the per-file notFound() checks (EZD-010c) stay as a second layer. /dev/cloud-check's signed-in production exception (Q-0306 (a), EZD-171) ended with EZD-1931
   src/app/dev/perf-probe/  perf check probe page: ?inject=pan-commit adds one React commit per canvas pointer move (EZD-017); ?inject=worker-job runs a 500 ms room-area job in a Web Worker (EZD-235b)
   src/app/dev/benchmark-plan/  perf check pan page: the plan canvas on the generated benchmark model (EZD-207c)
   src/server/             server-only code: db clients, can(), route helpers, money serializers

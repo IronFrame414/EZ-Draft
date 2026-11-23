@@ -3,6 +3,7 @@
 // receives the jar the proxy passes, so a case can write cookies through it as a token refresh would.
 // SESSION_COOKIE_OPTIONS is the real export (EZD-007c, Q-0048 (a)). No database, no network.
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { NextRequest, NextResponse } from 'next/server';
@@ -127,7 +128,13 @@ describe('EZD-007d request gate', () => {
 
     // (i) matcher
     // EZD-346 E1 (Decided "Matcher"): the matcher gains the /api entry.
-    expect(config.matcher).toEqual(['/((?!_next/static|_next/image|.*\\..*).*)', '/api/:path*']);
+    expect(config.matcher).toEqual([
+      '/((?!_next/static|_next/image|.*\\..*).*)',
+      '/api/:path*',
+      '/dev/:path*',
+      '/((?:d|%64)(?:e|%65)(?:v|%76)(?:/.*)?)',
+      '/((?:a|%61)(?:p|%70)(?:i|%69)(?:/.*)?)',
+    ]);
   });
 
   it('EZD-007d T37 written cookies: no cache, seen by the render', async () => {
@@ -531,7 +538,13 @@ describe('EZD-346 same-origin writes', () => {
   });
 
   it('S11 matcher', async () => {
-    expect(config.matcher).toEqual(['/((?!_next/static|_next/image|.*\\..*).*)', '/api/:path*']);
+    expect(config.matcher).toEqual([
+      '/((?!_next/static|_next/image|.*\\..*).*)',
+      '/api/:path*',
+      '/dev/:path*',
+      '/((?:d|%64)(?:e|%65)(?:v|%76)(?:/.*)?)',
+      '/((?:a|%61)(?:p|%70)(?:i|%69)(?:/.*)?)',
+    ]);
     const matches = await loadMatcher();
     expect(matches('http://localhost:3000/api/projects/a.b/checkpoints')).toBe(true);
     expect(matches('http://localhost:3000/api/x.json')).toBe(true);
@@ -600,5 +613,169 @@ describe('EZD-346 every write route is checked', () => {
       expect(urls, e.path).toContain(e.path);
       expect(e.reason.trim().length, e.path).toBeGreaterThan(0);
     }
+  });
+});
+
+// EZD-1931 (audit 2026-11-23 S7; AC-EZD-1931-1, -2): one gate for /dev and /api/dev. The list of dev pages and
+// routes is read from the app folder at test time, so a new dev page is covered without editing this file.
+const APP_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'app');
+
+function devUrls(): { file: string; url: string }[] {
+  const found: { file: string; url: string }[] = [];
+  const walk = (dir: string, segments: string[]) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        walk(path.join(dir, entry.name), [...segments, entry.name]);
+        continue;
+      }
+      if (entry.name !== 'page.tsx' && entry.name !== 'route.ts') continue;
+      const url =
+        '/' +
+        segments
+          .filter((s) => !(s.startsWith('(') && s.endsWith(')')))
+          .map((s) => (s.startsWith('[') ? 'sample-id' : s))
+          .join('/');
+      if (
+        url === '/dev' ||
+        url.startsWith('/dev/') ||
+        url === '/api/dev' ||
+        url.startsWith('/api/dev/')
+      )
+        found.push({ file: path.relative(APP_DIR, path.join(dir, entry.name)), url });
+    }
+  };
+  walk(APP_DIR, []);
+  return found;
+}
+
+describe('EZD-1931 dev pages gate', () => {
+  afterEach(() => {
+    h.make = null;
+    vi.unstubAllEnvs();
+    vi.mocked(createSessionClient).mockClear();
+  });
+
+  const urls = devUrls();
+
+  it('G1 finds every dev page and route, including app/src/app/dev and app/src/app/api/dev', () => {
+    // AC-EZD-1931-1: 32 files under app/src/app/dev and app/src/app/api/dev at the audit.
+    const direct = urls.filter((u) => u.file.startsWith('dev/') || u.file.startsWith('api/dev/'));
+    expect(direct.length).toBeGreaterThanOrEqual(32);
+    expect(urls.map((u) => u.file)).toContain('dev/captcha/stub/route.ts');
+    expect(urls.map((u) => u.file)).toContain('dev/cloud-check/read/route.ts');
+    expect(urls.map((u) => u.file)).toContain('api/dev/jobs/route.ts');
+  });
+
+  for (const vercelEnv of ['production', 'preview']) {
+    it(`G2 every dev page and route answers 404 on ${vercelEnv}, before any session read`, async () => {
+      vi.stubEnv('VERCEL_ENV', vercelEnv);
+      clientWith(async () => WITH_SUB);
+      for (const { file, url } of urls) {
+        for (const method of ['GET', 'POST']) {
+          const res = await proxy(
+            new NextRequest(`https://ezdraft.ezcontractorbinder.com${url}`, {
+              method,
+              headers: { 'sec-fetch-site': 'cross-site', origin: 'https://evil.example' },
+            }),
+          );
+          expect(res.status, `${method} ${file} on ${vercelEnv}`).toBe(404);
+          expect(res.headers.get('x-middleware-next'), file).toBeNull();
+          expect(res.headers.get('location'), file).toBeNull();
+        }
+      }
+      expect(createSessionClient).not.toHaveBeenCalled();
+    });
+  }
+
+  it('G3 locally (VERCEL_ENV unset or development) dev pages answer as before', async () => {
+    for (const vercelEnv of ['', 'development']) {
+      vi.stubEnv('VERCEL_ENV', vercelEnv);
+      clientWith(async () => WITH_SUB);
+      for (const { file, url } of urls) {
+        const res = await call(url);
+        expect(res.status, `${file} with VERCEL_ENV '${vercelEnv}'`).not.toBe(404);
+        expectPassThrough(res);
+      }
+      // /dev is a public path (server/auth/public-paths.ts), so signed out it still passes through as today.
+      clientWith(async () => NO_CLAIMS);
+      for (const { url } of urls) expectPassThrough(await call(url));
+    }
+  });
+
+  it('G4 the matcher sends every dev path to the proxy, dotted ones too', async () => {
+    const matches = await loadMatcher();
+    for (const { file, url } of urls)
+      expect(matches(`http://localhost:3000${url}`), file).toBe(true);
+    expect(matches('http://localhost:3000/dev')).toBe(true);
+    expect(matches('http://localhost:3000/dev/field-outbox/a.b')).toBe(true);
+    expect(matches('http://localhost:3000/dev/x.json')).toBe(true);
+    expect(matches('http://localhost:3000/api/dev/model/a.b')).toBe(true);
+  });
+
+  it('G5 only whole /dev and /api/dev segments are gated', async () => {
+    vi.stubEnv('VERCEL_ENV', 'production');
+    for (const p of [
+      '/dev',
+      '/dev/',
+      '/dev/x.json',
+      '/dev/field-outbox/a.b',
+      '/api/dev',
+      '/api/dev/x',
+    ]) {
+      expect((await call(p)).status, p).toBe(404);
+    }
+    clientWith(async () => WITH_SUB);
+    for (const p of [
+      '/devices',
+      '/devx',
+      '/api/devx',
+      '/api/developer',
+      '/projects/dev',
+      '/%E0%A4%A',
+    ]) {
+      const res = await call(p);
+      expect(res.status, p).not.toBe(404);
+    }
+  });
+  // Reviewer finding: Next's router matches the decoded path, so an escaped letter must not slip past the gate.
+  const ENCODED = [
+    '/%64ev/shell',
+    '/de%76/captcha/stub',
+    '/api/%64ev/jobs',
+    '/%61pi/dev/jobs',
+    '/%64%65%76',
+    '/%64ev/field-outbox/a.b',
+    '/%61pi/%64ev/model/a.b',
+  ];
+
+  it('G6 percent-escaped dev paths answer 404 on production and preview', async () => {
+    for (const vercelEnv of ['production', 'preview']) {
+      vi.stubEnv('VERCEL_ENV', vercelEnv);
+      clientWith(async () => WITH_SUB);
+      for (const p of ENCODED) {
+        for (const method of ['GET', 'POST']) {
+          const res = await proxy(
+            new NextRequest(`https://ezdraft.ezcontractorbinder.com${p}`, { method }),
+          );
+          expect(res.status, `${method} ${p} on ${vercelEnv}`).toBe(404);
+          expect(res.headers.get('x-middleware-next'), p).toBeNull();
+        }
+      }
+      expect(createSessionClient).not.toHaveBeenCalled();
+      // Escaped paths that are not dev paths, and one that does not decode, are not gated.
+      for (const p of ['/%64evices', '/api/%64eveloper', '/projects/%64ev', '/%E0%A4%A']) {
+        expect((await call(p)).status, p).not.toBe(404);
+      }
+      vi.mocked(createSessionClient).mockClear();
+    }
+  });
+
+  it('G7 percent-escaped dev paths reach the proxy through the matcher, dotted ones too', async () => {
+    const matches = await loadMatcher();
+    for (const p of ENCODED) expect(matches(`http://localhost:3000${p}`), p).toBe(true);
+    // Static files stay outside the proxy.
+    expect(matches('http://localhost:3000/icons/sprite.svg')).toBe(false);
+    expect(matches('http://localhost:3000/icons/my%20sprite.svg')).toBe(false);
+    expect(matches('http://localhost:3000/devices.json')).toBe(false);
   });
 });
