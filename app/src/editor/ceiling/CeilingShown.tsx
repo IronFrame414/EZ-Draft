@@ -5,17 +5,20 @@
 // border sizes join the legend with the ACT grid (EZD-511); the joist text changes with Framing known (EZD-514).
 // EZD-508 (11 Budgets editor download size; 11 rule 7): moved from CeilingParts.tsx so they load with the RCP drawing
 // (rcp.ts re-exports them); they show on Ceiling or Both only, as the drawing does.
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { StatusItem } from '../../components/shell/StatusBar';
 import { useT } from '../../lib/messages';
 import styles from './CeilingParts.module.css';
 
-export function CeilingLegend(): ReactElement {
+// EZD-511 (S05 Controls "Legend chip ... ACT border sizes for the selected grid"): `children` is the selected grid's
+// border sizes (tools/ActGridPanel.tsx ActLegend), after the switch zone sample.
+export function CeilingLegend({ children }: { children?: ReactNode } = {}): ReactElement {
   const t = useT();
   return (
     <div className={styles.legend} data-testid="ceiling-legend">
       <span className={styles.zone} data-legend="switch-zone" aria-hidden="true" />
       <span>{t('office.ceiling.legend.switch_zone')}</span>
+      {children}
     </div>
   );
 }

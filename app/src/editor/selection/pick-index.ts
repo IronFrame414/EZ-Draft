@@ -17,6 +17,9 @@
 // from its room, so like an opening on its host wall it is re-placed when its room changes.
 // EZD-510 (S05 Controls "Select"; AC-EZD-510-1): a switching zone picks by its own outline while its room is there, so
 // its inspector can turn the dimmer on or off; like a beam set it is held by its room.
+// EZD-511 (S05 Controls "Acoustical grid ... set direction and start point"; vault/build/assumptions.md EZD-511
+// "Selecting a grid"): an ACT grid picks by the box around its start mark, so a click elsewhere in the room still
+// picks the room; like a beam set it is held by its room.
 // EZD-513 (S05 Controls "Select"; AC-EZD-513-1, -2): a tray, coffer or crown picks by its outline as a soffit does,
 // and a ceiling tag at its point as a utility point does.
 import {
@@ -25,6 +28,8 @@ import {
   type BlockingObject,
   type BeamData,
   type SwitchZoneData,
+  type ActGridData,
+  actGridLayout,
   createSpatialIndex,
   engineerMark,
   engineerMarkCenter,
@@ -96,6 +101,28 @@ type LooseObject =
   | NoteObject;
 const isLoose = (o: ModelObject): o is LooseObject =>
   /^(fixture|utility_point|tile_shower|pin|hvac|access|device|soffit|chase|engineer_note|ceiling_shape|ceiling_tag)$/.test(o.type);
+
+/** EZD-511: the start mark's pick box half size, in model inches. */
+export const ACT_START_PICK_IN = 6;
+
+// EZD-511: the box around the grid's start mark. The mark's place depends on the Defaults minimum border, which the
+// index does not read, so the box holds the start at each of the three choices (1/4, 1/3, 1/2), plus 6".
+const ACT_SHARES = [1 / 4, 1 / 3, 1 / 2];
+function actStartPickShape(grid: ActGridData, room: RoomObject['data']): PickShape {
+  const starts = ACT_SHARES.map((share) => actGridLayout(grid, room, share).start);
+  const h = ACT_START_PICK_IN;
+  const x0 = Math.min(...starts.map((p) => p.x)) - h;
+  const x1 = Math.max(...starts.map((p) => p.x)) + h;
+  const y0 = Math.min(...starts.map((p) => p.y)) - h;
+  const y1 = Math.max(...starts.map((p) => p.y)) + h;
+  const points: [Point, Point, Point, Point] = [
+    { x: x0, y: y0 },
+    { x: x1, y: y0 },
+    { x: x1, y: y1 },
+    { x: x0, y: y1 },
+  ];
+  return { kind: 'quad', points, area: (x1 - x0) * (y1 - y0) };
+}
 
 export type PickIndex = {
   readonly floorId: string | null;
@@ -169,7 +196,9 @@ export function createPickIndex(): PickIndex {
   // EZD-510: the room-held objects, beam sets and switching zones, in one map.
   let beams = new Map<
     string,
-    { id: string; type: 'beam'; data: BeamData } | { id: string; type: 'switch_zone'; data: SwitchZoneData }
+    | { id: string; type: 'beam'; data: BeamData }
+    | { id: string; type: 'switch_zone'; data: SwitchZoneData }
+    | { id: string; type: 'act_grid'; data: ActGridData }
   >();
   let hostOf = new Map<string, string | null>();
   let byHost = new Map<string, Set<string>>();
@@ -212,7 +241,10 @@ export function createPickIndex(): PickIndex {
     } else if (object !== null && (object.type === 'opening' || object.type === 'blocking')) {
       openings.set(key, object);
       hostBy(key, object.data.geometry.hostWallId?.toLowerCase() ?? null);
-    } else if (object !== null && (object.type === 'beam' || object.type === 'switch_zone')) {
+    } else if (
+      object !== null &&
+      (object.type === 'beam' || object.type === 'switch_zone' || object.type === 'act_grid')
+    ) {
       beams.set(key, object);
       hostBy(key, object.data.geometry.roomId.toLowerCase());
     }
@@ -258,7 +290,9 @@ export function createPickIndex(): PickIndex {
           ? null
           : beam.type === 'beam'
             ? beamSetPickShape(beam.data, room.data)
-            : roomPickShape(beam as unknown as RoomObject);
+            : beam.type === 'act_grid'
+              ? actStartPickShape(beam.data, room.data)
+              : roomPickShape(beam as unknown as RoomObject);
       return shape === null ? null : { id: beam.id, shape, hosted: false };
     }
     const opening = openings.get(key);

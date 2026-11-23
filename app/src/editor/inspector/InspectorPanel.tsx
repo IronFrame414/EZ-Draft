@@ -9,6 +9,7 @@
 // EZD-505: one beam set alone shows the beam inspector (tools/BeamPanel.tsx).
 // EZD-507: one light or fan alone shows its inspector with the Fixture type (tools/DevicePanel.tsx).
 // EZD-510: one switching zone alone shows its inspector with the Dimmer box (tools/SwitchZonePanel.tsx).
+// EZD-511: one ACT grid alone shows its inspector (tools/ActGridPanel.tsx).
 import type { FloorChoice } from '../floors/floors';
 import { useChosenFloor } from '../floors/use-chosen-floor';
 import {
@@ -71,6 +72,7 @@ import { PinPanel } from './PinPanel';
 import { BeamPanel } from '../tools/BeamPanel';
 import { CeilingFlags, DevicePanel } from '../tools/DevicePanel';
 import { SwitchZoneInspector } from '../tools/SwitchZonePanel';
+import { ActGridInspector } from '../tools/ActGridPanel';
 import { EngineerNoteForm } from './EngineerNoteForm';
 import styles from './InspectorPanel.module.css';
 
@@ -109,6 +111,8 @@ export type InspectorPanelProps = {
   projectId?: string;
   // EZD-515: the Defaults "Fan blade clearance"; null or absent is Not set (no fan check).
   fanClearance?: number | null;
+  // EZD-511: the Defaults "ACT minimum border" as a share of the tile; absent is half a tile.
+  actMinShare?: number;
 };
 
 export type InspectorContentProps = {
@@ -136,6 +140,7 @@ export function InspectorPanel({
   floors,
   projectId,
   fanClearance = null,
+  actMinShare = 0.5,
 }: InspectorPanelProps): ReactElement {
   const chosen = useChosenFloor(floors);
   const objects = useSyncExternalStore(
@@ -166,6 +171,8 @@ export function InspectorPanel({
   const beamAlone = ids.length === 1 && isType(objects, ids[0]!, 'beam') ? ids[0]! : null;
   // EZD-510: one switching zone alone.
   const zoneAlone = ids.length === 1 && isType(objects, ids[0]!, 'switch_zone') ? ids[0]! : null;
+  // EZD-511: one ACT grid alone.
+  const gridAlone = ids.length === 1 && isType(objects, ids[0]!, 'act_grid') ? ids[0]! : null;
   // EZD-507: one light or fan alone. EZD-603: any one device alone (each has its height note).
   const deviceAlone = ids.length === 1 && isType(objects, ids[0]!, 'device') ? ids[0]! : null;
 
@@ -257,6 +264,17 @@ export function InspectorPanel({
 
   if (beamAlone !== null)
     return <BeamPanel key={beamAlone} store={store} beamId={beamAlone} canEdit={canEdit} />;
+
+  if (gridAlone !== null)
+    return (
+      <ActGridInspector
+        key={gridAlone}
+        store={store}
+        gridId={gridAlone}
+        canEdit={canEdit}
+        minShare={actMinShare}
+      />
+    );
 
   if (zoneAlone !== null)
     return (

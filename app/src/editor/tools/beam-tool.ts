@@ -11,13 +11,14 @@ import type { PlanPointerReceiver } from '../plan/input';
 
 /**
  * The types drawn and picked only on Ceiling and Both. EZD-510: switching zones too. EZD-513: trays, coffers, crown and
- * ceiling tags too (a soffit stays: it draws on the floor plan).
+ * ceiling tags too (a soffit stays: it draws on the floor plan). EZD-511: ACT grids too.
  */
 export const CEILING_ONLY_TYPES: ReadonlySet<string> = new Set([
   'beam',
   'switch_zone',
   'ceiling_shape',
   'ceiling_tag',
+  'act_grid',
 ]);
 
 type Listenable = { subscribe(listener: () => void): () => void };

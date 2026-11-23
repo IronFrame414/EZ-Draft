@@ -167,7 +167,14 @@ export function tagText(objects: Objects, level: string, at: Point): string | nu
   else if (summary.ridgeIn !== null && summary.ridgeIn > summary.wallsIn)
     height = `${rangeEnd(summary.wallsIn)} to ${rangeEnd(summary.ridgeIn)}`;
   else height = formatLength(summary.wallsIn, 16);
-  return `CLG ${height} · ${DEFAULT_CEILING_MATERIAL}`;
+  // EZD-511 (vault/build/assumptions.md EZD-511/EZD-513 row; board S05Ceiling "CLG 8' 0" · ACT 2x2"): the room's own
+  // ceiling reads "ACT 2x2" or "ACT 2x4" while it has a grid; a soffit, tray or coffer in it stays drywall.
+  let material = DEFAULT_CEILING_MATERIAL;
+  if (area === null)
+    for (const o of levelModelObjects(objects, level))
+      if (o.type === 'act_grid' && o.data.geometry.roomId.toLowerCase() === room.id.toLowerCase())
+        material = `ACT ${o.data.attributes.module}`;
+  return `CLG ${height} · ${material}`;
 }
 
 // ---------------------------------------------------------------- drawing

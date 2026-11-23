@@ -679,6 +679,21 @@ export function ProjectEditor({
     readDefaultNumber('fan_blade_clearance'),
     readDefaultNumber('fan_blade_clearance'),
   );
+  // EZD-511 (S05 Validation "Minimum border is a company setting under Defaults"): the Defaults "ACT minimum border"
+  // as a share of the tile, for the RCP, the inspector, the legend and the tools; half a tile while not read.
+  const readActMinShare = () => {
+    const v = sessionDefaults?.get()['act_min_border'];
+    return v === '1/4' ? 1 / 4 : v === '1/3' ? 1 / 3 : 1 / 2;
+  };
+  const actMinShare = useSyncExternalStore(
+    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
+    readActMinShare,
+    readActMinShare,
+  );
+  const actMinShareRef = useRef(actMinShare);
+  useEffect(() => {
+    actMinShareRef.current = actMinShare;
+  }, [actMinShare]);
   // EZD-412, EZD-416, EZD-414: the Defaults the countertop screen, panel and inspector read (per project): Trace's
   // and the presets' overhangs and the countertop increment. One read of all five, as text so the snapshot stays
   // the same between changes (one hook instead of five keeps the editor route within its budget).
@@ -806,8 +821,9 @@ export function ProjectEditor({
   useEffect(() => {
     if (plan === null || shownSurface === 'floor' || !rcp) return;
     // EZD-510 (11 Budgets): the RCP module shows the view and redraws it as a zone is drawn.
-    return rcp.showRcp(plan, shownSurface, surface, { fanClearance });
-  }, [plan, shownSurface, rcp, fanClearance, surface]);
+    // EZD-511: and the ACT minimum border the grids balance to.
+    return rcp.showRcp(plan, shownSurface, surface, { fanClearance, actMinShare });
+  }, [plan, shownSurface, rcp, fanClearance, actMinShare, surface]);
   // EZD-503: Read heights from scan reads the page's GLB link through EZD-303's reader, loaded on the first press.
   const readScan = useMemo(
     () =>
@@ -973,7 +989,13 @@ export function ProjectEditor({
     // EZD-507: each ceiling device tool places through the lazy RCP module the same way.
     for (const tool of CEILING_DEVICE_TOOL_IDS)
       receivers[tool] = lazily(ceilingDeviceModule, (m) =>
-        m.deviceReceiver({ ...base, tool, choice: deviceChoice }),
+        // EZD-511: a light clicked in an ACT room snaps into a tile.
+        m.deviceReceiver({
+          ...base,
+          tool,
+          choice: deviceChoice,
+          actMinShare: () => actMinShareRef.current,
+        }),
       );
     // EZD-510: the Switching zones tool, turned on from the left panel's Lighting section (shown once the RCP
     // module is in); the tool and its placement come with that module.
@@ -982,6 +1004,8 @@ export function ProjectEditor({
     if (rcp) {
       receivers.soffit = rcp.shapeReceiver(surface, base);
       receivers.tag = rcp.tagReceiver(base);
+      // EZD-511: the Acoustical grid tool, from the same module.
+      receivers['act-grid'] = rcp.actReceiver({ ...base, minShare: () => actMinShareRef.current });
     }
     // One wire for every ceiling tool, so one tool turning off never clears another's receiver. EZD-602: and, on
     // the floor plan, the electrical device toolbar's armed item.
@@ -1375,7 +1399,14 @@ export function ProjectEditor({
     <>
       <PlanInputSurface controller={plan} />
       {screenOn ? null : <ZoomStack handle={plan.handle} />}
-      {shownSurface === 'floor' || rcp === undefined ? null : <rcp.CeilingLegend />}
+      {shownSurface === 'floor' || rcp === undefined ? null : (
+        // EZD-511: with the selected ACT grid's border sizes.
+        <rcp.CeilingLegend>
+          {session !== null && selection !== null ? (
+            <rcp.ActLegend store={session.store} selection={selection} minShare={actMinShare} />
+          ) : null}
+        </rcp.CeilingLegend>
+      )}
       {shownSurface !== 'floor' && mayEdit ? (
         <CeilingDeviceChooser surface={surface} choice={deviceChoice} />
       ) : null}
@@ -1515,6 +1546,7 @@ export function ProjectEditor({
           floors={floors ?? undefined}
           projectId={projectId}
           fanClearance={fanClearance}
+          actMinShare={actMinShare}
         />
         <InspectorMore
           selection={selection}

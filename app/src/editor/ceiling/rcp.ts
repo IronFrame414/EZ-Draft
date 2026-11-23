@@ -25,6 +25,11 @@
 // its outline with a dimension on every edge, and each tag its generated text in a box (ceiling-shapes.ts); an outline
 // being drawn shows as an open line through its corners.
 import {
+  actBorderWarnings,
+  actGridLayout,
+  actGridSegments,
+  actTileAt,
+  pointInRing,
   fanClearanceWarnings,
   isOffCeiling,
   DRAWING_FONTS,
@@ -49,6 +54,8 @@ import type { PlanSurface, SurfaceSetting } from './surface';
 import type { PlanController } from '../plan/controller';
 import type { PlanPointerReceiver } from '../plan/input';
 import { placeSwitchZone, roomAt } from '../tools/switch-zone';
+import { placeActGrid } from '../tools/act-grid-edits';
+import { actGridReceiver, type ActGridToolDeps } from '../tools/act-grid-tool';
 import { switchZoneReceiver, zoneDrawingFor, type ZoneToolDeps } from '../tools/switch-zone-tool';
 import { ceilingShapeItems, ceilingTagItems, shapeDraftItems } from './ceiling-shapes';
 import {
@@ -68,6 +75,8 @@ export { RoomCeiling } from './RoomCeiling';
 export { Lighting, LightingSection } from '../tools/SwitchZonePanel';
 export { placeSwitchZone, roomAt } from '../tools/switch-zone';
 export { switchZoneReceiver, zoneDrawingFor } from '../tools/switch-zone-tool';
+// EZD-511: the ACT grid inspector and the legend's border sizes.
+export { ActGridInspector, ActLegend } from '../tools/ActGridPanel';
 // EZD-513: the Soffit, tray, coffer card and the two tools' receivers.
 export { ShapeChooser } from './ShapeChooser';
 export { tagReceiver } from './shape-tool';
@@ -284,9 +293,148 @@ export function zoneDraftItems(points: readonly Point[]): DrawingItem[] {
   return points.length < 2 ? [] : dashedPath(points, false, ZONE_DRAFT_ID);
 }
 
-/** EZD-515: what the RCP checks need from company settings. `fanClearance` null is Not set (no fan check). */
-export type RcpChecks = { fanClearance: number | null };
+/**
+ * EZD-515: what the RCP checks need from company settings. `fanClearance` null is Not set (no fan check). EZD-511:
+ * `actMinShare` is the Defaults "ACT minimum border" as a share of the tile; absent is half a tile.
+ */
+export type RcpChecks = { fanClearance: number | null; actMinShare?: number };
 const NO_CHECKS: RcpChecks = { fanClearance: null };
+const HALF_TILE = 0.5;
+
+/** EZD-511: the start mark's radius and the box it picks by, in model inches. */
+export const ACT_START_MARK_IN = 3;
+
+/** The parts of segment a-b inside the ring (a room outline), in order. */
+export function clipToRing(a: Point, b: Point, ring: readonly Point[]): [Point, Point][] {
+  const ts = [0, 1];
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  for (let i = 0; i < ring.length; i++) {
+    const p = ring[i]!;
+    const q = ring[(i + 1) % ring.length]!;
+    const ex = q.x - p.x;
+    const ey = q.y - p.y;
+    const den = dx * ey - dy * ex;
+    if (Math.abs(den) < 1e-12) continue;
+    const t = ((p.x - a.x) * ey - (p.y - a.y) * ex) / den;
+    const u = ((p.x - a.x) * dy - (p.y - a.y) * dx) / den;
+    if (t > 0 && t < 1 && u >= 0 && u <= 1) ts.push(t);
+  }
+  ts.sort((x, y) => x - y);
+  const at = (t: number): Point => ({ x: a.x + dx * t, y: a.y + dy * t });
+  const out: [Point, Point][] = [];
+  for (let i = 0; i + 1 < ts.length; i++) {
+    if (ts[i + 1]! - ts[i]! < 1e-9) continue;
+    if (pointInRing(at((ts[i]! + ts[i + 1]!) / 2), ring)) out.push([at(ts[i]!), at(ts[i + 1]!)]);
+  }
+  return out;
+}
+
+type RoomObj = Extract<ModelObject, { type: 'room' }>;
+type GridObj = Extract<ModelObject, { type: 'act_grid' }>;
+
+/** EZD-511: the grids on the shown rooms, each with its room. */
+function gridsOn(
+  objects: Objects,
+  level: string,
+  rooms: ReadonlySet<string> | null,
+): { grid: GridObj; room: RoomObj }[] {
+  let hasGrids = false;
+  for (const [, v] of objects) if (v.type === 'act_grid') hasGrids = true;
+  if (!hasGrids) return [];
+  const all = levelModelObjects(objects, level);
+  const roomById = new Map<string, RoomObj>();
+  for (const o of all) if (o.type === 'room') roomById.set(o.id.toLowerCase(), o);
+  const out: { grid: GridObj; room: RoomObj }[] = [];
+  for (const o of all) {
+    if (o.type !== 'act_grid') continue;
+    const key = o.data.geometry.roomId.toLowerCase();
+    const room = roomById.get(key);
+    if (room !== undefined && (rooms === null || rooms.has(key))) out.push({ grid: o, room });
+  }
+  return out;
+}
+
+/**
+ * EZD-511 (S05 Controls "Acoustical grid"; board S05Ceiling laundry grid in thin lines; AC-EZD-511-1): each grid on a
+ * shown room draws its mains and cross tees in thin lines clipped to the room, and its start point as a small circle.
+ * A grid whose override leaves a border under the minimum is on the flagged layer (as the EZD-505 beam warning).
+ */
+export function actGridItems(
+  objects: Objects,
+  level: string,
+  rooms: ReadonlySet<string>,
+  minShare: number = HALF_TILE,
+): DrawingItem[] {
+  const items: DrawingItem[] = [];
+  for (const { grid, room } of gridsOn(objects, level, rooms)) {
+    const layout = actGridLayout(grid.data, room.data, minShare);
+    const layer: DrawingLayer =
+      actBorderWarnings(grid.data, layout).length > 0 ? 'flagged' : 'rooms';
+    for (const [a, b] of actGridSegments(layout))
+      for (const [from, to] of clipToRing(a, b, room.data.geometry.boundary))
+        items.push({ kind: 'line', role: 'dimension', layer, objectId: grid.id, from, to });
+    items.push({
+      kind: 'arc',
+      role: 'beyond',
+      layer,
+      objectId: grid.id,
+      center: layout.start,
+      radius: ACT_START_MARK_IN,
+      startAngle: 0,
+      endAngle: Math.PI * 2,
+    });
+  }
+  return items;
+}
+
+/** EZD-511: the troffer's lens, inset from the tile's edges, in model inches. */
+export const TROFFER_INSET_IN = 2;
+
+/**
+ * EZD-511 (S05 Recessed light "in ACT areas, troffers snap into tiles"; vault/build/assumptions.md EZD-511
+ * "Troffers"): the recessed lights in a room with a grid, each drawn as the tile it sits in (outline and an inset
+ * lens) in place of the can. Keyed by the light's id (lower case).
+ */
+export function trofferItems(
+  objects: Objects,
+  level: string,
+  minShare: number = HALF_TILE,
+): Map<string, DrawingItem[]> {
+  const out = new Map<string, DrawingItem[]>();
+  const grids = gridsOn(objects, level, null);
+  if (grids.length === 0) return out;
+  const layouts = grids.map(({ grid, room }) => ({
+    ring: room.data.geometry.boundary,
+    layout: actGridLayout(grid.data, room.data, minShare),
+  }));
+  for (const o of levelModelObjects(objects, level)) {
+    if (o.type !== 'device' || o.data.attributes.kind !== 'recessed_light') continue;
+    const p = o.data.geometry.point;
+    const hit = layouts.find((g) => pointInRing(p, g.ring));
+    if (hit === undefined) continue;
+    const tile = actTileAt(hit.layout, p);
+    if (tile === null) continue;
+    const layer = STATUS_LAYER[o.data.status] ?? 'new';
+    const c = tile.center;
+    const inset = tile.corners.map((q) => {
+      const d = Math.hypot(q.x - c.x, q.y - c.y);
+      const k = d === 0 ? 0 : Math.max(0, d - TROFFER_INSET_IN * Math.SQRT2) / d;
+      return { x: c.x + (q.x - c.x) * k, y: c.y + (q.y - c.y) * k };
+    });
+    const ring = (pts: readonly Point[], role: 'beyond' | 'hidden'): DrawingItem[] =>
+      pts.map((from, i) => ({
+        kind: 'line' as const,
+        role,
+        layer,
+        objectId: o.id,
+        from,
+        to: pts[(i + 1) % pts.length]!,
+      }));
+    out.set(o.id.toLowerCase(), [...ring(tile.corners, 'beyond'), ...ring(inset, 'beyond')]);
+  }
+  return out;
+}
 
 /** EZD-515: the ids of the hosted ceiling items that are flagged: off any ceiling, or a fan closer than the clearance. */
 export function flaggedCeilingIds(
@@ -320,6 +468,8 @@ export function rcpList(
 ): DrawingList | null {
   if (floor === null) return null;
   const flagged = flaggedCeilingIds(objects, floor.level, checks);
+  // EZD-511: a light in an ACT room draws as its troffer instead of the floor list's can.
+  const troffers = trofferItems(objects, floor.level, checks.actMinShare ?? HALF_TILE);
   const typeOf = new Map<string, string>();
   const kept = new Set<string>();
   for (const [id, v] of objects) {
@@ -328,10 +478,16 @@ export function rcpList(
   }
   const items: DrawingItem[] = [];
   const rooms = new Set<string>();
+  const trofferShown = new Set<string>();
   for (const item of floor.items) {
     const key = item.objectId.toLowerCase();
     const type = typeOf.get(key);
     if (type === undefined || !kept.has(key) || item.layer === 'dimensions') continue;
+    // EZD-511: only lights the floor list holds (the phase view may hide one) draw as troffers.
+    if (troffers.has(key)) {
+      trofferShown.add(key);
+      continue;
+    }
     items.push(flagged.has(key) ? { ...item, layer: 'flagged' } : item);
     if (type === 'room') rooms.add(item.objectId.toLowerCase());
   }
@@ -341,6 +497,11 @@ export function rcpList(
     if (ridge !== null) items.push(...ridgeItems(id, ridge));
   }
   items.push(...beamItems(objects, floor.level, rooms));
+  // EZD-511: the ACT grids under everything else on the ceiling, then the troffers in them.
+  items.push(...actGridItems(objects, floor.level, rooms, checks.actMinShare ?? HALF_TILE));
+  for (const [key, list] of troffers)
+    if (trofferShown.has(key))
+      items.push(...(flagged.has(key) ? list.map((i) => ({ ...i, layer: 'flagged' as const })) : list));
   items.push(...zoneItems(objects, floor.level, rooms), ...zoneDraftItems(zoneDraft));
   // EZD-513: added after the floor list's dimensions are left out, so the edge dimensions stay.
   items.push(...ceilingShapeItems(objects, floor.level, rooms), ...shapeDraftItems(shapeDraft));
@@ -419,4 +580,9 @@ export function zoneReceiver(
     drawing: zoneDrawingFor(surface),
     place: { roomAt, placeSwitchZone },
   });
+}
+
+/** EZD-511 (11 Budgets): the Acoustical grid receiver, placing through this module. */
+export function actReceiver(deps: Omit<ActGridToolDeps, 'place'>): PlanPointerReceiver {
+  return actGridReceiver({ ...deps, place: placeActGrid });
 }

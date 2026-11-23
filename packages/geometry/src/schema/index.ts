@@ -12,11 +12,13 @@
 // EZD-505: the `beam` type (a beam set on one room's ceiling); a new type, so the version stays.
 // EZD-510: the `switch_zone` type (a switching zone on one room's ceiling, existing-details.ts); a new type too.
 // EZD-513: the `ceiling_shape` (tray, coffer, crown) and `ceiling_tag` types (ceiling-shapes.ts); new types too.
+// EZD-511: the `act_grid` type (an acoustical ceiling grid on one room's flat ceiling, act-grid.ts); a new type too.
 // EZD-601: the `panel` and `circuit` types (S06 left panel); new types, so the version stays.
 // EZD-726: the `sheet_set` type (03b rule 3); a new type, so the version stays. Like a floor it names no level.
 // EZD-1009: the `design_option` type (03b rules 3 and 4); a new type, so the version stays. It names no level; each
 // add or replace object in its delta is checked against its own type's schema and holds that object's file ids.
 import { z } from 'zod';
+import { actGridDataSchema, type ActGridData } from './act-grid';
 import { beamDataSchema, type BeamData } from './beam';
 import { blockingDataSchema, type BlockingData } from './blocking';
 import {
@@ -72,6 +74,7 @@ import { roomDataSchema, type RoomData } from './room';
 import { sheetSetDataSchema, type SheetSetData } from './sheet-set';
 import { wallDataSchema, type WallData } from './wall';
 
+export * from './act-grid';
 export * from './beam';
 export * from './blocking';
 export * from './cabinet';
@@ -129,6 +132,7 @@ export const OBJECT_TYPES = [
   'switch_zone',
   'ceiling_shape',
   'ceiling_tag',
+  'act_grid',
 ] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
@@ -168,6 +172,7 @@ type DataByType = {
   switch_zone: SwitchZoneData;
   ceiling_shape: CeilingShapeData;
   ceiling_tag: CeilingTagData;
+  act_grid: ActGridData;
 };
 export type ModelObject = {
   [T in ObjectType]: { id: string; type: T; data: DataByType[T] };
@@ -240,6 +245,7 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
   switch_zone: switchZoneDataSchema,
   ceiling_shape: ceilingShapeDataSchema,
   ceiling_tag: ceilingTagDataSchema,
+  act_grid: actGridDataSchema,
 };
 
 // A source_file id held in an object, with the source_file kinds that field accepts. An empty `kinds` refuses
@@ -297,6 +303,7 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   switch_zone: none,
   ceiling_shape: none,
   ceiling_tag: none,
+  act_grid: none,
 };
 
 export function fileRefs(object: ModelObject): FileRef[] {

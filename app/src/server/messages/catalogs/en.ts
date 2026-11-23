@@ -3070,6 +3070,27 @@ export const en = {
   'office.ceiling.zone.title': 'Switching zone',
   'office.ceiling.zone.click_room': 'Click inside a room to start a zone',
   'office.ceiling.zone.place_failed': 'The zone could not be saved',
+  // EZD-511: the ACT grid (board S05Ceiling legend "Grid balanced: borders {a} and {b}"; other wording listed in
+  // vault/build/assumptions.md).
+  'office.ceiling.act.title': 'Acoustical grid',
+  'office.ceiling.act.subtitle': 'ACT {module} · {room}',
+  'office.ceiling.act.module': 'Module',
+  'office.ceiling.act.module.2x2': '2x2',
+  'office.ceiling.act.module.2x4': '2x4',
+  'office.ceiling.act.direction': 'Direction',
+  'office.ceiling.act.direction.with_long_wall': 'With long wall',
+  'office.ceiling.act.direction.across_long_wall': 'Across long wall',
+  'office.ceiling.act.start': 'Start point',
+  'office.ceiling.act.start.along_main': 'Along mains',
+  'office.ceiling.act.start.across_mains': 'Across mains',
+  'office.ceiling.act.balance': 'Balance',
+  'office.ceiling.act.warning': 'Border {border} is under the {min} minimum.',
+  'office.ceiling.act.click_room': 'Click inside a room to place a grid',
+  'office.ceiling.act.flat_only': 'ACT needs a flat ceiling.',
+  'office.ceiling.act.place_failed': 'The grid could not be saved',
+  'office.ceiling.act.start_too_long': 'The start point must be inside the room',
+  'office.ceiling.legend.act_balanced': 'Grid balanced: borders {a} and {b}',
+  'office.ceiling.legend.act_borders': 'Grid borders {a} and {b}',
   // EZD-513: the Soffit, tray, coffer card and the Height and material tag tool (S05 Controls). Wording not on the
   // board is listed in vault/build/assumptions.md EZD-513.
   'office.ceiling.shape.chooser': 'Shape to draw',

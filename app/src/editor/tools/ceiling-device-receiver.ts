@@ -3,11 +3,14 @@
 // the click with the View's status and selects it. Pure wiring: no React, no DOM.
 // EZD-510 (11 Budgets; EZD-222, EZD-1401 precedent): moved here from ceiling-device-tool.ts so it loads with the
 // Ceiling view's lazy module (lazy/rcp) rather than in the editor's first download.
+// EZD-511 (S05 Controls "Recessed light ... in ACT areas, troffers snap into tiles"; vault/build/assumptions.md EZD-511
+// "Troffers"): a light clicked in a room with an ACT grid is placed at the centre of the tile under the click.
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ModelStore } from '../model/model-store';
 import { openFloorId } from '../plan/batches';
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
 import type { CeilingDeviceToolId, DeviceChoice } from './ceiling-device-tool';
+import { snapToActTile } from './act-grid-edits';
 import { placeCeilingDevice } from './fixture-tool';
 
 type PlaceCeilingDevice = typeof placeCeilingDevice;
@@ -22,6 +25,8 @@ export type DeviceToolDeps = {
   select: (ids: readonly string[]) => void;
   onMessage: (key: MessageKey) => void;
   place: PlaceCeilingDevice;
+  /** EZD-511: the Defaults "ACT minimum border" as a share of the tile; half a tile when not given. */
+  actMinShare?: () => number;
 };
 
 /** A device tool's pointer receiver: each click places one device of the tool's chosen kind and selects it. */
@@ -31,7 +36,12 @@ export function deviceToolReceiver(deps: DeviceToolDeps): PlanPointerReceiver {
     const objects = deps.store.getState().objects;
     const level = openFloorId(objects, deps.chosenFloor());
     if (level === null) return;
-    const change = deps.place(deps.choice.get(deps.tool), e.model, {
+    const kind = deps.choice.get(deps.tool);
+    const at =
+      kind === 'recessed_light'
+        ? snapToActTile(objects, level, e.model, deps.actMinShare?.() ?? 0.5)
+        : e.model;
+    const change = deps.place(kind, at, {
       level,
       newId: deps.newId,
       status: deps.newStatus(),
