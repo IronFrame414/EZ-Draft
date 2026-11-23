@@ -163,6 +163,70 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"code_check_run": {
+                  Row: {
+                    "accepted_notes": NonNullable<Json>,"created_at": string,"created_by": string | null,"edition": string,"id": string,"model_version_id": string | null,"project_id": string,"tenant_id": string,"warnings": NonNullable<Json>
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accepted_notes"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"edition": string,"id"?: string,"model_version_id"?: string | null,"project_id": string,"tenant_id": string,"warnings"?: NonNullable<Json>
+                  }
+                  Update: {
+                    "accepted_notes"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"edition"?: string,"id"?: string,"model_version_id"?: string | null,"project_id"?: string,"tenant_id"?: string,"warnings"?: NonNullable<Json>
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "code_check_run_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "code_check_run_model_version_id_fkey"
+      columns: ["model_version_id"]
+isOneToOne: false
+      referencedRelation: "model_version"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "code_check_run_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "code_check_run_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"code_rule": {
+                  Row: {
+                    "applies_to": string,"check_text": string,"code": string,"created_at": string,"edition_difference": string | null,"id": string,"needs": string | null,"note": string | null,"rule_group": string,"rule_id": string,"rule_trigger": string,"rule_type": string,"section_fbc8_nec2020": string | null,"section_fbc9_nec2023": string | null,"severity": string,"source": string,"tenant_id": string | null,"title": string,"updated_at": string,"url": string | null,"verified_at": string | null,"verified_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "applies_to": string,"check_text": string,"code": string,"created_at"?: string,"edition_difference"?: string | null,"id"?: string,"needs"?: string | null,"note"?: string | null,"rule_group": string,"rule_id": string,"rule_trigger": string,"rule_type": string,"section_fbc8_nec2020"?: string | null,"section_fbc9_nec2023"?: string | null,"severity"?: string,"source": string,"tenant_id"?: string | null,"title": string,"updated_at"?: string,"url"?: string | null,"verified_at"?: string | null,"verified_by"?: string | null
+                  }
+                  Update: {
+                    "applies_to"?: string,"check_text"?: string,"code"?: string,"created_at"?: string,"edition_difference"?: string | null,"id"?: string,"needs"?: string | null,"note"?: string | null,"rule_group"?: string,"rule_id"?: string,"rule_trigger"?: string,"rule_type"?: string,"section_fbc8_nec2020"?: string | null,"section_fbc9_nec2023"?: string | null,"severity"?: string,"source"?: string,"tenant_id"?: string | null,"title"?: string,"updated_at"?: string,"url"?: string | null,"verified_at"?: string | null,"verified_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "code_rule_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "code_rule_verified_by_fkey"
+      columns: ["verified_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"customer": {
                   Row: {
                     "address": string | null,"archived_at": string | null,"created_at": string,"email": string,"id": string,"name": string,"phone": string | null,"tenant_id": string,"updated_at": string
@@ -1634,6 +1698,9 @@ isOneToOne: false
                            },
 "record_benchmark_run":
 { Args: { "p_app_version": string,"p_device": Json,"p_results": Json }; Returns: string
+                           },
+"record_code_check_run":
+{ Args: { "p_edition": string,"p_model_version": string,"p_project": string,"p_warnings": Json }; Returns: string
                            },
 "record_error_alert":
 { Args: { "p_fingerprint": string,"p_kind": string,"p_project_id": string,"p_ref": string,"p_source": string,"p_tenant_id": string,"p_title": string }; Returns: {

@@ -42,6 +42,8 @@ export * from './countertops/edge-profile';
 export * from './derived';
 export * from './drawing';
 export * from './fixtures';
+// EZD-611a: the code check engine and rule registry.
+export * from './code-check';
 export * from './length';
 export * from './moves';
 export * from './numbers';

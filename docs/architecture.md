@@ -1357,6 +1357,17 @@ EZD-034 (vault/plans/EZD-034.md Steps 1-13); 11 Security and audit; Q-0175 (b); 
 - **Cloudflare's host** `challenges.cloudflare.com` is named in `app/src` only in `captcha-config.ts`.
 - **Hand check.** `scripts/auth/captcha-check.mjs`, run by Josh by hand (`docs/runbook.md` `## Captcha (EZD-034)` step 5), refused under `CI`, never in a root script or the gate: it asks Auth for a sign-in code without a token and passes only on HTTP 400 `captcha_failed`.
 
+### Code check engine (EZD-611a)
+
+09c Code check engine; 03e code_rule; 03c code_check_run; R26 R19, R34.
+
+- **Engine.** `packages/geometry/src/code-check/engine.ts`: `createRuleRegistry(sets)` holds rule sets, one per code volume and edition (`{ code, edition, rules }`); a rule id is unique within an edition, and an Automatic or Needs data rule must have a `test`. `runCodeCheck({ model, edition, registry, verifiedRuleIds, project })` runs only the rule sets of the project's edition, each rule only on the objects of its `appliesTo` types that pass its `when`, and returns results (`fail`, `cannot_check` with the `need` it names, or `reminder`) with the section of that edition, the viewer `url`, `severity` and the `unverified` tag (on unless the rule id is in `verifiedRuleIds`). A pass gives no result. It never changes the model. Results carry ids and values only; EZD-612 renders the words.
+- **Alteration scope.** `scope.ts`: New or Demo objects are altered; a room is altered when it is New or Demo or holds a New or Demo object (by `roomId`; a wall bordering the room, within its thickness of a parallel outline edge; an object hosted on such a wall by `hostWallId`; or its point inside the room outline, all on the same floor); an existing object in an altered room is altered. In scope gives `warning`, out of scope `note`; a `whole_dwelling` rule (smoke alarms) is in scope everywhere once anything is altered. Demo objects are not themselves checked.
+- **App rule sets.** `app/src/lib/code-check/registry.ts` `CODE_RULE_SETS` (empty until EZD-611b to EZD-639 add theirs) and `appRuleRegistry()`.
+- **code_rule.** One row per rule: catalog rules have `tenant_id` null and are read by every member; company rules (`code = 'company'`) belong to one company. Columns follow the catalog, with `section_fbc8_nec2020` (catalog `section_now`) and `section_fbc9_nec2023` (`section_next`), `rule_type`, `rule_trigger`, `source`, `severity`, `verified_by`, `verified_at`. No member write policy (EZD-1710 adds Mark verified). Every rule starts unverified (R19).
+- **Catalog load.** `vault/spec/code-rules.json` is the source of truth. `scripts/code-rules/catalog-row.mjs` maps an entry to a row; `node scripts/code-rules/write-migration.mjs <yyyymmddhhmmss_name.sql>` writes an upsert migration from it (first: `20261123100100_code_rule_catalog.sql`). `app/src/server/code-check/code-rule-catalog.db.test.ts` fails when the table and the file differ.
+- **code_check_run.** Written only by `record_code_check_run(p_project, p_model_version, p_edition, p_warnings)` (Run code check and sight of the project, else 42501; a checkpoint of another project, an unknown edition or results that are not an array of at most 20,000, 22023). `app/src/server/code-check/check-run.ts` `checkProject(client, { projectId, model, modelVersionId?, registry? })` reads the project's edition and the verified rule ids (paged: the API returns at most 1,000 rows a call), runs the engine and stores the run.
+
 ## Migrations
 
 02 Named tools; 11 Operations; vault/tickets/README.md; EZD-023a.

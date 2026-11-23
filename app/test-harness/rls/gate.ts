@@ -54,6 +54,11 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
       p_source_url: null,
     },
   },
+  // EZD-611a: a code check run is stored (authenticated only).
+  {
+    fn: 'record_code_check_run',
+    args: { p_project: null, p_model_version: null, p_edition: null, p_warnings: null },
+  },
   // EZD-122: Name snapshot and Revert (authenticated only).
   { fn: 'name_snapshot', args: { p_project: null, p_version: null, p_name: null } },
   {

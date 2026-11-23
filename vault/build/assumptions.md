@@ -2525,6 +2525,17 @@ The builder records here every choice the spec, decisions and mockups did not se
 | EZD-728 | Cover layout | Left part: project name, project block, scope of work, sheet index (45% of the drawing area's width); notes column: the symbol key on top when the set's key is "On cover only", then general notes, then required notes, wrapped by words to the column at the 3/32" note size | Board S13Sheets notes column; 09h text sizes; Q-0769 |
 | EZD-728 | Q-0787 work-area plan on A0.0 | Not built here: it is EZD-619 (phase 46), which adds the floor outlines with hatched work-area rooms and the work-area note to this cover | Q-0787 |
 
+## EZD-611a (2026-11-23)
+| Ticket | Question | Choice | Source |
+| --- | --- | --- | --- |
+| EZD-611a | Which rules start verified (the spec says 756 rules were read from the code text; EZD-611b keeps the tag only on rules not sourced from Code text) | None: every catalog rule is seeded with verified_by and verified_at empty, so every warning carries "not yet verified" until a licensed person marks the rule verified (EZD-1710) | R19 ("Every rule is unverified until a licensed person checks it"); 09c verified_by / verified_at |
+| EZD-611a | code_rule severity (03e lists it; the catalog has no such column) | Every catalog rule is `warning`; the alteration scope turns an existing, unaltered condition into a `note` at check time | 09c Alterations; 03e code_rule |
+| EZD-611a | A company-wide rule list in a table that must carry tenant_id (the locked RLS audit pins the tenant-less tables) | One table: catalog rules have tenant_id null and every member reads them; company rules (code `company`, 03e) carry their company. No member write policy | 03e code_rule; app/src/server/db/rls.audit.test.ts |
+| EZD-611a | Who may store a check run | record_code_check_run needs Run code check (run_code_check) and sight of the project; members read the runs of projects they see | S15c permissions catalog; 03c code_check_run |
+| EZD-611a | Which room an object is in, for "rooms that contain new or demolished objects" | The room the object names (roomId); else, on the same floor: for a wall, every room it borders (a room outline edge parallel to the wall with its middle within the wall's thickness of the wall's line, as outlines are on the inside finished faces, Q-0559); for an object hosted on a wall (door, window, blocking: hostWallId), the rooms that wall borders; and the room whose outline holds the object's point (its point, center or position, the middle of its line, or the average of its outline corners). An object with no status of its own that no room holds (a circuit) counts as altered when anything in the project is | 09c Alterations |
+| EZD-611a | Demolished objects as check targets | A Demo object alters its room but is not itself checked (it is being removed) | 09c Alterations |
+| EZD-611a | The change-of-use and new-dwellings-only triggers | Scoped like new-work until the project values that decide them exist (EZD-620) and their rule tickets refine them; whole-dwelling is in scope everywhere once anything is altered | catalog trigger column; 09c Alterations |
+| EZD-611a | Catalog enum values in the table | Lower snake case (automatic, needs_data, reminder; new_work, whole_dwelling, ...; code_text, published_summary, unverified); code keeps the catalog's names (NEC, FBC-R, ...) | docs/architecture.md Tenancy tables (enumerated values) |
 ## EZD-606 (2026-11-23)
 
 | Ticket | Question | Choice | Source |
