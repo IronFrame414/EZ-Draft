@@ -471,7 +471,8 @@
     "EZD-1936",
     "EZD-1938",
     "EZD-1932",
-    "EZD-1949"
+    "EZD-1949",
+    "EZD-1942"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1621,6 +1622,14 @@
       "ts": "2026-11-23T18:33:43Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1942",
+      "title": "Loop: footprints include the tests of the files they claim",
+      "commit": "747a0ecf",
+      "ts": "2026-11-23T21:31:41Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1634,7 +1643,7 @@
     }
   },
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
