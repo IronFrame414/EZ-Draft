@@ -1553,7 +1553,7 @@
     }
   },
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1583,7 +1583,8 @@
     "EZD-1418": 1,
     "EZD-1422": 1,
     "EZD-916": 1,
-    "EZD-605": 1
+    "EZD-605": 1,
+    "EZD-512": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1705,23 +1706,27 @@
     "EZD-605": {
       "ts": "2026-11-23T05:15:10Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-512": {
+      "ts": "2026-11-23T11:31:31Z",
+      "reason": "develop kept moving: 3 merge rounds"
     }
   },
   "running": {
-    "EZD-512": {
-      "lane": 1,
-      "title": "HVAC objects",
-      "started": "2026-11-23T09:23:09Z",
-      "develop": "06eefc55"
-    },
     "EZD-607": {
       "lane": 3,
       "title": "Load calc engine",
       "started": "2026-11-23T09:23:09Z",
       "develop": "06eefc55"
+    },
+    "EZD-1409": {
+      "lane": 2,
+      "title": "Tasks tab",
+      "started": "2026-11-23T09:44:12Z",
+      "develop": "2daa0ce6"
     }
   },
-  "advisories_checked_at": "2026-11-23T04:12:40Z",
+  "advisories_checked_at": "2026-11-23T10:13:13Z",
   "hold": {
     "EZD-415": {
       "holders": [
