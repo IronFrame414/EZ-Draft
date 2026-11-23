@@ -459,7 +459,8 @@
     "EZD-604",
     "EZD-1001b",
     "EZD-606",
-    "EZD-611a"
+    "EZD-611a",
+    "EZD-609"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1513,6 +1514,14 @@
       "ts": "2026-11-23T07:16:52Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-609",
+      "title": "Panel schedule",
+      "commit": "31415284",
+      "ts": "2026-11-23T07:52:35Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1681,11 +1690,11 @@
     }
   },
   "running": {
-    "EZD-609": {
-      "lane": 1,
-      "title": "Panel schedule",
-      "started": "2026-11-23T06:21:44Z",
-      "develop": "a1390eca"
+    "EZD-643": {
+      "lane": 2,
+      "title": "Other code editions",
+      "started": "2026-11-23T07:18:01Z",
+      "develop": "c977388c"
     }
   },
   "advisories_checked_at": "2026-11-23T04:12:40Z",
