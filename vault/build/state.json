@@ -472,7 +472,8 @@
     "EZD-1938",
     "EZD-1932",
     "EZD-1949",
-    "EZD-1942"
+    "EZD-1942",
+    "EZD-1954"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1630,6 +1631,14 @@
       "ts": "2026-11-23T21:31:41Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1954",
+      "title": "Design tokens: a type scale and no literal font sizes",
+      "commit": "28f63c93",
+      "ts": "2026-11-23T21:58:20Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {
@@ -1823,17 +1832,17 @@
     }
   },
   "running": {
-    "EZD-1954": {
-      "lane": 3,
-      "title": "Design tokens: a type scale and no literal font sizes",
-      "started": "2026-11-23T18:33:50Z",
-      "develop": "cf7cbe98"
-    },
     "EZD-1934": {
       "lane": 1,
       "title": "Move dev-only glob and minimatch to patched versions",
       "started": "2026-11-23T19:27:49Z",
       "develop": "66aa9069"
+    },
+    "EZD-1943": {
+      "lane": 2,
+      "title": "Loop: small fixes (check timer SIGKILL, loop.log commit error)",
+      "started": "2026-11-23T21:31:51Z",
+      "develop": "479beb2e"
     }
   },
   "advisories_checked_at": "2026-11-23T16:13:31Z",
