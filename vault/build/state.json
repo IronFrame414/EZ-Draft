@@ -469,7 +469,8 @@
     "EZD-1937",
     "EZD-1931",
     "EZD-1936",
-    "EZD-1938"
+    "EZD-1938",
+    "EZD-1932"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1603,6 +1604,14 @@
       "ts": "2026-11-23T16:51:39Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1932",
+      "title": "Database and server hardening: function defaults fail closed, server-only secret files, deny-all table tests",
+      "commit": "33c26a92",
+      "ts": "2026-11-23T17:26:26Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -1777,17 +1786,17 @@
     }
   },
   "running": {
-    "EZD-1932": {
-      "lane": 1,
-      "title": "Database and server hardening: function defaults fail closed, server-only secret files, deny-all table tests",
-      "started": "2026-11-23T15:56:15Z",
-      "develop": "7fde8735"
-    },
     "EZD-1939": {
       "lane": 2,
       "title": "Loop: failure lines in loop.log name the failing tests",
       "started": "2026-11-23T16:24:24Z",
       "develop": "426a3500"
+    },
+    "EZD-1949": {
+      "lane": 3,
+      "title": "Speed up the slowest unit and database tests",
+      "started": "2026-11-23T16:51:48Z",
+      "develop": "79b18415"
     }
   },
   "advisories_checked_at": "2026-11-23T16:13:31Z",
