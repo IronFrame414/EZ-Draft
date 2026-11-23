@@ -36,7 +36,11 @@ type CircuitAttrs = {
 };
 
 /** The spaces the panel's circuits take (a 2-pole circuit takes its space and the one two on), `skip` left out. */
-function takenSpaces(objects: Objects, panelId: string, skip: string | null = null): Set<number> {
+export function takenSpaces(
+  objects: Objects,
+  panelId: string,
+  skip: string | null = null,
+): Set<number> {
   const taken = new Set<number>();
   for (const [k, v] of objects) {
     if (v.type !== 'circuit' || (skip !== null && lower(k) === lower(skip))) continue;
@@ -119,7 +123,10 @@ export function newCircuitChanges(
       }).ok
     )
       return null;
-    changes.push({ id: panelId, value: { type: 'panel', schemaVersion: CURRENT_SCHEMA_VERSION, data } });
+    changes.push({
+      id: panelId,
+      value: { type: 'panel', schemaVersion: CURRENT_SCHEMA_VERSION, data },
+    });
   } else {
     const p = find(objects, panelId, 'panel');
     if (p === null) return null;
@@ -251,8 +258,7 @@ export function assignChanges(
     if (before.length === order.length && before.every((x, i) => x === order[i])) continue;
     const data = { ...value.data, attributes: { ...a, order } };
     if (
-      !parseStoredObject({ id: key, type: 'circuit', schema_version: value.schemaVersion, data })
-        .ok
+      !parseStoredObject({ id: key, type: 'circuit', schema_version: value.schemaVersion, data }).ok
     )
       return null;
     circuits.push({ id: key, value: { ...value, data } });

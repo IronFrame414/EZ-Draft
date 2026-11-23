@@ -17,6 +17,10 @@
 // EZD-606 (S06 Controls "Existing panel | Inspector, load calc header button; opens a dialog | ... | Edit model";
 // vault/build/assumptions.md EZD-606 "Where the Existing panel button sits"): until the load calc header exists
 // (EZD-608), the Existing panel button sits in the Panel tab, shown with Edit model and disabled while paused.
+// EZD-609 (S06 Controls "Panel tab | ... Compact panel schedule: two columns of spaces (odd/even) ... Click a space
+// selects its circuit.", "Panel schedule | Inspector, bottom | Opens the generated panel schedule ... Read only";
+// vault/build/assumptions.md EZD-609): the Panel tab's compact schedule and, until the inspector exists (EZD-608),
+// the Panel schedule button under it. Both allowed in view only.
 import { DEVICE_KINDS, WIRE_SIZES, type CircuitProtection, type WireSize } from '@ezdraft/geometry';
 import { useMemo, useState, useSyncExternalStore, type ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
@@ -52,6 +56,8 @@ import styles from './ElectricalPanel.module.css';
 import { heightNotesShown } from './height-notes-shown';
 import { ExistingPanelDialog } from './ExistingPanelDialog';
 import { createPanelPhotoReader, type PanelPhotoReader } from './panel-read-client';
+import { panelSchedule } from './panel-schedule';
+import { CompactSchedule, ScheduleDialog } from './PanelSchedule';
 
 export type ElectricalTab = 'circuits' | 'devices' | 'panel';
 
@@ -149,6 +155,7 @@ export function ElectricalPanel({
   const setCircuitId = (id: string | null) => circuitView.set({ circuit: id });
   const [renaming, setRenaming] = useState<string | null>(null);
   const [existingOpen, setExistingOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const projectId = edit?.projectId;
   const givenReader = edit?.reader;
   const reader = useMemo<PanelPhotoReader | null>(
@@ -179,6 +186,7 @@ export function ElectricalPanel({
     [objects, panel],
   );
   const totals = panelTotals(circuits);
+  const schedule = useMemo(() => panelSchedule(objects, panel?.id ?? null), [objects, panel]);
   const groups = useMemo(
     () => deviceGroups(objects, openFloorId(objects, chosen)),
     [objects, chosen],
@@ -465,6 +473,27 @@ export function ElectricalPanel({
           ))}
         </div>
       );
+  } else if (schedule !== null && panel !== null) {
+    body = (
+      <>
+        <CompactSchedule schedule={schedule} chosen={circuitId} onChoose={chooseCircuit} />
+        <button
+          type="button"
+          className={`${styles.newCircuit} ${touch.target}`}
+          data-testid="electrical-panel-schedule"
+          onClick={() => setScheduleOpen(true)}
+        >
+          <span>{t('office.electrical.schedule.open')}</span>
+        </button>
+        {scheduleOpen ? (
+          <ScheduleDialog
+            schedule={schedule}
+            title={panelHeader(panel)}
+            onClose={() => setScheduleOpen(false)}
+          />
+        ) : null}
+      </>
+    );
   }
 
   return (

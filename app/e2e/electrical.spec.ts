@@ -669,3 +669,103 @@ test.describe('EZD-606 Existing panel dialog', () => {
     await expect(tid(page, 'electrical-existing-panel')).toHaveCount(0);
   });
 });
+
+// EZD-609 AC-EZD-609-1 "Schedule rows match the circuits." (S06 Controls "Panel tab | Left panel segment | Compact
+// panel schedule: two columns of spaces (odd/even) with circuit number, name, breaker; open spaces shown empty. Click
+// a space selects its circuit.", "Panel schedule | ... space, circuit, breaker size, poles, wire size, AFCI/GFCI type,
+// load; flags spaces left. | Read only"; vault/build/assumptions.md EZD-609). Expected values from the seeded board
+// circuits (CIRCUITS above) on Panel A's 40 spaces.
+test.describe('EZD-609 panel schedule', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  test('AC-1 the Panel tab schedule and the full schedule match the circuits; a space selects its circuit', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids, user } = await fixtureS(EDITOR);
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await page.keyboard.press('e');
+    await seed(page);
+    await tid(page, 'electrical-tab-panel').click();
+
+    const space = (n: number) => page.locator(`[data-testid="schedule-space"][data-space="${n}"]`);
+    await expect(tid(page, 'schedule-space')).toHaveCount(40);
+    for (const [n, , name, breaker] of CIRCUITS) {
+      await expect(space(n).getByTestId('schedule-space-name')).toHaveText(name);
+      await expect(space(n).getByTestId('schedule-space-meta')).toContainText(`${breaker}A`);
+    }
+    await expect(space(1).getByTestId('schedule-space-meta')).toHaveText('1-3 · 50A');
+    await expect(space(3).getByTestId('schedule-space-name')).toHaveText('Range');
+    await expect(space(2)).toHaveText('2');
+    // Odd spaces sit in the left column, even in the right.
+    const x = async (n: number) => (await space(n).boundingBox())!.x;
+    expect(await x(1)).toBeLessThan(await x(2));
+    expect(await x(23)).toBe(await x(1));
+    expect(await x(24)).toBe(await x(2));
+    await expect(tid(page, 'panel-schedule-left')).toHaveText('31 spaces left');
+
+    // Clicking space 24 chooses Kitchen lighting and selects its device on the plan. The device is new, so the View
+    // goes to Proposed first (the View opens on Existing, which hides new objects).
+    await tid(page, 'status-phase').locator('button[data-value="proposed"]').click();
+    await expect(
+      tid(page, 'status-phase').locator('button[data-value="proposed"]'),
+    ).toHaveAttribute('aria-pressed', 'true');
+    await space(24).click();
+    await expect(space(24)).toHaveAttribute('aria-pressed', 'true');
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as Hook).__ezdraftSelection.ids()))
+      .toEqual([DEVICE_1]);
+    await tid(page, 'electrical-tab-circuits').click();
+    await expect(page.locator('[data-testid="circuit-row"][aria-pressed="true"]')).toContainText(
+      'Kitchen lighting',
+    );
+
+    // The full schedule: one row per space, read only.
+    await tid(page, 'electrical-tab-panel').click();
+    await tid(page, 'electrical-panel-schedule').click();
+    const dialog = tid(page, 'panel-schedule-dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator('th')).toHaveText([
+      'Space',
+      'Circuit',
+      'Breaker',
+      'Poles',
+      'Wire',
+      'AFCI/GFCI',
+      'Load',
+    ]);
+    await expect(tid(page, 'panel-schedule-row')).toHaveCount(40);
+    const row = (n: number) =>
+      page.locator(`[data-testid="panel-schedule-row"][data-space="${n}"] td`);
+    await expect(row(1)).toHaveText(['1', '1-3 Range', '50A', '2', 'Not set', '', '12,000 VA']);
+    await expect(row(14)).toHaveText([
+      '14',
+      '14 Small appl. 2',
+      '20A',
+      '1',
+      'Not set',
+      'GFCI',
+      '1,500 VA',
+    ]);
+    await expect(row(24)).toHaveText([
+      '24',
+      '24 Kitchen lighting',
+      '15A',
+      '1',
+      'Not set',
+      'AFCI',
+      '171 VA',
+    ]);
+    await expect(dialog.locator('input, select, textarea')).toHaveCount(0);
+    await expect(dialog.getByTestId('panel-schedule-left')).toHaveText('31 spaces left');
+    await tid(page, 'panel-schedule-close').click();
+    await expect(dialog).toHaveCount(0);
+  });
+});
