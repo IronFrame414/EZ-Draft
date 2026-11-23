@@ -466,7 +466,8 @@
     "EZD-1930",
     "EZD-1933",
     "EZD-1935",
-    "EZD-1937"
+    "EZD-1937",
+    "EZD-1931"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1576,6 +1577,14 @@
       "ts": "2026-11-23T15:16:38Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1931",
+      "title": "One gate for /dev and /api/dev in the request proxy",
+      "commit": "8a12bfbb",
+      "ts": "2026-11-23T15:56:06Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -1750,17 +1759,17 @@
     }
   },
   "running": {
-    "EZD-1931": {
-      "lane": 1,
-      "title": "One gate for /dev and /api/dev in the request proxy",
-      "started": "2026-11-23T12:52:40Z",
-      "develop": "e1e914f7"
-    },
     "EZD-1936": {
       "lane": 2,
       "title": "Fix: settings-users B8 iPad touch-target test fails at random",
       "started": "2026-11-23T13:44:11Z",
       "develop": "abec1dc4"
+    },
+    "EZD-1938": {
+      "lane": 3,
+      "title": "Permission tests count from the catalog; expected refresh refusals stay out of the gate log",
+      "started": "2026-11-23T15:16:47Z",
+      "develop": "6e4cc8eb"
     }
   },
   "advisories_checked_at": "2026-11-23T10:13:13Z",
