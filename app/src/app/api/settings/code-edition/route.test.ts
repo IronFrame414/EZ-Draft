@@ -150,7 +150,7 @@ describe('EZD-613 /api/settings/code-edition', () => {
     expect(r.json).toEqual({
       edition: 'fbc9_nec2023',
       optionalLoadCalc: false,
-      available: ['fbc9_nec2023'],
+      available: ['fbc9_nec2023', 'fbc8_nec2020'],
     });
   });
 
@@ -172,9 +172,9 @@ describe('EZD-613 /api/settings/code-edition', () => {
   it('AC-EZD-613-1: a project keeps its edition after the default changes', async () => {
     // The project gets its own edition in Project settings.
     state.store = new Map(ownerCookies);
-    const own = await projectSettings('PATCH', kept, { codeEdition: 'fbc9_nec2023' });
+    const own = await projectSettings('PATCH', kept, { codeEdition: 'fbc8_nec2020' });
     expect(own.res.status).toBe(200);
-    expect(own.json.codeEdition).toEqual({ own: 'fbc9_nec2023', effective: 'fbc9_nec2023' });
+    expect(own.json.codeEdition).toEqual({ own: 'fbc8_nec2020', effective: 'fbc8_nec2020', auto: false });
     expect(emitMock.mock.calls[0][1]).toEqual({ projectId: kept, keys: ['code_edition'] });
     emitMock.mockClear();
     const keptBefore = await projectEditionRow(kept);
@@ -187,7 +187,7 @@ describe('EZD-613 /api/settings/code-edition', () => {
     expect(saved.json).toEqual({
       edition: 'fbc9_nec2023',
       optionalLoadCalc: true,
-      available: ['fbc9_nec2023'],
+      available: ['fbc9_nec2023', 'fbc8_nec2020'],
     });
     expect(emitMock).toHaveBeenCalledTimes(1);
     expect(emitMock.mock.calls[0][0]).toBe('tenant.code_edition_updated');
@@ -199,13 +199,16 @@ describe('EZD-613 /api/settings/code-edition', () => {
     expect(await projectEditionRow(unset)).toEqual(unsetBefore);
     state.store = new Map(ownerCookies);
     expect((await projectSettings('GET', kept)).json.codeEdition).toEqual({
-      own: 'fbc9_nec2023',
-      effective: 'fbc9_nec2023',
+      own: 'fbc8_nec2020',
+      effective: 'fbc8_nec2020',
+      auto: false,
     });
     state.store = new Map(ownerCookies);
+    // EZD-643: a new project stores the company default's edition.
     expect((await projectSettings('GET', unset)).json.codeEdition).toEqual({
-      own: null,
+      own: 'fbc9_nec2023',
       effective: 'fbc9_nec2023',
+      auto: false,
     });
 
     // Saving the same values changes nothing and emits nothing.
@@ -219,6 +222,6 @@ describe('EZD-613 /api/settings/code-edition', () => {
     state.store = new Map(ownerCookies);
     const r = await projectSettings('PATCH', unset, { codeEdition: 'FBC 2023' });
     expect(r.res.status).toBe(400);
-    expect((await projectEditionRow(unset)).code_edition).toBeNull();
+    expect((await projectEditionRow(unset)).code_edition).toBe('fbc9_nec2023');
   });
 });

@@ -256,7 +256,7 @@ describe('EZD-130 update_project_settings', () => {
       expect(r.error?.code, JSON.stringify(bad)).toBe('22023');
     }
     const after = await row(p);
-    expect([after.code_edition, after.submittal_profile_id, after.settings]).toEqual([null, null, {}]);
+    expect([after.code_edition, after.submittal_profile_id, after.settings]).toEqual(['fbc9_nec2023', null, {}]);
     await release(editor, p);
   });
 });

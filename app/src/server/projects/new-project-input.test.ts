@@ -45,4 +45,14 @@ describe('EZD-118 parseNewProject', () => {
       name: 'a'.repeat(1000),
     });
   });
+
+  it('EZD-643 (Q-0765): takes an optional permit application date, a calendar day written YYYY-MM-DD', () => {
+    expect(parseNewProject({ ...valid, permitApplicationDate: '2026-12-31' })).toMatchObject({
+      permitApplicationDate: '2026-12-31',
+    });
+    expect(parseNewProject(valid)).not.toHaveProperty('permitApplicationDate');
+    for (const bad of ['2026-02-30', '12/31/2026', '', null]) {
+      expect(parseNewProject({ ...valid, permitApplicationDate: bad }), String(bad)).toBeNull();
+    }
+  });
 });

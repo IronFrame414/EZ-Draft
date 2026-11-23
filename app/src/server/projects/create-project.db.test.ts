@@ -97,7 +97,8 @@ describe('EZD-118 create_project', () => {
     )[0];
     expect(p.status).toBe('draft');
     expect(p.settings).toEqual({});
-    expect(p.code_edition).toBeNull();
+    // EZD-643 (Q-0765): a new project stores the company default's edition (a company with none: the 9th).
+    expect(p.code_edition).toBe('fbc9_nec2023');
     expect(p.submittal_profile_id).toBeNull();
     expect(p.client_name).toBeNull();
     expect(p.customer_id).toBe(activeCustomer);

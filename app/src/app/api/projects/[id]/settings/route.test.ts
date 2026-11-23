@@ -185,6 +185,7 @@ describe('EZD-130 project settings route', () => {
       'address',
       'id',
       'name',
+      'permitApplicationDate',
       'scopeOfWork',
       'scopeTrades',
       'type',
@@ -294,5 +295,44 @@ describe('EZD-130 project settings route', () => {
     expect(copy).not.toHaveProperty('waste_lvp');
     expect(copy).not.toHaveProperty('pattern_straight');
     expect(holderId).not.toBe('');
+  });
+  it('EZD-643 (Q-0765): PATCH By permit date and a permit date re-picks the edition and emits both keys', async () => {
+    const [dated] = await createProjects(tenant, 1);
+    state.store = new Map(editorCookies);
+    const auto = await call('PATCH', dated, {
+      codeEdition: 'by_permit_date',
+      permitApplicationDate: '2026-12-01',
+    });
+    expect(auto.res.status).toBe(200);
+    const a = auto.json as ProjectSettings;
+    expect(a.codeEdition).toEqual({ own: 'fbc8_nec2020', effective: 'fbc8_nec2020', auto: true });
+    expect(a.project.permitApplicationDate).toBe('2026-12-01');
+    expect(emitMock.mock.calls[0][1]).toEqual({
+      projectId: dated,
+      keys: ['code_edition', 'permit_application_date'],
+    });
+
+    emitMock.mockClear();
+    state.store = new Map(editorCookies);
+    const moved = await call('PATCH', dated, { permitApplicationDate: '2027-01-04' });
+    expect(moved.res.status).toBe(200);
+    expect((moved.json as ProjectSettings).codeEdition).toEqual({
+      own: 'fbc9_nec2023',
+      effective: 'fbc9_nec2023',
+      auto: true,
+    });
+    expect(emitMock.mock.calls[0][1]).toEqual({
+      projectId: dated,
+      keys: ['code_edition', 'permit_application_date'],
+    });
+
+    state.store = new Map(editorCookies);
+    expect((await call('PATCH', dated, { permitApplicationDate: '2026-02-30' })).res.status).toBe(
+      400,
+    );
+    state.store = new Map(viewerCookies);
+    expect((await call('PATCH', dated, { permitApplicationDate: '2026-12-01' })).res.status).toBe(
+      403,
+    );
   });
 });

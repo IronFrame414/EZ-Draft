@@ -2,7 +2,9 @@
 // project, under the member's session so RLS applies. It reads the project's effective edition (EZD-613), the rules a
 // licensed person has verified (code_rule.verified_at), runs the engine and stores the run through
 // record_code_check_run (Run code check and sight of the project; 20261123100050_create_code_check_run.sql). It never
-// changes the model. EZD-612 calls it from the Check button.
+// changes the model. EZD-612 calls it from the Check button. EZD-643 (AC-EZD-643-1; Q-0765): the edition is the
+// project's stored one (FBC 9th ed. with NEC 2023 or FBC 8th ed. with NEC 2020), so the engine runs only that
+// edition's rule sets and reports each rule's section in that edition.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { runCodeCheck, type CheckResult, type ModelDocument, type RuleRegistry } from '@ezdraft/geometry';
 import { projectEdition, type CodeEdition } from '../../lib/code-edition/editions';
@@ -57,13 +59,16 @@ export async function checkProject(
     project?: Readonly<Record<string, unknown>>;
   },
 ): Promise<ProjectCodeCheck | null> {
-  const project = await client.from('project').select('code_edition').eq('id', input.projectId).maybeSingle();
+  const project = await client.from('project').select('code_edition, permit_application_date, created_at').eq('id', input.projectId).maybeSingle();
   if (project.error) throw project.error;
   if (project.data === null) return null;
   const tenant = await client.from('tenant').select('code_edition').maybeSingle();
   if (tenant.error) throw tenant.error;
 
-  const edition = projectEdition(project.data.code_edition, tenant.data?.code_edition ?? null);
+  const edition = projectEdition(project.data.code_edition, tenant.data?.code_edition ?? null, {
+    permitDate: project.data.permit_application_date,
+    createdAt: project.data.created_at,
+  });
   const results = runCodeCheck({
     model: input.model,
     edition,

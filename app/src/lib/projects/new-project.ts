@@ -49,6 +49,8 @@ export type NewProjectBody = {
   scopeOfWork: string;
   // EZD-739: the ticked scope boxes; absent is none ticked.
   scopeTrades?: ScopeTrade[];
+  // EZD-643 (Q-0765): the optional permit application date, 'YYYY-MM-DD'; absent is none.
+  permitApplicationDate?: string;
   template?: TemplateBody | null;
   // EZD-301: present only for a project started from a file.
   source?: 'file';
@@ -62,6 +64,8 @@ export type NewProjectDraft = {
   customer: Customer | null;
   scopeOfWork: string;
   scopeTrades: ScopeTrade[];
+  // EZD-643: absent or '' is no date.
+  permitApplicationDate?: string;
 };
 
 export const EMPTY_NEW_PROJECT: NewProjectDraft = {
@@ -93,6 +97,7 @@ export function isDraftEdited(d: NewProjectDraft): boolean {
     d.address !== '' ||
     d.scopeOfWork !== '' ||
     d.scopeTrades.length > 0 ||
+    (d.permitApplicationDate ?? '') !== '' ||
     d.type !== null ||
     d.customer !== null
   );
@@ -107,5 +112,6 @@ export function toCreateBody(d: NewProjectDraft): NewProjectBody | null {
     customerId: d.customer?.id ?? null,
     scopeOfWork: d.scopeOfWork.trim(),
     scopeTrades: normalizeScopeTrades(d.scopeTrades),
+    ...(d.permitApplicationDate ? { permitApplicationDate: d.permitApplicationDate } : {}),
   };
 }

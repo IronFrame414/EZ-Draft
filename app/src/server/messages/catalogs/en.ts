@@ -575,6 +575,15 @@ export const en = {
   'office.code_edition.load_failed': "Couldn't load code edition settings.",
   'office.code_edition.offline': "Offline. Code edition settings can't be changed until you're back online.",
   'office.code_edition.status_default': 'Default',
+  // EZD-643 (Q-0220; Q-0765; board S15gCode): the 8th Edition, the By permit date choice and the permit date.
+  'office.code_edition.edition.fbc8_nec2020': 'FBC 8th ed. · NEC 2020',
+  'office.code_edition.edition.by_permit_date': 'By permit date (automatic)',
+  'office.code_edition.status_by_permit_date': 'By permit date',
+  'office.code_edition.by_date_from': 'From 12/31/26',
+  'office.code_edition.by_date_before': 'Before',
+  'office.project_settings.permit_date': 'Permit application date',
+  'office.project_settings.permit_date_invalid': 'Enter a date.',
+  'office.new_project.permit_date': 'Permit application date',
   // EZD-709 (S15b; board S15bTitleBlock): Settings > Title block. Wording not on the board is listed in
   // vault/build/assumptions.md for Josh to confirm.
   'office.title_block.subtitle':

@@ -10,6 +10,7 @@
 // the dialog on a file source with those files; Continue to review creates the project (source file), sends the
 // originals unchanged and starts the import, then opens the project. After the project exists, a failed upload
 // keeps it and Continue to review sends only the files not yet sent.
+// EZD-643 (Q-0765): step 1 also takes the optional Permit application date, which picks the code edition.
 // EZD-711 (S01 Step 1 "Property appraiser link"; board S01bWizard): the link box under Address, for a member who
 // may also Edit model (S13 Decision 9); the confirmed fields are sent with Create as `propertyRecord`.
 import { Dialog } from 'radix-ui';
@@ -404,6 +405,19 @@ export function NewProjectDialog({
                 value={draft.scopeTrades}
                 onChange={(scopeTrades) => setDraft((d) => ({ ...d, scopeTrades }))}
               />
+              <label className={styles.field}>
+                {t('office.new_project.permit_date')}
+                <input
+                  data-testid="new-project-permit-date"
+                  className={`${styles.input} ${touch.target}`}
+                  type="date"
+                  value={draft.permitApplicationDate ?? ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setDraft((d) => ({ ...d, permitApplicationDate: value }));
+                  }}
+                />
+              </label>
             </div>
           ) : (
             <NewProjectStep2

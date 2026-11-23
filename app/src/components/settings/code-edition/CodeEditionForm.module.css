@@ -129,3 +129,22 @@
   opacity: 0.45;
   cursor: default;
 }
+/* EZD-643 (board S15gCode): the two lines under "By permit date (automatic)". */
+.byDate {
+  margin: 10px 0 0;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--ez-slate-700);
+}
+.byDateRow {
+  display: flex;
+  gap: 8px;
+}
+.byDateRow dt {
+  min-width: 84px;
+  color: var(--ez-slate-500);
+}
+.byDateRow dd {
+  margin: 0;
+}

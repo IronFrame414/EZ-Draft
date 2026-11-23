@@ -6,12 +6,18 @@
 // defaults also need this tab to hold the edit lock. EZD-613 (S15g Decision 2): the project's own Code edition,
 // changed with Edit model like the name. EZD-712 (S15c Decision 2; Q-0399 lifted): the project's Submittal
 // profile, an active profile of the company, changed with Edit model through its own route; holders of
-// settings_sheet_presets get a link to Settings > Sheet presets. A failed
+// settings_sheet_presets get a link to Settings > Sheet presets. EZD-643 (Q-0765): the Code edition select also
+// offers FBC 8th ed. with NEC 2020 and By permit date (automatic), and the optional Permit application date sits
+// under it, changed with Edit model like the edition. A failed
 // save keeps the dialog open with a Try again message; a save hands the new settings to `onSaved`.
 import Link from 'next/link';
 import { Dialog } from 'radix-ui';
 import { useEffect, useState, type ReactElement, type ReactNode } from 'react';
-import { CODE_EDITIONS, editionLabel, isCodeEdition } from '../../lib/code-edition/editions';
+import {
+  COMPANY_EDITION_DEFAULTS,
+  companyEditionLabel,
+  isCompanyEditionDefault,
+} from '../../lib/code-edition/editions';
 import { defaultRow } from '../../lib/defaults/registry';
 import { useT } from '../../lib/messages';
 import { useOnline } from '../../lib/network';
@@ -391,18 +397,33 @@ export function ProjectSettingsContent({
               value={draft.codeEdition}
               onChange={(e) => {
                 const v = e.target.value;
-                if (isCodeEdition(v)) set({ codeEdition: v });
+                if (isCompanyEditionDefault(v)) set({ codeEdition: v });
               }}
             >
-              {CODE_EDITIONS.map((e) => (
+              {COMPANY_EDITION_DEFAULTS.map((e) => (
                 <option key={e} value={e}>
-                  {t(editionLabel(e))}
+                  {t(companyEditionLabel(e))}
                 </option>
               ))}
             </select>
           ) : (
-            text('project-settings-code-edition', t(editionLabel(draft.codeEdition)))
+            text('project-settings-code-edition', t(companyEditionLabel(draft.codeEdition)))
           )}
+        </label>
+        <label className={styles.field}>
+          {t('office.project_settings.permit_date')}
+          {editable.details ? (
+            <input
+              data-testid="project-settings-permit-date"
+              className={`${styles.input} ${touch.target}`}
+              type="date"
+              value={draft.permitApplicationDate}
+              onChange={(e) => set({ permitApplicationDate: e.target.value })}
+            />
+          ) : (
+            text('project-settings-permit-date', draft.permitApplicationDate)
+          )}
+          {fieldError('permitApplicationDate')}
         </label>
         {profile ? (
           <div className={styles.field}>

@@ -13,8 +13,8 @@ import {
 } from './editions';
 
 describe('EZD-613 code editions', () => {
-  it('v1 offers FBC 9th ed. with NEC 2023 only, and it is the default', () => {
-    expect(CODE_EDITIONS).toEqual(['fbc9_nec2023']);
+  it('FBC 9th ed. with NEC 2023 is the default of a company with none (EZD-643 adds the 8th)', () => {
+    expect(CODE_EDITIONS).toEqual(['fbc9_nec2023', 'fbc8_nec2020']);
     expect(DEFAULT_CODE_EDITION).toBe('fbc9_nec2023');
     expect(companyEdition(null)).toBe('fbc9_nec2023');
     expect(companyEdition('FBC 2023')).toBe('fbc9_nec2023');
@@ -36,7 +36,7 @@ describe('EZD-613 code editions', () => {
     expect(settingsOf(null, { optional_load_calc: true })).toEqual({
       edition: 'fbc9_nec2023',
       optionalLoadCalc: true,
-      available: ['fbc9_nec2023'],
+      available: ['fbc9_nec2023', 'fbc8_nec2020'],
     });
   });
 
