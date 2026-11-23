@@ -124,6 +124,28 @@ export async function waitForAuthEmail(
   }
 }
 
+// EZD-1949: a fence for "no more email arrives", in place of a fixed quiet wait. `send` makes Supabase Auth
+// send one email to `to`. Auth sends a message before it answers its caller (measured on the local stack
+// 2026-11-23: the count was already up when the call returned) and Mailpit stores a message before it
+// acknowledges it, so once the fence email is here, every email from a call that returned before `send`
+// began is here too.
+export async function mailFence(
+  to: string,
+  send: () => Promise<void>,
+  timeoutMs = 10000,
+): Promise<void> {
+  const seen = new Set((await messagesTo(to)).map((m) => m.ID));
+  await send();
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    if ((await messagesTo(to)).some((m) => !seen.has(m.ID))) return;
+    if (Date.now() >= deadline) {
+      throw new Error(`mail-catcher: fence email not seen within ${timeoutMs} ms`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+}
+
 export async function countAuthEmails(to: string, opts: { after?: Date } = {}): Promise<number> {
   return (await messagesTo(to, opts.after)).length;
 }
