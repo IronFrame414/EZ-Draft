@@ -1254,6 +1254,18 @@ EZD-007a (vault/plans/EZD-007a.md Steps 1, 1b, 2.0, 2.1, 2.5); 02 Users and role
 - **Local sign-in rate limits** (EZD-007d D1): `[auth.rate_limit]` `sign_in_sign_ups = 1000` and `token_verifications = 1000` in `supabase/config.toml`, local only, so one gate's many test sign-ins from 127.0.0.1 are not refused; cloud projects keep Supabase's limits.
 - **Allowed Supabase client files** (EZD-007c T34): the only non-test files under `app/src/` that import `@supabase/*` as values are `app/src/server/auth/supabase-server.ts`, `app/src/server/auth/admin-auth.ts` (EZD-105, secret key, the invitee's accept and session only), `app/src/server/db/client.ts` (`createPublicDbClient()`, anon, used only by `health.ts` for `rpc/health`), `app/src/server/jobs/db.ts` (`createJobsDbClient()`, secret key, job runner and the dev notifications route; EZD-009, EZD-323) and `app/src/lib/realtime/adapter.ts` (EZD-018, the browser Realtime client, no table-query API). A ticket that needs another client file edits T34's list in its own commit with a reason, and the security-reviewer approves it.
 
+### Security headers (EZD-1930)
+
+EZD-1930 (audit 2026-11-23 S6). `app/next.config.ts` `headers()` answers every path (`/:path*`: pages, `/api`, and the request gate's own refusals) with these. Tests: `app/src/lib/security-headers.test.ts` (the rules) and `app/e2e/security-headers.spec.ts` (the answers, and framing from another origin refused).
+
+| Header | Value | Why |
+|---|---|---|
+| `Content-Security-Policy` | `frame-ancestors 'self'` | No other site can frame the app (clickjacking). `'self'`, not `'none'` (and no `X-Frame-Options: DENY`), because Run benchmark opens the editor in a same-origin frame inside the System status card (Benchmark runs, Framing); `'none'` would stop it. |
+| `X-Content-Type-Options` | `nosniff` | The browser uses the declared content type and never guesses one, so an upload or JSON answer is never run as a script or page. |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | No shipped feature uses the camera, microphone or location (photos come from a file input, which this does not block), so all three are off for every page and frame. A feature that needs one changes this value. |
+
+Kept beside them: `Referrer-Policy: no-referrer` on `/auth/confirm` and `/invite/:token` (tokens in the URL), `Cache-Control: no-cache, no-store, must-revalidate` on `/sw.js`, and `x-ezdraft-app-build` on every path. HSTS is left to Vercel (the audit did not confirm it on the custom domain).
+
 ### Realtime (EZD-018)
 
 EZD-018 (vault/plans/EZD-018.md Steps 1–8); 02 Stack Database; 03 rules 1–2; 11 rule 11; R26 R1; P4; Q-0052 (c); Q-0087 (ii); Q-0044 (b).

@@ -11,6 +11,13 @@ const workspaceRoot = path.resolve(__dirname, '..');
 // outbox is empty. The save route still refuses an older build itself (EZD-299a).
 const APP_BUILD = String(Math.floor(Date.now() / 1000));
 
+// EZD-1930: the security headers on every answer (docs/architecture.md Security headers).
+const SECURITY_HEADERS = [
+  { key: 'Content-Security-Policy', value: "frame-ancestors 'self'" },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+];
+
 const nextConfig: NextConfig = {
   outputFileTracingRoot: workspaceRoot,
   turbopack: {
@@ -35,6 +42,10 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: '/:path*', headers: [{ key: 'x-ezdraft-app-build', value: APP_BUILD }] },
+      // EZD-1930 (audit 2026-11-23 S6): every page and /api answer. frame-ancestors is 'self', not 'none', because
+      // Run benchmark frames the editor from the same origin (docs/architecture.md Benchmark runs, Framing). No
+      // shipped feature uses the camera, microphone or location (photos come from a file input), so all three are off.
+      { source: '/:path*', headers: SECURITY_HEADERS },
       { source: '/auth/confirm', headers: [{ key: 'Referrer-Policy', value: 'no-referrer' }] },
       // EZD-105: the invite token is in the path; never sent on as a referrer.
       { source: '/invite/:token', headers: [{ key: 'Referrer-Policy', value: 'no-referrer' }] },
