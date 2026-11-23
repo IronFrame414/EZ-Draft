@@ -451,7 +451,8 @@
     "EZD-711",
     "EZD-602",
     "EZD-513",
-    "EZD-603"
+    "EZD-603",
+    "EZD-403"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1441,6 +1442,14 @@
       "ts": "2026-11-23T00:10:47Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-403",
+      "title": "Cabinet library panel",
+      "commit": "1e17ce4f",
+      "ts": "2026-11-23T01:14:39Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {
@@ -1604,17 +1613,17 @@
     }
   },
   "running": {
-    "EZD-403": {
-      "lane": 1,
-      "title": "Cabinet library panel",
-      "started": "2026-11-22T21:56:15Z",
-      "develop": "98a69d30"
-    },
     "EZD-1404": {
       "lane": 2,
       "title": "Field pack shell",
       "started": "2026-11-22T23:36:10Z",
       "develop": "a19b2b9a"
+    },
+    "EZD-706": {
+      "lane": 3,
+      "title": "Symbol key",
+      "started": "2026-11-23T00:10:56Z",
+      "develop": "28f1319a"
     }
   },
   "advisories_checked_at": "2026-11-22T22:12:20Z",
