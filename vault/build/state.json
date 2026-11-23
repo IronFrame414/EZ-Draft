@@ -453,7 +453,8 @@
     "EZD-513",
     "EZD-603",
     "EZD-403",
-    "EZD-706"
+    "EZD-706",
+    "EZD-1404"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1459,6 +1460,14 @@
       "ts": "2026-11-23T01:39:05Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1404",
+      "title": "Field pack shell",
+      "commit": "8b89663a",
+      "ts": "2026-11-23T02:13:30Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1622,17 +1631,17 @@
     }
   },
   "running": {
-    "EZD-1404": {
-      "lane": 2,
-      "title": "Field pack shell",
-      "started": "2026-11-22T23:36:10Z",
-      "develop": "a19b2b9a"
-    },
     "EZD-604": {
       "lane": 1,
       "title": "Circuits",
       "started": "2026-11-23T01:14:48Z",
       "develop": "b9074dc2"
+    },
+    "EZD-728": {
+      "lane": 3,
+      "title": "Cover sheet A0.0",
+      "started": "2026-11-23T01:39:48Z",
+      "develop": "0577a250"
     }
   },
   "advisories_checked_at": "2026-11-22T22:12:20Z",
