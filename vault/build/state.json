@@ -463,7 +463,8 @@
     "EZD-609",
     "EZD-511",
     "EZD-643",
-    "EZD-1930"
+    "EZD-1930",
+    "EZD-1933"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1549,6 +1550,14 @@
       "ts": "2026-11-23T12:52:31Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1933",
+      "title": "Signed-out error-alert functions cannot be used to flood the owner with email",
+      "commit": "a4e608b7",
+      "ts": "2026-11-23T13:44:03Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1729,11 +1738,11 @@
       "started": "2026-11-23T12:18:49Z",
       "develop": "577fe35e"
     },
-    "EZD-1933": {
-      "lane": 2,
-      "title": "Signed-out error-alert functions cannot be used to flood the owner with email",
-      "started": "2026-11-23T12:31:41Z",
-      "develop": "0b9d2f1d"
+    "EZD-1931": {
+      "lane": 1,
+      "title": "One gate for /dev and /api/dev in the request proxy",
+      "started": "2026-11-23T12:52:40Z",
+      "develop": "e1e914f7"
     }
   },
   "advisories_checked_at": "2026-11-23T10:13:13Z",
