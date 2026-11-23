@@ -25499,6 +25499,528 @@
    ],
    "acs_source": "josh-2026-11-20",
    "spec_phase": 58
+  },
+  {
+   "id": "EZD-1901",
+   "phase": 10,
+   "title": "Editor feature contract and characterization tests",
+   "depends_raw": "",
+   "spec_ref": "Editor plan 2026-11-23 section 2; S03-S07, S13, S20; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1901-1",
+    "AC-EZD-1901-2",
+    "AC-EZD-1901-3"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1902",
+   "phase": 10,
+   "title": "Draw the plan with plain Three.js instead of React Three Fiber",
+   "depends_raw": "EZD-1901",
+   "spec_ref": "02 Stack 2D + 3D; 11 rules 4 and 7; 11 Budgets editor download size; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1901"
+   ],
+   "acs": [
+    "AC-EZD-1902-1",
+    "AC-EZD-1902-2",
+    "AC-EZD-1902-3",
+    "AC-EZD-1902-4"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1903",
+   "phase": 10,
+   "title": "Slimmer zod in the editor: geometry schemas on zod/mini",
+   "depends_raw": "EZD-1901",
+   "spec_ref": "11 Budgets editor download size; EZD-332 precedent; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1901"
+   ],
+   "acs": [
+    "AC-EZD-1903-1",
+    "AC-EZD-1903-2",
+    "AC-EZD-1903-3"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1904",
+   "phase": 10,
+   "title": "Geometry: one vector helper module",
+   "depends_raw": "EZD-1901",
+   "spec_ref": "Editor plan R10; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1901"
+   ],
+   "acs": [
+    "AC-EZD-1904-1",
+    "AC-EZD-1904-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1905",
+   "phase": 10,
+   "title": "Geometry: subpath exports so new modules don't edit the root index",
+   "depends_raw": "EZD-1901",
+   "spec_ref": "First audit W2; editor plan 5.4; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1901"
+   ],
+   "acs": [
+    "AC-EZD-1905-1",
+    "AC-EZD-1905-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1906a",
+   "phase": 10,
+   "title": "Editor shared helpers (ids, value store, store hook, inch text) in tools, selection, edit",
+   "depends_raw": "EZD-1901",
+   "spec_ref": "Editor plan R1-R4, R7-R9; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1901"
+   ],
+   "acs": [
+    "AC-EZD-1906a-1",
+    "AC-EZD-1906a-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1906b",
+   "phase": 10,
+   "title": "Editor shared helpers in electrical, assistant, inspector, versions, floors",
+   "depends_raw": "EZD-1906a",
+   "spec_ref": "Editor plan R1-R4, R7-R9; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1906a"
+   ],
+   "acs": [
+    "AC-EZD-1906b-1",
+    "AC-EZD-1906b-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1906c",
+   "phase": 10,
+   "title": "Editor shared helpers in countertops, cabinets and their lazy screens; STATUSES and CM_PER_IN constants",
+   "depends_raw": "EZD-1906a",
+   "spec_ref": "Editor plan R1-R4, R7-R9; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1906a"
+   ],
+   "acs": [
+    "AC-EZD-1906c-1",
+    "AC-EZD-1906c-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1910",
+   "phase": 10,
+   "title": "Editor feature registry, lazy-part helper and Defaults hook",
+   "depends_raw": "EZD-1901, EZD-1906a",
+   "spec_ref": "Editor plan 5.3, 5.4, L4, R11, R12; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1901",
+    "EZD-1906a"
+   ],
+   "acs": [
+    "AC-EZD-1910-1",
+    "AC-EZD-1910-2",
+    "AC-EZD-1910-3",
+    "AC-EZD-1910-4"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1911",
+   "phase": 10,
+   "title": "Move the editor's dev and test hooks to one file",
+   "depends_raw": "EZD-1910",
+   "spec_ref": "Editor plan 5.2 job 6; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1910"
+   ],
+   "acs": [
+    "AC-EZD-1911-1"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1912",
+   "phase": 10,
+   "title": "Move controller construction out of ProjectEditor",
+   "depends_raw": "EZD-1911",
+   "spec_ref": "Editor plan 5.2 job 1; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1911"
+   ],
+   "acs": [
+    "AC-EZD-1912-1",
+    "AC-EZD-1912-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1913a",
+   "phase": 10,
+   "title": "Cabinets and Countertops modes as registry features",
+   "depends_raw": "EZD-1912",
+   "spec_ref": "S04 Layout; S04b Layout; editor plan 2.4 precedence; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/screens/S04-cabinet-run-elevation.md"
+   ],
+   "decisions": [],
+   "mockups": [
+    "mockups/S04Cabinets.png",
+    "mockups/S04bCountertops.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1912"
+   ],
+   "acs": [
+    "AC-EZD-1913a-1",
+    "AC-EZD-1913a-2",
+    "AC-EZD-1913a-3"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1913b",
+   "phase": 10,
+   "title": "Electrical and Ceiling modes as registry features",
+   "depends_raw": "EZD-1913a",
+   "spec_ref": "S05, S06 Layout; editor plan 2.4; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md"
+   ],
+   "decisions": [],
+   "mockups": [
+    "mockups/S05Ceiling.png",
+    "mockups/S06Electrical.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1913a"
+   ],
+   "acs": [
+    "AC-EZD-1913b-1",
+    "AC-EZD-1913b-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1913c",
+   "phase": 10,
+   "title": "Versions, Sheets, 3D, Assistant and editor dialogs as registry features",
+   "depends_raw": "EZD-1913b",
+   "spec_ref": "S07, S13, S20, S03c, S06 lock; editor plan 2.1, 2.6; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/screens/S03c-ai-assistant.md"
+   ],
+   "decisions": [],
+   "mockups": [
+    "mockups/S07ThreeD.png",
+    "mockups/S13Sheets.png",
+    "mockups/S03cAIAssistant.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1913b"
+   ],
+   "acs": [
+    "AC-EZD-1913c-1",
+    "AC-EZD-1913c-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1914",
+   "phase": 10,
+   "title": "Ceiling tools register their own click receivers",
+   "depends_raw": "EZD-1913c",
+   "spec_ref": "S05 Controls; editor plan 5.2 job 3; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md"
+   ],
+   "decisions": [],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1913c"
+   ],
+   "acs": [
+    "AC-EZD-1914-1",
+    "AC-EZD-1914-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1915",
+   "phase": 10,
+   "title": "Inspector: one file per object type",
+   "depends_raw": "EZD-1914",
+   "spec_ref": "S03 Inspector; S05; S06; editor plan 2.5; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "decisions": [],
+   "mockups": [
+    "mockups/S03dWallSelected.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1914"
+   ],
+   "acs": [
+    "AC-EZD-1915-1",
+    "AC-EZD-1915-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1916",
+   "phase": 10,
+   "title": "Left panel: registered sections",
+   "depends_raw": "EZD-1914",
+   "spec_ref": "S03 Controls left panel; editor plan 2.4; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "decisions": [],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1914"
+   ],
+   "acs": [
+    "AC-EZD-1916-1",
+    "AC-EZD-1916-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1917",
+   "phase": 10,
+   "title": "RCP drawing: one file per ceiling item kind",
+   "depends_raw": "EZD-1914",
+   "spec_ref": "S05 Canvas; editor plan 5.3; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/screens/S05-ceiling-plan-rcp.md"
+   ],
+   "decisions": [],
+   "mockups": [
+    "mockups/S05Ceiling.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1914"
+   ],
+   "acs": [
+    "AC-EZD-1917-1",
+    "AC-EZD-1917-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1918",
+   "phase": 10,
+   "title": "Split DrawingTools into rail, layer and per-tool parts",
+   "depends_raw": "EZD-1914",
+   "spec_ref": "S03 Controls rail; editor plan 5.1; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1914"
+   ],
+   "acs": [
+    "AC-EZD-1918-1",
+    "AC-EZD-1918-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1919",
+   "phase": 10,
+   "title": "Split the drawing controller per tool",
+   "depends_raw": "EZD-1918",
+   "spec_ref": "Editor plan 5.1; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1918"
+   ],
+   "acs": [
+    "AC-EZD-1919-1",
+    "AC-EZD-1919-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1920",
+   "phase": 10,
+   "title": "Panel kit: LengthInput, Tabs, Section, EmptyState, PanelButton (current looks kept)",
+   "depends_raw": "EZD-1915, EZD-1916",
+   "spec_ref": "Editor plan 6 C1-C5; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [
+    "mockups/S03dWallSelected.png",
+    "mockups/S04Cabinets.png",
+    "mockups/S04bCountertops.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1915",
+    "EZD-1916"
+   ],
+   "acs": [
+    "AC-EZD-1920-1",
+    "AC-EZD-1920-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1921",
+   "phase": 10,
+   "title": "Re-validate open editor plans and document the registry for planners",
+   "depends_raw": "EZD-1913c",
+   "spec_ref": "Editor plan 7; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1913c"
+   ],
+   "acs": [
+    "AC-EZD-1921-1",
+    "AC-EZD-1921-2"
+   ],
+   "acs_source": "editor-plan-2026-11-23"
+  },
+  {
+   "id": "EZD-1922",
+   "phase": 10,
+   "title": "Editor panels take one look: length boxes, empty messages, panel buttons, tabs (Q-0796 to Q-0799)",
+   "depends_raw": "EZD-1920",
+   "spec_ref": "Q-0796 to Q-0799 (Josh 2026-11-23); editor consolidation plan sections 6 and 8; editor consolidation plan vault/plans/editor-consolidation-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0796"
+   ],
+   "mockups": [
+    "mockups/S03dWallSelected.png",
+    "mockups/S04Cabinets.png",
+    "mockups/S04bCountertops.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1920"
+   ],
+   "acs": [
+    "AC-EZD-1922-1",
+    "AC-EZD-1922-2",
+    "AC-EZD-1922-3"
+   ],
+   "acs_source": "josh-2026-11-23"
   }
  ],
  "recut_applied": "2026-10-20"
