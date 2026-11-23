@@ -98,6 +98,11 @@ node scripts/run.mjs --once     # one unit
 
 It stops and notifies you (ntfy) only when something needs you: budget hold, questions, sign-off, a blocked phase, a failed ledger check, a built phase. `touch vault/handoff/STOP` stops it after the current unit. When Phase 0 is built it runs `gate-phase 0`, opens the PR and notifies you; you work the punch list on the preview and merge; then it runs `wrap 0` and stops at Phase 1's `spec-check` (needs you; see `vault/tickets/PHASES.md` for the re-cut to approve first).
 
+## Warnings (audit 2026-11-23)
+
+- **The base local stack is not the lanes' stack.** The base local Supabase stack (lane 0, port 54321, used by the main checkout with `EZD_LANE` unset) is not used by lanes 1-3; each lane has its own stack. Nothing keeps lane 0 current, so it falls behind: in the audit it was at 133 of 156 migrations with a stale gate secret, and signing in failed. Before any interactive UI check against `127.0.0.1:54321`, bring it up to date with `pnpm db:up` in the main checkout. It resets the database, so local data on lane 0 is wiped; run it only when no lane-0 gate is using the stack.
+- **Make worktrees by hand.** A worktree made by the Claude desktop app sets `extensions.worktreeConfig` in the repo's git config, and that can turn the lanes' gates red (the audit's incident turned two red). Use `git worktree add` and point the session at that folder.
+
 ## Notes
 
 - **Vercel:** project `ezdraft`, root `app`, production branch `main`, domain `ezdraft.ezcontractorbinder.com` (done Oct 12). The Ignored Build Step is Q-0116 (your decision): PROCESS.md v2 section 12 sets it to `[ "$VERCEL_GIT_COMMIT_REF" != "main" ] && [ -z "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 0 || exit 1` so only `main` and PRs build.
