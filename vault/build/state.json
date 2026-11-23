@@ -460,7 +460,8 @@
     "EZD-1001b",
     "EZD-606",
     "EZD-611a",
-    "EZD-609"
+    "EZD-609",
+    "EZD-511"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1520,6 +1521,14 @@
       "title": "Panel schedule",
       "commit": "31415284",
       "ts": "2026-11-23T07:52:35Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-511",
+      "title": "ACT grid",
+      "commit": "b48ab0cf",
+      "ts": "2026-11-23T09:22:33Z",
       "kind": "ticket",
       "lane": 1
     }
