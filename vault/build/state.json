@@ -464,7 +464,8 @@
     "EZD-511",
     "EZD-643",
     "EZD-1930",
-    "EZD-1933"
+    "EZD-1933",
+    "EZD-1935"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1558,6 +1559,14 @@
       "ts": "2026-11-23T13:44:03Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1935",
+      "title": "Fix: conflict-list B6 fails at random after the member's sessions end",
+      "commit": "62767c3f",
+      "ts": "2026-11-23T14:13:48Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -1732,17 +1741,17 @@
     }
   },
   "running": {
-    "EZD-1935": {
-      "lane": 3,
-      "title": "Fix: conflict-list B6 fails at random after the member's sessions end",
-      "started": "2026-11-23T12:18:49Z",
-      "develop": "577fe35e"
-    },
     "EZD-1931": {
       "lane": 1,
       "title": "One gate for /dev and /api/dev in the request proxy",
       "started": "2026-11-23T12:52:40Z",
       "develop": "e1e914f7"
+    },
+    "EZD-1936": {
+      "lane": 2,
+      "title": "Fix: settings-users B8 iPad touch-target test fails at random",
+      "started": "2026-11-23T13:44:11Z",
+      "develop": "abec1dc4"
     }
   },
   "advisories_checked_at": "2026-11-23T10:13:13Z",
