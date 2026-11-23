@@ -450,7 +450,8 @@
     "EZD-417",
     "EZD-711",
     "EZD-602",
-    "EZD-513"
+    "EZD-513",
+    "EZD-603"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1432,6 +1433,14 @@
       "ts": "2026-11-22T21:55:30Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-603",
+      "title": "Device height notes",
+      "commit": "7dd1c481",
+      "ts": "2026-11-23T00:10:47Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {
@@ -1445,7 +1454,7 @@
     }
   },
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1601,11 +1610,11 @@
       "started": "2026-11-22T21:56:15Z",
       "develop": "98a69d30"
     },
-    "EZD-603": {
-      "lane": 3,
-      "title": "Device height notes",
-      "started": "2026-11-22T21:56:19Z",
-      "develop": "98a69d30"
+    "EZD-1404": {
+      "lane": 2,
+      "title": "Field pack shell",
+      "started": "2026-11-22T23:36:10Z",
+      "develop": "a19b2b9a"
     }
   },
   "advisories_checked_at": "2026-11-22T22:12:20Z",
