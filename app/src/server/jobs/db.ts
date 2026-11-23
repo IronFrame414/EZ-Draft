@@ -1,6 +1,8 @@
 // EZD-009 Step 5 (vault/plans/EZD-009.md): the job runner's database client, with the secret key (job
 // handlers only; docs/architecture.md Server-only data access). One of the two files in app/src that read
 // SUPABASE_SECRET_KEY (the other is server/auth/admin-auth.ts, EZD-105). Both values are read per call; a missing key throws a fixed code, never the value.
+// EZD-1932 (audit S8): a client import of this file fails the build (server-only) and lint (ezdraft/no-client-server-only).
+import 'server-only';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../db/database.types';
 import { readPublicDbEnv } from '../db/env';

@@ -163,6 +163,8 @@ describe('EZD-323 test-only database functions', () => {
     ];
     await withRollback(sql, async (tx) => {
       await make(tx as unknown as Sql, 'public.ezd323_test_probe');
+      // EZD-1932: a new public function is closed by default, so the probe is opened by hand.
+      await tx.unsafe('grant execute on function public.ezd323_test_probe() to anon, authenticated');
       expect(codes(await auditRls(tx, { repoRoot }), 'public.ezd323_test_probe()')).toEqual(THREE);
       await tx.unsafe(
         'revoke all on function public.ezd323_test_probe() from public, anon, authenticated',
@@ -185,6 +187,7 @@ describe('EZD-323 test-only database functions', () => {
     });
     await withRollback(sql, async (tx) => {
       await make(tx as unknown as Sql, 'public."EZD323_Test_Probe"');
+      await tx.unsafe('grant execute on function public."EZD323_Test_Probe"() to anon, authenticated');
       expect(codes(await auditRls(tx, { repoRoot }), 'public."EZD323_Test_Probe"()')).toEqual(
         THREE,
       );

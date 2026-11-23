@@ -1,11 +1,22 @@
 // EZD-001 · app unit-test project (vault/plans/EZD-001.md Step 2, Step 6.2).
 // include keeps EZD-016a's Playwright *.spec.ts out. environment node until a component ticket adds a DOM environment.
 // testNamePattern reads the gate's scope grep (Q-0006; scripts/gate.mjs); maxWorkers 4 (Q-0019 read as 4 per Q-0114).
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   // EZD-010b Step 6: first .tsx test; tsconfig jsx is preserve for Next.js, so Vite needs the automatic runtime.
   oxc: { jsx: { runtime: 'automatic' } },
+  // EZD-1932: 'server-only' throws outside the react-server condition; tests run server code directly, so they get
+  // the package's own empty module (the condition stays default so React keeps its client build for .tsx tests).
+  resolve: {
+    alias: [
+      {
+        find: /^server-only$/,
+        replacement: fileURLToPath(new URL('./node_modules/server-only/empty.js', import.meta.url)),
+      },
+    ],
+  },
   test: {
     environment: 'node',
     // EZD-016d Step 4: harness tests (T5, T6, T14) run in the app project.

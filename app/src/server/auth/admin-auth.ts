@@ -15,6 +15,8 @@
 //   logged or put in an error.
 // The action link and its hashed token are never logged or returned to a browser. Both values are read per
 // call; a missing key throws a fixed code, never the value.
+// EZD-1932 (audit S8): a client import of this file fails the build (server-only) and lint (ezdraft/no-client-server-only).
+import 'server-only';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import type { Database } from '../db/database.types';

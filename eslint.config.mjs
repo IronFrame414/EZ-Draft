@@ -161,4 +161,17 @@ export default tseslint.config(
       ],
     },
   },
+  // EZD-1932 (audit S8) · a 'use client' file never imports server-only code: the package itself, or a file that
+  // imports it (server/auth/admin-auth.ts and server/jobs/db.ts hold the secret key). Paths relative to this folder.
+  {
+    files: ['app/src/**/*.{ts,tsx,js,jsx,mjs,cjs}'],
+    ignores: ['**/*.test.*', '**/*.spec.*', '**/test-utils/**', '**/test-harness/**', '**/e2e/**'],
+    plugins: { ezdraft },
+    rules: {
+      'ezdraft/no-client-server-only': [
+        'error',
+        { rootDir: path.dirname(fileURLToPath(import.meta.url)), aliases: PATH_ALIASES },
+      ],
+    },
+  },
 );
