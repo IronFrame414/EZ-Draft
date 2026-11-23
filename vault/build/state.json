@@ -1616,7 +1616,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1649,7 +1649,8 @@
     "EZD-605": 1,
     "EZD-512": 1,
     "EZD-607": 1,
-    "EZD-1409": 1
+    "EZD-1409": 1,
+    "EZD-1939": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1783,20 +1784,24 @@
     "EZD-1409": {
       "ts": "2026-11-23T12:31:37Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1939": {
+      "ts": "2026-11-23T17:57:35Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-1939": {
-      "lane": 2,
-      "title": "Loop: failure lines in loop.log name the failing tests",
-      "started": "2026-11-23T16:24:24Z",
-      "develop": "426a3500"
-    },
     "EZD-1949": {
       "lane": 3,
       "title": "Speed up the slowest unit and database tests",
       "started": "2026-11-23T16:51:48Z",
       "develop": "79b18415"
+    },
+    "EZD-1934": {
+      "lane": 1,
+      "title": "Move dev-only glob and minimatch to patched versions",
+      "started": "2026-11-23T17:26:33Z",
+      "develop": "08ffaaaf"
     }
   },
   "advisories_checked_at": "2026-11-23T16:13:31Z",
