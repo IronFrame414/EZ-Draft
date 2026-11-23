@@ -452,7 +452,8 @@
     "EZD-602",
     "EZD-513",
     "EZD-603",
-    "EZD-403"
+    "EZD-403",
+    "EZD-706"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1450,6 +1451,14 @@
       "ts": "2026-11-23T01:14:39Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-706",
+      "title": "Symbol key",
+      "commit": "d79e12ee",
+      "ts": "2026-11-23T01:39:05Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {
@@ -1619,11 +1628,11 @@
       "started": "2026-11-22T23:36:10Z",
       "develop": "a19b2b9a"
     },
-    "EZD-706": {
-      "lane": 3,
-      "title": "Symbol key",
-      "started": "2026-11-23T00:10:56Z",
-      "develop": "28f1319a"
+    "EZD-604": {
+      "lane": 1,
+      "title": "Circuits",
+      "started": "2026-11-23T01:14:48Z",
+      "develop": "b9074dc2"
     }
   },
   "advisories_checked_at": "2026-11-22T22:12:20Z",
