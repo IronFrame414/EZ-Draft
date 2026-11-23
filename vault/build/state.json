@@ -1576,7 +1576,8 @@
     "EZD-916": 1,
     "EZD-605": 1,
     "EZD-512": 1,
-    "EZD-607": 1
+    "EZD-607": 1,
+    "EZD-1409": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1706,20 +1707,24 @@
     "EZD-607": {
       "ts": "2026-11-23T12:18:43Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1409": {
+      "ts": "2026-11-23T12:31:37Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-1409": {
-      "lane": 2,
-      "title": "Tasks tab",
-      "started": "2026-11-23T09:44:12Z",
-      "develop": "2daa0ce6"
-    },
     "EZD-1930": {
       "lane": 1,
       "title": "Security headers: frame-ancestors 'self', nosniff, Permissions-Policy",
       "started": "2026-11-23T11:31:34Z",
       "develop": "ec898019"
+    },
+    "EZD-1935": {
+      "lane": 3,
+      "title": "Fix: conflict-list B6 fails at random after the member's sessions end",
+      "started": "2026-11-23T12:18:49Z",
+      "develop": "577fe35e"
     }
   },
   "advisories_checked_at": "2026-11-23T10:13:13Z",
