@@ -28,57 +28,57 @@
     {
       "ticket": "EZD-185",
       "title": "Fix: unit-steps merge reports a failed cleanup, and screenshots never block it",
-      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 unfreezes in order (Josh, chat: \"Yes, do that\"): set ready once the sandbox is back on (D-021 fix, then the watched switch-on); guards and dead-lock fixes before the lanes...",
+      "reason": "RETIRED 2026-11-23 by Josh (chat: \"Yes, retire them\"): fixes the old build machinery (launcher, ledger, unit sandbox, question files) that build v3 replaced; never built. Earlier: Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 unfreezes in order (Josh, chat: \"Yes, do that\"): set ready once the sandbox is back on (D-021 fix, then the watched switch-on); guards and dead-lock fixes before the lanes...",
       "question": "Q-0321",
-      "kind": "held",
+      "kind": "retired",
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
       "ticket": "EZD-191",
       "title": "Fix: root scripts and lint rules are linted",
-      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 unfreezes in order (Josh, chat: \"Yes, do that\"): set ready once the sandbox is back on (D-021 fix, then the watched switch-on); guards and dead-lock fixes before the lanes...",
+      "reason": "RETIRED 2026-11-23 by Josh (chat: \"Yes, retire them\"): fixes the old build machinery (launcher, ledger, unit sandbox, question files) that build v3 replaced; never built. Earlier: Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 unfreezes in order (Josh, chat: \"Yes, do that\"): set ready once the sandbox is back on (D-021 fix, then the watched switch-on); guards and dead-lock fixes before the lanes...",
       "question": "Q-0332",
-      "kind": "held",
+      "kind": "retired",
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
       "ticket": "EZD-248",
       "title": "Fix: a question row is checked before it is committed",
-      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
+      "reason": "RETIRED 2026-11-23 by Josh (chat: \"Yes, retire them\"): fixes the old build machinery (launcher, ledger, unit sandbox, question files) that build v3 replaced; never built. Earlier: Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
       "question": "Q-0421, Q-0427",
-      "kind": "held",
+      "kind": "retired",
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
       "ticket": "EZD-249",
       "title": "Fix: a research report is checked before it is committed",
-      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
+      "reason": "RETIRED 2026-11-23 by Josh (chat: \"Yes, retire them\"): fixes the old build machinery (launcher, ledger, unit sandbox, question files) that build v3 replaced; never built. Earlier: Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
       "question": "Q-0421",
-      "kind": "held",
+      "kind": "retired",
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
       "ticket": "EZD-261",
       "title": "Fix: plan lint rejects a bare folder in a node --test verify command",
-      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 unfreezes in order (Josh, chat: \"Yes, do that\"): set ready once the sandbox is back on (D-021 fix, then the watched switch-on); guards and dead-lock fixes before the lanes...",
+      "reason": "RETIRED 2026-11-23 by Josh (chat: \"Yes, retire them\"): fixes the old build machinery (launcher, ledger, unit sandbox, question files) that build v3 replaced; never built. Earlier: Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 unfreezes in order (Josh, chat: \"Yes, do that\"): set ready once the sandbox is back on (D-021 fix, then the watched switch-on); guards and dead-lock fixes before the lanes...",
       "question": null,
-      "kind": "held",
+      "kind": "retired",
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
       "ticket": "EZD-263",
       "title": "Fix: every update of develop is ledger-checked",
-      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
+      "reason": "RETIRED 2026-11-23 by Josh (chat: \"Yes, retire them\"): fixes the old build machinery (launcher, ledger, unit sandbox, question files) that build v3 replaced; never built. Earlier: Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
       "question": "Q-0421",
-      "kind": "held",
+      "kind": "retired",
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
       "ticket": "EZD-264",
       "title": "Fix: architecture and runbook say Josh enters the Preview EMAIL_TRANSPORT value",
-      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 unfreezes in order (Josh, chat: \"Yes, do that\"): set ready once the sandbox is back on (D-021 fix, then the watched switch-on); guards and dead-lock fixes before the lanes...",
+      "reason": "RETIRED 2026-11-23 by Josh (chat: \"Yes, retire them\"): fixes the old build machinery (launcher, ledger, unit sandbox, question files) that build v3 replaced; never built. Earlier: Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 unfreezes in order (Josh, chat: \"Yes, do that\"): set ready once the sandbox is back on (D-021 fix, then the watched switch-on); guards and dead-lock fixes before the lanes...",
       "question": "Q-0432, Q-0433",
-      "kind": "held",
+      "kind": "retired",
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
@@ -132,9 +132,9 @@
     {
       "ticket": "EZD-273",
       "title": "Fix: the gate fails when the launcher or ledger gains a stop path that is not on the KEEP list",
-      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
+      "reason": "RETIRED 2026-11-23 by Josh (chat: \"Yes, retire them\"): fixes the old build machinery (launcher, ledger, unit sandbox, question files) that build v3 replaced; never built. Earlier: Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
       "question": "Q-0438",
-      "kind": "held",
+      "kind": "retired",
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
@@ -148,17 +148,17 @@
     {
       "ticket": "EZD-275",
       "title": "Fix: the gate fails when a skill ends a unit or blocks a ticket for a reason not on the KEEP list",
-      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
+      "reason": "RETIRED 2026-11-23 by Josh (chat: \"Yes, retire them\"): fixes the old build machinery (launcher, ledger, unit sandbox, question files) that build v3 replaced; never built. Earlier: Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. 2026-11-03 reopened (Josh, chat: \"Yes, do that\"): the triage drop assumed one gate at a time, and Josh plans 2-3 tickets at once; its Depends on sets the order. · Dropped by the audi...",
       "question": "Q-0442",
-      "kind": "held",
+      "kind": "retired",
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
       "ticket": "EZD-276",
       "title": "Fix: the perf check signs in a member and measures the Projects first cards",
-      "reason": "Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. Added 2026-10-30 from Q-0449 (a) (rule 17).|",
+      "reason": "RETIRED 2026-11-23 by Josh (chat: \"Yes, retire them\"): fixes the old build machinery (launcher, ledger, unit sandbox, question files) that build v3 replaced; never built. Earlier: Put off by Josh 2026-11-03 (speed-up decision 2, vault/spec/decisions/process.md); do not set ready until he says. Added 2026-10-30 from Q-0449 (a) (rule 17).|",
       "question": "Q-0449",
-      "kind": "held",
+      "kind": "retired",
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
@@ -172,25 +172,25 @@
     {
       "ticket": "EZD-328",
       "title": "Fix: each lane's gate and database run outside the unit sandbox",
-      "reason": "Waited for the sandbox, which Josh brought back 2026-11-06 (session 8, 023476e9). Gate, worktree and merge now run outside the sandbox through excludedCommands in scripts/unit-sandbox.json (EZD-317), and sandboxed builds have created worktrees and passed lane gates since. Next: an interactive fix...",
+      "reason": "RETIRED 2026-11-23 by Josh (chat: \"Yes, retire them\"): fixes the old build machinery (launcher, ledger, unit sandbox, question files) that build v3 replaced; never built. Earlier: Waited for the sandbox, which Josh brought back 2026-11-06 (session 8, 023476e9). Gate, worktree and merge now run outside the sandbox through excludedCommands in scripts/unit-sandbox.json (EZD-317), and sandboxed builds have created worktrees and passed lane gates since. Next: an interactive fix...",
       "question": null,
-      "kind": "held",
+      "kind": "retired",
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
       "ticket": "EZD-355a",
       "title": "Build system: the gate's Docker calls go through a policy relay that acts only on objects it created",
-      "reason": "Split from EZD-355 on 2026-11-07 (Q-0615). Blocked until planned in fix mode by an interactive session: its paths are guarded, so the launcher can neither build it nor carry its tooling mark before a plan exists. Josh said yes to the work (Q-0614).|",
+      "reason": "RETIRED 2026-11-23 by Josh (chat: \"Yes, retire them\"): fixes the old build machinery (launcher, ledger, unit sandbox, question files) that build v3 replaced; never built. Earlier: Split from EZD-355 on 2026-11-07 (Q-0615). Blocked until planned in fix mode by an interactive session: its paths are guarded, so the launcher can neither build it nor carry its tooling mark before a plan exists. Josh said yes to the work (Q-0614).|",
       "question": "Q-0615, Q-0614",
-      "kind": "held",
+      "kind": "retired",
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
       "ticket": "EZD-355b",
       "title": "Build system: sandboxed units reach Docker only through the policy relay",
-      "reason": "Split from EZD-355 on 2026-11-07 (Q-0615). Blocked until planned in fix mode by an interactive session: its paths are guarded, so the launcher can neither build it nor carry its tooling mark before a plan exists. Josh said yes to the work (Q-0614).|",
+      "reason": "RETIRED 2026-11-23 by Josh (chat: \"Yes, retire them\"): fixes the old build machinery (launcher, ledger, unit sandbox, question files) that build v3 replaced; never built. Earlier: Split from EZD-355 on 2026-11-07 (Q-0615). Blocked until planned in fix mode by an interactive session: its paths are guarded, so the launcher can neither build it nor carry its tooling mark before a plan exists. Josh said yes to the work (Q-0614).|",
       "question": "Q-0615, Q-0614",
-      "kind": "held",
+      "kind": "retired",
       "since": "2026-11-18 (moved from STATUS.md)"
     },
     {
