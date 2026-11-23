@@ -462,7 +462,8 @@
     "EZD-611a",
     "EZD-609",
     "EZD-511",
-    "EZD-643"
+    "EZD-643",
+    "EZD-1930"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1540,11 +1541,19 @@
       "ts": "2026-11-23T09:44:06Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1930",
+      "title": "Security headers: frame-ancestors 'self', nosniff, Permissions-Policy",
+      "commit": "06d534d6",
+      "ts": "2026-11-23T12:52:31Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1714,17 +1723,17 @@
     }
   },
   "running": {
-    "EZD-1930": {
-      "lane": 1,
-      "title": "Security headers: frame-ancestors 'self', nosniff, Permissions-Policy",
-      "started": "2026-11-23T11:31:34Z",
-      "develop": "ec898019"
-    },
     "EZD-1935": {
       "lane": 3,
       "title": "Fix: conflict-list B6 fails at random after the member's sessions end",
       "started": "2026-11-23T12:18:49Z",
       "develop": "577fe35e"
+    },
+    "EZD-1933": {
+      "lane": 2,
+      "title": "Signed-out error-alert functions cannot be used to flood the owner with email",
+      "started": "2026-11-23T12:31:41Z",
+      "develop": "0b9d2f1d"
     }
   },
   "advisories_checked_at": "2026-11-23T10:13:13Z",
