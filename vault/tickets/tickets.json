@@ -26627,6 +26627,51 @@
     "AC-EZD-1960-3"
    ],
    "acs_source": "audit-2026-11-23"
+  },
+  {
+   "id": "EZD-1961",
+   "phase": 10,
+   "title": "Sign-in shows each way in separately (Q-0800)",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23; Q-0800 (Josh 2026-11-23); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "decisions": [
+    "spec/decisions/10-permissions-and-settings.md#Q-0800"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1961-1",
+    "AC-EZD-1961-2",
+    "AC-EZD-1961-3"
+   ],
+   "acs_source": "josh-2026-11-23"
+  },
+  {
+   "id": "EZD-1962",
+   "phase": 10,
+   "title": "Wording: \"Couldn't read this page\" on the property record import (Q-0802)",
+   "depends_raw": "",
+   "spec_ref": "Audit 2026-11-23; Q-0802 (Josh 2026-11-23); audit report vault/plans/audit-2026-11-23.md",
+   "spec_files": [
+    "spec/sections/screens/S01-projects.md"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0802"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1962-1",
+    "AC-EZD-1962-2"
+   ],
+   "acs_source": "josh-2026-11-23"
   }
  ],
  "recut_applied": "2026-10-20"

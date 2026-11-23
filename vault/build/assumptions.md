@@ -2566,3 +2566,8 @@ The builder records here every choice the spec, decisions and mockups did not se
 | EZD-511 | Border sizes shown | In the app's length format ("1' 9"", "6""); the legend shows the smaller border in each direction, along the mains first | board S05Ceiling legend; 03g lengths |
 | EZD-511 | Browser test | The ACT area of the phase 18 build gate is built by app/e2e/act-grid.spec.ts (its own room), not added to ceiling-rcp.spec.ts | phase-05 build gate |
 | EZD-511 | More wording for Josh to confirm | "Acoustical grid" (inspector title), "ACT {module} · {room}", "Along mains", "Across mains", "Balance", "Click inside a room to place a grid", "The grid could not be saved", "The start point must be inside the room" | rule 6 |
+
+**2026-11-23: Josh approved every "Wording for Josh" row above this line (Q-0803).**
+
+| Ticket | Question or text | Choice made | Source |
+| --- | --- | --- | --- |
