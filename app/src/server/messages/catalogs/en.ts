@@ -989,6 +989,11 @@ export const en = {
   'office.libraries.notes_filter': 'Project type',
   'office.libraries.notes_filter.all': 'All',
   'office.libraries.notes_group_empty': 'None for this project type.',
+  // EZD-706 (S15h Symbols + abbreviations "Read-only system set"): wording for Josh (assumptions.md EZD-706).
+  'office.libraries.company_abbreviations': 'Company abbreviations',
+  'office.libraries.system_symbols': 'System symbols',
+  'office.libraries.system_abbreviations': 'System abbreviations',
+  'office.libraries.system_read_only': 'Read-only. Each sheet keys the symbols it uses.',
   'office.libraries.this_note': 'this note',
   // EZD-1408 (S15h Field task templates; board S15hLibraries). Board text, except the lines marked in
   // assumptions.md EZD-1408.

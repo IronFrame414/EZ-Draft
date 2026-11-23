@@ -147,9 +147,21 @@ export function sheetFrame(size: SheetSize): { margin: number; titleBlock: numbe
   return { margin: height / 48, titleBlock: width / 8 };
 }
 
-// The paper inside the border and left of the title block, where a plan is centred (paper inches, y down).
-export function sheetDrawingArea(size: SheetSize): { x: number; y: number; width: number; height: number } {
+// EZD-706 (board S13Sheets: SYMBOL KEY, GENERAL NOTES and KEYNOTES stack in a column left of the title block, about
+// 0.3 of the paper's width): the notes column, inside the border, one margin left of the title block column.
+export const NOTES_COLUMN_SHARE = 0.3;
+export function sheetNotesColumn(size: SheetSize): { x: number; y: number; width: number; height: number } {
   const { width, height } = paperInches(size);
   const { margin, titleBlock } = sheetFrame(size);
-  return { x: margin, y: margin, width: width - 2 * margin - titleBlock, height: height - 2 * margin };
+  const w = width * NOTES_COLUMN_SHARE;
+  return { x: width - margin - titleBlock - margin - w, y: 2 * margin, width: w, height: height - 4 * margin };
+}
+
+// The paper inside the border, left of the notes column, where a plan is centred (paper inches, y down).
+// EZD-706: the notes column is kept clear, so the plan never runs under the key.
+export function sheetDrawingArea(size: SheetSize): { x: number; y: number; width: number; height: number } {
+  const { height } = paperInches(size);
+  const { margin } = sheetFrame(size);
+  const notes = sheetNotesColumn(size);
+  return { x: margin, y: margin, width: notes.x - margin - margin, height: height - 2 * margin };
 }

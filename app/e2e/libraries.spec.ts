@@ -103,6 +103,28 @@ test.describe('EZD-131 libraries', () => {
     await expect(tid(page, 'library-row-name')).toHaveText(['GFCI']);
   });
 
+  // EZD-706 (S15h Symbols + abbreviations "Read-only system set; abbreviations may be added"; assumptions.md EZD-706).
+  test('EZD-706: the Symbols tab lists the read-only system symbols and abbreviations under the company ones', async ({
+    page,
+    signInAs,
+  }) => {
+    await openLibraries(signInAs, page);
+    await tab(page, 'symbols').click();
+    await expect(page.locator('[data-testid="libraries-empty"][data-tab="symbols"]')).toBeVisible();
+    await expect(tid(page, 'system-symbols')).toContainText('System symbols');
+    await expect(page.locator('[data-testid="system-symbol"][data-symbol="device.receptacle_duplex"]')).toHaveText(
+      'Duplex receptacle',
+    );
+    await expect(tid(page, 'system-abbreviation').first()).toHaveText('AFFAbove finished floor');
+    // Read-only: a system row opens nothing in the inspector.
+    await page.locator('[data-testid="system-symbol"][data-symbol="wall.new"]').click();
+    await expect(tid(page, 'library-inspector-empty')).toBeVisible();
+    // The tab search filters the system set too.
+    await tid(page, 'libraries-search').fill('recept');
+    await expect(tid(page, 'system-symbol')).toHaveText(['Duplex receptacle', '240V receptacle']);
+    await expect(tid(page, 'system-abbreviation')).toHaveCount(0);
+  });
+
   test('a saved group is renamed and deleted from its tab', async ({ page, signInAs }) => {
     const tenant = await createTenant();
     await harnessSql()`insert into public.library_item (tenant_id, kind, name)

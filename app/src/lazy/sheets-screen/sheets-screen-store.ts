@@ -6,10 +6,14 @@
 // the open sheet through the sheet renderer (app/src/lazy/sheets, loaded on the first plan sheet). It watches the model
 // only while shown, so an edit on the Plan tab draws no sheet; showing the screen again draws the open sheet once if
 // the model changed meanwhile.
+// EZD-706 (S13 Validation "Key: only symbols and abbreviations actually used; updates when objects are added or
+// removed; placement per set"; AC-EZD-706-1): while shown, the open sheet's symbol key is worked out from the model
+// (lib/sheets/symbol-key) on the same watch, for every sheet (the cover carries the key under "On cover only").
 import type { SheetSetKind, SheetSize } from '@ezdraft/geometry';
 import type { Objects } from '../../editor/model/patches';
 import { lazyModule } from '../../lib/lazy/lazy-module';
 import { sheetShowsPlan, type SheetSetSummary } from '../../lib/sheets/sheet-set';
+import { sheetSymbolKey, type SheetKey } from './sheet-key';
 import type { ProjectTitleBlock } from '../../lib/title-block/sheet-title-block';
 import type { SheetRenderer } from '../sheets';
 
@@ -27,6 +31,8 @@ export type SheetsScreenState = {
   drawing: { sheet: string; size: SheetSize; markup: string } | null;
   // Sheet renders asked of the renderer since the screen was made.
   renders: number;
+  // EZD-706: the open sheet's symbol key, for the set kind and sheet it was worked out for; null when it has none.
+  key: { kind: SheetSetKind; sheet: string; key: SheetKey } | null;
 };
 
 // The model the sheets draw (the editor's routed store).
@@ -70,6 +76,7 @@ export function createSheetsScreen(
     zoom: null,
     drawing: null,
     renders: 0,
+    key: null,
   };
   const listeners = new Set<() => void>();
   const update = (next: Partial<SheetsScreenState>) => {
@@ -88,9 +95,28 @@ export function createSheetsScreen(
   // What the last render asked for; the same model, sheet and size are not drawn again.
   let drawn: { objects: Objects; sheet: string; size: SheetSize } | null = null;
 
+  // EZD-706: the key is worked out again only when the model, set, placement or open sheet changed.
+  let keyed: { objects: Objects; set: SheetSetSummary; sheet: string } | null = null;
+  const refreshKey = () => {
+    if (!shown || source === null || state.load !== 'ready') return;
+    const set = setOf(state.kind);
+    const sheet = state.open;
+    if (set === null || sheet === null) {
+      keyed = null;
+      if (state.key !== null) update({ key: null });
+      return;
+    }
+    const objects = source.getState().objects;
+    if (keyed !== null && keyed.objects === objects && keyed.set === set && keyed.sheet === sheet) return;
+    keyed = { objects, set, sheet };
+    const key = sheetSymbolKey(set, sheet, objects);
+    update({ key: key === null ? null : { kind: set.kind, sheet, key } });
+  };
+
   // One render at a time: a change while one is drawing is drawn when it ends.
   let busy = false;
   const refresh = () => {
+    refreshKey();
     if (busy || !shown || source === null || state.load !== 'ready') return;
     const set = setOf(state.kind);
     const sheet = set?.sheets.find((s) => s.number === state.open) ?? null;

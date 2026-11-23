@@ -390,3 +390,45 @@
 .thumbAmber .thumbPage {
   border-color: var(--ez-amber);
 }
+
+/* EZD-706: the symbol key (board S13Sheets), in paper inches; ink lines as the sheet's other marks. */
+.keyBox {
+  fill: var(--ez-surface);
+  stroke: var(--ez-ink);
+  stroke-width: 0.02;
+}
+
+.keyRule {
+  stroke: var(--ez-ink);
+  stroke-width: 0.01;
+}
+
+.keyTitle {
+  fill: var(--ez-ink);
+  font-family: var(--ez-font-sans);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.keyText {
+  fill: var(--ez-ink);
+  stroke: none;
+  font-family: var(--ez-font-mono);
+}
+
+.keyMark line,
+.keyMark path,
+.keyMark rect,
+.keyMark circle {
+  fill: none;
+  stroke: var(--ez-ink);
+  stroke-width: 0.01;
+}
+
+.keyMark .keyPoche {
+  fill: var(--ez-border);
+}
+
+.keyMark .keyDemo {
+  stroke-dasharray: 0.0625 0.03125;
+}

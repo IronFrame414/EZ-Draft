@@ -8,6 +8,8 @@
 // viewBox), drawn inside the page once the worker answers. The markup is built by sheetSvg, which escapes every text.
 // EZD-710 (AC-EZD-710-1): every sheet draws the project's title block in its title block column (SheetTitleBlock);
 // until the title block has loaded the column shows the sheet number and title as before.
+// EZD-706 (AC-EZD-706-1; S13 Decision 8): the sheet's symbol key at the top of the notes column (sheetNotesColumn),
+// when the set's placement gives this sheet one and it uses any symbol.
 import { useEffect, useRef, type ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
 import { SheetTitleBlock } from '../../components/sheets/SheetTitleBlock';
@@ -19,12 +21,15 @@ import {
   neighbourSheet,
   paperInches,
   sheetFrame,
+  sheetNotesColumn,
   sheetPosition,
   type Sheet,
   type SheetSetSummary,
 } from '../../lib/sheets/sheet-set';
 import type { SheetSize } from '@ezdraft/geometry';
+import type { SheetKey } from './sheet-key';
 import { sheetMarks } from './sheet-labels';
+import { SymbolKey } from './SymbolKey';
 import type { SheetsScreen } from './sheets-screen-store';
 import { useSheetsScreen } from './use-sheets-screen';
 import styles from './SheetsScreen.module.css';
@@ -45,6 +50,7 @@ function SheetPage({
   watermark,
   drawing,
   titleBlock,
+  symbolKey,
 }: {
   sheet: Sheet;
   set: SheetSetSummary;
@@ -52,8 +58,10 @@ function SheetPage({
   watermark: string | null;
   drawing: string | null;
   titleBlock: ProjectTitleBlock | null;
+  symbolKey: SheetKey | null;
 }): ReactElement {
   const { width: w, height: h } = paperInches(size);
+  const notes = sheetNotesColumn(size);
   // Board S13Sheets: a border inset from the paper edge and the title block column on the right with the number.
   const { margin: m, titleBlock: tb } = sheetFrame(size);
   return (
@@ -72,6 +80,7 @@ function SheetPage({
       {drawing !== null ? (
         <g data-testid="sheet-drawing" dangerouslySetInnerHTML={{ __html: drawing }} />
       ) : null}
+      {symbolKey !== null ? <SymbolKey sheetKey={symbolKey} x={notes.x} y={notes.y} width={notes.width} /> : null}
       {watermark !== null ? (
         <text x={m * 2} y={m * 2.6} className={styles.watermark} fontSize={h / 90} data-testid="sheet-watermark">
           {watermark}
@@ -180,6 +189,11 @@ export function SheetsCanvas({ screen }: SheetsCanvasProps): ReactElement {
             size={size}
             titleBlock={state.titleBlock}
             watermark={watermark}
+            symbolKey={
+              state.key !== null && state.key.kind === set.kind && state.key.sheet === sheet.number
+                ? state.key.key
+                : null
+            }
             drawing={
               state.drawing !== null &&
               state.drawing.sheet === sheet.number &&

@@ -9,7 +9,12 @@
 // read-only.
 // EZD-1408 (S15h Tab: Field task templates; Permissions): the Field task templates tab is its own editor
 // (TaskTemplates). With Edit field tasks and no Libraries switch (onlyTemplates) it is the only tab.
-import { useCallback, useState } from 'react';
+// EZD-706 (S15h Tab: Symbols + abbreviations "Full symbol and abbreviation library ... Read-only system set;
+// abbreviations may be added"; Decision 1): under the company abbreviations, the system symbols and abbreviations
+// (@ezdraft/geometry SYSTEM_SYMBOLS, SYSTEM_ABBREVIATIONS), read-only, filtered by the same search. Their names are
+// sheet text, English only (S13 Decision 7).
+import { useCallback, useState, type ReactElement } from 'react';
+import { SYSTEM_ABBREVIATIONS, SYSTEM_SYMBOLS } from '@ezdraft/geometry';
 import {
   CREATABLE_KINDS,
   EDITABLE_KINDS,
@@ -185,7 +190,58 @@ export function LibrariesPanel({
   const selected =
     selection.mode === 'item' ? (items.find((i) => i.id === selection.id) ?? null) : null;
 
+  // EZD-706: the read-only system set on the Symbols + abbreviations tab.
+  const systemBody = (): ReactElement => {
+    const has = (...texts: string[]) =>
+      term === '' || texts.some((x) => x.toLowerCase().includes(term.toLowerCase()));
+    const symbols = SYSTEM_SYMBOLS.filter((s) => has(s.label));
+    const abbreviations = SYSTEM_ABBREVIATIONS.filter((a) => has(a.name, a.meaning));
+    return (
+      <div data-testid="libraries-system" className={styles.notes}>
+        <p className={styles.groupEmpty}>{t('office.libraries.system_read_only')}</p>
+        <section data-testid="system-symbols" className={styles.group}>
+          <h3 className={styles.groupHead}>
+            {t('office.libraries.system_symbols')}
+            <span className={styles.groupCount}>{symbols.length}</span>
+          </h3>
+          <ul className={styles.list}>
+            {symbols.map((s) => (
+              <li key={s.id} data-testid="system-symbol" data-symbol={s.id} className={styles.row}>
+                <span className={styles.rowName}>{s.label}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section data-testid="system-abbreviations" className={styles.group}>
+          <h3 className={styles.groupHead}>
+            {t('office.libraries.system_abbreviations')}
+            <span className={styles.groupCount}>{abbreviations.length}</span>
+          </h3>
+          <ul className={styles.list}>
+            {abbreviations.map((a) => (
+              <li key={a.name} data-testid="system-abbreviation" className={styles.row}>
+                <span className={styles.rowName}>{a.name}</span>
+                <span className={styles.rowMeaning}>{a.meaning}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    );
+  };
+
   const body = (data: LibraryItem[]) => {
+    if (tab.id !== 'symbols') return companyBody(data);
+    return (
+      <>
+        <h3 className={styles.groupHead}>{t('office.libraries.company_abbreviations')}</h3>
+        {companyBody(data)}
+        {systemBody()}
+      </>
+    );
+  };
+
+  const companyBody = (data: LibraryItem[]) => {
     if (data.length === 0) {
       return (
         <div data-testid="libraries-empty" data-tab={tab.id} className={styles.empty}>
