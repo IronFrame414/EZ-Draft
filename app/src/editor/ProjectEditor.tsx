@@ -1584,6 +1584,10 @@ export function ProjectEditor({
             showObject={plan.handle.showObject}
             layers={layers}
             floors={floors ?? undefined}
+            // EZD-604: New circuit, rename and the circuit fields with Edit model, paused while view only.
+            edit={
+              session.lock.canEditModel ? { slot: deviceSlot, paused: !mayEdit } : undefined
+            }
           />
         ) : undefined
       }

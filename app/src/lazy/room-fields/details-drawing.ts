@@ -9,6 +9,7 @@ import {
   type ModelObject,
   type Point,
 } from '@ezdraft/geometry';
+import { circuitItems, type CircuitDrawOpts } from '../../editor/electrical/circuit-drawing';
 import { heightNoteText } from '../../editor/electrical/height-note';
 import { roomTransitions } from '../../editor/layers/floor-transitions';
 import { PT_TO_MODEL_IN } from '../../editor/plan/glyph-atlas';
@@ -228,14 +229,25 @@ export function transitionItems(
 
 // Both, as the plan's `extraItems`.
 // EZD-603: `opts.heightNotes` is the left panel's Height notes switch (on when absent).
+// EZD-604: `opts.circuits` adds the circuit tags, lines and home runs (circuit-drawing.ts); none when absent.
 export function planDetailItems(
   objects: readonly ModelObject[],
   level: string,
   textPt: number,
-  opts: { heightNotes?: boolean } = {},
+  opts: {
+    heightNotes?: boolean;
+    circuits?: Omit<CircuitDrawOpts, 'radiusOf'>;
+  } = {},
 ): DrawingItem[] {
   return [
     ...existingDetailItems(objects, textPt, opts),
     ...transitionItems(objects, level, textPt),
+    ...(opts.circuits === undefined
+      ? []
+      : circuitItems(objects, textPt, { ...opts.circuits, radiusOf: deviceRadius })),
   ];
 }
+
+// EZD-604: the radius of a device's symbol, as drawn above.
+export const deviceRadius = (kind: string): number =>
+  kind === 'ceiling_fan' ? FAN_RADIUS_IN : DETECTOR_RADIUS_IN;

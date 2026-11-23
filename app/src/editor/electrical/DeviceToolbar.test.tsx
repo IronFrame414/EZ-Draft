@@ -87,3 +87,29 @@ describe('EZD-602 device toolbar', () => {
     expect(elements(render(t, false), 'device-toolbar-choices')).toHaveLength(0);
   });
 });
+
+// EZD-604 (S06 Controls "Device toolbar: Circuit | Canvas toolbar | Assign circuit by clicking devices in turn."; board
+// S06Electrical toolbar "Circuit" after the device items; vault/build/assumptions.md EZD-604 disabled until a circuit
+// is chosen).
+describe('EZD-604 Circuit tool', () => {
+  it('shows Circuit, disabled until a circuit is chosen in the left panel', async () => {
+    const { circuitView } = await import('./circuit-view');
+    const html = render(createElectricalToolbar(), false);
+    const el = elements(html, 'device-tool-circuit')[0]!;
+    expect(textOf(el.inner)).toBe('Circuit');
+    expect(attr(el.attrs, 'disabled')).not.toBeNull();
+    circuitView.set({ circuit: '8b2f1d4e-6c3a-4f9b-8d72-1e5a4c3b2f02' });
+    try {
+      const t = createElectricalToolbar();
+      t.press('circuit');
+      const on = elements(render(t, false), 'device-tool-circuit')[0]!;
+      expect(attr(on.attrs, 'disabled')).toBeNull();
+      expect(attr(on.attrs, 'aria-pressed')).toBe('true');
+      // No device item is pressed and no kind row shows while Circuit is armed.
+      expect(elements(render(t, false), 'device-toolbar-choices')).toHaveLength(0);
+      expect(attr(elements(render(t, true), 'device-tool-circuit')[0]!.attrs, 'disabled')).not.toBeNull();
+    } finally {
+      circuitView.set({ circuit: null });
+    }
+  });
+});

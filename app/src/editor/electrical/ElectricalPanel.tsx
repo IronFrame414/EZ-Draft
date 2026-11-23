@@ -7,8 +7,16 @@
 // assumptions.md EZD-601): the left panel in electrical mode. Every control here is allowed in view only. New
 // circuit, rename and the circuit's canvas highlight arrive with EZD-604; the Panel tab's compact schedule with
 // EZD-609; what the chips show on the plan with the tickets that draw those layers (EZD-602, EZD-604, EZD-605).
-import { DEVICE_KINDS, type CircuitProtection } from '@ezdraft/geometry';
+// EZD-604 (S06 Controls "New circuit | Left panel, under list | Creates a new circuit in the next open space. | Edit
+// model; hidden without it. Disabled in view only (mockup shows disabled). Disabled when no spaces left.", "Circuit
+// row | Click selects the circuit: highlights its devices and home run on canvas ... Row shows circuit number, name,
+// breaker/type/count, VA.", "Circuit row double-click | Rename circuit inline. | Edit model."; phase-06 EZD-604
+// "breaker, wire, name editable; 2-pole numbers like 1-3"; vault/build/assumptions.md EZD-604): New circuit (Panel A
+// first when the model has none), rename, the chosen circuit's Breaker, Poles and Wire, the row's device count, and
+// the Home runs chip, which with the chosen circuit is shared with the plan (circuit-view.ts).
+import { DEVICE_KINDS, WIRE_SIZES, type CircuitProtection, type WireSize } from '@ezdraft/geometry';
 import { useMemo, useState, useSyncExternalStore, type ReactElement } from 'react';
+import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
 import touch from '../../styles/touch.module.css';
@@ -18,6 +26,17 @@ import type { LayerSetting } from '../layers/layer-setting';
 import type { ModelStore } from '../model/model-store';
 import { openFloorId } from '../plan/batches';
 import type { SelectionController } from '../selection/selection-controller';
+import { circuitView } from './circuit-view';
+import {
+  BREAKER_SIZES,
+  circuitDeviceIds,
+  circuitEditChange,
+  newCircuitChanges,
+  nextOpenSpace,
+  type CircuitEdit,
+} from './circuits';
+import type { ToolBase } from './DeviceTools';
+import type { ReceiverSlot } from './receiver-slot';
 import {
   circuitRows,
   deviceGroups,
@@ -59,6 +78,10 @@ export type ElectricalPanelProps = {
   layers?: Pick<LayerSetting, 'eyes' | 'setEye'>;
   floors?: FloorChoice;
   initialTab?: ElectricalTab;
+  // EZD-604: given when the user has Edit model (New circuit, rename and the circuit fields show); `paused` while
+  // another user holds the lock or a version is open (shown disabled). The slot's base carries the store's
+  // applyEdit, new ids and the new-object status.
+  edit?: { slot: ReceiverSlot<ToolBase>; paused: boolean };
 };
 
 const DEVICE_LABEL: Readonly<Record<(typeof DEVICE_KINDS)[number], MessageKey>> = {
@@ -98,6 +121,7 @@ export function ElectricalPanel({
   layers,
   floors,
   initialTab = 'circuits',
+  edit,
 }: ElectricalPanelProps): ReactElement {
   const t = useT();
   const chosen = useChosenFloor(floors);
@@ -109,8 +133,19 @@ export function ElectricalPanel({
   const ui = useSyncExternalStore(selection.subscribe, selection.getUi, selection.getUi);
   const [tab, setTab] = useState<ElectricalTab>(initialTab);
   const [panelId, setPanelId] = useState<string | null>(null);
-  const [circuitId, setCircuitId] = useState<string | null>(null);
-  const [chips, setChips] = useState<Record<ShowChip, boolean>>({ ...SHOW_CHIPS_DEFAULT });
+  const view = useSyncExternalStore(circuitView.subscribe, circuitView.get, circuitView.get);
+  const circuitId = view.circuit;
+  const setCircuitId = (id: string | null) => circuitView.set({ circuit: id });
+  const [renaming, setRenaming] = useState<string | null>(null);
+  const [chipState, setChips] = useState<Record<ShowChip, boolean>>({ ...SHOW_CHIPS_DEFAULT });
+  const chips = { ...chipState, home_runs: view.homeRuns };
+  const noBase = () => null;
+  const base = useSyncExternalStore(
+    edit?.slot.subscribe ?? (() => () => {}),
+    edit === undefined ? noBase : () => edit.slot.getState().base,
+    edit === undefined ? noBase : () => edit.slot.getState().base,
+  );
+  const writable = edit !== undefined && !edit.paused && base !== null;
   // EZD-603 (board S06Electrical "Height notes Off / On"): shows or hides every device note that is turned on.
   const notesShown = useSyncExternalStore(
     heightNotesShown.subscribe,
@@ -121,6 +156,10 @@ export function ElectricalPanel({
   const panels = useMemo(() => panelRows(objects), [objects]);
   const panel = panels.find((p) => p.id === panelId) ?? panels[0] ?? null;
   const circuits = useMemo(() => circuitRows(objects, panel?.id ?? null), [objects, panel]);
+  const spaceLeft = useMemo(
+    () => nextOpenSpace(objects, panel?.id ?? null) !== null,
+    [objects, panel],
+  );
   const totals = panelTotals(circuits);
   const groups = useMemo(
     () => deviceGroups(objects, openFloorId(objects, chosen)),
@@ -135,6 +174,13 @@ export function ElectricalPanel({
       c.protection === null ? null : t(PROTECTION_LABEL[c.protection]),
       c.poles === 2 ? t('office.electrical.circuit.two_pole') : null,
       c.dedicated ? t('office.electrical.circuit.dedicated') : null,
+      c.count.receptacles > 0
+        ? t('office.electrical.circuit.count_rcpt', { count: c.count.receptacles })
+        : null,
+      c.count.fixtures > 0
+        ? t('office.electrical.circuit.count_fix', { count: c.count.fixtures })
+        : null,
+      c.count.other > 0 ? t('office.electrical.circuit.count_other', { count: c.count.other }) : null,
     ]
       .filter((x): x is string => x !== null)
       .join(' · ');
@@ -148,6 +194,51 @@ export function ElectricalPanel({
     ]
       .filter((x): x is string => x !== null)
       .join(' · ');
+
+  const panelHeader = (p: { name: string; mainBreaker: number | null }) =>
+    p.mainBreaker === null
+      ? p.name
+      : t('office.electrical.panel_header', { name: p.name, amps: p.mainBreaker });
+
+  const apply = (changes: Parameters<ModelStore['applyEdit']>[0] | null) => {
+    if (base === null) return false;
+    if (changes === null) {
+      base.onMessage('office.electrical.circuit.edit_failed');
+      return false;
+    }
+    base.store.applyEdit(changes);
+    return true;
+  };
+
+  const chooseCircuit = (id: string) => {
+    setCircuitId(id);
+    selection.select(circuitDeviceIds(store.getState().objects, id));
+  };
+
+  const addCircuit = () => {
+    if (!writable || base === null) return;
+    const objs = base.store.getState().objects;
+    const made = newCircuitChanges(objs, {
+      panelId: panel?.id ?? null,
+      level: openFloorId(objs, base.chosenFloor()),
+      newId: base.newId,
+      status: base.newStatus(),
+      name: (n) => t('office.electrical.device.circuit', { number: n }),
+      panelName: t('office.electrical.default_panel'),
+    });
+    if (made === null) {
+      base.onMessage('office.electrical.circuit.edit_failed');
+      return;
+    }
+    base.store.applyEdit(made.changes);
+    chooseCircuit(made.circuitId);
+  };
+
+  const editCircuit = (id: string, e: CircuitEdit) => {
+    if (!writable || base === null) return;
+    const change = circuitEditChange(base.store.getState().objects, id, e);
+    apply(change === null ? null : [change]);
+  };
 
   const header =
     panel === null ? null : (
@@ -165,13 +256,13 @@ export function ElectricalPanel({
           >
             {panels.map((p) => (
               <option key={p.id} value={p.id}>
-                {t('office.electrical.panel_header', { name: p.name, amps: p.mainBreaker })}
+                {panelHeader(p)}
               </option>
             ))}
           </select>
         ) : (
           <span className={styles.panelName} data-testid="electrical-panel-name">
-            {t('office.electrical.panel_header', { name: panel.name, amps: panel.mainBreaker })}
+            {panelHeader(panel)}
           </span>
         )}
         <span className={styles.units}>{t('office.electrical.units')}</span>
@@ -189,29 +280,120 @@ export function ElectricalPanel({
         <div className={styles.list}>
           {circuits.map((c) => {
             const on = circuitId === c.id;
+            if (renaming === c.id && writable)
+              return (
+                <input
+                  key={c.id}
+                  className={styles.rename}
+                  data-testid="circuit-rename"
+                  aria-label={t('office.electrical.circuit.name')}
+                  defaultValue={c.name}
+                  autoFocus
+                  onBlur={(e) => {
+                    setRenaming(null);
+                    if (e.currentTarget.value.trim() !== c.name)
+                      editCircuit(c.id, { field: 'name', text: e.currentTarget.value });
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') e.currentTarget.blur();
+                    else if (e.key === 'Escape') {
+                      e.currentTarget.value = c.name;
+                      e.currentTarget.blur();
+                    }
+                  }}
+                />
+              );
             return (
-              <button
-                key={c.id}
-                type="button"
-                className={`${styles.circuit} ${on ? styles.circuitOn : ''} ${touch.target}`}
-                data-testid="circuit-row"
-                data-circuit-id={c.id}
-                aria-pressed={on}
-                onClick={() => setCircuitId(c.id)}
-              >
-                <span className={styles.num} data-testid="circuit-number">
-                  {c.number}
-                </span>
-                <span className={styles.text}>
-                  <span className={styles.rowName}>{c.name}</span>
-                  <span className={styles.meta} data-testid="circuit-meta">
-                    {circuitMeta(c)}
+              <div key={c.id} className={styles.circuitItem}>
+                <button
+                  type="button"
+                  className={`${styles.circuit} ${on ? styles.circuitOn : ''} ${touch.target}`}
+                  data-testid="circuit-row"
+                  data-circuit-id={c.id}
+                  aria-pressed={on}
+                  onClick={() => chooseCircuit(c.id)}
+                  onDoubleClick={() => {
+                    if (writable) setRenaming(c.id);
+                  }}
+                >
+                  <span className={styles.num} data-testid="circuit-number">
+                    {c.number}
                   </span>
-                </span>
-                <span className={styles.va} data-testid="circuit-va">
-                  {c.load}
-                </span>
-              </button>
+                  <span className={styles.text}>
+                    <span className={styles.rowName}>{c.name}</span>
+                    <span className={styles.meta} data-testid="circuit-meta">
+                      {circuitMeta(c)}
+                    </span>
+                  </span>
+                  <span className={styles.va} data-testid="circuit-va">
+                    {c.load}
+                  </span>
+                </button>
+                {on && edit !== undefined ? (
+                  <div className={styles.fields} data-testid="circuit-fields">
+                    <label className={styles.field}>
+                      <span>{t('office.electrical.circuit.breaker_label')}</span>
+                      <select
+                        className={styles.select}
+                        data-testid="circuit-breaker"
+                        disabled={!writable}
+                        value={c.breaker}
+                        onChange={(e) =>
+                          editCircuit(c.id, { field: 'breaker', amps: Number(e.target.value) })
+                        }
+                      >
+                        {(BREAKER_SIZES as readonly number[]).includes(c.breaker) ? null : (
+                          <option value={c.breaker}>{c.breaker}</option>
+                        )}
+                        {BREAKER_SIZES.map((a) => (
+                          <option key={a} value={a}>
+                            {t('office.electrical.circuit.breaker', { amps: a })}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className={styles.field}>
+                      <span>{t('office.electrical.circuit.poles_label')}</span>
+                      <select
+                        className={styles.select}
+                        data-testid="circuit-poles"
+                        disabled={!writable}
+                        value={c.poles}
+                        onChange={(e) =>
+                          editCircuit(c.id, {
+                            field: 'poles',
+                            poles: e.target.value === '2' ? 2 : 1,
+                          })
+                        }
+                      >
+                        <option value={1}>{t('office.electrical.circuit.one_pole')}</option>
+                        <option value={2}>{t('office.electrical.circuit.two_pole')}</option>
+                      </select>
+                    </label>
+                    <label className={styles.field}>
+                      <span>{t('office.electrical.circuit.wire_label')}</span>
+                      <select
+                        className={styles.select}
+                        data-testid="circuit-wire"
+                        disabled={!writable}
+                        value={c.wire ?? ''}
+                        onChange={(e) =>
+                          editCircuit(c.id, { field: 'wire', size: e.target.value as WireSize })
+                        }
+                      >
+                        {c.wire === null ? (
+                          <option value="">{t('office.electrical.circuit.not_set')}</option>
+                        ) : null}
+                        {WIRE_SIZES.map((w) => (
+                          <option key={w} value={w}>
+                            {t('office.electrical.circuit.awg', { size: w })}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                ) : null}
+              </div>
             );
           })}
         </div>
@@ -291,6 +473,18 @@ export function ElectricalPanel({
         ) : (
           body
         )}
+        {tab === 'circuits' && edit !== undefined ? (
+          <button
+            type="button"
+            className={`${styles.newCircuit} ${touch.target}`}
+            data-testid="electrical-new-circuit"
+            disabled={!writable || !spaceLeft}
+            onClick={addCircuit}
+          >
+            <Icon name="add" size={16} />
+            <span>{t('office.electrical.new_circuit')}</span>
+          </button>
+        ) : null}
         <div className={styles.show} data-testid="electrical-show">
           <span className={styles.lbl}>{t('office.electrical.show')}</span>
           <div className={styles.chips}>
@@ -301,7 +495,11 @@ export function ElectricalPanel({
                 className={`${styles.chip} ${chips[c] ? styles.chipOn : ''} ${touch.target}`}
                 aria-pressed={chips[c]}
                 data-testid={`electrical-chip-${c}`}
-                onClick={() => setChips((prev) => ({ ...prev, [c]: !prev[c] }))}
+                onClick={() =>
+                  c === 'home_runs'
+                    ? circuitView.set({ homeRuns: !view.homeRuns })
+                    : setChips((prev) => ({ ...prev, [c]: !prev[c] }))
+                }
               >
                 {t(`office.electrical.chip.${c}`)}
               </button>

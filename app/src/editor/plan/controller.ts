@@ -33,6 +33,7 @@ import type { ModelStore } from '../model/model-store';
 import { chosenFloor, type FloorChoice } from '../floors/floors';
 import type { Objects } from '../model/patches';
 import { roomFieldsModule as planDetails } from '../layers/room-fields-module';
+import { circuitView } from '../electrical/circuit-view';
 import { heightNotesShown } from '../electrical/height-notes-shown';
 import {
   buildPlanBatches,
@@ -294,10 +295,14 @@ export function createPlanController(
       objects,
       {
         roomAreaSqFt: derived.roomAreaSqFt,
-        // EZD-603: the left panel's Height notes switch.
+        // EZD-603: the left panel's Height notes switch. EZD-604: the circuits, with the chosen circuit and the
+        // Home runs chip.
         extraItems: details
           ? (objs, lvl, pt) =>
-              details.planDetailItems(objs, lvl, pt, { heightNotes: heightNotesShown.get() })
+              details.planDetailItems(objs, lvl, pt, {
+                heightNotes: heightNotesShown.get(),
+                circuits: { all: objects, ...circuitView.get() },
+              })
           : undefined,
       },
       phase,
@@ -458,6 +463,11 @@ export function createPlanController(
 
   // EZD-603: the left panel's Height notes switch redraws as a View change does.
   const unsubscribeHeightNotes = heightNotesShown.subscribe(() => {
+    if (disposed) return;
+    refreshAll();
+  });
+  // EZD-604: so do the circuit chosen in the electrical left panel and its Home runs chip.
+  const unsubscribeCircuitView = circuitView.subscribe(() => {
     if (disposed) return;
     refreshAll();
   });
@@ -797,6 +807,7 @@ export function createPlanController(
       unsubscribePhase();
       unsubscribeFloors();
       unsubscribeHeightNotes();
+      unsubscribeCircuitView();
       input?.dispose();
       input = null;
       detachCanvas();

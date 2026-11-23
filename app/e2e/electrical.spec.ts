@@ -428,3 +428,131 @@ test.describe('EZD-603 device height notes', () => {
     await expect.poll(notes).toEqual([{ objectId: DEVICE_1, text: 'MW +66"' }]);
   });
 });
+
+// EZD-604 AC-EZD-604-1 "Assigned devices show the tag and a home run." (S06 Controls "New circuit | Creates a new
+// circuit in the next open space", "Circuit row double-click | Rename circuit inline", "Device toolbar: Circuit |
+// Assign circuit by clicking devices in turn. Circuit line drawn automatically."; board S06Electrical: a tag with the
+// circuit number beside each device and the home run tagged "A-14"; vault/build/assumptions.md EZD-604: New circuit
+// defaults 20A, 1-pole, "Circuit {n}"; the home run shows for the chosen circuit while Home runs is off).
+test.describe('EZD-604 circuits', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  type Drawn = Array<{ objectId: string; text: string }>;
+  const drawnTexts = (page: Page) =>
+    page.evaluate(() =>
+      (window as unknown as { __ezdraftPlan: { drawnTexts(): Drawn } }).__ezdraftPlan.drawnTexts(),
+    ) as Promise<Drawn>;
+  const textsOf = async (page: Page, id: string) =>
+    (await drawnTexts(page)).filter((t) => t.objectId === id).map((t) => t.text);
+
+  const ON_24 = '6a010000-0000-4000-8000-000000000013';
+  const mine = async (page: Page) => (await placedDevices(page)).filter((d) => d.id !== ON_24);
+
+  test('AC-1 New circuit, devices clicked onto it show its tag and the home run "A-2"; rename and breaker edit', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids, user } = await fixtureS(EDITOR);
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await page.keyboard.press('e');
+    await seed(page);
+    await page.evaluate(() => (window as unknown as Hook).__ezdraftPlan.handle.fit());
+    // A receptacle already on circuit 24 (the seeded detectors are new, hidden while the View is on Existing).
+    await page.evaluate(
+      ({ id, v }) => {
+        const hook = (window as unknown as Hook).__ezdraftEditor;
+        const floor = hook.objects().find((o) => o.type === 'floor')!.id;
+        hook.edit([
+          {
+            id,
+            value: {
+              type: 'device',
+              schemaVersion: v,
+              data: {
+                geometry: { point: { x: 120, y: 40 } },
+                // The View opens on Existing, which draws existing objects (new ones are hidden there).
+                status: 'existing',
+                level: floor,
+                attributes: {
+                  kind: 'receptacle_duplex',
+                  circuit: '6a010000-0000-4000-8000-000000000124',
+                  protection: null,
+                },
+              },
+            },
+          },
+        ]);
+      },
+      { id: ON_24, v: CURRENT_SCHEMA_VERSION },
+    );
+
+    // Three duplex receptacles in the kitchen.
+    await tid(page, 'device-tool-receptacle').click();
+    for (const x of [20, 60, 100]) await clickModel(page, { x, y: 140 });
+    await expect.poll(async () => (await mine(page)).length).toBe(3);
+    const placed = (await mine(page)).sort((a, b) => a.point.x - b.point.x);
+    await tid(page, 'device-tool-receptacle').click();
+    await expect(tid(page, 'device-tool-receptacle')).toHaveAttribute('aria-pressed', 'false');
+
+    // Circuit is disabled until a circuit is chosen.
+    await expect(tid(page, 'device-tool-circuit')).toBeDisabled();
+    // New circuit takes the next open space on the board's panel (1-3 and 12-24 taken): 2, "Circuit 2", chosen.
+    await tid(page, 'electrical-new-circuit').click();
+    const row = page.locator('[data-testid="circuit-row"][aria-pressed="true"]');
+    await expect(row.getByTestId('circuit-number')).toHaveText('2');
+    await expect(row).toContainText('Circuit 2');
+    await expect(row.getByTestId('circuit-meta')).toHaveText('20A');
+    await expect(tid(page, 'electrical-footer-counts')).toHaveText('9 circuits · 10 spaces');
+
+    // The Circuit tool: click the receptacles in turn.
+    await tid(page, 'device-tool-circuit').click();
+    await expect(tid(page, 'device-tool-circuit')).toHaveAttribute('aria-pressed', 'true');
+    for (const d of placed) {
+      const s = await screenOf(page, d.point);
+      await page.mouse.click(s.x, s.y);
+    }
+    const circuitId = await page.evaluate(
+      () =>
+        (window as unknown as Hook).__ezdraftEditor
+          .objects()
+          .find(
+            (o) =>
+              o.type === 'circuit' && (o.data.attributes as { space: number }).space === 2,
+          )!.id,
+    );
+    await expect
+      .poll(async () =>
+        (await mine(page)).map((d) => (d.attributes as { circuit?: string }).circuit),
+      )
+      .toEqual([circuitId, circuitId, circuitId]);
+    await expect(row.getByTestId('circuit-meta')).toHaveText('20A · 3 rcpt');
+
+    // Every assigned device shows the tag "2"; the first one clicked carries the home run "A-2" (Home runs is off,
+    // the circuit is chosen). A device on another circuit keeps its own tag, with no home run.
+    await expect.poll(() => textsOf(page, placed[0]!.id)).toEqual(['2', 'A-2']);
+    expect(await textsOf(page, placed[1]!.id)).toEqual(['2']);
+    expect(await textsOf(page, placed[2]!.id)).toEqual(['2']);
+    expect(await textsOf(page, ON_24)).toEqual(['24']);
+    // Home runs on: circuit 24's home run shows too.
+    await tid(page, 'electrical-chip-home_runs').click();
+    await expect.poll(() => textsOf(page, ON_24)).toEqual(['24', 'A-24']);
+    await tid(page, 'electrical-chip-home_runs').click();
+    await expect.poll(() => textsOf(page, ON_24)).toEqual(['24']);
+
+    // Rename by double-click; set the breaker to 15A.
+    await tid(page, 'device-tool-circuit').click();
+    await row.dblclick();
+    await tid(page, 'circuit-rename').fill('Island');
+    await tid(page, 'circuit-rename').press('Enter');
+    await expect(row).toContainText('Island');
+    await tid(page, 'circuit-breaker').selectOption('15');
+    await expect(row.getByTestId('circuit-meta')).toHaveText('15A · 3 rcpt');
+  });
+});

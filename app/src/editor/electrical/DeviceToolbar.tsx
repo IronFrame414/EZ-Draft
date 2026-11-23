@@ -7,14 +7,18 @@
 // device toolbar over the electrical plan. A press arms an item (a second press disarms it, so plan clicks select
 // again); the armed item's kinds, and for a receptacle its GFCI/AFCI, show under it. Without Edit model the parent
 // does not draw it; `paused` (view only, or a version open) draws every item disabled with the note.
+// EZD-604: the Circuit item after the device items (board order), disabled until a circuit is chosen in the left
+// panel; while it is armed a plan click on a device puts it on that circuit.
 import { useSyncExternalStore, type ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
 import type { IconName } from '../../components/icon/icon-names.generated';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
 import touch from '../../styles/touch.module.css';
+import { circuitView } from './circuit-view';
 import {
   chosenKind,
+  CIRCUIT_TOOL,
   DEVICE_TOOLBAR_ITEMS,
   TOOLBAR_KINDS,
   type DeviceToolbarItem,
@@ -50,7 +54,11 @@ export const PROTECTION_CHOICES: readonly { value: ToolbarProtection; key: Messa
 export function DeviceToolbar({ toolbar, paused }: DeviceToolbarProps): ReactElement {
   const t = useT();
   const s = useSyncExternalStore(toolbar.subscribe, toolbar.get, toolbar.get);
-  const armed = paused ? null : (s.armed as DeviceToolbarItem | null);
+  // EZD-604: the Circuit tool needs a circuit chosen in the left panel; without one it is disabled.
+  const view = useSyncExternalStore(circuitView.subscribe, circuitView.get, circuitView.get);
+  const circuitArmed = !paused && s.armed === CIRCUIT_TOOL && view.circuit !== null;
+  const armed =
+    paused || s.armed === CIRCUIT_TOOL ? null : (s.armed as DeviceToolbarItem | null);
   const kinds = armed === null ? [] : TOOLBAR_KINDS[armed];
   return (
     <div className={styles.bar} data-testid="device-toolbar">
@@ -70,6 +78,18 @@ export function DeviceToolbar({ toolbar, paused }: DeviceToolbarProps): ReactEle
               <span>{t(itemKey(item))}</span>
             </button>
           ))}
+          <button
+            type="button"
+            className={`${styles.item} ${touch.hitArea}`}
+            data-testid="device-tool-circuit"
+            aria-pressed={circuitArmed}
+            disabled={paused || view.circuit === null}
+            title={view.circuit === null ? t('office.electrical.tool.circuit_pick') : undefined}
+            onClick={() => toolbar.press(CIRCUIT_TOOL)}
+          >
+            <Icon name="bolt" size={16} />
+            <span>{t('office.electrical.tool.circuit')}</span>
+          </button>
         </div>
         {paused ? (
           <span className={styles.note} data-testid="device-toolbar-paused">

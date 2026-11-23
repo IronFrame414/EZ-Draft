@@ -15,7 +15,7 @@ import { createModelStore } from '../model/model-store';
 import { baseObjects } from '../tools/test-utils/fixtures';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import { ElectricalPanel, type ElectricalTab } from './ElectricalPanel';
-import { electricalObjects } from './test-fixture';
+import { electricalObjects, PANEL_A } from './test-fixture';
 
 function render(objects: Map<string, ObjectValue>, tab?: ElectricalTab): string {
   const store = createModelStore({ objects });
@@ -73,15 +73,17 @@ describe('EZD-601 electrical left panel', () => {
       '22',
       '24',
     ]);
+    // EZD-604: the row's device count (S06 Circuit row "breaker/type/count"); a detector is neither a receptacle
+    // nor a fixture, so it counts as "dev." (vault/build/assumptions.md EZD-604).
     expect(texts(html, 'circuit-meta')).toEqual([
       '50A · 2-pole · dedicated',
       '20A · GFCI',
-      '20A · GFCI',
+      '20A · GFCI · 1 dev.',
       '20A · dedicated',
       '20A · GFCI · dedicated',
       '20A · GFCI · dedicated',
       '20A · dedicated',
-      '15A · AFCI',
+      '15A · AFCI · 1 dev.',
     ]);
     expect(texts(html, 'circuit-va')).toEqual([
       '12000',
@@ -157,6 +159,105 @@ describe('EZD-603 Height notes switch', () => {
       expect(attr(one(off, 'electrical-height-notes-on').attrs, 'aria-pressed')).toBe('false');
     } finally {
       heightNotesShown.set(true);
+    }
+  });
+});
+
+// EZD-604 (S06 Controls "New circuit | Left panel, under list | ... | Edit model; hidden without it. Disabled in view
+// only (mockup shows disabled). Disabled when no spaces left."; "Circuit row | Click selects the circuit"; board
+// S06Electrical "New circuit" under the list, "Panel A · 200A main"; vault/build/assumptions.md EZD-604 New panel
+// values Not set).
+describe('EZD-604 New circuit and the chosen circuit', () => {
+  const editable = async (paused: boolean, objects = electricalObjects()) => {
+    const { createReceiverSlot } = await import('./receiver-slot');
+    const store = createModelStore({ objects });
+    const slot = createReceiverSlot<import('./DeviceTools').ToolBase>();
+    slot.setState({
+      base: {
+        store,
+        chosenFloor: () => null,
+        newStatus: () => 'new',
+        newId: () => '8b2f1d4e-6c3a-4f9b-8d72-1e5a4c3b2f77',
+        select: () => {},
+        onMessage: () => {},
+      },
+    });
+    const ui = { ids: [] as string[], selectMore: false };
+    const selection = { getUi: () => ui, subscribe: () => () => {}, select: () => {} };
+    return renderToStaticMarkup(
+      <MessagesProvider language="en" messages={catalogFor('office', 'en') as never}>
+        <ElectricalPanel
+          store={store}
+          selection={selection}
+          showObject={() => true}
+          edit={{ slot, paused }}
+        />
+      </MessagesProvider>,
+    );
+  };
+
+  it('hidden without Edit model', () => {
+    expect(elements(render(electricalObjects()), 'electrical-new-circuit')).toHaveLength(0);
+  });
+
+  it('shown with Edit model, enabled; disabled in view only', async () => {
+    const html = await editable(false);
+    expect(textOf(one(html, 'electrical-new-circuit').inner)).toBe('New circuit');
+    expect(attr(one(html, 'electrical-new-circuit').attrs, 'disabled')).toBeNull();
+    const paused = await editable(true);
+    expect(attr(one(paused, 'electrical-new-circuit').attrs, 'disabled')).not.toBeNull();
+  });
+
+  it('with no panel the empty text shows and New circuit is still there to make Panel A', async () => {
+    const html = await editable(false, baseObjects());
+    expect(textOf(one(html, 'electrical-no-panel').inner)).toBe('Place devices or add a circuit');
+    expect(attr(one(html, 'electrical-new-circuit').attrs, 'disabled')).toBeNull();
+  });
+
+  it('a panel whose main breaker is Not set is headed by its name alone', () => {
+    const objects = electricalObjects();
+    const p = objects.get(PANEL_A)!;
+    (p.data as { attributes: Record<string, unknown> }).attributes.mainBreaker = null;
+    expect(textOf(one(render(objects), 'electrical-panel-name').inner)).toBe('Panel A');
+  });
+
+  it('the chosen circuit row is pressed and, with Edit model, shows Breaker, Poles and Wire', async () => {
+    const { circuitView } = await import('./circuit-view');
+    const objects = electricalObjects();
+    const id = [...objects.keys()].find(
+      (k) =>
+        objects.get(k)!.type === 'circuit' &&
+        (objects.get(k)!.data as { attributes: { space: number } }).attributes.space === 14,
+    )!;
+    circuitView.set({ circuit: id });
+    try {
+      const html = await editable(false, objects);
+      const pressed = elements(html, 'circuit-row').filter(
+        (e) => attr(e.attrs, 'aria-pressed') === 'true',
+      );
+      expect(pressed.map((e) => attr(e.attrs, 'data-circuit-id'))).toEqual([id]);
+      expect(elements(html, 'circuit-fields')).toHaveLength(1);
+      expect(textOf(one(html, 'circuit-fields').inner)).toContain('Breaker');
+      expect(textOf(one(html, 'circuit-fields').inner)).toContain('Poles');
+      expect(textOf(one(html, 'circuit-fields').inner)).toContain('Wire');
+      expect(elements(render(objects), 'circuit-fields')).toHaveLength(0);
+    } finally {
+      circuitView.set({ circuit: null });
+    }
+  });
+
+  it('the Home runs chip is off by default (board) and follows the shared setting', async () => {
+    const { circuitView } = await import('./circuit-view');
+    expect(attr(one(render(electricalObjects()), 'electrical-chip-home_runs').attrs, 'aria-pressed')).toBe(
+      'false',
+    );
+    circuitView.set({ homeRuns: true });
+    try {
+      expect(
+        attr(one(render(electricalObjects()), 'electrical-chip-home_runs').attrs, 'aria-pressed'),
+      ).toBe('true');
+    } finally {
+      circuitView.set({ homeRuns: false });
     }
   });
 });

@@ -8,6 +8,12 @@
 //   `serviceSize` (amps) is the service the main panel is on; null on a subpanel.
 // - circuit: on `panel`, from space `space`; a 2-pole circuit also takes space + 2 (numbered "1-3"). `load` is its
 //   connected VA. Its level is its panel's level; it has no geometry of its own (its devices carry the places).
+// EZD-604 (phase-06 EZD-604 "Panel object in model_json (name, existing or new, parent panel for subpanels, service
+// size, main breaker, spaces) with a default "Panel A""; "breaker, wire, name editable"; vault/build/assumptions.md
+// EZD-604): a new panel's main breaker and spaces may be Not set (null), as its service size already could. A circuit
+// gains its wire size (AWG; material is EZD-610's) and `order`, the devices in the order they were clicked onto it
+// (the circuit line runs through them in this order). Both optional and the nullable fields only widen, so every
+// stored object stays valid and the version stays.
 import { z } from 'zod';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
 
@@ -25,13 +31,32 @@ export const panelDataSchema = z.strictObject({
     name: z.string().min(1),
     parentPanel: z.uuid().nullable(),
     serviceSize: amps.nullable(),
-    mainBreaker: amps,
-    spaces: z.number().int().positive(),
+    mainBreaker: amps.nullable(),
+    spaces: z.number().int().positive().nullable(),
   }),
 });
 export type PanelData = z.infer<typeof panelDataSchema>;
 
 export const CIRCUIT_POLES = [1, 2] as const;
+
+// EZD-604: copper and aluminum building-wire sizes, 14 AWG to 4/0 (09b gives 14 to 6; NE4-133 the larger ones).
+export const WIRE_SIZES = [
+  '14',
+  '12',
+  '10',
+  '8',
+  '6',
+  '4',
+  '3',
+  '2',
+  '1',
+  '1/0',
+  '2/0',
+  '3/0',
+  '4/0',
+] as const;
+export type WireSize = (typeof WIRE_SIZES)[number];
+export const wireSizeSchema = z.enum(WIRE_SIZES);
 
 export const circuitDataSchema = z.strictObject({
   status: objectStatusSchema,
@@ -45,6 +70,8 @@ export const circuitDataSchema = z.strictObject({
     protection: circuitProtectionSchema.nullable(),
     dedicated: z.boolean(),
     load: z.number().nonnegative(),
+    wire: wireSizeSchema.optional(),
+    order: z.array(z.uuid()).optional(),
   }),
 });
 export type CircuitData = z.infer<typeof circuitDataSchema>;

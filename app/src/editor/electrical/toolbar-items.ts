@@ -26,3 +26,7 @@ export const chosenKind = (
   kinds: Readonly<Partial<Record<string, string>>>,
   item: DeviceToolbarItem,
 ) => kinds[item] ?? TOOLBAR_KINDS[item][0]!;
+
+// EZD-604 (S06 Controls "Device toolbar: Circuit"; board S06Electrical toolbar "Circuit" after the device items):
+// the Circuit tool's toolbar id. It places no device, so it is not one of DEVICE_TOOLBAR_ITEMS.
+export const CIRCUIT_TOOL = 'circuit';

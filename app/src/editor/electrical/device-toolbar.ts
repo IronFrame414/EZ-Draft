@@ -16,6 +16,7 @@ import type { ModelStore } from '../model/model-store';
 import type { Change, Objects } from '../model/patches';
 import { openFloorId } from '../plan/batches';
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
+import { assignChanges } from './circuits';
 import { chosenKind, TOOLBAR_KINDS, type DeviceToolbarItem } from './toolbar-items';
 import type { ElectricalToolbarState, ToolbarProtection } from './toolbar-state';
 
@@ -125,19 +126,17 @@ function setAttributes(
   return changes.length === 0 ? null : changes;
 }
 
-/** Puts the devices on the circuit (null: on no circuit), or null when an id is not a device or not a circuit. */
+/**
+ * Puts the devices on the circuit (null: on no circuit), or null when an id is not a device or not a circuit.
+ * EZD-604: through `assignChanges`, so the circuit's device order follows the right-click menu too.
+ */
 export function assignCircuitChanges(
   objects: Objects,
   deviceIds: readonly string[],
   circuitId: string | null,
 ): Change[] | null {
-  let circuit: string | null = null;
-  if (circuitId !== null) {
-    const c = findOf(objects, circuitId, 'circuit');
-    if (c === null) return null;
-    circuit = c[0];
-  }
-  return setAttributes(objects, deviceIds, { circuit });
+  if (selectedDevices(objects, deviceIds).length === 0) return null;
+  return assignChanges(objects, deviceIds, circuitId);
 }
 
 /** Sets the devices' own GFCI/AFCI (null: none). */

@@ -62,3 +62,42 @@ describe('EZD-601 panel and circuit schema', () => {
     expect(parse('device', (d) => (d.attributes.protection = 'rcd'))).toBe(false);
   });
 });
+
+// EZD-604 (phase-06 EZD-604 row; vault/build/assumptions.md EZD-604 "New panel values ... the three values Not set";
+// "New circuit defaults | 20 A, 1 pole, 12 AWG copper"): the panel's Not-set values, the circuit's wire size and the
+// devices' click order, all without a version step.
+describe('EZD-604 panel defaults, wire and order', () => {
+  it('a panel with main breaker, spaces and service size Not set parses', () => {
+    expect(
+      parse('panel', (d) => {
+        d.attributes.mainBreaker = null;
+        d.attributes.spaces = null;
+        d.attributes.serviceSize = null;
+      }),
+    ).toBe(true);
+    expect(parse('panel', (d) => (d.attributes.mainBreaker = 0))).toBe(false);
+  });
+
+  it('a circuit stored before EZD-604 (no wire, no order) still parses; wire is an AWG size', () => {
+    expect(parse('circuit', () => {})).toBe(true);
+    expect(parse('circuit', (d) => (d.attributes.wire = '12'))).toBe(true);
+    expect(parse('circuit', (d) => (d.attributes.wire = '6'))).toBe(true);
+    expect(parse('circuit', (d) => (d.attributes.wire = '1/0'))).toBe(true);
+    expect(parse('circuit', (d) => (d.attributes.wire = '13'))).toBe(false);
+    expect(parse('circuit', (d) => (d.attributes.wire = 12))).toBe(false);
+  });
+
+  it('a circuit keeps its devices in click order, by id', () => {
+    expect(
+      parse(
+        'circuit',
+        (d) =>
+          (d.attributes.order = [
+            '8b2f1d4e-6c3a-4f9b-8d72-1e5a4c3b2f02',
+            '8b2f1d4e-6c3a-4f9b-8d72-1e5a4c3b2f01',
+          ]),
+      ),
+    ).toBe(true);
+    expect(parse('circuit', (d) => (d.attributes.order = ['not-an-id']))).toBe(false);
+  });
+});
