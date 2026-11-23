@@ -461,7 +461,8 @@
     "EZD-606",
     "EZD-611a",
     "EZD-609",
-    "EZD-511"
+    "EZD-511",
+    "EZD-643"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1531,6 +1532,14 @@
       "ts": "2026-11-23T09:22:33Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-643",
+      "title": "Other code editions",
+      "commit": "6e61c453",
+      "ts": "2026-11-23T09:44:06Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {
@@ -1699,11 +1708,17 @@
     }
   },
   "running": {
-    "EZD-643": {
-      "lane": 2,
-      "title": "Other code editions",
-      "started": "2026-11-23T07:18:01Z",
-      "develop": "c977388c"
+    "EZD-512": {
+      "lane": 1,
+      "title": "HVAC objects",
+      "started": "2026-11-23T09:23:09Z",
+      "develop": "06eefc55"
+    },
+    "EZD-607": {
+      "lane": 3,
+      "title": "Load calc engine",
+      "started": "2026-11-23T09:23:09Z",
+      "develop": "06eefc55"
     }
   },
   "advisories_checked_at": "2026-11-23T04:12:40Z",
