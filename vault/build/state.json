@@ -1669,7 +1669,7 @@
     }
   },
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1704,7 +1704,8 @@
     "EZD-607": 1,
     "EZD-1409": 1,
     "EZD-1939": 1,
-    "EZD-1934": 1
+    "EZD-1934": 1,
+    "EZD-1943": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1846,20 +1847,24 @@
     "EZD-1934": {
       "ts": "2026-11-23T19:27:36Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1943": {
+      "ts": "2026-11-23T23:22:57Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-1943": {
-      "lane": 2,
-      "title": "Loop: small fixes (check timer SIGKILL, loop.log commit error)",
-      "started": "2026-11-23T21:31:51Z",
-      "develop": "479beb2e"
-    },
     "EZD-1947": {
       "lane": 1,
       "title": "Gate: scripts tests run outside the heavy lock",
       "started": "2026-11-23T22:18:44Z",
       "develop": "a90a11a2"
+    },
+    "EZD-1961": {
+      "lane": 3,
+      "title": "Sign-in shows each way in separately (Q-0800)",
+      "started": "2026-11-23T23:19:36Z",
+      "develop": "53317bdc"
     }
   },
   "advisories_checked_at": "2026-11-23T22:14:30Z",
