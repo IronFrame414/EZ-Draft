@@ -1625,7 +1625,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1659,7 +1659,8 @@
     "EZD-512": 1,
     "EZD-607": 1,
     "EZD-1409": 1,
-    "EZD-1939": 1
+    "EZD-1939": 1,
+    "EZD-1934": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1797,20 +1798,24 @@
     "EZD-1939": {
       "ts": "2026-11-23T17:57:35Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1934": {
+      "ts": "2026-11-23T19:27:36Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-1934": {
-      "lane": 1,
-      "title": "Move dev-only glob and minimatch to patched versions",
-      "started": "2026-11-23T17:26:33Z",
-      "develop": "08ffaaaf"
-    },
     "EZD-1939": {
       "lane": 2,
       "title": "Loop: failure lines in loop.log name the failing tests",
       "started": "2026-11-23T17:57:50Z",
       "develop": "685cb440"
+    },
+    "EZD-1954": {
+      "lane": 3,
+      "title": "Design tokens: a type scale and no literal font sizes",
+      "started": "2026-11-23T18:33:50Z",
+      "develop": "cf7cbe98"
     }
   },
   "advisories_checked_at": "2026-11-23T16:13:31Z",
