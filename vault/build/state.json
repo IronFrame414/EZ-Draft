@@ -483,7 +483,8 @@
     "EZD-1968",
     "EZD-1964",
     "EZD-1966",
-    "EZD-1967"
+    "EZD-1967",
+    "EZD-1947"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1729,6 +1730,14 @@
       "ts": "2026-11-24T07:02:25Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1947",
+      "title": "Gate: scripts tests run outside the heavy lock",
+      "commit": "11e05de5",
+      "ts": "2026-11-24T07:32:19Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -1937,17 +1946,17 @@
     }
   },
   "running": {
-    "EZD-1947": {
-      "lane": 1,
-      "title": "Gate: scripts tests run outside the heavy lock",
-      "started": "2026-11-24T05:26:54Z",
-      "develop": "d87f054e"
-    },
     "EZD-1950": {
       "lane": 2,
       "title": "Speed up the money-pages e2e sweep",
       "started": "2026-11-24T06:26:44Z",
       "develop": "86ab042c"
+    },
+    "EZD-1969": {
+      "lane": 3,
+      "title": "Fix: status-bar EZD-219 B4 fails at random",
+      "started": "2026-11-24T07:02:32Z",
+      "develop": "83d17edd"
     }
   },
   "advisories_checked_at": "2026-11-24T04:14:35Z",
