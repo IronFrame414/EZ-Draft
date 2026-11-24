@@ -487,7 +487,8 @@
     "EZD-1947",
     "EZD-1950",
     "EZD-1969",
-    "EZD-1962"
+    "EZD-1962",
+    "EZD-1951"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1765,11 +1766,19 @@
       "ts": "2026-11-24T09:41:36Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1951",
+      "title": "Remove the retired build machinery from scripts/",
+      "commit": "9b98d14d",
+      "ts": "2026-11-24T10:28:46Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1974,20 +1983,20 @@
     }
   },
   "running": {
-    "EZD-1951": {
-      "lane": 2,
-      "title": "Remove the retired build machinery from scripts/",
-      "started": "2026-11-24T08:28:16Z",
-      "develop": "cb7591b2"
-    },
     "EZD-1418": {
       "lane": 3,
       "title": "Field measure into Import review",
       "started": "2026-11-24T09:41:42Z",
       "develop": "e0114e95"
+    },
+    "EZD-1939": {
+      "lane": 1,
+      "title": "Loop: failure lines in loop.log name the failing tests",
+      "started": "2026-11-24T10:08:23Z",
+      "develop": "21f684cc"
     }
   },
-  "advisories_checked_at": "2026-11-24T04:14:35Z",
+  "advisories_checked_at": "2026-11-24T10:15:24Z",
   "hold": {
     "EZD-415": {
       "holders": [
