@@ -26672,6 +26672,44 @@
     "AC-EZD-1962-2"
    ],
    "acs_source": "josh-2026-11-23"
+  },
+  {
+   "id": "EZD-1963",
+   "phase": 10,
+   "title": "Fix: field-measure-entry AC-EZD-1419-2 fails at random on the phone project",
+   "depends_raw": "",
+   "spec_ref": "Flaky test seen after the 2026-11-23 audit (same pattern as EZD-1935 to EZD-1937); EZD-1934 (REQUEUED 2026-11-23T19:27:39Z and SET ASIDE 22:18:43Z) and EZD-1943 (REQUEUED 23:23:00Z), neither of which changes app code",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1963-1",
+    "AC-EZD-1963-2",
+    "AC-EZD-1963-3"
+   ],
+   "acs_source": "loop-2026-11-23"
+  },
+  {
+   "id": "EZD-1964",
+   "phase": 10,
+   "title": "Fix: property-appraiser-import EZD-711 AC-1 fails at random",
+   "depends_raw": "",
+   "spec_ref": "Flaky test seen after the 2026-11-23 audit (same pattern as EZD-1935 to EZD-1937); EZD-1939 (SET ASIDE 2026-11-23T20:13:58Z), a loop.mjs-only change",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1964-1",
+    "AC-EZD-1964-2",
+    "AC-EZD-1964-3"
+   ],
+   "acs_source": "loop-2026-11-23"
   }
  ],
  "recut_applied": "2026-10-20"
