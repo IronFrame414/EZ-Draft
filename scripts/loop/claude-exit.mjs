@@ -16,8 +16,17 @@ export function died(r) {
   return !r.res && !r.timedOut && !r.limited;
 }
 
+// A process that caught a signal and exited with 128 + its number (claude exits 143 on SIGTERM, audit 2026-11-23 W5)
+// is named with that signal too, since Node then reports no signal.
+export function signalOfCode(code) {
+  if (!Number.isInteger(code) || code <= 128) return null;
+  const n = code - 128;
+  return Object.entries(os.constants.signals).find(([, v]) => v === n)?.[0] ?? null;
+}
+
 export function describeExit({ code, signal, secs }) {
-  return `exit code ${code ?? 'none'}${signal ? `, signal ${signal}` : ''} after ${secs ?? '?'} s`;
+  const caught = !signal && signalOfCode(code);
+  return `exit code ${code ?? 'none'}${caught ? ` (${caught})` : ''}${signal ? `, signal ${signal}` : ''} after ${secs ?? '?'} s`;
 }
 
 // One line about the last real entry of a transcript: when, and what the session was doing.

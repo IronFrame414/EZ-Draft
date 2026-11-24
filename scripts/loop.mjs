@@ -22,6 +22,7 @@ import { TRACK as SECURITY_TRACK, readSeen, recordFixTicket, runAudit, unseen } 
 import { effectiveStatuses } from './loop/holds.mjs';
 import { BUILD_FILES } from './loop/build-files.mjs';
 import { runCheck } from './loop/check-run.mjs';
+import { createEvents, failureSummary, msToSecondEnd, oneLine, sameSecondEvents, secondOf } from './loop/failure-lines.mjs';
 import { withImportingTests } from './loop/import-graph.mjs';
 import { changedFiles, createSelfRestart, runDryRun } from './loop/self-restart.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
@@ -69,7 +70,10 @@ const readJson = (p, fb) => { try { return JSON.parse(readFileSync(p, 'utf8')); 
 const cfg = () => ({ ...DEFAULTS, ...readJson(P.config, {}) });
 const now = () => new Date().toISOString().replace(/\.\d+Z$/, 'Z');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-function log(msg) { const line = `[${now()}] ${msg}`; console.log(line); appendFileSync(P.log, line + '\n'); }
+// Every logged line (and each check end and claude run end) is kept a while in `events`, so a CLAUDE DIED line can name
+// the other lanes' events in the same second (EZD-1939, audit 2026-11-23 W5).
+const events = createEvents();
+function log(msg) { const at = new Date(); const line = `[${secondOf(at)}] ${msg}`; events.note(msg, at); console.log(line); appendFileSync(P.log, line + '\n'); }
 // Another process (a claude session's `git status`, a builder) can hold a checkout's index.lock for a moment; a git
 // call that fails only on that lock is retried, so a commit never stops halfway with its files staged.
 function git(args, cwd = ROOT, opts = {}) {
@@ -230,13 +234,22 @@ async function runClaude(opts) {
   if (!died(r)) return r;
   const sid = opts.resume || sessionId;
   const last = readLastEntry(opts.cwd, sid);
-  log(`CLAUDE DIED ${opts.name}: ${describeExit(r)}; session ${sid}; last entry: ${last || 'no transcript'}${r.text.trim() ? `; output: ${r.text.trim().slice(-300).replace(/\s+/g, ' ')}` : ''}`);
+  const near = await sameSecond(r, opts.ticket);
+  log(`CLAUDE DIED ${opts.name}: ${describeExit(r)}; session ${sid}; ${near}; last entry: ${last || 'no transcript'}${r.text.trim() ? `; output: ${r.text.trim().slice(-300).replace(/\s+/g, ' ')}` : ''}`);
   const left = opts.timeoutMin - r.secs / 60;
   if (opts.readOnly || !last || left < 10) return { ...r, died: [describeExit(r)] };
   log(`${opts.name}: resuming session ${sid} once (${Math.round(left)} min left)`);
   const again = await runClaudeOnce({ ...opts, prompt: RESUME_PROMPT, resume: sid, sessionId: null, timeoutMin: left });
-  if (died(again)) log(`CLAUDE DIED again ${opts.name}: ${describeExit(again)}; last entry: ${readLastEntry(opts.cwd, sid) || 'no transcript'}`);
+  if (died(again)) log(`CLAUDE DIED again ${opts.name}: ${describeExit(again)}; ${await sameSecond(again, opts.ticket)}; last entry: ${readLastEntry(opts.cwd, sid) || 'no transcript'}`);
   return { ...again, secs: r.secs + again.secs, died: [describeExit(r), ...(died(again) ? [describeExit(again)] : [])], recovered: !died(again) };
+}
+// The other tickets' events in the second the run ended. Waits for that second to be over first, so an event that lands
+// just after the exit (another lane's check ending, a REQUEUED) is counted too.
+async function sameSecond(r, ticket) {
+  const at = r.endedAt || new Date();
+  const wait = msToSecondEnd(at) - (Date.now() - at.getTime());
+  if (wait > 0) await sleep(wait);
+  return sameSecondEvents(events.list(), secondOf(at), ticket);
 }
 function runClaudeOnce({ cwd, prompt, model, effort, name, resume, sessionId, timeoutMin, readOnly, lane = 0, ticket }) {
   const args = ['-p', prompt, '--output-format', 'json', '--model', model, '--effort', effort, '--name', name];
@@ -259,9 +272,11 @@ function runClaudeOnce({ cwd, prompt, model, effort, name, resume, sessionId, ti
     const timer = setTimeout(() => { p.kill('SIGTERM'); setTimeout(() => p.kill('SIGKILL'), 10000); }, timeoutMin * 60000);
     p.on('close', (code, signal) => {
       clearTimeout(timer);
+      const endedAt = new Date();
+      events.note(`claude ${name} ended (exit code ${code ?? 'none'}${signal ? `, signal ${signal}` : ''})`, endedAt, ticket);
       const res = parseResult(out);
       const text = String(res?.result ?? '') + '\n' + err.slice(-2000) + (res ? '' : out.slice(-1000));
-      resolve({ code, signal, res, text, secs: Math.round((Date.now() - started) / 1000),
+      resolve({ code, signal, res, text, endedAt, secs: Math.round((Date.now() - started) / 1000),
         timedOut: Date.now() - started >= timeoutMin * 60000 - 1000,
         limited: /(hit your|usage limit|weekly limit|rate limit|limit reached|resets \d)/i.test(text) && (res?.is_error || code !== 0) });
     });
@@ -295,14 +310,25 @@ function recordUsage(ticket, role, requested, r) {
   return row;
 }
 // The full gate on the ticket's lane. Asynchronous, so the other lanes keep going while it runs.
+// A red check also gets `summary`: one whole line naming the failed stage and up to 5 failing tests, read in full from
+// this check's check-failures.log (EZD-1939). A check-failures.log older than this check is an earlier run's, not read.
 function check(cwd, lane = 0) {
+  const started = Date.now();
   // Past 90 min: SIGTERM, then SIGKILL 10 s later if the check is still running (audit 2026-11-23 W6).
   return runCheck({ cmd: 'node', args: [path.join(ROOT, 'scripts/check.mjs'), cwd], cwd, env: laneEnv(lane, cwd), timeoutMs: 90 * 60000 })
-    .then(({ code, out }) => {
+    .then(({ code, out, timedOut }) => {
       const pass = code === 0 && /CHECK PASS/.test(out);
+      events.note(`lane ${lane} check ended (${path.basename(cwd)}): ${pass ? 'pass' : 'red'}`, new Date(), path.basename(cwd));
       let detail = out.trim();
-      if (!pass) { try { detail += '\n' + readFileSync(path.join(cwd, 'check-failures.log'), 'utf8').slice(0, 9000); } catch {} }
-      return { pass, detail };
+      let summary = '';
+      if (!pass) {
+        const fp = path.join(cwd, 'check-failures.log');
+        let failures = '';
+        try { if (statSync(fp).mtimeMs >= started - 1000) failures = readFileSync(fp, 'utf8'); } catch {}
+        if (failures) detail += '\n' + failures.slice(0, 9000);
+        summary = failureSummary({ failures, out, timedOut, root: cwd });
+      }
+      return { pass, detail, summary, timedOut };
     });
 }
 
@@ -423,7 +449,9 @@ function addDeps(id, ids) {
 }
 // First failure: back in line (at the end), with any ticket named as needed first added to depends_on.
 // Second failure: set aside for Josh (Josh 2026-11-13).
-function setAside(s, t, reason, detail, wt, needs = []) {
+// line: the one-line detail for loop.log (a red check's summary); without it, the detail's head in whole words.
+function setAside(s, t, reason, detail, wt, needs = [], line = '') {
+  const shown = line || (detail ? oneLine(detail) : '');
   if (!(s.retries?.[t.id]) && !String(t.id).startsWith('EZD-REPAIR')) {
     s.retries = { ...(s.retries || {}), [t.id]: 1 };
     s.retry_log = { ...(s.retry_log || {}), [t.id]: { ts: now(), reason } };
@@ -431,14 +459,14 @@ function setAside(s, t, reason, detail, wt, needs = []) {
     endRun(s, t.id);
     saveFootprint(t.id, null);
     cleanupWorktree(t.id);
-    log(`REQUEUED ${t.id} (first failure: ${reason})${added.length ? `; now waits for ${added.join(', ')}` : ''}${detail ? `\n  detail: ${String(detail).replace(/\s+/g, ' ').slice(-600)}` : ''}`);
+    log(`REQUEUED ${t.id} (first failure: ${reason})${added.length ? `; now waits for ${added.join(', ')}` : ''}${shown ? `\n  detail: ${shown}` : ''}`);
     saveState(s);
     return;
   }
   s.set_aside[t.id] = { title: t.title, ts: now(), reason: s.retry_log?.[t.id] ? `${reason} (first try: ${s.retry_log[t.id].reason})` : reason, detail: detail || '', branch: `t/${t.id}`, worktree: path.relative(ROOT, wt) };
   endRun(s, t.id);
   saveFootprint(t.id, null);
-  log(`SET ASIDE ${t.id}: ${reason}`);
+  log(`SET ASIDE ${t.id}: ${reason}${shown ? `\n  detail: ${shown}` : ''}`);
   saveState(s);
 }
 // A ticket stops building: it leaves `running` and gives up its claim.
@@ -559,13 +587,13 @@ async function doTicket(t, s, lane, kind = 'ticket') {
   }
   let ck = await check(wt, lane);
   for (let i = 0; !ck.pass && i < c.fix_rounds; i++) {
-    log(`${t.id} check red (round ${i + 1}); builder fixing`);
+    log(`${t.id} check red (round ${i + 1}); builder fixing\n  detail: ${ck.summary}`);
     const f = await fix('check', ck.detail, `fix check ${i + 1}`);
     if (f.limited) return stopForLimit(f);
     commitAll();
     ck = await check(wt, lane);
   }
-  if (!ck.pass) { setAside(s, t, `check still red after ${c.fix_rounds} fix rounds`, ck.detail.slice(-3000), wt); s.red_streak++; saveState(s); return 'red'; }
+  if (!ck.pass) { setAside(s, t, `check still red after ${c.fix_rounds} fix rounds`, ck.detail.slice(-3000), wt, [], ck.summary); s.red_streak++; saveState(s); return 'red'; }
 
   // review, with fix rounds
   let rv = await review(t, wt, s, 1, lane);
@@ -576,7 +604,7 @@ async function doTicket(t, s, lane, kind = 'ticket') {
     if (f.limited) return stopForLimit(f);
     commitAll();
     ck = await check(wt, lane);
-    if (!ck.pass) { setAside(s, t, 'check red after a review fix', ck.detail.slice(-3000), wt); return 'aside'; }
+    if (!ck.pass) { setAside(s, t, 'check red after a review fix', ck.detail.slice(-3000), wt, [], ck.summary); return 'aside'; }
     rv = await review(t, wt, s, i + 2, lane);
   }
   if (rv.limited) return stopForLimit(rv.r);
@@ -623,7 +651,7 @@ async function doTicket(t, s, lane, kind = 'ticket') {
     }
     commitAll();
     ck = await check(wt, lane);
-    if (!ck.pass) { setAside(s, t, 'check red after merging newer develop', ck.detail.slice(-3000), wt); return 'aside'; }
+    if (!ck.pass) { setAside(s, t, 'check red after merging newer develop', ck.detail.slice(-3000), wt, [], ck.summary); return 'aside'; }
   }
 
   // squash merge into develop in the main checkout
