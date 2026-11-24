@@ -26211,7 +26211,9 @@
    "mockups": [],
    "priority": 1,
    "phase_file": "tickets/phases/phase-10.md",
-   "depends_on": [],
+   "depends_on": [
+    "EZD-1964"
+   ],
    "acs": [
     "AC-EZD-1939-1",
     "AC-EZD-1939-2",
