@@ -14,6 +14,9 @@
 // geometry/scene3d/ceiling-mesh.ts. Each is cached by its own id with the derived values it was built from, so a
 // change to one beam set rebuilds only that set. The ceiling parts and the beams have their own materials (the 3D
 // Layers rows Ceiling and Faux beams, EZD-1005).
+// EZD-1972: every material and the lights come from editor/plan/scene-warmup.ts, which also draws them once with the
+// plan's first frame, so the shader is built before the first open of 3D. A material or light made any other way
+// here would be a shader built on the first open again.
 import {
   beamBoxes,
   boxTriangles,
@@ -34,29 +37,27 @@ import {
   type WallSolid,
 } from '@ezdraft/geometry';
 import {
-  AmbientLight,
   Box3,
   BufferGeometry,
   Color,
-  DirectionalLight,
-  DoubleSide,
   Float32BufferAttribute,
   Group,
   Matrix4,
   Mesh,
-  MeshLambertMaterial,
   PerspectiveCamera,
   ShapeUtils,
   SRGBColorSpace,
   Vector2,
   Vector3,
   type Camera,
+  type MeshLambertMaterial,
   type Object3D,
 } from 'three';
 import type { Objects } from '../../editor/model/patches';
 import { objectShownBy, type PhaseFilter } from '../../lib/plan/phase-view';
 import { resolveOpenFloor } from '../../editor/floors/floors';
 import { tokenRgb } from '../../editor/plan/color';
+import { sceneLights, sceneSurfaceMaterial } from '../../editor/plan/scene-warmup';
 
 type Source = { getState(): { objects: Objects }; subscribe(listener: () => void): () => void };
 type Watched = { subscribe(listener: () => void): () => void };
@@ -230,27 +231,19 @@ export function createScene3d(o: {
   object.name = 'scene-3d';
   const camera = new PerspectiveCamera(50, 1, 1, 100000);
   camera.up.set(0, 0, 1);
-  // Both sides drawn, so a face lights the same whichever way its triangles wind.
-  const wallMaterial = new MeshLambertMaterial({ color: rgb('--ez-surface'), side: DoubleSide });
-  const floorMaterial = new MeshLambertMaterial({ color: rgb('--ez-border'), side: DoubleSide });
+  const wallMaterial = sceneSurfaceMaterial(rgb('--ez-surface'));
+  const floorMaterial = sceneSurfaceMaterial(rgb('--ez-border'));
   // EZD-1001b: ceilings, soffits, trays and coffers share one material; beams have their own (vault/build/assumptions.md
   // EZD-1001b, colours).
-  const ceilingMaterial = new MeshLambertMaterial({
-    color: rgb('--ez-surface-sunken'),
-    side: DoubleSide,
-  });
-  const beamMaterial = new MeshLambertMaterial({
-    color: rgb('--ez-amber-strong'),
-    side: DoubleSide,
-  });
-  object.add(new AmbientLight(0xffffff, 1.6));
-  const sun = new DirectionalLight(0xffffff, 1.8);
-  sun.position.set(-0.4, -0.7, 1);
-  object.add(sun);
+  const ceilingMaterial = sceneSurfaceMaterial(rgb('--ez-surface-sunken'));
+  const beamMaterial = sceneSurfaceMaterial(rgb('--ez-amber-strong'));
+  object.add(...sceneLights());
 
   // Counts the frames drawn of this scene: an empty mesh is never drawn but is still visited each frame.
   let frames = 0;
-  const probe = new Mesh(new BufferGeometry(), wallMaterial);
+  // EZD-1972: its geometry has the attributes of every other mesh, with no vertices. A mesh without normals is drawn
+  // flat shaded, which is a second shader for the renderer to build on the first open (about half of its time).
+  const probe = new Mesh(finish([], null), wallMaterial);
   probe.frustumCulled = false;
   probe.onAfterRender = () => {
     frames += 1;

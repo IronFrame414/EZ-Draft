@@ -7,6 +7,8 @@
 // EZD-1001a (11 rule 4 "Plan, 3D ... are scenes drawn into it, and a tab switch never creates or destroys a WebGL
 // context"): `setScene` draws another scene (the lazy 3D scene) with its own camera into this same renderer, and
 // `null` brings the plan back with its orthographic camera. Still drawn on demand.
+// EZD-1972 (11 Budgets "first open of 3D within 1 second"): the plan's first frame also draws the 3D scene's shader
+// warm-up (scene-warmup.ts), which leaves the scene once drawn, or when the 3D scene is shown before that.
 import { createRoot, invalidate, type RootState } from '@react-three/fiber';
 import { createElement } from 'react';
 import { Color, OrthographicCamera, PerspectiveCamera, SRGBColorSpace, WebGLRenderer, type Camera } from 'three';
@@ -14,6 +16,7 @@ import type { ThumbnailCapture } from '../../lib/thumbnail/thumbnail';
 import { tokenRgb } from './color';
 import type { CreateRenderRoot, SceneView } from './controller';
 import type { FrameCapture } from './frame-capture';
+import { createSceneWarmup, type SceneWarmup } from './scene-warmup';
 import type { Size } from './view';
 
 let contexts = 0;
@@ -29,6 +32,11 @@ export const createR3fRoot: CreateRenderRoot = (canvas, scene) => {
   let unmounted = false;
   let shown: SceneView | null = null;
   let planCamera: Camera | null = null;
+  let warmup: SceneWarmup | null = null;
+  // The warm-up's lights must be gone before the 3D scene is drawn: one more light would be another shader.
+  const endWarmup = () => {
+    if (warmup !== null && state !== null) state().scene.remove(warmup.object);
+  };
 
   const config = (size: Size) => ({
     gl: (defaults: ConstructorParameters<typeof WebGLRenderer>[0]) => {
@@ -56,6 +64,9 @@ export const createR3fRoot: CreateRenderRoot = (canvas, scene) => {
       store.getState().scene.onAfterRender = () => capture?.onFrame();
       const { r, g, b } = tokenRgb('--ez-canvas');
       store.getState().gl.setClearColor(new Color().setRGB(r, g, b, SRGBColorSpace), 1);
+      // Taken out after the frame, not while the renderer is walking the scene.
+      warmup = createSceneWarmup(() => queueMicrotask(endWarmup));
+      store.getState().scene.add(warmup.object);
       applyViewport();
     },
     resize(size) {
@@ -79,6 +90,7 @@ export const createR3fRoot: CreateRenderRoot = (canvas, scene) => {
     },
     setScene(view) {
       if (state === null || view === shown) return;
+      if (view !== null) endWarmup();
       const s = state();
       const frame = () => {
         if (state !== null) invalidate(state());
@@ -126,6 +138,9 @@ export const createR3fRoot: CreateRenderRoot = (canvas, scene) => {
       shown?.setInvalidate(null);
       shown = null;
       capture?.dispose();
+      endWarmup();
+      warmup?.dispose();
+      warmup = null;
       if (state !== null) state().scene.onAfterRender = () => {};
       state = null;
       root.unmount();
