@@ -502,7 +502,8 @@
     "EZD-1973",
     "EZD-605",
     "EZD-1941",
-    "EZD-1974"
+    "EZD-1974",
+    "EZD-1975"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1900,6 +1901,14 @@
       "ts": "2026-11-24T23:06:33Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1975",
+      "title": "Fix: the sheet renders 3 or 4 times instead of 2 after Plan edits (EZD-702b AC-1/AC-2 on CI)",
+      "commit": "9e0a81cc",
+      "ts": "2026-11-24T23:43:00Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2113,14 +2122,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-1975": {
-      "lane": 3,
-      "title": "Fix: the sheet renders 3 or 4 times instead of 2 after Plan edits (EZD-702b AC-1/AC-2 on CI)",
-      "started": "2026-11-24T22:15:03Z",
-      "develop": "273ec342"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-24T22:17:04Z",
   "hold": {}
 }
