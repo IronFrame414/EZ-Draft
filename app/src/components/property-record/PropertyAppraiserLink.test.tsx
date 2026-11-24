@@ -4,6 +4,8 @@
 // SF"; 11 rule 11 "Push, not poll"; AC-EZD-711-2). Static markup for the box (the app's Vitest runs in node, no DOM)
 // and the read client with a fake user channel and fetch. The read and click flow is in
 // e2e/property-appraiser-import.spec.ts.
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { attr, elements, textOf } from '../../../test-harness/projects-markup';
@@ -166,5 +168,27 @@ describe('EZD-711 appraiser read client', () => {
     expect(onAnswer).toHaveBeenCalledWith({ status: 'failed' });
     off();
     expect(fake.listeners).toHaveLength(0);
+  });
+});
+
+// EZD-1962 (Q-0802, AC-EZD-1962-1): the read-failure text reads "Couldn't read this page. Paste the page text or a
+// screenshot." in the English catalog, and the component comment quotes it.
+describe('EZD-1962 read-failure wording (Q-0802)', () => {
+  const TEXT = "Couldn't read this page. Paste the page text or a screenshot.";
+
+  it('office.property_record.failed reads the Q-0802 text in the English catalog', () => {
+    const messages = catalogFor('office', 'en') as Record<string, string>;
+    expect(messages['office.property_record.failed']).toBe(TEXT);
+  });
+
+  it('the PropertyAppraiserLink comment quotes the new text, not the old', () => {
+    const source = readFileSync(fileURLToPath(new URL('./PropertyAppraiserLink.tsx', import.meta.url)), 'utf8');
+    const comment = source
+      .split('\n')
+      .filter((line) => line.startsWith('//'))
+      .map((line) => line.replace(/^\/\/ ?/, ''))
+      .join(' ');
+    expect(comment).toContain(TEXT);
+    expect(comment).not.toContain('Could not read this page');
   });
 });

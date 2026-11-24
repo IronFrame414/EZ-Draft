@@ -117,7 +117,7 @@ test.describe('EZD-711 Property appraiser import', () => {
     await tid(page, 'property-record-url').fill('https://example.com/parcel/1');
     await tid(page, 'property-record-read').click();
     await expect(tid(page, 'property-record-failed')).toHaveText(
-      'Could not read this page. Paste the page text or a screenshot.',
+      "Couldn't read this page. Paste the page text or a screenshot.",
     );
     await tid(page, 'property-record-paste').fill(
       'Parcel Control Number 00-43-44-21-01-000-0010 Owner(s) HENDRICKS FAMILY TRUST Year Built 1975',

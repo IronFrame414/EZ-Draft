@@ -2,10 +2,10 @@
 
 // EZD-711 (S01 Property appraiser link "Paste link; app reads parcel number, owner, legal description, year built,
 // living area; user confirms each field ... On read failure, offer 'Paste page text' or 'Paste screenshot' for AI
-// extraction. Year built before 1978 sets the lead flag"; S01 Validation "Could not read this page. Paste the page
-// text or a screenshot."; S13 Controls "Property appraiser import"; board S01bWizard column 1): the link box, used in
-// New project step 1 and in the Sheets Property appraiser import dialog. Each read field has a tick; only ticked
-// fields are passed on (onChange), so only confirmed fields reach the title block.
+// extraction. Year built before 1978 sets the lead flag"; S01 Validation as changed by Q-0802 "Couldn't read this
+// page. Paste the page text or a screenshot."; S13 Controls "Property appraiser import"; board S01bWizard column 1):
+// the link box, used in New project step 1 and in the Sheets Property appraiser import dialog. Each read field has a
+// tick; only ticked fields are passed on (onChange), so only confirmed fields reach the title block.
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { useT } from '../../lib/messages';
 import {

@@ -109,7 +109,7 @@ Fields from the plan doc screen list: address, client, type, input source, units
 - Wizard: name, address and type required; client optional at creation and required before the first send to a client; client email required.
 - Length inputs accept the four formats; invalid input shows "Use 12'6", 12' 6 1/2", 150" or 12.5'".
 - DWG upload: message to supply DXF.
-- Property appraiser read failure: "Could not read this page. Paste the page text or a screenshot."
+- Property appraiser read failure (Q-0802): "Couldn't read this page. Paste the page text or a screenshot."
 - Delete: type project name to confirm.
 
 **Events emitted:**

@@ -1502,7 +1502,7 @@ export const en = {
   'office.property_record.reading': 'Reading the page…',
   'office.property_record.hint': 'Read from the page. Tick each field to confirm.',
   'office.property_record.paste_open': 'Paste page text or screenshot',
-  'office.property_record.failed': 'Could not read this page. Paste the page text or a screenshot.',
+  'office.property_record.failed': "Couldn't read this page. Paste the page text or a screenshot.",
   'office.property_record.paste_label': 'Page text',
   'office.property_record.paste_placeholder': 'Paste the text of the parcel page here, or paste a screenshot.',
   'office.property_record.read_text': 'Read text',
