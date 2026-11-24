@@ -1679,7 +1679,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1716,7 +1716,8 @@
     "EZD-1939": 1,
     "EZD-1934": 1,
     "EZD-1943": 1,
-    "EZD-1947": 1
+    "EZD-1947": 1,
+    "EZD-1964": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1866,20 +1867,24 @@
     "EZD-1947": {
       "ts": "2026-11-24T00:43:03Z",
       "reason": "check still red after 2 fix rounds"
+    },
+    "EZD-1964": {
+      "ts": "2026-11-24T02:02:04Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-1964": {
-      "lane": 1,
-      "title": "Fix: property-appraiser-import EZD-711 AC-1 fails at random",
-      "started": "2026-11-24T00:43:38Z",
-      "develop": "0da75314"
-    },
     "EZD-1934": {
       "lane": 3,
       "title": "Move dev-only glob and minimatch to patched versions",
       "started": "2026-11-24T01:26:08Z",
       "develop": "4f0e78e6"
+    },
+    "EZD-1939": {
+      "lane": 2,
+      "title": "Loop: failure lines in loop.log name the failing tests",
+      "started": "2026-11-24T01:53:39Z",
+      "develop": "a04890ef"
     }
   },
   "advisories_checked_at": "2026-11-23T22:14:30Z",
