@@ -3,6 +3,8 @@
 // gate, squash merge to develop, push. Runs unattended as the launchd agent com.ezdraft.build (scripts/launchd/build.mjs).
 // A ticket that does not finish for any reason is set aside (vault/build/set-aside.md) and the loop moves on.
 // Pause: touch vault/build/STOP (running tickets finish first). State: vault/build/state.json.
+// Self-restart (EZD-1967): a merge that changes the loop's own code drains like STOP, dry-runs the new code and exits 75
+// so launchd relaunches it (scripts/loop/self-restart.mjs).
 // Lanes (Josh 2026-11-16): up to config `lanes` tickets build at once, each with its own database lane. No two running
 // tickets may edit the same file: each ticket first predicts the files it will change (its footprint, cached in
 // vault/build/footprints.json), starts only when no running ticket holds any of them, claims files it finds it needs
@@ -21,6 +23,7 @@ import { effectiveStatuses } from './loop/holds.mjs';
 import { BUILD_FILES } from './loop/build-files.mjs';
 import { runCheck } from './loop/check-run.mjs';
 import { withImportingTests } from './loop/import-graph.mjs';
+import { changedFiles, createSelfRestart, runDryRun } from './loop/self-restart.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -645,6 +648,7 @@ async function doTicket(t, s, lane, kind = 'ticket') {
   saveState(s);
   cleanupWorktree(t.id);
   log(`MERGED ${t.id} as ${sha} (lane ${lane})`);
+  if (SELF.onMerge(sha, changedFiles(sha, git))) log(`loop change ${sha} merged: no new tickets; restarting once running tickets finish`);
   return 'merged';
 }
 
@@ -760,6 +764,7 @@ async function ensureFootprints(s, list) {
 }
 
 // ---------- main ----------
+const SELF = createSelfRestart({ log, exit: (code) => process.exit(code), dryRun: () => runDryRun({ cwd: ROOT }) });
 async function main() {
   const s = loadState();
   // Heartbeat (2026-11-17): explain the gap since the last run, then record the machine's state every minute.
@@ -774,7 +779,7 @@ async function main() {
       if (Number(raw.heavy_slots) > 1) { raw.heavy_slots = 1; raw.heavy_slots_note = `${raw.heavy_slots_note || ''} Set back to 1 by the loop after a Mac reset (${now()}).`.trim(); writeFileSync(P.config, JSON.stringify(raw, null, 2) + '\n'); log('heavy_slots set back to 1 after the Mac reset'); }
     } catch (e) { log(`could not reset heavy_slots: ${e?.message || e}`); }
   }
-  log(`loop start (pid ${process.pid}; lanes ${laneList().join(', ')})`);
+  log(`loop start at ${git(['rev-parse', '--short', 'HEAD']).out || 'unknown'} (pid ${process.pid}; lanes ${laneList().join(', ')})`);
   const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock'); // slot 1; heartbeat reads every slot
   const beat = () => { try { writeBeat(P.heartbeat, sample({ running: Object.keys(s.running), heavyLock })); } catch (e) { console.log(`heartbeat: ${e?.message || e}`); } };
   writeBeat(P.heartbeat, { ...first, running: [] });
@@ -794,7 +799,15 @@ async function main() {
     const c = cfg();
     adoptHandEdits(s);
     const lanes = laneList(c);
-    if (existsSync(P.stop)) { note(`STOP file present; ${active.size ? `${active.size} running ticket(s) finish first` : 'waiting'}`); await idle(60000); continue; }
+    // Drain (STOP file or a merged loop change): no new starts; running tickets finish first.
+    if (existsSync(P.stop) || SELF.draining()) {
+      if (SELF.draining() && !active.size) {
+        saveState(s); push(s);
+        if (SELF.tryRestart(active.size) === 'not-loaded') continue;
+      }
+      const why = SELF.draining() ? `loop change ${SELF.pending()} merged` : 'STOP file present';
+      note(`${why}; ${active.size ? `${active.size} running ticket(s) finish first` : 'waiting'}`); await idle(60000); continue;
+    }
     if (existsSync(P.attention)) { note('ATTENTION.md present; waiting'); await idle(10 * 60000); continue; }
     if (s.sleep_until && Date.parse(s.sleep_until) > Date.now()) {
       if (Date.parse(s.next_probe || 0) <= Date.now()) {
