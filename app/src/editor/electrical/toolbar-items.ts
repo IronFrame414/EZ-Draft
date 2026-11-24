@@ -30,3 +30,7 @@ export const chosenKind = (
 // EZD-604 (S06 Controls "Device toolbar: Circuit"; board S06Electrical toolbar "Circuit" after the device items):
 // the Circuit tool's toolbar id. It places no device, so it is not one of DEVICE_TOOLBAR_ITEMS.
 export const CIRCUIT_TOOL = 'circuit';
+
+// EZD-605 (S06 Controls "Device toolbar: Switch leg"; board S06Electrical toolbar "Switch leg" before "Circuit"): the
+// Switch leg tool's toolbar id. It places no device, so it is not one of DEVICE_TOOLBAR_ITEMS.
+export const SWITCH_LEG_TOOL = 'switch-leg';

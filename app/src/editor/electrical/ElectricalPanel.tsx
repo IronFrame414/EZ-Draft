@@ -163,7 +163,7 @@ export function ElectricalPanel({
     [givenReader, projectId],
   );
   const [chipState, setChips] = useState<Record<ShowChip, boolean>>({ ...SHOW_CHIPS_DEFAULT });
-  const chips = { ...chipState, home_runs: view.homeRuns };
+  const chips = { ...chipState, home_runs: view.homeRuns, switch_legs: view.switchLegs };
   const noBase = () => null;
   const base = useSyncExternalStore(
     edit?.slot.subscribe ?? (() => () => {}),
@@ -573,7 +573,9 @@ export function ElectricalPanel({
                 onClick={() =>
                   c === 'home_runs'
                     ? circuitView.set({ homeRuns: !view.homeRuns })
-                    : setChips((prev) => ({ ...prev, [c]: !prev[c] }))
+                    : c === 'switch_legs'
+                      ? circuitView.set({ switchLegs: !view.switchLegs })
+                      : setChips((prev) => ({ ...prev, [c]: !prev[c] }))
                 }
               >
                 {t(`office.electrical.chip.${c}`)}

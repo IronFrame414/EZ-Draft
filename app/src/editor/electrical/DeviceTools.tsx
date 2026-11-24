@@ -5,6 +5,7 @@
 // editor's slot (none while paused), and opens the device menu on a right-click or long-press over a device. The
 // store and the other things a placing tool is given come from the slot's `base`.
 // EZD-604: the Circuit item arms the Circuit tool (circuit-tool.ts) instead of a placing receiver.
+// EZD-605: the Switch leg item arms the Switch leg tool (switch-leg-tool.ts).
 import { useCallback, useEffect, useState, useSyncExternalStore, type ReactElement } from 'react';
 import type { Point } from '@ezdraft/geometry';
 import { circuitToolReceiver } from './circuit-tool';
@@ -12,8 +13,9 @@ import { circuitView } from './circuit-view';
 import { deviceMenuAt, toolbarDeviceReceiver, type ToolbarReceiverDeps } from './device-toolbar';
 import { DeviceMenu, type DeviceMenuRequest } from './DeviceMenu';
 import { DeviceToolbar } from './DeviceToolbar';
+import { switchLegToolReceiver } from './switch-leg-tool';
 import type { ReceiverSlot } from './receiver-slot';
-import { CIRCUIT_TOOL } from './toolbar-items';
+import { CIRCUIT_TOOL, SWITCH_LEG_TOOL } from './toolbar-items';
 import { createElectricalToolbar } from './toolbar-state';
 
 export type ToolBase = Omit<ToolbarReceiverDeps, 'toolbar'>;
@@ -33,7 +35,8 @@ export function DeviceTools({ slot, paused, handle, selection }: DeviceToolsProp
   // EZD-604: 'circuit' is the Circuit tool; any other armed item places devices.
   const readArmed = () => {
     const a = toolbar.get().armed;
-    return a === null ? 'none' : a === CIRCUIT_TOOL ? 'circuit' : 'device';
+    if (a === null) return 'none';
+    return a === CIRCUIT_TOOL ? 'circuit' : a === SWITCH_LEG_TOOL ? 'switch-leg' : 'device';
   };
   const armed = useSyncExternalStore(toolbar.subscribe, readArmed, () => 'none' as const);
   const readBase = () => slot.getState().base;
@@ -53,7 +56,16 @@ export function DeviceTools({ slot, paused, handle, selection }: DeviceToolsProp
               select: base.select,
               onMessage: base.onMessage,
             })
-          : toolbarDeviceReceiver({ ...base, toolbar }),
+          : armed === 'switch-leg'
+            ? switchLegToolReceiver({
+                store: base.store,
+                pickAt: (p) => selection.pickAt(p),
+                newStatus: base.newStatus,
+                newId: base.newId,
+                select: base.select,
+                onMessage: base.onMessage,
+              })
+            : toolbarDeviceReceiver({ ...base, toolbar }),
     });
     return () => slot.setState({ tool: null });
   }, [paused, armed, base, slot, toolbar, selection]);

@@ -260,4 +260,17 @@ describe('EZD-604 New circuit and the chosen circuit', () => {
       circuitView.set({ homeRuns: false });
     }
   });
+
+  // EZD-605: the Switch legs chip (on by default, board) is shared with the plan, which draws the legs while it is on.
+  it('the Switch legs chip is on by default (board) and follows the shared setting', async () => {
+    const { circuitView } = await import('./circuit-view');
+    const chip = () => one(render(electricalObjects()), 'electrical-chip-switch_legs');
+    expect(attr(chip().attrs, 'aria-pressed')).toBe('true');
+    circuitView.set({ switchLegs: false });
+    try {
+      expect(attr(chip().attrs, 'aria-pressed')).toBe('false');
+    } finally {
+      circuitView.set({ switchLegs: true });
+    }
+  });
 });

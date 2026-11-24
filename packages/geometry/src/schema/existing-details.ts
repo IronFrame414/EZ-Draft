@@ -98,6 +98,11 @@ export const deviceDataSchema = z.strictObject({
     heightNote: z.boolean().optional(),
     heightLabel: z.string().trim().min(1).max(16).nullable().optional(),
     height: z.number().positive().nullable().optional(),
+    // EZD-605 (S06 Controls "Device toolbar: Switch leg | Draw a switch leg from switch to fixtures (dashed)"; S05
+    // Controls "Switching zones ... Zones sync to switch legs on the electrical plan"; vault/build/assumptions.md
+    // EZD-605): on a switch, the switching zone it controls. Its switch leg runs to the lights inside that zone, worked
+    // out from the outline, so a zone edit is a leg edit. Absent or null: no leg. Optional, so the version stays.
+    zone: z.uuid().nullable().optional(),
   }),
 });
 export type DeviceData = z.infer<typeof deviceDataSchema>;

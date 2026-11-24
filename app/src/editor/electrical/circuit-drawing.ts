@@ -32,6 +32,8 @@ export type CircuitDrawOpts = {
   /** The circuit chosen in the left panel. */
   circuit: string | null;
   homeRuns: boolean;
+  /** EZD-605: the Switch legs chip; the plan draws switch legs (switch-legs.ts) while it is on. */
+  switchLegs?: boolean;
   /** The radius of a device's symbol. */
   radiusOf: (kind: string) => number;
 };
