@@ -37,6 +37,8 @@ export * from './countertops/panel';
 export * from './countertops/schedule';
 // EZD-414: edges and overhangs.
 export * from './countertops/overhang';
+// EZD-415: the seating support check.
+export * from './countertops/support';
 // EZD-417: edge profiles and the offered total.
 export * from './countertops/edge-profile';
 export * from './derived';

@@ -15,7 +15,12 @@ import { modelObjects } from '../../editor/cabinets/cabinet-view';
 import { CT_FLOOR, CT_ISLAND, islandModel } from '../../editor/countertops/test-fixture';
 import { countertopPieces } from '../../editor/countertops/trace-tool';
 import { createCountertopSelectionStore } from '../../editor/countertops/selection-store';
-import { countertopPresetChanges, countertopPresetValues } from '../../editor/countertops/overhang-tool';
+import {
+  countertopPresetChanges,
+  countertopPresetValues,
+  countertopSupportSettings,
+  countertopTypedChanges,
+} from '../../editor/countertops/overhang-tool';
 import { CountertopPieceInspector } from './CountertopPieceInspector';
 
 const html = (ui: ReactElement) =>
@@ -123,5 +128,114 @@ describe('EZD-414 countertop piece inspector', () => {
     const selection = createCountertopSelectionStore();
     const s = html(<CountertopPieceInspector store={store} pieces={pieces()} selection={selection} />);
     expect(elements(s, 'countertop-piece-inspector')).toEqual([]);
+  });
+});
+
+// EZD-415 (AC-EZD-415-1 "A 76 1/2" side at 12" with a 10" limit and 24" bracket spacing and 24" seat width shows the
+// notice with 4 brackets and 3 seats"; S04b Support notice; S15d "Empty = support check off, with a "Set in
+// Defaults" notice"; wording in vault/build/assumptions.md EZD-415). The island back is 76 1/2" long:
+// ceil(76.5 / 24) = 4 brackets, floor(76.5 / 24) = 3 seats.
+describe('EZD-415 support notice and Seats row', () => {
+  const AC = { seating_support_limit: 10, countertop_bracket_spacing: 24, countertop_seat_width: 24 };
+  const seatingBack = (defaults: Record<string, unknown>, overhang = 12) => {
+    const { store, selection, pieces } = setup(0);
+    store.applyEdit(
+      countertopTypedChanges(pieces(), CT_ISLAND, 0, overhang, countertopSupportSettings(defaults)),
+    );
+    return { store, selection, pieces };
+  };
+  const notice = (s: string) => elements(s, 'countertop-support-text').map((e) => textOf(e.inner));
+  const seats = (s: string) => elements(s, 'countertop-seats-value').map((e) => textOf(e.inner));
+
+  it('AC-EZD-415-1: the 76 1/2" back at 12" shows the notice with 4 brackets and 3 seats', () => {
+    const { store, selection, pieces } = seatingBack(AC);
+    const s = html(
+      <CountertopPieceInspector store={store} pieces={pieces()} selection={selection} defaults={AC} canEdit />,
+    );
+    expect(notice(s)).toEqual(['12" overhang needs support. 4 steel brackets at 24" o.c.']);
+    expect(elements(s, 'countertop-seats').map((e) => textOf(e.inner))).toEqual(['Seats3 at 24" spacing']);
+    expect(seats(s)).toEqual(['3 at 24" spacing']);
+    // The piece holds the requirement the notice reads.
+    expect(pieces().find((p) => p.id === CT_ISLAND)!.data.attributes.support).toEqual({
+      overhang: 12,
+      brackets: 4,
+      spacing: 24,
+    });
+  });
+
+  it('the Seating preset chip also writes the requirement and shows the notice', () => {
+    const { store, selection, pieces } = setup(0);
+    store.applyEdit(
+      countertopPresetChanges(
+        pieces(),
+        CT_ISLAND,
+        0,
+        'seating',
+        countertopPresetValues(AC, pieces()),
+        countertopSupportSettings(AC),
+      ),
+    );
+    const s = html(
+      <CountertopPieceInspector store={store} pieces={pieces()} selection={selection} defaults={AC} canEdit />,
+    );
+    expect(notice(s)).toEqual(['12" overhang needs support. 4 steel brackets at 24" o.c.']);
+  });
+
+  it('an overhang at the limit shows no notice, only the Seats row', () => {
+    const { store, selection, pieces } = seatingBack(AC, 10);
+    const s = html(
+      <CountertopPieceInspector store={store} pieces={pieces()} selection={selection} defaults={AC} canEdit />,
+    );
+    expect(elements(s, 'countertop-support-notice')).toEqual([]);
+    expect(seats(s)).toEqual(['3 at 24" spacing']);
+  });
+
+  it('a top with no seating side shows neither', () => {
+    const { store, selection, pieces } = setup(0);
+    const s = html(
+      <CountertopPieceInspector store={store} pieces={pieces()} selection={selection} defaults={AC} canEdit />,
+    );
+    expect(elements(s, 'countertop-support-notice')).toEqual([]);
+    expect(elements(s, 'countertop-seats')).toEqual([]);
+  });
+
+  it('the limit Not set: the check is off with "Set in Defaults" (a link with Settings → Defaults)', () => {
+    const d = { countertop_bracket_spacing: 24, countertop_seat_width: 24 };
+    const { store, selection, pieces } = seatingBack(d);
+    const owner = html(
+      <CountertopPieceInspector
+        store={store}
+        pieces={pieces()}
+        selection={selection}
+        defaults={d}
+        canManageDefaults
+        canEdit
+      />,
+    );
+    expect(notice(owner)).toEqual(['Seating support check is off. Support limit: Set in Defaults']);
+    expect(elements(owner, 'set-in-defaults').map((e) => attr(e.attrs, 'href'))).toEqual(['/settings/defaults']);
+    expect(seats(owner)).toEqual(['3 at 24" spacing']);
+    const crew = html(
+      <CountertopPieceInspector store={store} pieces={pieces()} selection={selection} defaults={d} canEdit />,
+    );
+    expect(elements(crew, 'set-in-defaults')).toEqual([]);
+    expect(elements(crew, 'set-in-defaults-ask')).toHaveLength(1);
+  });
+
+  it('spacing and seat width Not set ask for them in Defaults', () => {
+    const d = { seating_support_limit: 10 };
+    const { store, selection, pieces } = seatingBack(d);
+    const s = html(
+      <CountertopPieceInspector
+        store={store}
+        pieces={pieces()}
+        selection={selection}
+        defaults={d}
+        canManageDefaults
+        canEdit
+      />,
+    );
+    expect(notice(s)).toEqual(['12" overhang needs support. Bracket spacing: Set in Defaults']);
+    expect(seats(s)).toEqual(['Set in Defaults']);
   });
 });

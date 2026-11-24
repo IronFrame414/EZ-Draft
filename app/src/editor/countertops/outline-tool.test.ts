@@ -14,7 +14,8 @@ import {
   type OutlineToolState,
 } from './outline-tool';
 import { countertopPieces, countertopTraceChanges, countertopTraceDefaults } from './trace-tool';
-import { CT_FLOOR, twoRunModel } from './test-fixture';
+import { CT_FLOOR, CT_ISLAND, islandModel, twoRunModel } from './test-fixture';
+import { countertopPresetChanges, countertopPresetValues, countertopSupportSettings } from './overhang-tool';
 
 const NEW = 'e0000000-0000-4000-8000-000000000001';
 const ctx: OutlineContext = { targets: [], increment: 0.5, radius: 2 };
@@ -117,5 +118,31 @@ describe('EZD-412 Draw outline', () => {
     expect(
       countertopVertexChanges(modelObjects(store.getState().objects), NEW, 9, { x: 0, y: 0 }),
     ).toEqual([]);
+  });
+});
+
+// EZD-415 (assumption EZD-415 "The support requirement on the piece"): a dragged corner works the support out again.
+// The board island (test-fixture islandModel) with its back at 12" runs (0, 109.5) to (76.5, 109.5): 4 brackets.
+// Its corner 1 dragged to (100.5, 109.5) makes the back 100 1/2" long: ceil(100.5 / 24) = 5 brackets.
+describe('EZD-415 corner drag and support', () => {
+  it('a longer seating side needs more brackets', () => {
+    const AC = { seating_support_limit: 10, countertop_bracket_spacing: 24, countertop_seat_width: 24 };
+    const support = countertopSupportSettings(AC);
+    const store = createModelStore({ objects: islandModel() });
+    const pieces = () => countertopPieces(modelObjects(store.getState().objects), CT_FLOOR);
+    store.applyEdit(
+      countertopPresetChanges(pieces(), CT_ISLAND, 0, 'seating', countertopPresetValues(AC, pieces()), support),
+    );
+    expect(pieces()[0]!.data.geometry.outline[1]).toEqual({ x: 76.5, y: 109.5 });
+    const changes = countertopVertexChanges(
+      modelObjects(store.getState().objects),
+      CT_ISLAND,
+      1,
+      { x: 100.5, y: 109.5 },
+      support,
+    );
+    expect(changes).toHaveLength(1);
+    store.applyEdit(changes);
+    expect(pieces()[0]!.data.attributes.support).toEqual({ overhang: 12, brackets: 5, spacing: 24 });
   });
 });

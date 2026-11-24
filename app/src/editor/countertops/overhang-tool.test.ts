@@ -13,10 +13,11 @@ import {
   countertopEdgeAt,
   countertopPresetChanges,
   countertopPresetValues,
+  countertopSupportSettings,
   countertopTypedChanges,
 } from './overhang-tool';
 import { countertopPieces, countertopTraceChanges, countertopTraceDefaults } from './trace-tool';
-import { CT_FLOOR, ctId as id, twoRunModel } from './test-fixture';
+import { CT_FLOOR, CT_ISLAND, ctId as id, islandModel, twoRunModel } from './test-fixture';
 
 function traced() {
   const store = createModelStore({ objects: twoRunModel() });
@@ -122,5 +123,59 @@ describe('EZD-414 countertopEdgeAt', () => {
     const b = byLabel(store, 'B');
     expect(countertopEdgeAt(pieces(store), { x: 12, y: 88.7 }, 1)).toEqual({ pieceId: b.id, edge: 1 });
     expect(countertopEdgeAt(pieces(store), { x: 12, y: 60 }, 1)).toBeNull();
+  });
+});
+
+// EZD-415 (AC-EZD-415-1; phase-04 EZD-415 "stores a support requirement on the piece"): the board island (76 1/2 ×
+// 27, test-fixture islandModel). Its back (side 1, 76 1/2" long) at the Seating preset 12" with a 10" limit, 24"
+// spacing and 24" seats needs ceil(76.5 / 24) = 4 brackets.
+describe('EZD-415 support requirement written with the overhang', () => {
+  const AC_DEFAULTS = { seating_support_limit: 10, countertop_bracket_spacing: 24, countertop_seat_width: 24 };
+  const island = (store: ReturnType<typeof createModelStore>) => pieces(store).find((p) => p.id === CT_ISLAND)!;
+  const islandStore = () => createModelStore({ objects: islandModel() });
+
+  it('reads the limit, spacing and seat width from Defaults; Not set reads null', () => {
+    expect(countertopSupportSettings(AC_DEFAULTS)).toEqual({ limit: 10, bracketSpacing: 24, seatWidth: 24 });
+    expect(countertopSupportSettings(null)).toEqual({ limit: null, bracketSpacing: null, seatWidth: null });
+    expect(countertopSupportSettings({ seating_support_limit: null, countertop_seat_width: 0 })).toEqual({
+      limit: null,
+      bracketSpacing: null,
+      seatWidth: null,
+    });
+  });
+
+  it('AC-EZD-415-1: the Seating preset on the island back stores 4 brackets at 24" in the same undo step', () => {
+    const store = islandStore();
+    const s = countertopSupportSettings(AC_DEFAULTS);
+    const v = countertopPresetValues(AC_DEFAULTS, pieces(store));
+    store.applyEdit(countertopPresetChanges(pieces(store), CT_ISLAND, 0, 'seating', v, s));
+    expect(island(store).data.attributes.edges[0]).toMatchObject({ kind: 'seating', overhang: 12 });
+    expect(island(store).data.attributes.support).toEqual({ overhang: 12, brackets: 4, spacing: 24 });
+    store.undo();
+    expect(island(store).data.attributes.edges[0]).toMatchObject({ kind: 'exposed', overhang: 1.5 });
+    expect(island(store).data.attributes.support).toBeUndefined();
+  });
+
+  it('removes the requirement when the side goes back to Standard, and stores none at the limit', () => {
+    const store = islandStore();
+    const s = countertopSupportSettings(AC_DEFAULTS);
+    const v = countertopPresetValues(AC_DEFAULTS, pieces(store));
+    store.applyEdit(countertopPresetChanges(pieces(store), CT_ISLAND, 0, 'seating', v, s));
+    store.applyEdit(countertopPresetChanges(pieces(store), CT_ISLAND, 0, 'standard', v, s));
+    expect(island(store).data.attributes.support).toBeUndefined();
+    store.applyEdit(countertopTypedChanges(pieces(store), CT_ISLAND, 0, 10, s));
+    expect(island(store).data.attributes.edges[0]).toMatchObject({ kind: 'seating', overhang: 10 });
+    expect(island(store).data.attributes.support).toBeUndefined();
+    store.applyEdit(countertopTypedChanges(pieces(store), CT_ISLAND, 0, 12, s));
+    expect(island(store).data.attributes.support).toEqual({ overhang: 12, brackets: 4, spacing: 24 });
+  });
+
+  it('with the limit Not set no requirement is stored', () => {
+    const store = islandStore();
+    const s = countertopSupportSettings({});
+    const v = countertopPresetValues(null, pieces(store));
+    store.applyEdit(countertopPresetChanges(pieces(store), CT_ISLAND, 0, 'seating', v, s));
+    expect(island(store).data.attributes.edges[0]).toMatchObject({ kind: 'seating', overhang: 12 });
+    expect(island(store).data.attributes.support).toBeUndefined();
   });
 });

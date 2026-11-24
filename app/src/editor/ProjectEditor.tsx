@@ -610,6 +610,10 @@ export function ProjectEditor({
           'countertop_increment',
           'overhang_seating_counter',
           'overhang_seating_bar',
+          // EZD-415: the support check's limit, bracket spacing and seat width.
+          'seating_support_limit',
+          'countertop_bracket_spacing',
+          'countertop_seat_width',
         ].map((k) => [k, readDefaultNumber(k)()]),
       ),
     );
@@ -695,8 +699,9 @@ export function ProjectEditor({
     actMinShareRef.current = actMinShare;
   }, [actMinShare]);
   // EZD-412, EZD-416, EZD-414: the Defaults the countertop screen, panel and inspector read (per project): Trace's
-  // and the presets' overhangs and the countertop increment. One read of all five, as text so the snapshot stays
-  // the same between changes (one hook instead of five keeps the editor route within its budget).
+  // and the presets' overhangs, the countertop increment and the support check (EZD-415). One read of all eight, as
+  // text so the snapshot stays the same between changes (one hook instead of eight keeps the editor route within its
+  // budget).
   const countertopDefaultsText = useSyncExternalStore(
     sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
     readCountertopDefaults,
@@ -1534,6 +1539,7 @@ export function ProjectEditor({
         selection={countertopSelection ?? undefined}
         canEdit={mayEdit}
         defaults={countertopDefaults}
+        canManageDefaults={canManageDefaults}
       />
     ) : showPlan && session !== null && selection !== null ? (
       <InspectorStack>

@@ -76,6 +76,8 @@ export type DefaultRow = {
   max?: number;
   // EZD-134: the refusal message when the type's shared one names other bounds.
   refusal?: MessageKey;
+  // EZD-415: a length that cannot be 0 outside the always-positive groups (values.ts lengthKind).
+  positive?: boolean;
 };
 
 // Q-0207: dimension rounding choices (assumption Q-0713 (a)).
@@ -284,6 +286,28 @@ export const DEFAULTS_REGISTRY: readonly DefaultRow[] = [
     type: 'length',
     unit: 'in',
     default: null,
+  }),
+  // EZD-415 (phase-04 EZD-415 "seat width and bracket spacing are Defaults → Countertops values"; assumption EZD-415):
+  // the support check's bracket spacing (on centre) and the Seats row's seat width. Owner enters; never 0.
+  row({
+    key: 'countertop_bracket_spacing',
+    group: 'countertops',
+    label: L('countertop_bracket_spacing'),
+    hint: H('countertop_bracket_spacing'),
+    type: 'length',
+    unit: 'in',
+    default: null,
+    positive: true,
+  }),
+  row({
+    key: 'countertop_seat_width',
+    group: 'countertops',
+    label: L('countertop_seat_width'),
+    hint: H('countertop_seat_width'),
+    type: 'length',
+    unit: 'in',
+    default: null,
+    positive: true,
   }),
   // Ceilings
   row({

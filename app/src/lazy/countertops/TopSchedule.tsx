@@ -204,6 +204,8 @@ export type CountertopsInspectorProps = {
   canEdit?: boolean;
   // The effective Defaults (the four overhangs the preset chips set); null while not read.
   defaults?: Readonly<Record<string, unknown>> | null;
+  // EZD-415: the viewer holds Settings → Defaults (the support notice's "Set in Defaults" link).
+  canManageDefaults?: boolean;
   // EZD-417: the project (else the editor route's id), the library and offer loads, and the offer save; tests pass
   // their own, and may give the library, offers and switches already read.
   projectId?: string | null;
@@ -231,6 +233,7 @@ export function CountertopsInspector({
   selection,
   canEdit = false,
   defaults = null,
+  canManageDefaults = false,
   projectId: givenProjectId,
   loadProfiles = fetchEdgeProfiles,
   loadOffers,
@@ -318,6 +321,7 @@ export function CountertopsInspector({
           canEdit={canEdit}
           defaults={defaults}
           catalog={catalog}
+          canManageDefaults={canManageDefaults}
         />
       ) : null}
       {piece !== undefined ? (

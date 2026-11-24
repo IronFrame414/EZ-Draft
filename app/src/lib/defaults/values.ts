@@ -28,9 +28,10 @@ const isObject = (v: unknown): v is Record<string, unknown> =>
 const sixteenth = (n: number) => Number.isInteger(n * 16);
 const whole = (n: unknown): n is number => typeof n === 'number' && Number.isInteger(n);
 
-// Positive-only lengths: increments, wall sizes and the walk eye height cannot be 0.
+// Positive-only lengths: increments, wall sizes and the walk eye height cannot be 0, nor a row flagged positive
+// (EZD-415: bracket spacing and seat width divide a side's length).
 function lengthKind(row: DefaultRow): 'positive' | 'other' {
-  return row.group === 'increments' || row.group === 'walls' || row.group === 'three_d'
+  return row.positive === true || row.group === 'increments' || row.group === 'walls' || row.group === 'three_d'
     ? 'positive'
     : 'other';
 }
