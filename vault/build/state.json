@@ -477,7 +477,8 @@
     "EZD-1957",
     "EZD-1943",
     "EZD-1961",
-    "EZD-1963"
+    "EZD-1963",
+    "EZD-1934"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1675,11 +1676,19 @@
       "ts": "2026-11-24T01:52:31Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1934",
+      "title": "Move dev-only glob and minimatch to patched versions",
+      "commit": "20b6da4a",
+      "ts": "2026-11-24T02:51:12Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1874,17 +1883,17 @@
     }
   },
   "running": {
-    "EZD-1934": {
-      "lane": 3,
-      "title": "Move dev-only glob and minimatch to patched versions",
-      "started": "2026-11-24T01:26:08Z",
-      "develop": "4f0e78e6"
-    },
     "EZD-1939": {
       "lane": 2,
       "title": "Loop: failure lines in loop.log name the failing tests",
       "started": "2026-11-24T01:53:39Z",
       "develop": "a04890ef"
+    },
+    "EZD-1965": {
+      "lane": 1,
+      "title": "Check: a stopped or timed-out check leaves no processes behind",
+      "started": "2026-11-24T02:02:45Z",
+      "develop": "dfc5c9bf"
     }
   },
   "advisories_checked_at": "2026-11-23T22:14:30Z",
