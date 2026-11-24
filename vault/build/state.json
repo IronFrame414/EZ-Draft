@@ -489,7 +489,8 @@
     "EZD-1969",
     "EZD-1962",
     "EZD-1951",
-    "EZD-1418"
+    "EZD-1418",
+    "EZD-1939"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1783,6 +1784,14 @@
       "ts": "2026-11-24T11:57:05Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1939",
+      "title": "Loop: failure lines in loop.log name the failing tests",
+      "commit": "b97c0075",
+      "ts": "2026-11-24T14:20:58Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -1991,14 +2000,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-1939": {
-      "lane": 1,
-      "title": "Loop: failure lines in loop.log name the failing tests",
-      "started": "2026-11-24T10:08:23Z",
-      "develop": "21f684cc"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-24T10:15:24Z",
   "hold": {
     "EZD-415": {
