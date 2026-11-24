@@ -476,7 +476,8 @@
     "EZD-1954",
     "EZD-1957",
     "EZD-1943",
-    "EZD-1961"
+    "EZD-1961",
+    "EZD-1963"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1666,6 +1667,14 @@
       "ts": "2026-11-24T01:25:58Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1963",
+      "title": "Fix: field-measure-entry AC-EZD-1419-2 fails at random on the phone project",
+      "commit": "f7e03227",
+      "ts": "2026-11-24T01:52:31Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1860,17 +1869,17 @@
     }
   },
   "running": {
-    "EZD-1963": {
-      "lane": 2,
-      "title": "Fix: field-measure-entry AC-EZD-1419-2 fails at random on the phone project",
-      "started": "2026-11-24T00:35:26Z",
-      "develop": "8a70906f"
-    },
     "EZD-1964": {
       "lane": 1,
       "title": "Fix: property-appraiser-import EZD-711 AC-1 fails at random",
       "started": "2026-11-24T00:43:38Z",
       "develop": "0da75314"
+    },
+    "EZD-1934": {
+      "lane": 3,
+      "title": "Move dev-only glob and minimatch to patched versions",
+      "started": "2026-11-24T01:26:08Z",
+      "develop": "4f0e78e6"
     }
   },
   "advisories_checked_at": "2026-11-23T22:14:30Z",
