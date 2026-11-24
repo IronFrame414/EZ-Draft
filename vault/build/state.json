@@ -497,7 +497,8 @@
     "EZD-1971",
     "EZD-1972",
     "EZD-1940",
-    "EZD-1904"
+    "EZD-1904",
+    "EZD-1906a"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1855,6 +1856,14 @@
       "ts": "2026-11-24T19:49:47Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1906a",
+      "title": "Editor shared helpers (ids, value store, store hook, inch text) in tools, selection, edit",
+      "commit": "98b3c004",
+      "ts": "2026-11-24T20:30:19Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2068,14 +2077,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-1906a": {
-      "lane": 2,
-      "title": "Editor shared helpers (ids, value store, store hook, inch text) in tools, selection, edit",
-      "started": "2026-11-24T18:47:09Z",
-      "develop": "ceaff45e"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-24T16:16:06Z",
   "hold": {}
 }
