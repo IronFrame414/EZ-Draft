@@ -494,7 +494,8 @@
     "EZD-1901",
     "EZD-1970",
     "EZD-415",
-    "EZD-1971"
+    "EZD-1971",
+    "EZD-1972"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1828,6 +1829,14 @@
       "ts": "2026-11-24T17:51:16Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1972",
+      "title": "Fix: first open of 3D on the benchmark project stays within 1,000 ms on CI",
+      "commit": "1890c262",
+      "ts": "2026-11-24T18:47:02Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2042,12 +2051,6 @@
     }
   },
   "running": {
-    "EZD-1972": {
-      "lane": 2,
-      "title": "Fix: first open of 3D on the benchmark project stays within 1,000 ms on CI",
-      "started": "2026-11-24T17:12:51Z",
-      "develop": "8a5a52bf"
-    },
     "EZD-1940": {
       "lane": 3,
       "title": "Loop: retried tickets go first, not last",
