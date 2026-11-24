@@ -485,7 +485,8 @@
     "EZD-1966",
     "EZD-1967",
     "EZD-1947",
-    "EZD-1950"
+    "EZD-1950",
+    "EZD-1969"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1747,6 +1748,14 @@
       "ts": "2026-11-24T08:01:52Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1969",
+      "title": "Fix: status-bar EZD-219 B4 fails at random",
+      "commit": "dc4368a7",
+      "ts": "2026-11-24T08:19:05Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -1954,14 +1963,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-1969": {
-      "lane": 3,
-      "title": "Fix: status-bar EZD-219 B4 fails at random",
-      "started": "2026-11-24T07:02:32Z",
-      "develop": "83d17edd"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-24T04:14:35Z",
   "hold": {
     "EZD-415": {
