@@ -493,7 +493,8 @@
     "EZD-1939",
     "EZD-1901",
     "EZD-1970",
-    "EZD-415"
+    "EZD-415",
+    "EZD-1971"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1819,6 +1820,14 @@
       "ts": "2026-11-24T17:12:14Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1971",
+      "title": "Fix: benchmark project B1 fails on CI waiting for the editor",
+      "commit": "a34e7620",
+      "ts": "2026-11-24T17:51:16Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2032,7 +2041,20 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {},
+  "running": {
+    "EZD-1972": {
+      "lane": 2,
+      "title": "Fix: first open of 3D on the benchmark project stays within 1,000 ms on CI",
+      "started": "2026-11-24T17:12:51Z",
+      "develop": "8a5a52bf"
+    },
+    "EZD-1940": {
+      "lane": 3,
+      "title": "Loop: retried tickets go first, not last",
+      "started": "2026-11-24T17:12:52Z",
+      "develop": "8a5a52bf"
+    }
+  },
   "advisories_checked_at": "2026-11-24T16:16:06Z",
   "hold": {}
 }
