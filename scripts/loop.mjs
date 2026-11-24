@@ -18,6 +18,8 @@ import { randomUUID } from 'node:crypto';
 import { lastBeat, resetReason, sample, startNote, writeBeat } from './loop/heartbeat.mjs';
 import { TRACK as SECURITY_TRACK, readSeen, recordFixTicket, runAudit, unseen } from './loop/advisories.mjs';
 import { effectiveStatuses } from './loop/holds.mjs';
+import { BUILD_FILES } from './loop/build-files.mjs';
+import { runCheck } from './loop/check-run.mjs';
 import { withImportingTests } from './loop/import-graph.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 
@@ -76,8 +78,7 @@ function git(args, cwd = ROOT, opts = {}) {
   }
 }
 // Build files the loop writes and commits itself. A merge in the main checkout needs them unstaged.
-const BUILD_FILES = ['vault/build/state.json', 'vault/build/set-aside.md', 'vault/build/usage.jsonl', 'vault/build/trial-report.md'];
-// loop.log is gitignored (*.log); listing it made every `git add` fail, so no build file was ever committed (2026-11-17).
+// The list is in scripts/loop/build-files.mjs; loop.log is not on it (gitignored, audit 2026-11-23 W8).
 // A read-only checkout of develop for the footprint calls, so a claude session's git calls never touch the main
 // checkout's index while the loop commits there.
 function footprintTree() {
@@ -292,22 +293,14 @@ function recordUsage(ticket, role, requested, r) {
 }
 // The full gate on the ticket's lane. Asynchronous, so the other lanes keep going while it runs.
 function check(cwd, lane = 0) {
-  return new Promise((resolve) => {
-    const p = spawn('node', [path.join(ROOT, 'scripts/check.mjs'), cwd], { cwd, env: laneEnv(lane, cwd), stdio: ['ignore', 'pipe', 'pipe'] });
-    let out = '';
-    p.stdout.on('data', (d) => { out += d; });
-    p.stderr.on('data', (d) => { out += d; });
-    const timer = setTimeout(() => p.kill('SIGTERM'), 90 * 60000);
-    const done = (code) => {
-      clearTimeout(timer);
+  // Past 90 min: SIGTERM, then SIGKILL 10 s later if the check is still running (audit 2026-11-23 W6).
+  return runCheck({ cmd: 'node', args: [path.join(ROOT, 'scripts/check.mjs'), cwd], cwd, env: laneEnv(lane, cwd), timeoutMs: 90 * 60000 })
+    .then(({ code, out }) => {
       const pass = code === 0 && /CHECK PASS/.test(out);
       let detail = out.trim();
       if (!pass) { try { detail += '\n' + readFileSync(path.join(cwd, 'check-failures.log'), 'utf8').slice(0, 9000); } catch {} }
-      resolve({ pass, detail });
-    };
-    p.on('close', done);
-    p.on('error', (e) => { out += String(e); done(1); });
-  });
+      return { pass, detail };
+    });
 }
 
 // ---------- prompts ----------
