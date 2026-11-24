@@ -478,7 +478,8 @@
     "EZD-1943",
     "EZD-1961",
     "EZD-1963",
-    "EZD-1934"
+    "EZD-1934",
+    "EZD-1965"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1684,20 +1685,19 @@
       "ts": "2026-11-24T02:51:12Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1965",
+      "title": "Check: a stopped or timed-out check leaves no processes behind",
+      "commit": "434cfb41",
+      "ts": "2026-11-24T03:53:26Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
-  "set_aside": {
-    "EZD-1939": {
-      "title": "Loop: failure lines in loop.log name the failing tests",
-      "ts": "2026-11-24T03:27:53Z",
-      "reason": "check red after merging newer develop (first try: check red after merging newer develop)",
-      "detail": "\nEZD-1001a first open of 3D on the benchmark project: 391 ms\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] Error: aborted\n[WebServer]     at ignore-listed frames {\n[WebServer]   code: 'ECONNRESET'\n[WebServer] }\n  1) [desktop] › e2e/property-appraiser-import.spec.ts:43:7 › EZD-711 Property appraiser import › EZD-711 AC-1 the wizard reads the link and the ticked owner and PCN fill the title block \n    Error: expect(received).toEqual(expected) // deep equality\n    - Expected  - 8\n    + Received  + 1\n    - Array [\n    -   Object {\n    -     \"legal_description\": null,\n    -     \"owner\": \"HENDRICKS FAMILY TRUST\",\n    -     \"parcel_no\": \"00-43-44-21-01-000-0010\",\n    -     \"year_built\": 1975,\n    -   },\n    - ]\n    + Result []\n      84 |       from public.project p join public.property_record r on r.id = p.property_record_id\n      85 |       where p.tenant_id = ${tenant}::uuid`;\n    > 86 |     expect(rows).toEqual([\n         |                  ^\n      87 |       { owner: 'HENDRICKS FAMILY TRUST', parcel_no: '00-43-44-21-01-000-0010', legal_description: null, year_built: 1975 },\n      88 |     ]);\n      89 |\n        at /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1939/app/e2e/property-appraiser-import.spec.ts:86:18\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results/property-appraiser-import--0b7c1-nd-PCN-fill-the-title-block-desktop/test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n    Error Context: test-results/property-appraiser-import--0b7c1-nd-PCN-fill-the-title-block-desktop/error-context.md\n    Error Context: test-results/property-appraiser-import--0b7c1-nd-PCN-fill-the-title-block-desktop/error-context.md\n    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results/property-appraiser-import--0b7c1-nd-PCN-fill-the-title-block-desktop/trace.zip\n    Usage:\n        pnpm exec playwright show-trace test-results/property-appraiser-import--0b7c1-nd-PCN-fill-the-title-block-desktop/trace.zip\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n  1 failed\n    [desktop] › e2e/property-appraiser-import.spec.ts:43:7 › EZD-711 Property appraiser import › EZD-711 AC-1 the wizard reads the link and the ticked owner and PCN fill the title block \n  7 did not run\n  649 passed (7.0m)\n[ELIFECYCLE] Command failed with exit code 1.\nError: \nERR_PNPM_RECURSIVE_RUN_FIRST_FAIL\n  × \"pnpm recursive run\" failed in /Users/josh/Projects/ezdraft/.claude/\n  │ worktrees/EZD-1939/app\n",
-      "branch": "t/EZD-1939",
-      "worktree": ".claude/worktrees/EZD-1939"
-    }
-  },
+  "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1731,7 +1731,6 @@
     "EZD-512": 1,
     "EZD-607": 1,
     "EZD-1409": 1,
-    "EZD-1939": 1,
     "EZD-1934": 1,
     "EZD-1943": 1,
     "EZD-1947": 1,
@@ -1892,17 +1891,17 @@
     }
   },
   "running": {
-    "EZD-1965": {
-      "lane": 1,
-      "title": "Check: a stopped or timed-out check leaves no processes behind",
-      "started": "2026-11-24T02:02:45Z",
-      "develop": "dfc5c9bf"
-    },
     "EZD-1968": {
       "lane": 3,
       "title": "Loop watchdog: restart the build service when the loop stops making progress",
       "started": "2026-11-24T02:51:21Z",
       "develop": "8e5c36fb"
+    },
+    "EZD-1964": {
+      "lane": 2,
+      "title": "Fix: property-appraiser-import EZD-711 AC-1 fails at random",
+      "started": "2026-11-24T03:27:53Z",
+      "develop": "05c0e160"
     }
   },
   "advisories_checked_at": "2026-11-23T22:14:30Z",
