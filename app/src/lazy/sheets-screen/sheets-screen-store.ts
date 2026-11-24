@@ -9,6 +9,8 @@
 // EZD-706 (S13 Validation "Key: only symbols and abbreviations actually used; updates when objects are added or
 // removed; placement per set"; AC-EZD-706-1): while shown, the open sheet's symbol key is worked out from the model
 // (lib/sheets/symbol-key) on the same watch, for every sheet (the cover carries the key under "On cover only").
+// EZD-1975 (AC-EZD-1975-1): a model update that changes nothing the sheet draws (a save's answer putting the server's
+// numbers in the model, which can land after a return to Sheets) is not drawn again (same-drawing.ts).
 // EZD-728 (AC-EZD-728-1): load() also reads the notes the set prints on its cover (GET /api/projects/[id]/notes,
 // EZD-714). A failed notes answer leaves the cover without notes; it never fails the screen.
 import type { SheetSetKind, SheetSize } from '@ezdraft/geometry';
@@ -16,6 +18,7 @@ import type { Objects } from '../../editor/model/patches';
 import { lazyModule } from '../../lib/lazy/lazy-module';
 import { sheetShowsPlan, type SetNotes, type SheetSetSummary } from '../../lib/sheets/sheet-set';
 import { parseSetNotes } from './cover-sheet';
+import { sameDrawing } from './same-drawing';
 import { sheetSymbolKey, type SheetKey } from './sheet-key';
 import type { ProjectTitleBlock } from '../../lib/title-block/sheet-title-block';
 import type { SheetRenderer } from '../sheets';
@@ -100,6 +103,8 @@ export function createSheetsScreen(
   let unwatch: (() => void) | null = null;
   // What the last render asked for; the same model, sheet and size are not drawn again.
   let drawn: { objects: Objects; sheet: string; size: SheetSize } | null = null;
+  // EZD-1975: the latest model found to draw the same as `drawn.objects`, so it is compared once.
+  let same: Objects | null = null;
 
   // EZD-706: the key is worked out again only when the model, set, placement or open sheet changed.
   let keyed: { objects: Objects; set: SheetSetSummary; sheet: string } | null = null;
@@ -128,14 +133,15 @@ export function createSheetsScreen(
     const sheet = set?.sheets.find((s) => s.number === state.open) ?? null;
     if (set === null || sheet === null || !sheetShowsPlan(sheet)) return;
     const asked = { objects: source.getState().objects, sheet: sheet.number, size: set.size };
-    if (
-      drawn !== null &&
-      drawn.objects === asked.objects &&
-      drawn.sheet === asked.sheet &&
-      drawn.size === asked.size
-    )
-      return;
+    if (drawn !== null && drawn.sheet === asked.sheet && drawn.size === asked.size) {
+      if (drawn.objects === asked.objects || same === asked.objects) return;
+      if (sameDrawing(drawn.objects, asked.objects)) {
+        same = asked.objects;
+        return;
+      }
+    }
     drawn = asked;
+    same = null;
     busy = true;
     update({ renders: state.renders + 1 });
     renderer ??= loadRenderer();

@@ -104,6 +104,81 @@ test.describe('EZD-702b Sheet renderer', () => {
     await expect(id(page, 'sheets-canvas')).toHaveAttribute('data-sheet-renders', '2');
   });
 
+  // EZD-1975 (AC-EZD-1975-1, AC-EZD-1975-2): the failure on the slower CI machine, made on purpose. The saves of the
+  // Plan edits are held until Sheets is shown again and has drawn, so their answers (which put the server's wall
+  // numbers in the open model) land after the return; the CPU is slowed 4 times. The sheet is still drawn once.
+  test('EZD-1975 AC-1 AC-2 saves that answer after the return to Sheets do not draw the sheet again (CPU slowed 4x)', async ({
+    page,
+    signInAs,
+  }) => {
+    test.setTimeout(180_000);
+    const { ids, user } = await fixtureS();
+    await signInAs(user.email);
+    let gate: Promise<void> = Promise.resolve();
+    let release = () => {};
+    const hold = () => {
+      gate = new Promise<void>((r) => (release = r));
+    };
+    await page.route('**/api/projects/*/objects', async (route) => {
+      await gate;
+      await route.continue();
+    });
+    await openReady(page, ids.P1);
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    const slow = { timeout: 30_000 };
+    // The walls whose saved number has reached the open model.
+    const numbered = (wallIds: string[]) =>
+      page.evaluate(
+        (w) =>
+          (window as unknown as Window2).__ezdraftEditor
+            .objects()
+            .filter((o) => w.includes(o.id))
+            .filter((o) => typeof (o.data.attributes as { number?: unknown } | undefined)?.number === 'number').length,
+        wallIds,
+      );
+    // Two frames, so a draw started by the last model update has reached the page.
+    const settle = () =>
+      page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
+    const canvas = id(page, 'sheets-canvas');
+    const drawing = id(page, 'sheet-drawing');
+
+    hold();
+    const walls = await addWalls(page, [P(0, 0), P(144, 0), P(144, 120), P(0, 120), P(0, 0)]);
+    await tab(page, 'Sheets').click();
+    await id(page, 'sheet-row-A1.0').click();
+    await expect(id(page, 'sheet-preview')).toHaveAttribute('data-sheet', 'A1.0', slow);
+    for (const w of walls) await expect(drawing.locator(`line[data-object-id="${w}"]`).first()).toBeAttached(slow);
+    await expect(canvas).toHaveAttribute('data-sheet-renders', '1', slow);
+    // The first save answers while the sheet is shown: its numbers draw nothing.
+    expect(await numbered(walls)).toBe(0);
+    release();
+    await expect.poll(() => numbered(walls), slow).toBe(4);
+    await settle();
+    await expect(canvas).toHaveAttribute('data-sheet-renders', '1');
+
+    // Back on Plan, three edits whose saves are held; Sheets again draws the open sheet once.
+    await tab(page, 'Plan').click();
+    await expect(canvas).toHaveCount(0);
+    hold();
+    const more = [
+      ...(await addWalls(page, [P(200, 0), P(300, 0)])),
+      ...(await addWalls(page, [P(200, 50), P(300, 50)])),
+      ...(await addWalls(page, [P(200, 100), P(300, 100)])),
+    ];
+    await tab(page, 'Sheets').click();
+    await expect(id(page, 'sheet-preview')).toHaveAttribute('data-sheet', 'A1.0', slow);
+    for (const w of more) await expect(drawing.locator(`line[data-object-id="${w}"]`).first()).toBeAttached(slow);
+    await expect(canvas).toHaveAttribute('data-sheet-renders', '2', slow);
+    // The held saves answer now, after the return.
+    expect(await numbered(more)).toBe(0);
+    release();
+    await expect.poll(() => numbered(more), slow).toBe(3);
+    await settle();
+    await expect(canvas).toHaveAttribute('data-sheet-renders', '2');
+    for (const w of more) await expect(drawing.locator(`line[data-object-id="${w}"]`).first()).toBeAttached();
+  });
+
   test('EZD-702b AC-3 the sheet renderer chunk is absent from the Plan bundle', async ({ page, browser, signInAs }) => {
     test.setTimeout(120_000);
     const { ids, user } = await fixtureS();
