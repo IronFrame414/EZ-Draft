@@ -1814,7 +1814,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1854,7 +1854,8 @@
     "EZD-1964": 1,
     "EZD-1967": 1,
     "EZD-1962": 1,
-    "EZD-1939": 1
+    "EZD-1939": 1,
+    "EZD-1944": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2016,15 +2017,13 @@
     "EZD-1962": {
       "ts": "2026-11-24T06:26:11Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1944": {
+      "ts": "2026-11-24T16:20:05Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-1944": {
-      "lane": 2,
-      "title": "Loop: a retry command that keeps a history of set-asides",
-      "started": "2026-11-24T14:21:38Z",
-      "develop": "82d1e7a1"
-    },
     "EZD-415": {
       "lane": 3,
       "title": "Seating support check",
