@@ -499,7 +499,8 @@
     "EZD-1940",
     "EZD-1904",
     "EZD-1906a",
-    "EZD-1973"
+    "EZD-1973",
+    "EZD-605"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1873,6 +1874,14 @@
       "ts": "2026-11-24T21:46:08Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-605",
+      "title": "Switch legs",
+      "commit": "25c7022b",
+      "ts": "2026-11-24T22:14:56Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2093,11 +2102,11 @@
       "started": "2026-11-24T20:30:52Z",
       "develop": "f327caaf"
     },
-    "EZD-605": {
-      "lane": 3,
-      "title": "Switch legs",
-      "started": "2026-11-24T20:30:52Z",
-      "develop": "f327caaf"
+    "EZD-1974": {
+      "lane": 1,
+      "title": "Fix: the EZD-136 every-page disclaimer test times out on CI",
+      "started": "2026-11-24T21:46:17Z",
+      "develop": "f8fd7563"
     }
   },
   "advisories_checked_at": "2026-11-24T16:16:06Z",
