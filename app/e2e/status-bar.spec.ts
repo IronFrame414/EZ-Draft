@@ -289,6 +289,11 @@ test.describe('EZD-219 status bar popovers', () => {
 
     await moveTo(page, 98, 55.5);
     await expect(id(page, 'status-cursor')).toHaveText(`8' 2" , 4' 7 1/2"`);
+    // EZD-1969: that move is the page's first input, which loads the lock UI (EZD-126). Its commits come later:
+    // one when the module arrives and one when the lock read answers, the one that shows Stop editing. When that
+    // answer took 200 to 300 ms, the stable read below had already seen 100 ms of quiet and the commit landed
+    // among the counted moves. Stop editing on screen means the first input's commits are done.
+    await expect(id(page, 'stop-editing')).toBeVisible();
     const before = await stable();
     for (let i = 1; i <= 4; i++) await moveTo(page, 98 + i, 55.5);
     expect(await stable()).toBe(before);
