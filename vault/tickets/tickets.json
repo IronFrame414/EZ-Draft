@@ -26869,6 +26869,25 @@
     "AC-EZD-1972-3"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-1973",
+   "phase": 10,
+   "title": "Fix: the first tap after a touch drag on the tool rail is sometimes lost",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-24: on GitHub CI the e2e test keyboard-shortcuts.spec.ts:309 (EZD-230, Q-0038 touch: a finger drags a tool to a new place on the rail and it is saved) failed in runs 45375193726 and 45463955107 (release PR #12). The drag and the saved order pass; the following tap on Wall leaves aria-pressed \"false\" for the whole 5 s wait, so the first tap after a touch drag is lost. Q-0630/Q-0038 tablet rule: the rail order can be set by touch alone, and a drag does not turn the tool on while a tap still does.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1973-1",
+    "AC-EZD-1973-2",
+    "AC-EZD-1973-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
