@@ -501,7 +501,8 @@
     "EZD-1906a",
     "EZD-1973",
     "EZD-605",
-    "EZD-1941"
+    "EZD-1941",
+    "EZD-1974"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1891,6 +1892,14 @@
       "ts": "2026-11-24T22:44:27Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1974",
+      "title": "Fix: the EZD-136 every-page disclaimer test times out on CI",
+      "commit": "e5390c56",
+      "ts": "2026-11-24T23:06:33Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2105,12 +2114,6 @@
     }
   },
   "running": {
-    "EZD-1974": {
-      "lane": 1,
-      "title": "Fix: the EZD-136 every-page disclaimer test times out on CI",
-      "started": "2026-11-24T21:46:17Z",
-      "develop": "f8fd7563"
-    },
     "EZD-1975": {
       "lane": 3,
       "title": "Fix: the sheet renders 3 or 4 times instead of 2 after Plan edits (EZD-702b AC-1/AC-2 on CI)",
