@@ -1762,7 +1762,8 @@
     "EZD-1943": 1,
     "EZD-1947": 1,
     "EZD-1964": 1,
-    "EZD-1967": 1
+    "EZD-1967": 1,
+    "EZD-1962": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1920,20 +1921,24 @@
     "EZD-1967": {
       "ts": "2026-11-24T05:56:32Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1962": {
+      "ts": "2026-11-24T06:26:11Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-1962": {
-      "lane": 2,
-      "title": "Wording: \"Couldn't read this page\" on the property record import (Q-0802)",
-      "started": "2026-11-24T05:04:01Z",
-      "develop": "65a1be6c"
-    },
     "EZD-1947": {
       "lane": 1,
       "title": "Gate: scripts tests run outside the heavy lock",
       "started": "2026-11-24T05:26:54Z",
       "develop": "d87f054e"
+    },
+    "EZD-1967": {
+      "lane": 3,
+      "title": "Loop: restart itself after a change to its own code is merged",
+      "started": "2026-11-24T05:57:06Z",
+      "develop": "88566161"
     }
   },
   "advisories_checked_at": "2026-11-24T04:14:35Z",
