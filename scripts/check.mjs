@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Build v3 gate (2026-11-13). Usage: node scripts/check.mjs [dir] [--fast]
-// Runs: install, Docker check (EZD-1966), database up, typecheck, lint, unit and database tests, live scripts tests, then (heavy lock) build, database again, e2e.
+// Runs: install, Docker check (EZD-1966), database up, typecheck, lint, unit and database tests, live scripts tests, then (heavy lock) build, database again,
+// freeing the lane web port (EZD-1970), e2e.
 // --fast skips build and e2e (for the builder's inner loop; the loop always runs the full check).
 // Full output: <dir>/check.log. On failure the failing step's last lines go to <dir>/check-failures.log.
 // Exit 0 = CHECK PASS.
@@ -10,6 +11,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { release, slotsFrom, tryTake } from './loop/heavy-lock.mjs';
 import { waitForDocker } from './loop/docker-wait.mjs';
+import { freePort, listenerGroups, portConfig } from './loop/free-port.mjs';
 
 const args = process.argv.slice(2);
 const fast = args.includes('--fast');
@@ -134,10 +136,15 @@ const tick = setInterval(() => {
   if (Date.now() >= until) { for (const g of live) { try { process.kill(-g, 'SIGKILL'); } catch {} } process.exit(0); }
 }, 200);
 `;
+// EZD-1970: Playwright starts the e2e web server in its own process group, out of reach of the step-group kill, so once
+// e2e has started the groups listening on the lane web port are killed with the steps.
+const webPort = portConfig(env, lane);
+let e2eStarted = false;
 let stopped = false;
 function stopSteps() {
   if (stopped) return [];
   stopped = true;
+  if (e2eStarted) { try { for (const g of listenerGroups(webPort)) groups.add(g); } catch {} }
   const live = [...groups].filter(groupAlive);
   if (!live.length) return [];
   for (const g of live) { try { process.kill(-g, 'SIGTERM'); } catch {} }
@@ -171,6 +178,19 @@ for (const [name, cmd, argv] of steps) {
       writeFileSync(failPath, `${d.line}\nstep: ${name} (Docker check before it)\nfull log: ${logPath}\n`);
       log.end();
       console.log(`CHECK FAIL at ${name} after ${Math.round((Date.now() - t0) / 1000)}s; details: ${failPath}`);
+      process.exit(1);
+    }
+  }
+  if (name === 'e2e') {
+    // EZD-1970: a stale server left on this lane's web port would be reused by Playwright; free the port first.
+    e2eStarted = true;
+    const f = await freePort(webPort, (l) => { console.log(l); log.write(`\n${l}\n`); });
+    if (!f.ok) {
+      const busy = f.lines[f.lines.length - 1];
+      dropHeavy();
+      writeFileSync(failPath, `step: e2e\ncommand: free port ${webPort.port} before e2e\nfull log: ${logPath}\n\n== failure lines ==\n${busy}\n`);
+      log.end();
+      console.log(`CHECK FAIL at e2e after ${Math.round((Date.now() - t0) / 1000)}s; details: ${failPath}`);
       process.exit(1);
     }
   }

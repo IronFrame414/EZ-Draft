@@ -79,11 +79,16 @@ function checkFixture() {
   writeFileSync(path.join(bin, 'docker'), '#!/bin/sh\nexit 0\n');
   chmodSync(path.join(bin, 'pnpm'), 0o755);
   chmodSync(path.join(bin, 'docker'), 0o755);
+  // EZD-1970: the check frees the lane web port before e2e. Here the lookup is a stub that finds nothing and the port
+  // is not a lane's, so this test never signals a real server on port 3000.
+  writeFileSync(path.join(bin, 'lsof-none'), '#!/bin/sh\nexit 1\n');
+  chmodSync(path.join(bin, 'lsof-none'), 0o755);
   const record = path.join(d, 'record.txt');
   writeFileSync(record, '');
   const lock = path.join(tmpdir, 'ezdraft-check-heavy.lock');
   const env = { ...process.env, PATH: `${bin}:${process.env.PATH}`, TMPDIR: tmpdir, EZD_BUILD_ROOT: work, EZD_LANE: '0',
-    EZD_DOCKER_CMD: path.join(bin, 'docker'), PROBE_RECORD: record, PROBE_LOCK: lock };
+    EZD_DOCKER_CMD: path.join(bin, 'docker'), EZD_PORT_LSOF_CMD: path.join(bin, 'lsof-none'), EZD_CHECK_WEB_PORT: '59970',
+    PROBE_RECORD: record, PROBE_LOCK: lock };
   delete env.EZD_HEAVY_LOCK;
   delete env.NODE_TEST_CONTEXT; // so the check's own node --test runs the probe file, not as this runner's child
   const run = () => {
