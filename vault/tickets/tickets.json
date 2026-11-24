@@ -26710,6 +26710,86 @@
     "AC-EZD-1964-3"
    ],
    "acs_source": "loop-2026-11-23"
+  },
+  {
+   "id": "EZD-1965",
+   "phase": 10,
+   "title": "Check: a stopped or timed-out check leaves no processes behind",
+   "depends_raw": "",
+   "spec_ref": "Unattended-week safeguards (Josh 2026-11-23): three orphaned `supabase db reset` processes from deleted worktrees EZD-134 and EZD-403 ran 1.5 to 5.5 days at ~140% CPU each; Josh killed them by hand. check.mjs is run fresh for every check, so this fix is live on merge. EZD-1943 (merged) already made the loop SIGKILL a check after 90 min; this ticket is about the check's own children and grandchildren.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1965-1",
+    "AC-EZD-1965-2",
+    "AC-EZD-1965-3"
+   ],
+   "acs_source": "josh-2026-11-23"
+  },
+  {
+   "id": "EZD-1966",
+   "phase": 10,
+   "title": "Check: wait for Docker instead of failing the ticket when Docker is down",
+   "depends_raw": "",
+   "spec_ref": "Unattended-week safeguards (Josh 2026-11-23): three orphaned `supabase db reset` processes from deleted worktrees EZD-134 and EZD-403 ran 1.5 to 5.5 days at ~140% CPU each; Josh killed them by hand. A Docker Desktop crash or update would turn every running ticket red and set the queue aside. Lives in check.mjs / db:up so it is live on merge.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1966-1",
+    "AC-EZD-1966-2",
+    "AC-EZD-1966-3",
+    "AC-EZD-1966-4"
+   ],
+   "acs_source": "josh-2026-11-23"
+  },
+  {
+   "id": "EZD-1967",
+   "phase": 10,
+   "title": "Loop: restart itself after a change to its own code is merged",
+   "depends_raw": "",
+   "spec_ref": "Unattended-week safeguards (Josh 2026-11-23): three orphaned `supabase db reset` processes from deleted worktrees EZD-134 and EZD-403 ran 1.5 to 5.5 days at ~140% CPU each; Josh killed them by hand. The running loop keeps the code it started with; loop fixes (EZD-1939, EZD-1940, EZD-1943 and later) only take effect after a restart, and agents cannot restart com.ezdraft.build. launchd plist: KeepAlive {SuccessfulExit: false}, so any non-zero exit is relaunched and exit 0 leaves the loop down.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1967-1",
+    "AC-EZD-1967-2",
+    "AC-EZD-1967-3",
+    "AC-EZD-1967-4",
+    "AC-EZD-1967-5"
+   ],
+   "acs_source": "josh-2026-11-23"
+  },
+  {
+   "id": "EZD-1968",
+   "phase": 10,
+   "title": "Loop watchdog: restart the build service when the loop stops making progress",
+   "depends_raw": "",
+   "spec_ref": "Unattended-week safeguards (Josh 2026-11-23): three orphaned `supabase db reset` processes from deleted worktrees EZD-134 and EZD-403 ran 1.5 to 5.5 days at ~140% CPU each; Josh killed them by hand. launchd restarts the loop when it crashes but not when it hangs. A watchdog must be a separate launchd job: a hung process cannot watch itself.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1968-1",
+    "AC-EZD-1968-2",
+    "AC-EZD-1968-3",
+    "AC-EZD-1968-4"
+   ],
+   "acs_source": "josh-2026-11-23"
   }
  ],
  "recut_applied": "2026-10-20"
