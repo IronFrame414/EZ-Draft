@@ -55,8 +55,7 @@ import { GapBoxes } from './GapBoxes';
 import { entryTool } from './entry-tool';
 import { DRAWING_TOOLS, type DrawingToolId } from './tool-defs';
 import styles from './DrawingTools.module.css';
-
-const noSubscribe = () => () => {};
+import { useStoreValue } from '../shared/use-store-value';
 
 // EZD-225 (11 Budgets editor download size; 11 rule 7): the overlay code loads on the first pointer or key input in
 // the page, as the lock UI does. It draws only once a tool, a selection or a measure is on, which needs that input;
@@ -113,8 +112,6 @@ export type DrawingRailProps = {
   onReorder?: (ids: string[]) => void;
 };
 
-const floorSurface = () => null;
-
 // EZD-222 (04 Tool rail "Help | ? | Shortcuts and help | Every editor tab"; S03 Help "Rail, bottom"; board S03Plan):
 // the last button at the bottom of the rail; its key is the company's.
 export function helpRailTool(shortcut: string | undefined): RailTool {
@@ -132,16 +129,8 @@ export function DrawingRail({
   order,
   onReorder,
 }: DrawingRailProps) {
-  const ui = useSyncExternalStore<DrawingUi | null>(
-    drawing ? drawing.subscribe : noSubscribe,
-    () => drawing?.getUi() ?? null,
-    () => drawing?.getUi() ?? null,
-  );
-  const shown = useSyncExternalStore(
-    surface ? surface.subscribe : noSubscribe,
-    surface ? surface.get : floorSurface,
-    surface ? surface.get : floorSurface,
-  );
+  const ui = useStoreValue<DrawingController, DrawingUi | null>(drawing, (d) => d.getUi(), null);
+  const shown = useStoreValue(surface, (s) => s.get(), null);
   const bottom = [
     ...(assistant ? [ASSISTANT_RAIL_TOOL] : []),
     ...(help ? [helpRailTool(help.shortcut)] : []),
