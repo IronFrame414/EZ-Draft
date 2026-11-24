@@ -475,7 +475,8 @@
     "EZD-1942",
     "EZD-1954",
     "EZD-1957",
-    "EZD-1943"
+    "EZD-1943",
+    "EZD-1961"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1657,11 +1658,19 @@
       "ts": "2026-11-24T00:35:18Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1961",
+      "title": "Sign-in shows each way in separately (Q-0800)",
+      "commit": "78677e4f",
+      "ts": "2026-11-24T01:25:58Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
-  "red_streak": 1,
-  "push_pending": false,
+  "red_streak": 0,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1851,17 +1860,17 @@
     }
   },
   "running": {
-    "EZD-1961": {
-      "lane": 3,
-      "title": "Sign-in shows each way in separately (Q-0800)",
-      "started": "2026-11-23T23:19:36Z",
-      "develop": "53317bdc"
-    },
     "EZD-1963": {
       "lane": 2,
       "title": "Fix: field-measure-entry AC-EZD-1419-2 fails at random on the phone project",
       "started": "2026-11-24T00:35:26Z",
       "develop": "8a70906f"
+    },
+    "EZD-1964": {
+      "lane": 1,
+      "title": "Fix: property-appraiser-import EZD-711 AC-1 fails at random",
+      "started": "2026-11-24T00:43:38Z",
+      "develop": "0da75314"
     }
   },
   "advisories_checked_at": "2026-11-23T22:14:30Z",
