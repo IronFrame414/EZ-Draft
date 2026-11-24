@@ -479,7 +479,8 @@
     "EZD-1961",
     "EZD-1963",
     "EZD-1934",
-    "EZD-1965"
+    "EZD-1965",
+    "EZD-1968"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1693,6 +1694,14 @@
       "ts": "2026-11-24T03:53:26Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1968",
+      "title": "Loop watchdog: restart the build service when the loop stops making progress",
+      "commit": "8c44bac6",
+      "ts": "2026-11-24T04:25:51Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -1891,20 +1900,20 @@
     }
   },
   "running": {
-    "EZD-1968": {
-      "lane": 3,
-      "title": "Loop watchdog: restart the build service when the loop stops making progress",
-      "started": "2026-11-24T02:51:21Z",
-      "develop": "8e5c36fb"
-    },
     "EZD-1964": {
       "lane": 2,
       "title": "Fix: property-appraiser-import EZD-711 AC-1 fails at random",
       "started": "2026-11-24T03:27:53Z",
       "develop": "05c0e160"
+    },
+    "EZD-1966": {
+      "lane": 1,
+      "title": "Check: wait for Docker instead of failing the ticket when Docker is down",
+      "started": "2026-11-24T03:53:33Z",
+      "develop": "6a98f605"
     }
   },
-  "advisories_checked_at": "2026-11-23T22:14:30Z",
+  "advisories_checked_at": "2026-11-24T04:14:35Z",
   "hold": {
     "EZD-415": {
       "holders": [
