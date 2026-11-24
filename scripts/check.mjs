@@ -66,7 +66,9 @@ function run(name, cmd, argv) {
     log.write(`\n===== ${name}: ${cmd} ${argv.join(' ')}\n`);
     const tail = [];
     const keyLines = [];
-    const p = spawn(cmd, argv, { cwd: dir, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    // EZD-1965: each step runs in its own process group, so a stopped check can kill the step's whole tree.
+    const p = spawn(cmd, argv, { cwd: dir, env, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
+    if (p.pid) groups.add(p.pid);
     const onData = (d) => {
       log.write(d);
       for (const raw of d.toString().split('\n')) {
@@ -80,7 +82,12 @@ function run(name, cmd, argv) {
     };
     p.stdout.on('data', onData);
     p.stderr.on('data', onData);
-    p.on('close', (code) => resolve({ code, secs: Math.round((Date.now() - started) / 1000), tail, keyLines }));
+    p.on('close', (code) => {
+      // An ended step whose group is empty is forgotten: the OS may reuse its id for a process this check does not
+      // own. A group with a leftover process stays recorded (its id cannot be reused while it lives) and is killed.
+      if (p.pid && !groupAlive(p.pid)) groups.delete(p.pid);
+      resolve({ code, secs: Math.round((Date.now() - started) / 1000), tail, keyLines });
+    });
     p.on('error', (e) => resolve({ code: 1, secs: 0, tail: [String(e)] }));
   });
 }
@@ -105,8 +112,48 @@ async function takeHeavy() {
   }
 }
 function dropHeavy() { release(heavyHeld); heavyHeld = null; }
-process.on('exit', dropHeavy);
-for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { dropHeavy(); process.exit(1); });
+
+// EZD-1965 (2026-11-23: `supabase db reset` processes outlived their checks by days): when the check is stopped
+// (SIGTERM, SIGINT) or exits early, every step group still alive gets SIGTERM, then SIGKILL 10 s later. The SIGKILL
+// comes from a detached reaper in its own process group, because the loop SIGKILLs a stopped check itself 10 s after
+// its SIGTERM (scripts/loop/check-run.mjs) and this process may not live to send it.
+const KILL_GRACE_MS = 10000;
+const groups = new Set();
+const groupAlive = (g) => { try { process.kill(-g, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
+const REAPER = `
+const [grace, ...groups] = process.argv.slice(1).map(Number);
+const alive = (g) => { try { process.kill(-g, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
+const until = Date.now() + grace;
+const tick = setInterval(() => {
+  const live = groups.filter(alive);
+  if (!live.length) process.exit(0);
+  if (Date.now() >= until) { for (const g of live) { try { process.kill(-g, 'SIGKILL'); } catch {} } process.exit(0); }
+}, 200);
+`;
+let stopped = false;
+function stopSteps() {
+  if (stopped) return [];
+  stopped = true;
+  const live = [...groups].filter(groupAlive);
+  if (!live.length) return [];
+  for (const g of live) { try { process.kill(-g, 'SIGTERM'); } catch {} }
+  try {
+    spawn(process.execPath, ['-e', REAPER, String(KILL_GRACE_MS), ...live.map(String)], { detached: true, stdio: 'ignore' }).unref();
+  } catch {}
+  return live;
+}
+process.on('exit', () => { stopSteps(); dropHeavy(); });
+for (const sig of ['SIGINT', 'SIGTERM']) {
+  process.on(sig, () => {
+    dropHeavy();
+    const live = stopSteps();
+    // Wait (up to the grace and a little) for the groups to go, so the next check does not meet them; the reaper
+    // sends the SIGKILL.
+    const until = Date.now() + KILL_GRACE_MS + 1000;
+    const wait = () => (live.some(groupAlive) && Date.now() < until ? setTimeout(wait, 200) : process.exit(1));
+    wait();
+  });
+}
 
 if (!existsSync(path.join(dir, 'package.json'))) { console.log(`CHECK FAIL: no package.json in ${dir}`); process.exit(1); }
 const t0 = Date.now();
@@ -115,7 +162,7 @@ for (const [name, cmd, argv] of steps) {
   const r = await run(name, cmd, argv);
   if (name === 'database' && r.code === 0) {
     // Next.js bakes NEXT_PUBLIC_* into the build, so the build and the e2e server need this lane's stack values.
-    const e = spawnSync(process.execPath, [path.join(dir, 'scripts/db/local.mjs'), 'env'], { cwd: dir, env, encoding: 'utf8' });
+    const e = spawnSync(process.execPath, [path.join(dir, 'scripts/db/local.mjs'), 'env'], { cwd: dir, env, encoding: 'utf8', timeout: 150000, killSignal: 'SIGKILL' });
     if (e.status === 0) { try { Object.assign(env, JSON.parse(e.stdout.trim())); } catch {} }
   }
   console.log(`${r.code === 0 ? 'ok  ' : 'FAIL'} ${name} (${r.secs}s)`);
