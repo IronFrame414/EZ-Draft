@@ -484,7 +484,8 @@
     "EZD-1964",
     "EZD-1966",
     "EZD-1967",
-    "EZD-1947"
+    "EZD-1947",
+    "EZD-1950"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1738,6 +1739,14 @@
       "ts": "2026-11-24T07:32:19Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1950",
+      "title": "Speed up the money-pages e2e sweep",
+      "commit": "021d6f47",
+      "ts": "2026-11-24T08:01:52Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1946,12 +1955,6 @@
     }
   },
   "running": {
-    "EZD-1950": {
-      "lane": 2,
-      "title": "Speed up the money-pages e2e sweep",
-      "started": "2026-11-24T06:26:44Z",
-      "develop": "86ab042c"
-    },
     "EZD-1969": {
       "lane": 3,
       "title": "Fix: status-bar EZD-219 B4 fails at random",
