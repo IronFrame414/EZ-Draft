@@ -491,7 +491,8 @@
     "EZD-1951",
     "EZD-1418",
     "EZD-1939",
-    "EZD-1901"
+    "EZD-1901",
+    "EZD-1970"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1801,6 +1802,14 @@
       "ts": "2026-11-24T15:23:55Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1970",
+      "title": "Check: free the lane web port before e2e so a stale server is never reused",
+      "commit": "6a360e95",
+      "ts": "2026-11-24T16:17:42Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2010,20 +2019,20 @@
     }
   },
   "running": {
-    "EZD-1970": {
-      "lane": 1,
-      "title": "Check: free the lane web port before e2e so a stale server is never reused",
-      "started": "2026-11-24T14:21:38Z",
-      "develop": "82d1e7a1"
-    },
     "EZD-1944": {
       "lane": 2,
       "title": "Loop: a retry command that keeps a history of set-asides",
       "started": "2026-11-24T14:21:38Z",
       "develop": "82d1e7a1"
+    },
+    "EZD-415": {
+      "lane": 3,
+      "title": "Seating support check",
+      "started": "2026-11-24T15:24:37Z",
+      "develop": "95be1674"
     }
   },
-  "advisories_checked_at": "2026-11-24T10:15:24Z",
+  "advisories_checked_at": "2026-11-24T16:16:06Z",
   "hold": {
     "EZD-415": {
       "holders": [
