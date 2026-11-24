@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Build v3 gate (2026-11-13). Usage: node scripts/check.mjs [dir] [--fast]
-// Runs: install, Docker check (EZD-1966), database up, typecheck, lint, unit and database tests, build, live scripts tests, e2e.
+// Runs: install, Docker check (EZD-1966), database up, typecheck, lint, unit and database tests, live scripts tests, then (heavy lock) build, database again, e2e.
 // --fast skips build and e2e (for the builder's inner loop; the loop always runs the full check).
 // Full output: <dir>/check.log. On failure the failing step's last lines go to <dir>/check-failures.log.
 // Exit 0 = CHECK PASS.
@@ -52,9 +52,11 @@ const steps = [
   ['lint', 'pnpm', ['run', 'lint']],
   ['test', 'pnpm', [...pkg, 'test']],
   ...(fast ? [] : [
-    ['build', 'pnpm', ['run', 'build']],
+    // EZD-1947 (audit 2026-11-23 P3): the scripts tests run before the build, outside the heavy lock, so their
+    // 236-387 s no longer hold a heavy slot. None of them reads the build output.
     ['scripts tests', process.execPath, ['--import', './app/test-harness/net-guard/preload.mjs', '--test',
       '--test-concurrency=4', '--test-timeout=300000', ...liveScriptTests()]],
+    ['build', 'pnpm', ['run', 'build']],
     // Database tests rotate the API gate secret; db:up stores it again so the e2e server and the stack agree.
     ['database again', 'pnpm', ['run', 'db:up']],
     ['e2e', 'pnpm', [...pkg, 'test:e2e']],
@@ -93,10 +95,11 @@ function run(name, cmd, argv) {
   });
 }
 
-// Build lanes (2026-11-16): several checks run at once on this Mac, one per lane. The build, the scripts tests and e2e
-// hold timing tests (perf, page load) that fail falsely when two Next builds or two browsers compete for the machine,
-// so that stretch runs on a limited number of lanes at a time (heavy_slots, below). The earlier steps run in parallel. EZD_HEAVY_LOCK=0 skips it.
-const HEAVY = new Set(['build', 'scripts tests', 'database again', 'e2e']);
+// Build lanes (2026-11-16): several checks run at once on this Mac, one per lane. The build and e2e hold timing tests
+// (page load) that fail falsely when two Next builds or two browsers compete for the machine, so that stretch runs on a
+// limited number of lanes at a time (heavy_slots, below). The lock is taken just before the build and released as soon
+// as e2e ends; every other step (the scripts tests too, EZD-1947) runs in parallel. EZD_HEAVY_LOCK=0 skips it.
+const HEAVY = new Set(['build', 'database again', 'e2e']);
 const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock');
 // Josh 2026-11-20: up to `heavy_slots` lanes run the heavy stretch at once (scripts/loop/heavy-lock.mjs). The count is
 // read from vault/build/config.json in the build loop's checkout (EZD_BUILD_ROOT) each time a check waits; default 1.
@@ -177,6 +180,7 @@ for (const [name, cmd, argv] of steps) {
     const e = spawnSync(process.execPath, [path.join(dir, 'scripts/db/local.mjs'), 'env'], { cwd: dir, env, encoding: 'utf8', timeout: 150000, killSignal: 'SIGKILL' });
     if (e.status === 0) { try { Object.assign(env, JSON.parse(e.stdout.trim())); } catch {} }
   }
+  if (name === 'e2e') dropHeavy();
   console.log(`${r.code === 0 ? 'ok  ' : 'FAIL'} ${name} (${r.secs}s)`);
   if (r.code !== 0) {
     writeFileSync(failPath, `step: ${name}\ncommand: ${cmd} ${argv.join(' ')}\nfull log: ${logPath}\n\n== failure lines ==\n${(r.keyLines || []).join('\n')}\n\n== last lines ==\n${r.tail.slice(-200).join('\n')}\n`);
