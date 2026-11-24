@@ -488,7 +488,8 @@
     "EZD-1950",
     "EZD-1969",
     "EZD-1962",
-    "EZD-1951"
+    "EZD-1951",
+    "EZD-1418"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1774,6 +1775,14 @@
       "ts": "2026-11-24T10:28:46Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1418",
+      "title": "Field measure into Import review",
+      "commit": "1bbf6c0b",
+      "ts": "2026-11-24T11:57:05Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -1983,12 +1992,6 @@
     }
   },
   "running": {
-    "EZD-1418": {
-      "lane": 3,
-      "title": "Field measure into Import review",
-      "started": "2026-11-24T09:41:42Z",
-      "develop": "e0114e95"
-    },
     "EZD-1939": {
       "lane": 1,
       "title": "Loop: failure lines in loop.log name the failing tests",
