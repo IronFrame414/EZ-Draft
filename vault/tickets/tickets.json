@@ -26850,6 +26850,25 @@
     "AC-EZD-1971-3"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-1972",
+   "phase": 10,
+   "title": "Fix: first open of 3D on the benchmark project stays within 1,000 ms on CI",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-24: on GitHub CI the e2e test scene-3d.spec.ts:104 (AC-EZD-1001a-3, first open of 3D on the benchmark project within FIRST_OPEN_BUDGET_MS = 1000) measured 668, 922, 1011, 1188 and 1274 ms across runs, failing 3 of the last 5 and blocking release PR #12. It passes in local loop checks on the faster build Mac. The 1,000 ms budget is a spec number (EZD-1001a); it is not changed.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1972-1",
+    "AC-EZD-1972-2",
+    "AC-EZD-1972-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
