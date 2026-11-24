@@ -481,7 +481,8 @@
     "EZD-1934",
     "EZD-1965",
     "EZD-1968",
-    "EZD-1964"
+    "EZD-1964",
+    "EZD-1966"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1711,6 +1712,14 @@
       "ts": "2026-11-24T05:03:29Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1966",
+      "title": "Check: wait for Docker instead of failing the ticket when Docker is down",
+      "commit": "a15f3bbc",
+      "ts": "2026-11-24T05:26:47Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -1909,17 +1918,17 @@
     }
   },
   "running": {
-    "EZD-1966": {
-      "lane": 1,
-      "title": "Check: wait for Docker instead of failing the ticket when Docker is down",
-      "started": "2026-11-24T03:53:33Z",
-      "develop": "6a98f605"
-    },
     "EZD-1967": {
       "lane": 3,
       "title": "Loop: restart itself after a change to its own code is merged",
       "started": "2026-11-24T04:25:58Z",
       "develop": "c8f803ee"
+    },
+    "EZD-1962": {
+      "lane": 2,
+      "title": "Wording: \"Couldn't read this page\" on the property record import (Q-0802)",
+      "started": "2026-11-24T05:04:01Z",
+      "develop": "65a1be6c"
     }
   },
   "advisories_checked_at": "2026-11-24T04:14:35Z",
