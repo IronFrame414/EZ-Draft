@@ -13,7 +13,8 @@ import { createModelStore } from '../model/model-store';
 import { modelObjects } from '../cabinets/cabinet-view';
 import { countertopSeamChanges, seamPreviewAt } from './seam-tool';
 import { countertopPieces, countertopTraceChanges, countertopTraceDefaults } from './trace-tool';
-import { CT_FLOOR, ctId as id, twoRunModel } from './test-fixture';
+import { CT_FLOOR, CT_ISLAND, ctId as id, islandModel, twoRunModel } from './test-fixture';
+import { countertopPresetChanges, countertopPresetValues, countertopSupportSettings } from './overhang-tool';
 
 const counter = (start: number) => {
   let n = start;
@@ -106,5 +107,38 @@ describe('EZD-413 Seam tool', () => {
       pieceId: id(100),
       chord: { a: { x: 100, y: 0 }, b: { x: 100, y: 25.5 } },
     });
+  });
+});
+
+// EZD-415 (assumption EZD-415 "The support requirement on the piece"): a seam works out each part's support for its
+// own sides, so the parts never both keep the whole top's brackets. The board island (test-fixture islandModel, x 0
+// to 76.5) with its back at 12" (y = 109.5) needs ceil(76.5 / 24) = 4 brackets. A seam clicked at x = 54.2 near the
+// front (on the 1/2" increment, 22 1/2 from the front's first corner at x = 76.5) cuts at x = 54: the 54" part
+// keeps the id, ceil(54 / 24) = 3 brackets; the 22 1/2" part ceil(22.5 / 24) = 1.
+describe('EZD-415 seam and support', () => {
+  it('each part of a seated top gets its own bracket count', () => {
+    const AC = { seating_support_limit: 10, countertop_bracket_spacing: 24, countertop_seat_width: 24 };
+    const support = countertopSupportSettings(AC);
+    const store = createModelStore({ objects: islandModel() });
+    const pieces = () => countertopPieces(modelObjects(store.getState().objects), CT_FLOOR);
+    store.applyEdit(
+      countertopPresetChanges(pieces(), CT_ISLAND, 0, 'seating', countertopPresetValues(AC, pieces()), support),
+    );
+    expect(pieces()[0]!.data.attributes.support).toEqual({ overhang: 12, brackets: 4, spacing: 24 });
+    const r = countertopSeamChanges(
+      modelObjects(store.getState().objects),
+      CT_FLOOR,
+      { x: 54.2, y: 146.5 },
+      0.5,
+      counter(500),
+      support,
+    );
+    expect(r.ids).not.toBeNull();
+    store.applyEdit(r.changes);
+    const byId = new Map(pieces().map((p) => [p.id, p.data]));
+    expect(size(byId.get(r.ids![0])!.geometry.outline)).toEqual([54, 37.5]);
+    expect(size(byId.get(r.ids![1])!.geometry.outline)).toEqual([22.5, 37.5]);
+    expect(byId.get(r.ids![0])!.attributes.support).toEqual({ overhang: 12, brackets: 3, spacing: 24 });
+    expect(byId.get(r.ids![1])!.attributes.support).toEqual({ overhang: 12, brackets: 1, spacing: 24 });
   });
 });

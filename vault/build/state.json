@@ -491,7 +491,11 @@
     "EZD-1951",
     "EZD-1418",
     "EZD-1939",
-    "EZD-1901"
+    "EZD-1901",
+    "EZD-1970",
+    "EZD-415",
+    "EZD-1971",
+    "EZD-1972"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1801,6 +1805,38 @@
       "ts": "2026-11-24T15:23:55Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1970",
+      "title": "Check: free the lane web port before e2e so a stale server is never reused",
+      "commit": "6a360e95",
+      "ts": "2026-11-24T16:17:42Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-415",
+      "title": "Seating support check",
+      "commit": "a3e78140",
+      "ts": "2026-11-24T17:12:14Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1971",
+      "title": "Fix: benchmark project B1 fails on CI waiting for the editor",
+      "commit": "a34e7620",
+      "ts": "2026-11-24T17:51:16Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1972",
+      "title": "Fix: first open of 3D on the benchmark project stays within 1,000 ms on CI",
+      "commit": "1890c262",
+      "ts": "2026-11-24T18:47:02Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1845,7 +1881,8 @@
     "EZD-1964": 1,
     "EZD-1967": 1,
     "EZD-1962": 1,
-    "EZD-1939": 1
+    "EZD-1939": 1,
+    "EZD-1944": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2007,30 +2044,20 @@
     "EZD-1962": {
       "ts": "2026-11-24T06:26:11Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1944": {
+      "ts": "2026-11-24T16:20:05Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-1970": {
-      "lane": 1,
-      "title": "Check: free the lane web port before e2e so a stale server is never reused",
-      "started": "2026-11-24T14:21:38Z",
-      "develop": "82d1e7a1"
-    },
-    "EZD-1944": {
-      "lane": 2,
-      "title": "Loop: a retry command that keeps a history of set-asides",
-      "started": "2026-11-24T14:21:38Z",
-      "develop": "82d1e7a1"
+    "EZD-1940": {
+      "lane": 3,
+      "title": "Loop: retried tickets go first, not last",
+      "started": "2026-11-24T17:12:52Z",
+      "develop": "8a5a52bf"
     }
   },
-  "advisories_checked_at": "2026-11-24T10:15:24Z",
-  "hold": {
-    "EZD-415": {
-      "holders": [
-        "EZD-1422"
-      ],
-      "ts": "2026-11-22T12:02:49Z",
-      "why": "needs a file held by EZD-1422"
-    }
-  }
+  "advisories_checked_at": "2026-11-24T16:16:06Z",
+  "hold": {}
 }

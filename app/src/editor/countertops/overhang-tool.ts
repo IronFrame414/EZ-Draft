@@ -9,9 +9,11 @@ import {
   countertopPresetEdge,
   countertopTypedEdge,
   setCountertopEdge,
+  withCountertopSupport,
   type CountertopEdgeSetting,
   type CountertopOverhangPreset,
   type CountertopPresetValues,
+  type CountertopSupportSettings,
   type Point,
 } from '@ezdraft/geometry';
 import type { Change } from '../model/patches';
@@ -46,14 +48,32 @@ export function countertopPresetValues(
   };
 }
 
+// EZD-415 (S15d Countertops "Seating overhang support limit"; assumption EZD-415): the support check's Defaults, the
+// company limit, bracket spacing and seat width; each null while Not set (or not read).
+export function countertopSupportSettings(
+  defaults: Readonly<Record<string, unknown>> | null | undefined,
+): CountertopSupportSettings {
+  const num = (k: string) => {
+    const v = defaults?.[k];
+    return typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null;
+  };
+  return {
+    limit: num('seating_support_limit'),
+    bracketSpacing: num('countertop_bracket_spacing'),
+    seatWidth: num('countertop_seat_width'),
+  };
+}
+
 // The change that sets edge `edge` of piece `pieceId`; [] when the piece is not shown, nothing changes, or the
 // geometry refuses it (a seam, a seam corner, a cutout pushed off, an outline that is not valid, another top in the
-// way).
+// way). With `support` (EZD-415) the piece's support requirement is worked out again in the same change (one undo
+// step): set when a seating side is past the limit, removed when none is.
 export function countertopEdgeChanges(
   pieces: readonly CountertopPiece[],
   pieceId: string,
   edge: number,
   setting: CountertopEdgeSetting,
+  support?: CountertopSupportSettings,
 ): Change[] {
   const p = pieces.find((q) => same(q.id, pieceId));
   if (p === undefined) return [];
@@ -65,8 +85,9 @@ export function countertopEdgeChanges(
     (setting.kind !== 'wall' || old.backsplashHeight === setting.backsplashHeight)
   )
     return [];
-  const next = setCountertopEdge(p.data, edge, setting);
-  if (next === null) return [];
+  const moved = setCountertopEdge(p.data, edge, setting);
+  if (moved === null) return [];
+  const next = support === undefined ? moved : withCountertopSupport(moved, support);
   // A moved edge may not run this top into another (an L's back top into its return).
   if (
     next.geometry.outline !== p.data.geometry.outline &&
@@ -76,14 +97,16 @@ export function countertopEdgeChanges(
   return [countertopChange(p.id, next)];
 }
 
+
 export function countertopPresetChanges(
   pieces: readonly CountertopPiece[],
   pieceId: string,
   edge: number,
   preset: CountertopOverhangPreset,
   values: CountertopPresetValues,
+  support?: CountertopSupportSettings,
 ): Change[] {
-  return countertopEdgeChanges(pieces, pieceId, edge, countertopPresetEdge(preset, values));
+  return countertopEdgeChanges(pieces, pieceId, edge, countertopPresetEdge(preset, values), support);
 }
 
 export function countertopTypedChanges(
@@ -91,11 +114,12 @@ export function countertopTypedChanges(
   pieceId: string,
   edge: number,
   overhang: number,
+  support?: CountertopSupportSettings,
 ): Change[] {
   const p = pieces.find((q) => same(q.id, pieceId));
   const old = p?.data.attributes.edges[edge];
   if (old === undefined) return [];
-  return countertopEdgeChanges(pieces, pieceId, edge, countertopTypedEdge(old, overhang));
+  return countertopEdgeChanges(pieces, pieceId, edge, countertopTypedEdge(old, overhang), support);
 }
 
 // The edge nearest `at` within `radius` (S04b "Click edge | Selects that edge"): the last piece drawn wins a tie, as

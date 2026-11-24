@@ -4,16 +4,22 @@
 // shows "seating" when seating overhang", "Preset chip Flush 0 / Standard 1 1/2 / Bar 10 / Seating 12 / Wall +
 // splash"; board S04bCountertops inspector; AC-EZD-414-1; vault/build/assumptions.md EZD-414): the selected top's
 // header, its overhang by side and the preset chips. A side or chip sets the picked edge, one undo step each, with
-// Edit model and the lock. The support notice and seats (EZD-415) and the edge profile (EZD-417) come later.
+// Edit model and the lock. The edge profile is EZD-417's card below this.
+// EZD-415 (S04b Controls "Support notice ... Shown when seating overhang exceeds limit", "Seats row | Display seat
+// count and spacing"; S15d "Empty = support check off, with a "Set in Defaults" notice on S04b"; AC-EZD-415-1;
+// vault/build/assumptions.md EZD-415): under the chips, on a top with a seating side, the support notice and the
+// Seats row. The detail and its "Open detail" link are EZD-814.
 import { useMemo, useState, useSyncExternalStore, type ReactElement } from 'react';
 import {
   COUNTERTOP_OVERHANG_PRESETS,
   countertopEdgePreset,
   countertopPieceAreaSqFt,
+  countertopSeatingSides,
   countertopSides,
   parseLength,
   type CountertopEdge,
   type CountertopOverhangPreset,
+  type CountertopSupportSettings,
 } from '@ezdraft/geometry';
 import { formatInches, type CatalogItem } from '../../lib/catalog/catalog';
 import { useT } from '../../lib/messages';
@@ -23,8 +29,11 @@ import { countertopMaterialName } from '../../editor/countertops/material';
 import {
   countertopPresetChanges,
   countertopPresetValues,
+  countertopSupportSettings,
   countertopTypedChanges,
 } from '../../editor/countertops/overhang-tool';
+import { SetInDefaults } from '../../components/settings/defaults/SetInDefaults';
+import { Icon } from '../../components/icon/Icon';
 import type { CountertopPiece } from '../../editor/countertops/trace-tool';
 import styles from './CountertopPieceInspector.module.css';
 
@@ -37,6 +46,8 @@ export type CountertopPieceInspectorProps = {
   defaults?: Readonly<Record<string, unknown>> | null;
   // The company catalog, for the material name; null while not read.
   catalog?: readonly CatalogItem[] | null;
+  // EZD-415: the viewer holds Settings → Defaults ("Set in Defaults" is a link; otherwise a line to ask).
+  canManageDefaults?: boolean;
 };
 
 const CM_PER_IN = 2.54;
@@ -72,6 +83,7 @@ export function CountertopPieceInspector({
   canEdit = false,
   defaults = null,
   catalog = null,
+  canManageDefaults = false,
 }: CountertopPieceInspectorProps): ReactElement | null {
   const t = useT();
   const picked = useSyncExternalStore(
@@ -84,6 +96,7 @@ export function CountertopPieceInspector({
       ? undefined
       : pieces.find((p) => p.id.toLowerCase() === picked.pieceId!.toLowerCase());
   const values = useMemo(() => countertopPresetValues(defaults, pieces), [defaults, pieces]);
+  const support = useMemo(() => countertopSupportSettings(defaults), [defaults]);
   if (piece === undefined) return null;
   const { attributes } = piece.data;
   const edges = attributes.edges;
@@ -103,11 +116,13 @@ export function CountertopPieceInspector({
     if (canEdit && changes.length > 0) store.applyEdit(changes);
   };
   const pick = (i: number) => selection.getState().select(piece.id, i);
-  const typed = (i: number, inches: number) => apply(countertopTypedChanges(pieces, piece.id, i, inches));
+  const typed = (i: number, inches: number) =>
+    apply(countertopTypedChanges(pieces, piece.id, i, inches, support));
   const preset = (p: CountertopOverhangPreset) => {
     if (edgeIndex === null) return;
-    apply(countertopPresetChanges(pieces, piece.id, edgeIndex, p, values));
+    apply(countertopPresetChanges(pieces, piece.id, edgeIndex, p, values, support));
   };
+  const seating = countertopSeatingSides(piece.data, support);
 
   const side = (name: SideName | null, i: number) => (
     <SideInput
@@ -179,7 +194,70 @@ export function CountertopPieceInspector({
           </button>
         ))}
       </div>
+      {seating.length > 0 ? (
+        <SupportRows sides={seating} settings={support} canManageDefaults={canManageDefaults} />
+      ) : null}
     </section>
+  );
+}
+
+type SupportRowsProps = {
+  sides: ReturnType<typeof countertopSeatingSides>;
+  settings: CountertopSupportSettings;
+  canManageDefaults: boolean;
+};
+
+// The support notice (board: amber box with the info icon) and the Seats row ("Seats   3 at 24" spacing").
+function SupportRows({ sides, settings, canManageDefaults }: SupportRowsProps): ReactElement {
+  const t = useT();
+  const needing = sides.filter((s) => s.needsSupport);
+  const setIn = <SetInDefaults canManage={canManageDefaults} />;
+  let notice: ReactElement | null = null;
+  if (settings.limit === null) {
+    notice = (
+      <>
+        {t('office.countertops.support.limit_not_set')} {setIn}
+      </>
+    );
+  } else if (needing.length > 0) {
+    const overhang = inchText(Math.max(...needing.map((s) => s.overhang)));
+    if (settings.bracketSpacing === null) {
+      notice = (
+        <>
+          {t('office.countertops.support.needs_no_spacing', { overhang })} {setIn}
+        </>
+      );
+    } else {
+      const n = needing.reduce((sum, s) => sum + (s.brackets ?? 0), 0);
+      const spacing = inchText(settings.bracketSpacing);
+      notice = (
+        <>
+          {n === 1
+            ? t('office.countertops.support.needs_one', { overhang, spacing })
+            : t('office.countertops.support.needs', { overhang, n, spacing })}
+        </>
+      );
+    }
+  }
+  const seatWidth = settings.seatWidth;
+  const seats = sides.reduce((sum, s) => sum + (s.seats ?? 0), 0);
+  return (
+    <>
+      {notice !== null ? (
+        <div className={styles.notice} role="status" data-testid="countertop-support-notice">
+          <Icon name="info" size={18} />
+          <span data-testid="countertop-support-text">{notice}</span>
+        </div>
+      ) : null}
+      <div className={styles.seats} data-testid="countertop-seats">
+        <span className={styles.seatsLabel}>{t('office.countertops.seats.label')}</span>
+        <span data-testid="countertop-seats-value">
+          {seatWidth === null
+            ? setIn
+            : t('office.countertops.seats.value', { n: seats, width: inchText(seatWidth) })}
+        </span>
+      </div>
+    </>
   );
 }
 

@@ -868,6 +868,9 @@ export const en = {
   'office.defaults.row.overhang_seating_bar': 'Overhang: seating, bar',
   'office.defaults.row.overhang_against_wall': 'Overhang: against wall',
   'office.defaults.row.seating_support_limit': 'Seating support limit',
+  // EZD-415: wording for Josh (assumptions.md EZD-415).
+  'office.defaults.row.countertop_bracket_spacing': 'Support bracket spacing',
+  'office.defaults.row.countertop_seat_width': 'Seat width',
   'office.defaults.row.act_min_border': 'ACT minimum border',
   'office.defaults.row.fan_blade_clearance': 'Fan blade clearance',
   'office.defaults.row.light_targets': 'Light target per room type',
@@ -902,6 +905,9 @@ export const en = {
   'office.defaults.hint.field_measure_range': 'Outside it asks to confirm',
   'office.defaults.hint.overhang_against_wall': 'Plus the splash',
   'office.defaults.hint.seating_support_limit': 'Beyond it, brackets added to detail',
+  // EZD-415: wording for Josh (assumptions.md EZD-415).
+  'office.defaults.hint.countertop_bracket_spacing': 'On center, along a supported seating side',
+  'office.defaults.hint.countertop_seat_width': 'Space per seat for the Seats row',
   'office.defaults.hint.fan_blade_clearance': 'Fan check is off until set',
   'office.defaults.hint.light_targets': 'Foot-candle target per room type',
   'office.defaults.hint.load_warning_threshold': 'Service bar turns amber at it',
@@ -2907,6 +2913,15 @@ export const en = {
   'office.countertops.inspector.preset_seating': 'Seating {value}',
   'office.countertops.inspector.preset_wall': 'Wall + splash',
   'office.countertops.chip_seating': '{value} seating',
+  // EZD-415 Support notice and Seats row (board S04bCountertops "12" overhang needs support. 3 steel brackets added to
+  // detail D-4 at 24" o.c.", "Seats 3 at 24" spacing"; no detail exists until EZD-814, so the detail part is left out;
+  // wording for Josh in vault/build/assumptions.md EZD-415).
+  'office.countertops.support.needs': '{overhang} overhang needs support. {n} steel brackets at {spacing} o.c.',
+  'office.countertops.support.needs_one': '{overhang} overhang needs support. 1 steel bracket at {spacing} o.c.',
+  'office.countertops.support.needs_no_spacing': '{overhang} overhang needs support. Bracket spacing:',
+  'office.countertops.support.limit_not_set': 'Seating support check is off. Support limit:',
+  'office.countertops.seats.label': 'Seats',
+  'office.countertops.seats.value': '{n} at {width} spacing',
   // EZD-417 Edge profiles (S04b; board S04bCountertops: "Edge profile", "Exposed edges only", "Client choosing",
   // "Open", "Offered to client", "Included", "Edit offered edges", "Edge profile: client choosing"; the other wording
   // is listed in vault/build/assumptions.md EZD-417).

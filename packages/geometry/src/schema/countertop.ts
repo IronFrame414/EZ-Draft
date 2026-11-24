@@ -67,6 +67,17 @@ export type CountertopCutout = z.infer<typeof countertopCutoutSchema>;
 export const COUNTERTOP_BEHIND_RANGE = ['splash', 'full_height'] as const;
 export type CountertopBehindRange = (typeof COUNTERTOP_BEHIND_RANGE)[number];
 
+// EZD-415: the deepest seating overhang past the company limit, the steel brackets it needs and the spacing they
+// were counted at (both null while Defaults → Countertops Bracket spacing is Not set).
+export const countertopSupportSchema = z
+  .strictObject({
+    overhang: z.number().positive().finite(),
+    brackets: z.number().int().positive().max(10000).nullable(),
+    spacing: z.number().positive().finite().nullable(),
+  })
+  .refine((s) => (s.brackets === null) === (s.spacing === null));
+export type CountertopSupportData = z.infer<typeof countertopSupportSchema>;
+
 export const countertopPieceDataSchema = z
   .strictObject({
     geometry: z.strictObject({
@@ -85,6 +96,10 @@ export const countertopPieceDataSchema = z
       // EZD-416 (S04b "Behind range row | Edit behind-range splash"): the splash behind the range, the backsplash
       // height or full height. Absent on pieces saved before it; read as the backsplash height.
       behindRange: z.enum(COUNTERTOP_BEHIND_RANGE).optional(),
+      // EZD-415 (S04b Support notice; phase-04 EZD-415 "stores a support requirement on the piece"): the seating
+      // support the top needs, written with each overhang change (countertops/support.ts). Absent or null = none.
+      // EZD-814 makes the detail and its brackets from it.
+      support: countertopSupportSchema.nullable().optional(),
     }),
   })
   .refine((d) => d.attributes.edges.length === d.geometry.outline.length)

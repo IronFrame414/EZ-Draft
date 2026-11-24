@@ -8,7 +8,9 @@ import {
   relabelCountertops,
   seamChordAt,
   splitCountertopPiece,
+  withCountertopSupport,
   type CountertopPieceData,
+  type CountertopSupportSettings,
   type ModelObject,
   type Point,
   type SeamChord,
@@ -36,13 +38,15 @@ export function seamPreviewAt(
 const SEAM_PREVIEW_ID = '00000000-0000-4000-8000-000000000000';
 
 // A seam clicked at `at`: the changes and the ids of the two pieces it makes (larger first). No changes when the
-// click is off every piece or the seam would not cut the piece in two (or would run through a cutout).
+// click is off every piece or the seam would not cut the piece in two (or would run through a cutout). With `support`
+// (EZD-415) each part's seating support requirement is worked out again for its own sides.
 export function countertopSeamChanges(
   objects: readonly ModelObject[],
   level: string | null,
   at: Point,
   increment: number | null,
   newId: () => string,
+  support?: CountertopSupportSettings,
 ): { changes: Change[]; ids: [string, string] | null } {
   const none = { changes: [], ids: null };
   const preview = seamPreviewAt(objects, level, at, increment);
@@ -62,8 +66,9 @@ export function countertopSeamChanges(
   for (const { p } of ranked) {
     if (p.id === target.id) {
       order.push(target.id, otherId);
-      data.set(target.id, split[0]);
-      data.set(otherId, split[1]);
+      const part = (d: CountertopPieceData) => (support === undefined ? d : withCountertopSupport(d, support));
+      data.set(target.id, part(split[0]));
+      data.set(otherId, part(split[1]));
     } else {
       order.push(p.id);
       data.set(p.id, p.data);

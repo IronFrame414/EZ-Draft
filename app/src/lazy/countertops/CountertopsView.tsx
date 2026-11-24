@@ -68,7 +68,11 @@ import {
   countertopCutoutChanges,
   countertopCutoutSizeChanges,
 } from '../../editor/countertops/cutout-tool';
-import { countertopEdgeAt, countertopTypedChanges } from '../../editor/countertops/overhang-tool';
+import {
+  countertopEdgeAt,
+  countertopSupportSettings,
+  countertopTypedChanges,
+} from '../../editor/countertops/overhang-tool';
 import { formatInches } from '../../lib/catalog/catalog';
 import { countertopIncrement, useCountertopFloor } from './use-countertop-floor';
 import { edgeOfferPillState, type EdgeOffer, type EdgeOffersLoad } from '../../editor/countertops/edge-profile';
@@ -278,7 +282,7 @@ export function CountertopsView({
       return;
     }
     if (seamOn) {
-      const r = countertopSeamChanges(parsed, level, at, increment, makeId);
+      const r = countertopSeamChanges(parsed, level, at, increment, makeId, countertopSupportSettings(defaults));
       if (apply(r.changes).length > 0 && r.ids !== null) setSelected(r.ids[0]);
       setSeamPreview(null);
       return;
@@ -325,7 +329,10 @@ export function CountertopsView({
   const typedChip = () => {
     if (typing === null) return;
     const r = parseLength(typing.text, 'other');
-    if (r.ok && r.inches >= 0) apply(countertopTypedChanges(pieces, typing.pieceId, typing.edge, r.inches));
+    if (r.ok && r.inches >= 0)
+      apply(
+        countertopTypedChanges(pieces, typing.pieceId, typing.edge, r.inches, countertopSupportSettings(defaults)),
+      );
     setTyping(null);
   };
 
@@ -372,7 +379,7 @@ export function CountertopsView({
     if (drag === null) return;
     // A press and release in place changes nothing (no undo step, no save).
     if (drag.at.x !== drag.from.x || drag.at.y !== drag.from.y)
-      apply(countertopVertexChanges(parsed, drag.id, drag.index, drag.at));
+      apply(countertopVertexChanges(parsed, drag.id, drag.index, drag.at, countertopSupportSettings(defaults)));
     setDrag(null);
   };
 
