@@ -1769,7 +1769,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1808,7 +1808,8 @@
     "EZD-1947": 1,
     "EZD-1964": 1,
     "EZD-1967": 1,
-    "EZD-1962": 1
+    "EZD-1962": 1,
+    "EZD-1939": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1944,8 +1945,8 @@
       "reason": "check red after merging newer develop"
     },
     "EZD-1939": {
-      "ts": "2026-11-23T17:57:35Z",
-      "reason": "check red after merging newer develop"
+      "ts": "2026-11-24T10:08:00Z",
+      "reason": "check red after a review fix"
     },
     "EZD-1934": {
       "ts": "2026-11-23T19:27:36Z",
@@ -1973,17 +1974,17 @@
     }
   },
   "running": {
-    "EZD-1939": {
-      "lane": 1,
-      "title": "Loop: failure lines in loop.log name the failing tests",
-      "started": "2026-11-24T08:28:13Z",
-      "develop": "cb7591b2"
-    },
     "EZD-1951": {
       "lane": 2,
       "title": "Remove the retired build machinery from scripts/",
       "started": "2026-11-24T08:28:16Z",
       "develop": "cb7591b2"
+    },
+    "EZD-1418": {
+      "lane": 3,
+      "title": "Field measure into Import review",
+      "started": "2026-11-24T09:41:42Z",
+      "develop": "e0114e95"
     }
   },
   "advisories_checked_at": "2026-11-24T04:14:35Z",
