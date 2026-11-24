@@ -69,7 +69,13 @@ test.describe('EZD-711 Property appraiser import', () => {
 
     await tid(page, 'new-project-next').click();
     await expect(tid(page, 'new-project-template-block')).toHaveAttribute('data-state', 'ready');
+    // EZD-1964: the create saves the record after the project row is committed (api/projects/route.ts), so the
+    // project can exist before its record is linked. Wait for the create's answer before reading the record.
+    const created = page.waitForResponse(
+      (r) => r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/projects',
+    );
     await tid(page, 'new-project-create').click();
+    await created;
     await expect
       .poll(async () => {
         const rows = await harnessSql()<Array<{ id: string }>>`
