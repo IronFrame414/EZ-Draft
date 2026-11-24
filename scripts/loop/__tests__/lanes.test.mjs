@@ -29,10 +29,12 @@ test('the same file in two footprints is a clash', () => {
   assert.deepEqual(overlaps(['app/a.ts'], { B: { files: ['app/b.ts'] } }, 'A'), []);
 });
 
-test('two different new migrations clash: the migrations folder is held by one lane at a time', () => {
-  const o = overlaps(['supabase/migrations/20261116000000_a.sql'], { B: { files: ['supabase/migrations/<new>.sql'] } }, 'A');
-  assert.equal(o.length, 1);
-  assert.equal(o[0].holder, 'B');
+// EZD-1941 (audit W2): a ticket holds the single migration file it adds, not the folder.
+test('two different new migrations do not clash; the same migration file still does', () => {
+  assert.deepEqual(overlaps(['supabase/migrations/20261116000000_a.sql'], { B: { files: ['supabase/migrations/<new>.sql'] } }, 'A'), []);
+  assert.deepEqual(overlaps(['supabase/migrations/20261116000000_a.sql'], { B: { files: ['supabase/migrations/20261116000100_b.sql'] } }, 'A'), []);
+  assert.deepEqual(overlaps(['supabase/migrations/20261116000000_a.sql'], { B: { files: ['supabase/migrations/20261116000000_a.sql'] } }, 'A'),
+    [{ file: 'supabase/migrations/20261116000000_a.sql', holder: 'B' }]);
 });
 
 test('a ticket never clashes with its own claim', () => {
@@ -106,9 +108,9 @@ test('a file in the shared list may be held by two lanes; every other file still
   assert.deepEqual(r.waiting.map((w) => w.id), ['C']);
 });
 
-test('two not-yet-named new files in one folder do not clash; two new migrations still do', () => {
+test('two not-yet-named new files in one folder do not clash, new migrations included (EZD-1941)', () => {
   assert.deepEqual(overlaps(['app/src/server/db/<new>'], { B: { files: ['app/src/server/db/<new>'] } }, 'A'), []);
-  assert.equal(overlaps(['supabase/migrations/<new>.sql'], { B: { files: ['supabase/migrations/<new>.sql'] } }, 'A').length, 1);
+  assert.deepEqual(overlaps(['supabase/migrations/<new>.sql'], { B: { files: ['supabase/migrations/<new>.sql'] } }, 'A'), []);
 });
 
 // EZD-1942: a file the branch added in a folder its footprint named with a `<new>` placeholder is in its claim.
