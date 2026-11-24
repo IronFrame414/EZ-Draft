@@ -26792,6 +26792,25 @@
     "AC-EZD-1968-4"
    ],
    "acs_source": "josh-2026-11-23"
+  },
+  {
+   "id": "EZD-1969",
+   "phase": 10,
+   "title": "Fix: status-bar EZD-219 B4 fails at random",
+   "depends_raw": "",
+   "spec_ref": "Flaky test seen 2026-11-24 (same pattern as EZD-1963, EZD-1964); EZD-1964 (REQUEUED 2026-11-24T02:02:08Z) and EZD-1962 (REQUEUED 06:26:15Z, a wording-only change)",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1969-1",
+    "AC-EZD-1969-2",
+    "AC-EZD-1969-3"
+   ],
+   "acs_source": "loop-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
