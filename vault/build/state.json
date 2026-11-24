@@ -1660,8 +1660,8 @@
     }
   ],
   "set_aside": {},
-  "red_streak": 0,
-  "push_pending": true,
+  "red_streak": 1,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1697,7 +1697,8 @@
     "EZD-1409": 1,
     "EZD-1939": 1,
     "EZD-1934": 1,
-    "EZD-1943": 1
+    "EZD-1943": 1,
+    "EZD-1947": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1843,20 +1844,24 @@
     "EZD-1943": {
       "ts": "2026-11-23T23:22:57Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1947": {
+      "ts": "2026-11-24T00:43:03Z",
+      "reason": "check still red after 2 fix rounds"
     }
   },
   "running": {
-    "EZD-1947": {
-      "lane": 1,
-      "title": "Gate: scripts tests run outside the heavy lock",
-      "started": "2026-11-23T22:18:44Z",
-      "develop": "a90a11a2"
-    },
     "EZD-1961": {
       "lane": 3,
       "title": "Sign-in shows each way in separately (Q-0800)",
       "started": "2026-11-23T23:19:36Z",
       "develop": "53317bdc"
+    },
+    "EZD-1963": {
+      "lane": 2,
+      "title": "Fix: field-measure-entry AC-EZD-1419-2 fails at random on the phone project",
+      "started": "2026-11-24T00:35:26Z",
+      "develop": "8a70906f"
     }
   },
   "advisories_checked_at": "2026-11-23T22:14:30Z",
