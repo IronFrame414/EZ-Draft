@@ -15,8 +15,10 @@
 // by X, sent) is on data-state; sent rooms say they are read-only until the office reopens them, and a member with
 // Approve field measurements gets Reopen in the menu. A length over 200 ft asks to confirm (entry.ts); changing the
 // shape of a measured room asks to confirm and keeps the walls with the same letter (rooms.ts withShape).
+// EZD-1963: the menu button is disabled in the server's HTML and enabled once the screen runs on the phone, so a tap
+// that lands before then is not lost (the menu's handler is not attached to the server's HTML).
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useOutboxActor } from '../components/outbox/OutboxDrain';
 import { useConfirm } from '../components/states/ConfirmProvider';
 import { formatLength } from '@ezdraft/geometry';
@@ -51,6 +53,15 @@ export type FieldMeasureScreenProps = {
   canReopen?: boolean;
 };
 
+// EZD-1963: false in the server's HTML and while React attaches to it, true from the first render after that.
+const noStore = () => () => {};
+const useOnDevice = () =>
+  useSyncExternalStore(
+    noStore,
+    () => true,
+    () => false,
+  );
+
 function newRoomId(rooms: readonly FieldRoom[]): string {
   let n = rooms.length;
   while (rooms.some((r) => r.id === `r${n}`)) n += 1;
@@ -68,6 +79,7 @@ export function FieldMeasureScreen({
 }: FieldMeasureScreenProps) {
   const t = useT();
   const confirm = useConfirm();
+  const onDevice = useOnDevice();
   const [reopenFailed, setReopenFailed] = useState(false);
   const actor = useOutboxActor();
   const sender = useMeasureSend(projectId, sentAt);
@@ -393,6 +405,7 @@ export function FieldMeasureScreen({
                 aria-label={t('field.measure.menu')}
                 aria-expanded={menuOpen}
                 aria-haspopup="menu"
+                disabled={!onDevice}
                 onClick={() => setMenuOpen((o) => !o)}
               >
                 <Icon name="more_horiz" size={20} />
