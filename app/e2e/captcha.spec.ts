@@ -16,7 +16,20 @@ import {
 } from '../test-harness/e2e/test';
 
 const T = en as Record<string, unknown>;
-const BUTTONS = ['sign-in-password-submit', 'sign-in-submit', 'sign-in-forgot'] as const;
+// EZD-1961 (Q-0800): each send button is in its own view (opener testid → send testid), so the checks open
+// each view and come Back; the widget stays mounted, so this renders, resets and removes nothing.
+const VIEWS = [
+  [null, 'sign-in-password-submit'],
+  ['sign-in-submit', 'sign-in-link-send'],
+  ['sign-in-forgot', 'sign-in-forgot-send'],
+] as const;
+async function eachButton(page: Page, check: (id: string) => Promise<void>): Promise<void> {
+  for (const [opener, id] of VIEWS) {
+    if (opener !== null) await page.getByTestId(opener).click();
+    await check(id);
+    if (opener !== null) await page.getByTestId('sign-in-back').click();
+  }
+}
 
 type Stub = {
   renders: { sitekey: string; language: string }[];
@@ -73,9 +86,9 @@ test.describe('EZD-034 captcha on sign-in', () => {
       sitekey: TURNSTILE_TEST_SITE_KEY,
       language: 'en',
     });
-    for (const id of BUTTONS) await expect(page.getByTestId(id)).toBeDisabled();
+    await eachButton(page, (id) => expect(page.getByTestId(id)).toBeDisabled());
     expect(await issue(page)).not.toBe('');
-    for (const id of BUTTONS) await expect(page.getByTestId(id)).toBeEnabled();
+    await eachButton(page, (id) => expect(page.getByTestId(id)).toBeEnabled());
     noCloudflare(w.hosts);
 
     const context = await newContext(browser, baseURL);
@@ -110,7 +123,7 @@ test.describe('EZD-034 captcha on sign-in', () => {
     await page.getByTestId('sign-in-password-submit').click();
     await expect(page.getByTestId('sign-in-error')).toHaveText(T['error.password_wrong'] as string);
     await expect.poll(async () => (await stub(page)).resets).toBe(1);
-    for (const id of BUTTONS) await expect(page.getByTestId(id)).toBeDisabled();
+    await eachButton(page, (id) => expect(page.getByTestId(id)).toBeDisabled());
     const first = w.posts.find((r) => (r.postData() ?? '').includes('captcha_token'));
     expect(first).toBeDefined();
     expect(first!.postData()).toContain('stub-token-1');
@@ -136,7 +149,7 @@ test.describe('EZD-034 captcha on sign-in', () => {
     await expect(page.getByTestId('captcha-unavailable')).toHaveText(
       T['error.captcha_unavailable'] as string,
     );
-    for (const id of BUTTONS) await expect(page.getByTestId(id)).toBeDisabled();
+    await eachButton(page, (id) => expect(page.getByTestId(id)).toBeDisabled());
     noCloudflare(w.hosts);
   });
 
@@ -147,11 +160,12 @@ test.describe('EZD-034 captcha on sign-in', () => {
     await page.goto('/sign-in');
     await expect(page.getByTestId('sign-in-email')).toBeVisible();
     await expect(page.locator('[data-testid=captcha]')).toHaveCount(0);
-    for (const id of BUTTONS) await expect(page.getByTestId(id)).toBeEnabled();
+    await eachButton(page, (id) => expect(page.getByTestId(id)).toBeEnabled());
     await page
       .getByTestId('sign-in-email')
       .fill(`nobody-${Math.random().toString(16).slice(2, 12)}@example.test`);
     await page.getByTestId('sign-in-submit').click();
+    await page.getByTestId('sign-in-link-send').click();
     await expect(page.getByTestId('sign-in-check-spam')).toBeVisible();
     expect(w.posts.length).toBeGreaterThanOrEqual(1);
     expect(w.posts.filter((r) => (r.postData() ?? '').includes('captcha_token'))).toEqual([]);

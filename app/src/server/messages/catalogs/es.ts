@@ -66,6 +66,8 @@ export const es = {
   'common.sign_in.password_submit': 'Iniciar sesión',
   'common.sign_in.send_instead': 'Mejor envíame un enlace de acceso por correo',
   'common.sign_in.forgot': '¿Olvidaste tu contraseña? Envíame un código por correo',
+  'common.sign_in.send_code': 'Envíame un código por correo',
+  'common.sign_in.way_back': 'Volver',
   'common.sign_in.invite_code_open': '¿Tienes un código de invitación?',
   'common.sign_in.invite_code_title': 'Únete con un código de invitación',
   'common.sign_in.invite_code_intro':

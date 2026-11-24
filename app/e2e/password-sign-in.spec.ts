@@ -240,6 +240,7 @@ test.describe('EZD-033 password sign-in', () => {
     await page.getByTestId('sign-in-email').fill(f.email);
     const after = new Date();
     await page.getByTestId('sign-in-forgot').click();
+    await page.getByTestId('sign-in-forgot-send').click();
     await expect(page.getByTestId('sign-in-code')).toBeVisible();
     await expect(page.getByTestId('sign-in-check-spam')).toBeVisible();
     const mail = await waitForAuthEmail(f.email, { after });
@@ -263,6 +264,7 @@ test.describe('EZD-033 password sign-in', () => {
     await second.getByTestId('sign-in-email').fill(g.email);
     const afterG = new Date();
     await second.getByTestId('sign-in-submit').click();
+    await second.getByTestId('sign-in-link-send').click();
     await expect(second.getByTestId('sign-in-code')).toBeVisible();
     const mailG = await waitForAuthEmail(g.email, { after: afterG });
     await sleep(3000);

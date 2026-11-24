@@ -154,6 +154,17 @@
   background: none;
   font: inherit;
   cursor: pointer;
+  /* EZD-1961 (Q-0800): every link under a sign-in form is centred (in a column form it would stretch left). */
+  align-self: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* EZD-1961 (Q-0800): the links under a sign-in form, one per line, centred. */
+.links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* EZD-138 (board S15j "Sign-in page · new link"): "Have an invite code?" under a rule at the foot of the card. */

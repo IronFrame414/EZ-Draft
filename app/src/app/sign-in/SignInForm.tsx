@@ -19,6 +19,9 @@ import styles from '../../components/auth/auth.module.css';
 // EZD-033 Step 6 (vault/plans/EZD-033.md; Q-0091; Q-0101): step 1 is email and password first, then
 // "Email me a sign-in link instead" and "Forgot password? Email me a code" (both send the normal sign-in
 // email through requestSignIn). The email box keeps what was typed; the password box is never refilled.
+// EZD-1961 (Q-0800): the step-1 views.
+type View = 'password' | 'link' | 'forgot';
+
 type SignInError =
   | 'invalid_email'
   | 'too_many_requests'
@@ -96,6 +99,10 @@ export function SignInForm({
   // EZD-138 (board S15j): "Have an invite code?" swaps step 1 for the invite code form, and the title with it.
   const [inviteMode, setInviteMode] = useState(false);
   const step1Disabled = pending || (captcha !== null && token === null);
+  // EZD-1961 (Q-0800): step 1 opens on email and password; the link and the forgot-password code each have
+  // their own view. An error stays hidden after a view switch until the next answer (attempt) arrives.
+  const [view, setView] = useState<View>('password');
+  const [hiddenError, setHiddenError] = useState(-1);
 
   const error = state.error ? (
     <p className={styles.error} role="alert" data-testid="sign-in-error">
@@ -119,6 +126,13 @@ export function SignInForm({
   const title = <h1 className={styles.title}>{t('common.sign_in.title')}</h1>;
 
   if (state.email === null) {
+    // EZD-1961 (Q-0800): one form, its contents switched by view, so the email box and the security check
+    // stay mounted and keep the typed email and the token. The openers and Back are plain buttons, so no
+    // action runs and the form is not reset.
+    const open = (next: View) => {
+      setHiddenError(state.attempt);
+      setView(next);
+    };
     return (
       <>
         {title}
@@ -137,69 +151,103 @@ export function SignInForm({
             defaultValue={state.typedEmail ?? ''}
             data-testid="sign-in-email"
           />
-          <label className={styles.label} htmlFor="sign-in-password">
-            {t('common.sign_in.password_label')}
-          </label>
-          <input
-            id="sign-in-password"
-            className={styles.input}
-            type="password"
-            name="password"
-            autoComplete="current-password"
-            required
-            data-testid="sign-in-password"
-          />
+          {view === 'password' && (
+            <>
+              <label className={styles.label} htmlFor="sign-in-password">
+                {t('common.sign_in.password_label')}
+              </label>
+              <input
+                id="sign-in-password"
+                className={styles.input}
+                type="password"
+                name="password"
+                autoComplete="current-password"
+                required
+                data-testid="sign-in-password"
+              />
+            </>
+          )}
           {captcha !== null && <Captcha {...captcha} resetKey={state.attempt} onToken={setToken} />}
           {token !== null && <input type="hidden" name="captcha_token" value={token} />}
-          {error}
-          <button
-            type="submit"
-            name="intent"
-            value="password"
-            className={styles.primary}
-            disabled={step1Disabled}
-            data-testid="sign-in-password-submit"
-          >
-            {t('common.sign_in.password_submit')}
-          </button>
-          <button
-            type="submit"
-            name="intent"
-            value="send"
-            formNoValidate
-            className={styles.secondary}
-            disabled={step1Disabled}
-            data-testid="sign-in-submit"
-          >
-            {t('common.sign_in.send_instead')}
-          </button>
-          <button
-            type="submit"
-            name="intent"
-            value="forgot"
-            formNoValidate
-            className={styles.textButton}
-            disabled={step1Disabled}
-            data-testid="sign-in-forgot"
-          >
-            {t('common.sign_in.forgot')}
-          </button>
+          {hiddenError === state.attempt ? null : error}
+          {view === 'password' && (
+            <>
+              <button
+                type="submit"
+                name="intent"
+                value="password"
+                className={styles.primary}
+                disabled={step1Disabled}
+                data-testid="sign-in-password-submit"
+              >
+                {t('common.sign_in.password_submit')}
+              </button>
+              <div className={styles.links}>
+                <button
+                  type="button"
+                  className={styles.textButton}
+                  disabled={pending}
+                  onClick={() => open('link')}
+                  data-testid="sign-in-submit"
+                >
+                  {t('common.sign_in.send_instead')}
+                </button>
+                <button
+                  type="button"
+                  className={styles.textButton}
+                  disabled={pending}
+                  onClick={() => open('forgot')}
+                  data-testid="sign-in-forgot"
+                >
+                  {t('common.sign_in.forgot')}
+                </button>
+              </div>
+            </>
+          )}
+          {view !== 'password' && (
+            <>
+              <button
+                type="submit"
+                name="intent"
+                value={view === 'link' ? 'send' : 'forgot'}
+                formNoValidate
+                className={styles.primary}
+                disabled={step1Disabled}
+                data-testid={view === 'link' ? 'sign-in-link-send' : 'sign-in-forgot-send'}
+              >
+                {t(view === 'link' ? 'common.sign_in.send' : 'common.sign_in.send_code')}
+              </button>
+              <div className={styles.links}>
+                <button
+                  type="button"
+                  className={styles.textButton}
+                  disabled={pending}
+                  onClick={() => open('password')}
+                  data-testid="sign-in-back"
+                >
+                  {t('common.sign_in.way_back')}
+                </button>
+              </div>
+            </>
+          )}
         </form>
-        <p className={styles.inviteRow}>
-          <button
-            type="button"
-            className={styles.textButton}
-            disabled={pending}
-            onClick={() => {
-              // The widget unmounts with step 1 and never clears its token; after Back a fresh one issues it.
-              setToken(null);
-              setInviteMode(true);
-            }}
-            data-testid="sign-in-invite-code"
-          >
-            {t('common.sign_in.invite_code_open')}
-          </button>
-        </p>
+        {view === 'password' && (
+          <p className={styles.inviteRow}>
+            <button
+              type="button"
+              className={styles.textButton}
+              disabled={pending}
+              onClick={() => {
+                // The widget unmounts with step 1 and never clears its token; after Back a fresh one issues it.
+                setToken(null);
+                setInviteMode(true);
+              }}
+              data-testid="sign-in-invite-code"
+            >
+              {t('common.sign_in.invite_code_open')}
+            </button>
+          </p>
+        )}
       </>
     );
   }
@@ -242,6 +290,7 @@ export function SignInForm({
           formNoValidate
           className={styles.secondary}
           disabled={pending}
+          onClick={() => setView('password')}
           data-testid="sign-in-change-email"
         >
           {t('common.sign_in.change_email')}

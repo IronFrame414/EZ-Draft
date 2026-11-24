@@ -45,6 +45,9 @@ export const en = {
   'common.sign_in.password_submit': 'Sign in',
   'common.sign_in.send_instead': 'Email me a sign-in link instead',
   'common.sign_in.forgot': 'Forgot password? Email me a code',
+  // EZD-1961 (Q-0800): the send button of the forgot-password view, and Back to the password view.
+  'common.sign_in.send_code': 'Email me a code',
+  'common.sign_in.way_back': 'Back',
   // EZD-138 (board S15j W3-W8): the invite code on the sign-in page.
   'common.sign_in.invite_code_open': 'Have an invite code?',
   'common.sign_in.invite_code_title': 'Join with an invite code',
