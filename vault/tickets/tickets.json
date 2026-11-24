@@ -26831,6 +26831,25 @@
     "AC-EZD-1970-4"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-1971",
+   "phase": 10,
+   "title": "Fix: benchmark project B1 fails on CI waiting for the editor",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-24: GitHub CI on develop failed in 3 of 4 runs after 11:57Z at e2e/benchmark-project.spec.ts:25 (EZD-236 B1): the editor-state ready locator waited the default 5 s on the benchmark project and found 0, while the same test passes in local loop checks. Other CI failures in those runs rotated (disclaimer, scene-3d, sheet-renderer, sign-out-outbox, keyboard-shortcuts). The benchmark project is the large generated project (EZD-236), so first open on a slower runner can take longer than the default expect timeout.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1971-1",
+    "AC-EZD-1971-2",
+    "AC-EZD-1971-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
