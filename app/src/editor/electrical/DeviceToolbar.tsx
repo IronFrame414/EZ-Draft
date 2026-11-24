@@ -9,6 +9,8 @@
 // does not draw it; `paused` (view only, or a version open) draws every item disabled with the note.
 // EZD-604: the Circuit item after the device items (board order), disabled until a circuit is chosen in the left
 // panel; while it is armed a plan click on a device puts it on that circuit.
+// EZD-605: the Switch leg item before Circuit (board order); while it is armed a click on a switch, then on lights,
+// draws that switch's leg.
 import { useSyncExternalStore, type ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
 import type { IconName } from '../../components/icon/icon-names.generated';
@@ -20,6 +22,7 @@ import {
   chosenKind,
   CIRCUIT_TOOL,
   DEVICE_TOOLBAR_ITEMS,
+  SWITCH_LEG_TOOL,
   TOOLBAR_KINDS,
   type DeviceToolbarItem,
 } from './toolbar-items';
@@ -57,8 +60,11 @@ export function DeviceToolbar({ toolbar, paused }: DeviceToolbarProps): ReactEle
   // EZD-604: the Circuit tool needs a circuit chosen in the left panel; without one it is disabled.
   const view = useSyncExternalStore(circuitView.subscribe, circuitView.get, circuitView.get);
   const circuitArmed = !paused && s.armed === CIRCUIT_TOOL && view.circuit !== null;
+  const legArmed = !paused && s.armed === SWITCH_LEG_TOOL;
   const armed =
-    paused || s.armed === CIRCUIT_TOOL ? null : (s.armed as DeviceToolbarItem | null);
+    paused || s.armed === CIRCUIT_TOOL || s.armed === SWITCH_LEG_TOOL
+      ? null
+      : (s.armed as DeviceToolbarItem | null);
   const kinds = armed === null ? [] : TOOLBAR_KINDS[armed];
   return (
     <div className={styles.bar} data-testid="device-toolbar">
@@ -81,6 +87,17 @@ export function DeviceToolbar({ toolbar, paused }: DeviceToolbarProps): ReactEle
           <button
             type="button"
             className={`${styles.item} ${touch.hitArea}`}
+            data-testid="device-tool-switch-leg"
+            aria-pressed={legArmed}
+            disabled={paused}
+            onClick={() => toolbar.press(SWITCH_LEG_TOOL)}
+          >
+            <Icon name="draw" size={16} />
+            <span>{t('office.electrical.tool.switch_leg')}</span>
+          </button>
+          <button
+            type="button"
+            className={`${styles.item} ${touch.hitArea}`}
             data-testid="device-tool-circuit"
             aria-pressed={circuitArmed}
             disabled={paused || view.circuit === null}
@@ -91,6 +108,11 @@ export function DeviceToolbar({ toolbar, paused }: DeviceToolbarProps): ReactEle
             <span>{t('office.electrical.tool.circuit')}</span>
           </button>
         </div>
+        {legArmed ? (
+          <span className={styles.note} data-testid="device-toolbar-leg-hint">
+            {t('office.electrical.leg.pick_switch')}
+          </span>
+        ) : null}
         {paused ? (
           <span className={styles.note} data-testid="device-toolbar-paused">
             {t('office.lock.tools_paused')}

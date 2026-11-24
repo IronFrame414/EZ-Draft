@@ -8,6 +8,7 @@
 // One wire routes every ceiling tool's receiver (`wireCeilingTools`), so turning one tool off never clears another's.
 import type { CeilingToolId, SurfaceSetting } from '../ceiling/surface';
 import type { PlanPointerReceiver } from '../plan/input';
+import { createValueStore } from '../shared/value-store';
 // EZD-510 (11 Budgets): the tools' click receiver is in ceiling-device-receiver.ts, which loads with the Ceiling view's
 // lazy module (lazy/rcp) rather than in the editor's first download.
 export type CeilingDeviceKind = import('./fixture-tool').CeilingDeviceKind;
@@ -40,19 +41,15 @@ export type DeviceChoice = {
 };
 
 export function createDeviceChoice(): DeviceChoice {
-  const chosen = new Map<CeilingDeviceToolId, CeilingDeviceKind>();
-  const listeners = new Set<() => void>();
+  // A new record on each choice, so the store sees the change.
+  const chosen = createValueStore<Partial<Record<CeilingDeviceToolId, CeilingDeviceKind>>>({});
   return {
-    get: (tool) => chosen.get(tool) ?? DEVICE_TOOL_KINDS[tool][0]!,
+    get: (tool) => chosen.get()[tool] ?? DEVICE_TOOL_KINDS[tool][0]!,
     set(tool, kind) {
-      if (!DEVICE_TOOL_KINDS[tool].includes(kind) || chosen.get(tool) === kind) return;
-      chosen.set(tool, kind);
-      for (const l of [...listeners]) l();
+      if (!DEVICE_TOOL_KINDS[tool].includes(kind) || chosen.get()[tool] === kind) return;
+      chosen.set({ ...chosen.get(), [tool]: kind });
     },
-    subscribe(listener) {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
+    subscribe: chosen.subscribe,
   };
 }
 

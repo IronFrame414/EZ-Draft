@@ -5,6 +5,9 @@
 // Pause: touch vault/build/STOP (running tickets finish first). State: vault/build/state.json.
 // Self-restart (EZD-1967): a merge that changes the loop's own code drains like STOP, dry-runs the new code and exits 75
 // so launchd relaunches it (scripts/loop/self-restart.mjs).
+// Build order (EZD-1940): security fixes, the config.json `priority` list, retried tickets, then phase, build position
+// and id (scripts/loop/order.mjs). A ticket that failed once is requeued at the front, so the priority list is no longer
+// needed to bring a retry forward.
 // Lanes (Josh 2026-11-16): up to config `lanes` tickets build at once, each with its own database lane. No two running
 // tickets may edit the same file: each ticket first predicts the files it will change (its footprint, cached in
 // vault/build/footprints.json), starts only when no running ticket holds any of them, claims files it finds it needs
@@ -25,7 +28,9 @@ import { runCheck } from './loop/check-run.mjs';
 import { createEvents, failureSummary, msToSecondEnd, oneLine, sameSecondEvents, secondOf } from './loop/failure-lines.mjs';
 import { withImportingTests } from './loop/import-graph.mjs';
 import { changedFiles, createSelfRestart, runDryRun } from './loop/self-restart.mjs';
+import { buildOrder, phaseRank } from './loop/order.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
+import { TYPES_FILE, orderMigrations, regenerateTypes, settleGeneratedConflicts, touchesSchema } from './loop/merge-files.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const B = path.join(ROOT, 'vault/build');
@@ -48,7 +53,8 @@ const DEFAULTS = {
   trial_size: 20, lanes: [0, 1, 2], footprint_effort: 'low', footprint_timeout_min: 15, footprint_lookahead: 6,
   merge_rounds: 3, holder_wait_min: 240, idle_minutes: 30, limit_sleep_minutes: 30, limit_probe_minutes: 5, red_streak_guard: 3,
   skip_tracks: ['tooling'], skip_statuses: ['blocked'],
-  // Tickets built first when eligible, even after a failure (a retried ticket otherwise waits at the back of the queue).
+  // Tickets built first when eligible (after security fixes). Not needed for retries: a retried ticket already goes
+  // before every fresh ticket of the same priority rank (EZD-1940, scripts/loop/order.mjs).
   priority: [],
   // Josh 2026-11-14: a ticket in this phase rank or higher starts only when every ticket in every lower phase rank is
   // complete (done, a skipped track or a skipped status). A set-aside ticket is not complete and holds the gate.
@@ -165,8 +171,6 @@ function writeSetAside(s) {
 
 // ---------- tickets ----------
 function tickets() { const t = readJson(path.join(ROOT, 'vault/tickets/tickets.json'), {}); return Array.isArray(t) ? t : t.tickets || []; }
-// Phase 56 (AI assistant) is built right after phase 5 and before phase 6 (vault/tickets/PHASES.md, Q-0630).
-const phaseRank = (p) => (Number(p) === 56 ? 5.5 : Number(p));
 // Lower-rank tickets that keep a ticket of rank r from starting under the phase gate (empty when r is below the gate).
 function gateBlockers(t, s, c = cfg(), statuses = seedStatuses()) {
   const r = phaseRank(t.phase);
@@ -187,11 +191,8 @@ function candidates(s, c, statuses) {
     && !(phaseRank(t.phase) > Number(c.max_phase ?? 999))
     && !c.skip_tracks.includes(t.track) && !c.skip_statuses.includes(statuses[t.id])
     && (t.depends_on || []).every((d) => done.has(d)));
-  const retried = (t) => (s.retries?.[t.id] ? 1 : 0);
-  const rank = (t) => { const i = (c.priority || []).indexOf(t.id); return i < 0 ? 1e9 : i; };
-  const sec = (t) => (t.track === SECURITY_TRACK ? 0 : 1);
-  list.sort((a, b) => (sec(a) - sec(b)) || (rank(a) - rank(b)) || (retried(a) - retried(b)) || (phaseRank(a.phase) - phaseRank(b.phase)) || ((a.build_position ?? 1e9) - (b.build_position ?? 1e9)) || a.id.localeCompare(b.id));
-  return list;
+  // Security, priority list, retried first, phase, build position, id (scripts/loop/order.mjs, EZD-1940).
+  return buildOrder(list, { retries: s.retries, priority: c.priority });
 }
 // Every candidate the phase gate lets through, in build order. A running ticket counts as not done for the gate.
 function eligible(s) {
@@ -312,6 +313,10 @@ function recordUsage(ticket, role, requested, r) {
 // The full gate on the ticket's lane. Asynchronous, so the other lanes keep going while it runs.
 // A red check also gets `summary`: one whole line naming the failed stage and up to 5 failing tests, read in full from
 // this check's check-failures.log (EZD-1939). A check-failures.log older than this check is an earlier run's, not read.
+// The files a branch changes against develop, and an async runner on the lane's database (EZD-1941).
+const branchChanges = (wt) => git(['diff', '--name-only', 'develop...HEAD'], wt).out.split('\n').filter(Boolean);
+const laneRun = (wt, lane) => (cmd, args) => runCheck({ cmd, args, cwd: wt, env: laneEnv(lane, wt), timeoutMs: 25 * 60000 });
+
 function check(cwd, lane = 0) {
   const started = Date.now();
   // Past 90 min: SIGTERM, then SIGKILL 10 s later if the check is still running (audit 2026-11-23 W6).
@@ -379,7 +384,7 @@ function builderPrompt(t, plan, reads) {
   ].join('\n');
 }
 function fixPrompt(kind, detail) {
-  if (kind === 'merge') return `develop moved while you worked (another lane merged). \`git merge develop\` stopped on conflicts in this folder; the conflicted files are below. Resolve every conflict keeping both changes' intent, commit the merge, rerun the full check (node scripts/check.mjs) until it passes, and commit. The claim rules from the start still hold.\n\n${detail.slice(0, 6000)}`;
+  if (kind === 'merge') return `develop moved while you worked (another lane merged). \`git merge develop\` stopped on conflicts in this folder; the conflicted files are below. Resolve every conflict keeping both changes' intent (${TYPES_FILE} is not in the list: the loop regenerates it after the merge, so leave it as it is), commit the merge, rerun the full check (node scripts/check.mjs) until it passes, and commit. The claim rules from the start still hold.\n\n${detail.slice(0, 6000)}`;
   return kind === 'check'
     ? `The full check (node scripts/check.mjs) failed after your work. The failing lines are below; the full output is in check.log in this folder. Fix the cause (do not weaken tests), rerun the full check until it passes, and commit.\n\n${detail.slice(0, 9000)}`
     : `An independent reviewer found blocking problems. Fix each one, rerun the full check (node scripts/check.mjs) until it passes, and commit. If you believe a finding is wrong, say why in one line instead of changing code.\n\n${detail}`;
@@ -447,7 +452,7 @@ function addDeps(id, ids) {
   git(['commit', '-q', '-m', `chore(tickets): ${id} depends on ${added.join(', ')} (build loop: named as needed first)`, '--', 'vault/tickets/tickets.json']);
   return added;
 }
-// First failure: back in line (at the end), with any ticket named as needed first added to depends_on.
+// First failure: back in line (at the front: retried tickets go first, EZD-1940), with any ticket named as needed first added to depends_on.
 // Second failure: set aside for Josh (Josh 2026-11-13).
 // line: the one-line detail for loop.log (a red check's summary); without it, the detail's head in whole words.
 function setAside(s, t, reason, detail, wt, needs = [], line = '') {
@@ -635,25 +640,58 @@ async function doTicket(t, s, lane, kind = 'ticket') {
   // Merge: develop must be an ancestor of the branch at the moment of the squash. Bringing develop in and re-checking
   // takes time, during which another lane may merge; then the round repeats. The squash itself is synchronous, so no
   // other lane can merge between the ancestor test and the commit.
+  // EZD-1941: the types check (committed types equal the ones generated from the branch's migrations, else no merge)
+  // is an await, so it runs inside the rounds and the ancestor test is repeated after it: no await sits between the
+  // last ancestor test and the squash.
+  let typesOk = false;
   for (let round = 0; ; round++) {
-    if (git(['merge-base', '--is-ancestor', 'develop', 'HEAD'], wt).ok) break;
+    if (git(['merge-base', '--is-ancestor', 'develop', 'HEAD'], wt).ok) {
+      if (typesOk || !touchesSchema(branchChanges(wt))) break;
+      const tc = await regenerateTypes(laneRun(wt, lane), wt, { check: true });
+      if (!tc.ok) { setAside(s, t, `${TYPES_FILE} differs from the regenerated types (${tc.step})`, tc.out.slice(-3000), wt); return 'aside'; }
+      typesOk = true; round--;
+      continue;
+    }
+    typesOk = false;
     if (round >= c.merge_rounds) { setAside(s, t, `develop kept moving: ${c.merge_rounds} merge rounds`, '', wt); return 'aside'; }
     const m = git(['merge', '-q', '--no-edit', 'develop'], wt);
     if (!m.ok) {
-      const conflicted = git(['diff', '--name-only', '--diff-filter=U'], wt).out;
-      if (!conflicted) { git(['merge', '--abort'], wt); setAside(s, t, 'merge with develop failed', m.err || m.out, wt); return 'aside'; }
-      log(`${t.id} merge conflict with develop in ${conflicted.split('\n').join(', ')}; builder resolving`);
-      const f = await fix('merge', `${conflicted}\n\n${m.out}\n${m.err}`, `resolve merge ${round + 1}`);
-      if (f.limited) { git(['merge', '--abort'], wt); return stopForLimit(f); }
-      if (git(['diff', '--name-only', '--diff-filter=U'], wt).out || existsSync(path.join(wt, '.git')) && git(['rev-parse', '-q', '--verify', 'MERGE_HEAD'], wt).ok) {
-        git(['merge', '--abort'], wt); setAside(s, t, 'merge clash with develop not resolved', conflicted, wt); return 'aside';
+      const all = git(['diff', '--name-only', '--diff-filter=U'], wt).out;
+      if (!all) { git(['merge', '--abort'], wt); setAside(s, t, 'merge with develop failed', m.err || m.out, wt); return 'aside'; }
+      // EZD-1941: the generated database types are never hand-merged; they are regenerated below.
+      const rest = settleGeneratedConflicts(all.split('\n').filter(Boolean), git, wt);
+      const conflicted = rest.join('\n');
+      if (!rest.length) {
+        log(`${t.id} merge conflict with develop only in ${TYPES_FILE}; regenerating it`);
+        const cm = git(['commit', '-q', '--no-edit'], wt);
+        if (!cm.ok) { git(['merge', '--abort'], wt); setAside(s, t, 'merge commit failed', cm.err || cm.out, wt); return 'aside'; }
+      } else {
+        log(`${t.id} merge conflict with develop in ${rest.join(', ')}; builder resolving`);
+        const f = await fix('merge', `${conflicted}\n\n${m.out}\n${m.err}`, `resolve merge ${round + 1}`);
+        if (f.limited) { git(['merge', '--abort'], wt); return stopForLimit(f); }
+        if (git(['diff', '--name-only', '--diff-filter=U'], wt).out || existsSync(path.join(wt, '.git')) && git(['rev-parse', '-q', '--verify', 'MERGE_HEAD'], wt).ok) {
+          git(['merge', '--abort'], wt); setAside(s, t, 'merge clash with develop not resolved', conflicted, wt); return 'aside';
+        }
       }
     }
     commitAll();
+    // EZD-1941: the branch's migrations apply after develop's newest; the types are regenerated from the merged
+    // migrations and committed (the check below and the types check before the squash compare them).
+    const om = orderMigrations(git, wt, t.id);
+    if (!om.ok) { setAside(s, t, 'renaming migrations after develop failed', om.error, wt); return 'aside'; }
+    if (om.renames.length) log(`${t.id} migrations renamed to apply after develop's newest: ${om.renames.map((r) => `${path.basename(r.from)} -> ${path.basename(r.to)}`).join(', ')}`);
+    if (touchesSchema(branchChanges(wt))) {
+      const rg = await regenerateTypes(laneRun(wt, lane), wt);
+      if (!rg.ok) { setAside(s, t, `regenerating ${TYPES_FILE} after the merge failed (${rg.step})`, rg.out.slice(-3000), wt); return 'aside'; }
+      if (git(['status', '--porcelain', '--', TYPES_FILE], wt).out) git(['commit', '-q', '-m', `chore(${t.id}): ${TYPES_FILE} regenerated after merging develop`, '--', TYPES_FILE], wt);
+      // Just generated from these migrations and committed: equal by construction, no second database reset.
+      typesOk = !git(['status', '--porcelain', '--', TYPES_FILE], wt).out;
+    }
     ck = await check(wt, lane);
     if (!ck.pass) { setAside(s, t, 'check red after merging newer develop', ck.detail.slice(-3000), wt, [], ck.summary); return 'aside'; }
   }
 
+  // end of the merge rounds: only synchronous steps from here to the squash commit (EZD-1941)
   // squash merge into develop in the main checkout
   if (git(['rev-parse', '--abbrev-ref', 'HEAD']).out !== 'develop') { setAside(s, t, 'main checkout is not on develop', '', wt); return 'aside'; }
   // The squash commit must hold the ticket's change only: unstage the loop's own build files first. Anything else

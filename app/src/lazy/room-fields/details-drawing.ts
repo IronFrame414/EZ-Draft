@@ -10,6 +10,7 @@ import {
   type Point,
 } from '@ezdraft/geometry';
 import { circuitItems, type CircuitDrawOpts } from '../../editor/electrical/circuit-drawing';
+import { switchLegItems } from '../../editor/electrical/switch-legs';
 import { heightNoteText } from '../../editor/electrical/height-note';
 import { roomTransitions } from '../../editor/layers/floor-transitions';
 import { PT_TO_MODEL_IN } from '../../editor/plan/glyph-atlas';
@@ -230,6 +231,7 @@ export function transitionItems(
 // Both, as the plan's `extraItems`.
 // EZD-603: `opts.heightNotes` is the left panel's Height notes switch (on when absent).
 // EZD-604: `opts.circuits` adds the circuit tags, lines and home runs (circuit-drawing.ts); none when absent.
+// EZD-605: with its `switchLegs` on, the switch legs too (switch-legs.ts).
 export function planDetailItems(
   objects: readonly ModelObject[],
   level: string,
@@ -245,6 +247,10 @@ export function planDetailItems(
     ...(opts.circuits === undefined
       ? []
       : circuitItems(objects, textPt, { ...opts.circuits, radiusOf: deviceRadius })),
+    // EZD-605: the switch legs, dashed, while the Switch legs chip is on.
+    ...(opts.circuits?.switchLegs === true
+      ? switchLegItems(objects, opts.circuits.all, deviceRadius)
+      : []),
   ];
 }
 

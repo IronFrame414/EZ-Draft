@@ -13,6 +13,7 @@ import { pointInRing } from '../rooms/area';
 import { cutoutFitsPiece } from './cutout';
 import { isValidCountertopOutline } from './outline';
 import { countertopEdgeLengthIn } from './piece';
+import { cross, sub } from '../vec';
 
 export const COUNTERTOP_OVERHANG_PRESETS = ['flush', 'standard', 'bar', 'seating', 'wall'] as const;
 export type CountertopOverhangPreset = (typeof COUNTERTOP_OVERHANG_PRESETS)[number];
@@ -219,14 +220,14 @@ export function countertopSides(piece: CountertopPieceData): CountertopSides | n
 // into another is refused by the editor.
 export function countertopOutlinesOverlap(a: readonly Point[], b: readonly Point[]): boolean {
   const EPS = 1e-6;
-  const cross = (p: Point, q: Point, r: Point) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+  const turn = (p: Point, q: Point, r: Point) => cross(sub(q, p), sub(r, p));
   for (let i = 0; i < a.length; i++) {
     const p = a[i]!;
     const q = a[(i + 1) % a.length]!;
     for (let j = 0; j < b.length; j++) {
       const r = b[j]!;
       const s = b[(j + 1) % b.length]!;
-      if (cross(p, q, r) * cross(p, q, s) < -EPS && cross(r, s, p) * cross(r, s, q) < -EPS) return true;
+      if (turn(p, q, r) * turn(p, q, s) < -EPS && turn(r, s, p) * turn(r, s, q) < -EPS) return true;
     }
   }
   const strictlyInside = (pt: Point, ring: readonly Point[]) => {
@@ -234,7 +235,7 @@ export function countertopOutlinesOverlap(a: readonly Point[], b: readonly Point
       const u = ring[i]!;
       const v = ring[(i + 1) % ring.length]!;
       const len = Math.hypot(v.x - u.x, v.y - u.y);
-      if (len > 0 && Math.abs(cross(u, v, pt)) / len < 1e-6) {
+      if (len > 0 && Math.abs(turn(u, v, pt)) / len < 1e-6) {
         const t = ((pt.x - u.x) * (v.x - u.x) + (pt.y - u.y) * (v.y - u.y)) / (len * len);
         if (t >= -1e-9 && t <= 1 + 1e-9) return false;
       }

@@ -495,7 +495,15 @@
     "EZD-1970",
     "EZD-415",
     "EZD-1971",
-    "EZD-1972"
+    "EZD-1972",
+    "EZD-1940",
+    "EZD-1904",
+    "EZD-1906a",
+    "EZD-1973",
+    "EZD-605",
+    "EZD-1941",
+    "EZD-1974",
+    "EZD-1975"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1837,6 +1845,70 @@
       "ts": "2026-11-24T18:47:02Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1940",
+      "title": "Loop: retried tickets go first, not last",
+      "commit": "904e57b6",
+      "ts": "2026-11-24T19:17:37Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1904",
+      "title": "Geometry: one vector helper module",
+      "commit": "08f559eb",
+      "ts": "2026-11-24T19:49:47Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1906a",
+      "title": "Editor shared helpers (ids, value store, store hook, inch text) in tools, selection, edit",
+      "commit": "98b3c004",
+      "ts": "2026-11-24T20:30:19Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1973",
+      "title": "Fix: the first tap after a touch drag on the tool rail is sometimes lost",
+      "commit": "b3e2b2ba",
+      "ts": "2026-11-24T21:46:08Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-605",
+      "title": "Switch legs",
+      "commit": "25c7022b",
+      "ts": "2026-11-24T22:14:56Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1941",
+      "title": "Loop: architecture.md, database.types.ts and single migration files stop blocking lanes",
+      "commit": "f7785141",
+      "ts": "2026-11-24T22:44:27Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1974",
+      "title": "Fix: the EZD-136 every-page disclaimer test times out on CI",
+      "commit": "e5390c56",
+      "ts": "2026-11-24T23:06:33Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1975",
+      "title": "Fix: the sheet renders 3 or 4 times instead of 2 after Plan edits (EZD-702b AC-1/AC-2 on CI)",
+      "commit": "9e0a81cc",
+      "ts": "2026-11-24T23:43:00Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2050,14 +2122,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-1940": {
-      "lane": 3,
-      "title": "Loop: retried tickets go first, not last",
-      "started": "2026-11-24T17:12:52Z",
-      "develop": "8a5a52bf"
-    }
-  },
-  "advisories_checked_at": "2026-11-24T16:16:06Z",
+  "running": {},
+  "advisories_checked_at": "2026-11-24T22:17:04Z",
   "hold": {}
 }

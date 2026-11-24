@@ -47,6 +47,7 @@ import {
   type DrawingView,
   type OmittedObject,
 } from './types';
+import { add } from '../vec';
 
 type WallObject = Extract<ModelObject, { type: 'wall' }>;
 type OpeningObject = Extract<ModelObject, { type: 'opening' }>;
@@ -64,7 +65,6 @@ type Frame = {
   vertical: boolean;
 };
 
-const add = (p: Point, v: Point, k: number): Point => ({ x: p.x + v.x * k, y: p.y + v.y * k });
 const at = (f: Frame, s: number, o: number): Point => add(add(f.start, f.d, s), f.n, o);
 
 function unit(from: Point, to: Point): { d: Point; n: Point; length: number } {

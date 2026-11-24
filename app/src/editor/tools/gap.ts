@@ -24,6 +24,7 @@ import type { MessageKey } from '../../server/messages/catalog';
 import type { Change, Objects } from '../model/patches';
 import { closeChainSides } from './chain-sides';
 import { roomChanges, toModelObjects, wallEditChanges } from './model-changes';
+import { sameId, sameIds } from '../shared/ids';
 
 export type GapAction = 'absorb' | 'keep';
 
@@ -37,8 +38,6 @@ export type GapBox = {
   actions: GapAction[];
   note: MessageKey | null;
 };
-
-const sameId = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
 export function gapSizeText(displayIn: number): string {
   return displayIn === 12 ? '12"' : formatLength(displayIn, 16);
@@ -204,9 +203,6 @@ export type GapUiSlice = {
 };
 
 export type GapSectionState = { box: GapBox; picking: boolean; alert: MessageKey | null };
-
-const sameIds = (a: readonly string[], b: readonly string[]) =>
-  a.length === b.length && a.every((id, i) => id === b[i]);
 
 export function gapLastWallId(box: GapBox): string | null {
   return box.wallIds[box.wallIds.length - 1] ?? null;

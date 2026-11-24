@@ -6,6 +6,7 @@ import { outlineAreaSqIn } from '../rooms/area';
 import type { CountertopEdge, CountertopPieceData, Point } from '../schema';
 import { COUNTERTOP_LABEL_PATTERN, COUNTERTOP_OUTLINE_MAX } from '../schema';
 import { cutoutFitsPiece } from './cutout';
+import { dist } from '../vec';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -26,8 +27,6 @@ export function nextCountertopLabels(used: readonly string[], count: number): st
   }
   return out;
 }
-
-const dist = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 
 function segmentsCross(a: Point, b: Point, c: Point, d: Point): boolean {
   const o = (p: Point, q: Point, r: Point) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);

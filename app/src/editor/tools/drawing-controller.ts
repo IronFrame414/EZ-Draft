@@ -139,7 +139,11 @@ import {
 import { devicesOn } from './device-move';
 import { fixturesModule } from './fixtures-module';
 import { VIEW_TOOL_IDS } from './tool-defs';
-import { DEFAULT_BINDINGS, commandForKey, type ShortcutBindings } from '../../lib/defaults/shortcut-keys';
+import {
+  DEFAULT_BINDINGS,
+  commandForKey,
+  type ShortcutBindings,
+} from '../../lib/defaults/shortcut-keys';
 import { sketchModule } from './sketch-module';
 import { initialSketchState, reduceSketch, type SketchState } from './sketch-tool';
 import {
@@ -149,6 +153,8 @@ import {
   type MeasureInput,
   type MeasureState,
 } from './measure-tool';
+import { idKey, sameIds } from '../shared/ids';
+import { createListeners } from '../shared/value-store';
 
 export type DrawingFrame = {
   rect: boolean;
@@ -295,16 +301,12 @@ type SnapContext = { anchor: Point | null; referenceDirection: Point | null };
 
 const NO_CONTEXT: SnapContext = { anchor: null, referenceDirection: null };
 
-const sameIds = (a: readonly string[], b: readonly string[]) =>
-  a.length === b.length && a.every((id, i) => id === b[i]);
-
 const sameBoxes = (a: readonly GapBox[], b: readonly GapBox[]) =>
   a.length === b.length && JSON.stringify(a) === JSON.stringify(b);
 
 const wallsIn = (models: readonly ModelObject[]): WallObject[] =>
   models.filter((o): o is WallObject => o.type === 'wall');
 
-const lower = (id: string) => id.toLowerCase();
 const otherSide = (side: DoorSwing | null): DoorSwing => (side === 'left' ? 'right' : 'left');
 
 export function createDrawingController(deps: DrawingDeps): DrawingController {
@@ -365,8 +367,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   // EZD-223: the sketch strokes drawn on this page.
   let sketches: SketchShape[] = [];
 
-  const uiListeners = new Set<() => void>();
-  const frameListeners = new Set<(frame: DrawingFrame | null) => void>();
+  const uiListeners = createListeners();
+  const frameListeners = createListeners<[DrawingFrame | null]>();
 
   const computeBoxes = (): GapBox[] =>
     level === null
@@ -412,7 +414,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     ui = next;
     syncReceiver();
     syncHover();
-    for (const l of [...uiListeners]) l();
+    uiListeners.notify();
   };
 
   const receiver: PlanPointerReceiver = (event) => onPointer(event);
@@ -546,10 +548,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   const findOpening = (id: string): OpeningObject | null =>
-    openings.find((o) => lower(o.id) === lower(id)) ?? null;
+    openings.find((o) => idKey(o.id) === idKey(id)) ?? null;
 
   const findWall = (id: string | null): WallObject | null =>
-    id === null ? null : (walls.find((w) => lower(w.id) === lower(id)) ?? null);
+    id === null ? null : (walls.find((w) => idKey(w.id) === idKey(id)) ?? null);
 
   // The opening the tool owns, when it is still in the model.
   const ownedOpening = (t: OpeningTool): OpeningObject | null =>
@@ -641,7 +643,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     if (ids.length !== 1) return result;
     const id = ids[0]!;
     const after = afterOf(outcome !== null && outcome.ok ? outcome.changed : []);
-    const o = after.find((x) => lower(x.id) === lower(id));
+    const o = after.find((x) => idKey(x.id) === idKey(id));
     if (o?.type === 'wall') {
       return {
         ...result,
@@ -667,8 +669,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   function afterOf(changed: readonly ModelObject[]): ModelObject[] {
     const from = moveModels();
     if (changed.length === 0) return from;
-    const byId = new Map(changed.map((o) => [lower(o.id), o]));
-    return from.map((o) => byId.get(lower(o.id)) ?? o);
+    const byId = new Map(changed.map((o) => [idKey(o.id), o]));
+    return from.map((o) => byId.get(idKey(o.id)) ?? o);
   }
 
   // EZD-212c D9, D10: P211b's opening frame of one selected opening, its host and offsets read from `from`.
@@ -680,7 +682,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     const fromWalls = wallsIn(from);
     const hostId = o.data.geometry.hostWallId;
     const host =
-      hostId === null ? null : (fromWalls.find((w) => lower(w.id) === lower(hostId)) ?? null);
+      hostId === null ? null : (fromWalls.find((w) => idKey(w.id) === idKey(hostId)) ?? null);
     if (host === null) return null;
     return {
       data: o.data,
@@ -701,7 +703,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     const id = ids[0]!;
     const from = moveModels();
     const o = from.find(
-      (x) => (x.type === 'wall' || x.type === 'opening') && lower(x.id) === lower(id),
+      (x) => (x.type === 'wall' || x.type === 'opening') && idKey(x.id) === idKey(id),
     );
     if (o === undefined) return null;
     const selection: SelectionFrame = {
@@ -726,7 +728,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     const after = afterOf(changed ?? []);
     let size: SelectionFrame['size'] = null;
     if (h.kind === 'opening' && changed !== null && outcome !== null) {
-      const o = changed.find((x) => x.type === 'opening' && lower(x.id) === lower(h.id));
+      const o = changed.find((x) => x.type === 'opening' && idKey(x.id) === idKey(h.id));
       const normal = sizeChipNormal(after, h.id);
       if (o !== undefined && o.type === 'opening' && normal !== null)
         size = { at: o.data.geometry.center, normal, text: formatChipDistance(outcome.size) };
@@ -813,7 +815,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   function emitFrame(): void {
     frame = buildFrame();
-    for (const l of [...frameListeners]) l(frame);
+    frameListeners.notify(frame);
   }
 
   function finishStep(step: {
@@ -840,8 +842,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     refreshDrawingIds();
     // EZD-213c D-Finish: a chain that ended and left a gap selects the gap's last wall.
     const lastDrawn = before[before.length - 1];
-    if (lastDrawn !== undefined && !drawingIds.some((id) => lower(id) === lower(lastDrawn))) {
-      const box = ui.boxes.find((b) => b.wallIds.some((id) => lower(id) === lower(lastDrawn)));
+    if (lastDrawn !== undefined && !drawingIds.some((id) => idKey(id) === idKey(lastDrawn))) {
+      const box = ui.boxes.find((b) => b.wallIds.some((id) => idKey(id) === idKey(lastDrawn)));
       const id = box === undefined ? null : gapLastWallId(box);
       if (id !== null) link?.select([id]);
     }
@@ -1168,8 +1170,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (outcome.changed.length === 0) return;
     const before = moveModels();
-    const swapped = new Map(outcome.changed.map((o) => [lower(o.id), o]));
-    const after = before.map((o) => swapped.get(lower(o.id)) ?? o);
+    const swapped = new Map(outcome.changed.map((o) => [idKey(o.id), o]));
+    const after = before.map((o) => swapped.get(idKey(o.id)) ?? o);
     const fixtureMoved = outcome.changed.some((o) => o.type === 'fixture');
     store.applyEdit(
       moveEditChanges(
@@ -1323,7 +1325,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
                     ? { id, state: initialMeasureState() }
                     : id === 'cabinets' || id === 'countertops' || id === 'electrical'
                       ? { id, state: null }
-                    : { id, state: initialOpeningToolState(id) };
+                      : { id, state: initialOpeningToolState(id) };
     if (id === 'fixtures') loadFixtures();
     if (id === 'sketch') sketchModule.preload();
     // EZD-404: the cabinet screen covers the plan, so no plan object stays selected under it.
@@ -1393,7 +1395,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     if (ids.length !== 1) return;
     const from = moveModels();
     if (!selectionChips(from, ids).some((c) => c.side === side)) return;
-    const o = from.find((x) => lower(x.id) === lower(ids[0]!));
+    const o = from.find((x) => idKey(x.id) === idKey(ids[0]!));
     if (o === undefined) return;
     const objectKind =
       o.type === 'wall' ? 'wall' : o.type === 'opening' ? o.data.attributes.kind : null;
@@ -1428,7 +1430,12 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     const command = commandForKey(keys(), e);
     // EZD-231 Measure, EZD-404 Cabinets, EZD-412 Countertops and EZD-601 Electrical keys work without Edit model, and
     // so does Esc while one of them is on.
-    if (command === 'measure' || command === 'cabinets' || command === 'countertops' || command === 'electrical') {
+    if (
+      command === 'measure' ||
+      command === 'cabinets' ||
+      command === 'countertops' ||
+      command === 'electrical'
+    ) {
       selectTool(command);
       return true;
     }
@@ -1436,7 +1443,11 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       measureInput({ type: 'escape' });
       return true;
     }
-    if (tool !== null && (tool.id === 'cabinets' || tool.id === 'countertops' || tool.id === 'electrical') && e.key === 'Escape') {
+    if (
+      tool !== null &&
+      (tool.id === 'cabinets' || tool.id === 'countertops' || tool.id === 'electrical') &&
+      e.key === 'Escape'
+    ) {
       selectTool(null);
       return true;
     }
@@ -1541,7 +1552,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       const entry = ui.entry;
       if (entry !== null) {
         const ids = next.getUi().ids;
-        const same = ids.length === 1 && lower(ids[0]!) === lower(entry.id);
+        const same = ids.length === 1 && idKey(ids[0]!) === idKey(entry.id);
         if (!same || entry.kind === 'handle') cancelEntry();
       }
       if (isOpeningTool(tool) || tool === null) emitFrame();
@@ -1562,7 +1573,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     const one =
       ids.length === 1
         ? from.find(
-            (x) => (x.type === 'wall' || x.type === 'opening') && lower(x.id) === lower(ids[0]!),
+            (x) => (x.type === 'wall' || x.type === 'opening') && idKey(x.id) === idKey(ids[0]!),
           )
         : undefined;
     if (one === undefined) {
@@ -1687,14 +1698,12 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     getUi: () => ui,
     subscribe(listener) {
       if (disposed) return () => {};
-      uiListeners.add(listener);
-      return () => void uiListeners.delete(listener);
+      return uiListeners.add(listener);
     },
     getFrame: () => frame,
     onFrame(listener) {
       if (disposed) return () => {};
-      frameListeners.add(listener);
-      return () => void frameListeners.delete(listener);
+      return frameListeners.add(listener);
     },
     selectTool,
     typed,
@@ -1726,7 +1735,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       setUi({ pick: null, gapMessage: null, boxes: computeBoxes() });
       ui = { ...ui, enabled };
       syncReceiver();
-      for (const l of [...uiListeners]) l();
+      uiListeners.notify();
     },
     dispose() {
       if (disposed) return;

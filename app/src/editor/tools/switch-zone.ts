@@ -13,6 +13,9 @@ import type { Change, Objects } from '../model/patches';
 import { roomAt } from './beam-edits';
 
 export { roomAt };
+// EZD-605 (S05 Controls "Zones sync to switch legs on the electrical plan"; AC-EZD-605-1): the inspector's Dimmer edit
+// with the zone's switches following it (switch-legs.ts), one change set.
+export { zoneDimmerChanges } from '../electrical/switch-legs';
 
 function storeZone(id: string, data: SwitchZoneData): Change | null {
   const r = parseStoredObject({ id, type: 'switch_zone', schema_version: CURRENT_SCHEMA_VERSION, data });

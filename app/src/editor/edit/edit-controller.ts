@@ -5,7 +5,11 @@
 // EZD-233 (S03 Context menu; vault/build/assumptions.md EZD-233): `run` applies one context menu command (Mirror,
 // Align, Group, Ungroup, Set status) built by the lazy context menu module, as one edit, and selects what it says.
 // EZD-6001 (vault/plans/EZD-6001.md D-Wire): "the open floor" is the floor the user chose.
-import { DEFAULT_BINDINGS, commandForKey, type ShortcutBindings } from '../../lib/defaults/shortcut-keys';
+import {
+  DEFAULT_BINDINGS,
+  commandForKey,
+  type ShortcutBindings,
+} from '../../lib/defaults/shortcut-keys';
 import type { Point, ObjectStatus } from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ArrangeContext, ArrangeResult } from './arrange-changes';
@@ -18,6 +22,7 @@ import type { DrawingController, ToolKeyEvent } from '../tools/drawing-controlle
 import { newObjectId } from '../tools/model-changes';
 import { isTypingTarget } from '../typed-entry/typed-entry';
 import { copyItems, deleteChanges, pasteChanges, type ClipItem } from './edit-changes';
+import { createListeners } from '../shared/value-store';
 
 export type EditUi = {
   readonly canEdit: boolean;
@@ -80,7 +85,7 @@ export function createEditController(deps: EditDeps): EditController {
   let disposed = false;
   let clip: readonly ClipItem[] = [];
   let depth = 0;
-  const listeners = new Set<() => void>();
+  const listeners = createListeners();
 
   const compute = (): EditUi => {
     if (disposed || !canEdit) return NO_UI;
@@ -102,7 +107,7 @@ export function createEditController(deps: EditDeps): EditController {
     const next = compute();
     if (sameUi(next, ui)) return;
     ui = next;
-    for (const l of [...listeners]) l();
+    listeners.notify();
   };
 
   const unsubscribeStore = canEdit ? store.subscribe(refresh) : () => {};
@@ -261,8 +266,7 @@ export function createEditController(deps: EditDeps): EditController {
     getUi: () => (disposed ? NO_UI : ui),
     subscribe(listener) {
       if (disposed) return () => {};
-      listeners.add(listener);
-      return () => void listeners.delete(listener);
+      return listeners.add(listener);
     },
     keyDown,
     undo,

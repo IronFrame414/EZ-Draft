@@ -5,6 +5,7 @@ import type { DoorHand, DoorSwing, Point } from '../schema';
 import { pointsEqual } from '../tolerance';
 import type { WallObject } from '../walls/wall';
 import { isVerticalLine, leftEndIsLow, type OpeningObject } from './opening';
+import { add } from '../vec';
 
 // d = unit direction, n = left normal, faces at n*oL (left) and n*oR (right).
 export type DoorFrame = {
@@ -25,7 +26,6 @@ export type DoorSymbol = {
   endAngle: number;
 };
 
-const add = (p: Point, v: Point, k: number): Point => ({ x: p.x + v.x * k, y: p.y + v.y * k });
 const degrees = (v: Point): number => (Math.atan2(v.y, v.x) * 180) / Math.PI;
 
 export function doorSymbolInFrame(

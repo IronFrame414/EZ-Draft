@@ -28,6 +28,7 @@ import {
   type WallObject,
 } from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
+import { idKey } from '../shared/ids';
 
 // D3: equal to the selection controller's SAME_SPOT_PX (not imported: that would close an import cycle).
 export const MOVE_DRAG_PX = 10;
@@ -81,8 +82,6 @@ export type MoveOutcome = { ok: true; changed: ModelObject[] } | { ok: false; me
 export function initialMoveToolState(): MoveToolState {
   return { base: null, ids: [], held: 'none', at: null };
 }
-
-const lower = (id: string) => id.toLowerCase();
 
 const minus = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
 
@@ -143,7 +142,7 @@ export function reduceMoveTool(state: MoveToolState, input: MoveInput): MoveStep
 const isWall = (o: ModelObject): o is WallObject => o.type === 'wall';
 
 const levelWalls = (objects: readonly ModelObject[], level: string): WallObject[] =>
-  objects.filter((o): o is WallObject => isWall(o) && lower(o.data.level) === lower(level));
+  objects.filter((o): o is WallObject => isWall(o) && idKey(o.data.level) === idKey(level));
 
 export function startMoveDrag(
   objects: readonly ModelObject[],
@@ -153,8 +152,8 @@ export function startMoveDrag(
   let lone: OpeningObject | null = null;
   let block: BlockingObject | null = null;
   if (ids.length === 1) {
-    const id = lower(ids[0]!);
-    const o = objects.find((x) => lower(x.id) === id);
+    const id = idKey(ids[0]!);
+    const o = objects.find((x) => idKey(x.id) === id);
     if (o !== undefined && o.type === 'opening') lone = o;
     if (o !== undefined && o.type === 'blocking') block = o;
   }
@@ -206,18 +205,19 @@ export function clickOutcome(
   ids: readonly string[],
   delta: Point,
 ): MoveOutcome {
-  const wanted = new Set(ids.map(lower));
+  const wanted = new Set(ids.map(idKey));
   const beams = objects.filter(
     (o): o is Extract<ModelObject, { type: 'beam' }> =>
-      o.type === 'beam' && wanted.has(lower(o.id)),
+      o.type === 'beam' && wanted.has(idKey(o.id)),
   );
-  const beamIds = new Set(beams.map((b) => lower(b.id)));
-  const rest = ids.filter((id) => !beamIds.has(lower(id)));
+  const beamIds = new Set(beams.map((b) => idKey(b.id)));
+  const rest = ids.filter((id) => !beamIds.has(idKey(id)));
   if (beams.length > 0 && (!Number.isFinite(delta.x) || !Number.isFinite(delta.y)))
     return { ok: false, message: MOVE_REFUSALS.invalid_delta };
   const r = moveSelection(objects, rest, delta);
   if (!r.ok) return { ok: false, message: MOVE_REFUSALS[r.reason] };
-  if (beams.length === 0 || pointsEqual(delta, { x: 0, y: 0 })) return { ok: true, changed: r.changed };
+  if (beams.length === 0 || pointsEqual(delta, { x: 0, y: 0 }))
+    return { ok: true, changed: r.changed };
   const moved = beams.map((b) => ({ ...b, data: moveBeamSet(b.data, delta) }));
   return { ok: true, changed: [...r.changed, ...moved] };
 }
@@ -234,16 +234,16 @@ export function dragOutcome(
     const b = bo.data.geometry;
     const same =
       pointsEqual(a.center, b.center) &&
-      (a.hostWallId === null ? null : lower(a.hostWallId)) ===
-        (b.hostWallId === null ? null : lower(b.hostWallId));
+      (a.hostWallId === null ? null : idKey(a.hostWallId)) ===
+        (b.hostWallId === null ? null : idKey(b.hostWallId));
     return { ok: true, changed: same ? [] : [bs] };
   }
   if (slide !== null && original !== null) {
     const a = slide.data.geometry;
     const b = original.data.geometry;
     const sameHost =
-      (a.hostWallId === null ? null : lower(a.hostWallId)) ===
-      (b.hostWallId === null ? null : lower(b.hostWallId));
+      (a.hostWallId === null ? null : idKey(a.hostWallId)) ===
+      (b.hostWallId === null ? null : idKey(b.hostWallId));
     return { ok: true, changed: pointsEqual(a.center, b.center) && sameHost ? [] : [slide] };
   }
   return clickOutcome(i.objects, drag.ids, minus(i.at, drag.base));
@@ -254,8 +254,8 @@ export function previewShapes(
   level: string,
   changed: readonly ModelObject[],
 ): PickShape[] {
-  const byId = new Map(changed.map((o) => [lower(o.id), o]));
-  const after = objects.map((o) => byId.get(lower(o.id)) ?? o);
+  const byId = new Map(changed.map((o) => [idKey(o.id), o]));
+  const after = objects.map((o) => byId.get(idKey(o.id)) ?? o);
   const afterWalls = levelWalls(after, level);
   const previousWalls = levelWalls(objects, level);
   const out: PickShape[] = [];
@@ -263,14 +263,13 @@ export function previewShapes(
     let shape: PickShape | null = null;
     if (o.type === 'wall') shape = wallPickShape(o);
     else if (o.type === 'beam') {
-      const roomId = lower(o.data.geometry.roomId);
+      const roomId = idKey(o.data.geometry.roomId);
       const room = after.find(
         (x): x is Extract<ModelObject, { type: 'room' }> =>
-          x.type === 'room' && lower(x.id) === roomId,
+          x.type === 'room' && idKey(x.id) === roomId,
       );
       shape = room === undefined ? null : beamSetPickShape(o.data, room.data);
-    }
-    else if (o.type === 'fixture') shape = fixturePickShape(o);
+    } else if (o.type === 'fixture') shape = fixturePickShape(o);
     else if (o.type === 'utility_point') shape = utilityPointPickShape(o);
     else if (o.type === 'tile_shower') shape = tileShowerPickShape(o);
     else if (o.type === 'blocking') {
@@ -278,14 +277,14 @@ export function previewShapes(
         blockingHostUpdates({ level, walls: afterWalls, previousWalls, blockings: [o] })[0] ?? o;
       const hostId = placed.data.geometry.hostWallId;
       const host =
-        hostId === null ? null : (afterWalls.find((w) => lower(w.id) === lower(hostId)) ?? null);
+        hostId === null ? null : (afterWalls.find((w) => idKey(w.id) === idKey(hostId)) ?? null);
       shape = blockingPickShape(placed, host);
     } else if (o.type === 'opening') {
       const placed =
         openingHostUpdates({ level, walls: afterWalls, previousWalls, openings: [o] })[0] ?? o;
       const hostId = placed.data.geometry.hostWallId;
       const host =
-        hostId === null ? null : (afterWalls.find((w) => lower(w.id) === lower(hostId)) ?? null);
+        hostId === null ? null : (afterWalls.find((w) => idKey(w.id) === idKey(hostId)) ?? null);
       shape = openingPickShape(placed, host);
     }
     if (shape !== null) out.push(shape);

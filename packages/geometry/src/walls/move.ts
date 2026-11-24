@@ -6,6 +6,7 @@ import type { ModelObject, Point } from '../schema';
 import { COMPARISON_TOLERANCE_IN, pointsEqual } from '../tolerance';
 import { findWallJoins, type WallJoin } from './joins';
 import { wallLength, wallLengthProblem, type WallLine, type WallObject } from './wall';
+import { add } from '../vec';
 
 export type MoveWallResult =
   | { ok: true; changed: WallObject[] }
@@ -19,7 +20,6 @@ const sameId = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
 const isWall = (o: ModelObject): o is WallObject => o.type === 'wall';
 
-const add = (p: Point, d: Point): Point => ({ x: p.x + d.x, y: p.y + d.y });
 
 // Distance from `p` to the segment, its ends included.
 function pointSegmentDistance(p: Point, line: WallLine): number {

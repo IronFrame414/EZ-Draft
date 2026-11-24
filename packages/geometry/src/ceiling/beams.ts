@@ -19,6 +19,7 @@ import type {
   RoomData,
   WallData,
 } from '../schema';
+import { add, dot } from '../vec';
 
 // EZD-1009: the layout and pick shape live in beam-layout.ts (the editor's first download takes only that file).
 export * from './beam-layout';
@@ -26,8 +27,6 @@ export * from './beam-layout';
 const tol = COMPARISON_TOLERANCE_IN;
 type Room = { id: string; data: RoomData };
 type Wall = { id: string; data: WallData };
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y;
-const add = (a: Point, b: Point, k = 1): Point => ({ x: a.x + b.x * k, y: a.y + b.y * k });
 const perp = (u: Point): Point => ({ x: -u.y, y: u.x });
 function unit(a: Point, b: Point): Point | null {
   const L = Math.hypot(b.x - a.x, b.y - a.y);

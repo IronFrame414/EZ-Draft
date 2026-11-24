@@ -28,6 +28,7 @@ import {
   type UtilityPointObject,
   type UtilityToMove,
 } from '@ezdraft/geometry';
+import { idKey } from '../shared/ids';
 
 // Starting sizes in the Fixtures panel, each editable before placing (vault/build/assumptions.md EZD-234).
 export const FIXTURE_DEFAULT_SIZES: Readonly<
@@ -186,8 +187,6 @@ export function distanceToOutline(p: Point, ring: readonly Point[]): number {
   return best;
 }
 
-const lower = (id: string) => id.toLowerCase();
-
 const isFixture = (o: ModelObject): o is FixtureObject => o.type === 'fixture';
 const isUtilityPoint = (o: ModelObject): o is UtilityPointObject => o.type === 'utility_point';
 
@@ -198,7 +197,7 @@ export function linkedFixture(
 ): FixtureObject | null {
   const id = point.data.attributes.servesObjectId;
   if (id === null) return null;
-  return objects.find((o): o is FixtureObject => isFixture(o) && lower(o.id) === lower(id)) ?? null;
+  return objects.find((o): o is FixtureObject => isFixture(o) && idKey(o.id) === idKey(id)) ?? null;
 }
 
 // The fixture on `level` whose outline holds `p`, the smallest when several do; a new utility point placed there
@@ -210,7 +209,7 @@ export function fixtureAt(
 ): FixtureObject | null {
   let best: FixtureObject | null = null;
   for (const o of objects) {
-    if (!isFixture(o) || lower(o.data.level) !== lower(level)) continue;
+    if (!isFixture(o) || idKey(o.data.level) !== idKey(level)) continue;
     if (!pointInRing(p, fixtureOutline(o.data))) continue;
     const area = o.data.attributes.width * o.data.attributes.depth;
     if (best === null || area < best.data.attributes.width * best.data.attributes.depth) best = o;
@@ -227,11 +226,11 @@ export function utilitiesToMove(
   before: readonly ModelObject[],
   after: readonly ModelObject[],
 ): { fixtureId: string; utilities: UtilityToMove[] }[] {
-  const was = new Map(before.map((o) => [lower(o.id), o]));
+  const was = new Map(before.map((o) => [idKey(o.id), o]));
   const out: { fixtureId: string; utilities: UtilityToMove[] }[] = [];
   for (const f of after) {
     if (!isFixture(f)) continue;
-    const old = was.get(lower(f.id));
+    const old = was.get(idKey(f.id));
     if (old === undefined || !isFixture(old)) continue;
     const moved =
       !pointsEqual(old.data.geometry.center, f.data.geometry.center) ||
@@ -242,8 +241,8 @@ export function utilitiesToMove(
     for (const u of after) {
       if (!isUtilityPoint(u)) continue;
       const serves = u.data.attributes.servesObjectId;
-      if (serves === null || lower(serves) !== lower(f.id)) continue;
-      const prior = was.get(lower(u.id));
+      if (serves === null || idKey(serves) !== idKey(f.id)) continue;
+      const prior = was.get(idKey(u.id));
       if (prior === undefined || !isUtilityPoint(prior)) continue;
       if (!pointsEqual(prior.data.geometry.point, u.data.geometry.point)) continue;
       utilities.push({
@@ -262,7 +261,10 @@ function pointSegmentDistance(p: Point, line: WallLine): number {
   if (length === 0) return Math.hypot(p.x - line.start.x, p.y - line.start.y);
   const dx = (line.end.x - line.start.x) / length;
   const dy = (line.end.y - line.start.y) / length;
-  const along = Math.min(length, Math.max(0, (p.x - line.start.x) * dx + (p.y - line.start.y) * dy));
+  const along = Math.min(
+    length,
+    Math.max(0, (p.x - line.start.x) * dx + (p.y - line.start.y) * dy),
+  );
   return Math.hypot(p.x - (line.start.x + dx * along), p.y - (line.start.y + dy * along));
 }
 
@@ -294,12 +296,12 @@ export function placeBlocking(input: {
   const near = walls
     .filter(
       (w) =>
-        lower(w.data.level) === lower(level) &&
+        idKey(w.data.level) === idKey(level) &&
         wallLength(w.data.geometry) > COMPARISON_TOLERANCE_IN,
     )
     .map((w) => ({ w, dist: pointSegmentDistance(at, w.data.geometry) }))
     .filter((x) => x.dist <= captureIn)
-    .sort((a, b) => a.dist - b.dist || (lower(a.w.id) < lower(b.w.id) ? -1 : 1));
+    .sort((a, b) => a.dist - b.dist || (idKey(a.w.id) < idKey(b.w.id) ? -1 : 1));
   for (const { w } of near) {
     const data: BlockingData = {
       geometry: { center: { x: at.x, y: at.y }, hostWallId: w.id, axis: null },

@@ -21,6 +21,7 @@ import { pointInRing } from '../rooms/area';
 import type { CountertopEdge, CountertopPieceData, ModelObject, Point } from '../schema';
 import { wallFaceLines } from '../walls/wall';
 import { countertopLabelAt, nextCountertopLabels } from './outline';
+import { add, dot, sub } from '../vec';
 
 // 3 cm (board S04b "Quartz · 3 cm"; EZD-411 thickness in inches).
 export const COUNTERTOP_DEFAULT_THICKNESS = 3 / 2.54;
@@ -38,9 +39,6 @@ export type CountertopTraceDefaults = {
 };
 
 const lower = (s: string) => s.toLowerCase();
-const add = (a: Point, b: Point, k = 1): Point => ({ x: a.x + b.x * k, y: a.y + b.y * k });
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y;
-const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
 
 const onLevel = (o: ModelObject, level: string) =>
   'level' in o.data && typeof o.data.level === 'string' && lower(o.data.level) === lower(level);

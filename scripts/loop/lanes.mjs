@@ -19,7 +19,8 @@ export function impliedFiles(files, shared = SHARED_OK) {
 
 // Files every builder appends to; git merges them with the union driver (.gitattributes), so they never clash.
 export const SHARED_OK = new Set(['vault/build/assumptions.md']);
-// Plus the files Josh allows two lanes to edit at once (config `shared_files`). Two lanes may change such a file; the
+// Plus the files Josh allows two lanes to edit at once (config `shared_files`: the message catalogs, and since EZD-1941
+// docs/architecture.md and the generated database types, which the loop regenerates after the merge, never hand-merged). Two lanes may change such a file; the
 // second to finish takes in develop, resolves any conflict and passes the full check again before it merges.
 export function sharedSet(root) {
   let extra = [];
@@ -27,10 +28,10 @@ export function sharedSet(root) {
   return new Set([...SHARED_OK, ...extra.map(normalize).filter(Boolean)]);
 }
 
-// Two migrations made in parallel can both sort "after develop's newest" and then apply in the wrong order, so the
-// migrations folder is held as a whole: one lane at a time adds a migration.
+// EZD-1941 (audit 2026-11-23 W2): a ticket claims the single migration file it adds, never the whole folder. Two
+// tickets adding different migrations run at once; at the merge the loop renames a branch's migration that sorts at or
+// before develop's newest so it applies after it (scripts/loop/merge-files.mjs).
 export const MIGRATIONS = 'supabase/migrations/';
-const key = (f) => (f.startsWith(MIGRATIONS) ? MIGRATIONS : f);
 
 export function normalize(f) {
   let s = String(f || '').trim().replace(/^["'`]+|["'`,;:]+$/g, '').replace(/\\/g, '/').replace(/^\.\//, '');
@@ -44,16 +45,15 @@ export function overlaps(mine, claims, self, shared = SHARED_OK) {
   const held = new Map();
   for (const [id, c] of Object.entries(claims || {})) {
     if (id === self) continue;
-    for (const f of c.files || []) held.set(key(f), id);
+    for (const f of c.files || []) held.set(f, id);
   }
   const out = [];
   const seen = new Set();
   for (const f of impliedFiles(mine, shared)) {
     // A placeholder for a file not named yet (`folder/<new>`) is a new file: two of them in one folder are different
-    // files. A new migration still holds the migrations folder (key()).
-    if (f.includes('<new>') && !f.startsWith(MIGRATIONS)) continue;
-    const k = key(f);
-    if (held.has(k) && !seen.has(k)) { seen.add(k); out.push({ file: k === MIGRATIONS ? MIGRATIONS : f, holder: held.get(k) }); }
+    // files. That holds for a new migration too (EZD-1941).
+    if (f.includes('<new>')) continue;
+    if (held.has(f) && !seen.has(f)) { seen.add(f); out.push({ file: f, holder: held.get(f) }); }
   }
   return out;
 }
@@ -94,11 +94,11 @@ export function placeholderCovers(placeholder, f) {
 // does not have unless it named the same new path, which is still a clash (EZD-1942).
 export function drift(changed, claims, self, shared = SHARED_OK, added = []) {
   const files = claims?.[self]?.files || [];
-  const mine = new Set(files.map(key));
+  const mine = new Set(files);
   const placeholders = files.filter((f) => f.includes('<new>'));
   const isNew = new Set(added.map(normalize));
   const covered = (f) => isNew.has(f) && placeholders.some((p) => placeholderCovers(p, f));
-  const outside = changed.map(normalize).filter((f) => f && !shared.has(f) && !mine.has(key(f)));
+  const outside = changed.map(normalize).filter((f) => f && !shared.has(f) && !mine.has(f));
   // `placed`: new files a placeholder covers. They are no DRIFT, but another lane may have named the same new path, so
   // they are still checked for clashes, and the loop adds them to the claim by name before the merge.
   const placed = outside.filter(covered);

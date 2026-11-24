@@ -12,6 +12,7 @@ import type { SurfaceSetting } from '../ceiling/surface';
 import type { ModelStore } from '../model/model-store';
 import { openFloorId } from '../plan/batches';
 import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
+import { createValueStore } from '../shared/value-store';
 type ZonePlacement = Pick<typeof import('./switch-zone'), 'roomAt' | 'placeSwitchZone'>;
 
 /** A click this close to the first corner, in screen pixels, closes the zone (the 04 snap target size). */
@@ -36,26 +37,23 @@ export type ZoneDrawing = {
 };
 
 export function createZoneDrawing(): ZoneDrawing {
-  let state: ZoneDrawingState = { points: [], firstScreen: null, dimmer: false };
-  const listeners = new Set<() => void>();
-  const set = (next: ZoneDrawingState) => {
-    state = next;
-    for (const l of [...listeners]) l();
-  };
+  const store = createValueStore<ZoneDrawingState>({
+    points: [],
+    firstScreen: null,
+    dimmer: false,
+  });
+  const { get, set } = store;
   return {
-    get: () => state,
+    get,
     setDimmer: (dimmer) => {
-      if (dimmer !== state.dimmer) set({ ...state, dimmer });
+      if (dimmer !== get().dimmer) set({ ...get(), dimmer });
     },
-    start: (at, screen) => set({ ...state, points: [at], firstScreen: screen }),
-    add: (at) => set({ ...state, points: [...state.points, at] }),
+    start: (at, screen) => set({ ...get(), points: [at], firstScreen: screen }),
+    add: (at) => set({ ...get(), points: [...get().points, at] }),
     clear: () => {
-      if (state.points.length > 0) set({ ...state, points: [], firstScreen: null });
+      if (get().points.length > 0) set({ ...get(), points: [], firstScreen: null });
     },
-    subscribe(listener) {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
+    subscribe: store.subscribe,
   };
 }
 
@@ -115,13 +113,21 @@ export function switchZoneReceiver(deps: ZoneToolDeps): PlanPointerReceiver {
       deps.drawing.start(e.model, e.screen);
       return;
     }
-    const onFirst = Math.hypot(e.screen.x - firstScreen.x, e.screen.y - firstScreen.y) <= ZONE_CLOSE_PX;
+    const onFirst =
+      Math.hypot(e.screen.x - firstScreen.x, e.screen.y - firstScreen.y) <= ZONE_CLOSE_PX;
     if (!onFirst) {
       deps.drawing.add(e.model);
       return;
     }
     if (points.length < 3) return;
-    const change = deps.place.placeSwitchZone(objects, level, points, dimmer, deps.newStatus(), deps.newId);
+    const change = deps.place.placeSwitchZone(
+      objects,
+      level,
+      points,
+      dimmer,
+      deps.newStatus(),
+      deps.newId,
+    );
     deps.drawing.clear();
     if (change === null) {
       deps.onMessage('office.ceiling.zone.place_failed');

@@ -13,7 +13,7 @@ import type { SurfaceSetting } from '../ceiling/surface';
 import styles from '../ceiling/CeilingParts.module.css';
 import inspector from '../inspector/InspectorPanel.module.css';
 import type { ModelStore } from '../model/model-store';
-import { setZoneDimmer, switchZoneOf } from './switch-zone';
+import { switchZoneOf, zoneDimmerChanges } from './switch-zone';
 import { zoneDrawingFor, type ZoneDrawing } from './switch-zone-tool';
 
 export function LightingSection({
@@ -126,8 +126,9 @@ export function SwitchZoneInspector({
             checked={zone.data.attributes.dimmer}
             disabled={!canEdit}
             onChange={(e) => {
-              const change = setZoneDimmer(store.getState().objects, zoneId, e.target.checked);
-              if (change !== null) store.applyEdit([change]);
+              // EZD-605: the zone's switches follow its dimmer in the same undo step.
+              const changes = zoneDimmerChanges(store.getState().objects, zoneId, e.target.checked);
+              if (changes !== null) store.applyEdit(changes);
             }}
           />
           {t('office.ceiling.zone.dimmer')}

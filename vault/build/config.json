@@ -5,6 +5,9 @@
   "reviewer_fallback": "claude-opus-5-5",
   "trial_size": 20,
   "priority": [
+    "EZD-1973",
+    "EZD-1974",
+    "EZD-1975",
     "EZD-385",
     "EZD-1971",
     "EZD-1972",
@@ -94,8 +97,11 @@
   "gate_from_phase": 999,
   "shared_files": [
     "app/src/server/messages/catalogs/en.ts",
-    "app/src/server/messages/catalogs/es.ts"
+    "app/src/server/messages/catalogs/es.ts",
+    "docs/architecture.md",
+    "app/src/server/db/database.types.ts"
   ],
+  "shared_files_note": "EZD-1941 (audit 2026-11-23 W2): docs/architecture.md and database.types.ts merge at the end like en.ts and es.ts; the loop regenerates database.types.ts after merging develop (never hand-merged) and sets a ticket aside if the committed file differs from the regenerated one.",
   "footprint_lookahead": 20,
   "max_phase": 58,
   "lanes": [

@@ -13,9 +13,9 @@ import { COMPARISON_TOLERANCE_IN } from '../tolerance';
 import { DEFAULT_WALL_HEIGHT_IN } from '../walls/wall';
 import type { ModelObject, Point, RoomData, WallData } from '../schema';
 import { ridgeDirection, roomPlateHeight, roomWalls } from './beams';
+import { dot } from '../vec';
 
 const tol = COMPARISON_TOLERANCE_IN;
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y;
 type Room = { id: string; data: RoomData };
 type Wall = { id: string; data: WallData };
 

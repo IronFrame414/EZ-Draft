@@ -7,6 +7,7 @@ import { isVerticalLine, leftEndIsLow, type OpeningObject } from '../openings/op
 import type { ModelObject, Point } from '../schema';
 import { COMPARISON_TOLERANCE_IN } from '../tolerance';
 import { wallLength, type WallLine, type WallObject } from '../walls/wall';
+import { clamp } from '../vec';
 
 const tol = COMPARISON_TOLERANCE_IN;
 
@@ -16,7 +17,6 @@ const isWall = (o: ModelObject): o is WallObject => o.type === 'wall';
 
 const isOpening = (o: ModelObject): o is OpeningObject => o.type === 'opening';
 
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 const copy = (p: Point): Point => ({ x: p.x, y: p.y });
 

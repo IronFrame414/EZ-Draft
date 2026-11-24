@@ -3235,6 +3235,12 @@ export const en = {
   // EZD-1418 (S02 header source subtitle, status bar accuracy for rooms sent from the phone; wording for Josh).
   'office.review.subtitle_field_measure': 'Rooms sent from Field measure',
   'office.review.status_accuracy_field_measure': 'Typed on site',
+  // EZD-605 (board S06Electrical toolbar "Switch leg"; other wording for Josh to confirm, vault/build/assumptions.md
+  // EZD-605).
+  'office.electrical.tool.switch_leg': 'Switch leg',
+  'office.electrical.leg.pick_switch': 'Click a switch, then the lights it controls',
+  'office.electrical.leg.no_room': 'Click a light inside a room',
+  'office.electrical.leg.failed': 'The switch leg could not be saved',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

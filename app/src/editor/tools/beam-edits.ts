@@ -30,8 +30,7 @@ import {
 import type { MessageKey } from '../../server/messages/catalog';
 import { levelModelObjects } from '../inspector/inspector-edits';
 import type { Change, Objects } from '../model/patches';
-
-const lower = (id: string) => id.toLowerCase();
+import { idKey } from '../shared/ids';
 
 const detail = (inches: number) => formatLength(inches, DETAIL_DISPLAY_DENOMINATOR);
 
@@ -41,7 +40,7 @@ type Wall = Extract<ModelObject, { type: 'wall' }>;
 /** The beam set stored under `id` (any case), or null when there is none or it does not parse. */
 export function beamOf(objects: Objects, id: string): BeamObject | null {
   for (const [key, v] of objects) {
-    if (lower(key) !== lower(id) || v.type !== 'beam') continue;
+    if (idKey(key) !== idKey(id) || v.type !== 'beam') continue;
     const r = parseStoredObject({
       id: key,
       type: v.type,
@@ -54,7 +53,7 @@ export function beamOf(objects: Objects, id: string): BeamObject | null {
 }
 
 export const isBeam = (objects: Objects, id: string): boolean => {
-  for (const [key, v] of objects) if (lower(key) === lower(id)) return v.type === 'beam';
+  for (const [key, v] of objects) if (idKey(key) === idKey(id)) return v.type === 'beam';
   return false;
 };
 
@@ -98,8 +97,8 @@ function context(objects: Objects, beam: BeamObject) {
   const all = levelModelObjects(objects, beam.data.level);
   const rooms = all.filter((o): o is RoomObject => o.type === 'room');
   const walls = all.filter((o): o is Wall => o.type === 'wall');
-  const roomId = lower(beam.data.geometry.roomId);
-  const room = rooms.find((r) => lower(r.id) === roomId) ?? null;
+  const roomId = idKey(beam.data.geometry.roomId);
+  const room = rooms.find((r) => idKey(r.id) === roomId) ?? null;
   return { all, rooms, walls, room };
 }
 
@@ -249,6 +248,9 @@ export function beamPillAnchor(objects: Objects, id: string): Point | null {
   const top = Math.max(...shape.points.map((p) => p.y));
   const xs = shape.points.filter((p) => Math.abs(p.y - top) < 1e-6).map((p) => p.x);
   const all = shape.points.map((p) => p.x);
-  const x = xs.length > 1 ? (Math.min(...xs) + Math.max(...xs)) / 2 : (Math.min(...all) + Math.max(...all)) / 2;
+  const x =
+    xs.length > 1
+      ? (Math.min(...xs) + Math.max(...xs)) / 2
+      : (Math.min(...all) + Math.max(...all)) / 2;
   return { x, y: top };
 }

@@ -75,3 +75,19 @@ describe('EZD-603 device height notes', () => {
     expect(parseStoredObject(device({ kind: 'tv', heightNote: 'yes' })).ok).toBe(false);
   });
 });
+
+// EZD-605 (S06 Controls "Device toolbar: Switch leg"; S05 "Zones sync to switch legs"; vault/build/assumptions.md
+// EZD-605): a switch keeps the switching zone it controls, optional at version 7.
+describe('EZD-605 switch zone link', () => {
+  it('a switch keeps its zone (or none), and a device without one stays valid', () => {
+    expect(CURRENT_SCHEMA_VERSION).toBe(7);
+    expect(
+      parseStoredObject(
+        device({ kind: 'switch_single', zone: '00000000-0000-4000-8000-000000000010' }),
+      ).ok,
+    ).toBe(true);
+    expect(parseStoredObject(device({ kind: 'switch_single', zone: null })).ok).toBe(true);
+    expect(parseStoredObject(device({ kind: 'switch_single' })).ok).toBe(true);
+    expect(parseStoredObject(device({ kind: 'switch_single', zone: 'not-an-id' })).ok).toBe(false);
+  });
+});

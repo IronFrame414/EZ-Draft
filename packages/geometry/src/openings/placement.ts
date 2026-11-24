@@ -16,6 +16,7 @@ import {
   type OpeningObject,
 } from './opening';
 import { hostCorners, placeAtOffset } from './offsets';
+import { clamp } from '../vec';
 
 export const DOOR_TARGET_PX = 22;
 export const PRESS_MOVE_PX = 10;
@@ -32,7 +33,6 @@ export type OpeningPreviewInput = {
   flipped: boolean;
 };
 
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const degrees = (v: Point): number => (Math.atan2(v.y, v.x) * 180) / Math.PI;
 
 export function swingSideOf(host: WallObject, p: Point): DoorSwing {

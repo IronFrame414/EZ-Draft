@@ -16,6 +16,7 @@ import {
   type CabinetRun,
   type CabinetRunMember,
 } from './run';
+import { dot, sub } from '../vec';
 
 // Board S04's height dimensions: 34 1/2" boxes (S04 Height) under a 36" countertop top, an 18" gap, 30" uppers.
 // The 1 1/2" countertop and the 18" gap are the board's; the 4" toe kick when the run has no toe kick trim and the
@@ -88,8 +89,6 @@ export type CabinetTile = {
 };
 
 const lower = (s: string) => s.toLowerCase();
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y;
-const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
 
 function slotKind(m: CabinetRunMember): CabinetSlotKind {
   switch (m.type) {

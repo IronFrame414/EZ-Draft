@@ -113,3 +113,32 @@ describe('EZD-604 Circuit tool', () => {
     }
   });
 });
+
+// EZD-605 (S06 Controls "Device toolbar: Switch leg | Canvas toolbar | Draw a switch leg from switch to fixtures
+// (dashed). | Same."; board S06Electrical toolbar "Switch leg" before "Circuit").
+describe('EZD-605 Switch leg item', () => {
+  it('sits right before Circuit, unpressed; armed it is pressed and shows the hint', () => {
+    const t = createElectricalToolbar();
+    let html = render(t, false);
+    const leg = elements(html, 'device-tool-switch-leg')[0]!;
+    expect(textOf(leg.inner)).toBe('Switch leg');
+    expect(attr(leg.attrs, 'aria-pressed')).toBe('false');
+    expect(html.indexOf('device-tool-switch-leg')).toBeLessThan(html.indexOf('device-tool-circuit'));
+    expect(html.indexOf('device-tool-fan')).toBeLessThan(html.indexOf('device-tool-switch-leg'));
+    t.press('switch-leg');
+    html = render(t, false);
+    expect(attr(elements(html, 'device-tool-switch-leg')[0]!.attrs, 'aria-pressed')).toBe('true');
+    expect(textOf(elements(html, 'device-toolbar-leg-hint')[0]!.inner)).toBe(
+      'Click a switch, then the lights it controls',
+    );
+    expect(elements(html, 'device-toolbar-choices')).toHaveLength(0);
+  });
+
+  it('view only: disabled and unpressed', () => {
+    const t = createElectricalToolbar();
+    t.press('switch-leg');
+    const leg = elements(render(t, true), 'device-tool-switch-leg')[0]!;
+    expect(attr(leg.attrs, 'disabled')).not.toBeNull();
+    expect(attr(leg.attrs, 'aria-pressed')).toBe('false');
+  });
+});

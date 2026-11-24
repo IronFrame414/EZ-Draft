@@ -27,6 +27,7 @@ import {
   type LooseObject,
 } from '../tools/model-changes';
 import { pasteChanges, type ClipItem } from './edit-changes';
+import { idKey } from '../shared/ids';
 
 export type ArrangeContext = {
   objects: Objects;
@@ -44,8 +45,6 @@ export type ArrangeResult =
 
 const NOTHING: ArrangeResult = { ok: true, changes: [] };
 
-const lower = (id: string) => id.toLowerCase();
-
 function parse(id: string, value: ObjectValue): ModelObject | null {
   const r = parseStoredObject({
     id,
@@ -59,18 +58,18 @@ function parse(id: string, value: ObjectValue): ModelObject | null {
 // The selected objects of `level`, once each, in selection order; a group's own object is never one of them.
 function selectedOn(ctx: ArrangeContext, types: ReadonlySet<string>): ModelObject[] {
   const byLower = new Map<string, string>();
-  for (const id of ctx.objects.keys()) byLower.set(lower(id), id);
-  const lvl = lower(ctx.level);
+  for (const id of ctx.objects.keys()) byLower.set(idKey(id), id);
+  const lvl = idKey(ctx.level);
   const seen = new Set<string>();
   const out: ModelObject[] = [];
   for (const id of ctx.ids) {
-    const key = byLower.get(lower(id));
-    if (key === undefined || seen.has(lower(key))) continue;
+    const key = byLower.get(idKey(id));
+    if (key === undefined || seen.has(idKey(key))) continue;
     const value = ctx.objects.get(key)!;
     if (!types.has(value.type)) continue;
     const o = parse(key, value);
-    if (o === null || !hasLevel(o) || lower(o.data.level) !== lvl) continue;
-    seen.add(lower(key));
+    if (o === null || !hasLevel(o) || idKey(o.data.level) !== lvl) continue;
+    seen.add(idKey(key));
     out.push(o);
   }
   return out;
@@ -143,7 +142,7 @@ export function mirrorChanges(ctx: ArrangeContext): ArrangeResult {
   const flip = (p: Point): Point => ({ x: 2 * cx - p.x, y: p.y });
   const flipAxis = (a: Point): Point => ({ x: a.x, y: a.y === 0 ? 0 : -a.y });
 
-  const wallIds = new Set(selected.filter((o) => o.type === 'wall').map((o) => lower(o.id)));
+  const wallIds = new Set(selected.filter((o) => o.type === 'wall').map((o) => idKey(o.id)));
   const walls: WallObject[] = [];
   const openings: OpeningObject[] = [];
   const loose: LooseObject[] = [];
@@ -155,7 +154,7 @@ export function mirrorChanges(ctx: ArrangeContext): ArrangeResult {
       const g = o.data.geometry;
       const a = o.data.attributes;
       // On a mirrored wall, or on no wall: flipped with the rest. On a wall that stays: kept where it is.
-      const kept = g.hostWallId !== null && !wallIds.has(lower(g.hostWallId));
+      const kept = g.hostWallId !== null && !wallIds.has(idKey(g.hostWallId));
       const geometry = kept
         ? g
         : { ...g, center: flip(g.center), axis: g.axis === null ? null : flipAxis(g.axis) };
@@ -178,8 +177,8 @@ export function mirrorChanges(ctx: ArrangeContext): ArrangeResult {
     walls.length > 0
       ? wallEditChanges(temp, ctx.level, walls, ctx.newId, ctx.highs, ctx.status)
       : [];
-  const written = new Set(changes.map((c) => lower(c.id)));
-  for (const o of openings) if (!written.has(lower(o.id))) changes.push(openingChange(o));
+  const written = new Set(changes.map((c) => idKey(c.id)));
+  for (const o of openings) if (!written.has(idKey(o.id))) changes.push(openingChange(o));
   for (const o of loose) changes.push(looseChange(o));
   return { ok: true, changes };
 }
@@ -235,9 +234,9 @@ export function alignChanges(ctx: ArrangeContext, edge: AlignEdge): ArrangeResul
     if (delta.x === 0 && delta.y === 0) continue;
     const r = moveSelection(current, [selected[i]!.id], delta);
     if (!r.ok) return { ok: false, messageKey: 'office.tools.move.failed' };
-    const swap = new Map(r.changed.map((o) => [lower(o.id), o]));
-    current = current.map((o) => swap.get(lower(o.id)) ?? o);
-    for (const o of r.changed) changed.set(lower(o.id), o);
+    const swap = new Map(r.changed.map((o) => [idKey(o.id), o]));
+    current = current.map((o) => swap.get(idKey(o.id)) ?? o);
+    for (const o of r.changed) changed.set(idKey(o.id), o);
   }
   if (changed.size === 0) return NOTHING;
   return {
@@ -308,11 +307,11 @@ function groupsIn(objects: Objects): GroupRef[] {
 export function groupChanges(ctx: ArrangeContext): ArrangeResult {
   const members = selectedOn(ctx, GROUP_MEMBER_TYPES).map((o) => o.id);
   if (members.length < 2) return NOTHING;
-  const taken = new Set(members.map(lower));
+  const taken = new Set(members.map(idKey));
   const changes: Change[] = [];
   for (const g of groupsIn(ctx.objects)) {
-    if (!g.memberIds.some((m) => taken.has(lower(m)))) continue;
-    const left = g.memberIds.filter((m) => !taken.has(lower(m)));
+    if (!g.memberIds.some((m) => taken.has(idKey(m)))) continue;
+    const left = g.memberIds.filter((m) => !taken.has(idKey(m)));
     changes.push(
       left.length < 2
         ? { id: g.id, value: null }
@@ -339,9 +338,9 @@ export function groupChanges(ctx: ArrangeContext): ArrangeResult {
 
 // Ungroup removes every group that holds a selected object; the objects stay selected.
 export function ungroupChanges(ctx: ArrangeContext): ArrangeResult {
-  const selected = new Set(ctx.ids.map(lower));
+  const selected = new Set(ctx.ids.map(idKey));
   const changes: Change[] = groupsIn(ctx.objects)
-    .filter((g) => g.memberIds.some((m) => selected.has(lower(m))))
+    .filter((g) => g.memberIds.some((m) => selected.has(idKey(m))))
     .map((g) => ({ id: g.id, value: null }));
   return { ok: true, changes };
 }
@@ -427,7 +426,7 @@ export function placeSavedGroup(
   const fixtureIds = new Map<string, string>();
   const newIds = loose.map((o) => {
     const id = ctx.newId();
-    if (o.type === 'fixture') fixtureIds.set(lower(o.id), id);
+    if (o.type === 'fixture') fixtureIds.set(idKey(o.id), id);
     return id;
   });
   loose.forEach((o, n) => {
@@ -451,7 +450,7 @@ export function placeSavedGroup(
           geometry: { point: shift(o.data.geometry.point) },
           attributes: {
             ...o.data.attributes,
-            servesObjectId: serves === null ? null : (fixtureIds.get(lower(serves)) ?? null),
+            servesObjectId: serves === null ? null : (fixtureIds.get(idKey(serves)) ?? null),
           },
         },
       };
