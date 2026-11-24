@@ -8,6 +8,7 @@
 // nothing and notifies no one; rooms that are not a room list are refused before anything is recorded (the route's schema check, then the database's); another
 // company can neither send to this project nor read its sent state, and its members are never notified.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { holdJobQueueShared } from '../../../test-harness/jobs/queue-lock';
 import { setPermissions } from '../../../test-harness/permissions/grant';
 import {
   cleanup,
@@ -59,6 +60,16 @@ const notes = async (projectId: string, userId: string) =>
       where project_id = ${projectId}::uuid and user_id = ${userId}::uuid
         and kind = 'field_measurements_received'`
   )[0]!.n;
+
+// This file leaves due job rows in the queue, so it holds the shared job-queue lock for its whole run
+// (test-harness/jobs/README.md): the unscoped sweep tests then never claim them.
+let releaseJobQueue: (() => Promise<void>) | undefined;
+beforeAll(async () => {
+  releaseJobQueue = await holdJobQueueShared();
+}, 180000);
+afterAll(async () => {
+  await releaseJobQueue?.();
+});
 
 describe('EZD-1417 Send to office', () => {
   let pA = '';

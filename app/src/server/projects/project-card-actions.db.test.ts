@@ -7,6 +7,7 @@
 // `signIn`, as the routes do.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { holdJobQueueShared } from '../../../test-harness/jobs/queue-lock';
 import { setPermissions } from '../../../test-harness/permissions/grant';
 import {
   cleanup,
@@ -22,6 +23,16 @@ import { applyCardChange } from './project-card-actions';
 import { countProjects, listProjects } from './projects';
 
 const typed = (s: Session) => s.serverDb as unknown as SupabaseClient<Database>;
+
+// This file leaves due job rows in the queue, so it holds the shared job-queue lock for its whole run
+// (test-harness/jobs/README.md): the unscoped sweep tests then never claim them.
+let releaseJobQueue: (() => Promise<void>) | undefined;
+beforeAll(async () => {
+  releaseJobQueue = await holdJobQueueShared();
+}, 180000);
+afterAll(async () => {
+  await releaseJobQueue?.();
+});
 
 describe('EZD-124 project card actions', () => {
   let tenantA = '';

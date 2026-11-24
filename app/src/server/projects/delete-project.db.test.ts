@@ -7,6 +7,7 @@
 // Token row 4 (project deleted: the link resolves to nothing, at once).
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { holdJobQueueShared } from '../../../test-harness/jobs/queue-lock';
 import { setPermissions } from '../../../test-harness/permissions/grant';
 import {
   cleanup,
@@ -27,6 +28,16 @@ import { deleteProject } from './project-card-actions';
 
 const ENV = { EMAIL_TRANSPORT: 'stub', EMAIL_FROM: 'EZ Draft Test <test@example.test>' };
 const typed = (s: Session) => s.serverDb as unknown as SupabaseClient<Database>;
+
+// This file leaves due job rows in the queue, so it holds the shared job-queue lock for its whole run
+// (test-harness/jobs/README.md): the unscoped sweep tests then never claim them.
+let releaseJobQueue: (() => Promise<void>) | undefined;
+beforeAll(async () => {
+  releaseJobQueue = await holdJobQueueShared();
+}, 180000);
+afterAll(async () => {
+  await releaseJobQueue?.();
+});
 
 describe('EZD-124 delete_project', () => {
   let tenantA = '';

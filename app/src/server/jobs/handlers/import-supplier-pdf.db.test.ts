@@ -10,6 +10,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { holdJobQueueShared } from '../../../../test-harness/jobs/queue-lock';
 import { expectSafeToRunTwice } from '../../../../test-harness/jobs/run-twice';
 import { setPermissions } from '../../../../test-harness/permissions/grant';
 import {
@@ -49,6 +50,16 @@ const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const FIXTURE = path.join(repo, 'fixtures/synthetic/supplier-kitchen.pdf');
 const expected = JSON.parse(readFileSync(`${FIXTURE}.expected.json`, 'utf8'));
 const db = (s: Session) => s.serverDb as unknown as DbClient;
+
+// This file leaves due job rows in the queue, so it holds the shared job-queue lock for its whole run
+// (test-harness/jobs/README.md): the unscoped sweep tests then never claim them.
+let releaseJobQueue: (() => Promise<void>) | undefined;
+beforeAll(async () => {
+  releaseJobQueue = await holdJobQueueShared();
+}, 180000);
+afterAll(async () => {
+  await releaseJobQueue?.();
+});
 
 describe('EZD-915 supplier PDF import', () => {
   const paths: string[] = [];
