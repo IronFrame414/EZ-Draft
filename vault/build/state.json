@@ -500,7 +500,8 @@
     "EZD-1904",
     "EZD-1906a",
     "EZD-1973",
-    "EZD-605"
+    "EZD-605",
+    "EZD-1941"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1882,6 +1883,14 @@
       "ts": "2026-11-24T22:14:56Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1941",
+      "title": "Loop: architecture.md, database.types.ts and single migration files stop blocking lanes",
+      "commit": "f7785141",
+      "ts": "2026-11-24T22:44:27Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2096,19 +2105,19 @@
     }
   },
   "running": {
-    "EZD-1941": {
-      "lane": 2,
-      "title": "Loop: architecture.md, database.types.ts and single migration files stop blocking lanes",
-      "started": "2026-11-24T20:30:52Z",
-      "develop": "f327caaf"
-    },
     "EZD-1974": {
       "lane": 1,
       "title": "Fix: the EZD-136 every-page disclaimer test times out on CI",
       "started": "2026-11-24T21:46:17Z",
       "develop": "f8fd7563"
+    },
+    "EZD-1975": {
+      "lane": 3,
+      "title": "Fix: the sheet renders 3 or 4 times instead of 2 after Plan edits (EZD-702b AC-1/AC-2 on CI)",
+      "started": "2026-11-24T22:15:03Z",
+      "develop": "273ec342"
     }
   },
-  "advisories_checked_at": "2026-11-24T16:16:06Z",
+  "advisories_checked_at": "2026-11-24T22:17:04Z",
   "hold": {}
 }
