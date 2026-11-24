@@ -496,7 +496,8 @@
     "EZD-415",
     "EZD-1971",
     "EZD-1972",
-    "EZD-1940"
+    "EZD-1940",
+    "EZD-1904"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1846,6 +1847,14 @@
       "ts": "2026-11-24T19:17:37Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1904",
+      "title": "Geometry: one vector helper module",
+      "commit": "08f559eb",
+      "ts": "2026-11-24T19:49:47Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2060,12 +2069,6 @@
     }
   },
   "running": {
-    "EZD-1904": {
-      "lane": 1,
-      "title": "Geometry: one vector helper module",
-      "started": "2026-11-24T18:47:08Z",
-      "develop": "ceaff45e"
-    },
     "EZD-1906a": {
       "lane": 2,
       "title": "Editor shared helpers (ids, value store, store hook, inch text) in tools, selection, edit",
