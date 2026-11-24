@@ -13,6 +13,8 @@ import {
 } from '../test-harness/e2e/test';
 import { appOriginHeaders } from '../test-harness/e2e/same-origin';
 
+const EDITOR_READY_TIMEOUT_MS = 60_000;
+
 test.describe('EZD-236 benchmark project', () => {
   test.afterAll(async () => {
     try {
@@ -47,10 +49,15 @@ test.describe('EZD-236 benchmark project', () => {
     expect(body.objects).toHaveLength(3000);
     expect(body.invalid).toEqual([]);
 
+    // EZD-1971: the first open of 3,000 objects took longer than the default 5 s expect timeout on the CI
+    // runner, so this wait has its own limit, inside the test's 120 s. The time to ready is logged.
+    const openedAt = Date.now();
     await p.goto(`/projects/${id}`);
     await expect(p.locator('[data-testid="editor-state"][data-editor-state="ready"]')).toHaveCount(
       1,
+      { timeout: EDITOR_READY_TIMEOUT_MS },
     );
+    console.log(`EZD-1971 benchmark project time to editor ready: ${Date.now() - openedAt} ms`);
     expect(
       await p.evaluate(
         () =>
