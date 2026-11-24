@@ -482,7 +482,8 @@
     "EZD-1965",
     "EZD-1968",
     "EZD-1964",
-    "EZD-1966"
+    "EZD-1966",
+    "EZD-1967"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1720,11 +1721,19 @@
       "ts": "2026-11-24T05:26:47Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1967",
+      "title": "Loop: restart itself after a change to its own code is merged",
+      "commit": "b742c9cb",
+      "ts": "2026-11-24T07:02:25Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -1934,11 +1943,11 @@
       "started": "2026-11-24T05:26:54Z",
       "develop": "d87f054e"
     },
-    "EZD-1967": {
-      "lane": 3,
-      "title": "Loop: restart itself after a change to its own code is merged",
-      "started": "2026-11-24T05:57:06Z",
-      "develop": "88566161"
+    "EZD-1950": {
+      "lane": 2,
+      "title": "Speed up the money-pages e2e sweep",
+      "started": "2026-11-24T06:26:44Z",
+      "develop": "86ab042c"
     }
   },
   "advisories_checked_at": "2026-11-24T04:14:35Z",
