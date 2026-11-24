@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Build v3 (2026-11-13): runs scripts/loop.mjs as the launchd agent com.ezdraft.build, restarted after a crash,
-// a reboot or an app update. Replaces com.ezdraft.launcher and com.ezdraft.watchdog (scripts/launchd/install.mjs).
+// a reboot or an app update. Replaces com.ezdraft.launcher and com.ezdraft.watchdog (retired; scripts/launchd/install.mjs
+// uninstall removes them).
 //   node scripts/launchd/build.mjs install | uninstall | status
 // EZD-1968: install-watchdog | uninstall-watchdog manage com.ezdraft.build-watchdog, which runs scripts/launchd/watchdog.mjs
 // every 5 min and restarts com.ezdraft.build when the loop hangs (scripts/loop/watchdog.mjs). Josh installs it.
@@ -9,17 +10,15 @@ import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { plist } from './install.mjs';
+import { BUILD_LABEL, WATCHDOG_LABEL, plist, program } from './plist.mjs';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const LABEL = 'com.ezdraft.build';
+const LABEL = BUILD_LABEL;
 const agents = path.join(os.homedir(), 'Library/LaunchAgents');
 const logDir = path.join(os.homedir(), 'Library/Logs/ezdraft');
 const file = path.join(agents, `${LABEL}.plist`);
 const uid = process.getuid();
 const lc = (...a) => spawnSync('launchctl', a, { encoding: 'utf8' });
-const W_LABEL = 'com.ezdraft.build-watchdog';
+const W_LABEL = WATCHDOG_LABEL;
 const wFile = path.join(agents, `${W_LABEL}.plist`);
 const show = (label) => {
   const r = lc('print', `gui/${uid}/${label}`);
@@ -39,7 +38,7 @@ const cmd = process.argv[2];
 if (cmd === 'install') {
   mkdirSync(agents, { recursive: true }); mkdirSync(logDir, { recursive: true });
   lc('bootout', `gui/${uid}/${LABEL}`);
-  writeFileSync(file, plist(LABEL, { program: [process.execPath, path.join(root, 'scripts/loop.mjs')], keepAlive: true, log: path.join(logDir, 'build.log') }));
+  writeFileSync(file, plist(LABEL, { program: program(LABEL), keepAlive: true, log: path.join(logDir, 'build.log') }));
   const r = load(file);
   console.log(`${LABEL}: ${r.status === 0 ? 'loaded' : `load failed: ${(r.stderr || r.stdout).trim()}`}`);
 } else if (cmd === 'uninstall') {
@@ -49,7 +48,7 @@ if (cmd === 'install') {
 } else if (cmd === 'install-watchdog') {
   mkdirSync(agents, { recursive: true }); mkdirSync(logDir, { recursive: true });
   lc('bootout', `gui/${uid}/${W_LABEL}`);
-  writeFileSync(wFile, plist(W_LABEL, { program: [process.execPath, path.join(root, 'scripts/launchd/watchdog.mjs')], interval: 300, log: path.join(logDir, 'watchdog.log') }));
+  writeFileSync(wFile, plist(W_LABEL, { program: program(W_LABEL), interval: 300, log: path.join(logDir, 'watchdog.log') }));
   const r = load(wFile);
   console.log(`${W_LABEL}: ${r.status === 0 ? 'loaded (checks the loop every 5 min)' : `load failed: ${(r.stderr || r.stdout).trim()}`}`);
 } else if (cmd === 'uninstall-watchdog') {

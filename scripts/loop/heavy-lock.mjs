@@ -3,9 +3,9 @@
 // slot whose process is gone is taken back. Node built-ins only.
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { pidAlive } from './pid.mjs';
 
 export const slotPath = (base, i) => (i === 0 ? base : `${base}.${i + 1}`);
-const alive = (pid) => { try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
 
 // Reads heavy_slots from a config file; anything missing or out of range is 1.
 export function slotsFrom(configFile) {
@@ -24,7 +24,7 @@ export function tryTake(base, slots, label, pid = process.pid) {
         if (e.code !== 'EEXIST') throw e;
         let holder = 0;
         try { holder = Number(readFileSync(path.join(lock, 'pid'), 'utf8').split(' ')[0]); } catch { /* being written */ }
-        if (holder && !alive(holder)) { rmSync(lock, { recursive: true, force: true }); continue; }
+        if (holder && !pidAlive(holder)) { rmSync(lock, { recursive: true, force: true }); continue; }
         break;
       }
     }

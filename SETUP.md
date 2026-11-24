@@ -91,12 +91,13 @@ Interactive (until the ceiling is set):
 One ticket per session; `/clear` after each, then the next `/build-ticket <id>` (the session-start hook names it). When `vault/budget.json` has a ceiling, unattended:
 
 ```bash
-node scripts/run.mjs            # loops: next unit → fresh claude -p → cost log → ledger check
-node scripts/run.mjs --status   # budget, next unit, which CLI flags the installed version supports
-node scripts/run.mjs --once     # one unit
+node scripts/launchd/build.mjs install   # runs scripts/loop.mjs as the launchd agent com.ezdraft.build
+node scripts/launchd/build.mjs status    # loaded, pid, last exit, log paths
 ```
 
-It stops and notifies you (ntfy) only when something needs you: budget hold, questions, sign-off, a blocked phase, a failed ledger check, a built phase. `touch vault/handoff/STOP` stops it after the current unit. When Phase 0 is built it runs `gate-phase 0`, opens the PR and notifies you; you work the punch list on the preview and merge; then it runs `wrap 0` and stops at Phase 1's `spec-check` (needs you; see `vault/tickets/PHASES.md` for the re-cut to approve first).
+(Build v3, 2026-11-13. The old launcher `scripts/run.mjs` was deleted by EZD-1951; `node scripts/launchd/install.mjs uninstall` removes its old launchd agents. `touch vault/build/STOP` pauses the loop after the current ticket.)
+
+(Old launcher, for the record:) it stopped and notified you (ntfy) only when something needed you: budget hold, questions, sign-off, a blocked phase, a failed ledger check, a built phase. `touch vault/handoff/STOP` stops it after the current unit. When Phase 0 is built it runs `gate-phase 0`, opens the PR and notifies you; you work the punch list on the preview and merge; then it runs `wrap 0` and stops at Phase 1's `spec-check` (needs you; see `vault/tickets/PHASES.md` for the re-cut to approve first).
 
 ## Warnings (audit 2026-11-23)
 

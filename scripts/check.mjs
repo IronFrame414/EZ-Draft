@@ -23,15 +23,15 @@ if (lane !== '0') env.SUPABASE_WORKDIR = path.join(dir, '.lanes', `lane${lane}`)
 const pkg = ['-r', '--if-present', '--filter', '!./spikes/**', 'run'];
 
 // Tests of the scripts that are still live (Josh 2026-11-14): release and backup (they run against production), the
-// conventions and migration checks, the local database and e2e harness, fixtures, perf, and the small service checks.
-// Not run: the retired build machinery (launcher, process, ledger, hooks, budget, tooling, tools, ci, spec, records) and
-// these files:
-//   db/__tests__/lane.test.mjs        starts the retired scripts/gate.mjs as a child process
+// conventions and migration checks, the local database and e2e harness, fixtures, perf, the small service checks, the
+// loop and its launchd agents. The retired build machinery (the launcher, scripts/gate.mjs, unit-steps, ledger/ and
+// launcher/ tests) was deleted by EZD-1951; the test folders left from it (process, hooks, budget, tooling, tools, ci,
+// spec, records) are not run. Not run either:
 //   perf/__tests__/pan.test.mjs       timing-sensitive on CI (EZD-398, retired 2026-11-14)
 //   perf/__tests__/profiles.test.mjs  timing-sensitive on CI (EZD-399, retired 2026-11-14)
 const LIVE_SCRIPT_DIRS = ['release', 'backup', 'conventions', 'db', 'e2e', 'test-harness', 'fixtures', 'email', 'errors',
-  'auth', 'ai', 'hosting', 'perf', 'loop'];
-const SKIP_SCRIPT_TESTS = new Set(['db/__tests__/lane.test.mjs', 'perf/__tests__/pan.test.mjs', 'perf/__tests__/profiles.test.mjs']);
+  'auth', 'ai', 'hosting', 'perf', 'loop', 'launchd'];
+const SKIP_SCRIPT_TESTS = new Set(['perf/__tests__/pan.test.mjs', 'perf/__tests__/profiles.test.mjs']);
 function liveScriptTests() {
   const out = [];
   const walk = (rel) => {

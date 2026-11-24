@@ -5,13 +5,13 @@
 import { lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, rmdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
+import { pidAlive } from './loop/pid.mjs';
 
 export const TAKEOVER_SUFFIX = '.takeover';
 
 // A file holding this process's own pid was left by an earlier process with that pid (this process has not taken it): dead.
 export function isLive(pid) {
-  if (!Number.isInteger(pid) || pid <= 0 || pid === process.pid) return false;
-  try { process.kill(pid, 0); return true; } catch (err) { return err.code === 'EPERM'; }
+  return pid !== process.pid && pidAlive(pid);
 }
 
 const holderPid = (name) => { const m = /^([1-9][0-9]*)-/.exec(name); return m ? Number(m[1]) : 0; };

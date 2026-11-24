@@ -258,9 +258,8 @@ test('EZD-008b done when: the live check never runs in the gate', async () => {
       assert.ok(!v.includes('send-test') && !v.includes('scripts/email'), `${p} script ${k}`);
     }
   }
-  const gate = read('scripts', 'gate.mjs');
+  const gate = read('scripts', 'check.mjs');
   assert.ok(!gate.includes('send-test') && !gate.includes('scripts/email'));
-  assert.ok(gate.includes("CI: '1'"));
   assert.ok(JSON.parse(read('package.json')).scripts.test.includes('"scripts/**/!(pan).test.mjs"'));
   assert.ok(!path.basename('scripts/email/send-test.mjs').endsWith('.test.mjs'));
 
