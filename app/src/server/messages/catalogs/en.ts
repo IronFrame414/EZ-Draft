@@ -3217,6 +3217,9 @@ export const en = {
   'field.pack.open_tasks': { one: '{count} open task', other: '{count} open tasks' },
   'field.pack.none': 'No field pack issued yet.',
   'field.pack.load_failed': "Couldn't open the field pack.",
+  // EZD-1418 (S02 header source subtitle, status bar accuracy for rooms sent from the phone; wording for Josh).
+  'office.review.subtitle_field_measure': 'Rooms sent from Field measure',
+  'office.review.status_accuracy_field_measure': 'Typed on site',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

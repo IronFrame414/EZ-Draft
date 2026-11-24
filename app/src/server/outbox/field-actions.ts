@@ -10,6 +10,7 @@ import {
 } from '../../lib/outbox/field-action';
 import type { SignedUpload } from '../../lib/storage/upload';
 import { roomsSchema } from '../../field-measure/rooms';
+import { createFieldMeasureImport } from '../imports/field-measure-import';
 import { StorageError, createSignedUpload, type DbClient } from '../storage/objects';
 
 export type FieldActionRefusal =
@@ -127,5 +128,12 @@ export async function syncFieldAction(
     })
     .safeParse(data);
   if (!parsed.success) throw new Error('sync_field_action_unexpected_result');
+  // EZD-1418 (S17b Desktop side "sent rooms appear in Import review"): a recorded send becomes its import. On a
+  // resend (duplicate) too, so an import lost to an error here is made when the phone sends again; a failure throws,
+  // the route answers 500 and the phone keeps the action queued.
+  if (body.kind === 'field_measure_send') {
+    const ops = fieldMeasureSendOpsSchema.safeParse(body.ops);
+    if (ops.success) await createFieldMeasureImport(client, projectId, body.id, ops.data.rooms);
+  }
   return { ok: true, ...parsed.data };
 }

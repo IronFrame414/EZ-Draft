@@ -130,7 +130,14 @@ export function ReviewListPanel({
               data-source={g.source}
             >
               <span className={styles.dot} aria-hidden="true" />
-              <span className={styles.label}>{t(REVIEW_SOURCE_LABEL_KEYS[g.source])}</span>
+              {g.href !== undefined ? (
+                // EZD-1418: field measurements open Import review of the rooms sent from the phone.
+                <a className={styles.label} href={g.href} data-testid="review-group-link">
+                  {t(REVIEW_SOURCE_LABEL_KEYS[g.source])}
+                </a>
+              ) : (
+                <span className={styles.label}>{t(REVIEW_SOURCE_LABEL_KEYS[g.source])}</span>
+              )}
               <span className={styles.count}>{g.count}</span>
             </li>
           ))}

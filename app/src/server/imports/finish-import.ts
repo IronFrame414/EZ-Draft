@@ -182,7 +182,8 @@ export function importObjects(
         status: 'existing',
         level: ctx.level,
         attributes: {
-          ...newRoomAttributes(`Room ${roomNumber}`),
+          // EZD-1418: a field measure room keeps its name from the phone (Kitchen, Bath, ...).
+          ...newRoomAttributes(item.name ?? `Room ${roomNumber}`),
           ceilingType: sloped.has(item.id) ? 'single_slope' : null,
         },
         closureOverride: keep

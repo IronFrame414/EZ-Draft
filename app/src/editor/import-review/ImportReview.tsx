@@ -270,6 +270,8 @@ export function ImportReview({
 
   const review = load.kind === 'loaded' ? load.review : null;
   const files = review?.files ?? [];
+  // EZD-1418: rooms sent from the phone (S02 Entry points "source kind field_measure").
+  const fromFieldMeasure = files.length > 0 && files.every((f) => f.kind === 'field_measure');
   const closed = review?.status === 'finished' || review?.status === 'cancelled';
   const canEdit = review?.canEdit ?? true;
   const lock = useReviewLock({ projectId, viewerId: review?.viewerId, canEdit, fetchImpl });
@@ -377,7 +379,9 @@ export function ImportReview({
           </span>
           {files.length > 0 ? (
             <span className={headerStyles.subtitle} data-testid="import-review-subtitle">
-              {t('office.review.subtitle', { files: files.map((f) => f.name).join(' + ') })}
+              {fromFieldMeasure
+                ? t('office.review.subtitle_field_measure')
+                : t('office.review.subtitle', { files: files.map((f) => f.name).join(' + ') })}
             </span>
           ) : null}
         </div>
@@ -1245,7 +1249,9 @@ export function ReadyBody({
           <>
             <StatusItem label="office.review.status_source">{sourceLine(review.files)}</StatusItem>
             <StatusItem label="office.review.status_accuracy">
-              {t('office.review.status_accuracy_value')}
+              {review.files.length > 0 && review.files.every((f) => f.kind === 'field_measure')
+                ? t('office.review.status_accuracy_field_measure')
+                : t('office.review.status_accuracy_value')}
             </StatusItem>
             <StatusItem label="office.review.status_input">
               {t('office.review.status_input_value')}

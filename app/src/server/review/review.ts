@@ -10,6 +10,9 @@ import {
   type ReviewSummary,
 } from '../../lib/review/sources';
 import type { Database } from '../db/database.types';
+import { importReviewPath } from '../imports/field-measure-import';
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // `list=1` asks for the groups as well; no other value is accepted. Null = 400.
 export function parseReviewQuery(params: URLSearchParams): { list: boolean } | null {
@@ -36,11 +39,23 @@ export async function readReviewSummary(
   if (!withList) return { count };
   const rows = await client
     .from('review_item')
-    .select('source')
+    .select('source, source_ref, created_at')
     .eq('project_id', projectId)
-    .is('resolved_at', null);
+    .is('resolved_at', null)
+    .order('created_at', { ascending: false });
   if (rows.error) throw rows.error;
   const sources: ReviewSource[] = [];
   for (const r of rows.data) if (isReviewSource(r.source)) sources.push(r.source);
-  return { count, groups: groupReviewItems(sources) };
+  const groups = groupReviewItems(sources);
+  // EZD-1418 (S02 Entry points "rooms sent from the phone"): a field measurement's source_ref is its import job, so
+  // the line opens Import review of the newest one (supabase/migrations/…_field_measure_import.sql).
+  const measured = rows.data.find((r) => r.source === 'field_measure' && UUID.test(r.source_ref));
+  return {
+    count,
+    groups: groups.map((g) =>
+      g.source === 'field_measure' && measured
+        ? { ...g, href: importReviewPath(projectId, measured.source_ref) }
+        : g,
+    ),
+  };
 }

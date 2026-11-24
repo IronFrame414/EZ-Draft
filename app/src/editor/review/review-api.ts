@@ -26,9 +26,11 @@ export function readSummary(body: unknown): ReviewSummary | null {
   const out: ReviewGroup[] = [];
   for (const g of groups as unknown[]) {
     if (typeof g !== 'object' || g === null) return null;
-    const { source, count: n } = g as { source?: unknown; count?: unknown };
+    const { source, count: n, href } = g as { source?: unknown; count?: unknown; href?: unknown };
     if (!isReviewSource(source) || !isCount(n)) return null;
-    out.push({ source, count: n });
+    // EZD-1418: a line may open a page of this app (field measurements: Import review); anything else is dropped.
+    const page = typeof href === 'string' && /^\/projects\/[^/?#]+\/import\/[^/?#]+$/.test(href);
+    out.push(page ? { source, count: n, href: href as string } : { source, count: n });
   }
   return { count, groups: out };
 }

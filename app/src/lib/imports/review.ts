@@ -47,6 +47,8 @@ export type ReviewRoom = {
   areaSqIn: number;
   /** EZD-311: the gap (in) the room was kept out of square on; set from its fix (lib/imports/review-fix.ts). */
   keptGap?: Pt;
+  /** EZD-1418: the room's name as typed or picked on the phone (S17b + Room); a scan's rooms have none. */
+  name?: string;
 };
 
 /**
@@ -419,6 +421,8 @@ export function sourceLine(files: readonly ReviewFile[]): string {
   if (!scan && files.length > 0 && files.every((f) => f.kind === 'pdf')) return 'PDF';
   // EZD-915: an import from supplier PDFs alone (wording for Josh to confirm, assumptions EZD-915).
   if (!scan && files.length > 0 && files.every((f) => f.kind === 'supplier_pdf')) return 'Supplier PDF';
+  // EZD-1418: rooms sent from the phone (S02 Entry points "source kind field_measure"; assumptions EZD-1418).
+  if (!scan && files.length > 0 && files.every((f) => f.kind === 'field_measure')) return 'Field measure';
   const hasMesh = files.some((f) => f.kind === 'polycam_glb');
   return hasMesh ? 'Polycam Space · DXF + GLB' : 'Polycam Space · DXF';
 }

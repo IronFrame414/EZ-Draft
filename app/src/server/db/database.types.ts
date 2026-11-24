@@ -589,14 +589,14 @@ isOneToOne: false
                   ]
                 },"import_session": {
                   Row: {
-                    "created_at": string,"error": string | null,"id": string,"items": NonNullable<Json>,"job_id": string | null,"mode": string,"project_id": string,"source_file_id": string,"source_kind": string,"status": string,"summary": NonNullable<Json>,"tenant_id": string,"updated_at": string
+                    "created_at": string,"error": string | null,"id": string,"items": NonNullable<Json>,"job_id": string | null,"mode": string,"project_id": string,"source_file_id": string | null,"source_kind": string,"status": string,"summary": NonNullable<Json>,"tenant_id": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"error"?: string | null,"id"?: string,"items"?: NonNullable<Json>,"job_id"?: string | null,"mode"?: string,"project_id": string,"source_file_id": string,"source_kind": string,"status"?: string,"summary"?: NonNullable<Json>,"tenant_id": string,"updated_at"?: string
+                    "created_at"?: string,"error"?: string | null,"id"?: string,"items"?: NonNullable<Json>,"job_id"?: string | null,"mode"?: string,"project_id": string,"source_file_id"?: string | null,"source_kind": string,"status"?: string,"summary"?: NonNullable<Json>,"tenant_id": string,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"error"?: string | null,"id"?: string,"items"?: NonNullable<Json>,"job_id"?: string | null,"mode"?: string,"project_id"?: string,"source_file_id"?: string,"source_kind"?: string,"status"?: string,"summary"?: NonNullable<Json>,"tenant_id"?: string,"updated_at"?: string
+                    "created_at"?: string,"error"?: string | null,"id"?: string,"items"?: NonNullable<Json>,"job_id"?: string | null,"mode"?: string,"project_id"?: string,"source_file_id"?: string | null,"source_kind"?: string,"status"?: string,"summary"?: NonNullable<Json>,"tenant_id"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -1419,6 +1419,9 @@ isOneToOne: false
                            },
 "create_checkpoint":
 { Args: { "p_project": string }; Returns: string
+                           },
+"create_field_measure_import":
+{ Args: { "p_change": string,"p_items": Json,"p_project": string }; Returns: Json
                            },
 "create_invite":
 { Args: { "p_email": string,"p_ip"?: unknown,"p_language": string,"p_name": string,"p_role_id": string,"p_scope": string,"p_secret": string,"p_token_sha256": string }; Returns: Json
