@@ -369,7 +369,12 @@ test.describe('EZD-131 libraries', () => {
     await expect(tid(page, 'library-inspector-title')).toHaveText('Bath');
     await tid(page, 'template-phase-handle').nth(0).focus();
     await page.keyboard.press('ArrowDown');
+    // The save must be answered before the reload, or the reload cancels it and the default order comes back.
+    const saved = page.waitForResponse(
+      (r) => r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/settings/libraries',
+    );
     await tid(page, 'template-save').click();
+    expect((await saved).ok()).toBe(true);
     await page.reload();
     await tid(page, 'template-room').nth(1).click();
     await valuesOf(page, 'template-phase-name').toEqual([

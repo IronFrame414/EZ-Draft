@@ -305,3 +305,7 @@ Josh installs it, from the main checkout (`/Users/josh/Projects/ezdraft`, not a 
 - `node scripts/launchd/build.mjs install-watchdog`
 - `node scripts/launchd/build.mjs uninstall-watchdog`
 - `node scripts/launchd/build.mjs status` shows both services. Watchdog log: `~/Library/Logs/ezdraft/watchdog.log`.
+
+## Loop build order (EZD-1940)
+
+The loop builds eligible tickets in this order: security fix tickets, then the `priority` list in `vault/build/config.json`, then retried tickets (a ticket that failed once and was requeued), then phase, build position and ticket id (`scripts/loop/order.mjs`). A retried ticket goes before every fresh ticket of the same priority rank, so the config.json priority list is no longer needed for retries; use it only to bring a fresh ticket forward. The running loop uses the new order only after a restart: its own self-restart after it merges a change under `scripts/loop/` (EZD-1967), or Josh or the overseer restarting `com.ezdraft.build`. The ticket itself never restarts it.

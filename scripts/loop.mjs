@@ -5,6 +5,9 @@
 // Pause: touch vault/build/STOP (running tickets finish first). State: vault/build/state.json.
 // Self-restart (EZD-1967): a merge that changes the loop's own code drains like STOP, dry-runs the new code and exits 75
 // so launchd relaunches it (scripts/loop/self-restart.mjs).
+// Build order (EZD-1940): security fixes, the config.json `priority` list, retried tickets, then phase, build position
+// and id (scripts/loop/order.mjs). A ticket that failed once is requeued at the front, so the priority list is no longer
+// needed to bring a retry forward.
 // Lanes (Josh 2026-11-16): up to config `lanes` tickets build at once, each with its own database lane. No two running
 // tickets may edit the same file: each ticket first predicts the files it will change (its footprint, cached in
 // vault/build/footprints.json), starts only when no running ticket holds any of them, claims files it finds it needs
@@ -25,6 +28,7 @@ import { runCheck } from './loop/check-run.mjs';
 import { createEvents, failureSummary, msToSecondEnd, oneLine, sameSecondEvents, secondOf } from './loop/failure-lines.mjs';
 import { withImportingTests } from './loop/import-graph.mjs';
 import { changedFiles, createSelfRestart, runDryRun } from './loop/self-restart.mjs';
+import { buildOrder, phaseRank } from './loop/order.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -48,7 +52,8 @@ const DEFAULTS = {
   trial_size: 20, lanes: [0, 1, 2], footprint_effort: 'low', footprint_timeout_min: 15, footprint_lookahead: 6,
   merge_rounds: 3, holder_wait_min: 240, idle_minutes: 30, limit_sleep_minutes: 30, limit_probe_minutes: 5, red_streak_guard: 3,
   skip_tracks: ['tooling'], skip_statuses: ['blocked'],
-  // Tickets built first when eligible, even after a failure (a retried ticket otherwise waits at the back of the queue).
+  // Tickets built first when eligible (after security fixes). Not needed for retries: a retried ticket already goes
+  // before every fresh ticket of the same priority rank (EZD-1940, scripts/loop/order.mjs).
   priority: [],
   // Josh 2026-11-14: a ticket in this phase rank or higher starts only when every ticket in every lower phase rank is
   // complete (done, a skipped track or a skipped status). A set-aside ticket is not complete and holds the gate.
@@ -165,8 +170,6 @@ function writeSetAside(s) {
 
 // ---------- tickets ----------
 function tickets() { const t = readJson(path.join(ROOT, 'vault/tickets/tickets.json'), {}); return Array.isArray(t) ? t : t.tickets || []; }
-// Phase 56 (AI assistant) is built right after phase 5 and before phase 6 (vault/tickets/PHASES.md, Q-0630).
-const phaseRank = (p) => (Number(p) === 56 ? 5.5 : Number(p));
 // Lower-rank tickets that keep a ticket of rank r from starting under the phase gate (empty when r is below the gate).
 function gateBlockers(t, s, c = cfg(), statuses = seedStatuses()) {
   const r = phaseRank(t.phase);
@@ -187,11 +190,8 @@ function candidates(s, c, statuses) {
     && !(phaseRank(t.phase) > Number(c.max_phase ?? 999))
     && !c.skip_tracks.includes(t.track) && !c.skip_statuses.includes(statuses[t.id])
     && (t.depends_on || []).every((d) => done.has(d)));
-  const retried = (t) => (s.retries?.[t.id] ? 1 : 0);
-  const rank = (t) => { const i = (c.priority || []).indexOf(t.id); return i < 0 ? 1e9 : i; };
-  const sec = (t) => (t.track === SECURITY_TRACK ? 0 : 1);
-  list.sort((a, b) => (sec(a) - sec(b)) || (rank(a) - rank(b)) || (retried(a) - retried(b)) || (phaseRank(a.phase) - phaseRank(b.phase)) || ((a.build_position ?? 1e9) - (b.build_position ?? 1e9)) || a.id.localeCompare(b.id));
-  return list;
+  // Security, priority list, retried first, phase, build position, id (scripts/loop/order.mjs, EZD-1940).
+  return buildOrder(list, { retries: s.retries, priority: c.priority });
 }
 // Every candidate the phase gate lets through, in build order. A running ticket counts as not done for the gate.
 function eligible(s) {
@@ -447,7 +447,7 @@ function addDeps(id, ids) {
   git(['commit', '-q', '-m', `chore(tickets): ${id} depends on ${added.join(', ')} (build loop: named as needed first)`, '--', 'vault/tickets/tickets.json']);
   return added;
 }
-// First failure: back in line (at the end), with any ticket named as needed first added to depends_on.
+// First failure: back in line (at the front: retried tickets go first, EZD-1940), with any ticket named as needed first added to depends_on.
 // Second failure: set aside for Josh (Josh 2026-11-13).
 // line: the one-line detail for loop.log (a red check's summary); without it, the detail's head in whole words.
 function setAside(s, t, reason, detail, wt, needs = [], line = '') {
