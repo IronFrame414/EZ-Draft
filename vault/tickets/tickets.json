@@ -26888,6 +26888,44 @@
     "AC-EZD-1973-3"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-1974",
+   "phase": 10,
+   "title": "Fix: the EZD-136 every-page disclaimer test times out on CI",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-24: repeat failures on the GitHub CI gate (runs 45388890525, 45404034085, 45413109897 on develop and 45463955107 attempts 1-2 on release PR #12) that block the release: e2e/disclaimer.spec.ts:125 \"EZD-136 done when: every page shows the disclaimer\" hits the 60 s test timeout in 3 runs. It visits every row of DISCLAIMER_PAGES in one test, each with a new browser context and, for signed-in rows, a fresh sign-in.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1974-1",
+    "AC-EZD-1974-2",
+    "AC-EZD-1974-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-1975",
+   "phase": 10,
+   "title": "Fix: the sheet renders 3 or 4 times instead of 2 after Plan edits (EZD-702b AC-1/AC-2 on CI)",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-24: repeat failures on the GitHub CI gate (runs 45388890525, 45404034085, 45413109897 on develop and 45463955107 attempts 1-2 on release PR #12) that block the release: e2e/sheet-renderer.spec.ts:68 expects data-sheet-renders \"2\" after returning to Sheets from three Plan edits, and receives \"3\" or \"4\" in 3 runs. It passes on the faster build Mac, so on a slower machine the sheet draws again for each edit or for a late model update instead of once on return.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1975-1",
+    "AC-EZD-1975-2",
+    "AC-EZD-1975-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
