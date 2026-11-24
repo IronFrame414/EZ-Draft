@@ -492,7 +492,8 @@
     "EZD-1418",
     "EZD-1939",
     "EZD-1901",
-    "EZD-1970"
+    "EZD-1970",
+    "EZD-415"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1810,11 +1811,19 @@
       "ts": "2026-11-24T16:17:42Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-415",
+      "title": "Seating support check",
+      "commit": "a3e78140",
+      "ts": "2026-11-24T17:12:14Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2023,22 +2032,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-415": {
-      "lane": 3,
-      "title": "Seating support check",
-      "started": "2026-11-24T15:24:37Z",
-      "develop": "95be1674"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-24T16:16:06Z",
-  "hold": {
-    "EZD-415": {
-      "holders": [
-        "EZD-1422"
-      ],
-      "ts": "2026-11-22T12:02:49Z",
-      "why": "needs a file held by EZD-1422"
-    }
-  }
+  "hold": {}
 }
