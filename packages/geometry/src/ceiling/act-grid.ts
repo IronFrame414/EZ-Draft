@@ -15,6 +15,7 @@
 import { COMPARISON_TOLERANCE_IN } from '../tolerance';
 import type { ActGridData, ActModule, Point, RoomData } from '../schema';
 import { ridgeDirection } from './beam-layout';
+import { dot } from '../vec';
 
 const tol = COMPARISON_TOLERANCE_IN;
 const SIXTEENTHS = 16;
@@ -88,7 +89,6 @@ export type ActGridLayout = {
   start: Point;
 };
 
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y;
 const perp = (u: Point): Point => ({ x: -u.y, y: u.x });
 
 /** The main runners' direction and the direction square to it. */

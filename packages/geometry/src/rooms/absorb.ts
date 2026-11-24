@@ -1,10 +1,11 @@
 // EZD-205b Build step 3 (vault/plans/EZD-205b.md section 3 `absorbGap`, Decided "Absorb steps", "Absorb change";
 // 09j Absorbing; 09e; Q-0570; P203 `wallLengthProblem`, `moveWall`): a gap is absorbed by a wall of its chain that
 // runs along it; the walls after it move by the gap. Reads and returns only wall objects; never mutates its input.
-import type { ModelObject, Point } from '../schema';
+import type { ModelObject } from '../schema';
 import { findWallJoins, type WallEnd, type WallJoin } from '../walls/joins';
 import { wallLength, wallLengthProblem, type WallLine, type WallObject } from '../walls/wall';
 import { findClosures, type GapReport } from './closure';
+import { add } from '../vec';
 
 export type AbsorbResult =
   | { ok: true; changed: WallObject[] }
@@ -25,7 +26,6 @@ const sameId = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
 const isWall = (o: ModelObject): o is WallObject => o.type === 'wall';
 
-const add = (p: Point, d: Point): Point => ({ x: p.x + d.x, y: p.y + d.y });
 
 const otherEndOf = (e: WallEnd): WallEnd => (e === 'start' ? 'end' : 'start');
 

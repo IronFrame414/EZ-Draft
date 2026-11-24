@@ -7,6 +7,7 @@
 // curb lies inside side 0 and a bench sits against side 3 (the left wall) in the back corner at footprint[3]. Pure.
 import type { Point } from '../schema';
 import type { TileShowerData } from '../schema/tile-shower';
+import { add, sub } from '../vec';
 
 export type TileShowerObject = { id: string; type: 'tile_shower'; data: TileShowerData };
 
@@ -18,8 +19,6 @@ export const CENTER_DRAIN_MARK_IN = 4;
 
 export type ShowerFrame = { origin: Point; ux: Point; uy: Point; width: number; depth: number };
 
-const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
-const add = (a: Point, b: Point): Point => ({ x: a.x + b.x, y: a.y + b.y });
 const scale = (a: Point, k: number): Point => ({ x: a.x * k, y: a.y * k });
 const unit = (a: Point): Point => {
   const l = Math.hypot(a.x, a.y);

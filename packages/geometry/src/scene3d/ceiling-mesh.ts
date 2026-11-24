@@ -16,9 +16,9 @@ import { COMPARISON_TOLERANCE_IN } from '../tolerance';
 import { DEFAULT_WALL_HEIGHT_IN } from '../walls/wall';
 import { beamLayout, ridgeDirection, roomPlateHeight } from '../ceiling/beams';
 import { pointInRing } from '../rooms/area';
+import { dot } from '../vec';
 
 const tol = COMPARISON_TOLERANCE_IN;
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y;
 type Room = { id: string; data: RoomData };
 type Wall = { id: string; data: WallData };
 export type Vec3 = readonly [number, number, number];

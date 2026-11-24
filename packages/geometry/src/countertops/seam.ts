@@ -6,14 +6,10 @@ import { outlineAreaSqIn, pointInRing } from '../rooms/area';
 import type { CountertopCutout, CountertopEdge, CountertopPieceData, Point } from '../schema';
 import { cutoutCorners } from './cutout';
 import { countertopLabelAt, isValidCountertopOutline } from './outline';
+import { add, cross, dist, dot, sub } from '../vec';
 
 const EPS = 1e-6;
 
-const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
-const add = (a: Point, b: Point, k = 1): Point => ({ x: a.x + b.x * k, y: a.y + b.y * k });
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y;
-const cross = (a: Point, b: Point) => a.x * b.y - a.y * b.x;
-const dist = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 const clean = (n: number) => (Math.abs(n) < 1e-9 ? 0 : n);
 const tidy = (p: Point): Point => ({ x: clean(p.x), y: clean(p.y) });
 

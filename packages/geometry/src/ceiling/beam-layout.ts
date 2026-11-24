@@ -11,10 +11,9 @@
 import { COMPARISON_TOLERANCE_IN } from '../tolerance';
 import type { BeamData, Point, RoomData } from '../schema';
 import type { PickShape } from '../selection/shapes';
+import { add, dot } from '../vec';
 
 const tol = COMPARISON_TOLERANCE_IN;
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y;
-const add = (a: Point, b: Point, k = 1): Point => ({ x: a.x + b.x * k, y: a.y + b.y * k });
 const perp = (u: Point): Point => ({ x: -u.y, y: u.x });
 function unit(a: Point, b: Point): Point | null {
   const L = Math.hypot(b.x - a.x, b.y - a.y);
