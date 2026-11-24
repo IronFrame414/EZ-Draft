@@ -26811,6 +26811,26 @@
     "AC-EZD-1969-3"
    ],
    "acs_source": "loop-2026-11-24"
+  },
+  {
+   "id": "EZD-1970",
+   "phase": 10,
+   "title": "Check: free the lane web port before e2e so a stale server is never reused",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-24: an orphaned `pnpm start -p 3010` (ppid 1, cwd the EZD-1939 worktree) held lane 1's web port for 3 h after its check was stopped; Playwright reuseExistingServer made every later lane-1 e2e run test that stale build, so about 100 unrelated tests timed out at 1 min each and EZD-1939 spent 3 h red. check.mjs runs fresh for every check, so this fix is live on merge.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1970-1",
+    "AC-EZD-1970-2",
+    "AC-EZD-1970-3",
+    "AC-EZD-1970-4"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
