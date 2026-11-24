@@ -490,7 +490,8 @@
     "EZD-1962",
     "EZD-1951",
     "EZD-1418",
-    "EZD-1939"
+    "EZD-1939",
+    "EZD-1901"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1792,6 +1793,14 @@
       "ts": "2026-11-24T14:20:58Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1901",
+      "title": "Editor feature contract and characterization tests",
+      "commit": "6a6441a3",
+      "ts": "2026-11-24T15:23:55Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2000,7 +2009,20 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {},
+  "running": {
+    "EZD-1970": {
+      "lane": 1,
+      "title": "Check: free the lane web port before e2e so a stale server is never reused",
+      "started": "2026-11-24T14:21:38Z",
+      "develop": "82d1e7a1"
+    },
+    "EZD-1944": {
+      "lane": 2,
+      "title": "Loop: a retry command that keeps a history of set-asides",
+      "started": "2026-11-24T14:21:38Z",
+      "develop": "82d1e7a1"
+    }
+  },
   "advisories_checked_at": "2026-11-24T10:15:24Z",
   "hold": {
     "EZD-415": {
