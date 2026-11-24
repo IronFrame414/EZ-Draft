@@ -495,7 +495,8 @@
     "EZD-1970",
     "EZD-415",
     "EZD-1971",
-    "EZD-1972"
+    "EZD-1972",
+    "EZD-1940"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1837,6 +1838,14 @@
       "ts": "2026-11-24T18:47:02Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1940",
+      "title": "Loop: retried tickets go first, not last",
+      "commit": "904e57b6",
+      "ts": "2026-11-24T19:17:37Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2051,11 +2060,17 @@
     }
   },
   "running": {
-    "EZD-1940": {
-      "lane": 3,
-      "title": "Loop: retried tickets go first, not last",
-      "started": "2026-11-24T17:12:52Z",
-      "develop": "8a5a52bf"
+    "EZD-1904": {
+      "lane": 1,
+      "title": "Geometry: one vector helper module",
+      "started": "2026-11-24T18:47:08Z",
+      "develop": "ceaff45e"
+    },
+    "EZD-1906a": {
+      "lane": 2,
+      "title": "Editor shared helpers (ids, value store, store hook, inch text) in tools, selection, edit",
+      "started": "2026-11-24T18:47:09Z",
+      "develop": "ceaff45e"
     }
   },
   "advisories_checked_at": "2026-11-24T16:16:06Z",
