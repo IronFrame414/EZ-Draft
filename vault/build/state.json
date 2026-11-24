@@ -486,7 +486,8 @@
     "EZD-1967",
     "EZD-1947",
     "EZD-1950",
-    "EZD-1969"
+    "EZD-1969",
+    "EZD-1962"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1756,6 +1757,14 @@
       "ts": "2026-11-24T08:19:05Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1962",
+      "title": "Wording: \"Couldn't read this page\" on the property record import (Q-0802)",
+      "commit": "e79b36bf",
+      "ts": "2026-11-24T09:41:36Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -1963,7 +1972,20 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {},
+  "running": {
+    "EZD-1939": {
+      "lane": 1,
+      "title": "Loop: failure lines in loop.log name the failing tests",
+      "started": "2026-11-24T08:28:13Z",
+      "develop": "cb7591b2"
+    },
+    "EZD-1951": {
+      "lane": 2,
+      "title": "Remove the retired build machinery from scripts/",
+      "started": "2026-11-24T08:28:16Z",
+      "develop": "cb7591b2"
+    }
+  },
   "advisories_checked_at": "2026-11-24T04:14:35Z",
   "hold": {
     "EZD-415": {
