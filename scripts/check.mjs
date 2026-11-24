@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Build v3 gate (2026-11-13). Usage: node scripts/check.mjs [dir] [--fast]
-// Runs: install, database up, typecheck, lint, unit and database tests, build, live scripts tests, e2e.
+// Runs: install, Docker check (EZD-1966), database up, typecheck, lint, unit and database tests, build, live scripts tests, e2e.
 // --fast skips build and e2e (for the builder's inner loop; the loop always runs the full check).
 // Full output: <dir>/check.log. On failure the failing step's last lines go to <dir>/check-failures.log.
 // Exit 0 = CHECK PASS.
@@ -9,6 +9,7 @@ import { createWriteStream, existsSync, mkdirSync, readFileSync, readdirSync, rm
 import os from 'node:os';
 import path from 'node:path';
 import { release, slotsFrom, tryTake } from './loop/heavy-lock.mjs';
+import { waitForDocker } from './loop/docker-wait.mjs';
 
 const args = process.argv.slice(2);
 const fast = args.includes('--fast');
@@ -159,6 +160,17 @@ if (!existsSync(path.join(dir, 'package.json'))) { console.log(`CHECK FAIL: no p
 const t0 = Date.now();
 for (const [name, cmd, argv] of steps) {
   if (HEAVY.has(name)) await takeHeavy();
+  if (name === 'database' || name === 'database again') {
+    // EZD-1966: a Docker that is down (crash, update) is waited for, not reported as a failed ticket.
+    const d = await waitForDocker({ env, track: (g) => groups.add(g), untrack: (g) => { if (!groupAlive(g)) groups.delete(g); } });
+    if (d.line) { console.log(d.line); log.write(`\n${d.line}\n`); }
+    if (!d.ok) {
+      writeFileSync(failPath, `${d.line}\nstep: ${name} (Docker check before it)\nfull log: ${logPath}\n`);
+      log.end();
+      console.log(`CHECK FAIL at ${name} after ${Math.round((Date.now() - t0) / 1000)}s; details: ${failPath}`);
+      process.exit(1);
+    }
+  }
   const r = await run(name, cmd, argv);
   if (name === 'database' && r.code === 0) {
     // Next.js bakes NEXT_PUBLIC_* into the build, so the build and the e2e server need this lane's stack values.
