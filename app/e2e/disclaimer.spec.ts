@@ -122,31 +122,35 @@ test.describe('EZD-136 disclaimer', () => {
     }
   });
 
-  test('EZD-136 done when: every page shows the disclaimer', async ({ browser, baseURL }) => {
-    for (const row of DISCLAIMER_PAGES) {
-      await test.step(row.path, async () => {
-        const context = await newContext(browser, baseURL);
-        try {
-          const page = await context.newPage();
-          if (row.signedIn) await signInAsOwner(page);
-          await page.goto(row.path);
-          const d = page.getByTestId('disclaimer');
-          await expect(d, row.path).toHaveCount(1);
-          await expect(d, row.path).toHaveText(D_EN);
-          await expect(d, row.path).toHaveAttribute('data-placement', row.placement);
-          await expect(d, row.path).toBeInViewport();
-          expect(await followingText(page), row.path).toBe(0);
-          if (row.placement === 'bar') {
-            await expect(page.locator(BARS).getByTestId('disclaimer'), row.path).toHaveCount(1);
-            const w = await fits(page, '[data-testid="disclaimer"]');
-            expect(w.scroll, row.path).toBeLessThanOrEqual(w.client);
-          }
-        } finally {
-          await context.close();
+  // EZD-1974: one test per DISCLAIMER_PAGES row, so each row has its own 60 s test timeout (the single test
+  // that walked every row, each with a new context and a fresh sign-in, passed 60 s on CI). The checks per
+  // row are unchanged.
+  for (const row of DISCLAIMER_PAGES) {
+    test(`EZD-136 done when: every page shows the disclaimer: ${row.path}`, async ({
+      browser,
+      baseURL,
+    }) => {
+      const context = await newContext(browser, baseURL);
+      try {
+        const page = await context.newPage();
+        if (row.signedIn) await signInAsOwner(page);
+        await page.goto(row.path);
+        const d = page.getByTestId('disclaimer');
+        await expect(d, row.path).toHaveCount(1);
+        await expect(d, row.path).toHaveText(D_EN);
+        await expect(d, row.path).toHaveAttribute('data-placement', row.placement);
+        await expect(d, row.path).toBeInViewport();
+        expect(await followingText(page), row.path).toBe(0);
+        if (row.placement === 'bar') {
+          await expect(page.locator(BARS).getByTestId('disclaimer'), row.path).toHaveCount(1);
+          const w = await fits(page, '[data-testid="disclaimer"]');
+          expect(w.scroll, row.path).toBeLessThanOrEqual(w.client);
         }
-      });
-    }
-  });
+      } finally {
+        await context.close();
+      }
+    });
+  }
 
   test('EZD-136 B2 language: Spanish on the Spanish phone notice and sign-in, English on the client link @phone', async ({
     page,
