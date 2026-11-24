@@ -346,4 +346,42 @@ test.describe('EZD-230 Default key map and full rail', () => {
       await expect(tool(page, 'wall')).toHaveAttribute('aria-pressed', 'true');
     },
   );
+
+  // EZD-1973 (AC-EZD-1973-1, AC-EZD-1973-3): Chrome on Linux, Windows and Android sends no click for a tap that starts
+  // just after a touch drag ended with the finger still moving, so the rail takes a finger tap at pointer up. The tap
+  // here follows the drag at once, with nothing between them.
+  test(
+    'EZD-1973: a tap straight after a touch drag on the rail turns the tool on',
+    { tag: ['@surface'] },
+    async ({ page, signInAs }) => {
+      const tenant = await createTenant();
+      const ids = await seedFixtureS(tenant);
+      const member = await createMember({ tenantId: tenant, scope: 'all', listed: [] });
+      await setPermissions(tenant, member.membershipId, PERMISSIONS as never);
+      await signInAs(member.email);
+      await openEditor(page, ids.P1);
+      expect(((await topIds(page)) as string[]).slice(0, 3)).toEqual(['select', 'move', 'wall']);
+
+      const from = (await tool(page, 'wall').boundingBox())!;
+      const to = (await tool(page, 'select').boundingBox())!;
+      const x = Math.round(from.x + from.width / 2);
+      const y0 = from.y + from.height / 2;
+      const y1 = to.y + to.height / 2;
+      const cdp = await page.context().newCDPSession(page);
+      const touch = (type: string, y?: number) =>
+        cdp.send('Input.dispatchTouchEvent', {
+          type: type as 'touchStart',
+          touchPoints: y === undefined ? [] : [{ x, y: Math.round(y) }],
+        });
+      await touch('touchStart', y0);
+      for (let i = 1; i <= 8; i++) await touch('touchMove', y0 + ((y1 - y0) * i) / 8);
+      await touch('touchEnd');
+      // Wall is now in the first place, under the finger: tap it there.
+      await touch('touchStart', y1);
+      await touch('touchEnd');
+
+      await expect(tool(page, 'wall')).toHaveAttribute('aria-pressed', 'true');
+      expect(((await topIds(page)) as string[]).slice(0, 3)).toEqual(['wall', 'select', 'move']);
+    },
+  );
 });

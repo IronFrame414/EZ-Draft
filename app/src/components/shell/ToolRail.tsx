@@ -5,6 +5,7 @@
 // EZD-230 (Q-0038 "each user can set the order of the tools on the rail"; Q-0122): with `onReorder`, a top tool is
 // dragged up or down the rail to a new place, or moved one place with Alt+Up or Alt+Down; the rail reports the top
 // tools' ids in their new order. A drag starts after the pointer moves 8 px and does not also press the tool.
+// EZD-1973: a finger or pen lifted on a movable tool without a drag turns it on at pointer up (rail-press.ts).
 // EZD-230 (Q-0038 (b)): when the top tools do not fit the rail's height, the last place is a "More tools" button that
 // opens a flyout beside the rail with the tools that do not fit; picking one closes it, as Esc and a press outside do.
 // The rail measures its top group with a ResizeObserver (a size change, not a pointer or scroll listener).
@@ -19,10 +20,10 @@ import {
 import { Icon } from '../icon/Icon';
 import { useT } from '../../lib/messages';
 import { moveRailTool, type RailEntry, type RailTool } from './rail-types';
+import { createRailPress } from './rail-press';
 import styles from './ToolRail.module.css';
 import moreStyles from './RailMore.module.css';
 
-const DRAG_START_PX = 8;
 // ToolRail.module.css: .group gap, .separator height and margins.
 const GAP_PX = 2;
 const SEPARATOR_PX = 13;
@@ -51,8 +52,7 @@ export function ToolRail({
 }) {
   const t = useT();
   const topRef = useRef<HTMLDivElement>(null);
-  const press = useRef<{ id: string; y: number; pointer: number; moving: boolean } | null>(null);
-  const dropped = useRef(false);
+  const [rp] = useState(createRailPress);
   const [dragging, setDragging] = useState<string | null>(null);
   const topIds = top.flatMap((e) => (e.kind === 'tool' ? [e.id] : []));
   const movable = (id: string) => onReorder !== undefined && topIds.includes(id);
@@ -120,31 +120,32 @@ export function ToolRail({
     return best;
   };
 
+  // EZD-1973: rail-press.ts decides what a press is (a drag, a finger tap, or a mouse press its click ends).
   const onPointerDown = (id: string) => (e: PointerEvent<HTMLButtonElement>) => {
-    dropped.current = false;
-    if (!movable(id) || e.button !== 0) return;
-    press.current = { id, y: e.clientY, pointer: e.pointerId, moving: false };
+    if (!movable(id) || e.button !== 0) rp.clear();
+    else rp.down({ id, pointer: e.pointerId, y: e.clientY, type: e.pointerType });
   };
   const onPointerMove = (e: PointerEvent<HTMLButtonElement>) => {
-    const p = press.current;
-    if (p === null || p.pointer !== e.pointerId) return;
-    if (!p.moving && Math.abs(e.clientY - p.y) >= DRAG_START_PX) {
-      p.moving = true;
-      e.currentTarget.setPointerCapture?.(e.pointerId);
-      setDragging(p.id);
-    }
+    if (!rp.move({ pointer: e.pointerId, y: e.clientY })) return;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    setDragging(e.currentTarget.getAttribute('data-rail-tool'));
   };
   const onPointerUp = (e: PointerEvent<HTMLButtonElement>) => {
-    const p = press.current;
-    press.current = null;
-    if (p === null || !p.moving) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const inside =
+      e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    const end = rp.up({ pointer: e.pointerId, time: e.timeStamp, inside });
+    if (end === null) return;
+    if (end.kind === 'tap') {
+      if (!e.currentTarget.disabled) onSelect(end.id);
+      return;
+    }
     setDragging(null);
-    dropped.current = true;
-    const next = moveRailTool(topIds, p.id, slotAt(e.clientY));
+    const next = moveRailTool(topIds, end.id, slotAt(e.clientY));
     if (next.join() !== topIds.join()) onReorder?.(next);
   };
   const onPointerCancel = () => {
-    press.current = null;
+    rp.cancel();
     setDragging(null);
   };
   const onKeyDown = (id: string) => (e: KeyboardEvent<HTMLButtonElement>) => {
@@ -175,13 +176,9 @@ export function ToolRail({
         aria-keyshortcuts={tool.shortcut}
         aria-pressed={tool.id === activeId || (pressedIds ?? []).includes(tool.id)}
         disabled={disabled || paused?.includes(tool.id) || (!!only && tool.id !== only)}
-        onClick={() => {
-          // The click that ends a drag does not press the tool.
-          if (dropped.current) {
-            dropped.current = false;
-            return;
-          }
-          onSelect(tool.id);
+        onClick={(e) => {
+          // The click that ends a drag, or follows a finger tap already taken, does not press the tool again.
+          if (rp.click({ id: tool.id, time: e.timeStamp, keyboard: e.detail === 0 })) onSelect(tool.id);
         }}
         {...(inTop && onReorder
           ? {
