@@ -3,7 +3,7 @@
 // 440 x 256 thumbnail with `--ez-canvas` bands.
 // Loaded by render-root.ts with import() on the first capture, so none of it is in the editor's first download
 // (ARCH "Entry points and lazy modules"; the 500,000 byte editor budget).
-import type { RootState } from '@react-three/fiber';
+import type { WebGLRenderer } from 'three';
 import {
   CAPTURE_TIMEOUT_MS,
   THUMB_HEIGHT,
@@ -102,7 +102,7 @@ export function drawThumbnail(
 }
 
 // The WebGL read (Decided "WebGL read"): run inside `scene.onAfterRender`, in the task that drew the buffer.
-export function readThumbnail(gl: RootState['gl'], source: CaptureSource): ThumbnailCapture {
+export function readThumbnail(gl: WebGLRenderer, source: CaptureSource): ThumbnailCapture {
   const crop = thumbnailCrop(source, gl.getPixelRatio());
   if (crop === null) throw new Error('plan.capture_region');
   const c = document.createElement('canvas');

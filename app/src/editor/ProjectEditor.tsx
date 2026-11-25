@@ -161,7 +161,7 @@ import { createGlyphAtlas } from './plan/glyph-atlas-canvas';
 import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
 import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
 import { usePdfUnderlay } from './plan/PdfUnderlay';
-import { createR3fRoot, webglContextsCreated } from './plan/render-root';
+import { createPlanRoot, webglContextsCreated } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
 import type { CheckpointOutcome } from './thumbnail/checkpoint';
 import type { ConflictPanelProps } from '../lazy/conflict-panel';
@@ -395,7 +395,7 @@ export function ProjectEditor({
         const floors = createFloorView();
         const plan = createPlanController(
           { store: routed, scale: scale.get(), phase: layers, derived, floors },
-          { createRoot: createR3fRoot, createAtlas: createGlyphAtlas },
+          { createRoot: createPlanRoot, createAtlas: createGlyphAtlas },
         );
         const router = receiverRouter(plan.handle.setPointerReceiver);
         const slots = shareReceiver(router.base);

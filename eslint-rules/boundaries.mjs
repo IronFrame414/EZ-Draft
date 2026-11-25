@@ -40,7 +40,6 @@ export const HEAVY_PACKAGES = [
     allowed: [...LAZY_PLACES],
   },
   { match: ['three'], category: 'three', allowed: [...LAZY_PLACES, 'app/src/editor/'] },
-  { match: ['@react-three/'], category: 'three', allowed: [...LAZY_PLACES, 'app/src/editor/'] },
   { match: ['three-bvh-csg'], category: 'heavy', allowed: [...LAZY_PLACES] },
   { match: ['three-gpu-pathtracer'], category: 'heavy', allowed: [...LAZY_PLACES] },
   { match: ['pdfjs-dist'], category: 'heavy', allowed: [...LAZY_PLACES, 'app/src/server/jobs/'] },
