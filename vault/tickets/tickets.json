@@ -26926,6 +26926,25 @@
     "AC-EZD-1975-3"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-1976",
+   "phase": 10,
+   "title": "Fix: React commits during wall-tool pointer moves on a slower machine (EZD-210b B9 on CI)",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-25: on the GitHub CI gate for release PR #12 (runs 45463955107 attempt 1 and 45513347657) e2e/drawing-tools.spec.ts:485 EZD-210b B9 \"pointer moves update the band with no React commit\" read 32 React commits after 50 pointer moves where 30 were read before (Expected 30, Received 32). It passes on the faster build Mac. EZD-210b: pointer moves while drawing update the band without a React commit.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1976-1",
+    "AC-EZD-1976-2",
+    "AC-EZD-1976-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
