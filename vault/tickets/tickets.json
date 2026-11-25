@@ -26945,6 +26945,211 @@
     "AC-EZD-1976-3"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-1977",
+   "phase": 10,
+   "title": "Sign-in returns the person to the page they asked for",
+   "depends_raw": "",
+   "spec_ref": "Live signed-in UI audit 2026-11-24 (EZD-1960), finding F2 / U4 in audit/ui-live-2026-11-24/REPORT.md; screenshots in audit/ui-live-2026-11-24/screens/. Read the finding row and its evidence before building",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1977-1",
+    "AC-EZD-1977-2",
+    "AC-EZD-1977-3"
+   ],
+   "acs_source": "overwatch-2026-11-25-ui-audit"
+  },
+  {
+   "id": "EZD-1978",
+   "phase": 10,
+   "title": "Projects page does not break on a phone",
+   "depends_raw": "",
+   "spec_ref": "Live signed-in UI audit 2026-11-24 (EZD-1960), finding F3 in audit/ui-live-2026-11-24/REPORT.md; screenshots in audit/ui-live-2026-11-24/screens/. Read the finding row and its evidence before building",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1978-1",
+    "AC-EZD-1978-2",
+    "AC-EZD-1978-3"
+   ],
+   "acs_source": "overwatch-2026-11-25-ui-audit"
+  },
+  {
+   "id": "EZD-1979",
+   "phase": 10,
+   "title": "iPad editor: the edit bar no longer covers Zoom in, and the version switcher is tappable",
+   "depends_raw": "",
+   "spec_ref": "Live signed-in UI audit 2026-11-24 (EZD-1960), finding F4 and F6 in audit/ui-live-2026-11-24/REPORT.md; screenshots in audit/ui-live-2026-11-24/screens/. Read the finding row and its evidence before building",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1979-1",
+    "AC-EZD-1979-2",
+    "AC-EZD-1979-3"
+   ],
+   "acs_source": "overwatch-2026-11-25-ui-audit"
+  },
+  {
+   "id": "EZD-1980",
+   "phase": 10,
+   "title": "Touch targets of at least 44 px on iPad in Settings, Libraries, Sheets and tool panels",
+   "depends_raw": "",
+   "spec_ref": "Live signed-in UI audit 2026-11-24 (EZD-1960), finding F8 in audit/ui-live-2026-11-24/REPORT.md; screenshots in audit/ui-live-2026-11-24/screens/. Read the finding row and its evidence before building",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1980-1",
+    "AC-EZD-1980-2",
+    "AC-EZD-1980-3"
+   ],
+   "acs_source": "overwatch-2026-11-25-ui-audit"
+  },
+  {
+   "id": "EZD-1981",
+   "phase": 10,
+   "title": "Plan status bar cells stay on one line",
+   "depends_raw": "",
+   "spec_ref": "Live signed-in UI audit 2026-11-24 (EZD-1960), finding F5 in audit/ui-live-2026-11-24/REPORT.md; screenshots in audit/ui-live-2026-11-24/screens/. Read the finding row and its evidence before building",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1981-1",
+    "AC-EZD-1981-2",
+    "AC-EZD-1981-3"
+   ],
+   "acs_source": "overwatch-2026-11-25-ui-audit"
+  },
+  {
+   "id": "EZD-1982",
+   "phase": 10,
+   "title": "Settings pages do not squeeze or clip at iPad width; Sheet presets inspector at board width",
+   "depends_raw": "",
+   "spec_ref": "Live signed-in UI audit 2026-11-24 (EZD-1960), finding F7 in audit/ui-live-2026-11-24/REPORT.md; screenshots in audit/ui-live-2026-11-24/screens/. Read the finding row and its evidence before building",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1982-1",
+    "AC-EZD-1982-2",
+    "AC-EZD-1982-3"
+   ],
+   "acs_source": "overwatch-2026-11-25-ui-audit"
+  },
+  {
+   "id": "EZD-1983",
+   "phase": 10,
+   "title": "Users settings says \"Role presets\" as on the S15 board",
+   "depends_raw": "",
+   "spec_ref": "Live signed-in UI audit 2026-11-24 (EZD-1960), finding F14 in audit/ui-live-2026-11-24/REPORT.md; screenshots in audit/ui-live-2026-11-24/screens/. Read the finding row and its evidence before building",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1983-1",
+    "AC-EZD-1983-2"
+   ],
+   "acs_source": "overwatch-2026-11-25-ui-audit"
+  },
+  {
+   "id": "EZD-1984",
+   "phase": 10,
+   "title": "A selected wall's size chip does not cover the room label",
+   "depends_raw": "",
+   "spec_ref": "Live signed-in UI audit 2026-11-24 (EZD-1960), finding F19 in audit/ui-live-2026-11-24/REPORT.md; screenshots in audit/ui-live-2026-11-24/screens/. Read the finding row and its evidence before building",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1984-1",
+    "AC-EZD-1984-2"
+   ],
+   "acs_source": "overwatch-2026-11-25-ui-audit"
+  },
+  {
+   "id": "EZD-1985",
+   "phase": 10,
+   "title": "Fixtures panel fields are not cut off by the window edge",
+   "depends_raw": "",
+   "spec_ref": "Live signed-in UI audit 2026-11-24 (EZD-1960), finding F12b in audit/ui-live-2026-11-24/REPORT.md; screenshots in audit/ui-live-2026-11-24/screens/. Read the finding row and its evidence before building",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1985-1",
+    "AC-EZD-1985-2"
+   ],
+   "acs_source": "overwatch-2026-11-25-ui-audit"
+  },
+  {
+   "id": "EZD-1986",
+   "phase": 10,
+   "title": "Cabinets tool on desktop keeps the room visible and its panel rows aligned",
+   "depends_raw": "",
+   "spec_ref": "Live signed-in UI audit 2026-11-24 (EZD-1960), finding F9 in audit/ui-live-2026-11-24/REPORT.md; screenshots in audit/ui-live-2026-11-24/screens/. Read the finding row and its evidence before building",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1986-1",
+    "AC-EZD-1986-2",
+    "AC-EZD-1986-3"
+   ],
+   "acs_source": "overwatch-2026-11-25-ui-audit"
+  },
+  {
+   "id": "EZD-1987",
+   "phase": 10,
+   "title": "Supplier files page has the editor header",
+   "depends_raw": "",
+   "spec_ref": "Live signed-in UI audit 2026-11-24 (EZD-1960), finding F10 in audit/ui-live-2026-11-24/REPORT.md; screenshots in audit/ui-live-2026-11-24/screens/. Read the finding row and its evidence before building",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1987-1",
+    "AC-EZD-1987-2"
+   ],
+   "acs_source": "overwatch-2026-11-25-ui-audit"
   }
  ],
  "recut_applied": "2026-10-20"
