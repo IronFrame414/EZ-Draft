@@ -2147,7 +2147,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2192,7 +2192,8 @@
     "EZD-1988": 1,
     "EZD-1978": 1,
     "EZD-1992": 1,
-    "EZD-1983": 1
+    "EZD-1983": 1,
+    "EZD-1991": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2382,6 +2383,10 @@
     "EZD-1983": {
       "ts": "2026-11-25T18:07:45Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1991": {
+      "ts": "2026-11-25T21:02:42Z",
+      "reason": "check red after a review fix"
     }
   },
   "running": {
@@ -2391,11 +2396,11 @@
       "started": "2026-11-25T17:56:41Z",
       "develop": "3acf917f"
     },
-    "EZD-1991": {
-      "lane": 1,
-      "title": "Title block settings: \"Used on N sheets · Open Sheets\" line and \"Zoom to title block\" button",
-      "started": "2026-11-25T18:32:04Z",
-      "develop": "81cebd6f"
+    "EZD-514": {
+      "lane": 3,
+      "title": "Framing known and keep-clear",
+      "started": "2026-11-25T20:22:19Z",
+      "develop": "c9f0a4f7"
     }
   },
   "advisories_checked_at": "2026-11-25T16:19:16Z",
