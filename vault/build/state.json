@@ -505,7 +505,8 @@
     "EZD-1974",
     "EZD-1975",
     "EZD-1952",
-    "EZD-1976"
+    "EZD-1976",
+    "EZD-1946"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1927,6 +1928,14 @@
       "ts": "2026-11-25T01:57:28Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1946",
+      "title": "Performance trend recorded on develop every day",
+      "commit": "d5354929",
+      "ts": "2026-11-25T02:20:08Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2151,11 +2160,11 @@
       "started": "2026-11-25T00:32:12Z",
       "develop": "76f31d17"
     },
-    "EZD-1946": {
-      "lane": 1,
-      "title": "Performance trend recorded on develop every day",
-      "started": "2026-11-25T00:49:35Z",
-      "develop": "c4f3ceee"
+    "EZD-1959": {
+      "lane": 3,
+      "title": "Bring the base local database up to date for live UI checks",
+      "started": "2026-11-25T01:57:36Z",
+      "develop": "527dc92f"
     }
   },
   "advisories_checked_at": "2026-11-24T22:17:04Z",
