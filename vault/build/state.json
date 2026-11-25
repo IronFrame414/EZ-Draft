@@ -527,7 +527,8 @@
     "EZD-1992",
     "EZD-1984",
     "EZD-1980",
-    "EZD-1983"
+    "EZD-1983",
+    "EZD-1985"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2125,6 +2126,14 @@
       "ts": "2026-11-25T18:31:58Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1985",
+      "title": "Fixtures panel docks on the right and its fields are not cut off",
+      "commit": "d3d8b7c9",
+      "ts": "2026-11-25T18:51:34Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2367,17 +2376,17 @@
     }
   },
   "running": {
-    "EZD-1985": {
-      "lane": 3,
-      "title": "Fixtures panel docks on the right and its fields are not cut off",
-      "started": "2026-11-25T17:24:04Z",
-      "develop": "3af4d7bf"
-    },
     "EZD-1990": {
       "lane": 2,
       "title": "\"Page not found\" page with the app header and a Back to Projects button",
       "started": "2026-11-25T17:56:41Z",
       "develop": "3acf917f"
+    },
+    "EZD-1991": {
+      "lane": 1,
+      "title": "Title block settings: \"Used on N sheets · Open Sheets\" line and \"Zoom to title block\" button",
+      "started": "2026-11-25T18:32:04Z",
+      "develop": "81cebd6f"
     }
   },
   "advisories_checked_at": "2026-11-25T16:19:16Z",
