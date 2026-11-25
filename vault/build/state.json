@@ -2120,7 +2120,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2164,7 +2164,8 @@
     "EZD-1959": 1,
     "EZD-1988": 1,
     "EZD-1978": 1,
-    "EZD-1992": 1
+    "EZD-1992": 1,
+    "EZD-1983": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2350,20 +2351,24 @@
     "EZD-1992": {
       "ts": "2026-11-25T15:45:02Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1983": {
+      "ts": "2026-11-25T18:07:45Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-1983": {
-      "lane": 1,
-      "title": "Users settings says \"Role presets\" as on the S15 board",
-      "started": "2026-11-25T16:55:21Z",
-      "develop": "1231e6e9"
-    },
     "EZD-1985": {
       "lane": 3,
       "title": "Fixtures panel docks on the right and its fields are not cut off",
       "started": "2026-11-25T17:24:04Z",
       "develop": "3af4d7bf"
+    },
+    "EZD-1990": {
+      "lane": 2,
+      "title": "\"Page not found\" page with the app header and a Back to Projects button",
+      "started": "2026-11-25T17:56:41Z",
+      "develop": "3acf917f"
     }
   },
   "advisories_checked_at": "2026-11-25T16:19:16Z",
