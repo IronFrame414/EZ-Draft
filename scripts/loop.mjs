@@ -32,6 +32,7 @@ import { buildOrder, phaseRank } from './loop/order.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 import { TYPES_FILE, orderMigrations, regenerateTypes, settleGeneratedConflicts, touchesSchema } from './loop/merge-files.mjs';
 import { PERF_TREND_ID, perfDue, runPerfTrend } from './loop/perf-trend.mjs';
+import { retryCli, setAsideMarkdown, takeInRetries } from './loop/retry.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const B = path.join(ROOT, 'vault/build');
@@ -114,8 +115,8 @@ function seedDone() {
 // STATUS.md statuses with every hold in the tracked vault/build/holds.json forced to `blocked` (scripts/loop/holds.mjs), so a
 // regenerated STATUS.md can never release a held ticket.
 function seedStatuses() { return effectiveStatuses(ROOT); }
-// One state object in memory for every lane; saveState writes it. A change Josh makes to the file by hand (deleting a
-// set_aside entry or a retry) is taken in at the next scheduling pass (adoptHandEdits).
+// One state object in memory for every lane; saveState writes it. A change made to the file from outside (`--retry <T>`,
+// EZD-1944, or a hand edit of set_aside or retries) is taken in at the next scheduling pass (adoptHandEdits).
 let STATE = null;
 let savedMtime = 0;
 function loadState() {
@@ -131,6 +132,10 @@ function loadState() {
   return STATE;
 }
 function saveState(s) {
+  // EZD-1944: a `--retry` written since our last save would be lost under this write; take its rows in first.
+  try {
+    if (statSync(P.state).mtimeMs !== savedMtime) for (const h of takeInRetries(s, readJson(P.state, null))) log(`RETRY ${h.ticket} by ${h.by} (set aside ${h.set_aside_ts}: ${h.reason})`);
+  } catch {}
   const tmp = `${P.state}.tmp-${process.pid}`;
   writeFileSync(tmp, JSON.stringify(s, null, 2) + '\n');
   renameSync(tmp, P.state);
@@ -143,9 +148,14 @@ function adoptHandEdits(s) {
   if (m === savedMtime) return;
   const disk = readJson(P.state, null);
   if (!disk) return;
+  const before = (s.set_aside_history || []).length;
   s.set_aside = disk.set_aside || {};
   s.retries = disk.retries || {};
-  log('state.json was edited by hand; took in its set_aside and retries');
+  // EZD-1944: `--retry <T>` writes the file too; its history rows are taken in and named in the log.
+  s.set_aside_history = disk.set_aside_history || s.set_aside_history || [];
+  const added = s.set_aside_history.slice(before);
+  if (added.length) for (const h of added) log(`RETRY ${h.ticket} by ${h.by} (set aside ${h.set_aside_ts}: ${h.reason})`);
+  else log('state.json was edited by hand; took in its set_aside and retries');
   saveState(s);
 }
 // Footprints: { "<ticket>": { files: [...], notes, ts } }. Kept apart from state so `--plan --footprints` can add to it.
@@ -157,18 +167,8 @@ function saveFootprint(id, fp) {
   writeFileSync(tmp, JSON.stringify(all, null, 2) + '\n');
   renameSync(tmp, P.footprints);
 }
-function writeSetAside(s) {
-  const rows = Object.entries(s.set_aside);
-  const out = ['# Set-aside tickets', '', 'Tickets that failed twice (a first failure is retried automatically). These need Josh. Each keeps its branch and worktree.',
-    'To retry one, delete its entry from vault/build/state.json `set_aside` (the loop picks it up again).', ''];
-  if (!rows.length) out.push('None.');
-  for (const [id, r] of rows) {
-    out.push(`## ${id} · ${r.title}`, `- When: ${r.ts}`, `- Reason: ${r.reason}`, `- Branch: ${r.branch} · worktree: ${r.worktree}`);
-    if (r.detail) out.push('- Last output:', '```', r.detail.slice(0, 2500), '```');
-    out.push('');
-  }
-  writeFileSync(P.setAside, out.join('\n'));
-}
+// EZD-1944: the open set-asides and the last 20 retries (scripts/loop/retry.mjs).
+function writeSetAside(s) { writeFileSync(P.setAside, setAsideMarkdown(s)); }
 
 // ---------- tickets ----------
 function tickets() { const t = readJson(path.join(ROOT, 'vault/tickets/tickets.json'), {}); return Array.isArray(t) ? t : t.tickets || []; }
@@ -983,7 +983,9 @@ async function dryRun() {
   }
 }
 
-if (process.argv.includes('--plan')) {
+if (process.argv.includes('--retry')) {
+  process.exit(retryCli(process.argv, { state: P.state, setAside: P.setAside }));
+} else if (process.argv.includes('--plan')) {
   dryRun().catch((e) => { console.error(e); process.exit(1); });
 } else {
   main().catch((e) => { log(`loop crashed: ${e?.stack || e}`); process.exit(1); });
