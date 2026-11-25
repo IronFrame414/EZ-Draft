@@ -516,7 +516,8 @@
     "EZD-1906b",
     "EZD-1945",
     "EZD-1906c",
-    "EZD-1977"
+    "EZD-1977",
+    "EZD-1979"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2026,11 +2027,19 @@
       "ts": "2026-11-25T07:59:42Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1979",
+      "title": "iPad editor: the edit bar no longer covers Zoom in, and the version switcher is tappable",
+      "commit": "72a83496",
+      "ts": "2026-11-25T10:13:46Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2255,11 +2264,11 @@
       "started": "2026-11-25T07:59:48Z",
       "develop": "45ee03ef"
     },
-    "EZD-1979": {
-      "lane": 2,
-      "title": "iPad editor: the edit bar no longer covers Zoom in, and the version switcher is tappable",
-      "started": "2026-11-25T07:59:49Z",
-      "develop": "45ee03ef"
+    "EZD-1988": {
+      "lane": 3,
+      "title": "Loop: find and stop what sends SIGTERM to builders in the same second",
+      "started": "2026-11-25T09:30:36Z",
+      "develop": "1ded6eec"
     }
   },
   "advisories_checked_at": "2026-11-25T04:18:01Z",
