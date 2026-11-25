@@ -29,7 +29,7 @@ vault/handoff/BOOST.json
 vault/handoff/LANES.json
 /.lanes/
 # Running records (REMEDIATION-PLAN 2.14; D1 (a)): views of the records database (~/.ezdraft/records.db), written only by
-# the launcher. Each phase gate commits one snapshot under vault/snapshots/ (D2 (a)).
+# the launcher. Phase snapshots (D2 (a)) live on the orphan branch vault-archive, not here (EZD-1952; vault/README.md).
 vault/tickets/STATUS.md
 vault/tickets/TRACE.md
 vault/PROGRESS.md
@@ -55,3 +55,7 @@ vault/build/.claims.lock/
 vault/build/footprints.json
 vault/build/heartbeat.jsonl
 vault/build/*.tmp-*
+# EZD-1952: vault/snapshots/ and vault/archive/ moved to the orphan branch vault-archive (vault/README.md says how to read
+# and add to it); kept out of the tree so every worktree stays small.
+/vault/snapshots/
+/vault/archive/
