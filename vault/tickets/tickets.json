@@ -27169,6 +27169,25 @@
     "AC-EZD-1988-3"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-1989",
+   "phase": 10,
+   "title": "Fix: plan thumbnail T-B1 times out opening the benchmark project on CI (EZD-224b on CI)",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-25: on the GitHub CI gate for release PR #13 (run 45571337465 attempts 1 and 2, head 0bb931d5) e2e/plan-thumbnail-capture.spec.ts:133 EZD-224b T-B1 failed both times: openReady waited for data-editor-state=ready with the default 5 s expect timeout and read \"loading\" 11-12 times. In the same runs EZD-1971 logged the benchmark project taking 8992 ms to editor ready on the runner. It passes on the build Mac. PR #13 is the first release with EZD-1902 (plain Three.js plan).",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1989-1",
+    "AC-EZD-1989-2",
+    "AC-EZD-1989-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
