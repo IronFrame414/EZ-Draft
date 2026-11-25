@@ -637,3 +637,51 @@
   justify-content: flex-end;
   gap: 8px;
 }
+
+/* EZD-1978 (audit/ui-live-2026-11-24 F3; AC-EZD-1978-1): on a phone the page fits the screen. Only below 768 px, so
+   desktop (1600) and iPad (1180) keep their layout. The header wraps the search onto its own full-width row so the
+   bell, settings and avatar stay on screen; the status tabs scroll inside their own row; the cards take one column. */
+@media (width < 768px) {
+  .main {
+    padding: 20px 16px;
+  }
+
+  .header {
+    height: auto;
+    min-height: var(--ez-header-height);
+    flex-wrap: wrap;
+    row-gap: 8px;
+    column-gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .search {
+    order: 1;
+    flex: 1 1 100%;
+    width: auto;
+    min-width: 0;
+  }
+
+  .titleRow {
+    flex-wrap: wrap;
+  }
+
+  .tabs {
+    order: 1;
+    flex: 1 1 100%;
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  .tab {
+    flex: none;
+    white-space: nowrap;
+    align-items: center;
+    min-height: var(--ez-touch-target);
+  }
+
+  .grid,
+  .skeletons {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

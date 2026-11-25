@@ -231,6 +231,13 @@
   border-radius: var(--ez-radius-12);
   box-shadow: var(--ez-shadow-card);
 }
+/* EZD-1982 (AC-EZD-1982-1; audit F7): at the desktop size the inspector is the board width (S15c, 612 px) so
+   its selects show their whole values; narrower screens keep the shared inspector width. */
+@media (width >= 1600px) {
+  .inspector {
+    width: 612px;
+  }
+}
 .inspectorEmpty {
   margin: auto;
   font-size: var(--ez-text-13);
@@ -534,4 +541,22 @@
 }
 .toggleRow:disabled .switch {
   opacity: 0.6;
+}
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the inspector
+   fields, the segment buttons, the name tokens, the scale chips and the switch rows are at least 44 px; desktop
+   sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .input,
+  .locked,
+  .segmentItem {
+    height: var(--ez-touch-target);
+  }
+
+  .token,
+  .chipButton,
+  .toggleRow {
+    min-width: var(--ez-touch-target);
+    min-height: var(--ez-touch-target);
+  }
 }

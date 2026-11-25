@@ -2,6 +2,7 @@
 // The expected path strings are the plan's, derived from toScreen p -> (2 p.x, -2 p.y) and the sizes in the plan.
 import { describe, expect, it } from 'vitest';
 import {
+  CURRENT_SCHEMA_VERSION,
   createOpeningData,
   doorSymbol,
   formatChipDistance,
@@ -10,7 +11,12 @@ import {
   type OpeningObject,
   type PickShape,
   type Point,
+  type WallChip,
 } from '@ezdraft/geometry';
+import type { ObjectValue } from '../../lib/outbox/model-api';
+import type { Objects } from '../model/patches';
+import { planDrawingList } from '../plan/batches';
+import { roomLabelBoxes, type LabelBox, type SelectionFrame } from './selection-edit';
 import {
   createToolOverlay,
   openingOverlay,
@@ -375,5 +381,141 @@ describe('EZD-212c selection overlay', () => {
     expect(chips[0].slot.style.display).toBe('none');
     expect(chips[1].slot.style.display).toBe('none');
     expect(size.slot.style.display).toBe('none');
+  });
+});
+
+// EZD-1984 (audit F19; AC-EZD-1984-1): a wall chip never covers a room label. Expected numbers are hand-derived from
+// the chip box in DrawingTools.module.css (26 px tall, 12 px padding, 13 px DM Mono, 600/1000 em per character, so
+// a 6-character `12' 0"` chip is 6 x 7.8 + 24 = 70.8 px wide), the 4 px gap and the label boxes given.
+describe('EZD-1984 wall chip keeps clear of room labels', () => {
+  const s1 = (p: Point): Point => ({ x: p.x, y: -p.y });
+  const chip = (from: Point, to: Point): WallChip => ({
+    kind: 'wall',
+    side: 'right',
+    distance: 144,
+    neighborId: 'w2',
+    from,
+    to,
+  });
+  const LABEL: LabelBox = { at: pt(100, 100), halfWidth: 50, halfHeight: 10 };
+  const frameOf = (c: WallChip, labels?: LabelBox[]): SelectionFrame => ({
+    handles: [],
+    active: null,
+    wallChips: [c],
+    size: null,
+    ...(labels === undefined ? {} : { labels }),
+  });
+
+  it('EZD-1984 O1 a level leader through the label: the chip moves 27 px up (10 + 13 + 4), leaders unchanged', () => {
+    const c = chip(pt(0, 100), pt(200, 100));
+    const plain = selectionShapes(frameOf(c), s1);
+    const moved = selectionShapes(frameOf(c, [LABEL]), s1);
+    expect(plain.right).toEqual({ x: 100, y: -100, text: '12\' 0"' });
+    expect(moved.right!.x).toBeCloseTo(100, 9);
+    expect(moved.right!.y).toBeCloseTo(-127, 9);
+    expect(moved.right!.text).toBe('12\' 0"');
+    expect(moved.leaders).toBe(plain.leaders);
+    expect(moved.ticks).toBe(plain.ticks);
+  });
+
+  it('EZD-1984 O2 an upright leader through the label: the chip slides 27 px along it toward its start', () => {
+    const moved = selectionShapes(frameOf(chip(pt(100, 0), pt(100, 200)), [LABEL]), s1);
+    expect(moved.right!.x).toBeCloseTo(100, 9);
+    expect(moved.right!.y).toBeCloseTo(-73, 9);
+  });
+
+  it('EZD-1984 O3 zoomed far out the leader is too short, so the chip moves 17.5 px up off it', () => {
+    const tiny = (p: Point): Point => ({ x: p.x * 0.05, y: -p.y * 0.05 });
+    const moved = selectionShapes(frameOf(chip(pt(0, 100), pt(200, 100)), [LABEL]), tiny);
+    expect(moved.right!.x).toBeCloseTo(5, 9);
+    expect(moved.right!.y).toBeCloseTo(-22.5, 9);
+  });
+
+  it('EZD-1984 O4 a label the chip does not touch leaves the chip at the middle of its leader', () => {
+    const far: LabelBox = { at: pt(100, 300), halfWidth: 50, halfHeight: 10 };
+    const s = selectionShapes(frameOf(chip(pt(0, 100), pt(200, 100)), [far]), s1);
+    expect(s.right).toEqual({ x: 100, y: -100, text: '12\' 0"' });
+  });
+
+  it('EZD-1984 O5 the moved chip box and the label box do not intersect', () => {
+    const s = selectionShapes(frameOf(chip(pt(0, 100), pt(200, 100)), [LABEL]), s1);
+    const halfW = 70.8 / 2;
+    const halfH = 13;
+    const chipBox = {
+      x0: s.right!.x - halfW,
+      x1: s.right!.x + halfW,
+      y0: s.right!.y - halfH,
+      y1: s.right!.y + halfH,
+    };
+    const label = { x0: 50, x1: 150, y0: -110, y1: -90 };
+    const overlap =
+      chipBox.x0 < label.x1 &&
+      chipBox.x1 > label.x0 &&
+      chipBox.y0 < label.y1 &&
+      chipBox.y1 > label.y0;
+    expect(overlap).toBe(false);
+  });
+});
+
+// EZD-1984: the label boxes match the plan's own room label item (drawing list), 0.5 in per pt (glyph atlas).
+describe('EZD-1984 roomLabelBoxes', () => {
+  const F1 = '11111111-1111-4111-8111-111111111111';
+  const R1 = '00000000-0000-4000-8000-0000000000a1';
+  const room = (status: string): ObjectValue => ({
+    type: 'room',
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: {
+      geometry: {
+        boundary: [
+          { x: 0, y: 0 },
+          { x: 144, y: 0 },
+          { x: 144, y: 120 },
+          { x: 0, y: 120 },
+        ],
+      },
+      status,
+      level: F1,
+      attributes: {
+        name: 'Room 1',
+        floorLevel: 0,
+        photos: [],
+        roomType: null,
+        floorFinish: '',
+        ceilingType: null,
+        ceiling: null,
+      },
+      closureOverride: null,
+    },
+  });
+  const objects = (status = 'existing'): Objects =>
+    new Map<string, ObjectValue>([
+      [
+        F1,
+        {
+          type: 'floor',
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          data: { name: 'Floor 1', order: 1 },
+        },
+      ],
+      [R1, room(status)],
+    ]);
+
+  it('EZD-1984 L1 a 12 x 10 room: the box sits on the plan label at (72, 60), 11.25 pt x 0.5 in tall', () => {
+    const boxes = roomLabelBoxes(objects(), F1);
+    const list = planDrawingList(objects(), {}, null, null);
+    const item = list!.items.find((i) => i.kind === 'text' && i.layer === 'rooms');
+    expect(item && item.kind === 'text' ? item.text : null).toBe('ROOM 1 · 120 SF');
+    expect(boxes).toHaveLength(1);
+    expect(boxes[0]!.at).toEqual({ x: 72, y: 60 });
+    expect(boxes[0]!.halfHeight).toBeCloseTo((11.25 * 0.5) / 2, 9);
+    expect(boxes[0]!.halfWidth).toBeCloseTo(
+      item && item.kind === 'text' ? (item.widthPt * 0.5) / 2 : NaN,
+      9,
+    );
+  });
+
+  it('EZD-1984 L2 a room the phase view hides, or on another floor, has no box', () => {
+    expect(roomLabelBoxes(objects(), F1, () => false)).toEqual([]);
+    expect(roomLabelBoxes(objects(), '22222222-2222-4222-8222-222222222222')).toEqual([]);
   });
 });

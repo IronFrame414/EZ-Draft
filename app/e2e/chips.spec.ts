@@ -8,7 +8,11 @@ import {
   CURRENT_SCHEMA_VERSION,
   createOpeningData,
   createWallData,
+  DRAWING_FONTS,
+  interiorPoint,
+  measureTextPt,
   roomLabelText,
+  ROOM_LABEL_LETTER_SPACING_EM,
   type Point,
   type WallObject,
 } from '@ezdraft/geometry';
@@ -145,7 +149,8 @@ async function seed(page: Page, o: { part?: boolean; doorOnS?: boolean } = {}) {
     if (!made.ok) throw new Error('wall data');
     const wallId = crypto.randomUUID();
     wallIds.push(wallId);
-    if (wallIds.length === 1) south = { id: wallId, type: 'wall', data: made.data } as unknown as WallObject;
+    if (wallIds.length === 1)
+      south = { id: wallId, type: 'wall', data: made.data } as unknown as WallObject;
     changes.push({
       id: wallId,
       value: { type: 'wall', schemaVersion: CURRENT_SCHEMA_VERSION, data: made.data },
@@ -166,7 +171,14 @@ async function seed(page: Page, o: { part?: boolean; doorOnS?: boolean } = {}) {
     });
   }
   await page.evaluate((c) => (window as unknown as Window2).__ezdraftEditor.edit(c), changes);
-  return { S: wallIds[0]!, E: wallIds[1]!, N: wallIds[2]!, W: wallIds[3]!, P: wallIds[4] ?? '', doorId };
+  return {
+    S: wallIds[0]!,
+    E: wallIds[1]!,
+    N: wallIds[2]!,
+    W: wallIds[3]!,
+    P: wallIds[4] ?? '',
+    doorId,
+  };
 }
 
 test.describe('EZD-212c handles and chips', () => {
@@ -451,4 +463,118 @@ test.describe('EZD-212c handles and chips', () => {
       expect(await selectedIds(page)).toEqual([]);
     },
   );
+
+  // EZD-1984 (audit F19; AC-EZD-1984-1): with a wall of the 12' x 10' room selected, its distance chip and the
+  // room label do not overlap, at the default view and at the 5% and 1600% zoom limits (plan/view.ts). The label is
+  // drawn on the canvas, so its box comes from geometry: centred on the room's interior point, the plan's 11.25 pt
+  // label at 0.5 inch per pt (S03 Text), 1 em tall, its width the font's advances plus 0.1 em letter spacing.
+  test('EZD-1984 C1 a selected wall chip never covers the room label', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids, user } = await fixtureS();
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    const s = await seed(page);
+    // The audit's room: Room 1 inside the four walls (the walls' thickness is outside, so 144" x 120").
+    await page.evaluate(
+      (c) => (window as unknown as Window2).__ezdraftEditor.edit(c),
+      [
+        {
+          id: crypto.randomUUID(),
+          value: {
+            type: 'room',
+            schemaVersion: CURRENT_SCHEMA_VERSION,
+            data: {
+              geometry: { boundary: [pt(0, 0), pt(144, 0), pt(144, 120), pt(0, 120)] },
+              status: 'existing',
+              level: (await objects(page)).find((o) => o.type === 'floor')!.id,
+              attributes: {
+                name: 'Room 1',
+                floorLevel: 0,
+                photos: [],
+                roomType: null,
+                floorFinish: '',
+                ceilingType: null,
+                ceiling: null,
+              },
+              closureOverride: null,
+            },
+          },
+        },
+      ],
+    );
+    await view(page);
+    await expect
+      .poll(async () => (await objects(page)).filter((o) => o.type === 'room').length)
+      .toBe(1);
+    const room = (await objects(page)).find((o) => o.type === 'room')!;
+    const text = label(room);
+    expect(text).toBe('ROOM 1 · 120 SF');
+    const boundary = (room.data.geometry as { boundary: Point[] }).boundary;
+    const center = interiorPoint(boundary);
+    const PT = 11.25;
+    const widthIn =
+      (measureTextPt(DRAWING_FONTS['instrument-sans-600'], text, PT) +
+        PT * ROOM_LABEL_LETTER_SPACING_EM * ([...text].length - 1)) *
+      0.5;
+    const heightIn = PT * 0.5;
+
+    const labelBox = async () => {
+      const box = await canvasRegion(page).boundingBox();
+      if (!box) throw new Error('canvas region has no box');
+      const [p, q] = await page.evaluate(
+        (c) => c.map((m) => (window as unknown as Window2).__ezdraftPlan.handle.modelToScreen(m)),
+        [
+          { x: center.x - widthIn / 2, y: center.y - heightIn / 2 },
+          { x: center.x + widthIn / 2, y: center.y + heightIn / 2 },
+        ],
+      );
+      return {
+        x0: box.x + Math.min(p!.x, q!.x),
+        x1: box.x + Math.max(p!.x, q!.x),
+        y0: box.y + Math.min(p!.y, q!.y),
+        y1: box.y + Math.max(p!.y, q!.y),
+      };
+    };
+    const shownChips = async () => {
+      const out: { x0: number; x1: number; y0: number; y1: number }[] = [];
+      for (const side of ['left', 'right']) {
+        const chip = id(page, `selection-chip-${side}`);
+        if (!(await chip.isVisible())) continue;
+        const b = (await chip.boundingBox())!;
+        out.push({ x0: b.x, x1: b.x + b.width, y0: b.y, y1: b.y + b.height });
+      }
+      return out;
+    };
+    type Box = { x0: number; x1: number; y0: number; y1: number };
+    const overlaps = (a: Box, b: Box) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
+    const zoomTo = async (percent: number) => {
+      await page.evaluate(
+        (z) =>
+          (
+            (window as unknown as Window2).__ezdraftPlan.handle as unknown as {
+              setZoomPercent(p: number): void;
+            }
+          ).setZoomPercent(z),
+        percent,
+      );
+    };
+
+    // W (10' long, thickness outside the room) and S (12' long, thickness outside the room).
+    for (const [wallId, hit] of [
+      [s.W, pt(-2, 60)],
+      [s.S, pt(72, -2)],
+    ] as const) {
+      await view(page);
+      await clickAt(page, hit.x, hit.y);
+      expect(await selectedIds(page)).toEqual([wallId]);
+      for (const zoom of [null, 5, 1600]) {
+        if (zoom !== null) await zoomTo(zoom);
+        await expect.poll(async () => (await shownChips()).length).toBeGreaterThan(0);
+        const lab = await labelBox();
+        for (const c of await shownChips()) expect(overlaps(c, lab)).toBe(false);
+      }
+    }
+  });
 });

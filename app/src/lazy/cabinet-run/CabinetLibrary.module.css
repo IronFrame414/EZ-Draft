@@ -254,3 +254,29 @@
 .fitWarn {
   color: var(--ez-amber-text);
 }
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the search input
+   is 44 px tall, the line button and the TK / LR / CM trim buttons are 44 px, and the trim row gives the three
+   buttons the room they need on one line; desktop sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .searchInput {
+    min-height: var(--ez-touch-target);
+  }
+
+  .line {
+    min-height: var(--ez-touch-target);
+  }
+
+  .trim {
+    min-width: var(--ez-touch-target);
+    min-height: var(--ez-touch-target);
+  }
+
+  .row:has(> .trims) {
+    grid-template-columns: auto 1fr;
+  }
+
+  .trims {
+    flex-wrap: nowrap;
+  }
+}

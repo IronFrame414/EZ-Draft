@@ -4,6 +4,12 @@
 import {
   applyChip,
   coordsEqual,
+  DRAWING_FONTS,
+  interiorPoint,
+  measureTextPt,
+  parseStoredObject,
+  roomLabelText,
+  ROOM_LABEL_LETTER_SPACING_EM,
   doorSymbol,
   endDragLength,
   isVerticalLine,
@@ -27,6 +33,9 @@ import {
 } from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { TypedValues } from '../typed-entry/typed-entry';
+import type { Objects } from '../model/patches';
+import { PLAN_ROOM_LABEL_PT } from '../plan/batches';
+import { PT_TO_MODEL_IN } from '../plan/glyph-atlas';
 // EZD-423: entryTool moved to entry-tool.ts (the editor entry reads it) and is re-exported here.
 import { entryTool } from './entry-tool';
 import { idKey } from '../shared/ids';
@@ -89,7 +98,56 @@ export type SelectionFrame = {
   active: number | null;
   wallChips: readonly WallChip[];
   size: { at: Point; normal: Point; text: string } | null;
+  // EZD-1984 (audit F19): the shown room labels, so a wall chip is moved off a label it would cover.
+  labels?: readonly LabelBox[];
 };
+
+// EZD-1984: a room label's box on the plan in model inches: its centre and half its width and height.
+export type LabelBox = { at: Point; halfWidth: number; halfHeight: number };
+
+// EZD-1984: the label is drawn 1 em tall around its midline (glyph-atlas TEXT_MIDLINE_EM), so half a box is 0.5 em.
+const LABEL_HALF_HEIGHT_EM = 0.5;
+
+// EZD-1984: the boxes of the room labels the plan draws on `level` (as drawing/build.ts lays them out at
+// PLAN_ROOM_LABEL_PT), leaving out a room `shown` hides.
+export function roomLabelBoxes(
+  objects: Objects,
+  level: string,
+  shown: (type: string, status: unknown) => boolean = () => true,
+): LabelBox[] {
+  const lvl = level.toLowerCase();
+  const pt = PLAN_ROOM_LABEL_PT;
+  const ls = pt * ROOM_LABEL_LETTER_SPACING_EM;
+  const out: LabelBox[] = [];
+  for (const [id, v] of objects) {
+    if (v.type !== 'room') continue;
+    if (typeof v.data.level !== 'string' || v.data.level.toLowerCase() !== lvl) continue;
+    if (!shown(v.type, (v.data as { status?: unknown }).status)) continue;
+    const r = parseStoredObject({
+      id,
+      type: v.type,
+      schema_version: v.schemaVersion,
+      data: v.data,
+    });
+    if (!r.ok || r.object.type !== 'room') continue;
+    const boundary = r.object.data.geometry.boundary;
+    if (boundary.length < 3) continue;
+    let text: string;
+    try {
+      text = roomLabelText(r.object.data.attributes.name, boundary);
+    } catch {
+      continue;
+    }
+    const widthPt =
+      measureTextPt(DRAWING_FONTS['instrument-sans-600'], text, pt) + ls * ([...text].length - 1);
+    out.push({
+      at: interiorPoint(boundary),
+      halfWidth: (widthPt * PT_TO_MODEL_IN) / 2,
+      halfHeight: pt * PT_TO_MODEL_IN * LABEL_HALF_HEIGHT_EM,
+    });
+  }
+  return out;
+}
 
 const findWall = (objects: readonly ModelObject[], id: string): WallObject | null =>
   objects.find((o): o is WallObject => o.type === 'wall' && idKey(o.id) === idKey(id)) ?? null;

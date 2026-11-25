@@ -328,6 +328,14 @@
       "question": "Q-0234",
       "kind": "retired",
       "since": "2026-11-20"
+    },
+    {
+      "ticket": "EZD-385",
+      "title": "Planning method 4: the plan stays true at merge",
+      "reason": "RETIRED 2026-11-25 by Josh (chat: \"385. Follow your recommendation\"): it belongs to the retired v2 planning process (build v3 since 2026-11-13) and is on the tooling track, which the loop never builds; never built.",
+      "question": "overwatch 2026-11-25",
+      "kind": "retired",
+      "since": "2026-11-25"
     }
   ]
 }

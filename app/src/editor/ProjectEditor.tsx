@@ -215,6 +215,8 @@ import { createModelDerived, type ModelDerived } from './derived/model-derived';
 import { phaseViewOf, savePhaseView } from '../lib/plan/phase-view';
 import { createScaleSetting, deviceSnapSettings, type ScaleSetting } from './status/view-settings';
 import type { DrawingController } from './tools/drawing-controller';
+import { fixturesModule } from './tools/fixtures-module';
+import type { FixturesPanelProps } from '../lazy/fixtures-panel';
 import { createDrawingShell } from './tools/drawing-shell';
 import { DrawingLayer, DrawingRail } from './tools/DrawingTools';
 import styles from './ProjectEditor.module.css';
@@ -586,6 +588,16 @@ export function ProjectEditor({
     drawing ? drawing.subscribe : noSubscribe,
     readElectrical,
     readElectrical,
+  );
+  // EZD-1985 (Q-0809 (a)): while the Fixtures tool is on, its panel docks in the inspector place, like the
+  // Countertops tool's inspector, instead of floating over the plan. The choice is the controller's own object, so the
+  // snapshot is stable between renders.
+  const readFixtureChoice = () =>
+    drawing?.getUi().tool === 'fixtures' ? drawing.getUi().fixtureChoice : null;
+  const fixtureChoice = useSyncExternalStore(
+    drawing ? drawing.subscribe : noSubscribe,
+    readFixtureChoice,
+    readFixtureChoice,
   );
   const sessionStore = session?.store ?? null;
   // A new model session starts with no cabinet selected.
@@ -1550,6 +1562,8 @@ export function ProjectEditor({
         defaults={countertopDefaults}
         canManageDefaults={canManageDefaults}
       />
+    ) : showPlan && drawing !== null && fixtureChoice !== null ? (
+      <LazyFixturesPanel choice={fixtureChoice} onChoose={drawing.setFixtureChoice} />
     ) : showPlan && session !== null && selection !== null ? (
       <InspectorStack>
         <LazyInspectorPanel
@@ -2083,6 +2097,12 @@ function LazyCountertopsStatus(props: CountertopsStatusProps) {
 function LazyCountertopsInspector(props: CountertopsInspectorProps) {
   const mod = useLazy(countertopsModule);
   return mod ? <mod.CountertopsInspector {...props} /> : null;
+}
+
+// EZD-1985 (Q-0809 (a)): the Fixtures panel in the inspector place, from the module the Fixtures tool loads.
+function LazyFixturesPanel(props: FixturesPanelProps) {
+  const mod = useLazy(fixturesModule);
+  return mod ? <mod.FixturesPanel {...props} /> : null;
 }
 
 // EZD-126 (11 Budgets): the phone and no-access notices and the conflict banner load when shown; a ready desktop

@@ -8,8 +8,10 @@
 // EZD-223 (S03 Sketch): the page's sketch strokes and the stroke being drawn, as one path.
 // EZD-231 (04 Tool rail Measure): the measure is the band; its distance chip sits 16 px above the band's middle.
 import {
+  DRAWING_FONTS,
   doorSymbol,
   formatChipDistance,
+  measureTextPt,
   formatLength,
   openingSpan,
   sketchPoints,
@@ -22,7 +24,7 @@ import {
   type SnapKind,
 } from '@ezdraft/geometry';
 import type { DrawingFrame, OpeningFrame } from './drawing-controller';
-import { SIZE_CHIP_OFFSET_PX, type SelectionFrame } from './selection-edit';
+import { SIZE_CHIP_OFFSET_PX, type LabelBox, type SelectionFrame } from './selection-edit';
 import type { SnapMarkerShape } from './snap-marker';
 
 export type OverlayElement = {
@@ -284,6 +286,98 @@ function drawOpening(
   showChip(els.chips[1], shapes.right);
 }
 
+// EZD-1984: a chip is 26 px tall, 12 px padding each side of 13 px DM Mono (DrawingTools.module.css .chip).
+export const CHIP_HEIGHT_PX = 26;
+export const CHIP_PAD_PX = 12;
+export const CHIP_FONT_PX = 13;
+// EZD-1984: the least clear space kept between a moved chip and a room label.
+export const LABEL_GAP_PX = 4;
+
+export function chipHalfSize(text: string): { w: number; h: number } {
+  const w = measureTextPt(DRAWING_FONTS['dm-mono-400'], text, CHIP_FONT_PX) + 2 * CHIP_PAD_PX;
+  return { w: w / 2, h: CHIP_HEIGHT_PX / 2 };
+}
+
+type Rect = { x0: number; y0: number; x1: number; y1: number };
+
+function labelRect(b: LabelBox, toScreen: (p: Point) => Point): Rect {
+  const p = toScreen({ x: b.at.x - b.halfWidth, y: b.at.y - b.halfHeight });
+  const q = toScreen({ x: b.at.x + b.halfWidth, y: b.at.y + b.halfHeight });
+  return {
+    x0: Math.min(p.x, q.x),
+    y0: Math.min(p.y, q.y),
+    x1: Math.max(p.x, q.x),
+    y1: Math.max(p.y, q.y),
+  };
+}
+
+// The open range of t on one axis where a chip centred at m + t·d overlaps [lo, hi]; null when never.
+function axisRange(m: number, d: number, lo: number, hi: number): [number, number] | null {
+  if (Math.abs(d) < 1e-9) return m > lo && m < hi ? [-Infinity, Infinity] : null;
+  const a = (lo - m) / d;
+  const b = (hi - m) / d;
+  return a < b ? [a, b] : [b, a];
+}
+
+// EZD-1984 (audit F19): a wall chip at the middle of its leader stays there unless it would cover a room label;
+// then it moves the least distance that clears every label by LABEL_GAP_PX: along its leader while it stays on
+// the leader, or square to it (along the wall), whichever is shorter (along the leader first on a tie, then toward
+// the leader's start, then up or left).
+export function clearOfLabels(
+  place: ChipPlace,
+  a: Point,
+  b: Point,
+  rects: readonly Rect[],
+): ChipPlace {
+  if (rects.length === 0) return place;
+  const half = chipHalfSize(place.text);
+  const grown = rects.map((r) => ({
+    x0: r.x0 - half.w - LABEL_GAP_PX,
+    y0: r.y0 - half.h - LABEL_GAP_PX,
+    x1: r.x1 + half.w + LABEL_GAP_PX,
+    y1: r.y1 + half.h + LABEL_GAP_PX,
+  }));
+  const inside = (r: Rect, x: number, y: number) => x > r.x0 && x < r.x1 && y > r.y0 && y < r.y1;
+  if (!grown.some((r) => inside(r, place.x, place.y))) return place;
+  const blocked = (d: Point): [number, number][] =>
+    grown.flatMap((r) => {
+      const ix = axisRange(place.x, d.x, r.x0, r.x1);
+      const iy = axisRange(place.y, d.y, r.y0, r.y1);
+      if (ix === null || iy === null) return [];
+      const lo = Math.max(ix[0], iy[0]);
+      const hi = Math.min(ix[1], iy[1]);
+      return lo < hi ? [[lo, hi] as [number, number]] : [];
+    });
+  const L = Math.hypot(b.x - a.x, b.y - a.y);
+  const u = L < 0.5 ? { x: 1, y: 0 } : { x: (b.x - a.x) / L, y: (b.y - a.y) / L };
+  // The square direction points up the screen (or left when the leader is level with y).
+  let v = { x: -u.y, y: u.x };
+  if (v.y > 1e-9 || (Math.abs(v.y) <= 1e-9 && v.x > 0)) v = { x: -v.x, y: -v.y };
+  const options: { t: number; d: Point; rank: number }[] = [];
+  for (const [d, rank, limit] of [
+    [u, 0, L / 2],
+    [v, 1, Infinity],
+  ] as const) {
+    const ranges = blocked(d);
+    const free = (t: number) => ranges.every(([lo, hi]) => !(t > lo + 1e-9 && t < hi - 1e-9));
+    for (const t of ranges.flatMap((r) => r)) {
+      if (Number.isFinite(t) && Math.abs(t) <= limit && free(t)) options.push({ t, d, rank });
+    }
+  }
+  if (options.length === 0) return place;
+  options.sort((p, q) =>
+    Math.abs(Math.abs(p.t) - Math.abs(q.t)) > 1e-9
+      ? Math.abs(p.t) - Math.abs(q.t)
+      : p.rank !== q.rank
+        ? p.rank - q.rank
+        : p.rank === 0
+          ? p.t - q.t
+          : q.t - p.t,
+  );
+  const best = options[0]!;
+  return { x: place.x + best.d.x * best.t, y: place.y + best.d.y * best.t, text: place.text };
+}
+
 // D8: the selection's handles, wall chip leaders with 12 px end ticks, chips and size chip in region px.
 export function selectionShapes(
   sel: SelectionFrame | null | undefined,
@@ -303,6 +397,7 @@ export function selectionShapes(
   const tickParts: string[] = [];
   let left: ChipPlace | null = null;
   let right: ChipPlace | null = null;
+  const rects = (sel.labels ?? []).map((l) => labelRect(l, toScreen));
   for (const chip of sel.wallChips) {
     const a = toScreen(chip.from);
     const b = toScreen(chip.to);
@@ -313,11 +408,12 @@ export function selectionShapes(
       const v = { x: -u.y, y: u.x };
       for (const q of [a, b]) tickParts.push(`M ${xy(add(q, v, -6))} L ${xy(add(q, v, 6))}`);
     }
-    const place = {
-      x: (a.x + b.x) / 2,
-      y: (a.y + b.y) / 2,
-      text: formatChipDistance(chip.distance),
-    };
+    const place = clearOfLabels(
+      { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, text: formatChipDistance(chip.distance) },
+      a,
+      b,
+      rects,
+    );
     if (chip.side === 'left') left = place;
     else right = place;
   }

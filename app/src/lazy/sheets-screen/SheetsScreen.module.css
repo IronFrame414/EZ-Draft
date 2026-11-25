@@ -439,3 +439,19 @@
   font-family: var(--ez-font-sans);
   font-weight: 600;
 }
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the set selector,
+   the sheet rows, Add sheet, the property import button and Previous / Next sheet are at least 44 px; desktop sizes
+   above are unchanged. */
+@media (any-pointer: coarse) {
+  .setButton,
+  .row,
+  .add {
+    min-height: var(--ez-touch-target);
+  }
+
+  .navButton {
+    width: var(--ez-touch-target);
+    height: var(--ez-touch-target);
+  }
+}

@@ -169,6 +169,7 @@
 /* EZD-104 Decided "Main head with actions" (board S15 main head). */
 .mainHeadRow {
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: flex-end;
   gap: 16px;
 }
@@ -179,6 +180,13 @@
   gap: 4px;
   flex: 1;
   min-width: 0;
+}
+
+/* EZD-1982 (AC-EZD-1982-1; audit F7): on a narrow main card (iPad) the text keeps at least 280 px and the
+   actions wrap under it instead of squeezing the heading into a narrow column. At the desktop size both fit on
+   one row, as before. */
+.mainHeadRow > .mainHeadText {
+  flex: 1 1 280px;
 }
 
 .mainActions {
@@ -210,6 +218,14 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+/* EZD-1982 (AC-EZD-1982-1): below the desktop size a flush page whose parts do not fit the card's height
+   scrolls inside the card instead of clipping them. Pages that fit are unchanged. */
+@media (width < 1600px) {
+  .mainFlush {
+    overflow-y: auto;
+  }
 }
 
 .status {

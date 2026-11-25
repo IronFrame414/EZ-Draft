@@ -518,7 +518,17 @@
     "EZD-1906c",
     "EZD-1977",
     "EZD-1979",
-    "EZD-1989"
+    "EZD-1989",
+    "EZD-1988",
+    "EZD-1978",
+    "EZD-1981",
+    "EZD-1987",
+    "EZD-1982",
+    "EZD-1992",
+    "EZD-1984",
+    "EZD-1980",
+    "EZD-1983",
+    "EZD-1985"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2044,6 +2054,86 @@
       "ts": "2026-11-25T11:15:36Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1988",
+      "title": "Loop: find and stop what sends SIGTERM to builders in the same second",
+      "commit": "9bd3a359",
+      "ts": "2026-11-25T12:09:08Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1978",
+      "title": "Projects page does not break on a phone",
+      "commit": "a0cb23a1",
+      "ts": "2026-11-25T12:35:17Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1981",
+      "title": "Plan status bar cells stay on one line",
+      "commit": "a6e9e8b1",
+      "ts": "2026-11-25T14:45:37Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1987",
+      "title": "Supplier files page has the editor header",
+      "commit": "716888e0",
+      "ts": "2026-11-25T15:21:27Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1982",
+      "title": "Settings pages do not squeeze or clip at iPad width; Sheet presets inspector at board width",
+      "commit": "f57ba7f5",
+      "ts": "2026-11-25T16:07:58Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1992",
+      "title": "Fix: permissions T11 backfill fails at random on a tenant foreign key (EZD-101 T11)",
+      "commit": "0131473f",
+      "ts": "2026-11-25T16:55:15Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1984",
+      "title": "A selected wall's size chip does not cover the room label",
+      "commit": "ae4527e6",
+      "ts": "2026-11-25T17:23:58Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1980",
+      "title": "Touch targets of at least 44 px on iPad in Settings, Libraries, Sheets and tool panels",
+      "commit": "22b6ed26",
+      "ts": "2026-11-25T17:56:31Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1983",
+      "title": "Users settings says \"Role presets\" as on the S15 board",
+      "commit": "0c28ea77",
+      "ts": "2026-11-25T18:31:58Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1985",
+      "title": "Fixtures panel docks on the right and its fields are not cut off",
+      "commit": "d3d8b7c9",
+      "ts": "2026-11-25T18:51:34Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2090,9 +2180,10 @@
     "EZD-1962": 1,
     "EZD-1939": 1,
     "EZD-1959": 1,
-    "EZD-1980": 1,
     "EZD-1988": 1,
-    "EZD-1978": 1
+    "EZD-1978": 1,
+    "EZD-1992": 1,
+    "EZD-1983": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2274,23 +2365,31 @@
     "EZD-1978": {
       "ts": "2026-11-25T10:45:24Z",
       "reason": "develop kept moving: 3 merge rounds"
+    },
+    "EZD-1992": {
+      "ts": "2026-11-25T15:45:02Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1983": {
+      "ts": "2026-11-25T18:07:45Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-1988": {
-      "lane": 3,
-      "title": "Loop: find and stop what sends SIGTERM to builders in the same second",
-      "started": "2026-11-25T10:35:26Z",
-      "develop": "5331d28c"
+    "EZD-1990": {
+      "lane": 2,
+      "title": "\"Page not found\" page with the app header and a Back to Projects button",
+      "started": "2026-11-25T17:56:41Z",
+      "develop": "3acf917f"
     },
-    "EZD-1978": {
+    "EZD-1991": {
       "lane": 1,
-      "title": "Projects page does not break on a phone",
-      "started": "2026-11-25T10:46:07Z",
-      "develop": "b7f0eddf"
+      "title": "Title block settings: \"Used on N sheets · Open Sheets\" line and \"Zoom to title block\" button",
+      "started": "2026-11-25T18:32:04Z",
+      "develop": "81cebd6f"
     }
   },
-  "advisories_checked_at": "2026-11-25T10:18:53Z",
+  "advisories_checked_at": "2026-11-25T16:19:16Z",
   "hold": {},
   "perf_trend_at": "2026-11-25T03:16:23Z",
   "set_aside_history": []

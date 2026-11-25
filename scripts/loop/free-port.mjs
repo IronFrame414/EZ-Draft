@@ -14,6 +14,7 @@
 // Node built-ins only.
 import { spawn, spawnSync } from 'node:child_process';
 import { laneAppPorts } from '../db/lane.mjs';
+import { sendSignal } from './signal-log.mjs';
 
 export const PORT_KILL_GRACE_MS = 10000;
 export const PORT_FREE_WAIT_MS = 30000;
@@ -75,7 +76,8 @@ export function listenerGroups(cfg) {
   return [...new Set(listenersSync(cfg).map(killTarget).filter((t) => t < 0).map((t) => -t))];
 }
 
-const signal = (t, sig) => { try { process.kill(t, sig); } catch {} };
+// EZD-1988: recorded in the shared signal record before it is sent.
+const signal = (t, sig) => { sendSignal(t, sig, 'check port free (scripts/loop/free-port.mjs)'); };
 const alive = (t) => { try { process.kill(t, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

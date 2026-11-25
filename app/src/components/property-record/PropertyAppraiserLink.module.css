@@ -177,3 +177,17 @@
   color: var(--ez-slate-400);
   font-style: italic;
 }
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the link field and
+   the "Paste page text or screenshot" button are at least 44 px tall; desktop sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .input {
+    min-height: var(--ez-touch-target);
+  }
+
+  .link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--ez-touch-target);
+  }
+}

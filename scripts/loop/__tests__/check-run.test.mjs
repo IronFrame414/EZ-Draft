@@ -15,7 +15,7 @@ const alive = (pid) => { try { process.kill(pid, 0); return true; } catch { retu
 test('the SIGKILL follows the SIGTERM after 10 s, the same as the claude timer', () => {
   assert.equal(KILL_GRACE_MS, 10000);
   const loop = readFileSync(path.join(ROOT, 'scripts/loop.mjs'), 'utf8');
-  assert.match(loop, /setTimeout\(\(\) => p\.kill\('SIGKILL'\), 10000\)/);
+  assert.match(loop, /setTimeout\(\(\) => timerKill\(p, 'SIGKILL'\), 10000\)/);
   assert.match(loop, /runCheck\(\{[^}]*timeoutMs: 90 \* 60000/);
 });
 

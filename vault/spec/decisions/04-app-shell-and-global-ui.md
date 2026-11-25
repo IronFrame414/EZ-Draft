@@ -44,3 +44,12 @@ Josh's answers during the build, for this spec area. Each overrides the spec tex
 | Q-0801 | 2026-11-23 | Bad-invite page: the explanation text stays in error red (Josh, chat: "red"; (audit 2026-11-23 U3). No change. |
 | Q-0802 | 2026-11-23 | Wording: "Could not read this page. Paste the page text or a screenshot." becomes "Couldn't read this page. Paste the page text or a screenshot." (Josh, chat: "yes"; (audit 2026-11-23 U8). Overrides the S01 Validation text. EZD-1962 |
 | Q-0803 | 2026-11-23 | Josh approved every "Wording for Josh" row in vault/build/assumptions.md recorded up to 2026-11-23 (Josh, chat: "approve"; (audit 2026-11-23 O1; 223 rows). That wording is now decided; rows added later still go to him. |
+| Q-0805 | 2026-11-25 | (b): build the client page sooner. The client page (EZD-1202) and Send set to client (EZD-719) are built next, ahead of their phases, with the tickets they depend on; Send stays as it is meanwhile (Josh, chat: "805. B"; audit 2026-11-24 F1). |
+| Q-0806 | 2026-11-25 | (a): on a phone, Projects shows one card per row, the same cards as desktop (Josh, chat: "806. A"; F3b). EZD-1978 built this. |
+| Q-0807 | 2026-11-25 | (a): on an iPad the plan status bar keeps every item, and the long ones are shortened with the full text in a tooltip (Josh, chat: "807. A"; F5b). EZD-1981. |
+| Q-0808 | 2026-11-25 | The "Page not found" page uses the normal app header, the message in the middle and a "Back to Projects" button (Josh, chat: "808. Agree"; F11). EZD-1990. |
+| Q-0809 | 2026-11-25 | (a): the Fixtures tool panel docks on the right like the other tool panels (Josh, chat: "809. A"; F12). EZD-1985. |
+| Q-0810 | 2026-11-25 | The plan left panel (Floor / Ceiling / Both, a lock on each row) and the Plumbing and Mechanical overlays stay as built; the S03 drawing is out of date on this point (Josh, chat: "810. Agree"; F13). |
+| Q-0811 | 2026-11-25 | System status keeps the "This device" card (storage, edits waiting to sync), though it is not on S15i (Josh, chat: "811. Agree"; F15). |
+| Q-0812 | 2026-11-25 | New project step 1 keeps scope of work, trades and permit application date, though S01b shows fewer fields (Josh, chat: "812. Agree"; F17). |
+| Q-0813 | 2026-11-25 | (a): Title block settings get the drawing's "Used on N sheets · Open Sheets" line and "Zoom to title block" button (Josh, chat: "813. A"; F18). EZD-1991. |

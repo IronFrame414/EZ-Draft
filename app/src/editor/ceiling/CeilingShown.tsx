@@ -25,18 +25,22 @@ export function CeilingLegend({ children }: { children?: ReactNode } = {}): Reac
 
 export function CeilingViewStatus(): ReactElement {
   const t = useT();
+  const text = t('office.ceiling.status.rcp');
+  // EZD-1981 (audit F5): may be cut with an ellipsis; the full text is the tooltip.
   return (
-    <StatusItem label="office.ceiling.status.view">
-      <span data-testid="status-ceiling-view">{t('office.ceiling.status.rcp')}</span>
+    <StatusItem label="office.ceiling.status.view" title={text}>
+      <span data-testid="status-ceiling-view">{text}</span>
     </StatusItem>
   );
 }
 
 export function JoistsStatus(): ReactElement {
   const t = useT();
+  const text = t('office.ceiling.status.joists_unknown');
+  // EZD-1981 (audit F5): the longest ceiling cell; cut with an ellipsis when the bar runs out, full text as tooltip.
   return (
-    <StatusItem label="office.ceiling.status.joists">
-      <span data-testid="status-joists">{t('office.ceiling.status.joists_unknown')}</span>
+    <StatusItem label="office.ceiling.status.joists" title={text}>
+      <span data-testid="status-joists">{text}</span>
     </StatusItem>
   );
 }
