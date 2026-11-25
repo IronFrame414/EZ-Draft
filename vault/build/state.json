@@ -504,7 +504,8 @@
     "EZD-1941",
     "EZD-1974",
     "EZD-1975",
-    "EZD-1952"
+    "EZD-1952",
+    "EZD-1976"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1918,11 +1919,19 @@
       "ts": "2026-11-25T00:32:06Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1976",
+      "title": "Fix: React commits during wall-tool pointer moves on a slower machine (EZD-210b B9 on CI)",
+      "commit": "e93952fd",
+      "ts": "2026-11-25T01:57:28Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
