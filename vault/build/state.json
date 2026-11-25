@@ -510,7 +510,8 @@
     "EZD-1903",
     "EZD-1959",
     "EZD-1902",
-    "EZD-1960"
+    "EZD-1960",
+    "EZD-1944"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1972,6 +1973,14 @@
       "ts": "2026-11-25T04:53:13Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1944",
+      "title": "Loop: a retry command that keeps a history of set-asides",
+      "commit": "67d60544",
+      "ts": "2026-11-25T05:14:02Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2190,17 +2199,17 @@
     }
   },
   "running": {
-    "EZD-1944": {
-      "lane": 2,
-      "title": "Loop: a retry command that keeps a history of set-asides",
-      "started": "2026-11-25T03:16:35Z",
-      "develop": "22770201"
-    },
     "EZD-1905": {
       "lane": 1,
       "title": "Geometry: subpath exports so new modules don't edit the root index",
       "started": "2026-11-25T04:22:44Z",
       "develop": "e149854a"
+    },
+    "EZD-1906b": {
+      "lane": 3,
+      "title": "Editor shared helpers in electrical, assistant, inspector, versions, floors",
+      "started": "2026-11-25T04:53:25Z",
+      "develop": "fbd8f58c"
     }
   },
   "advisories_checked_at": "2026-11-25T04:18:01Z",
