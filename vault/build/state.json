@@ -528,7 +528,8 @@
     "EZD-1984",
     "EZD-1980",
     "EZD-1983",
-    "EZD-1985"
+    "EZD-1985",
+    "EZD-1986"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2132,6 +2133,14 @@
       "title": "Fixtures panel docks on the right and its fields are not cut off",
       "commit": "d3d8b7c9",
       "ts": "2026-11-25T18:51:34Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1986",
+      "title": "Cabinets tool on desktop keeps the room visible and its panel rows aligned",
+      "commit": "8e17d06c",
+      "ts": "2026-11-25T20:22:11Z",
       "kind": "ticket",
       "lane": 3
     }
