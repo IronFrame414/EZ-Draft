@@ -2064,9 +2064,18 @@
       "lane": 1
     }
   ],
-  "set_aside": {},
+  "set_aside": {
+    "EZD-1980": {
+      "title": "Touch targets of at least 44 px on iPad in Settings, Libraries, Sheets and tool panels",
+      "ts": "2026-11-25T13:35:20Z",
+      "reason": "check red after merging newer develop (first try: builder timed out after 90 min with no commits)",
+      "detail": "Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T18 provider errors map to D-Map with one request, no usage row and no model change\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T18 provider errors map to D-Map with one request, no usage row and no model change\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T19 a reply that does not parse is billed when usage came back, and free when it did not\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T19 a reply that does not parse is billed when usage came back, and free when it did not\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T20 one prompt in flight, 30 a minute, and the time budget and a closed tab end the call\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T20 one prompt in flight, 30 a minute, and the time budget and a closed tab end the call\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T20 one prompt in flight, 30 a minute, and the time budget and a closed tab end the call\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T22 a failed usage write is reported and the answer stands\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n ❯ src/server/db/permissions.test.ts (18 tests | 1 failed) 1389ms\n   ❯ EZD-101 permission and role tables (18)\n     × T11 new memberships: default role from role_preset, custom role, backfill 241ms\nstderr | src/app/api/profile/ai-key/route.test.ts > EZD-5601 AI key route > T11 add: a padded key at the size bound is checked, stored encrypted, shown as last4 and mailed once\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/profile/ai-key/route.test.ts > EZD-5601 AI key",
+      "branch": "t/EZD-1980",
+      "worktree": ".claude/worktrees/EZD-1980"
+    }
+  },
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2294,14 +2303,7 @@
       "reason": "develop kept moving: 3 merge rounds"
     }
   },
-  "running": {
-    "EZD-1980": {
-      "lane": 2,
-      "title": "Touch targets of at least 44 px on iPad in Settings, Libraries, Sheets and tool panels",
-      "started": "2026-11-25T11:15:44Z",
-      "develop": "9bb823d5"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-25T10:18:53Z",
   "hold": {},
   "perf_trend_at": "2026-11-25T03:16:23Z",
