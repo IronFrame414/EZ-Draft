@@ -1,6 +1,8 @@
 // EZD-007f Step 6 (vault/plans/EZD-007f.md section 3; Q-0047; Q-0039 (c)): the sign-in page. Public
 // (EZD-007d PUBLIC_PATHS); a signed-in visitor goes to /. Language is the device's choice (getSignInLanguage).
 // EZD-342 (vault/plans/EZD-342.md; Q-0600): the email cookie is read through request-cookies.ts.
+// EZD-1977 (audit 2026-11-24 F2 / U4): ?next= is the asked-for page (checked by returnPath); a signed-in
+// visitor goes there, and the form carries it to the sign-in actions. Anything else means Projects.
 import { redirect } from 'next/navigation';
 import { LanguageSwitch } from '../../components/auth/LanguageSwitch';
 import styles from '../../components/auth/auth.module.css';
@@ -9,6 +11,7 @@ import { SIGN_IN_EMAIL_COOKIE } from '../../lib/auth/cookie-names';
 import { MessagesProvider } from '../../lib/messages';
 import { captchaConfig } from '../../server/auth/captcha-config';
 import { readAppCookie } from '../../server/auth/request-cookies';
+import { returnPath } from '../../server/auth/return-path';
 import { getSession } from '../../server/auth/session';
 import { getSignInLanguage } from '../../server/auth/sign-in-language';
 import { catalogFor } from '../../server/messages/catalog';
@@ -20,9 +23,10 @@ export default async function SignInPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  if (await getSession()) redirect('/');
+  const { e, next: nextParam } = await searchParams;
+  const next = returnPath(nextParam);
+  if (await getSession()) redirect(next ?? '/');
   const language = await getSignInLanguage();
-  const { e } = await searchParams;
   const initialEmail = (await readAppCookie(SIGN_IN_EMAIL_COOKIE)) || null;
   const t = getT('sign_in', language);
   // EZD-034 Step 6: the security check, only when the site key is set (read per request).
@@ -35,6 +39,7 @@ export default async function SignInPage({
           <LanguageSwitch language={language} />
           <SignInForm
             initialEmail={initialEmail}
+            next={next}
             initialError={e === 'no_access' ? 'no_access' : null}
             captcha={base && { ...base, language }}
           />

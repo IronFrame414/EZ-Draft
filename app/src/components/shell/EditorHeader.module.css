@@ -80,10 +80,21 @@ button.name {
     justify-content: center;
   }
 
+  /* EZD-1979 (audit 2026-11-24 F6): two 44 px tap areas do not fit one above the other in the 60 px card, so the
+     card does not clip them under a coarse pointer and each takes half the title block plus the 16 px beside the card:
+     the name the top half and the header margin above (here), the version link in the subtitle the bottom half and
+     the body padding below (ProjectEditor.module.css .versionLink). Nothing drawn changes. */
+  header:has(> .titleBlock) {
+    overflow: visible;
+  }
+
   button.name::after {
     content: '';
     position: absolute;
-    inset: 0;
+    top: calc(-1 * var(--ez-header-margin));
+    right: 0;
+    bottom: 50%;
+    left: 0;
   }
 
   .tab {

@@ -6,16 +6,24 @@
 // on every action that reaches Supabase Auth. A slot is taken before Auth is called; a refused slot calls
 // nothing. The password is never logged, put in an Error, returned or written to a cookie.
 // EZD-342 (vault/plans/EZD-342.md; Q-0600): the sign-in cookies go only through request-cookies.ts.
+// EZD-1977 (audit 2026-11-24 F2 / U4; AC-EZD-1977-1): a successful sign-in lands on the asked-for page: the
+// form's next field (password, code, invite code) or, for the emailed link, the next cookie requestSignIn set.
+// Every value is checked again here (returnPath); anything else lands on Projects.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import { SIGN_IN_EMAIL_COOKIE, SIGN_IN_LANG_COOKIE } from '../../lib/auth/cookie-names';
+import {
+  SIGN_IN_EMAIL_COOKIE,
+  SIGN_IN_LANG_COOKIE,
+  SIGN_IN_NEXT_COOKIE,
+} from '../../lib/auth/cookie-names';
 import { PASSWORD_MAX_BYTES } from '../../lib/auth/password-rules';
 import type { Database } from '../db/database.types';
 import { reportError } from '../errors/report';
 import { completeSignIn } from './complete-sign-in';
 import { clearAppCookie, readAppCookie, setAppCookie } from './request-cookies';
+import { returnPath } from './return-path';
 import { createSessionClient } from './supabase-server';
 import { clientIp, throttleKey, throttleSettle, throttleTake, type ThrottleKind } from './throttle';
 import { timingSafeEqual } from 'node:crypto';
@@ -29,6 +37,19 @@ const CODE_PATTERN = /^\d{6}$/;
 function parseEmail(value: FormDataEntryValue | null | undefined): string | null {
   const parsed = EmailSchema.safeParse(typeof value === 'string' ? value : '');
   return parsed.success ? parsed.data : null;
+}
+
+// EZD-1977: the checked return path from the form, else from the next cookie; null lands on Projects.
+async function landingFrom(formData: FormData, cookieFallback: boolean): Promise<string> {
+  const field = returnPath(formData.get('next'));
+  if (field !== null) return field;
+  return (cookieFallback && returnPath(await readAppCookie(SIGN_IN_NEXT_COOKIE))) || '/';
+}
+
+// The sign-in cookies end with a successful sign-in.
+async function clearSignInCookies(): Promise<void> {
+  await clearAppCookie(SIGN_IN_EMAIL_COOKIE);
+  await clearAppCookie(SIGN_IN_NEXT_COOKIE);
 }
 
 function errorStatus(error: unknown): number | undefined {
@@ -144,8 +165,9 @@ export async function signInWithPassword(formData: FormData): Promise<{
 
   await settle(slot);
   if ((await completeSignIn(slot.client)) === 'no_access') return { error: 'no_access' };
-  await clearAppCookie(SIGN_IN_EMAIL_COOKIE);
-  redirect('/');
+  const landing = await landingFrom(formData, false);
+  await clearSignInCookies();
+  redirect(landing);
 }
 
 export async function requestSignIn(formData: FormData): Promise<
@@ -186,6 +208,10 @@ export async function requestSignIn(formData: FormData): Promise<
   }
 
   await setAppCookie(SIGN_IN_EMAIL_COOKIE, email, 900);
+  // EZD-1977: the emailed link opens /auth/confirm with no next of its own, so the page goes in a cookie.
+  const next = returnPath(formData.get('next'));
+  if (next === null) await clearAppCookie(SIGN_IN_NEXT_COOKIE);
+  else await setAppCookie(SIGN_IN_NEXT_COOKIE, next, 900);
   return { step: 'code' };
 }
 
@@ -228,8 +254,9 @@ export async function verifySignInCode(formData: FormData): Promise<{
 
   await settle(slot);
   if ((await completeSignIn(slot.client)) === 'no_access') return { error: 'no_access' };
-  await clearAppCookie(SIGN_IN_EMAIL_COOKIE);
-  redirect('/');
+  const landing = await landingFrom(formData, true);
+  await clearSignInCookies();
+  redirect(landing);
 }
 
 export async function confirmSignInLink(formData: FormData): Promise<{
@@ -262,8 +289,9 @@ export async function confirmSignInLink(formData: FormData): Promise<{
 
   await settle(slot);
   if ((await completeSignIn(slot.client)) === 'no_access') return { error: 'no_access' };
-  await clearAppCookie(SIGN_IN_EMAIL_COOKIE);
-  redirect('/');
+  const landing = returnPath(await readAppCookie(SIGN_IN_NEXT_COOKIE)) ?? '/';
+  await clearSignInCookies();
+  redirect(landing);
 }
 
 export async function signOut(): Promise<never> {
@@ -355,6 +383,7 @@ export async function acceptInviteCode(formData: FormData): Promise<{
 
   if ((await acceptInviteByToken(token)) === 'refused') return { error: 'invite_code_invalid' };
   await settle(slot);
-  await clearAppCookie(SIGN_IN_EMAIL_COOKIE);
-  redirect('/');
+  const landing = await landingFrom(formData, false);
+  await clearSignInCookies();
+  redirect(landing);
 }

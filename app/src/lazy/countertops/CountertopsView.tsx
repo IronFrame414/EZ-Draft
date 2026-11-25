@@ -21,7 +21,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
   type PointerEvent as ReactPointerEvent,
   type ReactElement,
 } from 'react';
@@ -74,6 +73,9 @@ import {
   countertopTypedChanges,
 } from '../../editor/countertops/overhang-tool';
 import { formatInches } from '../../lib/catalog/catalog';
+import { idKey, sameId } from '../../editor/shared/ids';
+import { inchText } from '../../editor/shared/inch-text';
+import { useStoreValue } from '../../editor/shared/use-store-value';
 import { countertopIncrement, useCountertopFloor } from './use-countertop-floor';
 import { edgeOfferPillState, type EdgeOffer, type EdgeOffersLoad } from '../../editor/countertops/edge-profile';
 import { EdgeProfilePill, useEdgeOffers, useProjectId } from './EdgeProfileCard';
@@ -95,8 +97,6 @@ export type CountertopsViewProps = {
   loadOffers?: EdgeOffersLoad;
   offers?: readonly EdgeOffer[];
 };
-
-const noSubscribe = () => () => {};
 
 // The pick, snap and close radius on screen.
 const PICK_PX = 10;
@@ -147,11 +147,7 @@ export function CountertopsView({
 
   // EZD-416: the selection is the editor's when it passes one (the left panel shares it), else the screen's own.
   const [own, setOwn] = useState<Picked>(NOTHING);
-  const shared = useSyncExternalStore(
-    selection ? selection.subscribe : noSubscribe,
-    () => selection?.getState().selection ?? NOTHING,
-    () => selection?.getState().selection ?? NOTHING,
-  );
+  const shared = useStoreValue(selection, (s) => s.getState().selection, NOTHING);
   const picked = selection ? shared : own;
   const selected = picked.pieceId;
   // EZD-414: a piece and, when one was clicked, its edge.
@@ -584,7 +580,7 @@ export function CountertopsView({
         {pieces.map((p) => {
           const pts = shownOutline(p);
           const c = centre(pts);
-          const on = selected !== null && p.id.toLowerCase() === selected.toLowerCase();
+          const on = selected !== null && sameId(p.id, selected);
           return (
             <g
               key={p.id}
@@ -637,9 +633,7 @@ export function CountertopsView({
         {pieces.flatMap((p) =>
           (p.data.attributes.cutouts ?? []).map((c) => {
             const on =
-              cutPick !== null &&
-              cutPick.cutoutId.toLowerCase() === c.id.toLowerCase() &&
-              cutPick.pieceId.toLowerCase() === p.id.toLowerCase();
+              cutPick !== null && sameId(cutPick.cutoutId, c.id) && sameId(cutPick.pieceId, p.id);
             return (
               <g
                 key={c.id}
@@ -675,7 +669,7 @@ export function CountertopsView({
         )}
         {pieces.flatMap((p) => {
           const pts = shownOutline(p);
-          const isOn = selected !== null && p.id.toLowerCase() === selected.toLowerCase();
+          const isOn = selected !== null && sameId(p.id, selected);
           const ccw = signedArea(pts) > 0;
           return p.data.attributes.edges.flatMap((edge, i) => {
             const out: ReactElement[] = [];
@@ -706,7 +700,7 @@ export function CountertopsView({
             const cx = (a.x + b.x) / 2 + nx * off;
             const cy = (a.y + b.y) / 2 + ny * off;
             const text = seating
-              ? t('office.countertops.chip_seating', { value: `${formatInches(edge.overhang)}"` })
+              ? t('office.countertops.chip_seating', { value: inchText(edge.overhang) })
               : formatInches(edge.overhang);
             const w = (text.length * 6.5 + 16) * scale;
             const h = 18 * scale;
@@ -865,9 +859,9 @@ function centre(pts: readonly Point[]): Point {
 
 function wallBodies(objects: readonly ModelObject[], level: string | null): Point[][] {
   if (level === null) return [];
-  const key = level.toLowerCase();
+  const key = idKey(level);
   return objects.flatMap((o) => {
-    if (o.type !== 'wall' || o.data.level.toLowerCase() !== key) return [];
+    if (o.type !== 'wall' || idKey(o.data.level) !== key) return [];
     const { left, right } = wallFaceLines(o.data);
     return [[left.start, left.end, right.end, right.start]];
   });

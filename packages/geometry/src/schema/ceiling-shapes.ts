@@ -11,7 +11,7 @@
 // - `ceiling_tag`: a height and material tag at a point (`point`, so it picks as a utility point does). Its text is never stored; it is worked out from the ceiling
 //   data under the point each time it is drawn.
 // New types, so the schema version stays.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { levelSchema, objectStatusSchema, pointSchema, polygonSchema } from './common';
 
 export const CEILING_SHAPE_KINDS = ['tray', 'coffer', 'crown'] as const;
@@ -23,7 +23,7 @@ export const ceilingShapeDataSchema = z.strictObject({
   level: levelSchema,
   attributes: z.strictObject({
     kind: z.enum(CEILING_SHAPE_KINDS),
-    depth: z.number().finite().positive(),
+    depth: z.number().check(z.positive()),
   }),
 });
 export type CeilingShapeData = z.infer<typeof ceilingShapeDataSchema>;

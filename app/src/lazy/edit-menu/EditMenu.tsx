@@ -8,7 +8,7 @@
 import { chosenFloor, type FloorChoice } from '../../editor/floors/floors';
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactElement } from 'react';
 import { createPortal } from 'react-dom';
-import type { ObjectStatus, Point } from '@ezdraft/geometry';
+import { OBJECT_STATUSES, type Point } from '@ezdraft/geometry';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
 import {
@@ -46,7 +46,6 @@ export type EditMenusProps = {
 
 export type SaveResult = { ok: true } | { ok: false; messageKey: MessageKey };
 
-const STATUSES: readonly ObjectStatus[] = ['existing', 'demo', 'new'];
 const NAME_CODES = new Set(['library_name_required', 'library_name_too_long']);
 
 export async function postSavedGroup(
@@ -207,7 +206,7 @@ function EditMenu({
       : [];
   const statusItems =
     open === 'status'
-      ? STATUSES.map((s) =>
+      ? OBJECT_STATUSES.map((s) =>
           item(
             `status-${s}`,
             `office.edit.status.${s}` as MessageKey,

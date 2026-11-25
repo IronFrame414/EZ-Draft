@@ -55,7 +55,8 @@ function workspacePackages(root, files) {
       const exp = typeof pj.exports === 'string' ? { '.': pj.exports } : (pj.exports || (pj.main ? { '.': pj.main } : {}));
       for (const [k, v] of Object.entries(exp)) {
         const target = typeof v === 'string' ? v : (v?.import || v?.default);
-        if (typeof target === 'string') map.set(k === '.' ? pj.name : `${pj.name}/${k.replace(/^\.\//, '')}`, path.posix.normalize(`${dir}/${target}`));
+        // EZD-1905: a subpath pattern ("./*": "./src/*/index.ts") is kept as written, `*` and all; resolveSpecifier fills it.
+        if (typeof target === 'string') map.set(k === '.' ? pj.name : `${pj.name}/${k.replace(/^\.\//, '')}`, k.includes('*') ? `${dir}/${target.replace(/^\.\//, '')}` : path.posix.normalize(`${dir}/${target}`));
       }
     } catch {}
   }
@@ -67,8 +68,8 @@ export function resolveSpecifier(spec, from, known, packages = new Map()) {
   let base;
   if (spec.startsWith('./') || spec.startsWith('../')) base = path.posix.normalize(path.posix.join(path.posix.dirname(from), spec));
   else if (spec.startsWith('@/') && from.startsWith('app/')) base = `app/src/${spec.slice(2)}`;
-  else if (packages.has(spec)) return packages.get(spec);
-  else return null;
+  else if (packages.has(spec) && !spec.includes('*')) return packages.get(spec);
+  else return resolvePackagePattern(spec, known, packages);
   base = base.replace(/\?.*$/, '');
   if (known.has(base)) return base;
   // TypeScript ESM style: `./x.js` written for x.ts.
@@ -76,6 +77,35 @@ export function resolveSpecifier(spec, from, known, packages = new Map()) {
   for (const ext of RESOLVE_EXT) if (known.has(stem + ext)) return stem + ext;
   for (const ext of RESOLVE_EXT) if (known.has(`${base}/index${ext}`)) return `${base}/index${ext}`;
   return null;
+}
+
+// EZD-1905: `@ezdraft/geometry/<area>` through a `*` subpath pattern, as Node and the bundlers match it: the text the
+// `*` stands for may not be empty, and the filled target must be a repo file.
+function resolvePackagePattern(spec, known, packages) {
+  for (const [key, target] of packages) {
+    const star = key.indexOf('*');
+    if (star < 0) continue;
+    const pre = key.slice(0, star);
+    const post = key.slice(star + 1);
+    if (spec.length <= pre.length + post.length || !spec.startsWith(pre) || !spec.endsWith(post)) continue;
+    const filled = path.posix.normalize(target.replace('*', spec.slice(pre.length, spec.length - post.length)));
+    if (known.has(filled)) return filled;
+  }
+  return null;
+}
+
+// EZD-1905: a package subpath barrel (`@ezdraft/geometry/benchmark` is `benchmark/index.ts`) stands for the files it
+// re-exports, so a test that imports an area still joins the claim on the file it uses. One level, relative re-exports
+// only; the package root barrel is never expanded (it would pull in nearly every test).
+function barrelTargets(root, barrel, known) {
+  let src;
+  try { src = readFileSync(path.join(root, barrel), 'utf8'); } catch { return []; }
+  const out = [];
+  for (const m of src.matchAll(/\bexport\s+(?:type\s+)?[^'"`;]*?\bfrom\s*['"](\.[^'"\n]+)['"]/g)) {
+    const t = resolveSpecifier(m[1], barrel, known);
+    if (t) out.push(t);
+  }
+  return out;
 }
 
 // Scans the repo once: { importers: Map<file, Set<test file>>, files, ms }. Only test files' imports are recorded,
@@ -94,8 +124,12 @@ export function buildTestImportGraph(root, dirs = SCAN_DIRS) {
     for (const s of specifiers(src)) {
       const target = resolveSpecifier(s, f, known, packages);
       if (!target || target === f) continue;
-      if (!importers.has(target)) importers.set(target, new Set());
-      importers.get(target).add(f);
+      const subpathBarrel = isBarrel(target) && !packages.has(s) && !s.startsWith('.') && !s.startsWith('@/');
+      for (const t of [target, ...(subpathBarrel ? barrelTargets(root, target, known) : [])]) {
+        if (t === f) continue;
+        if (!importers.has(t)) importers.set(t, new Set());
+        importers.get(t).add(f);
+      }
     }
   }
   return { importers, files: known, ms: Date.now() - t0 };

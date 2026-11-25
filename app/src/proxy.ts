@@ -1,5 +1,7 @@
 // EZD-007d Step 6 (vault/plans/EZD-007d.md; parent P-Step 4; D3; Q-0048 (a); Q-0173): the request gate.
-// Pages are deny-by-default: no session on a non-public path is a 307 to /sign-in with no query string.
+// Pages are deny-by-default: no session on a non-public path is a 307 to /sign-in.
+// EZD-1977 (audit 2026-11-24 F2 / U4): the 307 carries the asked-for path as ?next= (same-origin path only,
+// server/auth/return-path.ts); Projects ("/") stays a bare /sign-in.
 // Missing env or an Auth error counts as no session; the gate never answers 500. A token refresh rewrites
 // the 400-day auth cookies here, so the 400 days count from the last use.
 // EZD-342 (vault/plans/EZD-342.md; Q-0600): the https test and the session-cookie names come from cookie-names.ts.
@@ -13,6 +15,7 @@ import { HOST_COOKIE_PREFIX, isForwardedHttps, isSessionCookieName } from './lib
 import { signedOutCookieName } from './lib/auth/device-sign-out';
 import { refuseDevPath } from './server/dev-gate';
 import { isPublicPath } from './server/auth/public-paths';
+import { signInUrl } from './server/auth/return-path';
 import { refuseCrossOriginWrite } from './server/auth/same-origin';
 import { createSessionClient, type SessionCookieJar } from './server/auth/supabase-server';
 
@@ -45,7 +48,10 @@ function signedOutMarked(request: NextRequest): NextResponse | null {
   for (const name of names) request.cookies.delete(name);
   const result = isPublicPath(request.nextUrl.pathname)
     ? NextResponse.next({ request })
-    : NextResponse.redirect(new URL('/sign-in', request.nextUrl.origin), 307);
+    : NextResponse.redirect(
+        signInUrl(request.nextUrl.origin, request.nextUrl.pathname, request.nextUrl.search),
+        307,
+      );
   const deleted = https ? { path: '/', maxAge: 0, secure: true } : { path: '/', maxAge: 0 };
   for (const name of names) result.cookies.set(name, '', deleted);
   result.headers.set('Cache-Control', 'private, no-store');
@@ -88,7 +94,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
   let result: NextResponse = response;
   if (!signedIn && !isPublicPath(request.nextUrl.pathname)) {
-    result = NextResponse.redirect(new URL('/sign-in', request.nextUrl.origin), 307);
+    result = NextResponse.redirect(
+      signInUrl(request.nextUrl.origin, request.nextUrl.pathname, request.nextUrl.search),
+      307,
+    );
     for (const { name, value, options } of written) result.cookies.set(name, value, options);
   }
   for (const name of stale) result.cookies.set(name, '', { path: '/', maxAge: 0, secure: true });

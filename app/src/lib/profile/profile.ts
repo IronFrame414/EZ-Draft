@@ -3,7 +3,7 @@
 // `ipad_input_mode` null reads as `finger` (glossary 00c: `finger` = Pencil or finger, `pencil` = Pencil
 // only). The schemas are built inside the parse functions so a browser bundle that only checks a new
 // password does not keep them.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { validateNewPassword } from '../auth/password-rules';
 import type { AiKeyState } from './ai-key';
 
@@ -58,13 +58,13 @@ export function parsePasswordRequest(body: unknown): PasswordRequest | null {
         currentPassword: z.string(),
         newPassword: z.string(),
         confirmPassword: z.string(),
-        captchaToken: z.string().optional(),
+        captchaToken: z.optional(z.string()),
       }),
       z.strictObject({
         mode: z.literal('set'),
         newPassword: z.string(),
         confirmPassword: z.string(),
-        code: z.string().optional(),
+        code: z.optional(z.string()),
       }),
     ])
     .safeParse(body);

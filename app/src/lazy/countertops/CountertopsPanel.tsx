@@ -20,6 +20,7 @@ import {
   type CountertopBehindRange,
   type CountertopPieceData,
   type Shared,
+  CM_PER_IN,
 } from '@ezdraft/geometry';
 import { DEFAULTS_HREF } from '../../components/settings/defaults/SetInDefaults';
 import { CatalogPickerView } from '../../components/catalog/CatalogPicker';
@@ -29,6 +30,8 @@ import { useT } from '../../lib/messages';
 import type { ModelStore } from '../../editor/model/model-store';
 import type { Change } from '../../editor/model/patches';
 import type { FloorChoice } from '../../editor/floors/floors';
+import { sameId } from '../../editor/shared/ids';
+import { inchText } from '../../editor/shared/inch-text';
 import type { CountertopSelectionStore } from '../../editor/countertops/selection-store';
 import { countertopChange, type CountertopPiece } from '../../editor/countertops/trace-tool';
 import { useCountertopFloor } from './use-countertop-floor';
@@ -66,14 +69,9 @@ export const fetchCatalog: CountertopCatalogLoad = async () => {
 export type CountertopsPanelTab = 'pieces' | 'edges' | 'material';
 const TABS: readonly CountertopsPanelTab[] = ['pieces', 'edges', 'material'];
 
-const noSubscribe = () => () => {};
-
 // 2 cm and 3 cm slabs (board "Quartz · 3 cm"), in inches as stored.
-const CM_PER_IN = 2.54;
 const SLABS_CM = [2, 3] as const;
 const cmText = (inches: number) => String(Math.round(inches * CM_PER_IN * 10) / 10);
-// A length as the board writes it: whole inches and a fraction to 1/16 with the inch mark ("1 1/2"", "12"").
-const inchText = (inches: number) => `${formatInches(inches)}"`;
 
 export function CountertopsPanel({
   store,
@@ -106,15 +104,14 @@ export function CountertopsPanel({
   const [tab, setTab] = useState<CountertopsPanelTab>(initialTab);
   const { pieces } = useCountertopFloor(store, floors);
   const picked = useSyncExternalStore(
-    selection ? selection.subscribe : noSubscribe,
+    selection.subscribe,
     () => selection.getState().selection,
     () => selection.getState().selection,
   );
   const data = pieces.map((p) => p.data);
   const footer = countertopFooter(data);
   const summary = countertopMaterialSummary(data);
-  const isOn = (p: CountertopPiece) =>
-    picked.pieceId !== null && p.id.toLowerCase() === picked.pieceId.toLowerCase();
+  const isOn = (p: CountertopPiece) => picked.pieceId !== null && sameId(p.id, picked.pieceId);
 
   const apply = (make: (d: CountertopPieceData) => CountertopPieceData | null) => {
     if (!canEdit) return;

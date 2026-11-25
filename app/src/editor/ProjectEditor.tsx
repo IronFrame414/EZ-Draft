@@ -161,7 +161,7 @@ import { createGlyphAtlas } from './plan/glyph-atlas-canvas';
 import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
 import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
 import { usePdfUnderlay } from './plan/PdfUnderlay';
-import { createR3fRoot, webglContextsCreated } from './plan/render-root';
+import { createPlanRoot, webglContextsCreated } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
 import type { CheckpointOutcome } from './thumbnail/checkpoint';
 import type { ConflictPanelProps } from '../lazy/conflict-panel';
@@ -395,7 +395,7 @@ export function ProjectEditor({
         const floors = createFloorView();
         const plan = createPlanController(
           { store: routed, scale: scale.get(), phase: layers, derived, floors },
-          { createRoot: createR3fRoot, createAtlas: createGlyphAtlas },
+          { createRoot: createPlanRoot, createAtlas: createGlyphAtlas },
         );
         const router = receiverRouter(plan.handle.setPointerReceiver);
         const slots = shareReceiver(router.base);
@@ -1270,6 +1270,20 @@ export function ProjectEditor({
     canvasFailed,
     controllerEnabled: drawing?.getUi().enabled ?? false,
   });
+  const deviceTools =
+    showPlan &&
+    electricalOn &&
+    shownSurface === 'floor' &&
+    session?.lock.canEditModel &&
+    selection ? (
+      // EZD-602: shown with Edit model, paused (not hidden) in view only or while a version is open.
+      <LazyDeviceTools
+        slot={deviceSlot}
+        paused={!mayEdit}
+        handle={plan.handle}
+        selection={selection}
+      />
+    ) : null;
   let body: ReactNode = null;
   if (state.kind === 'loading') {
     body = (
@@ -1325,6 +1339,9 @@ export function ProjectEditor({
         {/* EZD-1001a: plan-only parts are off on the 3D tab. */}
         {showPlan && !show3d && !showSheets ? <PlanTextFailedBanner controller={plan} /> : null}
         {showPlan && !show3d && !showSheets ? pdfUnderlay.part : null}
+        {/* EZD-1979 (audit F4): under a coarse pointer the Electrical tool strip is the last row of this column,
+            below the edit bar and every banner, so it covers none of them. */}
+        {showPlan && !show3d && !showSheets && coarse ? deviceTools : null}
       </>
     );
   }
@@ -1419,15 +1436,7 @@ export function ProjectEditor({
         // EZD-513: the Soffit, tray, coffer card, shown while that tool is on.
         <rcp.ShapeChooser surface={surface} />
       ) : null}
-      {electricalOn && shownSurface === 'floor' && session?.lock.canEditModel && selection ? (
-        // EZD-602: shown with Edit model, paused (not hidden) in view only or while a version is open.
-        <LazyDeviceTools
-          slot={deviceSlot}
-          paused={!mayEdit}
-          handle={plan.handle}
-          selection={selection}
-        />
-      ) : null}
+      {coarse ? null : deviceTools}
       {shownSurface !== 'floor' && selection !== null && routedStore !== null ? (
         <LazyBeamSpacingPill
           store={routedStore}

@@ -503,7 +503,22 @@
     "EZD-605",
     "EZD-1941",
     "EZD-1974",
-    "EZD-1975"
+    "EZD-1975",
+    "EZD-1952",
+    "EZD-1976",
+    "EZD-1946",
+    "EZD-1903",
+    "EZD-1959",
+    "EZD-1902",
+    "EZD-1960",
+    "EZD-1944",
+    "EZD-1905",
+    "EZD-1906b",
+    "EZD-1945",
+    "EZD-1906c",
+    "EZD-1977",
+    "EZD-1979",
+    "EZD-1989"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1909,6 +1924,126 @@
       "ts": "2026-11-24T23:43:00Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1952",
+      "title": "Shrink the vault in every worktree: snapshots and archive out of the working tree",
+      "commit": "c948737f",
+      "ts": "2026-11-25T00:32:06Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1976",
+      "title": "Fix: React commits during wall-tool pointer moves on a slower machine (EZD-210b B9 on CI)",
+      "commit": "e93952fd",
+      "ts": "2026-11-25T01:57:28Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1946",
+      "title": "Performance trend recorded on develop every day",
+      "commit": "d5354929",
+      "ts": "2026-11-25T02:20:08Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1903",
+      "title": "Slimmer zod in the editor: geometry schemas on zod/mini",
+      "commit": "7e5f4dba",
+      "ts": "2026-11-25T02:48:30Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1959",
+      "title": "Bring the base local database up to date for live UI checks",
+      "commit": "dca2ce9b",
+      "ts": "2026-11-25T03:16:17Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1902",
+      "title": "Draw the plan with plain Three.js instead of React Three Fiber",
+      "commit": "93a4bfbd",
+      "ts": "2026-11-25T04:22:37Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1960",
+      "title": "Live signed-in UI audit pass (report only)",
+      "commit": "f5de922b",
+      "ts": "2026-11-25T04:53:13Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1944",
+      "title": "Loop: a retry command that keeps a history of set-asides",
+      "commit": "67d60544",
+      "ts": "2026-11-25T05:14:02Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1905",
+      "title": "Geometry: subpath exports so new modules don't edit the root index",
+      "commit": "0dbe39bb",
+      "ts": "2026-11-25T05:39:37Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1906b",
+      "title": "Editor shared helpers in electrical, assistant, inspector, versions, floors",
+      "commit": "b64c9562",
+      "ts": "2026-11-25T06:00:14Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1945",
+      "title": "Loop: a git-config refusal pauses lanes instead of burning fix rounds",
+      "commit": "1c66e8b0",
+      "ts": "2026-11-25T06:51:44Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1906c",
+      "title": "Editor shared helpers in countertops, cabinets and their lazy screens; STATUSES and CM_PER_IN constants",
+      "commit": "465529f1",
+      "ts": "2026-11-25T07:34:22Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1977",
+      "title": "Sign-in returns the person to the page they asked for",
+      "commit": "c32504db",
+      "ts": "2026-11-25T07:59:42Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1979",
+      "title": "iPad editor: the edit bar no longer covers Zoom in, and the version switcher is tappable",
+      "commit": "72a83496",
+      "ts": "2026-11-25T10:13:46Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1989",
+      "title": "Fix: plan thumbnail T-B1 times out opening the benchmark project on CI (EZD-224b on CI)",
+      "commit": "61771341",
+      "ts": "2026-11-25T11:15:36Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -1954,7 +2089,10 @@
     "EZD-1967": 1,
     "EZD-1962": 1,
     "EZD-1939": 1,
-    "EZD-1944": 1
+    "EZD-1959": 1,
+    "EZD-1980": 1,
+    "EZD-1988": 1,
+    "EZD-1978": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2120,9 +2258,40 @@
     "EZD-1944": {
       "ts": "2026-11-24T16:20:05Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1959": {
+      "ts": "2026-11-25T01:04:38Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1980": {
+      "ts": "2026-11-25T09:29:50Z",
+      "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-1988": {
+      "ts": "2026-11-25T10:34:53Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1978": {
+      "ts": "2026-11-25T10:45:24Z",
+      "reason": "develop kept moving: 3 merge rounds"
     }
   },
-  "running": {},
-  "advisories_checked_at": "2026-11-24T22:17:04Z",
-  "hold": {}
+  "running": {
+    "EZD-1988": {
+      "lane": 3,
+      "title": "Loop: find and stop what sends SIGTERM to builders in the same second",
+      "started": "2026-11-25T10:35:26Z",
+      "develop": "5331d28c"
+    },
+    "EZD-1978": {
+      "lane": 1,
+      "title": "Projects page does not break on a phone",
+      "started": "2026-11-25T10:46:07Z",
+      "develop": "b7f0eddf"
+    }
+  },
+  "advisories_checked_at": "2026-11-25T10:18:53Z",
+  "hold": {},
+  "perf_trend_at": "2026-11-25T03:16:23Z",
+  "set_aside_history": []
 }

@@ -4,6 +4,7 @@
 // EZD-711: the property appraiser reads (link, pasted text, screenshot), registered in production too.
 // EZD-606: the panel label and directory photo reads, registered in production too.
 import type { ZodType } from 'zod';
+import type { ZodMiniType } from 'zod/mini';
 import type { AiJobContext } from '../../ai';
 import { panelDirectoryPurpose, panelLabelPurpose } from './panel-read';
 import { appraiserReadPurpose } from './property-appraiser-read';
@@ -14,7 +15,8 @@ import { testEchoPurpose } from './test-echo';
 export type AiPurpose<I, O> = {
   purpose: string;
   input: ZodType<I>;
-  output: ZodType<O>;
+  // EZD-1903: the output schemas shared with the browser (lib/) are zod/mini.
+  output: ZodType<O> | ZodMiniType<O>;
   run(ctx: AiJobContext, input: I): Promise<O>;
 };
 

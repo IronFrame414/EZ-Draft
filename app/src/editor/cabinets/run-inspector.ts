@@ -13,6 +13,7 @@ import {
   type Point,
 } from '@ezdraft/geometry';
 import type { Change } from '../model/patches';
+import { sameId } from '../shared/ids';
 import type { CabinetView } from './cabinet-view';
 
 // One value shared by every object, none of them set, or set to different values (S03 bulk edit "Mixed").
@@ -37,11 +38,9 @@ export type RunInspectorView = {
   countertop: RunSelection;
 };
 
-const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
-
 // Whether the cabinet screen's selection is the run itself (a click on the run name), not a box in it.
 export const isRunSelected = (view: CabinetView | null, ids: readonly string[]): boolean =>
-  view !== null && ids.length === 1 && same(ids[0]!, view.run.id);
+  view !== null && ids.length === 1 && sameId(ids[0]!, view.run.id);
 
 function shared(values: readonly (string | null)[]): RunSelection {
   const set = values.filter((v): v is string => v !== null && v !== '');
@@ -89,7 +88,7 @@ export function runCountertops(
   return objects.filter(
     (o): o is Extract<ModelObject, { type: 'countertop_piece' }> =>
       o.type === 'countertop_piece' &&
-      same(o.data.level, level) &&
+      sameId(o.data.level, level) &&
       points.some((p) => inside(p, o.data.geometry.outline)),
   );
 }
@@ -153,7 +152,7 @@ export function runCountertopChanges(
     .filter(
       (o) =>
         o.data.attributes.materialItemId === null ||
-        !same(o.data.attributes.materialItemId, itemId),
+        !sameId(o.data.attributes.materialItemId, itemId),
     )
     .map((o) =>
       change({

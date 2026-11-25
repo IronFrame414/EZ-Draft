@@ -16,7 +16,7 @@ import {
 } from '../../../editor/plan/controller';
 import { createGlyphAtlas } from '../../../editor/plan/glyph-atlas-canvas';
 import { PlanCanvas, PlanInputSurface } from '../../../editor/plan/PlanCanvas';
-import { createR3fRoot, webglContextsCreated } from '../../../editor/plan/render-root';
+import { createPlanRoot, webglContextsCreated } from '../../../editor/plan/render-root';
 import { benchmarkObjects } from './benchmark-objects';
 
 export function BenchmarkPlan(): ReactElement {
@@ -29,7 +29,7 @@ export function BenchmarkPlan(): ReactElement {
     const store = createModelStore({ objects });
     const controller = createPlanController(
       { store },
-      { createRoot: createR3fRoot, createAtlas: createGlyphAtlas },
+      { createRoot: createPlanRoot, createAtlas: createGlyphAtlas },
     );
     const w = window as unknown as {
       __ezdraftPlan?: { handle: PlanCanvasHandle; stats(): PlanStats & { contexts: number } };

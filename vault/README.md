@@ -16,7 +16,7 @@ Canonical copies of everything the build agents need. Agents read these; the ori
 | `cost/` | `log.jsonl` (launcher runs), `phase-NN.md` (wrap reports) | Launcher; orchestrator at wrap |
 | `PROCESS.md`, `PROCESS-EZDRAFT.md`, `budget.json`, `DONE.md`, `PROGRESS.md` | The process, the project additions, the budget, what is built, the generated dashboard | Josh (process, budget); orchestrator (DONE); generated (PROGRESS) |
 | `mockups/` | 36 Studio boards: PNG + HTML, `INDEX.md` | Read-only |
-| `archive/` | Superseded first export (Q-0011) and the Oct 17 process files. Never read | Nobody |
+| `archive/`, `snapshots/` | Not in the working tree since EZD-1952: on the orphan branch `vault-archive` (see below). Superseded first export (Q-0011), the Oct 17 and v2 process files, and the phase records snapshots | Nobody (archive); the phase gate (snapshots) |
 
 Sources, exported Oct 11, 2026:
 - Build specification doc, main tab rev 502 and "Phases and tickets" tab rev 634 (401 tickets, 18 phases): https://claude.ai/code/artifact/c982b66d-3c87-4aae-94d7-642d69f6884a
@@ -24,3 +24,26 @@ Sources, exported Oct 11, 2026:
 - Code rule catalog: project doc `claude/ezdraft-code-rules.json` (1,248 rules)
 
 **These vault files are the source of truth** (Q-0008). The claude.ai documents above are frozen as of Oct 11, 2026 and superseded; do not edit them. A spec change during the build is recorded as a Josh answer in `spec/decisions/<area>.md`, which overrides the spec text; the spec section files stay as exported (Q-0009).
+
+## Old snapshots and the archive (EZD-1952)
+
+`vault/snapshots/` (phase records snapshots, 73 MB) and `vault/archive/` (superseded exports and process files, 13 MB) were taken out of the working tree so every worktree stays small. Both are git-ignored and live on the orphan branch `vault-archive`, at the same paths (`vault/snapshots/...`, `vault/archive/...`). That branch shares no history with `develop` and is never merged.
+
+Read them without a checkout:
+
+- List: `git ls-tree -r --name-only vault-archive`
+- One file: `git show vault-archive:vault/snapshots/LATEST`, `git show vault-archive:vault/archive/CLAUDE-v2.md`
+- A whole folder into a scratch place: `git archive vault-archive vault/snapshots/phase-04 | tar -x -C /tmp/old`
+- A clone that does not have the branch yet: `git fetch origin vault-archive:vault-archive`. Until the branch is on origin, any full clone still has the files in history: `git show 91914bc2:vault/snapshots/LATEST` (91914bc2 is the last develop commit that held them).
+
+`node scripts/records.mjs views-from-snapshot` reads `vault/snapshots/` if a checkout has one, else the `vault-archive` branch (local, then `origin/vault-archive`).
+
+Add a new phase snapshot to the branch (no checkout needed): write it with `node scripts/records.mjs snapshot /tmp/snap/vault/snapshots/phase-NN`, set `/tmp/snap/vault/snapshots/LATEST` to `phase-NN` if it is the newest, then commit it on top of the branch with a temporary index:
+
+```
+export GIT_INDEX_FILE=$(mktemp -u)
+git read-tree vault-archive
+git --work-tree=/tmp/snap add vault/snapshots
+git update-ref refs/heads/vault-archive $(git commit-tree $(git write-tree) -p vault-archive -m "vault archive: phase-NN snapshot")
+rm -f "$GIT_INDEX_FILE"; unset GIT_INDEX_FILE
+```

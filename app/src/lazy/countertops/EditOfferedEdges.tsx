@@ -13,6 +13,7 @@ import { formatDollars } from '../../lib/render-settings/models';
 import type { EdgeOffer, EdgeOfferChoice, EdgeProfile } from '../../editor/countertops/edge-profile';
 import { ProfileDrawing } from './EdgeProfileCard';
 import styles from './EditOfferedEdges.module.css';
+import { sameId } from '../../editor/shared/ids';
 
 export type EditOfferedEdgesProps = {
   piece: CountertopPieceData;
@@ -25,7 +26,6 @@ export type EditOfferedEdgesProps = {
 
 type Row = { on: boolean; text: string };
 
-const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 const rateText = (n: number | undefined) => (n === undefined || n === 0 ? '0' : String(n));
 
 // A price per LF as typed: dollars with at most two decimals, an optional "$"; null when it is not one.
@@ -48,7 +48,7 @@ export function EditOfferedEdges({
   const [rows, setRows] = useState<Record<string, Row>>(() =>
     Object.fromEntries(
       profiles.map((p) => {
-        const c = offer?.choices.find((x) => same(x.profileId, p.id));
+        const c = offer?.choices.find((x) => sameId(x.profileId, p.id));
         return [p.id, { on: c !== undefined, text: rateText(c?.ratePerLf) }];
       }),
     ),

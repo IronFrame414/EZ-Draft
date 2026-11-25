@@ -9,7 +9,7 @@
 // EZD-501 (S05 Data shown "Room ceilings: type, ridge line and direction, heights per wall or point, pitch"; 03f
 // rooms "ceiling heights by point or pitch"; phase-05 EZD-501 "default flat at wall height"; AC-EZD-501-1): schema
 // version 7 adds `attributes.ceiling`; null is a flat ceiling at the room's wall height.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
 
 export const ROOM_TYPES = ['kitchen', 'bath', 'laundry', 'other'] as const;
@@ -23,21 +23,21 @@ export const CEILING_HEIGHTS_BY = ['wall', 'point', 'pitch'] as const;
 export type CeilingHeightsBy = (typeof CEILING_HEIGHTS_BY)[number];
 
 // Heights are inches above the room's finished floor; pitch is rise in inches per 12" of run (S05 "9.4/12").
-const ceilingHeightSchema = z.number().finite().positive();
+const ceilingHeightSchema = z.number().check(z.positive());
 
 export const ceilingRidgeSchema = z
   .strictObject({ start: pointSchema, end: pointSchema, height: ceilingHeightSchema })
-  .refine((r) => r.start.x !== r.end.x || r.start.y !== r.end.y);
+  .check(z.refine((r) => r.start.x !== r.end.x || r.start.y !== r.end.y));
 
 export const roomCeilingSchema = z.strictObject({
   heightsBy: z.enum(CEILING_HEIGHTS_BY),
   wallHeights: z
     .array(z.strictObject({ wall: z.uuid(), height: ceilingHeightSchema }))
-    .refine((rows) => new Set(rows.map((r) => r.wall.toLowerCase())).size === rows.length),
+    .check(z.refine((rows) => new Set(rows.map((r) => r.wall.toLowerCase())).size === rows.length)),
   pointHeights: z.array(z.strictObject({ at: pointSchema, height: ceilingHeightSchema })),
-  pitch: z.number().finite().positive().nullable(),
+  pitch: z.nullable(z.number().check(z.positive())),
   // The ridge line, start to end, gives the ridge direction; for a single slope it is the high edge.
-  ridge: ceilingRidgeSchema.nullable(),
+  ridge: z.nullable(ceilingRidgeSchema),
 });
 export type RoomCeiling = z.infer<typeof roomCeilingSchema>;
 
@@ -49,19 +49,19 @@ export const closureOverrideSchema = z.strictObject({
 export type ClosureOverride = z.infer<typeof closureOverrideSchema>;
 
 export const roomDataSchema = z.strictObject({
-  geometry: z.strictObject({ boundary: z.array(pointSchema).min(3) }),
+  geometry: z.strictObject({ boundary: z.array(pointSchema).check(z.minLength(3)) }),
   status: objectStatusSchema,
   level: levelSchema,
   attributes: z.strictObject({
-    name: z.string().min(1),
-    floorLevel: z.number().finite(),
+    name: z.string().check(z.minLength(1)),
+    floorLevel: z.number(),
     photos: z.array(z.uuid()),
-    roomType: z.enum(ROOM_TYPES).nullable(),
+    roomType: z.nullable(z.enum(ROOM_TYPES)),
     floorFinish: z.string(),
-    ceilingType: z.enum(CEILING_TYPES).nullable(),
-    ceiling: roomCeilingSchema.nullable(),
+    ceilingType: z.nullable(z.enum(CEILING_TYPES)),
+    ceiling: z.nullable(roomCeilingSchema),
   }),
-  closureOverride: closureOverrideSchema.nullable(),
+  closureOverride: z.nullable(closureOverrideSchema),
 });
 export type RoomData = z.infer<typeof roomDataSchema>;
 

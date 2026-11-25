@@ -2,7 +2,7 @@
 // 120 or 240 V (09b:35) and positive amps"; AC-EZD-234-3): where an appliance's line arrives. Volts and amps are set
 // only for electric (refined as opening.ts); `servesObjectId` names one fixture or is null, and an id that names no
 // live fixture reads as no appliance.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
 
 export const UTILITY_KINDS = ['electric', 'gas', 'water', 'drain'] as const;
@@ -16,15 +16,17 @@ export const utilityPointDataSchema = z
     level: levelSchema,
     attributes: z.strictObject({
       kind: z.enum(UTILITY_KINDS),
-      volts: z.union([z.literal(120), z.literal(240)]).nullable(),
-      amps: z.number().positive().nullable(),
-      servesObjectId: z.uuid().nullable(),
+      volts: z.nullable(z.union([z.literal(120), z.literal(240)])),
+      amps: z.nullable(z.number().check(z.positive())),
+      servesObjectId: z.nullable(z.uuid()),
     }),
   })
-  .refine((d) => {
-    const a = d.attributes;
-    return a.kind === 'electric'
-      ? a.volts !== null && a.amps !== null
-      : a.volts === null && a.amps === null;
-  });
+  .check(
+    z.refine((d) => {
+      const a = d.attributes;
+      return a.kind === 'electric'
+        ? a.volts !== null && a.amps !== null
+        : a.volts === null && a.amps === null;
+    }),
+  );
 export type UtilityPointData = z.infer<typeof utilityPointDataSchema>;

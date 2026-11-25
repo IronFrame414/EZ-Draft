@@ -58,6 +58,8 @@ import { ExistingPanelDialog } from './ExistingPanelDialog';
 import { createPanelPhotoReader, type PanelPhotoReader } from './panel-read-client';
 import { panelSchedule } from './panel-schedule';
 import { CompactSchedule, ScheduleDialog } from './PanelSchedule';
+import { idKey } from '../shared/ids';
+import { useStoreValue } from '../shared/use-store-value';
 
 export type ElectricalTab = 'circuits' | 'devices' | 'panel';
 
@@ -164,12 +166,7 @@ export function ElectricalPanel({
   );
   const [chipState, setChips] = useState<Record<ShowChip, boolean>>({ ...SHOW_CHIPS_DEFAULT });
   const chips = { ...chipState, home_runs: view.homeRuns, switch_legs: view.switchLegs };
-  const noBase = () => null;
-  const base = useSyncExternalStore(
-    edit?.slot.subscribe ?? (() => () => {}),
-    edit === undefined ? noBase : () => edit.slot.getState().base,
-    edit === undefined ? noBase : () => edit.slot.getState().base,
-  );
+  const base = useStoreValue(edit?.slot, (slot) => slot.getState().base, null);
   const writable = edit !== undefined && !edit.paused && base !== null;
   // EZD-603 (board S06Electrical "Height notes Off / On"): shows or hides every device note that is turned on.
   const notesShown = useSyncExternalStore(
@@ -191,7 +188,7 @@ export function ElectricalPanel({
     () => deviceGroups(objects, openFloorId(objects, chosen)),
     [objects, chosen],
   );
-  const selectedDevice = ui.ids.length === 1 ? ui.ids[0]!.toLowerCase() : null;
+  const selectedDevice = ui.ids.length === 1 ? idKey(ui.ids[0]!) : null;
   const number = new Intl.NumberFormat(t.language);
 
   const circuitMeta = (c: CircuitRow) =>
@@ -446,7 +443,7 @@ export function ElectricalPanel({
               </span>
               {g.devices.map((d) => {
                 const label = deviceLabel(d.kind);
-                const on = selectedDevice === d.id.toLowerCase();
+                const on = selectedDevice === idKey(d.id);
                 return (
                   <button
                     key={d.id}

@@ -10,7 +10,7 @@
 //   runs from the floor to `height` (09i Wall tile "to its set height").
 // A tile's width runs along x of its frame (along the wall, or across the plan page); its height along y.
 // A new type, so the schema version stays.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
 
 export const TILE_PATTERNS = ['straight', 'diagonal', 'herringbone'] as const;
@@ -20,7 +20,7 @@ export const tilePatternSchema = z.enum(TILE_PATTERNS);
 export const TILE_WALL_SIDES = ['left', 'right'] as const;
 export type TileWallSide = (typeof TILE_WALL_SIDES)[number];
 
-const positive = z.number().positive();
+const positive = z.number().check(z.positive());
 
 export const tileLayoutHostSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('floor'), roomId: z.uuid() }),
@@ -42,7 +42,7 @@ export const tileLayoutDataSchema = z.strictObject({
     tileWidth: positive,
     tileHeight: positive,
     // The grout joint between tiles; 0 is butted.
-    joint: z.number().min(0),
+    joint: z.number().check(z.gte(0)),
   }),
 });
 export type TileLayoutData = z.infer<typeof tileLayoutDataSchema>;

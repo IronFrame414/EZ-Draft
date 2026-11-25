@@ -61,11 +61,14 @@ const clearingWrite = () =>
 
 const call = (path: string) => proxy(new NextRequest(`http://localhost:3000${path}`));
 
-function expectSignInRedirect(res: Response) {
+// EZD-1977: next is the asked-for path the 307 carries (null: a bare /sign-in, as for Projects).
+function expectSignInRedirect(res: Response, next: string | null = null) {
   expect(res.status).toBe(307);
   const location = new URL(res.headers.get('location') ?? '');
+  expect(location.origin).toBe('http://localhost:3000');
   expect(location.pathname).toBe('/sign-in');
-  expect(location.search).toBe('');
+  if (next === null) expect(location.search).toBe('');
+  else expect([...location.searchParams.entries()]).toEqual([['next', next]]);
 }
 
 function expectPassThrough(res: Response) {
@@ -123,7 +126,7 @@ describe('EZD-007d request gate', () => {
     // (h) refresh clears the cookie and fails
     clearingWrite();
     const hRes = await call('/projects');
-    expectSignInRedirect(hRes);
+    expectSignInRedirect(hRes, '/projects');
     expect(setCookie(hRes, 'sb-test-auth-token') ?? '').toContain('Max-Age=0');
 
     // (i) matcher
@@ -777,5 +780,41 @@ describe('EZD-1931 dev pages gate', () => {
     expect(matches('http://localhost:3000/icons/sprite.svg')).toBe(false);
     expect(matches('http://localhost:3000/icons/my%20sprite.svg')).toBe(false);
     expect(matches('http://localhost:3000/devices.json')).toBe(false);
+  });
+});
+
+// EZD-1977 (AC-EZD-1977-1; audit 2026-11-24 F2 / U4): the 307 keeps the asked-for page as a same-origin path.
+describe('EZD-1977 the sign-in redirect carries the asked-for page', () => {
+  afterEach(() => {
+    h.make = null;
+  });
+
+  it('a deep link keeps its path and query; Projects stays bare', async () => {
+    clientWith(async () => NO_CLAIMS);
+    expectSignInRedirect(await call('/settings/users'), '/settings/users');
+    clientWith(async () => NO_CLAIMS);
+    expectSignInRedirect(await call('/projects/p1/field?pack=2'), '/projects/p1/field?pack=2');
+    clientWith(async () => NO_CLAIMS);
+    expectSignInRedirect(await call('/'));
+  });
+
+  it('drops the router _rsc parameter from next', async () => {
+    clientWith(async () => NO_CLAIMS);
+    expectSignInRedirect(await call('/settings/users?_rsc=abc'), '/settings/users');
+  });
+
+  it('a signed-out marker on a deep link keeps it too', async () => {
+    clientWith(async () => WITH_SUB);
+    const marked = await proxy(
+      new NextRequest('http://localhost:3000/settings/users', {
+        headers: { cookie: 'ezd_signed_out=1; sb-x-auth-token=a' },
+      }),
+    );
+    expectSignInRedirect(marked, '/settings/users');
+  });
+
+  it('a path the browser would read as another host carries no next', async () => {
+    clientWith(async () => NO_CLAIMS);
+    expectSignInRedirect(await call('//evil.example/x'));
   });
 });

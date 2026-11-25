@@ -15,8 +15,7 @@ import {
   type WireSize,
 } from '@ezdraft/geometry';
 import type { Objects } from '../model/patches';
-
-const lower = (s: string) => s.toLowerCase();
+import { idKey, sameId } from '../shared/ids';
 
 function parsedObjects(objects: Objects): ModelObject[] {
   const out: ModelObject[] = [];
@@ -97,12 +96,12 @@ function deviceCounts(all: readonly ModelObject[]): Map<string, DeviceCount> {
     if (o.type !== 'device') continue;
     const c = o.data.attributes.circuit;
     if (typeof c !== 'string') continue;
-    const n = out.get(lower(c)) ?? { receptacles: 0, fixtures: 0, other: 0 };
+    const n = out.get(idKey(c)) ?? { receptacles: 0, fixtures: 0, other: 0 };
     const kind = o.data.attributes.kind;
     if (kind.startsWith('receptacle_')) n.receptacles++;
     else if (FIXTURE_KINDS.has(kind)) n.fixtures++;
     else n.other++;
-    out.set(lower(c), n);
+    out.set(idKey(c), n);
   }
   return out;
 }
@@ -114,7 +113,7 @@ export function circuitRows(objects: Objects, panelId: string | null): CircuitRo
   const all = parsedObjects(objects);
   const counts = deviceCounts(all);
   for (const o of all) {
-    if (o.type !== 'circuit' || lower(o.data.attributes.panel) !== lower(panelId)) continue;
+    if (o.type !== 'circuit' || !sameId(o.data.attributes.panel, panelId)) continue;
     const a = o.data.attributes;
     rows.push({
       id: o.id,
@@ -126,7 +125,7 @@ export function circuitRows(objects: Objects, panelId: string | null): CircuitRo
       protection: a.protection,
       dedicated: a.dedicated,
       load: a.load,
-      count: counts.get(lower(o.id)) ?? { receptacles: 0, fixtures: 0, other: 0 },
+      count: counts.get(idKey(o.id)) ?? { receptacles: 0, fixtures: 0, other: 0 },
       wire: a.wire ?? null,
     });
   }
@@ -169,22 +168,22 @@ export type DeviceGroup = {
  */
 export function deviceGroups(objects: Objects, floorId: string | null): DeviceGroup[] {
   if (floorId === null) return [];
-  const floor = lower(floorId);
+  const floor = idKey(floorId);
   const all = parsedObjects(objects);
   const circuits = new Map<string, { number: string; protection: CircuitProtection | null }>();
   const rooms: RoomObject[] = [];
   for (const o of all) {
     if (o.type === 'circuit') {
       const a = o.data.attributes;
-      circuits.set(lower(o.id), {
+      circuits.set(idKey(o.id), {
         number: circuitNumber(a.space, a.poles),
         protection: a.protection,
       });
-    } else if (o.type === 'room' && lower(o.data.level) === floor) rooms.push(o);
+    } else if (o.type === 'room' && idKey(o.data.level) === floor) rooms.push(o);
   }
   const byRoom = new Map<string | null, DeviceRow[]>();
   for (const o of all) {
-    if (o.type !== 'device' || lower(o.data.level) !== floor) continue;
+    if (o.type !== 'device' || idKey(o.data.level) !== floor) continue;
     const at = o.data.geometry.point;
     let room: RoomObject | null = null;
     let best = Infinity;
@@ -201,7 +200,7 @@ export function deviceGroups(objects: Objects, floorId: string | null): DeviceGr
     const circuit =
       a.circuit === undefined || a.circuit === null
         ? null
-        : (circuits.get(lower(a.circuit)) ?? null);
+        : (circuits.get(idKey(a.circuit)) ?? null);
     const key = room === null ? null : room.id;
     const list = byRoom.get(key) ?? [];
     list.push({

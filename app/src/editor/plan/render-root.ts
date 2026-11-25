@@ -1,6 +1,11 @@
-// EZD-207a Build step 10 (vault/plans/EZD-207a.md Decided "R3F root", "Camera"; R-054; 02 Stack 2D + 3D; 11 rule
-// 4): one React Three Fiber root on the plan's <canvas>, drawn on demand, with an orthographic camera set by hand.
-// R3F adds no pointer listener (no `events` option); input is the plan's own (input.ts).
+// EZD-207a Build step 10 (vault/plans/EZD-207a.md Decided "Camera"; R-054; 02 Stack 2D + 3D; 11 rule 4): one
+// WebGLRenderer on the plan's <canvas>, drawn on demand, with an orthographic camera set by hand. The root adds no
+// pointer listener; input is the plan's own (input.ts).
+// EZD-1902 (editor plan 2026-11-23 lever L1; 11 Budgets editor download size): plain Three.js, no React Three Fiber.
+// It keeps what the fiber root did for this canvas: the renderer settings (antialias, no alpha, high-performance,
+// sRGB output, ACES filmic tone mapping), a pixel ratio of the device's clamped to 1..2 and followed when it changes,
+// one frame per animation frame however many times it is asked for, none when nothing asked, and a camera that is
+// not `manual` fitted to the size on resize.
 // EZD-224b Build step 6 (vault/plans/EZD-224b.md Decided "WebGL read", "The one extra frame"; R-058): captureFrame
 // asks for one more frame of the same view and reads the drawing buffer in three's `scene.onAfterRender`. The
 // capture code (frame-capture.ts) loads with import() on the first capture, outside the editor's first download.
@@ -9,9 +14,16 @@
 // `null` brings the plan back with its orthographic camera. Still drawn on demand.
 // EZD-1972 (11 Budgets "first open of 3D within 1 second"): the plan's first frame also draws the 3D scene's shader
 // warm-up (scene-warmup.ts), which leaves the scene once drawn, or when the 3D scene is shown before that.
-import { createRoot, invalidate, type RootState } from '@react-three/fiber';
-import { createElement } from 'react';
-import { Color, OrthographicCamera, PerspectiveCamera, SRGBColorSpace, WebGLRenderer, type Camera } from 'three';
+import {
+  ACESFilmicToneMapping,
+  Color,
+  OrthographicCamera,
+  PerspectiveCamera,
+  Scene,
+  SRGBColorSpace,
+  WebGLRenderer,
+  type Camera,
+} from 'three';
 import type { ThumbnailCapture } from '../../lib/thumbnail/thumbnail';
 import { tokenRgb } from './color';
 import type { CreateRenderRoot, SceneView } from './controller';
@@ -25,125 +37,171 @@ export function webglContextsCreated(): number {
   return contexts;
 }
 
-export const createR3fRoot: CreateRenderRoot = (canvas, scene) => {
-  const root = createRoot(canvas);
-  let state: (() => RootState) | null = null;
+// The device pixel ratio, kept within 1..2 (2 when the window gives none).
+export function planPixelRatio(): number {
+  const target = typeof window !== 'undefined' ? (window.devicePixelRatio ?? 2) : 1;
+  return Math.min(Math.max(1, target), 2);
+}
+
+type ManualCamera = Camera & { manual?: boolean };
+
+// A camera set by hand (`manual`) is left alone; any other is fitted to the canvas size.
+function fitCamera(camera: ManualCamera, size: Size): void {
+  if (camera.manual === true || size.height <= 0) return;
+  if (camera instanceof OrthographicCamera) {
+    camera.left = size.width / -2;
+    camera.right = size.width / 2;
+    camera.top = size.height / 2;
+    camera.bottom = size.height / -2;
+    camera.updateProjectionMatrix();
+  } else if (camera instanceof PerspectiveCamera) {
+    camera.aspect = size.width / size.height;
+    camera.updateProjectionMatrix();
+  }
+}
+
+export const createPlanRoot: CreateRenderRoot = (canvas, scene) => {
+  let gl: WebGLRenderer | null = null;
+  const root = new Scene();
+  const planCamera = new OrthographicCamera(0, 0, 0, 0, 0.1, 1000);
+  planCamera.position.z = 5;
+  planCamera.lookAt(0, 0, 0);
+  let camera: Camera = planCamera;
+  let size: Size = { width: 0, height: 0 };
+  let frame: number | null = null;
   let capture: FrameCapture<ThumbnailCapture> | null = null;
   let unmounted = false;
   let shown: SceneView | null = null;
-  let planCamera: Camera | null = null;
   let warmup: SceneWarmup | null = null;
+  let stopDpr: (() => void) | null = null;
   // The warm-up's lights must be gone before the 3D scene is drawn: one more light would be another shader.
   const endWarmup = () => {
-    if (warmup !== null && state !== null) state().scene.remove(warmup.object);
+    if (warmup !== null) root.remove(warmup.object);
   };
 
-  const config = (size: Size) => ({
-    gl: (defaults: ConstructorParameters<typeof WebGLRenderer>[0]) => {
-      contexts += 1;
-      return new WebGLRenderer({ ...defaults, antialias: true, alpha: false });
-    },
-    frameloop: 'demand' as const,
-    orthographic: true,
-    dpr: [1, 2] as [number, number],
-    size: { width: size.width, height: size.height, top: 0, left: 0 },
-  });
+  const draw = () => {
+    frame = null;
+    if (gl !== null && !unmounted) gl.render(root, camera);
+  };
+  // On demand: one frame on the next animation frame, however many times it is asked for before then.
+  const invalidate = () => {
+    if (gl === null || unmounted || frame !== null) return;
+    frame = requestAnimationFrame(draw);
+  };
 
-  const applyViewport = () => {
-    if (state === null) return;
-    const { gl } = state();
+  const applySize = () => {
+    if (gl === null) return;
+    gl.setPixelRatio(planPixelRatio());
+    gl.setSize(size.width, size.height, true);
+    fitCamera(camera, size);
     scene.setViewport({ dpr: gl.getPixelRatio(), bufferHeight: gl.domElement.height });
-    invalidate(state());
+    invalidate();
+  };
+
+  // Moving to another display or zooming the page changes the pixel ratio without resizing the canvas.
+  const followDpr = () => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const query = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+    const onChange = () => {
+      stopDpr?.();
+      if (unmounted) return;
+      applySize();
+      followDpr();
+    };
+    query.addEventListener('change', onChange, { once: true });
+    stopDpr = () => query.removeEventListener('change', onChange);
   };
 
   return {
-    async start(size) {
-      await root.configure(config(size));
-      const store = root.render(createElement('primitive', { object: scene.group }));
-      state = store.getState;
-      store.getState().scene.onAfterRender = () => capture?.onFrame();
+    async start(first) {
+      contexts += 1;
+      gl = new WebGLRenderer({ canvas, powerPreference: 'high-performance', antialias: true, alpha: false });
+      gl.outputColorSpace = SRGBColorSpace;
+      gl.toneMapping = ACESFilmicToneMapping;
       const { r, g, b } = tokenRgb('--ez-canvas');
-      store.getState().gl.setClearColor(new Color().setRGB(r, g, b, SRGBColorSpace), 1);
+      gl.setClearColor(new Color().setRGB(r, g, b, SRGBColorSpace), 1);
+      root.add(scene.group);
+      root.onAfterRender = () => capture?.onFrame();
       // Taken out after the frame, not while the renderer is walking the scene.
       warmup = createSceneWarmup(() => queueMicrotask(endWarmup));
-      store.getState().scene.add(warmup.object);
-      applyViewport();
+      root.add(warmup.object);
+      size = { width: first.width, height: first.height };
+      applySize();
+      followDpr();
     },
-    resize(size) {
-      void root.configure(config(size)).then(applyViewport);
+    resize(next) {
+      size = { width: next.width, height: next.height };
+      applySize();
     },
-    setCamera(frame) {
-      if (state === null) return;
-      const camera = state().camera;
-      if (!(camera instanceof OrthographicCamera)) return;
-      camera.left = -frame.halfWidth;
-      camera.right = frame.halfWidth;
-      camera.top = frame.halfHeight;
-      camera.bottom = -frame.halfHeight;
-      camera.zoom = frame.zoom;
-      camera.position.set(frame.centerX, frame.centerY, 100);
-      (camera as OrthographicCamera & { manual?: boolean }).manual = true;
-      camera.updateProjectionMatrix();
+    setCamera(f) {
+      if (gl === null) return;
+      planCamera.left = -f.halfWidth;
+      planCamera.right = f.halfWidth;
+      planCamera.top = f.halfHeight;
+      planCamera.bottom = -f.halfHeight;
+      planCamera.zoom = f.zoom;
+      planCamera.position.set(f.centerX, f.centerY, 100);
+      (planCamera as ManualCamera).manual = true;
+      planCamera.updateProjectionMatrix();
     },
-    invalidate() {
-      if (state !== null) invalidate(state());
-    },
+    invalidate,
     setScene(view) {
-      if (state === null || view === shown) return;
+      if (gl === null || view === shown) return;
       if (view !== null) endWarmup();
-      const s = state();
-      const frame = () => {
-        if (state !== null) invalidate(state());
-      };
       if (shown !== null) {
-        s.scene.remove(shown.object);
+        root.remove(shown.object);
         shown.setInvalidate(null);
-      } else {
-        planCamera = s.camera;
       }
       shown = view;
       if (view !== null) {
-        s.scene.add(view.object);
+        root.add(view.object);
         scene.group.visible = false;
-        if (view.camera instanceof PerspectiveCamera && s.size.height > 0) {
-          view.camera.aspect = s.size.width / s.size.height;
+        if (view.camera instanceof PerspectiveCamera && size.height > 0) {
+          view.camera.aspect = size.width / size.height;
           view.camera.updateProjectionMatrix();
         }
-        s.set({ camera: view.camera as RootState['camera'] });
-        view.setInvalidate(frame);
+        camera = view.camera;
+        view.setInvalidate(invalidate);
       } else {
         scene.group.visible = true;
-        if (planCamera !== null) s.set({ camera: planCamera as RootState['camera'] });
-        planCamera = null;
+        camera = planCamera;
       }
-      invalidate(s);
+      invalidate();
     },
     stats() {
-      if (state === null) return { frames: 0, drawCalls: 0 };
-      const { render } = state().gl.info;
+      if (gl === null) return { frames: 0, drawCalls: 0 };
+      const { render } = gl.info;
       return { frames: render.frame, drawCalls: render.calls };
     },
     async captureFrame(source) {
-      if (state === null) throw new Error('plan.detached');
+      if (gl === null) throw new Error('plan.detached');
       const m = await import('./frame-capture');
-      const current = state;
-      if (current === null || unmounted) throw new Error('plan.detached');
-      capture ??= m.createThumbnailCapture(() => {
-        if (state !== null) invalidate(state());
-      });
-      return capture.request(() => m.readThumbnail(current().gl, source));
+      const current = gl;
+      if (gl === null || unmounted) throw new Error('plan.detached');
+      capture ??= m.createThumbnailCapture(invalidate);
+      return capture.request(() => m.readThumbnail(current, source));
     },
     unmount() {
       unmounted = true;
+      if (frame !== null) cancelAnimationFrame(frame);
+      frame = null;
+      stopDpr?.();
+      stopDpr = null;
       shown?.setInvalidate(null);
+      if (shown !== null) root.remove(shown.object);
       shown = null;
       capture?.dispose();
       endWarmup();
       warmup?.dispose();
       warmup = null;
-      if (state !== null) state().scene.onAfterRender = () => {};
-      state = null;
-      root.unmount();
+      root.onAfterRender = () => {};
+      root.remove(scene.group);
+      const renderer = gl;
+      gl = null;
+      if (renderer !== null) {
+        renderer.dispose();
+        renderer.forceContextLoss();
+      }
     },
   };
 };

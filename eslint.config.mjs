@@ -174,4 +174,10 @@ export default tseslint.config(
       ],
     },
   },
+  // EZD-1905 (AC-EZD-1905-2) · the geometry root index is frozen; a new area is imported as @ezdraft/geometry/<area>.
+  {
+    files: ['packages/geometry/src/index.ts'],
+    plugins: { ezdraft },
+    rules: { 'ezdraft/geometry-root-index-frozen': 'error' },
+  },
 );

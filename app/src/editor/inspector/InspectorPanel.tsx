@@ -26,6 +26,7 @@ import {
 } from 'react';
 import {
   IMPACT_RATINGS,
+  OBJECT_STATUSES,
   SHUTTER_TYPES,
   WALL_MATERIALS,
   type ImpactRating,
@@ -75,11 +76,13 @@ import { SwitchZoneInspector } from '../tools/SwitchZonePanel';
 import { ActGridInspector } from '../tools/ActGridPanel';
 import { EngineerNoteForm } from './EngineerNoteForm';
 import styles from './InspectorPanel.module.css';
+import { idKey, sameId } from '../shared/ids';
+import { useStoreValue } from '../shared/use-store-value';
 
 // EZD-220: whether the id names a pin. EZD-215: or another type.
 function isType(objects: Objects, id: string, type: string): boolean {
-  const key = id.toLowerCase();
-  for (const [k, v] of objects) if (k.toLowerCase() === key) return v.type === type;
+  const key = idKey(id);
+  for (const [k, v] of objects) if (idKey(k) === key) return v.type === type;
   return false;
 }
 const isPin = (objects: Objects, id: string) => isType(objects, id, 'pin');
@@ -129,8 +132,6 @@ export type InspectorContentProps = {
 };
 
 // EZD-213c D-Panel: no drawing controller, nothing to subscribe to.
-const noSubscribe = () => () => {};
-
 export function InspectorPanel({
   store,
   selection,
@@ -177,11 +178,7 @@ export function InspectorPanel({
   const deviceAlone = ids.length === 1 && isType(objects, ids[0]!, 'device') ? ids[0]! : null;
 
   // EZD-213c D-Panel: the gap of the one selected wall.
-  const drawingUi = useSyncExternalStore(
-    drawing ? drawing.subscribe : noSubscribe,
-    () => drawing?.getUi() ?? null,
-    () => drawing?.getUi() ?? null,
-  );
+  const drawingUi = useStoreValue(drawing, (d) => d.getUi(), null);
   const state = view.kind === 'wall' && drawingUi !== null ? gapSection(drawingUi, view.id) : null;
   const gap: ResolveGapProps | null =
     state === null || drawing === null
@@ -243,7 +240,7 @@ export function InspectorPanel({
     if (focus === null || focus.n === focusDone.current) return;
     focusDone.current = focus.n;
     const input = lengthRef.current;
-    if (view.kind === 'wall' && view.id.toLowerCase() === focus.id.toLowerCase() && input) {
+    if (view.kind === 'wall' && sameId(view.id, focus.id) && input) {
       input.focus();
       input.select();
     }
@@ -324,7 +321,12 @@ export function InspectorPanel({
   if (ids.length === 1)
     return (
       <>
-        <CeilingFlags objects={objects} id={ids[0]!} canEdit={canEdit} fanClearance={fanClearance} />
+        <CeilingFlags
+          objects={objects}
+          id={ids[0]!}
+          canEdit={canEdit}
+          fanClearance={fanClearance}
+        />
         {content}
       </>
     );
@@ -550,8 +552,6 @@ function TextBox({
 
 const one = <T,>(value: T): Shared<T> => ({ mixed: false, value });
 
-const STATUSES: readonly ObjectStatus[] = ['existing', 'demo', 'new'];
-
 function statusDot(status: ObjectStatus): string {
   if (status === 'demo') return styles.dotDemo!;
   if (status === 'new') return styles.dotNew!;
@@ -745,7 +745,7 @@ function StatusSection({
             value={status.mixed ? '' : status.value}
             onChange={(e) => {
               const v = e.target.value as ObjectStatus;
-              if (!STATUSES.includes(v)) return;
+              if (!OBJECT_STATUSES.includes(v)) return;
               commit('inspector-status', [{ field: 'status', value: v }]);
             }}
           >
@@ -754,7 +754,7 @@ function StatusSection({
                 {t('office.inspector.mixed')}
               </option>
             ) : null}
-            {STATUSES.map((s) => (
+            {OBJECT_STATUSES.map((s) => (
               <option key={s} value={s}>
                 {t(`office.inspector.status.${s}`)}
               </option>

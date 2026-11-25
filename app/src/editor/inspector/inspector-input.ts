@@ -17,6 +17,7 @@ import {
   type InspectorEdit,
   type InspectorEditReason,
 } from './inspector-edits';
+import { idKey } from '../shared/ids';
 
 export type ParsedEdit = { ok: true; edit: InspectorEdit } | { ok: false; messageKey: MessageKey };
 
@@ -61,9 +62,9 @@ export function layerMaterialEdit(
   index: number,
   material: WallLayer['material'],
 ): InspectorEdit | null {
-  const id = wallId.toLowerCase();
+  const id = idKey(wallId);
   const wall = levelModelObjects(objects, level).find(
-    (o) => o.type === 'wall' && o.id.toLowerCase() === id,
+    (o) => o.type === 'wall' && idKey(o.id) === id,
   );
   if (wall === undefined || wall.type !== 'wall') return null;
   const row = wall.data.attributes.layers[index];

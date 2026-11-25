@@ -4,7 +4,7 @@
 // the right face walking start to end; their thicknesses add up to `thickness` within 1/64".
 // EZD-294 Build step 1 (vault/plans/EZD-294.md Decided "Where the number lives", "Valid number"; Q-0625 (a)):
 // `number` is the wall's fixed number in its project, optional so stored v3 documents without it still parse.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { NUMBER_MAX } from '../numbers';
 import { COMPARISON_TOLERANCE_IN } from '../tolerance';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
@@ -15,7 +15,7 @@ export const WALL_MATERIALS = ['stud', 'drywall', 'tile_backer'] as const;
 
 export const wallLayerSchema = z.strictObject({
   material: z.enum(WALL_MATERIALS),
-  thickness: z.number().positive(),
+  thickness: z.number().check(z.positive()),
 });
 export type WallLayer = z.infer<typeof wallLayerSchema>;
 
@@ -25,21 +25,23 @@ export const wallDataSchema = z
     status: objectStatusSchema,
     level: levelSchema,
     attributes: z.strictObject({
-      thickness: z.number().positive(),
+      thickness: z.number().check(z.positive()),
       thicknessSide: z.enum(THICKNESS_SIDES),
-      height: z.number().positive(),
+      height: z.number().check(z.positive()),
       topCutToCeiling: z.boolean(),
       bearing: z.boolean(),
-      layers: z.array(wallLayerSchema).min(1),
+      layers: z.array(wallLayerSchema).check(z.minLength(1)),
       // EZD-366 Build step 2 (vault/plans/EZD-366.md; D-099): no number above NUMBER_MAX.
-      number: z.int().min(1).max(NUMBER_MAX).optional(),
+      number: z.optional(z.int().check(z.gte(1), z.lte(NUMBER_MAX))),
     }),
   })
-  .refine(
-    (d) =>
-      Math.abs(
-        d.attributes.layers.reduce((sum, layer) => sum + layer.thickness, 0) -
-          d.attributes.thickness,
-      ) <= COMPARISON_TOLERANCE_IN,
+  .check(
+    z.refine(
+      (d) =>
+        Math.abs(
+          d.attributes.layers.reduce((sum, layer) => sum + layer.thickness, 0) -
+            d.attributes.thickness,
+        ) <= COMPARISON_TOLERANCE_IN,
+    ),
   );
 export type WallData = z.infer<typeof wallDataSchema>;

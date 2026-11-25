@@ -13,6 +13,7 @@ import type { MessageKey } from '../../server/messages/catalog';
 import touch from '../../styles/touch.module.css';
 import { scheduleRows, type PanelSchedule, type ScheduleSpace } from './panel-schedule';
 import styles from './PanelSchedule.module.css';
+import { sameId } from '../shared/ids';
 
 const PROTECTION_LABEL: Readonly<Record<CircuitProtection, MessageKey>> = {
   gfci: 'office.electrical.protection.gfci',
@@ -65,7 +66,7 @@ export function CompactSchedule({
           <span className={styles.num}>{s.space}</span>
         </div>
       );
-    const on = chosen !== null && chosen.toLowerCase() === c.id.toLowerCase();
+    const on = chosen !== null && sameId(chosen, c.id);
     return (
       <button
         key={s.space}

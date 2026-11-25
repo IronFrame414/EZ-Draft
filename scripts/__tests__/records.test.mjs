@@ -269,3 +269,34 @@ test('2.14 views-from-snapshot writes the last snapshot\'s views into a checkout
   assert.equal(readFileSync(path.join(root, 'vault/tickets/STATUS.md'), 'utf8'), FILES['tickets/STATUS.md']);
   assert.equal(readFileSync(path.join(root, 'vault/handoff/CURRENT.md'), 'utf8'), 'mine\n');
 });
+
+test('EZD-1952 views-from-snapshot reads the last snapshot from the vault-archive branch when vault/snapshots/ is not in the checkout', () => {
+  const root = tmp();
+  const git = (...a) => {
+    const r = spawnSync('git', ['-C', root, ...a], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' } });
+    assert.equal(r.status, 0, r.stderr);
+    return r.stdout;
+  };
+  git('init', '-q', '-b', 'develop');
+  mkdirSync(path.join(root, 'scripts'), { recursive: true });
+  writeFileSync(path.join(root, 'scripts/records.mjs'), readFileSync(script));
+  git('add', 'scripts');
+  git('commit', '-q', '-m', 'code');
+  // The archive branch: an orphan commit holding only vault/snapshots/ (the layout the old tree had).
+  git('checkout', '-q', '--orphan', 'vault-archive');
+  git('rm', '-rq', '--cached', '.');
+  const db = openRecords(path.join(tmp(), 'r.db'));
+  importVault(db, fixtureVault());
+  exportVault(db, path.join(root, 'vault/snapshots/p1'));
+  writeFileSync(path.join(root, 'vault/snapshots/LATEST'), 'p1\n');
+  git('add', 'vault/snapshots');
+  git('commit', '-q', '-m', 'archive');
+  git('checkout', '-q', '-f', 'develop');
+  git('clean', '-qfdx');
+  assert.equal(existsSync(path.join(root, 'vault/snapshots')), false);
+  const r = spawnSync(process.execPath, [path.join(root, 'scripts/records.mjs'), 'views-from-snapshot', '--db', path.join(tmp(), 'x.db')], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /views from snapshot p1/);
+  assert.equal(readFileSync(path.join(root, 'vault/tickets/STATUS.md'), 'utf8'), FILES['tickets/STATUS.md']);
+  assert.equal(readFileSync(path.join(root, 'vault/questions/QUESTIONS.md'), 'utf8'), FILES['questions/QUESTIONS.md']);
+});

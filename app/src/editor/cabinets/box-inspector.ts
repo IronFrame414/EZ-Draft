@@ -24,6 +24,7 @@ import {
 } from '@ezdraft/geometry';
 import type { CatalogItem } from '../../lib/catalog/catalog';
 import type { Change } from '../model/patches';
+import { idKey } from '../shared/ids';
 import type { CabinetView } from './cabinet-view';
 
 export type CabinetMemberKind = 'box' | 'filler' | 'panel' | 'corner' | 'shelf';
@@ -113,8 +114,8 @@ export function hingesFor(layout: CabinetFaceLayout, current: CabinetHingeSide):
 }
 
 const memberById = (objects: readonly ModelObject[], id: string): CabinetRunMember | null => {
-  const key = id.toLowerCase();
-  const o = objects.find((x) => x.id.toLowerCase() === key);
+  const key = idKey(id);
+  const o = objects.find((x) => idKey(x.id) === key);
   return o !== undefined && isCabinetRunMember(o) ? o : null;
 };
 
@@ -276,7 +277,8 @@ export function compatibleBoxes(
   const slot = memberSlot(m, row);
   const sub = memberSub(m);
   const width = m.data.attributes.width;
-  const own = m.data.attributes.catalogItemId?.toLowerCase() ?? null;
+  const ownId = m.data.attributes.catalogItemId;
+  const own = ownId === null ? null : idKey(ownId);
   const sameWidth = (i: CatalogItem) => i.width !== null && Math.abs(i.width - width) < EPS;
   return items
     .filter(
@@ -284,7 +286,7 @@ export function compatibleBoxes(
         i.category === 'cabinets' &&
         i.width !== null &&
         i.width > 0 &&
-        i.id.toLowerCase() !== own &&
+        idKey(i.id) !== own &&
         itemSlot(i) === slot &&
         (sameWidth(i) || (sub !== null && i.subcategory === sub)),
     )

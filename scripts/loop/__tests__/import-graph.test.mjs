@@ -114,3 +114,29 @@ test('replaying the 90 DRIFT lines: at least half of the drifted test files woul
   assert.ok(r.total >= 200 && r.total <= 215, `${r.total} drifted test files`);
   assert.ok(r.covered >= r.total / 2, `${r.covered} of ${r.total} covered`);
 });
+
+// EZD-1905: the geometry package exports every folder as `@ezdraft/geometry/<area>` ("./*": "./src/*/index.ts").
+const SUBPATH_REPO = {
+  ...REPO,
+  'packages/geometry/package.json': JSON.stringify({ name: '@ezdraft/geometry', exports: { '.': './src/index.ts', './*': './src/*/index.ts' } }),
+  'packages/geometry/src/benchmark/index.ts': "export * from './benchmark';\n",
+  'packages/geometry/src/rooms/index.ts': "export * from './area';\n",
+  'app/src/lib/rooms.test.ts': "import { area } from '@ezdraft/geometry/rooms';\n",
+  'app/src/lib/missing.test.ts': "import { m } from '@ezdraft/geometry/missing';\n",
+};
+
+test('a "./*" subpath export resolves an area to its index.ts, and the area\'s files keep their importing tests (EZD-1905)', () => {
+  const dir = tree(SUBPATH_REPO);
+  try {
+    const g = buildTestImportGraph(dir);
+    const tests = (f) => [...(g.importers.get(f) || [])].sort();
+    assert.deepEqual(tests('packages/geometry/src/benchmark/index.ts'), ['app/src/components/__tests__/card.tsx']);
+    assert.deepEqual(tests('packages/geometry/src/benchmark/benchmark.ts'), ['app/src/components/__tests__/card.tsx']);
+    assert.deepEqual(tests('packages/geometry/src/rooms/area.ts'), ['app/src/lib/rooms.test.ts', 'packages/geometry/src/rooms/area.test.ts']);
+    // The root barrel is still not expanded, and an area with no folder resolves to nothing.
+    assert.deepEqual(tests('packages/geometry/src/index.ts'), ['app/e2e/flow.spec.ts']);
+    assert.ok(![...g.importers.values()].some((s) => s.has('app/src/lib/missing.test.ts')));
+    const r = withImportingTests(dir, ['packages/geometry/src/benchmark/benchmark.ts']);
+    assert.deepEqual(r.added, ['app/src/components/__tests__/card.tsx']);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});

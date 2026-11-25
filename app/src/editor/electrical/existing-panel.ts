@@ -16,8 +16,7 @@ import {
 import type { DirectoryCircuit, PanelLabel } from '../../lib/electrical/panel-read';
 import type { Change, Objects } from '../model/patches';
 import { assignChanges } from './circuits';
-
-const lower = (s: string) => s.toLowerCase();
+import { idKey, sameId } from '../shared/ids';
 
 export type ExistingCircuitRow = {
   /** The circuit's id; null for a row not saved yet. */
@@ -70,7 +69,7 @@ type CircuitAttrs = {
 function findPanel(objects: Objects, id: string | null): [string, PanelAttrs] | null {
   if (id === null) return null;
   for (const [k, v] of objects)
-    if (lower(k) === lower(id))
+    if (sameId(k, id))
       return v.type === 'panel' ? [k, (v.data as { attributes: PanelAttrs }).attributes] : null;
   return null;
 }
@@ -81,7 +80,7 @@ function panelCircuits(objects: Objects, panelId: string): [string, CircuitAttrs
   for (const [k, v] of objects) {
     if (v.type !== 'circuit') continue;
     const d = v.data as { status: ObjectStatus; attributes: CircuitAttrs };
-    if (typeof d.attributes?.panel === 'string' && lower(d.attributes.panel) === lower(panelId))
+    if (typeof d.attributes?.panel === 'string' && sameId(d.attributes.panel, panelId))
       out.push([k, d.attributes, d.status]);
   }
   return out;
@@ -251,12 +250,10 @@ export function existingPanelChanges(
   }
 
   const onPanel = found === null ? [] : panelCircuits(objects, key);
-  const listed = new Set(form.circuits.flatMap((r) => (r.id === null ? [] : [lower(r.id)])));
+  const listed = new Set(form.circuits.flatMap((r) => (r.id === null ? [] : [idKey(r.id)])));
   for (const r of form.circuits) {
     if (r.id === null) continue;
-    const hit = onPanel.find(
-      ([id, , status]) => lower(id) === lower(r.id!) && status === 'existing',
-    );
+    const hit = onPanel.find(([id, , status]) => sameId(id, r.id!) && status === 'existing');
     if (hit === undefined) return { problem: 'invalid' };
   }
 
@@ -287,7 +284,7 @@ export function existingPanelChanges(
         return { problem: 'invalid' };
       changes.push({ id, value: { type: 'circuit', schemaVersion: CURRENT_SCHEMA_VERSION, data } });
     } else {
-      const [id, a] = onPanel.find(([cid]) => lower(cid) === lower(r.id!))!;
+      const [id, a] = onPanel.find(([cid]) => sameId(cid, r.id!))!;
       const value = objects.get(id)!;
       const data = { ...value.data, attributes: { ...a, ...own } };
       if (!parseStoredObject({ id, type: 'circuit', schema_version: value.schemaVersion, data }).ok)
@@ -303,19 +300,19 @@ export function existingPanelChanges(
   }
 
   const removed = onPanel
-    .filter(([id, , status]) => status === 'existing' && !listed.has(lower(id)))
+    .filter(([id, , status]) => status === 'existing' && !listed.has(idKey(id)))
     .map(([id]) => id);
   if (removed.length > 0) {
-    const gone = new Set(removed.map(lower));
+    const gone = new Set(removed.map(idKey));
     const devices: string[] = [];
     for (const [k, v] of objects) {
       if (v.type !== 'device') continue;
       const c = (v.data as { attributes?: { circuit?: unknown } }).attributes?.circuit;
-      if (typeof c === 'string' && gone.has(lower(c))) devices.push(k);
+      if (typeof c === 'string' && gone.has(idKey(c))) devices.push(k);
     }
     const unassigned = assignChanges(objects, devices, null);
     if (unassigned === null) return { problem: 'invalid' };
-    changes.push(...unassigned.filter((c) => !gone.has(lower(c.id))));
+    changes.push(...unassigned.filter((c) => !gone.has(idKey(c.id))));
     for (const id of removed) changes.push({ id, value: null });
   }
   return { changes, panelId: key };

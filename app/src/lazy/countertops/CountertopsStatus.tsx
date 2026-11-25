@@ -5,7 +5,7 @@
 import type { ReactElement } from 'react';
 import { countertopFooter } from '@ezdraft/geometry';
 import { StatusItem } from '../../components/shell/StatusBar';
-import { formatInches } from '../../lib/catalog/catalog';
+import { inchText } from '../../editor/shared/inch-text';
 import { useT } from '../../lib/messages';
 import type { ModelStore } from '../../editor/model/model-store';
 import type { FloorChoice } from '../../editor/floors/floors';
@@ -29,7 +29,9 @@ export function CountertopsStatus({ store, floors, defaults = null }: Countertop
         </span>
       </StatusItem>
       <StatusItem label="office.countertops.status_increment">
-        <span data-testid="status-countertop-increment">{`${formatInches(countertopIncrement(defaults))}"`}</span>
+        <span data-testid="status-countertop-increment">
+          {inchText(countertopIncrement(defaults))}
+        </span>
       </StatusItem>
     </>
   );

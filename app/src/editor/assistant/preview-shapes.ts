@@ -16,6 +16,7 @@ import { applyEditTo, makeEdit, type Objects } from '../model/patches';
 import { arcPoints, planDrawingList } from '../plan/batches';
 import { xy } from '../tools/overlay';
 import type { OkPreview } from './apply-reply';
+import { idKey, sameId } from '../shared/ids';
 
 // G1
 export type PreviewChip = {
@@ -64,13 +65,11 @@ export const PREVIEW_CHIP_OFFSET_PX = 36;
 
 type Drawn = WallObject | OpeningObject;
 
-const lower = (id: string) => id.toLowerCase();
-
 function drawnObject(objects: Objects, id: string): Drawn | null {
   let key: string | undefined = objects.has(id) ? id : undefined;
   if (key === undefined) {
     for (const k of objects.keys()) {
-      if (lower(k) === lower(id)) {
+      if (sameId(k, id)) {
         key = k;
         break;
       }
@@ -96,15 +95,17 @@ function drawSide(objects: Objects, ids: readonly string[], side: Side) {
   const wanted = new Map<string, Drawn>();
   for (const id of ids) {
     const o = drawnObject(objects, id);
-    if (o !== null) wanted.set(lower(o.id), o);
+    if (o !== null) wanted.set(idKey(o.id), o);
   }
   if (wanted.size === 0) return;
   // EZD-6001: each object is drawn from the drawing list of its own floor.
-  const levels = new Set([...wanted.values()].map((o) => lower(o.data.level)));
-  const all = [...levels].flatMap((level) => planDrawingList(objects, {}, null, level)?.items ?? []);
+  const levels = new Set([...wanted.values()].map((o) => idKey(o.data.level)));
+  const all = [...levels].flatMap(
+    (level) => planDrawingList(objects, {}, null, level)?.items ?? [],
+  );
   const items = new Map<string, typeof all>();
   for (const item of all) {
-    const key = lower(item.objectId);
+    const key = idKey(item.objectId);
     if (!wanted.has(key)) continue;
     let group = items.get(key);
     if (group === undefined) items.set(key, (group = []));
@@ -183,7 +184,7 @@ export function previewGeometry(before: Objects, preview: OkPreview): PreviewGeo
   for (const id of preview.added) {
     const number =
       preview.provisional[id] ??
-      Object.entries(preview.provisional).find(([k]) => lower(k) === lower(id))?.[1];
+      Object.entries(preview.provisional).find(([k]) => sameId(k, id))?.[1];
     if (number === undefined) continue;
     const o = drawnObject(after, id);
     if (o !== null) chips.push(chipOf(o, number));

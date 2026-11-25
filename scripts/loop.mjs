@@ -31,6 +31,9 @@ import { changedFiles, createSelfRestart, runDryRun } from './loop/self-restart.
 import { buildOrder, phaseRank } from './loop/order.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 import { TYPES_FILE, orderMigrations, regenerateTypes, settleGeneratedConflicts, touchesSchema } from './loop/merge-files.mjs';
+import { PERF_TREND_ID, perfDue, runPerfTrend } from './loop/perf-trend.mjs';
+import { retryCli, setAsideMarkdown, takeInRetries } from './loop/retry.mjs';
+import { createWorktreeGuard } from './loop/worktree-config.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const B = path.join(ROOT, 'vault/build');
@@ -80,6 +83,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // the other lanes' events in the same second (EZD-1939, audit 2026-11-23 W5).
 const events = createEvents();
 function log(msg) { const at = new Date(); const line = `[${secondOf(at)}] ${msg}`; events.note(msg, at); console.log(line); appendFileSync(P.log, line + '\n'); }
+// EZD-1945: while extensions.worktreeConfig is on in the shared .git/config, trusted-git refuses every git call. The
+// loop then logs WORKTREE CONFIG ON once, starts no gate and no builder, and waits; it never unsets the setting.
+const WTC = createWorktreeGuard({ root: ROOT, log });
 // Another process (a claude session's `git status`, a builder) can hold a checkout's index.lock for a moment; a git
 // call that fails only on that lock is retried, so a commit never stops halfway with its files staged.
 function git(args, cwd = ROOT, opts = {}) {
@@ -113,8 +119,8 @@ function seedDone() {
 // STATUS.md statuses with every hold in the tracked vault/build/holds.json forced to `blocked` (scripts/loop/holds.mjs), so a
 // regenerated STATUS.md can never release a held ticket.
 function seedStatuses() { return effectiveStatuses(ROOT); }
-// One state object in memory for every lane; saveState writes it. A change Josh makes to the file by hand (deleting a
-// set_aside entry or a retry) is taken in at the next scheduling pass (adoptHandEdits).
+// One state object in memory for every lane; saveState writes it. A change made to the file from outside (`--retry <T>`,
+// EZD-1944, or a hand edit of set_aside or retries) is taken in at the next scheduling pass (adoptHandEdits).
 let STATE = null;
 let savedMtime = 0;
 function loadState() {
@@ -130,6 +136,10 @@ function loadState() {
   return STATE;
 }
 function saveState(s) {
+  // EZD-1944: a `--retry` written since our last save would be lost under this write; take its rows in first.
+  try {
+    if (statSync(P.state).mtimeMs !== savedMtime) for (const h of takeInRetries(s, readJson(P.state, null))) log(`RETRY ${h.ticket} by ${h.by} (set aside ${h.set_aside_ts}: ${h.reason})`);
+  } catch {}
   const tmp = `${P.state}.tmp-${process.pid}`;
   writeFileSync(tmp, JSON.stringify(s, null, 2) + '\n');
   renameSync(tmp, P.state);
@@ -142,9 +152,14 @@ function adoptHandEdits(s) {
   if (m === savedMtime) return;
   const disk = readJson(P.state, null);
   if (!disk) return;
+  const before = (s.set_aside_history || []).length;
   s.set_aside = disk.set_aside || {};
   s.retries = disk.retries || {};
-  log('state.json was edited by hand; took in its set_aside and retries');
+  // EZD-1944: `--retry <T>` writes the file too; its history rows are taken in and named in the log.
+  s.set_aside_history = disk.set_aside_history || s.set_aside_history || [];
+  const added = s.set_aside_history.slice(before);
+  if (added.length) for (const h of added) log(`RETRY ${h.ticket} by ${h.by} (set aside ${h.set_aside_ts}: ${h.reason})`);
+  else log('state.json was edited by hand; took in its set_aside and retries');
   saveState(s);
 }
 // Footprints: { "<ticket>": { files: [...], notes, ts } }. Kept apart from state so `--plan --footprints` can add to it.
@@ -156,18 +171,8 @@ function saveFootprint(id, fp) {
   writeFileSync(tmp, JSON.stringify(all, null, 2) + '\n');
   renameSync(tmp, P.footprints);
 }
-function writeSetAside(s) {
-  const rows = Object.entries(s.set_aside);
-  const out = ['# Set-aside tickets', '', 'Tickets that failed twice (a first failure is retried automatically). These need Josh. Each keeps its branch and worktree.',
-    'To retry one, delete its entry from vault/build/state.json `set_aside` (the loop picks it up again).', ''];
-  if (!rows.length) out.push('None.');
-  for (const [id, r] of rows) {
-    out.push(`## ${id} · ${r.title}`, `- When: ${r.ts}`, `- Reason: ${r.reason}`, `- Branch: ${r.branch} · worktree: ${r.worktree}`);
-    if (r.detail) out.push('- Last output:', '```', r.detail.slice(0, 2500), '```');
-    out.push('');
-  }
-  writeFileSync(P.setAside, out.join('\n'));
-}
+// EZD-1944: the open set-asides and the last 20 retries (scripts/loop/retry.mjs).
+function writeSetAside(s) { writeFileSync(P.setAside, setAsideMarkdown(s)); }
 
 // ---------- tickets ----------
 function tickets() { const t = readJson(path.join(ROOT, 'vault/tickets/tickets.json'), {}); return Array.isArray(t) ? t : t.tickets || []; }
@@ -317,7 +322,12 @@ function recordUsage(ticket, role, requested, r) {
 const branchChanges = (wt) => git(['diff', '--name-only', 'develop...HEAD'], wt).out.split('\n').filter(Boolean);
 const laneRun = (wt, lane) => (cmd, args) => runCheck({ cmd, args, cwd: wt, env: laneEnv(lane, wt), timeoutMs: 25 * 60000 });
 
+// EZD-1945: every gate waits while worktree config is on, and a red check caused by a TrustedGitError is run again
+// after the wait instead of reaching the caller, so it never costs a fix round, a requeue or a set-aside.
 function check(cwd, lane = 0) {
+  return WTC.guardedCheck(() => checkOnce(cwd, lane), { label: `lane ${lane} check (${path.basename(cwd)})` });
+}
+function checkOnce(cwd, lane = 0) {
   const started = Date.now();
   // Past 90 min: SIGTERM, then SIGKILL 10 s later if the check is still running (audit 2026-11-23 W6).
   return runCheck({ cmd: 'node', args: [path.join(ROOT, 'scripts/check.mjs'), cwd], cwd, env: laneEnv(lane, cwd), timeoutMs: 90 * 60000 })
@@ -560,6 +570,7 @@ async function doTicket(t, s, lane, kind = 'ticket') {
   const plan = existsSync(path.join(ROOT, 'vault/plans', `${t.id}.md`));
   const prompt = t.prompt ? `${t.prompt}\n${lanesNote(t)}` : builderPrompt(t, plan, readingList(t.id));
   const buildModel = isFixTicket(t) ? (c.fix_model || c.builder_model) : c.builder_model;
+  await WTC.waitOff(); // EZD-1945: no builder starts while worktree config is on
   let r = await runClaude({ cwd: wt, prompt, model: buildModel, effort: c.builder_effort, name: `${t.id} build`, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
   recordUsage(t.id, 'builder', buildModel, r);
   if (r.limited) return stopForLimit(r);
@@ -574,6 +585,7 @@ async function doTicket(t, s, lane, kind = 'ticket') {
   const commitAll = () => { if (git(['status', '--porcelain'], wt).out) { git(['add', '-A'], wt); git(['commit', '-q', '-m', `feat(${t.id}): uncommitted builder work`], wt); } };
   const fix = async (kindOf, detail, label) => {
     const fixModel = c.fix_model || c.builder_model;
+    await WTC.waitOff(); // EZD-1945
     let f = await runClaude({ cwd: wt, prompt: fixPrompt(kindOf, detail), model: fixModel, effort: c.builder_effort, name: `${t.id} ${label}`, resume: session, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
     recordUsage(t.id, `builder-fix-${kindOf}`, fixModel, f);
     if (fixModel !== c.builder_model && !f.res && !f.timedOut && !f.limited) {
@@ -775,6 +787,20 @@ async function guardDevelop(s) {
   // the next red streak runs another repair.
   if (res !== 'merged') log(`develop is red and repair ${t.id} failed; set aside, building continues`);
 }
+// EZD-1946 (audit 2026-11-23 B1, B2): once a day the perf trend takes a free lane: develop is built and measured and
+// one line is appended to perf-results/history.jsonl (scripts/loop/perf-trend.mjs). It holds the lane through
+// s.running (no file claims) and the `active` map, so drains and restarts wait for it; it never counts as a ticket.
+function startPerfTrend(s, lane, active) {
+  s.perf_trend_at = now();
+  s.running[PERF_TREND_ID] = { lane, title: 'perf trend on develop', started: now() };
+  saveState(s);
+  log(`perf trend: building and measuring develop on lane ${lane}`);
+  const wt = path.join(ROOT, '.claude/worktrees', PERF_TREND_ID);
+  const p = runPerfTrend({ root: ROOT, env: laneEnv(lane, wt), git, run: runCheck, log })
+    .catch((e) => log(`perf trend error: ${e?.stack || e}`))
+    .then(() => { delete s.running[PERF_TREND_ID]; saveState(s); active.delete(PERF_TREND_ID); });
+  active.set(PERF_TREND_ID, p);
+}
 
 // ---------- lanes ----------
 // config `lanes`: the database lanes to build on (0-3), or a count n meaning lanes 0..n-1. One ticket per lane.
@@ -895,11 +921,14 @@ async function main() {
       if (active.size) { note(`red streak of ${s.red_streak}: no new starts until the ${active.size} running ticket(s) finish`); await idle(60000); continue; }
       await guardDevelop(s); commitBuildFiles('develop guard'); push(s); continue;
     }
+    // EZD-1945: no new ticket, footprint, repair or perf run starts while worktree config is on (logged once by WTC).
+    if (WTC.isOn()) { await idle(60000); continue; }
     const used = new Set(Object.values(s.running).map((r) => r.lane));
     const free = lanes.filter((l) => !used.has(l));
     // A ticket whose footprint could not be predicted runs only alone.
     const alone = Object.keys(s.running).some((id) => readFootprints()[id]?.alone);
     if (alone) { await idle(60000); continue; }
+    if (free.length && !s.running[PERF_TREND_ID] && perfDue(s.perf_trend_at)) startPerfTrend(s, free.shift(), active);
     const list = eligible(s);
     if (!free.length) {
       // Every lane is busy: predict the next footprints now, so a lane that frees up starts without waiting for one.
@@ -967,7 +996,9 @@ async function dryRun() {
   }
 }
 
-if (process.argv.includes('--plan')) {
+if (process.argv.includes('--retry')) {
+  process.exit(retryCli(process.argv, { state: P.state, setAside: P.setAside }));
+} else if (process.argv.includes('--plan')) {
   dryRun().catch((e) => { console.error(e); process.exit(1); });
 } else {
   main().catch((e) => { log(`loop crashed: ${e?.stack || e}`); process.exit(1); });

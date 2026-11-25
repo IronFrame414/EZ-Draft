@@ -6,8 +6,11 @@ export const HOST_COOKIE_PREFIX = '__Host-';
 export const SIGN_IN_EMAIL_COOKIE = 'ezd_sign_in_email';
 export const SIGN_IN_LANG_COOKIE = 'ezd_sign_in_lang';
 export const SIGNED_OUT_COOKIE = 'ezd_signed_out';
+// EZD-1977: the page to land on after the emailed sign-in link (server/auth/return-path.ts checks it).
+export const SIGN_IN_NEXT_COOKIE = 'ezd_sign_in_next';
 
-export type SignInCookie = typeof SIGN_IN_EMAIL_COOKIE | typeof SIGN_IN_LANG_COOKIE;
+export type SignInCookie =
+  typeof SIGN_IN_EMAIL_COOKIE | typeof SIGN_IN_LANG_COOKIE | typeof SIGN_IN_NEXT_COOKIE;
 
 export function appCookieName(base: string, secure: boolean): string {
   return secure ? HOST_COOKIE_PREFIX + base : base;

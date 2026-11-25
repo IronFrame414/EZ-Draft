@@ -16,6 +16,7 @@ import { xy, type OverlayElement } from '../tools/overlay';
 import type { VersionDiff } from './version-diff';
 import type { VersionView } from './version-view';
 import styles from './VersionsPanel.module.css';
+import { idKey } from '../shared/ids';
 
 type Polyline = { readonly points: readonly Point[]; readonly closed: boolean };
 
@@ -37,11 +38,11 @@ export function diffGeometry(
 ): DiffGeometry {
   if (diff.changed.length === 0 && diff.removed.length === 0) return EMPTY_DIFF_GEOMETRY;
   const kindOf = new Map<string, 'changed' | 'removed'>();
-  for (const id of diff.changed) kindOf.set(id.toLowerCase(), 'changed');
-  for (const id of diff.removed) kindOf.set(id.toLowerCase(), 'removed');
+  for (const id of diff.changed) kindOf.set(idKey(id), 'changed');
+  for (const id of diff.removed) kindOf.set(idKey(id), 'removed');
   const out = { changed: [] as Polyline[], removed: [] as Polyline[] };
   for (const item of planDrawingList(objects, {}, null, chosenFloor)?.items ?? []) {
-    const kind = kindOf.get(item.objectId.toLowerCase());
+    const kind = kindOf.get(idKey(item.objectId));
     if (kind === undefined) continue;
     const to = out[kind];
     if (item.kind === 'fill') to.push({ points: item.points, closed: true });

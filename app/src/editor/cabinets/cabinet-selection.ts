@@ -1,6 +1,8 @@
 // EZD-406 selection of the cabinet run screen, moved here from cabinet-view.ts by EZD-513 (11 Budgets "editor before its
 // lazy parts 500 KB"): the editor entry's selection store needs only this, so the cabinet view's edits stay with the
 // lazy cabinet screen. Pure: no React, no DOM.
+import { idKey, sameId } from '../shared/ids';
+
 export type CabinetSelection = {
   readonly ids: readonly string[];
   readonly hoveredId: string | null;
@@ -22,9 +24,9 @@ export function cabinetSelect(s: CabinetSelection, i: CabinetSelectionInput): Ca
     case 'click':
       if (i.id === null) return i.shift === true ? s : { ...s, ids: [] };
       if (i.shift === true) {
-        const key = i.id.toLowerCase();
-        const has = s.ids.some((x) => x.toLowerCase() === key);
-        return { ...s, ids: has ? s.ids.filter((x) => x.toLowerCase() !== key) : [...s.ids, i.id] };
+        const key = idKey(i.id);
+        const has = s.ids.some((x) => idKey(x) === key);
+        return { ...s, ids: has ? s.ids.filter((x) => idKey(x) !== key) : [...s.ids, i.id] };
       }
       return { ...s, ids: [i.id] };
     case 'set':
@@ -37,4 +39,4 @@ export function cabinetSelect(s: CabinetSelection, i: CabinetSelectionInput): Ca
 }
 
 export const isCabinetSelected = (s: CabinetSelection, id: string): boolean =>
-  s.ids.some((x) => x.toLowerCase() === id.toLowerCase());
+  s.ids.some((x) => sameId(x, id));

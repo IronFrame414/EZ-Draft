@@ -13,8 +13,7 @@ import {
 } from '@ezdraft/geometry';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import type { Change, Objects } from '../model/patches';
-
-const lower = (s: string) => s.toLowerCase();
+import { idKey, sameId, sameIds } from '../shared/ids';
 
 // vault/build/assumptions.md EZD-604 "New circuit defaults": 20 A, 1 pole, 12 AWG copper (NE2-071 pairing).
 export const NEW_CIRCUIT = { breaker: 20, poles: 1, wire: '12' } as const;
@@ -23,7 +22,7 @@ export const NEW_CIRCUIT = { breaker: 20, poles: 1, wire: '12' } as const;
 export const BREAKER_SIZES = [15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100] as const;
 
 function find(objects: Objects, id: string, type: string): [string, ObjectValue] | null {
-  for (const [k, v] of objects) if (lower(k) === lower(id)) return v.type === type ? [k, v] : null;
+  for (const [k, v] of objects) if (sameId(k, id)) return v.type === type ? [k, v] : null;
   return null;
 }
 
@@ -43,10 +42,9 @@ export function takenSpaces(
 ): Set<number> {
   const taken = new Set<number>();
   for (const [k, v] of objects) {
-    if (v.type !== 'circuit' || (skip !== null && lower(k) === lower(skip))) continue;
+    if (v.type !== 'circuit' || (skip !== null && sameId(k, skip))) continue;
     const a = (v.data as { attributes?: Partial<CircuitAttrs> }).attributes;
-    if (a === undefined || typeof a.panel !== 'string' || lower(a.panel) !== lower(panelId))
-      continue;
+    if (a === undefined || typeof a.panel !== 'string' || !sameId(a.panel, panelId)) continue;
     if (typeof a.space !== 'number') continue;
     taken.add(a.space);
     if (a.poles === 2) taken.add(a.space + 2);
@@ -234,14 +232,14 @@ export function assignChanges(
     const [key, value] = d;
     const a = (value.data as { attributes: Record<string, unknown> }).attributes;
     const was = typeof a.circuit === 'string' ? a.circuit : null;
-    if (was !== null && target !== null && lower(was) === lower(target)) {
+    if (was !== null && target !== null && sameId(was, target)) {
       const own = orderOf(target);
-      if (own !== null && !own.order.some((x) => lower(x) === lower(key))) own.order.push(key);
+      if (own !== null && !own.order.some((x) => sameId(x, key))) own.order.push(key);
       continue;
     }
     if (was !== null) {
       const old = orderOf(was);
-      if (old !== null) old.order = old.order.filter((x) => lower(x) !== lower(key));
+      if (old !== null) old.order = old.order.filter((x) => !sameId(x, key));
     }
     if (target !== null) orderOf(target)!.order.push(key);
     const data = { ...value.data, attributes: { ...a, circuit: target } };
@@ -255,7 +253,7 @@ export function assignChanges(
   for (const [key, { value, order }] of orders) {
     const a = (value.data as { attributes: CircuitAttrs }).attributes;
     const before = a.order ?? [];
-    if (before.length === order.length && before.every((x, i) => x === order[i])) continue;
+    if (sameIds(before, order)) continue;
     const data = { ...value.data, attributes: { ...a, order } };
     if (
       !parseStoredObject({ id: key, type: 'circuit', schema_version: value.schemaVersion, data }).ok
@@ -273,15 +271,15 @@ export function assignChanges(
 export function circuitDeviceIds(objects: Objects, circuitId: string): string[] {
   const c = find(objects, circuitId, 'circuit');
   if (c === null) return [];
-  const order = ((c[1].data as { attributes: CircuitAttrs }).attributes.order ?? []).map(lower);
+  const order = ((c[1].data as { attributes: CircuitAttrs }).attributes.order ?? []).map(idKey);
   const on: string[] = [];
   for (const [k, v] of objects) {
     if (v.type !== 'device') continue;
     const a = (v.data as { attributes?: { circuit?: unknown } }).attributes;
-    if (typeof a?.circuit === 'string' && lower(a.circuit) === lower(c[0])) on.push(k);
+    if (typeof a?.circuit === 'string' && sameId(a.circuit, c[0])) on.push(k);
   }
   const rank = (id: string) => {
-    const i = order.indexOf(lower(id));
+    const i = order.indexOf(idKey(id));
     return i < 0 ? Infinity : i;
   };
   return on

@@ -23,6 +23,7 @@ import {
 } from '@ezdraft/geometry';
 import type { Change, Objects } from '../model/patches';
 import { roomAt } from '../tools/beam-edits';
+import { idKey, sameId } from '../shared/ids';
 
 export const SWITCH_KINDS: readonly string[] = ['switch_single', 'switch_3way', 'switch_dimmer'];
 /** The devices a switch leg runs to: lights and fans (the fixture kinds of the ceiling plan). */
@@ -32,8 +33,6 @@ export const LEG_ZONE_MARGIN_IN = 12;
 /** The switch leg's dash and gap in model inches: the zone outline's "4 3" (board S05Ceiling), so the two match. */
 export const LEG_DASH_IN: readonly number[] = [4, 3];
 
-const lower = (s: string) => s.toLowerCase();
-
 type Device = { id: string; data: DeviceData };
 type Zone = { id: string; data: SwitchZoneData };
 
@@ -41,7 +40,12 @@ function parsed(objects: Objects, type: 'device' | 'switch_zone'): ModelObject[]
   const out: ModelObject[] = [];
   for (const [id, v] of objects) {
     if (v.type !== type) continue;
-    const r = parseStoredObject({ id, type: v.type, schema_version: v.schemaVersion, data: v.data });
+    const r = parseStoredObject({
+      id,
+      type: v.type,
+      schema_version: v.schemaVersion,
+      data: v.data,
+    });
     if (r.ok) out.push(r.object);
   }
   return out;
@@ -59,18 +63,18 @@ const isSwitch = (d: Device) => SWITCH_KINDS.includes(d.data.attributes.kind);
 const isLegFixture = (d: Device) => LEG_FIXTURE_KINDS.includes(d.data.attributes.kind);
 
 function find<T extends { id: string }>(list: readonly T[], id: string): T | undefined {
-  const key = lower(id);
-  return list.find((o) => lower(o.id) === key);
+  const key = idKey(id);
+  return list.find((o) => idKey(o.id) === key);
 }
 
 /** The lights and fans inside a zone's outline on its own floor, in stored order. */
 export function zoneFixtureIds(objects: Objects, zone: Zone): string[] {
-  const level = lower(zone.data.level);
+  const level = idKey(zone.data.level);
   return devices(objects)
     .filter(
       (d) =>
         isLegFixture(d) &&
-        lower(d.data.level) === level &&
+        idKey(d.data.level) === level &&
         pointInRing(d.data.geometry.point, zone.data.geometry.boundary),
     )
     .map((d) => d.id);
@@ -99,7 +103,7 @@ export function switchLegs(objects: Objects): SwitchLeg[] {
 
 /** One switch's leg, or null when it has none. */
 export function switchLegOf(objects: Objects, switchId: string): SwitchLeg | null {
-  return switchLegs(objects).find((l) => lower(l.switchId) === lower(switchId)) ?? null;
+  return switchLegs(objects).find((l) => sameId(l.switchId, switchId)) ?? null;
 }
 
 function store(type: 'device' | 'switch_zone', id: string, data: unknown): Change | null {
@@ -125,7 +129,11 @@ export function switchKindFor(kind: string, dimmer: boolean): string {
  * Zone to leg: the zone's Dimmer edit with its switches following it, as one change set. Null when the zone is gone,
  * already set so, or a change is refused.
  */
-export function zoneDimmerChanges(objects: Objects, zoneId: string, dimmer: boolean): Change[] | null {
+export function zoneDimmerChanges(
+  objects: Objects,
+  zoneId: string,
+  dimmer: boolean,
+): Change[] | null {
   const zone = find(zones(objects), zoneId);
   if (zone === undefined || zone.data.attributes.dimmer === dimmer) return null;
   const changes: (Change | null)[] = [
@@ -136,7 +144,7 @@ export function zoneDimmerChanges(objects: Objects, zoneId: string, dimmer: bool
   ];
   for (const d of devices(objects)) {
     const z = d.data.attributes.zone;
-    if (!isSwitch(d) || typeof z !== 'string' || lower(z) !== lower(zone.id)) continue;
+    if (!isSwitch(d) || typeof z !== 'string' || !sameId(z, zone.id)) continue;
     const kind = switchKindFor(d.data.attributes.kind, dimmer);
     if (kind === d.data.attributes.kind) continue;
     changes.push(store('device', d.id, { ...d.data, attributes: { ...d.data.attributes, kind } }));
@@ -193,12 +201,12 @@ export function addToLeg(
   if (sw === undefined || !isSwitch(sw)) return { ok: false, reason: 'not_switch' };
   const fx = find(all, fixtureId);
   if (fx === undefined || !isLegFixture(fx)) return { ok: false, reason: 'not_fixture' };
-  if (lower(fx.data.level) !== lower(sw.data.level)) return { ok: false, reason: 'failed' };
+  if (!sameId(fx.data.level, sw.data.level)) return { ok: false, reason: 'failed' };
   const leg = switchLegOf(objects, sw.id);
-  if (leg !== null && leg.fixtureIds.some((id) => lower(id) === lower(fx.id)))
+  if (leg !== null && leg.fixtureIds.some((id) => sameId(id, fx.id)))
     return { ok: true, changes: [] };
   const at = fx.data.geometry.point;
-  const level = lower(fx.data.level);
+  const level = idKey(fx.data.level);
   const allZones = zones(objects);
   const done = (changes: (Change | null)[]): LegEditResult =>
     changes.every((c): c is Change => c !== null)
@@ -218,7 +226,7 @@ export function addToLeg(
   let holder: Zone | null = null;
   let best = Infinity;
   for (const z of allZones) {
-    if (lower(z.data.level) !== level || !pointInRing(at, z.data.geometry.boundary)) continue;
+    if (idKey(z.data.level) !== level || !pointInRing(at, z.data.geometry.boundary)) continue;
     const area = outlineAreaSqIn(z.data.geometry.boundary);
     if (area < best) {
       holder = z;
@@ -230,7 +238,7 @@ export function addToLeg(
   const room = roomAt(objects, fx.data.level, at);
   if (room === null) return { ok: false, reason: 'no_room' };
   const own = leg === null ? undefined : find(allZones, leg.zoneId);
-  if (own !== undefined && lower(own.data.geometry.roomId) === lower(room.id)) {
+  if (own !== undefined && sameId(own.data.geometry.roomId, room.id)) {
     const boundary = convexHull([...own.data.geometry.boundary, ...squareAround(at)]);
     return done([
       store('switch_zone', own.id, { ...own.data, geometry: { ...own.data.geometry, boundary } }),
@@ -301,17 +309,17 @@ export function switchLegItems(
   const legs = switchLegs(all);
   if (legs.length === 0) return [];
   const here = new Map<string, Device>();
-  for (const o of onFloor) if (o.type === 'device') here.set(lower(o.id), o);
+  for (const o of onFloor) if (o.type === 'device') here.set(idKey(o.id), o);
   const out: DrawingItem[] = [];
   for (const leg of legs) {
-    const sw = here.get(lower(leg.switchId));
+    const sw = here.get(idKey(leg.switchId));
     if (sw === undefined) continue;
     const stops = leg.fixtureIds
-      .map((id) => here.get(lower(id)))
+      .map((id) => here.get(idKey(id)))
       .filter((d): d is Device => d !== undefined)
       .map((d) => ({ id: d.id, at: d.data.geometry.point }));
     const order = legPath(sw.data.geometry.point, stops);
-    const chain = [sw, ...order.map((id) => here.get(lower(id))!)];
+    const chain = [sw, ...order.map((id) => here.get(idKey(id))!)];
     for (let i = 1; i < chain.length; i++) {
       const a = chain[i - 1]!;
       const b = chain[i]!;

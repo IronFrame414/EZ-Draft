@@ -49,7 +49,11 @@ type Window2 = {
     stats(): { glyphs: number };
   };
   __ezdraftEditor: { objects(): Obj[]; edit(changes: unknown[]): string[] };
-  __EZD_PERF__: { commits: number };
+  __EZD_PERF__: {
+    commits: number;
+    traceCommits: boolean;
+    commitLog: { n: number; t: number; first?: unknown[]; error?: string }[];
+  };
 };
 
 const editorState = (page: Page) => page.getByTestId('editor-state');
@@ -97,6 +101,45 @@ const clickAt = async (page: Page, x: number, y: number) => {
   const p = await at(page, x, y);
   await page.mouse.click(p.x, p.y);
 };
+
+// EZD-1976: the editor's settled state after the first pointer input. That input loads the lock UI (EZD-126), which
+// commits when its download ends, on network time; Stop editing shows from that commit for the tab holding the lock.
+const lockUiSettled = (page: Page) => expect(id(page, 'stop-editing')).toBeVisible();
+
+// EZD-1976: the commit count hook with its commit trace on, and the reads the EZD-1976 tests share.
+async function traceCommits(page: Page) {
+  await page.addInitScript({
+    path: path.join(repoRoot(), 'scripts', 'perf', 'page-hooks.browser.js'),
+  });
+  await page.addInitScript(() => {
+    (window as unknown as Window2).__EZD_PERF__.traceCommits = true;
+  });
+}
+// The same stable read as B9: two reads in a row equal, polled every 100 ms for up to 5000 ms.
+async function stableCommits(page: Page): Promise<number> {
+  let last = -1;
+  await expect
+    .poll(
+      async () => {
+        const now = await page.evaluate(() => (window as unknown as Window2).__EZD_PERF__.commits);
+        const same = now === last;
+        last = now;
+        return same;
+      },
+      { intervals: [100], timeout: 5000 },
+    )
+    .toBe(true);
+  return last;
+}
+// Who committed after commit number n: one line per commit, naming the components that rendered first.
+const commitsAfter = (page: Page, n: number) =>
+  page.evaluate(
+    (from) =>
+      (window as unknown as Window2).__EZD_PERF__.commitLog
+        .filter((c) => c.n > from)
+        .map((c) => JSON.stringify(c)),
+    n,
+  );
 
 const objects = (page: Page): Promise<Obj[]> =>
   page.evaluate(() => (window as unknown as Window2).__ezdraftEditor.objects());
@@ -496,6 +539,7 @@ test.describe('EZD-210b drawing tools', () => {
     await view(page);
     await page.keyboard.press('w');
     await clickAt(page, 0, 0);
+    await lockUiSettled(page);
     const commits = () => page.evaluate(() => (window as unknown as Window2).__EZD_PERF__.commits);
     // Stable read: two reads in a row equal, polled every 100 ms for up to 5000 ms.
     const stable = async (): Promise<number> => {
@@ -517,6 +561,75 @@ test.describe('EZD-210b drawing tools', () => {
     for (let i = 0; i < 50; i++) await moveTo(page, i % 2 === 0 ? 60 : 96, i % 2 === 0 ? 30 : 72);
     await expect(id(page, 'tool-band')).toHaveAttribute('d', 'M 128 384 L 384 192');
     expect(await stable()).toBe(before);
+  });
+
+  // EZD-1976 (AC-EZD-1976-1, -2): B9 on a slower machine. The CPU is slowed 4 times from before the page loads
+  // (CDP Emulation.setCPUThrottlingRate), as on the CI runner where B9 read 2 more commits after the moves. The commit
+  // trace of scripts/perf/page-hooks.browser.js names the component of any commit made after the first read.
+  test('EZD-1976 pointer moves make no React commit with the CPU slowed 4 times', async ({
+    page,
+    signInAs,
+  }) => {
+    test.setTimeout(120_000);
+    await traceCommits(page);
+    const { ids, user } = await fixtureS();
+    await signInAs(user.email);
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    await openReady(page, ids.P1);
+    await view(page);
+    await page.keyboard.press('w');
+    await clickAt(page, 0, 0);
+    await lockUiSettled(page);
+    const before = await stableCommits(page);
+    for (let i = 0; i < 50; i++) await moveTo(page, i % 2 === 0 ? 60 : 96, i % 2 === 0 ? 30 : 72);
+    await expect(id(page, 'tool-band')).toHaveAttribute('d', 'M 128 384 L 384 192');
+    const after = await stableCommits(page);
+    expect(await commitsAfter(page, before)).toEqual([]);
+    expect(after).toBe(before);
+  });
+
+  // EZD-1976 (AC-EZD-1976-1): the late update itself. The first pointer input loads the lock UI, whose first read of
+  // the lock route answers on network time; here it is held until the 50 moves are done. Stop editing shows before
+  // the read answers (this tab took the lock at open), and the answer makes no commit.
+  test('EZD-1976 a lock read that answers after the pointer moves makes no React commit', async ({
+    page,
+    signInAs,
+  }) => {
+    test.setTimeout(120_000);
+    await traceCommits(page);
+    const { ids, user } = await fixtureS();
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await view(page);
+    let held = 0;
+    let release = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const isRead = (method: string, url: string) =>
+      method === 'GET' && new URL(url).pathname.endsWith('/lock');
+    await page.route('**/api/projects/*/lock', async (route) => {
+      if (isRead(route.request().method(), route.request().url())) {
+        held++;
+        await gate;
+      }
+      await route.continue();
+    });
+    await page.keyboard.press('w');
+    await clickAt(page, 0, 0);
+    await lockUiSettled(page);
+    await expect.poll(() => held).toBeGreaterThan(0);
+    const before = await stableCommits(page);
+    for (let i = 0; i < 50; i++) await moveTo(page, i % 2 === 0 ? 60 : 96, i % 2 === 0 ? 30 : 72);
+    await expect(id(page, 'tool-band')).toHaveAttribute('d', 'M 128 384 L 384 192');
+    const answered = page.waitForResponse((r) => isRead(r.request().method(), r.url()));
+    release();
+    expect((await answered).status()).toBe(200);
+    const after = await stableCommits(page);
+    expect(await commitsAfter(page, before)).toEqual([]);
+    expect(after).toBe(before);
+    await expect(id(page, 'stop-editing')).toBeVisible();
   });
 
   test(

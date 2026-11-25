@@ -2,10 +2,16 @@
 // living area; user confirms each field ... Year built before 1978 sets the lead flag"; 03c property_record; S13
 // Controls; AC-EZD-711-1, -2): the five fields an appraiser page gives, the lead flag rule and the confirmed-fields
 // body the browser sends. Pure: browser and server.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 
 // Board S01bWizard order: Parcel (PCN), Owner, Legal description, Year built, Living area.
-export const PROPERTY_FIELDS = ['parcelNo', 'owner', 'legalDescription', 'yearBuilt', 'livingArea'] as const;
+export const PROPERTY_FIELDS = [
+  'parcelNo',
+  'owner',
+  'legalDescription',
+  'yearBuilt',
+  'livingArea',
+] as const;
 export type PropertyField = (typeof PROPERTY_FIELDS)[number];
 
 export type PropertyFields = {
@@ -38,37 +44,48 @@ export const LIVING_AREA_MAX = 2_147_483_647;
 export const LEAD_FLAG_BEFORE_YEAR = 1978;
 
 export function isPre1978(yearBuilt: number | null | undefined): boolean {
-  return typeof yearBuilt === 'number' && Number.isInteger(yearBuilt) && yearBuilt < LEAD_FLAG_BEFORE_YEAR;
+  return (
+    typeof yearBuilt === 'number' &&
+    Number.isInteger(yearBuilt) &&
+    yearBuilt < LEAD_FLAG_BEFORE_YEAR
+  );
 }
 
 const text = (max: number) =>
-  z
-    .string()
-    .transform((s) => s.trim())
-    .pipe(z.string().max(max))
-    .transform((s) => (s === '' ? null : s))
-    .nullable();
+  z.nullable(
+    z.pipe(
+      z.pipe(
+        z.pipe(
+          z.string(),
+          z.transform((s: string) => s.trim()),
+        ),
+        z.string().check(z.maxLength(max)),
+      ),
+      z.transform((s: string) => (s === '' ? null : s)),
+    ),
+  );
 
 // A value as read (AI output) or as confirmed: every field may be missing.
 export const propertyFieldsSchema = z.object({
   parcelNo: text(PARCEL_NO_MAX),
   owner: text(OWNER_MAX),
   legalDescription: text(LEGAL_DESCRIPTION_MAX),
-  yearBuilt: z.number().int().min(YEAR_BUILT_MIN).max(YEAR_BUILT_MAX).nullable(),
-  livingArea: z.number().int().min(0).max(LIVING_AREA_MAX).nullable(),
+  yearBuilt: z.nullable(z.int().check(z.gte(YEAR_BUILT_MIN), z.lte(YEAR_BUILT_MAX))),
+  livingArea: z.nullable(z.int().check(z.gte(0), z.lte(LIVING_AREA_MAX))),
 });
 
 // The body that saves a project's record: only the confirmed fields, the rest null (S01 "user confirms each field").
-export const confirmedRecordSchema = z
-  .object({
-    fields: propertyFieldsSchema,
-    sourceUrl: z.string().trim().max(SOURCE_URL_MAX).nullable(),
-  })
-  .strict();
+export const confirmedRecordSchema = z.strictObject({
+  fields: propertyFieldsSchema,
+  sourceUrl: z.nullable(z.string().check(z.trim(), z.maxLength(SOURCE_URL_MAX))),
+});
 export type ConfirmedRecord = z.infer<typeof confirmedRecordSchema>;
 
 // Keeps only the ticked fields; an unticked field is saved as blank.
-export function confirmedFields(read: PropertyFields, ticked: ReadonlySet<PropertyField>): PropertyFields {
+export function confirmedFields(
+  read: PropertyFields,
+  ticked: ReadonlySet<PropertyField>,
+): PropertyFields {
   return {
     parcelNo: ticked.has('parcelNo') ? read.parcelNo : null,
     owner: ticked.has('owner') ? read.owner : null,

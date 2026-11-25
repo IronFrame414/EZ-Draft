@@ -8,7 +8,7 @@
 // for display and never saved into it (03b rule 4; `options/apply.ts`). Each add or replace object is checked
 // against its own type's schema in `schema/index.ts` (that check needs every type's schema, which this file cannot
 // import). A patched object is held at the option's schema version.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 
 export const DESIGN_OPTION_LABELS = ['A', 'B', 'C'] as const;
 export type DesignOptionLabel = (typeof DESIGN_OPTION_LABELS)[number];
@@ -24,7 +24,7 @@ export const DESIGN_OPTION_GROUP_NAME_MAX = 80;
 
 const patchObjectSchema = z.strictObject({
   id: z.uuid(),
-  type: z.string().min(1).max(64),
+  type: z.string().check(z.minLength(1), z.maxLength(64)),
   data: z.unknown(),
 });
 export type DesignOptionPatchObject = z.infer<typeof patchObjectSchema>;
@@ -40,10 +40,10 @@ export const patchTargetId = (p: DesignOptionPatch): string =>
   p.op === 'remove' ? p.id : p.object.id;
 
 const text = (max: number) =>
-  z
-    .string()
-    .max(max)
-    .refine((s) => s.trim().length > 0);
+  z.string().check(
+    z.maxLength(max),
+    z.refine((s) => s.trim().length > 0),
+  );
 
 export const designOptionDataSchema = z
   .strictObject({
@@ -52,11 +52,14 @@ export const designOptionDataSchema = z
     label: z.enum(DESIGN_OPTION_LABELS),
     name: text(DESIGN_OPTION_NAME_MAX),
     status: z.enum(DESIGN_OPTION_STATUSES),
-    modelDelta: z.array(designOptionPatchSchema).max(DESIGN_OPTION_PATCHES_MAX),
+    modelDelta: z.array(designOptionPatchSchema).check(z.maxLength(DESIGN_OPTION_PATCHES_MAX)),
   })
   // One patch per object id in an option (vault/build/assumptions.md EZD-1009).
-  .refine(
-    (d) =>
-      new Set(d.modelDelta.map((p) => patchTargetId(p).toLowerCase())).size === d.modelDelta.length,
+  .check(
+    z.refine(
+      (d) =>
+        new Set(d.modelDelta.map((p) => patchTargetId(p).toLowerCase())).size ===
+        d.modelDelta.length,
+    ),
   );
 export type DesignOptionData = z.infer<typeof designOptionDataSchema>;

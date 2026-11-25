@@ -52,7 +52,6 @@ const BASE_SPECS = [
   'three',
   'three/examples/jsm/exporters/GLTFExporter.js',
   'three/addons/exporters/USDZExporter.js',
-  '@react-three/fiber',
   'three-bvh-csg',
   'three-gpu-pathtracer',
   'pdfjs-dist',
@@ -112,7 +111,7 @@ describe('EZD-020 import boundaries lint', () => {
     for (const place of ['app/src/lazy/scene-3d/index.ts', 'app/src/workers/x.worker.ts']) {
       for (const s of allSpecs()) allowed(await lint(imp(s), place), `${place} ${s}`);
     }
-    for (const s of ['three', '@react-three/fiber']) {
+    for (const s of ['three']) {
       allowed(await lint(imp(s), 'app/src/editor/canvas/C.tsx'), `editor ${s}`);
     }
     for (const s of ['pdfjs-dist', 'dxf-parser', W()]) {
@@ -334,7 +333,7 @@ describe('EZD-167 import boundaries path alias', () => {
       ),
       'packages/geometry',
     );
-    reported(await lint(imp('@react-three/fiber'), 'app/src/lib/x.ts'), 'heavyPackage', '@react-three/fiber');
+    reported(await lint(imp(W()), 'app/src/lib/x.ts'), 'heavyPackage', W());
     allowed(await lint(imp('@/lib/x'), 'app/src/app/(office)/page.tsx'), '@/lib/x');
   });
 

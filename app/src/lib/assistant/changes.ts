@@ -13,32 +13,32 @@ import {
   THICKNESS_SIDES,
   WALL_MATERIALS,
 } from '@ezdraft/geometry';
-import { z } from 'zod';
+import * as z from 'zod/mini';
 
 export const ASSISTANT_REF_PATTERN = /^[a-z][a-z0-9]{0,15}$/;
 
-const ref = z.string().regex(ASSISTANT_REF_PATTERN);
+const ref = z.string().check(z.regex(ASSISTANT_REF_PATTERN));
 const point = z.strictObject({ x: z.number(), y: z.number() });
 const layer = z.strictObject({ material: z.enum(WALL_MATERIALS), thickness: z.number() });
 const size = z.strictObject({ width: z.number(), height: z.number() });
 const openingType = z.enum(['door', 'window']);
 
 const wallFields = {
-  thickness: z.number().optional(),
-  height: z.number().optional(),
-  bearing: z.boolean().optional(),
-  layers: z.array(layer).optional(),
+  thickness: z.optional(z.number()),
+  height: z.optional(z.number()),
+  bearing: z.optional(z.boolean()),
+  layers: z.optional(z.array(layer)),
 };
 
 const openingFields = {
-  width: z.number().optional(),
-  height: z.number().optional(),
-  roughOpening: size.optional(),
-  sillHeight: z.number().optional(),
-  swing: z.enum(DOOR_SWINGS).optional(),
-  hand: z.enum(DOOR_HANDS).optional(),
-  impactRating: z.enum(IMPACT_RATINGS).optional(),
-  shutterType: z.enum(SHUTTER_TYPES).optional(),
+  width: z.optional(z.number()),
+  height: z.optional(z.number()),
+  roughOpening: z.optional(size),
+  sillHeight: z.optional(z.number()),
+  swing: z.optional(z.enum(DOOR_SWINGS)),
+  hand: z.optional(z.enum(DOOR_HANDS)),
+  impactRating: z.optional(z.enum(IMPACT_RATINGS)),
+  shutterType: z.optional(z.enum(SHUTTER_TYPES)),
 };
 
 const notBoth = (c: { thickness?: number; layers?: unknown }) =>
@@ -53,19 +53,19 @@ const wallAdd = z
     op: z.literal('add'),
     type: z.literal('wall'),
     ref,
-    floor: ref.optional(),
+    floor: z.optional(ref),
     start: point,
     end: point,
-    thicknessSide: z.enum(THICKNESS_SIDES).optional(),
+    thicknessSide: z.optional(z.enum(THICKNESS_SIDES)),
     ...wallFields,
   })
-  .refine(notBoth);
+  .check(z.refine(notBoth));
 
 const openingAdd = z.strictObject({
   op: z.literal('add'),
   type: openingType,
   ref,
-  floor: ref.optional(),
+  floor: z.optional(ref),
   hostWall: ref,
   center: point,
   ...openingFields,
@@ -76,22 +76,21 @@ const wallUpdate = z
     op: z.literal('update'),
     type: z.literal('wall'),
     ref,
-    start: point.optional(),
-    end: point.optional(),
+    start: z.optional(point),
+    end: z.optional(point),
     ...wallFields,
   })
-  .refine(notBoth)
-  .refine(namesAField);
+  .check(z.refine(notBoth), z.refine(namesAField));
 
 const openingUpdate = z
   .strictObject({
     op: z.literal('update'),
     type: openingType,
     ref,
-    center: point.optional(),
+    center: z.optional(point),
     ...openingFields,
   })
-  .refine(namesAField);
+  .check(z.refine(namesAField));
 
 const remove = z.strictObject({
   op: z.literal('remove'),

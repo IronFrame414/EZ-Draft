@@ -3,6 +3,8 @@
 // the GFCI/AFCI a receptacle is placed with, kept while the page is open. Kept tiny and free of the item lists, so the
 // editor entry holds it while the toolbar itself loads with electrical mode (11 Budgets; toolbar-items.ts).
 
+import { createListeners } from '../shared/value-store';
+
 /** The GFCI/AFCI a receptacle is placed with; null is none (circuitProtectionSchema). */
 export type ToolbarProtection = 'gfci' | 'afci' | 'dual' | null;
 
@@ -22,17 +24,14 @@ export type ElectricalToolbar = {
 
 export function createElectricalToolbar(): ElectricalToolbar {
   let state: ElectricalToolbarState = { armed: null, kinds: {}, protection: null };
-  const listeners = new Set<() => void>();
+  const listeners = createListeners();
   const set = (patch: Partial<ElectricalToolbarState>) => {
     state = { ...state, ...patch };
-    listeners.forEach((l) => l());
+    listeners.notify();
   };
   return {
     get: () => state,
-    subscribe(listener) {
-      listeners.add(listener);
-      return () => void listeners.delete(listener);
-    },
+    subscribe: listeners.add,
     press: (item) => {
       const armed = item === state.armed ? null : item;
       if (armed !== state.armed) set({ armed });

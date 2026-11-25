@@ -19,6 +19,7 @@ import type { Objects } from '../model/patches';
 import { PT_TO_MODEL_IN } from '../plan/glyph-atlas';
 import { circuitDeviceIds, panelLetter } from './circuits';
 import { circuitNumber } from './electrical';
+import { idKey } from '../shared/ids';
 
 // Model inches: the gap between a symbol and its tag, the home-run arrow's length and its head's sides.
 export const CIRCUIT_TAG_GAP_IN = 2;
@@ -40,17 +41,20 @@ export type CircuitDrawOpts = {
 
 type CircuitInfo = { id: string; number: string; tag: string };
 
-const lower = (s: string) => s.toLowerCase();
-
 function circuitInfo(all: Objects): Map<string, CircuitInfo> {
   const panels = new Map<string, string>();
   const circuits: { id: string; panel: string; number: string }[] = [];
   for (const [id, v] of all) {
     if (v.type !== 'panel' && v.type !== 'circuit') continue;
-    const r = parseStoredObject({ id, type: v.type, schema_version: v.schemaVersion, data: v.data });
+    const r = parseStoredObject({
+      id,
+      type: v.type,
+      schema_version: v.schemaVersion,
+      data: v.data,
+    });
     if (!r.ok) continue;
     const o = r.object;
-    if (o.type === 'panel') panels.set(lower(o.id), panelLetter(o.data.attributes.name));
+    if (o.type === 'panel') panels.set(idKey(o.id), panelLetter(o.data.attributes.name));
     else if (o.type === 'circuit') {
       const a = o.data.attributes;
       circuits.push({ id: o.id, panel: a.panel, number: circuitNumber(a.space, a.poles) });
@@ -58,8 +62,8 @@ function circuitInfo(all: Objects): Map<string, CircuitInfo> {
   }
   const out = new Map<string, CircuitInfo>();
   for (const c of circuits) {
-    const letter = panels.get(lower(c.panel));
-    out.set(lower(c.id), {
+    const letter = panels.get(idKey(c.panel));
+    out.set(idKey(c.id), {
       id: c.id,
       number: c.number,
       tag: letter === undefined ? c.number : `${letter}-${c.number}`,
@@ -120,13 +124,13 @@ export function circuitItems(
   for (const o of onFloor) {
     if (o.type !== 'device') continue;
     const a = o.data.attributes;
-    const c = typeof a.circuit === 'string' ? info.get(lower(a.circuit)) : undefined;
+    const c = typeof a.circuit === 'string' ? info.get(idKey(a.circuit)) : undefined;
     if (c === undefined) continue;
     const at = o.data.geometry.point;
     const r = opts.radiusOf(a.kind);
     const dev = { id: o.id, at, r, layer: o.data.status };
-    devices.set(lower(o.id), dev);
-    onCircuit.add(lower(c.id));
+    devices.set(idKey(o.id), dev);
+    onCircuit.add(idKey(c.id));
     const w = measureTextPt(font, c.number, textPt) * PT_TO_MODEL_IN;
     out.push(
       text({ layer: dev.layer, objectId: o.id }, c.number, {
@@ -138,7 +142,7 @@ export function circuitItems(
   for (const key of onCircuit) {
     const c = info.get(key)!;
     const chain = circuitDeviceIds(opts.all, c.id)
-      .map((id) => devices.get(lower(id)))
+      .map((id) => devices.get(idKey(id)))
       .filter((d): d is Dev => d !== undefined);
     for (let i = 1; i < chain.length; i++) {
       const a = chain[i - 1]!;
@@ -155,7 +159,7 @@ export function circuitItems(
         to: add(b.at, u, -b.r),
       });
     }
-    const shown = opts.homeRuns || (opts.circuit !== null && lower(opts.circuit) === key);
+    const shown = opts.homeRuns || (opts.circuit !== null && idKey(opts.circuit) === key);
     const first = chain[0];
     if (!shown || first === undefined) continue;
     const u = homeRunDirection(
@@ -176,7 +180,10 @@ export function circuitItems(
       });
     const w = measureTextPt(font, c.tag, textPt) * PT_TO_MODEL_IN;
     // Past the tip by the gap and half the tag along the arrow, so it clears the tip whichever way the arrow runs.
-    const off = CIRCUIT_TAG_GAP_IN + Math.abs(u.x) * (w / 2) + Math.abs(u.y) * ((textPt * PT_TO_MODEL_IN) / 2);
+    const off =
+      CIRCUIT_TAG_GAP_IN +
+      Math.abs(u.x) * (w / 2) +
+      Math.abs(u.y) * ((textPt * PT_TO_MODEL_IN) / 2);
     out.push(text(base, c.tag, add(tip, u, off)));
   }
   return out;

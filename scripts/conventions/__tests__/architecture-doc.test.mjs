@@ -149,7 +149,7 @@ test('EZD-000 T4: Dependencies lists every package the spec names', () => {
 
   const exact = [
     'next', 'react', 'react-dom', 'typescript', 'pnpm', 'zustand', 'zod', 'vitest', '@playwright/test',
-    'idb', 'pdfkit', 'dxf-parser', 'resend', 'three', '@react-three/fiber', 'three-bvh-csg',
+    'idb', 'pdfkit', 'dxf-parser', 'resend', 'three', 'three-bvh-csg',
     'three-gpu-pathtracer', 'pdfjs-dist', 'supabase',
   ];
   for (const n of exact) assert.ok(names.includes(n), `Dependencies must list "${n}" (02 Stack / Named tools)`);

@@ -27,21 +27,23 @@ import {
 
 // Test-local walker (plan T2): unwrap optional and nullable; an object goes into its shape; an array into its
 // element with `[]`; anything else is a leaf. zod 4.6.7 keeps `.shape` on a refined object.
-function schemaLeaves(prefix: string, schema: z.ZodType): string[] {
-  let s: z.ZodType = schema;
-  while (s instanceof z.ZodOptional || s instanceof z.ZodNullable) s = s.unwrap() as z.ZodType;
-  if (s instanceof z.ZodObject) {
-    return Object.entries(s.shape as Record<string, z.ZodType>).flatMap(([key, child]) =>
+// EZD-1903: the geometry schemas are zod/mini, so the walker reads the shared zod core classes and definitions.
+function schemaLeaves(prefix: string, schema: z.core.$ZodType): string[] {
+  let s: z.core.$ZodType = schema;
+  while (s instanceof z.core.$ZodOptional || s instanceof z.core.$ZodNullable)
+    s = s._zod.def.innerType;
+  if (s instanceof z.core.$ZodObject) {
+    return Object.entries(s._zod.def.shape).flatMap(([key, child]) =>
       schemaLeaves(`${prefix}.${key}`, child),
     );
   }
-  if (s instanceof z.ZodArray) return schemaLeaves(`${prefix}[]`, s.element as z.ZodType);
+  if (s instanceof z.core.$ZodArray) return schemaLeaves(`${prefix}[]`, s._zod.def.element);
   return [prefix];
 }
 
 const allLeaves = (): string[] => [
   ...schemaLeaves('floor', floorDataSchema),
-  ...schemaLeaves('wall', wallDataSchema as unknown as z.ZodType),
+  ...schemaLeaves('wall', wallDataSchema),
   ...schemaLeaves('opening', openingDataShape),
   ...schemaLeaves('room', roomDataSchema),
 ];

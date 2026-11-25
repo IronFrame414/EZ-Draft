@@ -20,9 +20,12 @@ import {
   type CountertopEdge,
   type CountertopOverhangPreset,
   type CountertopSupportSettings,
+  CM_PER_IN,
 } from '@ezdraft/geometry';
 import { formatInches, type CatalogItem } from '../../lib/catalog/catalog';
 import { useT } from '../../lib/messages';
+import { sameId } from '../../editor/shared/ids';
+import { inchText } from '../../editor/shared/inch-text';
 import type { ModelStore } from '../../editor/model/model-store';
 import type { CountertopSelectionStore } from '../../editor/countertops/selection-store';
 import { countertopMaterialName } from '../../editor/countertops/material';
@@ -50,9 +53,7 @@ export type CountertopPieceInspectorProps = {
   canManageDefaults?: boolean;
 };
 
-const CM_PER_IN = 2.54;
 const cmText = (inches: number) => String(Math.round(inches * CM_PER_IN * 10) / 10);
-const inchText = (inches: number) => `${formatInches(inches)}"`;
 // Area to 0.1 sq ft, half up (as the left panel and the schedule).
 const areaText = (sqFt: number) => (Math.floor(sqFt * 10 + 0.5 + 1e-9) / 10).toFixed(1);
 
@@ -92,9 +93,7 @@ export function CountertopPieceInspector({
     () => selection.getState().selection,
   );
   const piece =
-    picked.pieceId === null
-      ? undefined
-      : pieces.find((p) => p.id.toLowerCase() === picked.pieceId!.toLowerCase());
+    picked.pieceId === null ? undefined : pieces.find((p) => sameId(p.id, picked.pieceId!));
   const values = useMemo(() => countertopPresetValues(defaults, pieces), [defaults, pieces]);
   const support = useMemo(() => countertopSupportSettings(defaults), [defaults]);
   if (piece === undefined) return null;

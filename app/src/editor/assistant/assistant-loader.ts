@@ -5,6 +5,7 @@
 import type { AssistantSession, AssistantSessionDeps } from './assistant-session';
 import type { PreviewStore } from './preview-store';
 import type { AssistantControls } from './controls';
+import { createListeners } from '../shared/value-store';
 
 export type AssistantLoader = {
   subscribe(listener: () => void): () => void;
@@ -27,17 +28,14 @@ export function createAssistantLoader(
   let session: AssistantSession | null = null;
   let loading = false;
   let disposed = false;
-  const listeners = new Set<() => void>();
+  const listeners = createListeners();
   const notify = () => {
-    for (const listener of [...listeners]) listener();
+    listeners.notify();
   };
   return {
     subscribe(listener) {
       if (disposed) return () => {};
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
+      return listeners.add(listener);
     },
     isOpen: () => session?.getUi().open ?? false,
     getSession: () => session,

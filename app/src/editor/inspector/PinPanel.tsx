@@ -22,6 +22,7 @@ import {
 import { pinUploadOf, type PinUploadState as Upload } from './pin-uploads';
 import styles from './InspectorPanel.module.css';
 import own from './PinPanel.module.css';
+import { sameId } from '../shared/ids';
 
 const kindKey = (kind: PinKind) => `office.pin.kind.${kind}` as MessageKey;
 
@@ -68,7 +69,7 @@ export function PinPanel({
     () => store.getState().objects,
     () => store.getState().objects,
   );
-  const value = [...objects.entries()].find(([k]) => k.toLowerCase() === pinId.toLowerCase())?.[1];
+  const value = [...objects.entries()].find(([k]) => sameId(k, pinId))?.[1];
   const data = value?.type === 'pin' ? (value.data as unknown as PinData) : null;
   const [upload, setUpload] = useState<Upload>(() => pinUploadOf(pinId).state);
   const input = useRef<HTMLInputElement>(null);

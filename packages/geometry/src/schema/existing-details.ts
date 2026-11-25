@@ -13,7 +13,7 @@
 // with the optional fixture type fields (type tag, lumens, color temperature, trim, catalog item); the access panel
 // joins `access`. Added enum values and optional fields only, so every stored object stays valid and the version
 // stays.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import {
   levelSchema,
   objectStatusSchema,
@@ -33,8 +33,8 @@ export const hvacDataSchema = z.strictObject({
   level: levelSchema,
   attributes: z.strictObject({
     kind: z.enum(HVAC_KINDS),
-    width: z.number().positive(),
-    depth: z.number().positive(),
+    width: z.number().check(z.positive()),
+    depth: z.number().check(z.positive()),
   }),
 });
 export type HvacData = z.infer<typeof hvacDataSchema>;
@@ -79,30 +79,32 @@ export const deviceDataSchema = z.strictObject({
   // version stays; absent reads as no circuit and no protection.
   attributes: z.strictObject({
     kind: z.enum(DEVICE_KINDS),
-    circuit: z.uuid().nullable().optional(),
-    protection: circuitProtectionSchema.nullable().optional(),
+    circuit: z.optional(z.nullable(z.uuid())),
+    protection: z.optional(z.nullable(circuitProtectionSchema)),
     // EZD-507: the fixture type; absent reads as not set. Color temperature is in kelvin.
-    typeTag: z.string().trim().min(1).nullable().optional(),
-    lumens: z.number().int().positive().nullable().optional(),
-    colorTemp: z.number().int().positive().nullable().optional(),
-    trim: z.string().trim().min(1).nullable().optional(),
-    catalogItemId: z.uuid().nullable().optional(),
+    typeTag: z.optional(z.nullable(z.string().check(z.trim(), z.minLength(1)))),
+    lumens: z.optional(z.nullable(z.int().check(z.positive()))),
+    colorTemp: z.optional(z.nullable(z.int().check(z.positive()))),
+    trim: z.optional(z.nullable(z.string().check(z.trim(), z.minLength(1)))),
+    catalogItemId: z.optional(z.nullable(z.uuid())),
     // EZD-515 (S05 Validation "Ceiling fan blade clearance"; vault/build/assumptions.md EZD-515): a fan's blade span,
     // tip to tip, in inches; absent reads as DEFAULT_FAN_BLADE_SPAN_IN. Optional, so the version stays.
-    bladeSpan: z.number().positive().nullable().optional(),
+    bladeSpan: z.optional(z.nullable(z.number().check(z.positive()))),
     // EZD-603 (S06 Controls "Device height note toggle ... Shows a height note (e.g. "MW +66"") on the plan for that
     // device. | Off by default."; R24 #36; 03f:13 "receptacles (GFCI/AFCI, height, circuit)"; vault/build/assumptions.md
     // EZD-603): the per-device note toggle (absent reads as off), the note's optional label ("MW") and the device's
     // height above the floor in inches (to its center). All optional, so every stored device stays valid and the
     // version stays.
-    heightNote: z.boolean().optional(),
-    heightLabel: z.string().trim().min(1).max(16).nullable().optional(),
-    height: z.number().positive().nullable().optional(),
+    heightNote: z.optional(z.boolean()),
+    heightLabel: z.optional(
+      z.nullable(z.string().check(z.trim(), z.minLength(1), z.maxLength(16))),
+    ),
+    height: z.optional(z.nullable(z.number().check(z.positive()))),
     // EZD-605 (S06 Controls "Device toolbar: Switch leg | Draw a switch leg from switch to fixtures (dashed)"; S05
     // Controls "Switching zones ... Zones sync to switch legs on the electrical plan"; vault/build/assumptions.md
     // EZD-605): on a switch, the switching zone it controls. Its switch leg runs to the lights inside that zone, worked
     // out from the outline, so a zone edit is a leg edit. Absent or null: no leg. Optional, so the version stays.
-    zone: z.uuid().nullable().optional(),
+    zone: z.optional(z.nullable(z.uuid())),
   }),
 });
 export type DeviceData = z.infer<typeof deviceDataSchema>;
@@ -115,8 +117,8 @@ export const accessDataSchema = z.strictObject({
   level: levelSchema,
   attributes: z.strictObject({
     kind: z.enum(ACCESS_KINDS),
-    width: z.number().positive(),
-    depth: z.number().positive(),
+    width: z.number().check(z.positive()),
+    depth: z.number().check(z.positive()),
   }),
 });
 export type AccessData = z.infer<typeof accessDataSchema>;
@@ -125,7 +127,7 @@ export const soffitDataSchema = z.strictObject({
   geometry: z.strictObject({ boundary: polygonSchema }),
   status: objectStatusSchema,
   level: levelSchema,
-  attributes: z.strictObject({ dropHeight: z.number().positive() }),
+  attributes: z.strictObject({ dropHeight: z.number().check(z.positive()) }),
 });
 export type SoffitData = z.infer<typeof soffitDataSchema>;
 

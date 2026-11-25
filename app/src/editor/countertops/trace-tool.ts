@@ -13,11 +13,11 @@ import {
   type ModelObject,
 } from '@ezdraft/geometry';
 import type { Change } from '../model/patches';
+import { sameId } from '../shared/ids';
 
 export type CountertopPiece = Extract<ModelObject, { type: 'countertop_piece' }>;
 
-const onLevel = (level: string | null, l: string) =>
-  level === null || l.toLowerCase() === level.toLowerCase();
+const onLevel = (level: string | null, l: string) => level === null || sameId(l, level);
 
 // The pieces on the open floor, in model order (`level` null reads every floor).
 export function countertopPieces(

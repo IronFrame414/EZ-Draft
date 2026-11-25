@@ -22,6 +22,7 @@ import type { ModelStore } from '../model/model-store';
 import type { Change, Objects } from '../model/patches';
 import { PinPhotoError, uploadPinPhoto, type PhotoAttempt } from './pin-photo';
 import styles from './InspectorPanel.module.css';
+import { sameId } from '../shared/ids';
 
 // The file chooser's filter; the extension decides the type (upload-files.ts).
 const ACCEPT = '.pdf,.jpg,.jpeg,.png,.heic,application/pdf,image/jpeg,image/png,image/heic';
@@ -36,7 +37,7 @@ export const NOTE_REFUSALS: Readonly<Record<Exclude<NoteRefusal, 'not_found'>, M
 };
 
 function noteOf(objects: Objects, noteId: string): { key: string; data: EngineerNoteData } | null {
-  const key = [...objects.keys()].find((k) => k.toLowerCase() === noteId.toLowerCase());
+  const key = [...objects.keys()].find((k) => sameId(k, noteId));
   const v = key === undefined ? undefined : objects.get(key);
   if (key === undefined || v === undefined || v.type !== 'engineer_note') return null;
   return { key, data: v.data as unknown as EngineerNoteData };

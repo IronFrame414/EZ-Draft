@@ -5,6 +5,7 @@
 // puts a profile on a top. The change is pure; the loads call the EZD-417 routes.
 import { countertopPieceProfileId, withEdgeProfile } from '@ezdraft/geometry';
 import type { Change } from '../model/patches';
+import { sameId } from '../shared/ids';
 import { countertopChange, type CountertopPiece } from './trace-tool';
 
 export type EdgeProfile = { id: string; key: string; name: string; sectionSvg: string };
@@ -21,10 +22,8 @@ export type EdgeOffer = {
 // The pill and card state of a top (S04b States).
 export type EdgeOfferState = 'not_offered' | 'open' | 'chosen';
 
-const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
-
 export function offerFor(offers: readonly EdgeOffer[] | null, pieceId: string): EdgeOffer | null {
-  return offers?.find((o) => same(o.pieceId, pieceId)) ?? null;
+  return offers?.find((o) => sameId(o.pieceId, pieceId)) ?? null;
 }
 
 export function edgeOfferState(offer: EdgeOffer | null): EdgeOfferState {
@@ -51,10 +50,10 @@ export function edgeProfileChanges(
   pieceId: string,
   profileId: string,
 ): Change[] {
-  const p = pieces.find((q) => same(q.id, pieceId));
+  const p = pieces.find((q) => sameId(q.id, pieceId));
   if (p === undefined) return [];
   const current = countertopPieceProfileId(p.data);
-  if (current !== null && same(current, profileId)) return [];
+  if (current !== null && sameId(current, profileId)) return [];
   return [countertopChange(p.id, withEdgeProfile(p.data, profileId))];
 }
 

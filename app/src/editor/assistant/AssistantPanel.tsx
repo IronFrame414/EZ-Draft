@@ -38,6 +38,7 @@ import { PreviewActions, PreviewHint } from './PreviewActions';
 import { EMPTY_PREVIEW_STATE, type PreviewState, type PreviewStore } from './preview-store';
 import actionStyles from './PreviewActions.module.css';
 import styles from './AssistantPanel.module.css';
+import { useStoreValue } from '../shared/use-store-value';
 
 const profileModule = lazyModule(() => import('../../lazy/my-profile'));
 
@@ -68,9 +69,6 @@ function ProfileLoader({ onClose }: { onClose: () => void }) {
   return <MyProfileDialog onClose={onClose} />;
 }
 
-const noSubscribe = () => () => {};
-const emptyPreview = () => EMPTY_PREVIEW_STATE;
-
 // D-Panel: the stale line's action clears the preview and puts its prompt back in the box; nothing is sent.
 export function putPromptBack(
   session: Pick<AssistantSession, 'setDraft'>,
@@ -92,23 +90,9 @@ export function AssistantPanel({
   const ui = useSyncExternalStore(session.subscribe, session.getUi, session.getUi);
   // EZD-5605: Adjust and Accept for the preview, made by the session with it.
   const controls = session.getControls();
-  const readAdjusting = () => controls?.adjust.getUi().adjusting ?? false;
-  const adjusting = useSyncExternalStore(
-    controls ? controls.adjust.subscribe : noSubscribe,
-    readAdjusting,
-    readAdjusting,
-  );
-  const readBusy = () => controls?.accept.getUi().busy ?? false;
-  const busy = useSyncExternalStore(
-    controls ? controls.accept.subscribe : noSubscribe,
-    readBusy,
-    readBusy,
-  );
-  const previewState = useSyncExternalStore(
-    preview ? preview.subscribe : noSubscribe,
-    preview ? preview.getState : emptyPreview,
-    preview ? preview.getState : emptyPreview,
-  );
+  const adjusting = useStoreValue(controls?.adjust, (a) => a.getUi().adjusting, false);
+  const busy = useStoreValue(controls?.accept, (a) => a.getUi().busy, false);
+  const previewState = useStoreValue(preview, (p) => p.getState(), EMPTY_PREVIEW_STATE);
   return (
     <>
       <AssistantPanelView

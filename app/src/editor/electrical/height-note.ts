@@ -6,6 +6,7 @@ import { formatLength, parseLength, parseStoredObject } from '@ezdraft/geometry'
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { Change, Objects } from '../model/patches';
+import { idKey } from '../shared/ids';
 
 export type HeightNoteView = {
   id: string;
@@ -27,9 +28,9 @@ export type HeightNoteEdit =
 type NoteAttrs = { kind?: unknown; heightNote?: unknown; heightLabel?: unknown; height?: unknown };
 
 function findDevice(objects: Objects, id: string): { id: string; value: ObjectValue } | null {
-  const key = id.toLowerCase();
+  const key = idKey(id);
   for (const [k, v] of objects)
-    if (k.toLowerCase() === key) return v.type === 'device' ? { id: k, value: v } : null;
+    if (idKey(k) === key) return v.type === 'device' ? { id: k, value: v } : null;
   return null;
 }
 

@@ -8,6 +8,7 @@
 //   node scripts/records.mjs backup <file>                        a consistent copy of the database
 //   node scripts/records.mjs snapshot <dir>                       the views and a JSON export of every table (D2 (a): one per phase)
 //   node scripts/records.mjs views-from-snapshot                  a checkout with no record views (CI, a fresh clone) gets the last snapshot's
+//                                                                 (vault/snapshots/ if present, else the vault-archive branch, EZD-1952)
 //   node scripts/records.mjs apply <file>                         apply a unit's results file (the launcher)
 //   node scripts/records.mjs queue '<json op>'                    record one op (queued inside a unit; see record())
 // Every command takes --db <file> (default $EZD_RECORDS_DB, else ~/.ezdraft/records.db).
@@ -23,6 +24,7 @@ import os from 'node:os';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 // node:sqlite prints one "experimental" warning on load (Node 22); it is the only warning dropped here.
 const emitWarning = process.emitWarning;
@@ -598,6 +600,23 @@ export function addNewTicketRows(vaultDir) {
   return added.map((t) => t.id);
 }
 
+// EZD-1952: vault/snapshots/ and vault/archive/ left the working tree for the orphan branch `vault-archive` (same paths,
+// see vault/README.md). The snapshot reader takes a vault/snapshots/ folder when one exists, else the local branch, else
+// origin's. read(rel) gives the file under vault/snapshots/ as a Buffer, or null when it is not there.
+export const ARCHIVE_BRANCH = 'vault-archive';
+export function snapshotSource(repoRoot) {
+  const dir = path.join(repoRoot, 'vault/snapshots');
+  if (existsSync(path.join(dir, 'LATEST'))) {
+    return { where: dir, read: (rel) => (existsSync(path.join(dir, rel)) ? readFileSync(path.join(dir, rel)) : null) };
+  }
+  const git = (...a) => execFileSync('git', ['-C', repoRoot, ...a], { stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 256 * 1024 * 1024 });
+  for (const ref of [ARCHIVE_BRANCH, `origin/${ARCHIVE_BRANCH}`]) {
+    try { git('rev-parse', '--verify', '--quiet', `${ref}^{commit}`); } catch { continue; }
+    return { where: ref, read: (rel) => { try { return git('show', `${ref}:vault/snapshots/${rel}`); } catch { return null; } } };
+  }
+  throw new Error(`no snapshot: neither vault/snapshots/ nor the ${ARCHIVE_BRANCH} branch is here (git fetch origin ${ARCHIVE_BRANCH}:${ARCHIVE_BRANCH})`);
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [cmd, ...args] = process.argv.slice(2);
   const db = openRecords(dbPath(args));
@@ -618,15 +637,17 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       if (!args[0] || args[0].startsWith('--')) { console.error('usage: records.mjs snapshot <dir>'); process.exitCode = 1; } else console.log(`snapshot: ${snapshot(db, path.resolve(args[0])).length} files under ${path.resolve(args[0])}`);
     } else if (cmd === 'views-from-snapshot') {
       // 2.14: the running records are not in git; a checkout without them reads the last committed snapshot (CI, a fresh clone).
-      const label = readFileSync(path.join(root, 'vault/snapshots/LATEST'), 'utf8').trim();
+      const snap = snapshotSource(root);
+      const label = snap.read('LATEST').toString('utf8').trim();
       let n = 0;
       let statusFromSnapshot = false;
       for (const name of [...Object.keys(DOCS), ...REPORTS]) {
-        const src = path.join(root, 'vault/snapshots', label, name);
         const dst = path.join(root, 'vault', name);
-        if (!existsSync(src) || existsSync(dst)) continue;
+        if (existsSync(dst)) continue;
+        const body = snap.read(`${label}/${name}`);
+        if (body === null) continue;
         mkdirSync(path.dirname(dst), { recursive: true });
-        writeFileSync(dst, readFileSync(src));
+        writeFileSync(dst, body);
         n++;
         if (name === 'tickets/STATUS.md') statusFromSnapshot = true;
       }

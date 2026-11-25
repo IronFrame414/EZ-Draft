@@ -10,6 +10,7 @@ import {
   type CabinetSelection,
   type CabinetSelectionInput,
 } from './cabinet-selection';
+import { sameId } from '../shared/ids';
 
 export type CabinetSelectionState = {
   selection: CabinetSelection;
@@ -33,9 +34,7 @@ export function createCabinetSelectionStore(): CabinetSelectionStore {
         if (selection === s.selection) return s;
         // The swap list belongs to one box; it closes when that box is no longer the one selected.
         const keep =
-          s.swapFor !== null &&
-          selection.ids.length === 1 &&
-          selection.ids[0]!.toLowerCase() === s.swapFor.toLowerCase();
+          s.swapFor !== null && selection.ids.length === 1 && sameId(selection.ids[0]!, s.swapFor);
         return { selection, swapFor: keep ? s.swapFor : null };
       }),
     openSwap: (id) => set({ swapFor: id }),

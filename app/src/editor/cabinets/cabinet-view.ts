@@ -40,6 +40,7 @@ import {
   type ModelObject,
 } from '@ezdraft/geometry';
 import type { Change, Objects } from '../model/patches';
+import { idKey } from '../shared/ids';
 import { libraryObject, type LibraryRow, type LibraryTrim } from './cabinet-library';
 
 export type CabinetView = {
@@ -71,10 +72,10 @@ export function modelObjects(objects: Objects): ModelObject[] {
 
 // Every run on the open floor, in model order. `floorId` null reads every floor.
 export function cabinetRuns(objects: readonly ModelObject[], floorId: string | null): CabinetRun[] {
-  const want = floorId?.toLowerCase() ?? null;
+  const want = floorId === null ? null : idKey(floorId);
   return objects.filter(
     (o): o is CabinetRun =>
-      o.type === 'cabinet_run' && (want === null || o.data.level.toLowerCase() === want),
+      o.type === 'cabinet_run' && (want === null || idKey(o.data.level) === want),
   );
 }
 
@@ -86,8 +87,8 @@ export function cabinetView(
   runId: string | null = null,
 ): CabinetView | null {
   const runs = cabinetRuns(objects, floorId);
-  const key = runId?.toLowerCase() ?? null;
-  const run = (key === null ? undefined : runs.find((r) => r.id.toLowerCase() === key)) ?? runs[0];
+  const key = runId === null ? null : idKey(runId);
+  const run = (key === null ? undefined : runs.find((r) => idKey(r.id) === key)) ?? runs[0];
   if (run === undefined) return null;
   const letter = cabinetElevationLetter(run, objects);
   return {
@@ -145,8 +146,8 @@ const objectChange = (o: ModelObject): Change => ({
 });
 
 const memberOf = (objects: readonly ModelObject[], id: string): CabinetRunMember | null => {
-  const key = id.toLowerCase();
-  const o = objects.find((x) => x.id.toLowerCase() === key);
+  const key = idKey(id);
+  const o = objects.find((x) => idKey(x.id) === key);
   return o !== undefined && isCabinetRunMember(o) ? o : null;
 };
 
@@ -175,8 +176,8 @@ export function cabinetReorderChanges(view: CabinetView, id: string, toIndex: nu
 export function cabinetDropIndex(view: CabinetView, id: string, x: number): number | null {
   const row = cabinetRowOf(view.run, id);
   if (row === null) return null;
-  const key = id.toLowerCase();
-  const slots = view.layout[row].filter((s) => s.id.toLowerCase() !== key);
+  const key = idKey(id);
+  const slots = view.layout[row].filter((s) => idKey(s.id) !== key);
   return slots.filter((s) => s.x + s.width / 2 < x).length;
 }
 
@@ -294,8 +295,8 @@ export function wallTileChanges(
 ): Change[] {
   const { face, wall, tile } = view.layout;
   if (face === null || wall === null || tile === null) return [];
-  const key = tile.id.toLowerCase();
-  const o = objects.find((x) => x.id.toLowerCase() === key);
+  const key = idKey(tile.id);
+  const o = objects.find((x) => idKey(x.id) === key);
   if (o === undefined || o.type !== 'tile_layout' || o.data.geometry.host.kind !== 'wall')
     return [];
   const positive = (n: number | undefined) => n === undefined || n > 0;
@@ -457,11 +458,11 @@ export function cabinetTrimChanges(
   trim: LibraryTrim,
   id: string,
 ): Change[] {
-  const runKey = view.run.id.toLowerCase();
+  const runKey = idKey(view.run.id);
   const has = objects.some(
     (o) =>
       o.type === 'cabinet_trim' &&
-      o.data.geometry.runId.toLowerCase() === runKey &&
+      idKey(o.data.geometry.runId) === runKey &&
       o.data.geometry.row === trim.row &&
       o.data.attributes.kind === trim.kind,
   );

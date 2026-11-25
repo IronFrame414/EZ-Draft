@@ -7,6 +7,7 @@
 import type { Objects } from '../model/patches';
 import { takenSpaces } from './circuits';
 import { circuitRows, panelRows, type CircuitRow } from './electrical';
+import { sameId } from '../shared/ids';
 
 export type ScheduleSpace = {
   space: number;
@@ -32,7 +33,7 @@ export type ScheduleRow = { left: ScheduleSpace; right: ScheduleSpace };
  */
 export function panelSchedule(objects: Objects, panelId: string | null): PanelSchedule | null {
   if (panelId === null) return null;
-  const panel = panelRows(objects).find((p) => p.id.toLowerCase() === panelId.toLowerCase());
+  const panel = panelRows(objects).find((p) => sameId(p.id, panelId));
   if (panel === undefined) return null;
   const at = new Map<number, ScheduleSpace>();
   for (const c of circuitRows(objects, panel.id)) {

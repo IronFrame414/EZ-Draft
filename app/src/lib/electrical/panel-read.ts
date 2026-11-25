@@ -3,7 +3,7 @@
 // directory values must be confirmed before use"; 02 Stack "AI runs in jobs"; Q-0637 photo row): the two panel photo
 // reads, shared by the browser and the server. A read answers values for the user to confirm, never model changes.
 // Pure: no React, no Supabase.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 
 export const PANEL_LABEL_PURPOSE = 'panel.label';
 export const PANEL_DIRECTORY_PURPOSE = 'panel.directory';
@@ -28,16 +28,16 @@ export const DIRECTORY_MAX_CIRCUITS = PANEL_MAX_SPACES;
 export const CIRCUIT_NAME_MAX = 80;
 
 export const panelLabelSchema = z.strictObject({
-  brand: z.string().min(1).max(80).nullable(),
-  rating: z.number().int().positive().max(PANEL_MAX_AMPS).nullable(),
-  spaces: z.number().int().positive().max(PANEL_MAX_SPACES).nullable(),
+  brand: z.nullable(z.string().check(z.minLength(1), z.maxLength(80))),
+  rating: z.nullable(z.int().check(z.positive(), z.lte(PANEL_MAX_AMPS))),
+  spaces: z.nullable(z.int().check(z.positive(), z.lte(PANEL_MAX_SPACES))),
 });
 export type PanelLabel = z.infer<typeof panelLabelSchema>;
 
 export const directoryCircuitSchema = z.strictObject({
-  space: z.number().int().positive().max(PANEL_MAX_SPACES),
-  name: z.string().max(CIRCUIT_NAME_MAX),
-  breaker: z.number().int().positive().max(PANEL_MAX_AMPS),
+  space: z.int().check(z.positive(), z.lte(PANEL_MAX_SPACES)),
+  name: z.string().check(z.maxLength(CIRCUIT_NAME_MAX)),
+  breaker: z.int().check(z.positive(), z.lte(PANEL_MAX_AMPS)),
   poles: z.union([z.literal(1), z.literal(2)]),
 });
 export type DirectoryCircuit = z.infer<typeof directoryCircuitSchema>;
@@ -51,7 +51,7 @@ export type PanelLabelOutput = z.infer<typeof panelLabelOutputSchema>;
 export const panelDirectoryOutputSchema = z.union([
   z.strictObject({
     status: z.literal('read'),
-    circuits: z.array(directoryCircuitSchema).max(DIRECTORY_MAX_CIRCUITS),
+    circuits: z.array(directoryCircuitSchema).check(z.maxLength(DIRECTORY_MAX_CIRCUITS)),
   }),
   z.strictObject({ status: z.literal('unreadable') }),
 ]);
@@ -62,6 +62,6 @@ export type PanelReadOutput<R extends PanelRead> = R extends 'label'
   : PanelDirectoryOutput;
 
 export const panelReadOutputSchema = <R extends PanelRead>(read: R) =>
-  (read === 'label' ? panelLabelOutputSchema : panelDirectoryOutputSchema) as z.ZodType<
+  (read === 'label' ? panelLabelOutputSchema : panelDirectoryOutputSchema) as z.ZodMiniType<
     PanelReadOutput<R>
   >;

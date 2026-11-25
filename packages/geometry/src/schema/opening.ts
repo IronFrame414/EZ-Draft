@@ -5,7 +5,7 @@
 // EZD-204a Build step 1 (vault/plans/EZD-204a.md section 1, Decided "Opening v4"; Q-0630 rows 4, 14, 38; Q-0633
 // G11; Q-0640 rows 2, 7; Q-0508): version 4 adds `axis`, `swing`, `hand`, `impactRating`, `shutterType` and
 // `roughOpeningMode`, with one refine over doors, shutters and the flagged axis.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { NUMBER_MAX } from '../numbers';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
 
@@ -31,36 +31,41 @@ export type RoughOpeningMode = (typeof ROUGH_OPENING_MODES)[number];
 export const openingDataShape = z.strictObject({
   geometry: z.strictObject({
     center: pointSchema,
-    hostWallId: z.uuid().nullable(),
-    axis: pointSchema.nullable(),
+    hostWallId: z.nullable(z.uuid()),
+    axis: z.nullable(pointSchema),
   }),
   status: objectStatusSchema,
   level: levelSchema,
   attributes: z.strictObject({
     kind: z.enum(['door', 'window']),
-    width: z.number().positive(),
-    height: z.number().positive(),
-    roughOpening: z.strictObject({ width: z.number().positive(), height: z.number().positive() }),
-    sillHeight: z.number().min(0),
+    width: z.number().check(z.positive()),
+    height: z.number().check(z.positive()),
+    roughOpening: z.strictObject({
+      width: z.number().check(z.positive()),
+      height: z.number().check(z.positive()),
+    }),
+    sillHeight: z.number().check(z.gte(0)),
     // EZD-366 Build step 3 (vault/plans/EZD-366.md; D-099): no number above NUMBER_MAX.
-    number: z.int().min(1).max(NUMBER_MAX).optional(),
-    swing: z.enum(DOOR_SWINGS).nullable(),
-    hand: z.enum(DOOR_HANDS).nullable(),
+    number: z.optional(z.int().check(z.gte(1), z.lte(NUMBER_MAX))),
+    swing: z.nullable(z.enum(DOOR_SWINGS)),
+    hand: z.nullable(z.enum(DOOR_HANDS)),
     impactRating: z.enum(IMPACT_RATINGS),
-    shutterType: z.enum(SHUTTER_TYPES).nullable(),
+    shutterType: z.nullable(z.enum(SHUTTER_TYPES)),
     roughOpeningMode: z.enum(ROUGH_OPENING_MODES),
   }),
 });
 
-export const openingDataSchema = openingDataShape.refine((d) => {
-  const a = d.attributes;
-  const g = d.geometry;
-  const doorFields =
-    a.kind === 'door' ? a.swing !== null && a.hand !== null : a.swing === null && a.hand === null;
-  const shutter = a.shutterType === null || a.impactRating === 'shutter';
-  const hostedAxis = g.hostWallId === null || g.axis === null;
-  const unitAxis =
-    g.axis === null || Math.abs(Math.hypot(g.axis.x, g.axis.y) - 1) <= AXIS_UNIT_TOLERANCE;
-  return doorFields && shutter && hostedAxis && unitAxis;
-});
+export const openingDataSchema = openingDataShape.check(
+  z.refine((d) => {
+    const a = d.attributes;
+    const g = d.geometry;
+    const doorFields =
+      a.kind === 'door' ? a.swing !== null && a.hand !== null : a.swing === null && a.hand === null;
+    const shutter = a.shutterType === null || a.impactRating === 'shutter';
+    const hostedAxis = g.hostWallId === null || g.axis === null;
+    const unitAxis =
+      g.axis === null || Math.abs(Math.hypot(g.axis.x, g.axis.y) - 1) <= AXIS_UNIT_TOLERANCE;
+    return doorFields && shutter && hostedAxis && unitAxis;
+  }),
+);
 export type OpeningData = z.infer<typeof openingDataSchema>;

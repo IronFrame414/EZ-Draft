@@ -34,7 +34,13 @@ export type LockUiDeps = {
   wasHolding: boolean;
   controller: Pick<
     LockController,
-    'get' | 'subscribe' | 'startEditing' | 'requestEdit' | 'cancelRequest' | 'keepEditing' | 'release'
+    | 'get'
+    | 'subscribe'
+    | 'startEditing'
+    | 'requestEdit'
+    | 'cancelRequest'
+    | 'keepEditing'
+    | 'release'
   >;
   // Drain, checkpoint, release (EZD-125 session-lock.ts stopEditing).
   stopEditing: () => Promise<Outcome | { ok: false; step: string; code: string }>;
@@ -100,11 +106,11 @@ const defaultTimers: LockUiTimers = {
   now: () => Date.now(),
 };
 
-// Equal when every field the parts draw is equal (`people` is replaced only when names arrive).
+// Equal when every field the parts draw is equal (`people` is replaced only when names arrive). `loaded` is not
+// drawn (EZD-1976): the first read that confirms what the open already knew changes nothing on screen.
 function sameState(a: LockUiState, b: LockUiState): boolean {
-  const { avatars: aa, people: ap, ...ar } = a;
-  const { avatars: ba, people: bp, ...br } = b;
-  return ap === bp && JSON.stringify([ar, aa]) === JSON.stringify([br, ba]);
+  const drawn = (s: LockUiState) => JSON.stringify({ ...s, people: null, loaded: null });
+  return a.people === b.people && drawn(a) === drawn(b);
 }
 
 const nameOf = (s: string | undefined | null): string | null => (s?.trim() ? s.trim() : null);
@@ -146,14 +152,17 @@ export function createLockUiStore(deps: LockUiDeps): LockUiStore {
     if (availableId !== null) toasts.dismiss(availableId);
     const base =
       free || name === null
-      ? { message: 'office.lock.available_free' as const }
-      : { message: 'office.lock.available' as const, params: { name } };
+        ? { message: 'office.lock.available_free' as const }
+        : { message: 'office.lock.available' as const, params: { name } };
     availableId = show(
       deps.canEditModel
         ? {
             ...base,
             tone: 'success',
-            action: { label: 'office.lock.start_editing', onPress: () => void store.startEditing() },
+            action: {
+              label: 'office.lock.start_editing',
+              onPress: () => void store.startEditing(),
+            },
           }
         : { ...base, tone: 'success' },
     );
@@ -168,7 +177,8 @@ export function createLockUiStore(deps: LockUiDeps): LockUiStore {
     if (!lock || lock.holder?.appUserId !== viewerId || lock.requests.length === 0) return null;
     return [...lock.requests].sort(
       (a, b) =>
-        Date.parse(a.deadlineAt) - Date.parse(b.deadlineAt) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+        Date.parse(a.deadlineAt) - Date.parse(b.deadlineAt) ||
+        (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
     )[0];
   }
 
@@ -191,7 +201,10 @@ export function createLockUiStore(deps: LockUiDeps): LockUiStore {
     const lock = v.status === 'ready' ? v.lock : null;
     const loaded = lock !== null;
     const holderId = lock?.holder?.appUserId ?? null;
-    const isHolder = loaded && holderId === viewerId;
+    // EZD-1976: before the first read, a tab that took the lock at open is the holder (the open's acquire said
+    // so). Stop editing then shows with the lock UI itself, and the read that confirms it makes no React commit
+    // while the person is already drawing (11 rule 4). A read that finds the lock gone corrects it (lockLost).
+    const isHolder = loaded ? holderId === viewerId : deps.wasHolding;
     const q = pickPrompt();
     return {
       loaded,
@@ -239,7 +252,8 @@ export function createLockUiStore(deps: LockUiDeps): LockUiStore {
     if (disposed) return;
     const next = compute();
     const changed = !sameState(state, next);
-    state = changed ? next : state;
+    // Only `loaded` differs: the state is replaced without telling anybody.
+    state = changed || next.loaded !== state.loaded ? next : state;
     if (state.prompt && tick === null) {
       tick = timers.setInterval(() => {
         const next = compute();
@@ -291,7 +305,8 @@ export function createLockUiStore(deps: LockUiDeps): LockUiStore {
       }
       // The first read (the lock UI loads on the first input) finds the lock free while this tab does not hold it:
       // a member with Edit model gets Start editing, or they would stay view only until a reload (S06:77-78).
-      if (prevHolder === undefined && holder === null && deps.canEditModel) showAvailable(null, true);
+      if (prevHolder === undefined && holder === null && deps.canEditModel)
+        showAvailable(null, true);
       if (holder !== null && availableId !== null) {
         toasts.dismiss(availableId);
         availableId = null;
@@ -325,7 +340,10 @@ export function createLockUiStore(deps: LockUiDeps): LockUiStore {
       if (disposed || event === null) return;
       if (event.name === 'lock.auto_released' && event.payload.formerHolderAppUserId === viewerId) {
         pendingCause = 'auto';
-      } else if (event.name === 'lock.released' && event.payload.formerHolderAppUserId === viewerId) {
+      } else if (
+        event.name === 'lock.released' &&
+        event.payload.formerHolderAppUserId === viewerId
+      ) {
         pendingCause = 'other_device';
       } else if (
         event.name === 'lock.request_declined' &&

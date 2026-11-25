@@ -21,14 +21,14 @@
 // its label photo (a panel_photo source_file, checked on save) and the existing large appliances, each with its
 // rating in VA when known (null: the calc's default, EZD-614). The existing circuit list is the panel's circuits of
 // status existing. All three optional, so every stored object stays valid and the version stays.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
 
 export const CIRCUIT_PROTECTIONS = ['gfci', 'afci', 'dual'] as const;
 export type CircuitProtection = (typeof CIRCUIT_PROTECTIONS)[number];
 export const circuitProtectionSchema = z.enum(CIRCUIT_PROTECTIONS);
 
-const amps = z.number().int().positive();
+const amps = z.int().check(z.positive());
 
 export const PANEL_BRAND_MAX = 80;
 
@@ -37,7 +37,7 @@ export const EXISTING_APPLIANCE_KINDS = ['range', 'dryer', 'ac', 'water_heater']
 export type ExistingApplianceKind = (typeof EXISTING_APPLIANCE_KINDS)[number];
 export const existingApplianceSchema = z.strictObject({
   kind: z.enum(EXISTING_APPLIANCE_KINDS),
-  va: z.number().int().positive().nullable(),
+  va: z.nullable(z.int().check(z.positive())),
 });
 export type ExistingAppliance = z.infer<typeof existingApplianceSchema>;
 
@@ -46,14 +46,16 @@ export const panelDataSchema = z.strictObject({
   status: objectStatusSchema,
   level: levelSchema,
   attributes: z.strictObject({
-    name: z.string().min(1),
-    parentPanel: z.uuid().nullable(),
-    serviceSize: amps.nullable(),
-    mainBreaker: amps.nullable(),
-    spaces: z.number().int().positive().nullable(),
-    brand: z.string().min(1).max(PANEL_BRAND_MAX).nullable().optional(),
-    labelPhoto: z.uuid().nullable().optional(),
-    appliances: z.array(existingApplianceSchema).max(EXISTING_APPLIANCE_KINDS.length).optional(),
+    name: z.string().check(z.minLength(1)),
+    parentPanel: z.nullable(z.uuid()),
+    serviceSize: z.nullable(amps),
+    mainBreaker: z.nullable(amps),
+    spaces: z.nullable(z.int().check(z.positive())),
+    brand: z.optional(z.nullable(z.string().check(z.minLength(1), z.maxLength(PANEL_BRAND_MAX)))),
+    labelPhoto: z.optional(z.nullable(z.uuid())),
+    appliances: z.optional(
+      z.array(existingApplianceSchema).check(z.maxLength(EXISTING_APPLIANCE_KINDS.length)),
+    ),
   }),
 });
 export type PanelData = z.infer<typeof panelDataSchema>;
@@ -84,15 +86,15 @@ export const circuitDataSchema = z.strictObject({
   level: levelSchema,
   attributes: z.strictObject({
     panel: z.uuid(),
-    space: z.number().int().positive(),
+    space: z.int().check(z.positive()),
     poles: z.union([z.literal(1), z.literal(2)]),
     name: z.string(),
     breaker: amps,
-    protection: circuitProtectionSchema.nullable(),
+    protection: z.nullable(circuitProtectionSchema),
     dedicated: z.boolean(),
-    load: z.number().nonnegative(),
-    wire: wireSizeSchema.optional(),
-    order: z.array(z.uuid()).optional(),
+    load: z.number().check(z.nonnegative()),
+    wire: z.optional(wireSizeSchema),
+    order: z.optional(z.array(z.uuid())),
   }),
 });
 export type CircuitData = z.infer<typeof circuitDataSchema>;

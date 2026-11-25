@@ -3,7 +3,7 @@
 // length, spacing/count, direction, placement, height, finish, end detail)"; 03f "Ceiling objects: beams"): one
 // `beam` object is a beam set on one room's ceiling. The beams themselves are worked out from the room
 // (ceiling/beams.ts), never stored. The finish joins with EZD-516. A new type, so the version stays.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
 
 export const BEAM_PLACEMENTS = ['level_in_vault', 'follow_slope', 'on_flat'] as const;
@@ -18,12 +18,12 @@ export type BeamDirection = (typeof BEAM_DIRECTIONS)[number];
 export const BEAM_END_DETAILS = ['square', 'corbel'] as const;
 export type BeamEndDetail = (typeof BEAM_END_DETAILS)[number];
 
-const positive = z.number().finite().positive();
+const positive = z.number().check(z.positive());
 
 // S05 "Spacing input: On-center spacing across the span. Mutually exclusive with Count."
 export const beamLayoutSchema = z.discriminatedUnion('by', [
   z.strictObject({ by: z.literal('spacing'), spacing: positive }),
-  z.strictObject({ by: z.literal('count'), count: z.int().min(1).max(200) }),
+  z.strictObject({ by: z.literal('count'), count: z.int().check(z.gte(1), z.lte(200)) }),
 ]);
 export type BeamLayoutBy = z.infer<typeof beamLayoutSchema>;
 
@@ -38,12 +38,12 @@ export const beamDataSchema = z.strictObject({
     heightAff: positive,
     match: z.enum(BEAM_MATCHES),
     // The adjoining room Height AFF is copied from when Match is Adjoining room.
-    matchRoomId: z.uuid().nullable(),
+    matchRoomId: z.nullable(z.uuid()),
     width: positive,
     height: positive,
     layout: beamLayoutSchema,
     // null: wall to wall span (S05 "Default is wall to wall span").
-    length: positive.nullable(),
+    length: z.nullable(positive),
     direction: z.enum(BEAM_DIRECTIONS),
     endDetail: z.enum(BEAM_END_DETAILS),
   }),

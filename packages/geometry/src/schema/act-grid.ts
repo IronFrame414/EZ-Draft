@@ -7,7 +7,7 @@
 //   start out from the room each time (ceiling/act-grid.ts), so it follows the room's walls.
 // - `balanced`: true until the user sets the start point.
 // The border sizes are worked out, never stored. One grid per room. A new type, so the schema version stays.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
 
 export const ACT_MODULES = ['2x2', '2x4'] as const;

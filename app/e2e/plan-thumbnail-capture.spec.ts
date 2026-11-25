@@ -17,6 +17,7 @@ import {
   setPermissions,
   test,
 } from '../test-harness/e2e/test';
+import { BENCHMARK_EDITOR_READY_TIMEOUT_MS } from '../test-harness/e2e/benchmark-open';
 import { appOriginHeaders } from '../test-harness/e2e/same-origin';
 import { seedFixtureS } from '../test-harness/projects-fixture';
 
@@ -55,9 +56,13 @@ const editorState = (page: Page) => page.getByTestId('editor-state');
 const planCanvas = (page: Page) => page.getByTestId('plan-canvas');
 const canvasRegion = (page: Page) => page.locator('[data-shell-region="canvas"]');
 
-async function openReady(page: Page, projectId: string) {
+// `editorReadyTimeout` is left out for small projects (Playwright's default 5 s). Only the benchmark project
+// passes one (EZD-1989): the allowance EZD-1971 settled for its first open on the CI runner.
+async function openReady(page: Page, projectId: string, editorReadyTimeout?: number) {
   await page.goto(`/projects/${projectId}`);
-  await expect(editorState(page)).toHaveAttribute('data-editor-state', 'ready');
+  await expect(editorState(page)).toHaveAttribute('data-editor-state', 'ready', {
+    timeout: editorReadyTimeout,
+  });
   await expect(planCanvas(page)).toHaveAttribute('data-plan-state', 'ready');
 }
 
@@ -147,7 +152,7 @@ test.describe('EZD-224b plan thumbnail capture', () => {
     expect(made.status()).toBe(201);
     const id = ((await made.json()) as { project: { id: string } }).project.id;
 
-    await openReady(page, id);
+    await openReady(page, id, BENCHMARK_EDITOR_READY_TIMEOUT_MS);
     await expect
       .poll(() => stat(page, 'glyphs'), { intervals: [100], timeout: 15_000 })
       .toBeGreaterThan(0);

@@ -2,7 +2,7 @@
 
 Remodel CAD and permit-set web app for Worth Properties (tenant 1), served at ezdraft.ezcontractorbinder.com. Owner: Josh Bishop, a general contractor, not a programmer. He decides product, design and wording; agents decide how to build.
 
-Build process (v3, 2026-11-13): one Opus builder per ticket, one fresh Fable reviewer, `scripts/check.mjs` as the gate, run by `scripts/loop.mjs`. The old process is archived in `vault/archive/` and is not followed.
+Build process (v3, 2026-11-13): one Opus builder per ticket, one fresh Fable reviewer, `scripts/check.mjs` as the gate, run by `scripts/loop.mjs`. The old process is archived on the `vault-archive` branch (`vault/archive/`, see `vault/README.md`) and is not followed.
 
 ## Stack
 Next.js + React + TypeScript (app in `app/`), geometry in `packages/geometry`, Three.js via React Three Fiber, Supabase (Postgres with RLS, Auth, Storage), Vercel. pnpm workspace. Full versions and layout: `docs/architecture.md`, read by section with `node vault/tools/outline.mjs docs/architecture.md --section '<heading>'` (`--headings` lists them).
