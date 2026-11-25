@@ -6,7 +6,11 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import { en } from '../src/server/messages/catalogs/en';
 import { es } from '../src/server/messages/catalogs/es';
-import { cleanupTestMembers, createTestMember } from '../test-harness/auth-users';
+import {
+  cleanupTestMembers,
+  createPasswordMember,
+  createTestMember,
+} from '../test-harness/auth-users';
 import { waitForAuthEmail, type AuthEmail } from '../test-harness/mail-catcher';
 import { adminDb, cleanup, closeHarness, createTenant } from '../test-harness/rls/fixtures';
 import { signInWithCode } from '../test-harness/sign-in';
@@ -417,4 +421,105 @@ test.describe('EZD-007f sign-in pages', () => {
     expect((esText as string).trim()).not.toBe('');
     expect(esText).not.toBe(enText);
   });
+});
+
+// EZD-1977 (AC-EZD-1977-1, -2; audit 2026-11-24 F2 / U4): signed out, a deep link goes to sign-in carrying the
+// page, and signing in lands there; a crafted outside return address lands on Projects.
+test.describe('EZD-1977 sign-in returns to the asked-for page', () => {
+  const DEEP = '/settings/users';
+  let returnTenant: string;
+
+  test.beforeAll(async () => {
+    returnTenant = await createTenant();
+  });
+
+  test.afterAll(async () => {
+    await cleanupTestMembers();
+    await cleanup();
+    await closeHarness();
+  });
+
+  const atSignInFor = async (page: Page, deep: string) => {
+    await page.goto(deep);
+    await page.waitForURL((u) => u.pathname === '/sign-in');
+    expect(new URL(page.url()).searchParams.get('next')).toBe(deep);
+  };
+
+  test('EZD-1977 a deep link survives email and password sign-in', async ({ browser, baseURL }) => {
+    const m = await createPasswordMember({ tenantId: returnTenant });
+    const context = await newContext(browser, baseURL);
+    const page = await context.newPage();
+    await atSignInFor(page, DEEP);
+    await page.getByTestId('sign-in-email').fill(m.email);
+    await page.getByTestId('sign-in-password').fill(m.password);
+    await page.getByTestId('sign-in-password-submit').click();
+    await page.waitForURL((u) => u.pathname === DEEP);
+    expect(path(page)).toBe(DEEP);
+    await expect(page.getByTestId('avatar-menu-trigger')).toBeVisible();
+    await context.close();
+  });
+
+  test('EZD-1977 a deep link survives the emailed sign-in link', async ({ browser, baseURL }) => {
+    const m = await createTestMember({ tenantId: returnTenant, status: 'active' });
+    const context = await newContext(browser, baseURL);
+    const page = await context.newPage();
+    await atSignInFor(page, DEEP);
+    await page.getByTestId('sign-in-email').fill(m.email);
+    const after = new Date();
+    await page.getByTestId('sign-in-submit').click();
+    await page.getByTestId('sign-in-link-send').click();
+    await page.getByTestId('sign-in-code').waitFor({ state: 'visible' });
+    const mail = await waitForAuthEmail(m.email, { after });
+    await page.goto(mail.link);
+    await page.getByTestId('confirm-submit').click();
+    await page.waitForURL((u) => u.pathname === DEEP);
+    expect(path(page)).toBe(DEEP);
+    await context.close();
+  });
+
+  for (const crafted of ['https://evil.example/settings/users', '//evil.example/settings/users']) {
+    test(`EZD-1977 a crafted return address ${crafted} lands on Projects`, async ({
+      browser,
+      baseURL,
+    }) => {
+      const m = await createPasswordMember({ tenantId: returnTenant });
+      const context = await newContext(browser, baseURL);
+      const hosts = new Set<string>();
+      context.on('request', (r) => hosts.add(new URL(r.url()).host));
+      const page = await context.newPage();
+      await page.goto(`/sign-in?next=${encodeURIComponent(crafted)}`);
+      await page.getByTestId('sign-in-email').fill(m.email);
+      await page.getByTestId('sign-in-password').fill(m.password);
+      await page.getByTestId('sign-in-password-submit').click();
+      await page.waitForURL((u) => u.pathname === '/');
+      expect(new URL(page.url()).origin).toBe(new URL(baseURL ?? '').origin);
+      expect(path(page)).toBe('/');
+      expect(hosts.has('evil.example')).toBe(false);
+      await context.close();
+    });
+  }
+
+  // A signed-in visitor to /sign-in is sent on by the page itself; dot segments must not make another host.
+  for (const crafted of ['/.//evil.example', '/a/..//evil.example', '/%2e//evil.example']) {
+    test(`EZD-1977 signed in, /sign-in?next=${crafted} lands on Projects`, async ({
+      browser,
+      baseURL,
+    }) => {
+      const m = await createPasswordMember({ tenantId: returnTenant });
+      const context = await newContext(browser, baseURL);
+      const hosts = new Set<string>();
+      context.on('request', (r) => hosts.add(new URL(r.url()).host));
+      const page = await context.newPage();
+      await page.goto('/sign-in');
+      await page.getByTestId('sign-in-email').fill(m.email);
+      await page.getByTestId('sign-in-password').fill(m.password);
+      await page.getByTestId('sign-in-password-submit').click();
+      await page.waitForURL((u) => u.pathname === '/');
+      await page.goto(`/sign-in?next=${encodeURIComponent(crafted)}`);
+      await page.waitForURL((u) => u.pathname === '/');
+      expect(new URL(page.url()).origin).toBe(new URL(baseURL ?? '').origin);
+      expect(hosts.has('evil.example')).toBe(false);
+      await context.close();
+    });
+  }
 });

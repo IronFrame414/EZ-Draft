@@ -81,10 +81,13 @@ async function run(prev: State, formData: FormData): Promise<State> {
 
 export function SignInForm({
   initialEmail,
+  next = null,
   initialError,
   captcha,
 }: {
   initialEmail: string | null;
+  // EZD-1977: the checked page to land on after sign-in (null: Projects), sent with every step.
+  next?: string | null;
   initialError: 'no_access' | null;
   captcha: CaptchaSetup | null;
 }) {
@@ -118,7 +121,11 @@ export function SignInForm({
     return (
       <>
         <h1 className={styles.title}>{t('common.sign_in.invite_code_title')}</h1>
-        <InviteCodeForm initialEmail={state.typedEmail} onBack={() => setInviteMode(false)} />
+        <InviteCodeForm
+          initialEmail={state.typedEmail}
+          next={next}
+          onBack={() => setInviteMode(false)}
+        />
       </>
     );
   }
@@ -151,6 +158,7 @@ export function SignInForm({
             defaultValue={state.typedEmail ?? ''}
             data-testid="sign-in-email"
           />
+          {next !== null && <input type="hidden" name="next" value={next} />}
           {view === 'password' && (
             <>
               <label className={styles.label} htmlFor="sign-in-password">
@@ -261,6 +269,7 @@ export function SignInForm({
           {t('common.sign_in.check_spam')}
         </p>
         <input type="hidden" name="email" value={state.email} />
+        {next !== null && <input type="hidden" name="next" value={next} />}
         <label className={styles.label} htmlFor="sign-in-code">
           {t('common.sign_in.code_label')}
         </label>

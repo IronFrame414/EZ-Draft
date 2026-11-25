@@ -36,9 +36,12 @@ async function run(prev: State, formData: FormData): Promise<State> {
 
 export function InviteCodeForm({
   initialEmail,
+  next = null,
   onBack,
 }: {
   initialEmail: string | null;
+  // EZD-1977: the checked page to land on after Join (null: Projects).
+  next?: string | null;
   onBack: () => void;
 }) {
   const t = useT();
@@ -60,6 +63,7 @@ export function InviteCodeForm({
       data-tries={state.tries}
     >
       <p className={styles.text}>{t('common.sign_in.invite_code_intro')}</p>
+      {next !== null && <input type="hidden" name="next" value={next} />}
       {state.error ? (
         <p className={styles.error} role="alert" data-testid="invite-code-error">
           {t(
