@@ -512,7 +512,8 @@
     "EZD-1902",
     "EZD-1960",
     "EZD-1944",
-    "EZD-1905"
+    "EZD-1905",
+    "EZD-1906b"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1990,6 +1991,14 @@
       "ts": "2026-11-25T05:39:37Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1906b",
+      "title": "Editor shared helpers in electrical, assistant, inspector, versions, floors",
+      "commit": "b64c9562",
+      "ts": "2026-11-25T06:00:14Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2207,14 +2216,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-1906b": {
-      "lane": 3,
-      "title": "Editor shared helpers in electrical, assistant, inspector, versions, floors",
-      "started": "2026-11-25T04:53:25Z",
-      "develop": "fbd8f58c"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-25T04:18:01Z",
   "hold": {},
   "perf_trend_at": "2026-11-25T03:16:23Z"
