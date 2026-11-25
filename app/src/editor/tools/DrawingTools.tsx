@@ -12,8 +12,9 @@
 // EZD-212c (vault/plans/EZD-212c.md D18-D20): resize handles, wall chip leaders, selection and size chips, chips as
 // text without Edit model, the typed bar for a handle drag or chip entry, and the tablet Cancel.
 // EZD-5603a Build step 11 (vault/plans/EZD-5603a.md Decided "Rail button"): the Assistant toggle in the bottom group.
-// EZD-234 Build: the Fixtures panel while the Fixtures tool is on, and the utilities-to-move card after a move, both
-// loaded through lazyModule on first use (11 rule 7), showing nothing until the code is there.
+// EZD-234 Build: the utilities-to-move card after a move, loaded through lazyModule on first use (11 rule 7), showing
+// nothing until the code is there. EZD-1985 (Q-0809 (a)): the Fixtures panel docks in the inspector place
+// (ProjectEditor), no longer over the plan.
 // EZD-223 (S03 Sketch): the sketch strokes path; the Sketch tool shows no typed bar.
 // EZD-231 (04 Tool rail Measure): the measure distance chip; the Measure tool shows no typed bar.
 // EZD-225 (S06:48; Q-0697 decisions 05): the rail's paused tools for a viewer with Edit model but not the lock.
@@ -48,7 +49,7 @@ import {
 import type { SelectionController } from '../selection/selection-controller';
 import { TypedEntryLayer } from '../typed-entry/TypedEntryLayer';
 import type { DrawingController, DrawingFrame, DrawingUi } from './drawing-controller';
-import type { FixturesPanelProps, UtilitiesToMoveProps } from '../../lazy/fixtures-panel';
+import type { UtilitiesToMoveProps } from '../../lazy/fixtures-panel';
 import { fixturesModule } from './fixtures-module';
 import { lazyModule } from '../../lib/lazy/lazy-module';
 import { GapBoxes } from './GapBoxes';
@@ -80,11 +81,6 @@ function useFixturesModule() {
     };
   }, [mod]);
   return mod;
-}
-
-function LazyFixturesPanel(props: FixturesPanelProps) {
-  const mod = useFixturesModule();
-  return mod ? <mod.FixturesPanel {...props} /> : null;
 }
 
 function LazyUtilitiesToMove(props: UtilitiesToMoveProps) {
@@ -595,9 +591,6 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
               : 'office.tools.opening.door_tip_hand',
           )}
         </div>
-      ) : null}
-      {ui.tool === 'fixtures' && ui.fixtureChoice !== null ? (
-        <LazyFixturesPanel choice={ui.fixtureChoice} onChoose={controller.setFixtureChoice} />
       ) : null}
       {ui.utilities !== null ? (
         <LazyUtilitiesToMove moved={ui.utilities} onClose={controller.dismissUtilities} />
