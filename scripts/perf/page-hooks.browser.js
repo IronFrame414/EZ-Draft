@@ -31,6 +31,66 @@
   }
   window.__EZD_PERF__ = perf;
 
+  // EZD-1976: with traceCommits on, each commit records which components rendered first (a component whose parent
+  // did not render: the one whose own state or store changed), so a test that counts commits can say who committed.
+  // Off by default: the walk costs time the pan and load measurements must not pay.
+  perf.traceCommits = false;
+  perf.commitLog = [];
+  var COMPOSITE = { 0: true, 1: true, 11: true, 14: true, 15: true };
+  function hostName(fiber) {
+    for (var f = fiber; f; f = f.child) {
+      if (f.tag === 5 && f.stateNode && f.stateNode.getAttribute) {
+        var el = f.stateNode;
+        return (
+          el.getAttribute('data-testid') ||
+          el.getAttribute('data-shell-region') ||
+          el.tagName.toLowerCase() + (el.id ? '#' + el.id : '')
+        );
+      }
+    }
+    return '';
+  }
+  function fiberName(fiber) {
+    var t = fiber.type;
+    var name = '';
+    if (typeof t === 'function') name = t.displayName || t.name;
+    else if (t && typeof t === 'object')
+      name = t.displayName || (t.render && t.render.name) || (t.type && t.type.name);
+    return (name || '?') + '<' + hostName(fiber) + '>';
+  }
+  function changedHooks(next, prev) {
+    var out = [];
+    var a = next.memoizedState;
+    var b = prev.memoizedState;
+    for (var i = 0; a && b && typeof a === 'object' && 'next' in a; i++, a = a.next, b = b.next) {
+      if (a.queue && a.memoizedState !== b.memoizedState) out.push(i);
+    }
+    return out;
+  }
+  function walk(next, prev, parentRendered, path, out) {
+    var rendered = COMPOSITE[next.tag] === true && (next.flags & 1) === 1;
+    var here = COMPOSITE[next.tag] === true ? path.concat(fiberName(next)) : path;
+    if (rendered && !parentRendered) {
+      out.push({ who: here.slice(-4).join(' > '), hooks: changedHooks(next, prev) });
+    }
+    if (next.child === prev.child) return;
+    var inside = COMPOSITE[next.tag] === true ? rendered : parentRendered;
+    for (var c = next.child; c; c = c.sibling) {
+      if (c.alternate) walk(c, c.alternate, inside, here, out);
+      else if (COMPOSITE[c.tag] === true && !inside) out.push({ who: here.concat(fiberName(c)).slice(-4).join(' > '), mounted: true });
+    }
+  }
+  function traceCommit(root) {
+    try {
+      var out = [];
+      if (root.current.alternate) walk(root.current, root.current.alternate, false, [], out);
+      perf.commitLog.push({ t: Math.round(performance.now()), n: perf.commits, first: out });
+      if (perf.commitLog.length > 200) perf.commitLog.shift();
+    } catch (e) {
+      perf.commitLog.push({ t: Math.round(performance.now()), n: perf.commits, error: String(e) });
+    }
+  }
+
   // H1: React DOM production calls inject at start-up and onCommitFiberRoot once per commit.
   var n = 0;
   window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
@@ -43,8 +103,9 @@
       perf.renderers++;
       return id;
     },
-    onCommitFiberRoot: function onCommitFiberRoot() {
+    onCommitFiberRoot: function onCommitFiberRoot(_id, root) {
       perf.commits++;
+      if (perf.traceCommits) traceCommit(root);
     },
     onCommitFiberUnmount: function onCommitFiberUnmount() {},
     onPostCommitFiberRoot: function onPostCommitFiberRoot() {},
