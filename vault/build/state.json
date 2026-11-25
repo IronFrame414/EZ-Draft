@@ -517,7 +517,8 @@
     "EZD-1945",
     "EZD-1906c",
     "EZD-1977",
-    "EZD-1979"
+    "EZD-1979",
+    "EZD-1989"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2035,11 +2036,19 @@
       "ts": "2026-11-25T10:13:46Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1989",
+      "title": "Fix: plan thumbnail T-B1 times out opening the benchmark project on CI (EZD-224b on CI)",
+      "commit": "61771341",
+      "ts": "2026-11-25T11:15:36Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2268,17 +2277,17 @@
     }
   },
   "running": {
-    "EZD-1989": {
-      "lane": 2,
-      "title": "Fix: plan thumbnail T-B1 times out opening the benchmark project on CI (EZD-224b on CI)",
-      "started": "2026-11-25T10:13:52Z",
-      "develop": "3920fd68"
-    },
     "EZD-1988": {
       "lane": 3,
       "title": "Loop: find and stop what sends SIGTERM to builders in the same second",
       "started": "2026-11-25T10:35:26Z",
       "develop": "5331d28c"
+    },
+    "EZD-1978": {
+      "lane": 1,
+      "title": "Projects page does not break on a phone",
+      "started": "2026-11-25T10:46:07Z",
+      "develop": "b7f0eddf"
     }
   },
   "advisories_checked_at": "2026-11-25T10:18:53Z",
