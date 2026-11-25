@@ -525,7 +525,8 @@
     "EZD-1987",
     "EZD-1982",
     "EZD-1992",
-    "EZD-1984"
+    "EZD-1984",
+    "EZD-1980"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2107,6 +2108,14 @@
       "ts": "2026-11-25T17:23:58Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1980",
+      "title": "Touch targets of at least 44 px on iPad in Settings, Libraries, Sheets and tool panels",
+      "commit": "22b6ed26",
+      "ts": "2026-11-25T17:56:31Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2344,17 +2353,17 @@
     }
   },
   "running": {
-    "EZD-1980": {
-      "lane": 2,
-      "title": "Touch targets of at least 44 px on iPad in Settings, Libraries, Sheets and tool panels",
-      "started": "2026-11-25T16:08:08Z",
-      "develop": "037aa8c2"
-    },
     "EZD-1983": {
       "lane": 1,
       "title": "Users settings says \"Role presets\" as on the S15 board",
       "started": "2026-11-25T16:55:21Z",
       "develop": "1231e6e9"
+    },
+    "EZD-1985": {
+      "lane": 3,
+      "title": "Fixtures panel docks on the right and its fields are not cut off",
+      "started": "2026-11-25T17:24:04Z",
+      "develop": "3af4d7bf"
     }
   },
   "advisories_checked_at": "2026-11-25T16:19:16Z",
