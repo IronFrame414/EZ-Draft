@@ -27232,6 +27232,25 @@
     "AC-EZD-1991-3"
    ],
    "acs_source": "josh-2026-11-25"
+  },
+  {
+   "id": "EZD-1992",
+   "phase": 10,
+   "title": "Fix: permissions T11 backfill fails at random on a tenant foreign key (EZD-101 T11)",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-25: app/src/server/db/permissions.test.ts EZD-101 T11 \"new memberships: default role from role_preset, custom role, backfill\" failed on the local gate for three unrelated tickets: EZD-1944 twice (00:49Z and 03:58Z, a loop-only change) and EZD-1980 (13:35Z, iPad touch-target CSS), each time with PostgresError: insert or update on table user_permission violates foreign key constraint user_permission_tenant_id_fkey. It passes on rerun.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1992-1",
+    "AC-EZD-1992-2",
+    "AC-EZD-1992-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
