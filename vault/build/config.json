@@ -5,6 +5,7 @@
   "reviewer_fallback": "claude-opus-5-5",
   "trial_size": 20,
   "priority": [
+    "EZD-1988",
     "EZD-1977",
     "EZD-1978",
     "EZD-1979",

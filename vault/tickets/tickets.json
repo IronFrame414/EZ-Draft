@@ -27150,6 +27150,25 @@
     "AC-EZD-1987-2"
    ],
    "acs_source": "overwatch-2026-11-25-ui-audit"
+  },
+  {
+   "id": "EZD-1988",
+   "phase": 10,
+   "title": "Loop: find and stop what sends SIGTERM to builders in the same second",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-25: builder claude processes ended with exit code 143 (SIGTERM) mid-build three times, each time several lanes in the same second: 2026-11-24T14:28:30Z EZD-1970 and EZD-1901 (both after 410-411 s), 2026-11-25T01:04:43Z EZD-1946 (906 s), 2026-11-25T08:22:10Z EZD-1979 and EZD-1978 (both after 1339 s, both started 07:59:49Z right after a loop self-restart). Mac memory was fine (avail_mb near 10000) and the claude binary was not updated (2.1.321 since Nov 9). The loop resumed each session once, so a fourth hit on the same ticket would set it aside.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1988-1",
+    "AC-EZD-1988-2",
+    "AC-EZD-1988-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
