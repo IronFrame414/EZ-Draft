@@ -1,0 +1,1214 @@
+{
+  "notes": {
+    "desktop-S01-projects": {
+      "url": "/",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": [
+        "Projects",
+        "Seed project 001",
+        "Seed project 002",
+        "Seed project 003",
+        "Seed project 004",
+        "Seed project 005"
+      ]
+    },
+    "desktop-S01b-new-project": {
+      "url": "/",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": [
+        "Projects",
+        "Seed project 001",
+        "Seed project 002",
+        "Seed project 003",
+        "Seed project 004",
+        "Seed project 005"
+      ]
+    },
+    "desktop-S01c-notifications": {
+      "url": "/",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": [
+        "Projects",
+        "Seed project 001",
+        "Seed project 002",
+        "Seed project 003",
+        "Seed project 004",
+        "Seed project 005"
+      ]
+    },
+    "desktop-S01d-avatar-menu": {
+      "url": "/",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": [
+        "Projects",
+        "Seed project 001",
+        "Seed project 002",
+        "Seed project 003",
+        "Seed project 004",
+        "Seed project 005"
+      ]
+    },
+    "desktop-S01e-my-profile": {
+      "url": "/",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": [
+        "Projects",
+        "Seed project 001",
+        "Seed project 002",
+        "Seed project 003",
+        "Seed project 004",
+        "Seed project 005"
+      ]
+    },
+    "desktop-S15-settings-company": {
+      "url": "/settings/company",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": [
+        "Company",
+        "Identity",
+        "Contact",
+        "Customers1 · 0 archived"
+      ]
+    },
+    "desktop-S15-settings-users": {
+      "url": "/settings/users",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": [
+        "Users + permissions"
+      ]
+    },
+    "desktop-S15-settings-title-block": {
+      "url": "/settings/title-block",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": [
+        "Title block"
+      ]
+    },
+    "desktop-S15-settings-sheet-presets": {
+      "url": "/settings/sheet-presets",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": [
+        "Sheet presets"
+      ]
+    },
+    "desktop-S15-settings-defaults": {
+      "url": "/settings/defaults",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": [
+        "Defaults",
+        "UnitsFixed in v1",
+        "Increments",
+        "Walls",
+        "Tolerances",
+        "3D"
+      ]
+    },
+    "desktop-S15-settings-catalog": {
+      "url": "/settings/catalog",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": [
+        "Catalog"
+      ]
+    },
+    "desktop-S15-settings-render-models": {
+      "url": "/settings/render-models",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": [
+        "Render models",
+        "Tiers",
+        "Render allowance"
+      ]
+    },
+    "desktop-S15-settings-code-edition": {
+      "url": "/settings/code-edition",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": [
+        "Code edition",
+        "Default for new projects",
+        "Available rule sets",
+        "Electrical defaults"
+      ]
+    },
+    "desktop-S15-settings-libraries": {
+      "url": "/settings/libraries",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": [
+        "Libraries"
+      ]
+    },
+    "desktop-S15-settings-system-status": {
+      "url": "/settings/system-status",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": [
+        "System status",
+        "Last off-site backup",
+        "Last restore drill",
+        "Webhook failures",
+        "Job failures",
+        "This device"
+      ]
+    },
+    "desktop-S03-plan-empty": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S03-plan-room": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S03d-wall-selected": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S03-tool-wall": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S03-tool-door": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S03-tool-window": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S03-tool-cabinets": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S03-tool-countertops": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S03-tool-electrical": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S03-tool-fixtures": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": [
+        "Fixtures"
+      ]
+    },
+    "desktop-S03-tool-sketch": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S03-tool-measure": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S03-tool-ceiling": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S03c-assistant": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": [
+        "Assistant"
+      ]
+    },
+    "desktop-S03-help": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": [
+        "Help",
+        "Assistant"
+      ]
+    },
+    "desktop-S05-ceiling-surface": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": [
+        "Assistant"
+      ]
+    },
+    "desktop-S20-versions": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": [
+        "Assistant"
+      ]
+    },
+    "desktop-S02-upload-files": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": [
+        "Assistant",
+        "Upload files"
+      ]
+    },
+    "desktop-S07-3d": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S13-sheets": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "desktop-S12-supplier": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001/supplier",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": [
+        "Supplier files"
+      ]
+    },
+    "desktop-S18-share-dialog": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": [
+        "Send to client"
+      ]
+    },
+    "desktop-S18-share-sent": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": false,
+      "h": [
+        "Send to client"
+      ]
+    },
+    "desktop-not-found": {
+      "url": "/no-such-page",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "steps": [],
+      "status": 404,
+      "anyPointerCoarse": false,
+      "h": []
+    },
+    "ipad-S01-projects": {
+      "url": "/",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Projects",
+        "Seed project 001",
+        "Seed project 002",
+        "Seed project 003",
+        "Seed project 004",
+        "Seed project 005"
+      ],
+      "touchFailures": [
+        "A \"Seed project 009Appr\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 009\" outside viewport 44x44",
+        "A \"Seed project 010In b\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 010\" outside viewport 44x44",
+        "A \"Seed project 011Draf\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 011\" outside viewport 44x44",
+        "A \"Seed project 012Clie\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 012\" outside viewport 44x44",
+        "A \"Seed project 013Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 013\" outside viewport 44x44",
+        "A \"Seed project 014Appr\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 014\" outside viewport 44x44",
+        "A \"Seed project 015In b\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 015\" outside viewport 44x44",
+        "A \"Seed project 016Draf\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 016\" outside viewport 44x44",
+        "A \"Seed project 017Clie\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 017\" outside viewport 44x44",
+        "A \"Seed project 018Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 018\" outside viewport 44x44",
+        "A \"Seed project 019Appr\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 019\" outside viewport 44x44",
+        "A \"Seed project 020In b\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 020\" outside viewport 44x44",
+        "A \"Seed project 021Draf\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 021\" outside viewport 44x44",
+        "A \"Seed project 022Clie\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 022\" outside viewport 44x44",
+        "A \"Seed project 023Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 023\" outside viewport 44x44",
+        "A \"Seed project 024Appr\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 024\" outside viewport 44x44",
+        "A \"Seed project 025In b\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 025\" outside viewport 44x44",
+        "A \"Seed project 026Draf\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 026\" outside viewport 44x44",
+        "A \"Seed project 027Clie\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 027\" outside viewport 44x44",
+        "A \"Seed project 028Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 028\" outside viewport 44x44",
+        "A \"Seed project 029Appr\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 029\" outside viewport 44x44",
+        "A \"Seed project 030In b\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 030\" outside viewport 44x44",
+        "A \"Seed project 031Draf\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 031\" outside viewport 44x44",
+        "A \"Seed project 032Clie\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 032\" outside viewport 44x44",
+        "A \"Seed project 033Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 033\" outside viewport 44x44",
+        "A \"Seed project 034Appr\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 034\" outside viewport 44x44",
+        "A \"Seed project 035In b\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 035\" outside viewport 44x44",
+        "A \"Seed project 036Draf\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 036\" outside viewport 44x44",
+        "A \"Seed project 037Clie\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 037\" outside viewport 44x44",
+        "A \"Seed project 038Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 038\" outside viewport 44x44",
+        "A \"Seed project 039Appr\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 039\" outside viewport 44x44",
+        "A \"Seed project 040In b\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 040\" outside viewport 44x44",
+        "A \"Seed project 041Draf\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 041\" outside viewport 44x44",
+        "A \"Seed project 042Clie\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 042\" outside viewport 44x44",
+        "A \"Seed project 043Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 043\" outside viewport 44x44",
+        "A \"Seed project 044Appr\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 044\" outside viewport 44x44",
+        "A \"Seed project 045In b\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 045\" outside viewport 44x44",
+        "A \"Seed project 046Draf\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 046\" outside viewport 44x44",
+        "A \"Seed project 047Clie\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 047\" outside viewport 44x44",
+        "A \"Seed project 048Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 048\" outside viewport 44x44"
+      ]
+    },
+    "ipad-S01b-new-project": {
+      "url": "/",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": true,
+      "h": [
+        "Projects",
+        "Seed project 001",
+        "Seed project 002",
+        "Seed project 003",
+        "Seed project 004",
+        "Seed project 005"
+      ],
+      "touchFailures": [
+        "INPUT \"Search projects\" covered at center 257x46",
+        "BUTTON \"Notifications\" covered at center 44x44",
+        "A \"Company settings\" covered at center 42x40",
+        "BUTTON \"Account menu\" covered at center 32x32",
+        "BUTTON \"All200\" covered at center 61x46",
+        "BUTTON \"Draft40\" covered at center 67x46",
+        "BUTTON \"Client review40\" covered at center 106x46",
+        "BUTTON \"Permit submitted40\" covered at center 130x46",
+        "BUTTON \"Approved40\" covered at center 91x46",
+        "BUTTON \"In build40\" covered at center 77x46",
+        "BUTTON \"Completed0\" covered at center 91x46",
+        "BUTTON \"Archived0\" covered at center 80x46",
+        "BUTTON \"Sort by Last edited\" covered at center 71x56",
+        "BUTTON \"New project\" covered at center 161x44",
+        "A \"Seed project 001Draf\" covered at center 264x287",
+        "BUTTON \"Actions for Seed project 001\" covered at center 44x44",
+        "A \"Seed project 002Clie\" covered at center 264x287",
+        "BUTTON \"Actions for Seed project 002\" covered at center 44x44",
+        "A \"Seed project 003Perm\" covered at center 264x287",
+        "BUTTON \"Actions for Seed project 003\" covered at center 44x44",
+        "A \"Seed project 004Appr\" covered at center 264x287",
+        "BUTTON \"Actions for Seed project 004\" covered at center 44x44",
+        "A \"Seed project 005In b\" covered at center 264x287",
+        "BUTTON \"Actions for Seed project 005\" covered at center 44x44",
+        "A \"Seed project 006Draf\" covered at center 264x287",
+        "BUTTON \"Actions for Seed project 006\" covered at center 44x44",
+        "A \"Seed project 007Clie\" covered at center 264x287",
+        "BUTTON \"Actions for Seed project 007\" covered at center 44x44",
+        "A \"Seed project 008Perm\" covered at center 264x287",
+        "BUTTON \"Actions for Seed project 008\" covered at center 44x44",
+        "A \"Seed project 009Appr\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 009\" outside viewport 44x44",
+        "A \"Seed project 010In b\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 010\" outside viewport 44x44",
+        "A \"Seed project 011Draf\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 011\" outside viewport 44x44",
+        "A \"Seed project 012Clie\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 012\" outside viewport 44x44",
+        "A \"Seed project 013Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 013\" outside viewport 44x44",
+        "A \"Seed project 014Appr\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 014\" outside viewport 44x44",
+        "A \"Seed project 015In b\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 015\" outside viewport 44x44",
+        "A \"Seed project 016Draf\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 016\" outside viewport 44x44",
+        "A \"Seed project 017Clie\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 017\" outside viewport 44x44",
+        "A \"Seed project 018Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 018\" outside viewport 44x44",
+        "A \"Seed project 019Appr\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 019\" outside viewport 44x44",
+        "A \"Seed project 020In b\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 020\" outside viewport 44x44",
+        "A \"Seed project 021Draf\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 021\" outside viewport 44x44",
+        "A \"Seed project 022Clie\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 022\" outside viewport 44x44",
+        "A \"Seed project 023Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 023\" outside viewport 44x44",
+        "A \"Seed project 024Appr\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 024\" outside viewport 44x44",
+        "A \"Seed project 025In b\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 025\" outside viewport 44x44",
+        "A \"Seed project 026Draf\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 026\" outside viewport 44x44",
+        "A \"Seed project 027Clie\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 027\" outside viewport 44x44",
+        "A \"Seed project 028Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 028\" outside viewport 44x44",
+        "A \"Seed project 029Appr\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 029\" outside viewport 44x44",
+        "A \"Seed project 030In b\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 030\" outside viewport 44x44",
+        "A \"Seed project 031Draf\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 031\" outside viewport 44x44",
+        "A \"Seed project 032Clie\" outside viewport 264x272",
+        "BUTTON \"Actions for Seed project 032\" outside viewport 44x44",
+        "A \"Seed project 033Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 033\" outside viewport 44x44",
+        "A \"Seed project 034Appr\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 034\" outside viewport 44x44",
+        "A \"Seed project 035In b\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 035\" outside viewport 44x44",
+        "A \"Seed project 036Draf\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 036\" outside viewport 44x44",
+        "A \"Seed project 037Clie\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 037\" outside viewport 44x44",
+        "A \"Seed project 038Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 038\" outside viewport 44x44",
+        "A \"Seed project 039Appr\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 039\" outside viewport 44x44",
+        "A \"Seed project 040In b\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 040\" outside viewport 44x44",
+        "A \"Seed project 041Draf\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 041\" outside viewport 44x44",
+        "A \"Seed project 042Clie\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 042\" outside viewport 44x44",
+        "A \"Seed project 043Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 043\" outside viewport 44x44",
+        "A \"Seed project 044Appr\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 044\" outside viewport 44x44",
+        "A \"Seed project 045In b\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 045\" outside viewport 44x44",
+        "A \"Seed project 046Draf\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 046\" outside viewport 44x44",
+        "A \"Seed project 047Clie\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 047\" outside viewport 44x44",
+        "A \"Seed project 048Perm\" outside viewport 264x287",
+        "BUTTON \"Actions for Seed project 048\" outside viewport 44x44",
+        "BUTTON \"Paste page text or s\" tap area 150x14"
+      ]
+    },
+    "ipad-S15-settings-company": {
+      "url": "/settings/company",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Company",
+        "Identity",
+        "Contact",
+        "Customers1 · 0 archived"
+      ],
+      "touchFailures": [
+        "INPUT \"\" tap area 200x38",
+        "INPUT \"\" tap area 200x38",
+        "INPUT \"\" tap area 178x38",
+        "INPUT \"\" tap area 178x38",
+        "INPUT \"\" covered at center 365x38",
+        "INPUT \"\" covered at center 365x38",
+        "A \"Title block\" outside viewport 57x15",
+        "BUTTON \"0 archived\" tap area 64x32",
+        "INPUT \"Search customers\" tap area 154x18",
+        "BUTTON \"Add customer\" outside viewport 136x44"
+      ]
+    },
+    "ipad-S15-settings-users": {
+      "url": "/settings/users",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Users + permissions"
+      ],
+      "touchFailures": [
+        "BUTTON \"More actions for Seed Designer\" covered at center 44x44",
+        "BUTTON \"More actions for Seed Foreman\" covered at center 44x44"
+      ]
+    },
+    "ipad-S15-settings-title-block": {
+      "url": "/settings/title-block",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Title block"
+      ],
+      "touchFailures": [
+        "BUTTON \"\" tap area 34x20",
+        "A \"Edit in Company\" tap area 99x16",
+        "A \"Sheet presets\" tap area 83x17",
+        "A \"Edit in Company\" outside viewport 98x16",
+        "BUTTON \"Save\" outside viewport 66x44",
+        "BUTTON \"24x36\" tap area 88x30",
+        "BUTTON \"11x17\" tap area 88x30"
+      ]
+    },
+    "ipad-S15-settings-sheet-presets": {
+      "url": "/settings/sheet-presets",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Sheet presets"
+      ],
+      "touchFailures": [
+        "INPUT \"\" tap area 143x38",
+        "BUTTON \"Electronic\" tap area 78x32",
+        "BUTTON \"Paper\" tap area 58x32",
+        "SELECT \"None (GC load calc a\" tap area 143x38",
+        "SELECT \"Combined set (one PD\" tap area 143x38",
+        "INPUT \"\" tap area 64x38",
+        "INPUT \"\" tap area 200x38",
+        "INPUT \"Longest file name (characters)\" tap area 64x38",
+        "BUTTON \"As typed\" tap area 74x32",
+        "BUTTON \"ALL CAPS\" tap area 74x37",
+        "BUTTON \"{address}\" tap area 83x22",
+        "BUTTON \"{description}\" tap area 112x22",
+        "BUTTON \"{rev}\" tap area 54x22",
+        "BUTTON \"{date}\" tap area 62x22",
+        "BUTTON \"Version in file name\" outside viewport 145x32",
+        "BUTTON \"Same name as origina\" outside viewport 145x32",
+        "BUTTON \"Flatten on exportSin\" outside viewport 298x44",
+        "BUTTON \"Export unsignedSeal \" outside viewport 298x44",
+        "BUTTON \"Bookmark per sheetIn\" outside viewport 298x44",
+        "BUTTON \"Table of contents sh\" outside viewport 298x44",
+        "INPUT \"Stamp box width (inches)\" outside viewport 64x38",
+        "INPUT \"Stamp box height (inches)\" outside viewport 64x38",
+        "SELECT \"Stamp box position\" outside viewport 139x38",
+        "BUTTON \"No check\" outside viewport 74x27",
+        "BUTTON \"3/16\" = 1'-0\"\" outside viewport 84x27",
+        "BUTTON \"1/4\" = 1'-0\"\" outside viewport 76x27",
+        "BUTTON \"1/8\" = 1'-0\"\" outside viewport 77x27",
+        "SELECT \"Changed sheets onlyF\" outside viewport 298x38",
+        "BUTTON \"Transmittal letterIn\" outside viewport 298x44",
+        "INPUT \"\" outside viewport 13x13",
+        "INPUT \"\" outside viewport 13x13",
+        "INPUT \"\" outside viewport 13x13",
+        "INPUT \"\" outside viewport 13x13",
+        "INPUT \"\" outside viewport 13x13",
+        "INPUT \"\" outside viewport 13x13",
+        "INPUT \"\" outside viewport 13x13",
+        "A \"Edit notes in Librar\" outside viewport 298x16"
+      ]
+    },
+    "ipad-S15-settings-defaults": {
+      "url": "/settings/defaults",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Defaults",
+        "UnitsFixed in v1",
+        "Increments",
+        "Walls",
+        "Tolerances",
+        "3D"
+      ],
+      "touchFailures": [
+        "INPUT \"Search defaults\" tap area 200x38",
+        "INPUT \"Plan dimensions round to\" tap area 84x34",
+        "INPUT \"Detail dimensions round to\" tap area 84x34",
+        "BUTTON \"Pencil only\" tap area 82x27",
+        "BUTTON \"Finger\" tap area 57x27",
+        "INPUT \"Cabinet auto-fill\" tap area 84x34",
+        "INPUT \"Countertop\" tap area 84x34",
+        "INPUT \"Snap\" tap area 84x34",
+        "INPUT \"Wall thickness\" tap area 84x34",
+        "BUTTON \"2x4\" covered at center 41x27",
+        "BUTTON \"2x6\" covered at center 41x27",
+        "INPUT \"Drywall each side\" covered at center 84x34",
+        "INPUT \"Wall height\" covered at center 84x34",
+        "INPUT \"Exterior block wall\" outside viewport 84x34",
+        "INPUT \"Measurement tolerance\" outside viewport 84x34",
+        "INPUT \"High-confidence cutoff\" outside viewport 84x34",
+        "INPUT \"Cabinet fit\" outside viewport 84x34",
+        "INPUT \"Reference change\" outside viewport 84x34",
+        "INPUT \"Leader snap\" outside viewport 84x34",
+        "INPUT \"Field measure sanity range\" outside viewport 84x34",
+        "INPUT \"Field measure sanity range\" outside viewport 84x34",
+        "INPUT \"Walk eye height\" outside viewport 84x34",
+        "INPUT \"Overhang: standard\" tap area 84x34",
+        "INPUT \"Overhang: seating, counter\" tap area 84x34",
+        "INPUT \"Overhang: seating, bar\" tap area 84x34",
+        "INPUT \"Overhang: against wall\" tap area 84x34",
+        "INPUT \"Seating support limit\" tap area 84x34",
+        "INPUT \"Support bracket spacing\" tap area 84x34",
+        "INPUT \"Seat width\" tap area 84x34",
+        "BUTTON \"1/4 tile\" tap area 56x27",
+        "BUTTON \"1/3 tile\" tap area 56x27",
+        "BUTTON \"1/2 tile\" tap area 57x27",
+        "INPUT \"Fan blade clearance\" tap area 84x22",
+        "INPUT \"Load warning (% of service)\" outside viewport 84x34",
+        "INPUT \"Voltage-drop warning\" outside viewport 84x34",
+        "BUTTON \"Device height notes\" outside viewport 39x23",
+        "BUTTON \"3/4\"\" outside viewport 43x23",
+        "BUTTON \"1\"\" outside viewport 29x23",
+        "BUTTON \"1 1/2\"\" outside viewport 48x23",
+        "BUTTON \"3\"\" outside viewport 32x23",
+        "BUTTON \"6\"\" outside viewport 32x23",
+        "BUTTON \"Full\" outside viewport 40x23",
+        "BUTTON \"NTS\" outside viewport 44x23",
+        "INPUT \"Tile\" tap area 84x34",
+        "INPUT \"LVP\" tap area 84x34",
+        "INPUT \"Drywall\" tap area 84x34",
+        "INPUT \"Paint\" tap area 84x34",
+        "INPUT \"Trim\" tap area 84x34",
+        "INPUT \"Countertop\" tap area 84x34",
+        "INPUT \"Pattern: straight\" tap area 84x34",
+        "INPUT \"Pattern: diagonal\" tap area 84x34",
+        "INPUT \"Pattern: herringbone\" tap area 84x34",
+        "INPUT \"Recently added window\" tap area 84x26",
+        "INPUT \"Unsent working versions delete after\" covered at center 84x34",
+        "INPUT \"Unticked delete after\" outside viewport 84x34",
+        "INPUT \"Edit lock auto-release\" outside viewport 84x34",
+        "INPUT \"Offline project cache\" outside viewport 84x34",
+        "INPUT \"Share link expiry\" outside viewport 84x34",
+        "INPUT \"Expiry reminder lead time\" outside viewport 84x34",
+        "INPUT \"Webhook retries\" outside viewport 84x34",
+        "BUTTON \"All\" outside viewport 33x25",
+        "BUTTON \"Plan\" outside viewport 43x25",
+        "BUTTON \"3D\" outside viewport 35x25",
+        "BUTTON \"Sheets\" outside viewport 58x25",
+        "BUTTON \"Render\" outside viewport 60x25",
+        "BUTTON \"Reset to default map\" outside viewport 130x23",
+        "BUTTON \"Select: V\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Move: M\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Wall: W\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Room rectangle: R\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Door: D\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Window: N\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Cabinets: C\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Countertops: K\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Fixtures: F\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Electrical: E\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Ceiling: G\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Catalog: P\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Dimension: L\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Text: T\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Sketch: S\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Detail callout: X\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Revision cloud: Q\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Reference: Shift+R\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Markup: Shift+M\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Supplier markup: Shift+S\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Measure: Shift+L\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Check: Shift+C\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Help: ?\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Pan: H\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Look up: U\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Plan tab: 1\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"3D tab: 2\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Sheets tab: 3\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Render tab: 4\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Undo: Ctrl+Z\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Redo: Ctrl+Shift+Z\" outside viewport 105x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Copy: Ctrl+C\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Paste: Ctrl+V\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23",
+        "BUTTON \"Save: Ctrl+S\" outside viewport 96x28",
+        "BUTTON \"Reset shortcut\" outside viewport 96x23"
+      ]
+    },
+    "ipad-S15-settings-catalog": {
+      "url": "/settings/catalog",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Catalog"
+      ],
+      "touchChecked": 12,
+      "touchFailures": []
+    },
+    "ipad-S15-settings-render-models": {
+      "url": "/settings/render-models",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Render models",
+        "Tiers",
+        "Render allowance"
+      ],
+      "touchFailures": [
+        "SELECT \"Choose a modelGemini\" tap area 200x38",
+        "INPUT \"Fast cost per render\" tap area 72x18",
+        "SELECT \"Choose a modelGemini\" tap area 200x38",
+        "INPUT \"Standard cost per render\" tap area 72x18",
+        "SELECT \"Choose a modelGemini\" tap area 200x31",
+        "INPUT \"Photoreal cost per render\" tap area 72x18",
+        "INPUT \"\" tap area 200x18",
+        "INPUT \"\" tap area 200x18"
+      ]
+    },
+    "ipad-S15-settings-code-edition": {
+      "url": "/settings/code-edition",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Code edition",
+        "Default for new projects",
+        "Available rule sets",
+        "Electrical defaults"
+      ],
+      "touchFailures": [
+        "SELECT \"By permit date (auto\" tap area 200x38",
+        "BUTTON \"\" tap area 34x20"
+      ]
+    },
+    "ipad-S15-settings-libraries": {
+      "url": "/settings/libraries",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Libraries"
+      ],
+      "touchFailures": [
+        "BUTTON \"Notes\" tap area 39x38",
+        "BUTTON \"Symbols + abbreviati\" tap area 156x38",
+        "BUTTON \"Details\" tap area 45x38",
+        "BUTTON \"Hatches\" tap area 54x38",
+        "BUTTON \"Parts\" tap area 34x38",
+        "BUTTON \"Saved groups\" tap area 88x38",
+        "BUTTON \"Field task templates\" tap area 129x38",
+        "INPUT \"Search notes\" tap area 195x18",
+        "BUTTON \"All\" tap area 42x30",
+        "BUTTON \"Kitchen\" tap area 73x30",
+        "BUTTON \"Bath\" tap area 54x30",
+        "BUTTON \"Whole-home interior\" tap area 153x30",
+        "BUTTON \"Verify all dimension\" tap area 200x41",
+        "BUTTON \"Cabinet codes per ca\" tap area 200x41",
+        "BUTTON \"Details per A5.0. Re\" tap area 200x40",
+        "BUTTON \"Electrical, lighting\" tap area 200x41"
+      ]
+    },
+    "ipad-S15-settings-system-status": {
+      "url": "/settings/system-status",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "System status",
+        "Last off-site backup",
+        "Last restore drill",
+        "Webhook failures",
+        "Job failures",
+        "This device"
+      ],
+      "touchFailures": [
+        "BUTTON \"Run benchmark\" outside viewport 123x44"
+      ]
+    },
+    "ipad-S03-plan": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": true,
+      "h": [],
+      "touchFailures": [
+        "BUTTON \"Working copy · Versi\" tap area 158x15",
+        "BUTTON \"Zoom in\" covered at center 44x44",
+        "BUTTON \"Zoom out\" tap area 44x24"
+      ]
+    },
+    "ipad-S03d-typed-bar": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": true,
+      "h": [],
+      "touchFailures": [
+        "BUTTON \"Working copy · Versi\" covered at center 158x15",
+        "BUTTON \"Zoom in\" covered at center 44x44",
+        "BUTTON \"Zoom out\" tap area 44x24"
+      ]
+    },
+    "ipad-S03-tool-cabinets": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": true,
+      "h": [],
+      "touchFailures": [
+        "BUTTON \"Working copy · Versi\" covered at center 158x15",
+        "INPUT \"Code or size, e.g. B24\" tap area 174x18",
+        "BUTTON \"Line: Generic\" tap area 200x36",
+        "BUTTON \"TK\" tap area 28x28",
+        "BUTTON \"LR\" tap area 28x28",
+        "BUTTON \"CM\" tap area 28x28"
+      ]
+    },
+    "ipad-S03-tool-electrical": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": true,
+      "h": [],
+      "touchFailures": [
+        "BUTTON \"Working copy · Versi\" covered at center 158x15",
+        "BUTTON \"Zoom in\" covered at center 44x44",
+        "BUTTON \"Zoom out\" tap area 44x24",
+        "BUTTON \"Undo\" covered at center 62x56",
+        "BUTTON \"Redo\" covered at center 62x56",
+        "BUTTON \"Delete\" covered at center 62x56",
+        "BUTTON \"Duplicate\" covered at center 62x56",
+        "BUTTON \"Select more\" covered at center 62x56",
+        "BUTTON \"Select all\" covered at center 62x56",
+        "BUTTON \"Copy\" covered at center 62x56",
+        "BUTTON \"Paste\" covered at center 62x56"
+      ]
+    },
+    "ipad-S05-ceiling-surface": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": true,
+      "h": [],
+      "touchFailures": [
+        "BUTTON \"Working copy · Versi\" covered at center 158x15",
+        "BUTTON \"Switching zones\" tap area 200x38",
+        "BUTTON \"Zoom in\" covered at center 44x44",
+        "BUTTON \"Zoom out\" tap area 44x24"
+      ]
+    },
+    "ipad-S20-versions": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": true,
+      "h": [],
+      "touchFailures": [
+        "BUTTON \"Working copy · Versi\" covered at center 158x15",
+        "BUTTON \"Zoom in\" covered at center 44x44",
+        "BUTTON \"Zoom out\" tap area 44x24"
+      ]
+    },
+    "ipad-S13-sheets": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001",
+      "consoleErrors": [],
+      "steps": [],
+      "anyPointerCoarse": true,
+      "h": [],
+      "touchFailures": [
+        "BUTTON \"Working copy · Versi\" covered at center 158x15",
+        "BUTTON \"Permit set\" tap area 108x32",
+        "BUTTON \"A0.0Cover\" tap area 200x32",
+        "BUTTON \"A1.0Existing\" tap area 200x32",
+        "BUTTON \"A2.0Demo\" tap area 200x32",
+        "BUTTON \"A3.0Proposed\" tap area 200x32",
+        "BUTTON \"A4.0Elevations\" tap area 200x32",
+        "BUTTON \"A5.0Details\" tap area 200x32",
+        "BUTTON \"E1.0Electrical\" tap area 200x32",
+        "BUTTON \"E2.0Panel + load cal\" tap area 200x32",
+        "BUTTON \"Add sheet\" tap area 200x36",
+        "BUTTON \"Property appraiser i\" tap area 200x36",
+        "BUTTON \"Previous sheet\" tap area 32x32",
+        "BUTTON \"Next sheet\" tap area 32x32"
+      ]
+    },
+    "phone-S01-projects": {
+      "url": "/",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Projects",
+        "Seed project 001",
+        "Seed project 002",
+        "Seed project 003",
+        "Seed project 004",
+        "Seed project 005"
+      ],
+      "touchFailures": [
+        "BUTTON \"Notifications\" covered at center 44x44",
+        "A \"Company settings\" covered at center 42x40",
+        "BUTTON \"Account menu\" covered at center 32x32",
+        "BUTTON \"New project\" outside viewport 161x44",
+        "A \"Seed project 021Draf\" outside viewport 67x367",
+        "A \"Seed project 022Clie\" outside viewport 67x367",
+        "A \"Seed project 023Perm\" outside viewport 67x367",
+        "A \"Seed project 024Appr\" outside viewport 67x367",
+        "A \"Seed project 025In b\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 025\" outside viewport 44x44",
+        "A \"Seed project 026Draf\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 026\" outside viewport 44x44",
+        "A \"Seed project 027Clie\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 027\" outside viewport 44x44",
+        "A \"Seed project 028Perm\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 028\" outside viewport 44x44",
+        "A \"Seed project 029Appr\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 029\" outside viewport 44x44",
+        "A \"Seed project 030In b\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 030\" outside viewport 44x44",
+        "A \"Seed project 031Draf\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 031\" outside viewport 44x44",
+        "A \"Seed project 032Clie\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 032\" outside viewport 44x44",
+        "A \"Seed project 033Perm\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 033\" outside viewport 44x44",
+        "A \"Seed project 034Appr\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 034\" outside viewport 44x44",
+        "A \"Seed project 035In b\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 035\" outside viewport 44x44",
+        "A \"Seed project 036Draf\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 036\" outside viewport 44x44",
+        "A \"Seed project 037Clie\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 037\" outside viewport 44x44",
+        "A \"Seed project 038Perm\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 038\" outside viewport 44x44",
+        "A \"Seed project 039Appr\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 039\" outside viewport 44x44",
+        "A \"Seed project 040In b\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 040\" outside viewport 44x44",
+        "A \"Seed project 041Draf\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 041\" outside viewport 44x44",
+        "A \"Seed project 042Clie\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 042\" outside viewport 44x44",
+        "A \"Seed project 043Perm\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 043\" outside viewport 44x44",
+        "A \"Seed project 044Appr\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 044\" outside viewport 44x44",
+        "A \"Seed project 045In b\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 045\" outside viewport 44x44",
+        "A \"Seed project 046Draf\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 046\" outside viewport 44x44",
+        "A \"Seed project 047Clie\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 047\" outside viewport 44x44",
+        "A \"Seed project 048Perm\" outside viewport 67x367",
+        "BUTTON \"Actions for Seed project 048\" outside viewport 44x44"
+      ]
+    },
+    "phone-S17-field-pack": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001/field",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Seed project 001 · Seed client 001"
+      ],
+      "touchChecked": 0,
+      "touchFailures": []
+    },
+    "phone-S17b-field-measure": {
+      "url": "/projects/00000000-0000-4000-8000-000000100001/field-measure",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Field measure"
+      ],
+      "touchChecked": 29,
+      "touchFailures": []
+    },
+    "phone-S18-client-link": {
+      "url": "/sign-in",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": true,
+      "h": [
+        "Sign in to EZ Draft"
+      ],
+      "touchChecked": 9,
+      "touchFailures": []
+    },
+    "desktop-U4-deep-link-signed-out": {
+      "url": "/sign-in",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": [
+        "Sign in to EZ Draft"
+      ]
+    },
+    "desktop-U4-after-sign-in": {
+      "url": "/",
+      "consoleErrors": [],
+      "steps": [
+        "asked for /settings/users"
+      ],
+      "anyPointerCoarse": false,
+      "h": [
+        "Projects",
+        "Seed project 001",
+        "Seed project 002",
+        "Seed project 003",
+        "Seed project 004",
+        "Seed project 005"
+      ]
+    },
+    "desktop-S09-catalog-picker-dev": {
+      "url": "/dev/catalog",
+      "consoleErrors": [],
+      "steps": [],
+      "status": 200,
+      "anyPointerCoarse": false,
+      "h": []
+    }
+  }
+}
