@@ -87,6 +87,8 @@ export const es = {
   'common.offline': 'Sin conexión',
   'common.cancel': 'Cancelar',
   'common.close': 'Cerrar',
+  // EZD-1990 (Q-0808): the not-found page's button to Projects.
+  'common.back_to_projects': 'Volver a Proyectos',
   'common.disclaimer':
     'Solo para diseño y planificación. Todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto.',
   'common.no_access': 'No tienes acceso a esto. Pregúntale a tu supervisor.',
