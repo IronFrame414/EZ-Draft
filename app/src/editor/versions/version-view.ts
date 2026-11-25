@@ -10,6 +10,7 @@ import type { ObjectValue } from '../../lib/outbox/model-api';
 import { createModelStore, type ModelState, type ModelStore } from '../model/model-store';
 import type { RoutedStore } from '../model/routed-store';
 import { versionDiff, type VersionDiff } from './version-diff';
+import { createListeners } from '../shared/value-store';
 
 export type VersionViewState = {
   viewing: VersionRow | null;
@@ -74,10 +75,10 @@ export function createVersionView(o: {
   let disposed = false;
   let ask = 0;
   let unwatch: (() => void) | null = null;
-  const listeners = new Set<() => void>();
+  const listeners = createListeners();
   const set = (next: VersionViewState) => {
     state = next;
-    for (const l of [...listeners]) l();
+    listeners.notify();
   };
   const route = (target: ModelStore | null) => {
     const from = o.routed.getState().objects;
@@ -88,8 +89,7 @@ export function createVersionView(o: {
   return {
     getState: () => state,
     subscribe(l) {
-      listeners.add(l);
-      return () => void listeners.delete(l);
+      return listeners.add(l);
     },
     async open(row) {
       const mine = ++ask;

@@ -2,6 +2,7 @@
 // working copy, by object id. Same id with different data is changed; in the old version only is removed since; in
 // the working copy only is added since. Computed in the browser; it reads both maps and changes neither.
 import type { ObjectValue } from '../../lib/outbox/model-api';
+import { idKey } from '../shared/ids';
 
 type Objects = ReadonlyMap<string, ObjectValue>;
 
@@ -37,22 +38,20 @@ export function sameObject(a: ObjectValue, b: ObjectValue): boolean {
   return a.type === b.type && a.schemaVersion === b.schemaVersion && same(a.data, b.data);
 }
 
-const lower = (id: string) => id.toLowerCase();
-
 // Ids are listed as the old version spells them (changed, removed) or as the working copy does (added).
 export function versionDiff(old: Objects, working: Objects): VersionDiff {
   const work = new Map<string, ObjectValue>();
-  for (const [id, v] of working) work.set(lower(id), v);
+  for (const [id, v] of working) work.set(idKey(id), v);
   const oldIds = new Set<string>();
   const changed: string[] = [];
   const removed: string[] = [];
   for (const [id, v] of old) {
-    oldIds.add(lower(id));
-    const w = work.get(lower(id));
+    oldIds.add(idKey(id));
+    const w = work.get(idKey(id));
     if (w === undefined) removed.push(id);
     else if (!sameObject(v, w)) changed.push(id);
   }
   const added: string[] = [];
-  for (const id of working.keys()) if (!oldIds.has(lower(id))) added.push(id);
+  for (const id of working.keys()) if (!oldIds.has(idKey(id))) added.push(id);
   return { changed, removed, added };
 }

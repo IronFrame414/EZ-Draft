@@ -12,6 +12,7 @@ import { checkFile, kindTakes } from '../../lib/imports/upload-files';
 import type { SourceContentType } from '../../lib/storage/source-file-kinds';
 import { uploadFile, type SignedUpload } from '../../lib/storage/upload';
 import type { Change, Objects } from '../model/patches';
+import { sameId } from '../shared/ids';
 
 export type PhotoCheck =
   | { ok: true; contentType: SourceContentType }
@@ -113,7 +114,7 @@ type PinAttributes = PinData['attributes'];
 
 // The edit that sets some of a pin's attributes; null when the id is not a pin or the result does not parse.
 function pinChange(objects: Objects, pinId: string, set: Partial<PinAttributes>): Change | null {
-  const key = [...objects.keys()].find((k) => k.toLowerCase() === pinId.toLowerCase());
+  const key = [...objects.keys()].find((k) => sameId(k, pinId));
   const value = key === undefined ? undefined : objects.get(key);
   if (key === undefined || value === undefined || value.type !== 'pin') return null;
   const d = value.data as unknown as PinData;

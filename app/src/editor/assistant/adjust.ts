@@ -14,6 +14,8 @@ import type { DrawingController } from '../tools/drawing-controller';
 import { touchedIds, type OkPreview } from './apply-reply';
 import type { PreviewStore } from './preview-store';
 import { isTypingTarget } from '../typed-entry/typed-entry';
+import { createListeners } from '../shared/value-store';
+import { idKey } from '../shared/ids';
 
 export type AdjustUi = { readonly adjusting: boolean };
 
@@ -98,15 +100,15 @@ export function createAdjustController(deps: AdjustDeps): AdjustController {
   let current: OkPreview | null = null;
   let pickable = new Set<string>();
   let stops: Array<() => void> = [];
-  const listeners = new Set<() => void>();
+  const listeners = createListeners();
 
   const notify = () => {
-    for (const l of [...listeners]) l();
+    listeners.notify();
   };
 
   const setCurrent = (p: OkPreview) => {
     current = p;
-    pickable = new Set([...p.added, ...p.updated].map((id) => id.toLowerCase()));
+    pickable = new Set([...p.added, ...p.updated].map(idKey));
   };
 
   // The ids that can differ between the model and the scratch copy, told to the routed store's listeners.
@@ -167,7 +169,7 @@ export function createAdjustController(deps: AdjustDeps): AdjustController {
     stops.push(
       selection.subscribe(() => {
         const ids = selection.getUi().ids;
-        const kept = ids.filter((id) => pickable.has(id.toLowerCase()));
+        const kept = ids.filter((id) => pickable.has(idKey(id)));
         if (kept.length < ids.length) selection.select(kept);
       }),
     );
@@ -175,16 +177,15 @@ export function createAdjustController(deps: AdjustDeps): AdjustController {
     stops.push(
       model.subscribe((next, prev) => {
         if (!ui.adjusting || current === null || next.objects === prev.objects) return;
-        const touched = new Set(current.touched.map((id) => id.toLowerCase()));
+        const touched = new Set(current.touched.map(idKey));
         const copy: Change[] = [];
         for (const [id, value] of next.objects) {
-          if (prev.objects.get(id) !== value && !touched.has(id.toLowerCase())) {
+          if (prev.objects.get(id) !== value && !touched.has(idKey(id))) {
             copy.push({ id, value });
           }
         }
         for (const id of prev.objects.keys()) {
-          if (!next.objects.has(id) && !touched.has(id.toLowerCase()))
-            copy.push({ id, value: null });
+          if (!next.objects.has(id) && !touched.has(idKey(id))) copy.push({ id, value: null });
         }
         if (copy.length > 0) scratch.applyRemote(copy);
       }),
@@ -206,14 +207,11 @@ export function createAdjustController(deps: AdjustDeps): AdjustController {
     getUi: () => ui,
     subscribe(listener) {
       if (disposed) return () => {};
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
+      return listeners.add(listener);
     },
     start,
     end,
-    selectable: (id) => !ui.adjusting || pickable.has(id.toLowerCase()),
+    selectable: (id) => !ui.adjusting || pickable.has(idKey(id)),
     dispose() {
       if (disposed) return;
       end();

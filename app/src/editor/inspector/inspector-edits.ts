@@ -42,6 +42,7 @@ import {
   wallChange as wallStatusChange,
   wallEditChanges,
 } from '../tools/model-changes';
+import { idKey } from '../shared/ids';
 
 export type InspectorEdit =
   | {
@@ -87,14 +88,12 @@ export type InspectorEditReason =
 export type InspectorEditResult =
   { ok: true; changes: Change[] } | { ok: false; reason: InspectorEditReason; id: string };
 
-const lower = (id: string) => id.toLowerCase();
-
 export function levelModelObjects(objects: Objects, level: string): ModelObject[] {
-  const lvl = lower(level);
+  const lvl = idKey(level);
   const out: ModelObject[] = [];
   for (const [id, v] of objects) {
     const l = v.data.level;
-    if (typeof l !== 'string' || lower(l) !== lvl) continue;
+    if (typeof l !== 'string' || idKey(l) !== lvl) continue;
     const r = parseStoredObject({
       id,
       type: v.type,
@@ -213,7 +212,7 @@ export function inspectorEditChanges(input: {
   roomStatus?: ObjectStatus;
 }): InspectorEditResult {
   const { objects, level, edit } = input;
-  const ids = [...new Set(input.ids.map(lower))];
+  const ids = [...new Set(input.ids.map(idKey))];
   if (ids.length === 0) return { ok: true, changes: [] };
   if (edit.field === 'status') return statusEditChanges(objects, level, ids, edit.value);
   if (SINGLE_OBJECT_FIELDS.has(edit.field) && ids.length > 1)
@@ -223,7 +222,7 @@ export function inspectorEditChanges(input: {
   const stored = levelModelObjects(objects, level);
   const working = [...stored];
   const touched: string[] = [];
-  const indexOf = (id: string) => working.findIndex((o) => lower(o.id) === id);
+  const indexOf = (id: string) => working.findIndex((o) => idKey(o.id) === id);
 
   for (const id of ids) {
     const i = indexOf(id);
@@ -239,7 +238,7 @@ export function inspectorEditChanges(input: {
     }
     if (!step.ok) return { ok: false, reason: step.reason, id };
     for (const c of step.changed) {
-      const key = lower(c.id);
+      const key = idKey(c.id);
       const k = indexOf(key);
       if (k >= 0) working[k] = c;
       else working.push(c);
@@ -250,7 +249,7 @@ export function inspectorEditChanges(input: {
   const changed: ModelObject[] = [];
   for (const key of touched) {
     const now = working[indexOf(key)]!;
-    const before = stored.find((o) => lower(o.id) === key);
+    const before = stored.find((o) => idKey(o.id) === key);
     if (before !== undefined && sameValue(before.data, now.data)) continue;
     changed.push(now);
   }
@@ -279,7 +278,7 @@ function statusEditChanges(
   const stored = levelModelObjects(objects, level);
   const changes: Change[] = [];
   for (const id of ids) {
-    const obj = stored.find((o) => lower(o.id) === id);
+    const obj = stored.find((o) => idKey(o.id) === id);
     if (obj === undefined) return { ok: false, reason: 'not_found', id };
     if (obj.type === 'wall') {
       if (obj.data.status !== status)

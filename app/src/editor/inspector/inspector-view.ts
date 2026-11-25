@@ -34,6 +34,7 @@ import {
 } from '@ezdraft/geometry';
 import type { Objects } from '../model/patches';
 import { levelModelObjects } from './inspector-edits';
+import { idKey, sameId } from '../shared/ids';
 
 export type Shared<T> = { mixed: false; value: T } | { mixed: true };
 
@@ -125,8 +126,6 @@ export type InspectorView =
     };
 
 const tol = COMPARISON_TOLERANCE_IN;
-
-const lower = (id: string) => id.toLowerCase();
 
 const plan = (inches: number) => formatLength(inches, PLAN_DISPLAY_DENOMINATOR);
 
@@ -237,7 +236,7 @@ function openingFields(o: OpeningObject): OpeningFields {
 function hostOf(o: OpeningObject, walls: readonly WallObject[]): WallObject | null {
   const id = o.data.geometry.hostWallId;
   if (id === null) return null;
-  return walls.find((w) => lower(w.id) === lower(id)) ?? null;
+  return walls.find((w) => sameId(w.id, id)) ?? null;
 }
 
 function doorView(
@@ -295,8 +294,7 @@ function openingView(
     const off = openingOffsets(o, host, walls);
     if (off !== null) {
       const cornerId = off.leftCorner.wallId;
-      const corner =
-        cornerId === null ? undefined : walls.find((w) => lower(w.id) === lower(cornerId));
+      const corner = cornerId === null ? undefined : walls.find((w) => sameId(w.id, cornerId));
       offset = {
         left: plan(off.left),
         cornerWall: cornerId === null ? null : { number: corner ? objectNumber(corner) : null },
@@ -410,10 +408,10 @@ export function inspectorView(
   const walls = all.filter((o): o is WallObject => o.type === 'wall');
   const rooms = all.filter((o): o is RoomObject => o.type === 'room');
   const byId = new Map<string, ModelObject>();
-  for (const o of all) if (o.type === 'wall' || o.type === 'opening') byId.set(lower(o.id), o);
+  for (const o of all) if (o.type === 'wall' || o.type === 'opening') byId.set(idKey(o.id), o);
 
   const selected: (WallObject | OpeningObject)[] = [];
-  for (const key of new Set(ids.map(lower))) {
+  for (const key of new Set(ids.map(idKey))) {
     const o = byId.get(key);
     if (o !== undefined && (o.type === 'wall' || o.type === 'opening')) selected.push(o);
   }
@@ -429,7 +427,7 @@ export function inspectorView(
         fields: wallFields(o),
         engineerRequired: all.flatMap((n) =>
           n.type === 'engineer_note' &&
-          lower(n.data.attributes.wallId) === lower(o.id) &&
+          sameId(n.data.attributes.wallId, o.id) &&
           engineerRequired(n.data)
             ? [n.id]
             : [],
@@ -467,15 +465,15 @@ export function inspectorView(
 // EZD-218 (P213a "Selection ids"; Q-0679 (b)): the selection without room ids, which the inspector never sees.
 export function withoutRooms(objects: Objects, ids: readonly string[]): string[] {
   const rooms = new Set<string>();
-  for (const [id, v] of objects) if (v.type === 'room') rooms.add(lower(id));
-  return ids.filter((id) => !rooms.has(lower(id)));
+  for (const [id, v] of objects) if (v.type === 'room') rooms.add(idKey(id));
+  return ids.filter((id) => !rooms.has(idKey(id)));
 }
 
 // EZD-218: the stored name of the room with this id, or null when the id is not a room.
 export function roomNameOf(objects: Objects, id: string): string | null {
-  const want = lower(id);
+  const want = idKey(id);
   for (const [key, v] of objects) {
-    if (lower(key) !== want || v.type !== 'room') continue;
+    if (idKey(key) !== want || v.type !== 'room') continue;
     const name = (v.data as { attributes?: { name?: unknown } }).attributes?.name;
     return typeof name === 'string' ? name : null;
   }

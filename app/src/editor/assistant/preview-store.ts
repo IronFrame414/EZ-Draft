@@ -5,6 +5,8 @@
 import type { ModelStore } from '../model/model-store';
 import type { Objects } from '../model/patches';
 import type { OkPreview } from './apply-reply';
+import { createListeners } from '../shared/value-store';
+import { idKey } from '../shared/ids';
 
 // P1
 export type PreviewState = {
@@ -39,8 +41,8 @@ export type PreviewStore = {
 // D-Store: each touched id as the `before` key with the same lower-case spelling, else as given.
 function keysFor(touched: readonly string[], before: Objects): string[] {
   const byLower = new Map<string, string>();
-  for (const k of before.keys()) byLower.set(k.toLowerCase(), k);
-  return touched.map((id) => byLower.get(id.toLowerCase()) ?? id);
+  for (const k of before.keys()) byLower.set(idKey(k), k);
+  return touched.map((id) => byLower.get(idKey(id)) ?? id);
 }
 
 // P4
@@ -48,11 +50,11 @@ export function createPreviewStore(deps: { store: ModelStore }): PreviewStore {
   let state: PreviewState = EMPTY_PREVIEW_STATE;
   let keys: string[] = [];
   let disposed = false;
-  const listeners = new Set<() => void>();
+  const listeners = createListeners();
 
   const set = (next: PreviewState) => {
     state = next;
-    for (const listener of [...listeners]) listener();
+    listeners.notify();
   };
 
   const staleAtOpen = (before: Objects, ks: readonly string[]) => {
@@ -71,10 +73,7 @@ export function createPreviewStore(deps: { store: ModelStore }): PreviewStore {
     getState: () => state,
     subscribe(listener) {
       if (disposed) return () => {};
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
+      return listeners.add(listener);
     },
     open(o) {
       if (disposed || state.preview !== null) return false;

@@ -51,6 +51,7 @@ import { deleteChanges } from '../edit/edit-changes';
 import { levelModelObjects } from '../inspector/inspector-edits';
 import { applyEditTo, makeEdit, type Change, type Objects } from '../model/patches';
 import { openingChange, openingsOn, wallChange, wallEditChanges } from '../tools/model-changes';
+import { idKey, sameId } from '../shared/ids';
 
 export type AssistantRefusal =
   | 'unknown_ref'
@@ -100,9 +101,6 @@ class Refused extends Error {
 const refuse = (reason: AssistantRefusal): never => {
   throw new Refused(reason);
 };
-
-const lower = (id: string) => id.toLowerCase();
-const sameId = (a: string, b: string) => lower(a) === lower(b);
 
 // D-Refusal: a callee's reason as the reply's reason.
 function mapReason(reason: string): AssistantRefusal {
@@ -155,8 +153,8 @@ export function touchedIds(before: Objects, changes: readonly Change[]): string[
   const out: string[] = [];
   const seen = new Set<string>();
   const add = (id: unknown) => {
-    if (typeof id !== 'string' || seen.has(lower(id))) return;
-    seen.add(lower(id));
+    if (typeof id !== 'string' || seen.has(idKey(id))) return;
+    seen.add(idKey(id));
     out.push(id);
   };
   const hostOf = (v: ObjectValue | null | undefined): unknown => {
@@ -341,8 +339,8 @@ class Pass {
     if (list.length === 0) return;
     this.scratch = applyEditTo(this.scratch, makeEdit(this.scratch, list), 'forward');
     for (const c of list) {
-      if (this.seen.has(lower(c.id))) continue;
-      this.seen.add(lower(c.id));
+      if (this.seen.has(idKey(c.id))) continue;
+      this.seen.add(idKey(c.id));
       this.order.push(c.id);
     }
   }

@@ -19,6 +19,7 @@ import type { PlanPointerEvent, PlanPointerReceiver } from '../plan/input';
 import { assignChanges } from './circuits';
 import { chosenKind, TOOLBAR_KINDS, type DeviceToolbarItem } from './toolbar-items';
 import type { ElectricalToolbarState, ToolbarProtection } from './toolbar-state';
+import { sameId } from '../shared/ids';
 
 /** The change one placement makes, or null when the item and kind do not make a valid device. */
 export function placeToolbarDevice(
@@ -85,10 +86,8 @@ export function toolbarDeviceReceiver(deps: ToolbarReceiverDeps): PlanPointerRec
 
 // ---- Right-click: assign to circuit, set GFCI/AFCI, delete ----
 
-const lower = (s: string) => s.toLowerCase();
-
 function findOf(objects: Objects, id: string, type: string): [string, ObjectValue] | null {
-  for (const [k, v] of objects) if (lower(k) === lower(id)) return v.type === type ? [k, v] : null;
+  for (const [k, v] of objects) if (sameId(k, id)) return v.type === type ? [k, v] : null;
   return null;
 }
 
@@ -173,6 +172,6 @@ export function deviceMenuAt(
 ): { at: Point; ids: readonly string[] } | null {
   const hit = selection.pickAt(model)[0];
   if (hit === undefined || selectedDevices(objects, [hit]).length === 0) return null;
-  if (!selection.getUi().ids.some((id) => lower(id) === lower(hit))) selection.select([hit]);
+  if (!selection.getUi().ids.some((id) => sameId(id, hit))) selection.select([hit]);
   return { at: client, ids: selection.getUi().ids };
 }

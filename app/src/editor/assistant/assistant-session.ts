@@ -25,6 +25,7 @@ import type { ModelStore } from '../model/model-store';
 import type { PreviewStore } from './preview-store';
 import { createAssistantControls, type AssistantControls } from './controls';
 import type { createPhotoWorkerShrinker, PhotoPrepareResult, PhotoShrinker } from './photo-prepare';
+import { createListeners } from '../shared/value-store';
 
 // EZD-233 (11 Budgets editor route): the photo check and shrink load when a photo is first attached; a failed
 // download reads as an unreadable photo, and the next attach tries again.
@@ -120,7 +121,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
     photoProblem: null,
     photoPreparing: false,
   };
-  const listeners = new Set<() => void>();
+  const listeners = createListeners();
   const counted: number[] = [];
   let disposed = false;
   let keyEpoch = 0;
@@ -146,7 +147,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
 
   const set = (patch: Partial<AssistantUi>) => {
     ui = { ...ui, ...patch };
-    for (const listener of [...listeners]) listener();
+    listeners.notify();
   };
 
   const count = (cost: number) => {
@@ -304,7 +305,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
             });
             // The editor greys its rail while adjusting: Adjust starting or ending is told to the listeners.
             controls.adjust.subscribe(() => {
-              for (const listener of [...listeners]) listener();
+              listeners.notify();
             });
           }
         }
@@ -353,10 +354,7 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
     getUi: () => ui,
     subscribe(listener) {
       if (disposed) return () => {};
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
+      return listeners.add(listener);
     },
     setOpen,
     toggle: () => setOpen(!ui.open),

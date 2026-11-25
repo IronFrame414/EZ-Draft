@@ -17,6 +17,8 @@ import type { ModelStore } from '../model/model-store';
 import { applyEditTo, makeEdit, type Change } from '../model/patches';
 import type { AdjustController } from './adjust';
 import type { PreviewStore } from './preview-store';
+import { createListeners } from '../shared/value-store';
+import { idKey } from '../shared/ids';
 
 export type AcceptResult =
   | { kind: 'saved'; ids: string[] }
@@ -80,11 +82,11 @@ export function renumberAdded(
   added: readonly string[],
   highs: NumberHighs,
 ): Change[] {
-  const isAdded = new Set(added.map((id) => id.toLowerCase()));
+  const isAdded = new Set(added.map(idKey));
   const taken: number[] = [];
   const values: ObjectValue[] = [];
   changes.forEach((c, i) => {
-    if (c.value !== null && isAdded.has(c.id.toLowerCase()) && numberKeyOf(c.value) !== null) {
+    if (c.value !== null && isAdded.has(idKey(c.id)) && numberKeyOf(c.value) !== null) {
       taken.push(i);
       values.push(c.value);
     }
@@ -137,12 +139,12 @@ export function createAcceptController(deps: AcceptDeps): AcceptController {
   let busy = false;
   let disposed = false;
   let ui: { readonly busy: boolean } = Object.freeze({ busy: false });
-  const listeners = new Set<() => void>();
+  const listeners = createListeners();
 
   const setBusy = (b: boolean) => {
     busy = b;
     ui = Object.freeze({ busy: b });
-    for (const l of [...listeners]) l();
+    listeners.notify();
   };
 
   async function run(): Promise<AcceptResult> {
@@ -184,10 +186,7 @@ export function createAcceptController(deps: AcceptDeps): AcceptController {
     getUi: () => ui,
     subscribe(listener) {
       if (disposed) return () => {};
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
+      return listeners.add(listener);
     },
     async accept() {
       if (disposed) return { kind: 'unsaved' };

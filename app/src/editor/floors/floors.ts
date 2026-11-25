@@ -5,10 +5,9 @@
 import { CURRENT_SCHEMA_VERSION, parseStoredObject } from '@ezdraft/geometry';
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { Change, Objects } from '../model/patches';
+import { idKey } from '../shared/ids';
 
 export type FloorEntry = { id: string; name: string; order: number };
-
-const lower = (id: string) => id.toLowerCase();
 
 // D-List: every stored floor that parses, by `order` then id.
 export function listFloors(objects: Objects): FloorEntry[] {
@@ -28,16 +27,16 @@ export function listFloors(objects: Objects): FloorEntry[] {
 }
 
 function findFloor(objects: Objects, id: string): FloorEntry | undefined {
-  const want = lower(id);
-  return listFloors(objects).find((f) => lower(f.id) === want);
+  const want = idKey(id);
+  return listFloors(objects).find((f) => idKey(f.id) === want);
 }
 
 // D-Open: the chosen floor when it is still a floor (in its stored spelling), else the lowest floor, else null.
 export function resolveOpenFloor(objects: Objects, chosen: string | null): string | null {
   const floors = listFloors(objects);
   if (chosen !== null) {
-    const want = lower(chosen);
-    const hit = floors.find((f) => lower(f.id) === want);
+    const want = idKey(chosen);
+    const hit = floors.find((f) => idKey(f.id) === want);
     if (hit !== undefined) return hit.id;
   }
   return floors[0]?.id ?? null;
@@ -46,12 +45,12 @@ export function resolveOpenFloor(objects: Objects, chosen: string | null): strin
 // D-Delete: every other object whose raw `data.level` names the floor, parsed or not (as the server's level check
 // reads it), ids ascending.
 export function objectsOnFloor(objects: Objects, floorId: string): string[] {
-  const want = lower(floorId);
+  const want = idKey(floorId);
   const ids: string[] = [];
   for (const [id, value] of objects) {
     if (value.type === 'floor') continue;
     const level = (value.data as { level?: unknown } | null)?.level;
-    if (typeof level === 'string' && lower(level) === want) ids.push(id);
+    if (typeof level === 'string' && idKey(level) === want) ids.push(id);
   }
   return ids.sort();
 }
@@ -92,8 +91,8 @@ export function renameFloorChange(objects: Objects, id: string, name: string): C
 // D-Delete: the floor's objects, then the floor; null for an id that is not a floor or for the only floor.
 export function deleteFloorChanges(objects: Objects, floorId: string): Change[] | null {
   const floors = listFloors(objects);
-  const want = lower(floorId);
-  const floor = floors.find((f) => lower(f.id) === want);
+  const want = idKey(floorId);
+  const floor = floors.find((f) => idKey(f.id) === want);
   if (floor === undefined || floors.length <= 1) return null;
   return [
     ...objectsOnFloor(objects, floor.id).map((id) => ({ id, value: null })),

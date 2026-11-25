@@ -3,6 +3,7 @@
 // lower-cased pin id. No React.
 import type { SourceContentType } from '../../lib/storage/source-file-kinds';
 import type { PhotoAttempt } from './pin-photo';
+import { idKey } from '../shared/ids';
 
 export type PinUploadState =
   | { kind: 'idle' }
@@ -19,7 +20,7 @@ export type PinUpload = {
 const uploads = new Map<string, PinUpload>();
 
 export function pinUploadOf(pinId: string): PinUpload {
-  const key = pinId.toLowerCase();
+  const key = idKey(pinId);
   let p = uploads.get(key);
   if (p === undefined) {
     p = { state: { kind: 'idle' }, attempt: { current: null }, file: null };
