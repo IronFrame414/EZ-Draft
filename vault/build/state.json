@@ -521,7 +521,8 @@
     "EZD-1989",
     "EZD-1988",
     "EZD-1978",
-    "EZD-1981"
+    "EZD-1981",
+    "EZD-1987"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2071,6 +2072,14 @@
       "ts": "2026-11-25T14:45:37Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1987",
+      "title": "Supplier files page has the editor header",
+      "commit": "716888e0",
+      "ts": "2026-11-25T15:21:27Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2309,11 +2318,11 @@
       "started": "2026-11-25T13:35:52Z",
       "develop": "1557d548"
     },
-    "EZD-1987": {
-      "lane": 3,
-      "title": "Supplier files page has the editor header",
-      "started": "2026-11-25T13:35:53Z",
-      "develop": "1557d548"
+    "EZD-1992": {
+      "lane": 1,
+      "title": "Fix: permissions T11 backfill fails at random on a tenant foreign key (EZD-101 T11)",
+      "started": "2026-11-25T14:45:47Z",
+      "develop": "3188a697"
     }
   },
   "advisories_checked_at": "2026-11-25T10:18:53Z",
