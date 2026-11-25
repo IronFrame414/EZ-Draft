@@ -2084,7 +2084,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2127,7 +2127,8 @@
     "EZD-1939": 1,
     "EZD-1959": 1,
     "EZD-1988": 1,
-    "EZD-1978": 1
+    "EZD-1978": 1,
+    "EZD-1992": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2309,6 +2310,10 @@
     "EZD-1978": {
       "ts": "2026-11-25T10:45:24Z",
       "reason": "develop kept moving: 3 merge rounds"
+    },
+    "EZD-1992": {
+      "ts": "2026-11-25T15:45:02Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
@@ -2318,11 +2323,11 @@
       "started": "2026-11-25T13:35:52Z",
       "develop": "1557d548"
     },
-    "EZD-1992": {
-      "lane": 1,
-      "title": "Fix: permissions T11 backfill fails at random on a tenant foreign key (EZD-101 T11)",
-      "started": "2026-11-25T14:45:47Z",
-      "develop": "3188a697"
+    "EZD-1984": {
+      "lane": 3,
+      "title": "A selected wall's size chip does not cover the room label",
+      "started": "2026-11-25T15:21:34Z",
+      "develop": "9881b420"
     }
   },
   "advisories_checked_at": "2026-11-25T10:18:53Z",
