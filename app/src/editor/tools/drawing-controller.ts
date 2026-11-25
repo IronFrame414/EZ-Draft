@@ -62,7 +62,7 @@ import {
   type SketchShape,
   type ObjectStatus,
 } from '@ezdraft/geometry';
-import { shownBy, type PhaseSource } from '../../lib/plan/phase-view';
+import { objectShownBy, shownBy, type PhaseSource } from '../../lib/plan/phase-view';
 import type { IpadDrawing } from '../../lib/profile/profile';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ModelStore } from '../model/model-store';
@@ -125,10 +125,12 @@ import {
   resizeByPoint,
   resizeBySize,
   resizeHandles,
+  roomLabelBoxes,
   sizeChipNormal,
   type ResizeHandle,
   type ResizeOutcome,
   type SelectionEntry,
+  type LabelBox,
   type SelectionFrame,
   looseOn,
   blockingsOn,
@@ -362,6 +364,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let movePress: { screen: Point; dragged: boolean } | null = null;
   let drag: MoveDrag | null = null;
   let moveCache: ModelObject[] | null = null;
+  // EZD-1984: the shown room labels of the open floor, kept while the objects, floor and phase view are the same.
+  let labelCache: {
+    objects: Objects;
+    level: string;
+    version: number;
+    boxes: readonly LabelBox[];
+  } | null = null;
   // EZD-234: a list computed after a later move, placement or Close is dropped.
   let utilitiesSeq = 0;
   // EZD-223: the sketch strokes drawn on this page.
@@ -523,6 +532,20 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       emitFrame();
   });
 
+  // EZD-1984 (audit F19): the room labels a wall chip keeps clear of.
+  function labelBoxes(): readonly LabelBox[] {
+    if (level === null) return [];
+    const version = phase?.version() ?? 0;
+    const c = labelCache;
+    if (c !== null && c.objects === objects && c.level === level && c.version === version)
+      return c.boxes;
+    const boxes = roomLabelBoxes(objects, level, (type, status) =>
+      objectShownBy(phase, type, status),
+    );
+    labelCache = { objects, level, version, boxes };
+    return boxes;
+  }
+
   // D7 (a): the walls and openings a move reads.
   function moveModels(): ModelObject[] {
     if (moveCache === null)
@@ -648,7 +671,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       return {
         ...result,
         opening: null,
-        selection: { handles: [], active: null, wallChips: wallChips(after, o.id), size: null },
+        selection: {
+          handles: [],
+          active: null,
+          wallChips: wallChips(after, o.id),
+          size: null,
+          labels: labelBoxes(),
+        },
       };
     }
     if (o?.type === 'opening') {
@@ -659,7 +688,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       return {
         ...result,
         opening: null,
-        selection: { handles: [], active: null, wallChips: deviceChips(after, o.id), size: null },
+        selection: {
+          handles: [],
+          active: null,
+          wallChips: deviceChips(after, o.id),
+          size: null,
+          labels: labelBoxes(),
+        },
       };
     }
     return result;
@@ -711,6 +746,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       active: null,
       wallChips: o.type === 'wall' ? wallChips(from, o.id) : [],
       size: null,
+      labels: o.type === 'wall' ? labelBoxes() : [],
     };
     const opening =
       o.type === 'opening'
@@ -750,6 +786,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         active,
         wallChips: h.kind === 'wall' ? wallChips(after, h.id) : [],
         size,
+        labels: h.kind === 'wall' ? labelBoxes() : [],
       },
     };
   }
