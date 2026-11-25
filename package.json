@@ -14,6 +14,7 @@
     "perf": "node scripts/perf/run.mjs",
     "db:up": "node scripts/db/local.mjs up",
     "db:env": "node scripts/db/local.mjs env",
+    "db:base": "node scripts/db/local.mjs base",
     "db:reset": "node scripts/db/local.mjs prepare && supabase db reset --local",
     "db:stop": "node scripts/db/local.mjs prepare && supabase stop",
     "db:types": "node scripts/db/gen-types.mjs",

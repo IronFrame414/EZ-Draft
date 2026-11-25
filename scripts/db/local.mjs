@@ -18,6 +18,8 @@ import { ensureRealtimeBroadcastStream } from './realtime-warmup.mjs';
 import { ensureApiGateInForce } from './api-gate-ready.mjs';
 // EZD-166 (vault/plans/EZD-166.md): restart the stack when supabase/config.toml or supabase/templates/* changed.
 import { STACK_CONFIG_MARKER, ensureStackCurrent, sharedTempDir } from './stack-config.mjs';
+// EZD-1959: `base` brings the lane-0 stack up to date for live UI checks.
+import { forceLaneZero, laneZeroHolders, newestMigrationFile, probeGatedRpc, refusalText } from './base.mjs';
 // EZD-287 (vault/plans/EZD-287.md): Kong must serve this checkout's email templates.
 import { checkTemplates, dockerCli } from './stack-templates.mjs';
 
@@ -119,7 +121,7 @@ async function up(lane) {
   if (stack.outcome === 'templates_restarted') process.stdout.write('Local Supabase email templates were stale: stack restarted\n');
   const reset = cli(['db', 'reset', '--local'], { inherit: true });
   if (!reset.ok) fail('db reset --local', reset);
-  await storeLocalGateSecret();
+  const secret = await storeLocalGateSecret();
   const s = readStatus();
   try {
     await ensureApiGateInForce({ apiUrl: s.url, apiKey: s.publishable });
@@ -135,7 +137,7 @@ async function up(lane) {
     process.exit(1);
   }
   process.stdout.write('Realtime broadcast stream ready\n');
-  process.exit(0);
+  return { secret, status: s };
 }
 
 // A fresh local gate secret per `up`: its hash goes to the database, the secret to the ignored file.
@@ -148,6 +150,7 @@ async function storeLocalGateSecret() {
   }
   mkdirSync(path.dirname(gateSecretFile), { recursive: true });
   writeFileSync(gateSecretFile, `${secret}\n`, { mode: 0o600 });
+  return secret;
 }
 
 function readGateSecret() {
@@ -198,6 +201,31 @@ function env() {
   process.exit(0);
 }
 
+// EZD-1959 AC-2: after `base`, the newest applied migration is the newest file and a gated RPC passes the gate with the
+// secret just written; the secret is also copied to the main checkout's supabase/.temp, which `pnpm db:env` there reads.
+async function finishBase(secret, status) {
+  const shared = path.join(sharedTempDir(repo), 'ezd-api-gate-secret');
+  if (shared !== gateSecretFile) {
+    mkdirSync(path.dirname(shared), { recursive: true });
+    writeFileSync(shared, `${secret}\n`, { mode: 0o600 });
+  }
+  const newest = newestMigrationFile(path.join(repo, 'supabase', 'migrations'));
+  const q = await runLocalSql('select max(version) from supabase_migrations.schema_migrations;');
+  const applied = q.stdout.trim();
+  if (q.code !== 0 || applied !== newest) {
+    process.stderr.write(`Base database is not at the newest migration (applied ${applied || 'none'}, newest file ${newest}).\n${q.stderr}`);
+    process.exit(1);
+  }
+  process.stdout.write(`Newest migration applied: ${applied}\n`);
+  const rpc = await probeGatedRpc({ apiUrl: status.url, apiKey: status.publishable, secret });
+  if (!rpc.ok) {
+    process.stderr.write(`sign_in_throttle_take did not pass the API request gate (${rpc.detail}).\n`);
+    process.exit(1);
+  }
+  process.stdout.write(`sign_in_throttle_take passed the API request gate (${rpc.detail})\n`);
+  process.stdout.write('Base local database (lane 0, port 54321) is up to date\n');
+}
+
 function laneFail(error) {
   process.stderr.write(`${error.message}\n`);
   process.exit(1);
@@ -213,7 +241,20 @@ if (command === 'lane') {
   process.exit(0);
 }
 let checked = { lane: 0, workdir: null };
-if (command === 'up' || command === 'env' || command === 'prepare' || command === 'stop-lane') {
+// EZD-1959: `base` always works on lane 0, whatever lane the caller's shell is set to (scripts/db/base.mjs).
+if (command === 'base') {
+  forceLaneZero(process.env);
+  if (!dockerCli(['info']).ok) {
+    process.stderr.write(`${DOCKER_MESSAGE}\n`);
+    process.exit(1);
+  }
+  const holders = await laneZeroHolders();
+  if (holders.length) {
+    process.stderr.write(`${refusalText(holders)}\n`);
+    process.exit(1);
+  }
+}
+if (command === 'up' || command === 'base' || command === 'env' || command === 'prepare' || command === 'stop-lane') {
   try {
     checked = checkLaneEnv(process.env, repo);
   } catch (error) {
@@ -221,7 +262,14 @@ if (command === 'up' || command === 'env' || command === 'prepare' || command ==
   }
   gateSecretFile = path.join(checked.workdir ?? repo, 'supabase', '.temp', 'ezd-api-gate-secret');
 }
-if (command === 'up') await up(checked.lane);
+if (command === 'up') {
+  await up(checked.lane);
+  process.exit(0);
+} else if (command === 'base') {
+  const { secret, status } = await up(0);
+  await finishBase(secret, status);
+  process.exit(0);
+}
 else if (command === 'env') env();
 else if (command === 'prepare') {
   try {
@@ -244,6 +292,6 @@ else if (command === 'prepare') {
   if (!r.ok) fail('stop', r);
   process.exit(0);
 } else {
-  process.stderr.write('usage: node scripts/db/local.mjs <up|env|prepare|lane|stop-lane>\n');
+  process.stderr.write('usage: node scripts/db/local.mjs <up|base|env|prepare|lane|stop-lane>\n');
   process.exit(1);
 }

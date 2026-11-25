@@ -309,3 +309,7 @@ Josh installs it, from the main checkout (`/Users/josh/Projects/ezdraft`, not a 
 ## Loop build order (EZD-1940)
 
 The loop builds eligible tickets in this order: security fix tickets, then the `priority` list in `vault/build/config.json`, then retried tickets (a ticket that failed once and was requeued), then phase, build position and ticket id (`scripts/loop/order.mjs`). A retried ticket goes before every fresh ticket of the same priority rank, so the config.json priority list is no longer needed for retries; use it only to bring a fresh ticket forward. The running loop uses the new order only after a restart: its own self-restart after it merges a change under `scripts/loop/` (EZD-1967), or Josh or the overseer restarting `com.ezdraft.build`. The ticket itself never restarts it.
+
+## Base local database for live UI checks (EZD-1959)
+
+The build lanes use stacks 1-3, so the base stack (lane 0, port 54321) falls behind. Before checking signed-in screens against it, run `pnpm db:base` in Terminal from the repo (any checkout). It ends with "Base local database (lane 0, port 54321) is up to date" and exit 0. If it says a lane-0 gate or database reset holds the base stack, wait for that run to end and try again. If it says Docker is not running, start Docker Desktop first. It wipes local data on lane 0 only; lanes 1-3 are never touched.
