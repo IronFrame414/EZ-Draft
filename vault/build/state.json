@@ -529,7 +529,8 @@
     "EZD-1980",
     "EZD-1983",
     "EZD-1985",
-    "EZD-1986"
+    "EZD-1986",
+    "EZD-514"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2143,11 +2144,19 @@
       "ts": "2026-11-25T20:22:11Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-514",
+      "title": "Framing known and keep-clear",
+      "commit": "b356ae52",
+      "ts": "2026-11-25T22:33:03Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2395,20 +2404,20 @@
     }
   },
   "running": {
-    "EZD-514": {
-      "lane": 3,
-      "title": "Framing known and keep-clear",
-      "started": "2026-11-25T20:22:19Z",
-      "develop": "c9f0a4f7"
-    },
     "EZD-1993": {
       "lane": 1,
       "title": "CI: the gate finishes well inside its 45-minute limit on the GitHub runner",
       "started": "2026-11-25T21:03:39Z",
       "develop": "5c8e9de4"
+    },
+    "EZD-1990": {
+      "lane": 2,
+      "title": "\"Page not found\" page with the app header and a Back to Projects button",
+      "started": "2026-11-25T21:07:20Z",
+      "develop": "c91fe1a8"
     }
   },
-  "advisories_checked_at": "2026-11-25T16:19:16Z",
+  "advisories_checked_at": "2026-11-25T22:19:22Z",
   "hold": {},
   "perf_trend_at": "2026-11-25T03:16:23Z",
   "set_aside_history": []
