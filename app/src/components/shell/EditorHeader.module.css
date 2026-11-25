@@ -65,6 +65,8 @@ button.name {
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
+  /* EZD-1987: the active tab may be a link (activeHref). */
+  text-decoration: none;
 }
 
 .active {

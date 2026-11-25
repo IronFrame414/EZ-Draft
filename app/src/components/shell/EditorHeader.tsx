@@ -19,6 +19,9 @@ export type EditorHeaderProps = {
   activeView: EditorView;
   views?: readonly EditorView[];
   onViewChange: (view: EditorView) => void;
+  // EZD-1987 (audit F10; S12 board: Plan underlined): on a page under the project (Supplier markup), the active tab is
+  // a link back to the project's editor at this href, keeping the active look.
+  activeHref?: string;
   // EZD-126 (S06 Layout; 04:26): presence avatars before the review pill, Stop editing between it and Share.
   presence?: ReactNode;
   reviewPill?: ReactNode;
@@ -36,6 +39,7 @@ export const EditorHeader = memo(function EditorHeader({
   activeView,
   views = EDITOR_VIEWS,
   onViewChange,
+  activeHref,
   presence,
   reviewPill,
   stopEditing,
@@ -76,6 +80,13 @@ export const EditorHeader = memo(function EditorHeader({
       <nav className={styles.views} aria-label={t('office.header.views')}>
         {EDITOR_VIEWS.filter((view) => views.includes(view)).map((view) => {
           const active = view === activeView;
+          if (active && activeHref !== undefined) {
+            return (
+              <a key={view} className={`${styles.tab} ${styles.active}`} aria-current="page" href={activeHref}>
+                {t(VIEW_LABEL_KEYS[view])}
+              </a>
+            );
+          }
           return (
             <button
               key={view}

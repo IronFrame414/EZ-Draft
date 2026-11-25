@@ -6,9 +6,15 @@
 // screen at /projects/[id]/supplier. Its rail has Select (back to the plan) and Supplier markup, on; the left panel is
 // the Supplier files panel. The tool bar, rendering and plan cards, inspector and the rest of the status bar come with
 // EZD-917 onward (vault/build/assumptions.md EZD-914).
+// EZD-1987 (audit F10; S12 board): the editor header card on top: wordmark back to Projects, the project name and
+// client, and the view tabs with Plan on as a link back to the project's editor (vault/build/assumptions.md EZD-1987).
 import { useState, type ReactElement } from 'react';
 import { useT } from '../../../../../lib/messages';
 import { EditorFrame } from '../../../../../components/shell/EditorFrame';
+import { EditorHeader } from '../../../../../components/shell/EditorHeader';
+import { HeaderCard } from '../../../../../components/shell/HeaderCard';
+import { Wordmark } from '../../../../../components/shell/Wordmark';
+import type { EditorView } from '../../../../../components/shell/editor-views';
 import { StatusBar, StatusItem } from '../../../../../components/shell/StatusBar';
 import { ToolRail } from '../../../../../components/shell/ToolRail';
 import type { RailTool } from '../../../../../components/shell/rail-types';
@@ -27,25 +33,47 @@ const SUPPLIER: RailTool = {
   icon: 'photo_library',
   label: 'office.tool.supplier_markup',
 };
+// The tabs the editor always shows (3D waits for its plan canvas there); each one opens the project's editor.
+const VIEWS: EditorView[] = ['plan', 'sheets'];
 
 export function SupplierMarkupScreen({
   projectId,
   canUpload,
+  project,
 }: {
   projectId: string;
   canUpload: boolean;
+  project: { name: string; clientName: string | null } | null;
 }): ReactElement {
   const t = useT();
   const [open, setOpen] = useState<SupplierFile | null>(null);
+  const projectHref = `/projects/${projectId}`;
   return (
     <EditorFrame
+      header={
+        project === null ? (
+          <HeaderCard>
+            <Wordmark href="/" />
+          </HeaderCard>
+        ) : (
+          <EditorHeader
+            projectsHref="/"
+            projectName={project.name}
+            subtitle={[project.clientName]}
+            activeView="plan"
+            views={VIEWS}
+            activeHref={projectHref}
+            onViewChange={() => window.location.assign(projectHref)}
+          />
+        )
+      }
       rail={
         <ToolRail
           top={[SELECT, { kind: 'separator' }, SUPPLIER]}
           bottom={[]}
           activeId="supplier-markup"
           onSelect={(id) => {
-            if (id === 'select') window.location.assign(`/projects/${projectId}`);
+            if (id === 'select') window.location.assign(projectHref);
           }}
         />
       }

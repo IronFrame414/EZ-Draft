@@ -139,4 +139,35 @@ test.describe('EZD-914 Supplier files panel', () => {
       'Supplier files need the See company costs permission.',
     );
   });
+
+  // EZD-1987 (AC-EZD-1987-1; audit F10; S12 board): the editor header card shows the project's name and client (the
+  // fixture's P1 is "bravo" for "Zed Co"), the wordmark back to Projects, and Plan on as the way back to the project.
+  test('AC-EZD-1987-1: the Supplier markup page has the editor header with the project name and a way back', async ({
+    page,
+    signInAs,
+  }) => {
+    const t3 = await createTenant();
+    const ids = await seedFixtureS(t3);
+    const m = await createMember({ tenantId: t3, scope: 'all' });
+    await setPermissions(t3, m.membershipId, ['view_projects', 'see_company_costs']);
+    await signInAs(m.email);
+    await page.goto(`/projects/${ids.P1}/supplier`);
+
+    const header = page.locator('header').first();
+    await expect(header).toContainText('bravo');
+    await expect(header).toContainText('Zed Co');
+    const wordmark = header.getByRole('link').first();
+    await expect(wordmark).toHaveText('ezdraft');
+    await expect(wordmark).toHaveAttribute('href', '/');
+    const plan = header.getByRole('link', { name: 'Plan' });
+    await expect(plan).toHaveAttribute('aria-current', 'page');
+    await expect(plan).toHaveAttribute('href', `/projects/${ids.P1}`);
+    await expect(header.getByRole('button', { name: 'Sheets' })).toBeVisible();
+    // Nothing else changes (AC-EZD-1987-2): the rail and the Supplier files panel are still there.
+    await expect(page.locator('[data-rail-tool="supplier-markup"]')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('[data-shell-region="left-panel"]')).toContainText('Supplier files');
+
+    await plan.click();
+    await expect(page).toHaveURL(new RegExp(`/projects/${ids.P1}$`));
+  });
 });
