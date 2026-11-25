@@ -24,7 +24,9 @@ export type CeilingToolId =
   | 'soffit'
   | 'tag'
   // EZD-510: Switching zones, turned on from the left panel's Lighting section (board S05Ceiling), not the rail.
-  | 'switch-zone';
+  | 'switch-zone'
+  // EZD-514: the framing line tool, turned on from the inspector's Framing known section, not the rail.
+  | 'framing-line';
 
 export type SurfaceState = { surface: PlanSurface; tool: CeilingToolId | null };
 

@@ -76,6 +76,13 @@ const NEVER = [
   'room.attributes.ceiling.ridge.end.x',
   'room.attributes.ceiling.ridge.end.y',
   'room.attributes.ceiling.ridge.height',
+  'room.attributes.framing.known',
+  'room.attributes.framing.lines[].kind',
+  'room.attributes.framing.lines[].start.x',
+  'room.attributes.framing.lines[].start.y',
+  'room.attributes.framing.lines[].end.x',
+  'room.attributes.framing.lines[].end.y',
+  'room.attributes.framing.lines[].spacing',
 ];
 
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-/i;
@@ -113,14 +120,14 @@ const V4_LAYERS = [
 describe('EZD-5602 send list', () => {
   it('T2 classification: every schema leaf is classified, nothing else is, and each object type has a projector', () => {
     const leaves = allLeaves();
-    expect(leaves).toHaveLength(61);
-    expect(new Set(leaves).size).toBe(61);
+    expect(leaves).toHaveLength(68);
+    expect(new Set(leaves).size).toBe(68);
     expect(Object.keys(SEND_CLASSIFICATION).sort()).toEqual([...leaves].sort());
     const expected = Object.fromEntries(
       leaves.map((leaf) => [leaf, NEVER.includes(leaf) ? 'never' : 'send']),
     );
     expect({ ...SEND_CLASSIFICATION }).toEqual(expected);
-    expect(Object.values(SEND_CLASSIFICATION).filter((v) => v === 'never')).toHaveLength(25);
+    expect(Object.values(SEND_CLASSIFICATION).filter((v) => v === 'never')).toHaveLength(32);
     expect(leaves).toContain('wall.attributes.layers[].material');
 
     // A new stored field shows up unclassified.

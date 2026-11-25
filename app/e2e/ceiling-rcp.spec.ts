@@ -13,6 +13,9 @@
 // scan ... Only when a GLB mesh exists for the project"; S05 Validation "Typed heights: invalid format shows inline
 // error, value not applied"): the left panel's summary follows a Change ceiling save. AC-EZD-503-1 (the scan fill)
 // is proved on the fixture GLB in src/editor/ceiling/room-ceiling.test.ts.
+// EZD-514 (AC-EZD-514-1 "With Unknown there is no warning", AC-EZD-514-2 "with entered lines a can on a joist warns";
+// S05 Controls "Framing known"): a room selected on the ceiling takes Enter locations, a joist line is drawn with two
+// clicks at 16" on center, the status bar follows, and a can on the line warns until the framing goes back to Unknown.
 import {
   CURRENT_SCHEMA_VERSION,
   createWallData,
@@ -358,5 +361,101 @@ test.describe('EZD-502 RCP view and ceiling rail', () => {
       end: { x: 144, y: 60 },
       height: 144,
     });
+  });
+
+  test('AC-EZD-514-1, -2: Framing known: drawn joists warn a can on one; Unknown does not', async ({
+    page,
+    signInAs,
+  }) => {
+    const { ids, user } = await fixtureS(['view_projects', 'edit_model']);
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await seedRoom(page);
+    await id(page, 'surface-ceiling').click();
+    await expect.poll(async () => (await drawn(page)).surface).toBe('ceiling');
+    const box = await page.locator('[data-shell-region="canvas"]').boundingBox();
+    if (!box) throw new Error('canvas region has no box');
+    const at = async (p: Point) => {
+      const s = await page.evaluate(
+        (q) => (window as unknown as Window2).__ezdraftPlan.handle.modelToScreen(q),
+        p,
+      );
+      await page.mouse.click(box.x + s.x, box.y + s.y);
+    };
+
+    // The room selected on the ceiling shows Framing known, Unknown to start.
+    await at({ x: 72, y: 60 });
+    await expect(id(page, 'inspector')).toHaveAttribute('data-inspector-kind', 'room');
+    await expect(id(page, 'framing-known-choice')).toHaveValue('unknown');
+    await expect(id(page, 'status-joists')).toHaveText('unknown · beam clash checks off');
+
+    // Enter locations: the status bar turns the checks on; a joist line drawn at y = 40, 16" on center.
+    await id(page, 'framing-known-choice').selectOption('entered');
+    await expect(id(page, 'status-joists')).toHaveText('entered · beam clash checks on');
+    await id(page, 'framing-spacing').fill('16');
+    await id(page, 'framing-draw').click();
+    await expect(id(page, 'framing-draw')).toHaveAttribute('aria-pressed', 'true');
+    // Both clicks well inside the room: its east side sits under the inspector at this zoom.
+    await at({ x: 40, y: 40 });
+    await at({ x: 100, y: 40 });
+    await expect(id(page, 'framing-line')).toHaveText('Joist · 1\' 4" o.c.');
+    const room = () =>
+      page.evaluate(() =>
+        (window as unknown as Window2).__ezdraftEditor.objects().find((o) => o.type === 'room')!,
+      );
+    const framing = (await room()).data.attributes as {
+      framing: { lines: Array<{ spacing: number }> };
+    };
+    expect(framing.framing.lines).toHaveLength(1);
+    expect(framing.framing.lines[0]!.spacing).toBe(16);
+    await page.keyboard.press('Escape');
+
+    // An Existing can (the phase view shows Existing) on the joist at y = 56 (40 + 16) warns when selected.
+    const level = (await room()).data.level as string;
+    const canId = crypto.randomUUID();
+    await page.evaluate(
+      (c) => (window as unknown as Window2).__ezdraftEditor.edit(c),
+      [
+        {
+          id: canId,
+          value: {
+            type: 'device',
+            schemaVersion: CURRENT_SCHEMA_VERSION,
+            data: {
+              geometry: { point: { x: 100, y: 56 } },
+              status: 'existing',
+              level,
+              attributes: { kind: 'recessed_light' },
+            },
+          },
+        },
+      ],
+    );
+    await at({ x: 100, y: 56 });
+    await expect(id(page, 'inspector')).toHaveAttribute('data-inspector-kind', 'device');
+    await expect(id(page, 'device-keep-clear')).toHaveText('Can is on a joist. Move it clear.');
+
+    // Back to Unknown (the lines kept): no warning.
+    const r = await room();
+    const attrs = r.data.attributes as Record<string, unknown> & {
+      framing: Record<string, unknown>;
+    };
+    await page.evaluate(
+      (c) => (window as unknown as Window2).__ezdraftEditor.edit(c),
+      [
+        {
+          id: r.id,
+          value: {
+            type: 'room',
+            schemaVersion: CURRENT_SCHEMA_VERSION,
+            data: {
+              ...r.data,
+              attributes: { ...attrs, framing: { ...attrs.framing, known: 'unknown' } },
+            },
+          },
+        },
+      ],
+    );
+    await expect(id(page, 'device-keep-clear')).toHaveCount(0);
   });
 });

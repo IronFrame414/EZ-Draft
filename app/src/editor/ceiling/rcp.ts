@@ -32,6 +32,9 @@ import {
   pointInRing,
   fanClearanceWarnings,
   isOffCeiling,
+  keepClearWarning,
+  roomFraming,
+  type FramingLine,
   DRAWING_FONTS,
   beamOutlines,
   beamSetWarnings,
@@ -57,6 +60,11 @@ import { placeSwitchZone, roomAt } from '../tools/switch-zone';
 import { placeActGrid } from '../tools/act-grid-edits';
 import { actGridReceiver, type ActGridToolDeps } from '../tools/act-grid-tool';
 import { switchZoneReceiver, zoneDrawingFor, type ZoneToolDeps } from '../tools/switch-zone-tool';
+import {
+  framingDrawingFor,
+  framingLineReceiver,
+  type FramingToolDeps,
+} from '../tools/framing-tool';
 import { ceilingShapeItems, ceilingTagItems, shapeDraftItems } from './ceiling-shapes';
 import {
   shapeDrawingFor,
@@ -77,6 +85,8 @@ export { placeSwitchZone, roomAt } from '../tools/switch-zone';
 export { switchZoneReceiver, zoneDrawingFor } from '../tools/switch-zone-tool';
 // EZD-511: the ACT grid inspector and the legend's border sizes.
 export { ActGridInspector, ActLegend } from '../tools/ActGridPanel';
+// EZD-514: the framing line tool's page drawing (the inspector's Framing known section sets its room).
+export { framingDrawingFor } from '../tools/framing-tool';
 // EZD-513: the Soffit, tray, coffer card and the two tools' receivers.
 export { ShapeChooser } from './ShapeChooser';
 export { tagReceiver } from './shape-tool';
@@ -274,7 +284,11 @@ export function dimmerMark(at: Point, objectId: string): DrawingItem[] {
 }
 
 /** The switching zones of the shown rooms: each one's dashed outline, and the dimmer mark on a dimmer zone. */
-export function zoneItems(objects: Objects, level: string, rooms: ReadonlySet<string>): DrawingItem[] {
+export function zoneItems(
+  objects: Objects,
+  level: string,
+  rooms: ReadonlySet<string>,
+): DrawingItem[] {
   let hasZones = false;
   for (const [, v] of objects) if (v.type === 'switch_zone') hasZones = true;
   if (!hasZones) return [];
@@ -283,7 +297,8 @@ export function zoneItems(objects: Objects, level: string, rooms: ReadonlySet<st
     if (o.type !== 'switch_zone' || !rooms.has(o.data.geometry.roomId.toLowerCase())) continue;
     const data: SwitchZoneData = o.data;
     items.push(...dashedPath(data.geometry.boundary, true, o.id));
-    if (data.attributes.dimmer) items.push(...dimmerMark(zoneLabelPoint(data.geometry.boundary), o.id));
+    if (data.attributes.dimmer)
+      items.push(...dimmerMark(zoneLabelPoint(data.geometry.boundary), o.id));
   }
   return items;
 }
@@ -291,6 +306,61 @@ export function zoneItems(objects: Objects, level: string, rooms: ReadonlySet<st
 /** A half-drawn zone: an open dashed line through its corners. */
 export function zoneDraftItems(points: readonly Point[]): DrawingItem[] {
   return points.length < 2 ? [] : dashedPath(points, false, ZONE_DRAFT_ID);
+}
+
+/**
+ * EZD-514 (S05 Controls "Framing known ... Enter locations: draw joist or beam lines with direction and spacing"): each
+ * shown room's framing lines, dashed on the rooms layer under the room's id (a click on one selects the ceiling). A
+ * line with a spacing draws once at each repeat that crosses the room, the same length as drawn.
+ */
+export const FRAMING_DASH_IN: readonly number[] = [6, 4];
+
+/** The offsets across `line`, in inches from the drawn line, at which a member of it crosses `ring`. */
+export function framingRepeats(line: FramingLine, ring: readonly Point[]): number[] {
+  if (line.spacing === null) return [0];
+  const L = Math.hypot(line.end.x - line.start.x, line.end.y - line.start.y);
+  const nx = -(line.end.y - line.start.y) / L;
+  const ny = (line.end.x - line.start.x) / L;
+  const across = ring.map((p) => (p.x - line.start.x) * nx + (p.y - line.start.y) * ny);
+  const lo = Math.ceil(Math.min(...across) / line.spacing);
+  const hi = Math.floor(Math.max(...across) / line.spacing);
+  const out: number[] = [];
+  for (let k = lo; k <= hi; k++) out.push(k * line.spacing);
+  return out;
+}
+
+function framingLineItems(
+  line: FramingLine,
+  ring: readonly Point[],
+  objectId: string,
+): DrawingItem[] {
+  const L = Math.hypot(line.end.x - line.start.x, line.end.y - line.start.y);
+  const nx = -(line.end.y - line.start.y) / L;
+  const ny = (line.end.x - line.start.x) / L;
+  const items: DrawingItem[] = [];
+  for (const d of framingRepeats(line, ring)) {
+    const a = { x: line.start.x + nx * d, y: line.start.y + ny * d };
+    const b = { x: line.end.x + nx * d, y: line.end.y + ny * d };
+    for (const [from, to] of dashes(a, b, FRAMING_DASH_IN))
+      items.push({ kind: 'line', role: 'hidden', layer: 'rooms', objectId, from, to });
+  }
+  return items;
+}
+
+/** The framing lines of the shown rooms. */
+export function framingItems(
+  objects: Objects,
+  level: string,
+  rooms: ReadonlySet<string>,
+): DrawingItem[] {
+  const items: DrawingItem[] = [];
+  for (const o of levelModelObjects(objects, level)) {
+    if (o.type !== 'room' || !rooms.has(o.id.toLowerCase())) continue;
+    const ring = o.data.geometry.boundary;
+    for (const line of roomFraming(o.data.attributes).lines)
+      items.push(...framingLineItems(line, ring, o.id));
+  }
+  return items;
 }
 
 /**
@@ -444,11 +514,17 @@ export function flaggedCeilingIds(
 ): Set<string> {
   const out = new Set<string>();
   let hosted = false;
-  for (const [, v] of objects) if (v.type === 'device' || v.type === 'access' || v.type === 'hvac') hosted = true;
+  for (const [, v] of objects)
+    if (v.type === 'device' || v.type === 'access' || v.type === 'hvac') hosted = true;
   if (!hosted) return out;
   const all = levelModelObjects(objects, level);
   for (const o of all)
-    if (isOffCeiling(o, all) || fanClearanceWarnings(o, all, checks.fanClearance).length > 0)
+    // EZD-514: and a can on a known joist or beam.
+    if (
+      isOffCeiling(o, all) ||
+      fanClearanceWarnings(o, all, checks.fanClearance).length > 0 ||
+      keepClearWarning(o, all) !== null
+    )
       out.add(o.id.toLowerCase());
   return out;
 }
@@ -497,11 +573,15 @@ export function rcpList(
     if (ridge !== null) items.push(...ridgeItems(id, ridge));
   }
   items.push(...beamItems(objects, floor.level, rooms));
+  // EZD-514: the framing lines under the ceiling items.
+  items.push(...framingItems(objects, floor.level, rooms));
   // EZD-511: the ACT grids under everything else on the ceiling, then the troffers in them.
   items.push(...actGridItems(objects, floor.level, rooms, checks.actMinShare ?? HALF_TILE));
   for (const [key, list] of troffers)
     if (trofferShown.has(key))
-      items.push(...(flagged.has(key) ? list.map((i) => ({ ...i, layer: 'flagged' as const })) : list));
+      items.push(
+        ...(flagged.has(key) ? list.map((i) => ({ ...i, layer: 'flagged' as const })) : list),
+      );
   items.push(...zoneItems(objects, floor.level, rooms), ...zoneDraftItems(zoneDraft));
   // EZD-513: added after the floor list's dimensions are left out, so the edge dimensions stay.
   items.push(...ceilingShapeItems(objects, floor.level, rooms), ...shapeDraftItems(shapeDraft));
@@ -585,4 +665,12 @@ export function zoneReceiver(
 /** EZD-511 (11 Budgets): the Acoustical grid receiver, placing through this module. */
 export function actReceiver(deps: Omit<ActGridToolDeps, 'place'>): PlanPointerReceiver {
   return actGridReceiver({ ...deps, place: placeActGrid });
+}
+
+/** EZD-514 (11 Budgets): the framing line receiver over the page's framing drawing. */
+export function framingReceiver(
+  surface: Pick<SurfaceSetting, 'get' | 'subscribe'>,
+  deps: Omit<FramingToolDeps, 'drawing'>,
+): PlanPointerReceiver {
+  return framingLineReceiver({ ...deps, drawing: framingDrawingFor(surface) });
 }

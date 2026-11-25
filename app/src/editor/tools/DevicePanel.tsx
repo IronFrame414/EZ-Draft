@@ -7,7 +7,12 @@
 // company settings under Defaults", "Hosted ceiling item left off any ceiling surface: red flag"; Q-0630 "the words
 // show in the inspector on click"; AC-EZD-515-1; vault/build/assumptions.md EZD-515): a fan's Blade span, and the
 // flag lines of a fan closer than the clearance or a hosted ceiling item off any ceiling.
-import { fanClearanceWarnings, formatLength, isOffCeiling } from '@ezdraft/geometry';
+import {
+  fanClearanceWarnings,
+  formatLength,
+  isOffCeiling,
+  keepClearWarning,
+} from '@ezdraft/geometry';
 import {
   useEffect,
   useState,
@@ -124,6 +129,8 @@ export type CeilingFlagView = {
   offCeiling: boolean;
   /** The fan's clearance warnings: the gap and the clearance as shown. */
   clearance: { against: 'wall' | 'beam'; gap: string; clearance: string }[];
+  /** EZD-514: the member a can lands on where the room's framing is known; null when clear or unchecked. */
+  keepClear: 'joist' | 'beam' | null;
 };
 
 /** The flags of one selected object, or null when it has none. `fanClearance` null is Not set (no fan check). */
@@ -153,8 +160,17 @@ export function ceilingFlagView(
           gap: formatLength(w.gap, 16),
           clearance: formatLength(fanClearance, 16),
         }));
-  return offCeiling || clearance.length > 0 ? { offCeiling, clearance } : null;
+  const keepClear = keepClearWarning(o, all)?.kind ?? null;
+  return offCeiling || clearance.length > 0 || keepClear !== null
+    ? { offCeiling, clearance, keepClear }
+    : null;
 }
+
+// EZD-514 (S05 Validation "Keep-clear warning when a can lands on a joist or beam").
+const KEEP_CLEAR_KEYS: Record<'joist' | 'beam', MessageKey> = {
+  joist: 'office.device.keep_clear.joist',
+  beam: 'office.device.keep_clear.beam',
+};
 
 const CLEARANCE_KEYS: Record<'wall' | 'beam', MessageKey> = {
   wall: 'office.device.fan_clearance.wall',
@@ -204,6 +220,14 @@ export function CeilingFlags({
           </span>
         </div>
       ))}
+      {flags.keepClear === null ? null : (
+        <div className={styles.flag} role="alert" data-testid="device-keep-clear">
+          <span className={styles.flagTitle}>
+            <Icon name="error" size={18} />
+            {t(KEEP_CLEAR_KEYS[flags.keepClear])}
+          </span>
+        </div>
+      )}
     </>
   );
 }

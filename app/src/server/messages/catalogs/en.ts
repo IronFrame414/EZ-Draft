@@ -3241,6 +3241,32 @@ export const en = {
   'office.electrical.leg.pick_switch': 'Click a switch, then the lights it controls',
   'office.electrical.leg.no_room': 'Click a light inside a room',
   'office.electrical.leg.failed': 'The switch leg could not be saved',
+  // EZD-514: Framing known and keep-clear (S05 Controls "Framing known ... Choose Unknown / New construction / Full demo
+  // / Enter locations"; board S05Ceiling footer "Joists unknown · beam clash checks off"; other wording listed in
+  // vault/build/assumptions.md).
+  'office.ceiling.framing.title': 'Framing known',
+  'office.ceiling.framing.known.unknown': 'Unknown',
+  'office.ceiling.framing.known.new_construction': 'New construction',
+  'office.ceiling.framing.known.full_demo': 'Full demo',
+  'office.ceiling.framing.known.entered': 'Enter locations',
+  'office.ceiling.framing.member': 'Member',
+  'office.ceiling.framing.member.joist': 'Joist',
+  'office.ceiling.framing.member.beam': 'Beam',
+  'office.ceiling.framing.spacing': 'Spacing',
+  'office.ceiling.framing.single': 'Single',
+  'office.ceiling.framing.draw': 'Draw line',
+  'office.ceiling.framing.drawing': 'Click two points inside the room. Esc to finish.',
+  'office.ceiling.framing.line': '{member} · {spacing}',
+  'office.ceiling.framing.spacing_oc': '{spacing} o.c.',
+  'office.ceiling.framing.remove': 'Remove line',
+  'office.ceiling.framing.none': 'No lines yet',
+  'office.ceiling.framing.click_room': 'Click inside the selected room to draw a line',
+  'office.ceiling.framing.place_failed': 'The line could not be saved',
+  'office.ceiling.status.joists_new_construction': 'new construction · beam clash checks on',
+  'office.ceiling.status.joists_full_demo': 'full demo · beam clash checks on',
+  'office.ceiling.status.joists_entered': 'entered · beam clash checks on',
+  'office.device.keep_clear.joist': 'Can is on a joist. Move it clear.',
+  'office.device.keep_clear.beam': 'Can is on a beam. Move it clear.',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

@@ -1017,6 +1017,8 @@ export function ProjectEditor({
     // EZD-510: the Switching zones tool, turned on from the left panel's Lighting section (shown once the RCP
     // module is in); the tool and its placement come with that module.
     if (rcp) receivers['switch-zone'] = rcp.zoneReceiver(surface, base);
+    // EZD-514: the framing line tool, turned on from the inspector's Framing known section.
+    if (rcp) receivers['framing-line'] = rcp.framingReceiver(surface, base);
     // EZD-513: the Soffit, tray, coffer and Height and material tag tools, from the same module.
     if (rcp) {
       receivers.soffit = rcp.shapeReceiver(surface, base);
@@ -1576,6 +1578,10 @@ export function ProjectEditor({
           projectId={projectId}
           fanClearance={fanClearance}
           actMinShare={actMinShare}
+          surface={surface}
+          framingDrawing={
+            shownSurface === 'floor' || !rcp ? undefined : rcp.framingDrawingFor(surface)
+          }
         />
         <InspectorMore
           selection={selection}
@@ -1765,7 +1771,14 @@ export function ProjectEditor({
                       <LazyElectricalStatus store={session.store} />
                     ) : null}
                     <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
-                    {shownSurface === 'floor' || rcp === undefined ? null : <rcp.JoistsStatus />}
+                    {shownSurface === 'floor' || rcp === undefined ? null : (
+                      // EZD-514: the text follows the active room's Framing known choice.
+                      <rcp.JoistsStatus
+                        store={session?.store}
+                        selection={selection ?? undefined}
+                        floors={floors ?? undefined}
+                      />
+                    )}
                     {part('status')}
                     {leftTab === 'versions' || viewing !== null ? (
                       <LazyVersionsStatus
