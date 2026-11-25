@@ -2193,7 +2193,8 @@
     "EZD-1978": 1,
     "EZD-1992": 1,
     "EZD-1983": 1,
-    "EZD-1991": 1
+    "EZD-1991": 1,
+    "EZD-1990": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2387,20 +2388,24 @@
     "EZD-1991": {
       "ts": "2026-11-25T21:02:42Z",
       "reason": "check red after a review fix"
+    },
+    "EZD-1990": {
+      "ts": "2026-11-25T21:06:37Z",
+      "reason": "develop kept moving: 3 merge rounds"
     }
   },
   "running": {
-    "EZD-1990": {
-      "lane": 2,
-      "title": "\"Page not found\" page with the app header and a Back to Projects button",
-      "started": "2026-11-25T17:56:41Z",
-      "develop": "3acf917f"
-    },
     "EZD-514": {
       "lane": 3,
       "title": "Framing known and keep-clear",
       "started": "2026-11-25T20:22:19Z",
       "develop": "c9f0a4f7"
+    },
+    "EZD-1993": {
+      "lane": 1,
+      "title": "CI: the gate finishes well inside its 45-minute limit on the GitHub runner",
+      "started": "2026-11-25T21:03:39Z",
+      "develop": "5c8e9de4"
     }
   },
   "advisories_checked_at": "2026-11-25T16:19:16Z",
