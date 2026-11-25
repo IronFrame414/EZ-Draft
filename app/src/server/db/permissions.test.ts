@@ -1,5 +1,6 @@
 // EZD-101 T2-T11 (vault/plans/EZD-101.md section 4): permission and role tables. Expected values come from
 // the plan's Data section (KEYS, preset rules), AC-EZD-101-1..6, S15 Decisions 3, 6, 13 and the Q-ids there.
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -491,7 +492,20 @@ describe('EZD-101 permission and role tables', () => {
     expect(custom.role_id).toBe(customId);
     expect(sorted(await grantedKeys(custom.id))).toEqual(['add_markup', 'view_projects']);
 
-    // Backfill statements of step 6, verbatim.
+    // Backfill statements of step 6. EZD-1992: the migration runs them once over every membership; here each
+    // gets `m.tenant_id = <this test's company>` added. Unscoped, the seed walked the memberships of companies
+    // other test files were deleting at that moment: its insert waited on their deleted user_permission rows,
+    // then failed on user_permission_tenant_id_fkey once the delete committed. The migration text is checked
+    // first, so the statements run here are still the migration's own.
+    const backfillSql = readFileSync(
+      path.join(repoRoot, 'supabase', 'migrations', '20261024100006_seed_member_permissions.sql'),
+      'utf8',
+    ).replace(/\s+/g, ' ');
+    const backfillRoles =
+      'update public.membership m set role_id = r.id from public.app_user u, public.role r where m.role_id is null and u.id = m.user_id and r.tenant_id = m.tenant_id and r.preset = u.role_preset';
+    const backfillSeed = 'select private.seed_member_permissions(id) from public.membership';
+    expect(backfillSql).toContain(`${backfillRoles};`);
+    expect(backfillSql).toContain(`${backfillSeed};`);
     const ownerUser = await createAppUser();
     const setOwner = await adminDb()
       .from('app_user')
@@ -504,10 +518,8 @@ describe('EZD-101 permission and role tables', () => {
     await withRollback(sql, async (tx) => {
       await tx`update public.membership set role_id = null where id = ${owner.id}::uuid`;
       await tx`delete from public.user_permission where membership_id = ${owner.id}::uuid`;
-      await tx.unsafe(
-        'update public.membership m set role_id = r.id from public.app_user u, public.role r where m.role_id is null and u.id = m.user_id and r.tenant_id = m.tenant_id and r.preset = u.role_preset;',
-      );
-      await tx.unsafe('select private.seed_member_permissions(id) from public.membership;');
+      await tx.unsafe(`${backfillRoles} and m.tenant_id = $1::uuid;`, [tenantId]);
+      await tx.unsafe(`${backfillSeed} m where m.tenant_id = $1::uuid;`, [tenantId]);
       const back = await tx<{ role_id: string }[]>`
         select role_id from public.membership where id = ${owner.id}::uuid`;
       expect(back[0].role_id).toBe(ownerRoleId);
