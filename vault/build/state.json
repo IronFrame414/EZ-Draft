@@ -509,7 +509,8 @@
     "EZD-1946",
     "EZD-1903",
     "EZD-1959",
-    "EZD-1902"
+    "EZD-1902",
+    "EZD-1960"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1963,6 +1964,14 @@
       "ts": "2026-11-25T04:22:37Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1960",
+      "title": "Live signed-in UI audit pass (report only)",
+      "commit": "f5de922b",
+      "ts": "2026-11-25T04:53:13Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2187,11 +2196,11 @@
       "started": "2026-11-25T03:16:35Z",
       "develop": "22770201"
     },
-    "EZD-1960": {
-      "lane": 3,
-      "title": "Live signed-in UI audit pass (report only)",
-      "started": "2026-11-25T03:16:39Z",
-      "develop": "22770201"
+    "EZD-1905": {
+      "lane": 1,
+      "title": "Geometry: subpath exports so new modules don't edit the root index",
+      "started": "2026-11-25T04:22:44Z",
+      "develop": "e149854a"
     }
   },
   "advisories_checked_at": "2026-11-25T04:18:01Z",
