@@ -13,6 +13,7 @@ import {
   type CabinetRunMember,
   type ModelObject,
 } from '@ezdraft/geometry';
+import { idKey } from '../shared/ids';
 
 export type CabinetScheduleRow = {
   // The code as first met in run order (B15, SB36, F3).
@@ -30,13 +31,13 @@ const codeKey = (code: string) => code.trim().toUpperCase();
 // The schedule rows, sorted by code (B9 before B15: numbers inside a code compare as numbers).
 export function cabinetSchedule(objects: readonly ModelObject[]): CabinetScheduleRow[] {
   const members = new Map<string, CabinetRunMember>();
-  for (const o of objects) if (isCabinetRunMember(o)) members.set(o.id.toLowerCase(), o);
+  for (const o of objects) if (isCabinetRunMember(o)) members.set(idKey(o.id), o);
   const rows = new Map<string, CabinetScheduleRow>();
   const runs = objects.filter((o): o is CabinetRun => o.type === 'cabinet_run');
   for (const run of runs) {
     const { name, base, upper } = run.data.attributes;
     for (const id of [...base, ...upper]) {
-      const m = members.get(id.toLowerCase());
+      const m = members.get(idKey(id));
       if (m === undefined || m.data.status === 'demo') continue;
       const a = m.data.attributes;
       const key = codeKey(a.code);

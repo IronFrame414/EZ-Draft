@@ -8,8 +8,10 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import type { ModelObject } from '@ezdraft/geometry';
 import { CatalogPickerView } from '../../components/catalog/CatalogPicker';
-import { formatInches, type CatalogCategory, type CatalogItem } from '../../lib/catalog/catalog';
+import type { CatalogCategory, CatalogItem } from '../../lib/catalog/catalog';
 import { useT } from '../../lib/messages';
+import { inchText } from '../../editor/shared/inch-text';
+import { sameId } from '../../editor/shared/ids';
 import type { Change } from '../../editor/model/patches';
 import type { CabinetView } from '../../editor/cabinets/cabinet-view';
 import {
@@ -67,7 +69,7 @@ export function RunInspector({
         ? t('office.cabinets.run.mixed')
         : name(s.value);
   const itemName = (id: string) =>
-    items.find((i) => i.id.toLowerCase() === id.toLowerCase())?.name ?? t('office.cabinets.none');
+    items.find((i) => sameId(i.id, id))?.name ?? t('office.cabinets.none');
 
   // The finish picker lists the cabinet items that carry a finish; the countertop picker the countertop items.
   const pickItems: Record<Picking, CatalogItem[]> = {
@@ -150,7 +152,7 @@ export function RunInspector({
           {list}
         </span>
         <span className={styles.total} data-testid="run-inspector-total">
-          {`${formatInches(run.total)}"`}
+          {inchText(run.total)}
         </span>
       </section>
 

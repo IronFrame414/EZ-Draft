@@ -26,6 +26,7 @@ import {
 } from 'react';
 import {
   IMPACT_RATINGS,
+  OBJECT_STATUSES,
   SHUTTER_TYPES,
   WALL_MATERIALS,
   type ImpactRating,
@@ -551,8 +552,6 @@ function TextBox({
 
 const one = <T,>(value: T): Shared<T> => ({ mixed: false, value });
 
-const STATUSES: readonly ObjectStatus[] = ['existing', 'demo', 'new'];
-
 function statusDot(status: ObjectStatus): string {
   if (status === 'demo') return styles.dotDemo!;
   if (status === 'new') return styles.dotNew!;
@@ -746,7 +745,7 @@ function StatusSection({
             value={status.mixed ? '' : status.value}
             onChange={(e) => {
               const v = e.target.value as ObjectStatus;
-              if (!STATUSES.includes(v)) return;
+              if (!OBJECT_STATUSES.includes(v)) return;
               commit('inspector-status', [{ field: 'status', value: v }]);
             }}
           >
@@ -755,7 +754,7 @@ function StatusSection({
                 {t('office.inspector.mixed')}
               </option>
             ) : null}
-            {STATUSES.map((s) => (
+            {OBJECT_STATUSES.map((s) => (
               <option key={s} value={s}>
                 {t(`office.inspector.status.${s}`)}
               </option>

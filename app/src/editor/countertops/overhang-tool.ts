@@ -17,9 +17,8 @@ import {
   type Point,
 } from '@ezdraft/geometry';
 import type { Change } from '../model/patches';
+import { sameId } from '../shared/ids';
 import { countertopChange, type CountertopPiece } from './trace-tool';
-
-const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
 // The preset values from the effective per-project Defaults (S15d "Default overhang: Standard 1 1/2"", "Seating,
 // counter height 12"", "Seating, bar 10"", "Against wall 0 + splash"); the spec's numbers while one is not read. A
@@ -75,7 +74,7 @@ export function countertopEdgeChanges(
   setting: CountertopEdgeSetting,
   support?: CountertopSupportSettings,
 ): Change[] {
-  const p = pieces.find((q) => same(q.id, pieceId));
+  const p = pieces.find((q) => sameId(q.id, pieceId));
   if (p === undefined) return [];
   const old = p.data.attributes.edges[edge];
   if (
@@ -116,7 +115,7 @@ export function countertopTypedChanges(
   overhang: number,
   support?: CountertopSupportSettings,
 ): Change[] {
-  const p = pieces.find((q) => same(q.id, pieceId));
+  const p = pieces.find((q) => sameId(q.id, pieceId));
   const old = p?.data.attributes.edges[edge];
   if (old === undefined) return [];
   return countertopEdgeChanges(pieces, pieceId, edge, countertopTypedEdge(old, overhang), support);

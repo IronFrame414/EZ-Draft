@@ -11,6 +11,9 @@ export type ObjectStatus = (typeof OBJECT_STATUSES)[number];
 
 export const levelSchema = z.uuid();
 
+// EZD-1906c (editor plan R9): centimetres in one inch, exact by definition; the one copy the editor's cm text uses.
+export const CM_PER_IN = 2.54;
+
 // EZD-234 Build (Q-0704 03-data-model "fixture: ... axis (unit vector, as opening.ts:35)"): a direction stored as a
 // unit vector, within the opening axis tolerance.
 export const UNIT_VECTOR_TOLERANCE = 1e-9;

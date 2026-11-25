@@ -2,7 +2,7 @@
 // thick, their bodies outside the room (model y up): back wall y = 0 from x = 0 to 144, left wall x = 0, right wall
 // x = 144. Run "Back wall": four 36" base boxes from the left corner; run "Left return": a 30" and a 33" base box on
 // the left wall from y = 24.
-import type { Point } from '@ezdraft/geometry';
+import { CM_PER_IN, type Point } from '@ezdraft/geometry';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import type { Objects } from '../model/patches';
 
@@ -136,7 +136,7 @@ const pieceValue = (label: string, name: string, outline: Point[], kinds: BoardE
     geometry: { outline },
     status: 'new',
     level: CT_FLOOR,
-    attributes: { label, name, materialItemId: null, thickness: 3 / 2.54, edges: kinds.map(boardEdge) },
+    attributes: { label, name, materialItemId: null, thickness: 3 / CM_PER_IN, edges: kinds.map(boardEdge) },
   },
 });
 const rectPts = (x0: number, y0: number, x1: number, y1: number): Point[] => [

@@ -2,11 +2,10 @@
 // Internal and client only; not on permit sheets"; 08 Exports "Countertop schedule | On sheets, CSV | Piece, material,
 // thickness, area, edge profile, edge length"; R24 #5; AC-EZD-418-1; vault/build/assumptions.md EZD-418): the top
 // schedule's cells as shown and as written to the CSV, one rule for both. Pure.
-import { countertopScheduleRows, type CountertopPieceData } from '@ezdraft/geometry';
+import { CM_PER_IN, countertopScheduleRows, type CountertopPieceData } from '@ezdraft/geometry';
 
 const SQ_IN_PER_SQ_FT = 144;
 const IN_PER_FT = 12;
-const CM_PER_IN = 2.54;
 
 // Half up at one decimal place, with a margin so float noise cannot drop an exact half (as the left panel's footer).
 const oneDecimal = (n: number) => (Math.floor(n * 10 + 0.5 + 1e-9) / 10).toFixed(1);

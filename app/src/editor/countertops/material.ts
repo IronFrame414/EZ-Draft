@@ -3,9 +3,10 @@
 // the floor, as one model edit (one undo step). Pure.
 import type { CatalogItem } from '../../lib/catalog/catalog';
 import type { Change } from '../model/patches';
+import { sameId } from '../shared/ids';
 import { countertopChange, type CountertopPiece } from './trace-tool';
 
-const same = (a: string | null, b: string) => a !== null && a.toLowerCase() === b.toLowerCase();
+const same = (a: string | null, b: string) => a !== null && sameId(a, b);
 
 // The changes that link the item to every piece not already on it; [] when none changes.
 export function countertopMaterialChanges(pieces: readonly CountertopPiece[], itemId: string): Change[] {

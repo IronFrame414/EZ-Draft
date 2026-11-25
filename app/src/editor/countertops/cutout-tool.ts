@@ -16,6 +16,7 @@ import {
   type Point,
 } from '@ezdraft/geometry';
 import type { Change } from '../model/patches';
+import { idKey } from '../shared/ids';
 import {
   countertopChange,
   countertopPieceAt,
@@ -84,8 +85,8 @@ export function countertopCutoutSizeChanges(
   width: number,
   depth: number,
 ): Change[] {
-  const key = pieceId.toLowerCase();
-  const o = objects.find((x) => x.id.toLowerCase() === key);
+  const key = idKey(pieceId);
+  const o = objects.find((x) => idKey(x.id) === key);
   if (o === undefined || o.type !== 'countertop_piece') return [];
   const next = resizeCountertopCutout(o.data, cutoutId, width, depth);
   return next === null ? [] : [countertopChange(o.id, next)];

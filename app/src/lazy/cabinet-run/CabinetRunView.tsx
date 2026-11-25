@@ -48,7 +48,8 @@ import {
 } from '@ezdraft/geometry';
 import { StatusItem } from '../../components/shell/StatusBar';
 import { useT } from '../../lib/messages';
-import { formatInches } from '../../lib/catalog/catalog';
+import { inchText } from '../../editor/shared/inch-text';
+import { sameId } from '../../editor/shared/ids';
 import type { ModelStore } from '../../editor/model/model-store';
 import type { Change, Objects } from '../../editor/model/patches';
 import { isTypingTarget } from '../../editor/typed-entry/typed-entry';
@@ -109,8 +110,6 @@ export type CabinetRunViewProps = {
   // EZD-408: the Defaults "Cabinet auto-fill increment" in inches (3" when not given).
   autoFillIncrement?: number | null;
 };
-
-const inches = (n: number) => `${formatInches(n)}"`;
 
 // The shared selection store, or one of the screen's own when none is given.
 export function useCabinetSelectionStore(given?: CabinetSelectionStore): CabinetSelectionStore {
@@ -548,10 +547,10 @@ function FitChip({
   if (fit === null) return null;
   const fillers = cabinetFitFillerIds(view);
   const params = {
-    run: inches(fit.total),
-    wall: inches(fit.wallLength),
-    scribe: inches(fit.scribe),
-    gap: inches(Math.abs(fit.gap)),
+    run: inchText(fit.total),
+    wall: inchText(fit.wallLength),
+    scribe: inchText(fit.scribe),
+    gap: inchText(Math.abs(fit.gap)),
   };
   const text = fit.fits
     ? t('office.cabinets.fit.fits', params)
@@ -771,7 +770,7 @@ function TileLength({
 }): ReactElement {
   const [refused, setRefused] = useState(false);
   const take = (input: HTMLInputElement) => {
-    if (input.value === inches(value)) return;
+    if (input.value === inchText(value)) return;
     const r = parseLength(input.value, zero ? 'other' : 'positive');
     const ok = r.ok && (zero ? r.inches >= 0 : true) && onValue(r.inches);
     setRefused(!ok && !(r.ok && r.inches === value));
@@ -783,7 +782,7 @@ function TileLength({
         key={value}
         className={styles.tileInput}
         data-testid={testId}
-        defaultValue={inches(value)}
+        defaultValue={inchText(value)}
         disabled={disabled}
         aria-invalid={refused ? 'true' : undefined}
         onBlur={(e) => take(e.currentTarget)}
@@ -938,7 +937,7 @@ function DimEntry({
       ? libraryRow(entry.library.key)
       : null;
   const libraryRange =
-    libRow === null ? null : { min: inches(libRow.min), max: inches(libRow.max) };
+    libRow === null ? null : { min: inchText(libRow.min), max: inchText(libRow.max) };
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const text = String(new FormData(e.currentTarget).get('size') ?? '');
@@ -957,7 +956,7 @@ function DimEntry({
           name="size"
           className={styles.entryInput}
           data-testid="cabinet-dim-input"
-          defaultValue={inches(value)}
+          defaultValue={inchText(value)}
           autoFocus
           onFocus={(e) => e.currentTarget.select()}
           onBlur={() => onClose?.()}
@@ -1056,9 +1055,7 @@ function RunDrawing({
     'data-flagged': view.offWall ? 'true' : undefined,
     'data-selected': isCabinetSelected(selection, id) ? 'true' : undefined,
     'data-hovered':
-      selection.hoveredId !== null && selection.hoveredId.toLowerCase() === id.toLowerCase()
-        ? 'true'
-        : undefined,
+      selection.hoveredId !== null && sameId(selection.hoveredId, id) ? 'true' : undefined,
   });
   const handlers = (id: string) => ({
     onClick: (e: ReactMouseEvent) => {
@@ -1381,7 +1378,7 @@ function RunDrawing({
                     }
               }
             >
-              {inches(c.width)}
+              {inchText(c.width)}
             </text>
           </g>
         ))}
@@ -1422,7 +1419,7 @@ function RunDrawing({
                     }
               }
             >
-              {inches(h.to - h.from)}
+              {inchText(h.to - h.from)}
             </text>
           </g>
         ))}

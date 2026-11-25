@@ -8,7 +8,7 @@ import { useMemo, useState, type DragEvent, type ReactElement } from 'react';
 import { useStore } from 'zustand';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
-import { formatInches } from '../../lib/catalog/catalog';
+import { inchText } from '../../editor/shared/inch-text';
 import type { ModelStore } from '../../editor/model/model-store';
 import type { FloorChoice } from '../../editor/floors/floors';
 import type { CabinetSelectionStore } from '../../editor/cabinets/cabinet-selection-store';
@@ -52,8 +52,6 @@ const TABS: readonly Tab[] = ['boxes', 'runs', 'saved'];
 // The line picker's "Custom boxes" choice.
 const CUSTOM = { kind: 'custom' } as const;
 type LineChoice = { kind: 'line'; line: string } | typeof CUSTOM;
-
-const inches = (n: number) => `${formatInches(n)}"`;
 
 const TRIM_TITLE: Partial<Record<LibraryTrim['kind'], MessageKey>> = {
   toe_kick: 'office.cabinets.library.trim.toe_kick',
@@ -365,7 +363,7 @@ export function CabinetLibraryRuns({
             : fit.fits
               ? t('office.cabinets.library.fit_ok')
               : t(fit.gap < 0 ? 'office.cabinets.library.fit_long' : 'office.cabinets.library.fit_short', {
-                  gap: inches(Math.abs(fit.gap)),
+                  gap: inchText(Math.abs(fit.gap)),
                 });
         const open = view !== null && view.run.id === run.id;
         return (

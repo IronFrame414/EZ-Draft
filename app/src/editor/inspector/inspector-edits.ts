@@ -17,6 +17,7 @@ import {
   setOpeningOffsetLeft,
   setRoughOpening,
   setShutterType,
+  OBJECT_STATUSES,
   setSillHeight,
   setSwing,
   setWallBearing,
@@ -266,7 +267,7 @@ export function inspectorEditChanges(input: {
   };
 }
 
-const STATUSES: ReadonlySet<unknown> = new Set(['existing', 'demo', 'new']);
+const STATUSES: ReadonlySet<unknown> = new Set(OBJECT_STATUSES);
 
 function statusEditChanges(
   objects: Objects,

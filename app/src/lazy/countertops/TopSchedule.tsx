@@ -11,12 +11,14 @@
 // offered edges""; vault/build/assumptions.md EZD-417): the selected top's Edge profile card under the piece
 // inspector, Edit offered edges on the footer's left for members with Send to client, and profile names in the
 // schedule. One permissions read serves Export, Send to client and See sell prices.
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactElement } from 'react';
 import type { CountertopPieceData } from '@ezdraft/geometry';
 import { fetchPermissions } from '../../lib/permissions/PermissionsProvider';
 import type { PermissionKey } from '../../lib/permissions/catalog';
 import type { CatalogItem } from '../../lib/catalog/catalog';
 import { useT } from '../../lib/messages';
+import { sameId } from '../../editor/shared/ids';
+import { useStoreValue } from '../../editor/shared/use-store-value';
 import type { ModelStore } from '../../editor/model/model-store';
 import type { FloorChoice } from '../../editor/floors/floors';
 import { countertopMaterialName } from '../../editor/countertops/material';
@@ -218,7 +220,6 @@ export type CountertopsInspectorProps = {
   initialEditOpen?: boolean;
 };
 
-const noSubscribe = () => () => {};
 const NO_PICK = { pieceId: null, edge: null };
 
 // The countertop inspector place while the Countertops tool is on: the selected top's piece inspector (EZD-414) and
@@ -258,13 +259,9 @@ export function CountertopsInspector({
   const projectId = useProjectId(givenProjectId);
   const sharedOffers = useEdgeOffers(givenOffers === undefined ? projectId : null, loadOffers);
   const offers = givenOffers ?? sharedOffers;
-  const picked = useSyncExternalStore(
-    selection ? selection.subscribe : noSubscribe,
-    () => selection?.getState().selection ?? NO_PICK,
-    () => selection?.getState().selection ?? NO_PICK,
-  );
+  const picked = useStoreValue(selection, (s) => s.getState().selection, NO_PICK);
   const piece =
-    picked.pieceId === null ? undefined : pieces.find((p) => p.id.toLowerCase() === picked.pieceId!.toLowerCase());
+    picked.pieceId === null ? undefined : pieces.find((p) => sameId(p.id, picked.pieceId!));
   // EZD-417: the library, read once the inspector shows a top or the schedule opens.
   const [loadedProfiles, setLoadedProfiles] = useState<readonly EdgeProfile[] | null>(null);
   const profiles = givenProfiles ?? loadedProfiles;
@@ -281,7 +278,7 @@ export function CountertopsInspector({
     };
   }, [needsProfiles, loadedProfiles, loadProfiles]);
   const profileName = useCallback(
-    (id: string) => profiles?.find((p) => p.id.toLowerCase() === id.toLowerCase())?.name ?? null,
+    (id: string) => profiles?.find((p) => sameId(p.id, id))?.name ?? null,
     [profiles],
   );
   const offer = piece === undefined ? null : offerFor(offers, piece.id);

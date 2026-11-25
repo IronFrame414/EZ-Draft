@@ -8,10 +8,13 @@
 // total"; board S04bCountertops inspector "Edge profile", "Exposed edges only", "Client choosing", "Open", "Offered to
 // client", "Included"; AC-EZD-417-1; vault/build/assumptions.md EZD-417): the selected top's edge profile card, its
 // offered list, the canvas pill, and the project's edge offers shared by the inspector and the canvas.
-import { useEffect, useSyncExternalStore, type ReactElement } from 'react';
+import { useEffect, type ReactElement } from 'react';
 import { useParams } from 'next/navigation';
 import { countertopPieceProfileId, edgeOfferTotal, type CountertopPieceData } from '@ezdraft/geometry';
 import { useT } from '../../lib/messages';
+import { createListeners, type Listeners } from '../../editor/shared/value-store';
+import { sameId } from '../../editor/shared/ids';
+import { useStoreValue } from '../../editor/shared/use-store-value';
 import { formatDollars } from '../../lib/render-settings/models';
 import {
   edgeOfferState,
@@ -33,19 +36,17 @@ export function useProjectId(given?: string | null): string | null {
 
 // The project's edge offers, read once and shared by the inspector and the canvas pill; a save replaces its top's
 // offer for both.
-type Entry = { offers: readonly EdgeOffer[] | null; subs: Set<() => void>; started: boolean };
+type Entry = { offers: readonly EdgeOffer[] | null; listeners: Listeners; started: boolean };
 const entries = new Map<string, Entry>();
 const entryFor = (projectId: string): Entry => {
   let e = entries.get(projectId);
   if (e === undefined) {
-    e = { offers: null, subs: new Set(), started: false };
+    e = { offers: null, listeners: createListeners(), started: false };
     entries.set(projectId, e);
   }
   return e;
 };
-const notify = (e: Entry) => e.subs.forEach((f) => f());
-const noSubscribe = () => () => {};
-const nothing = () => null;
+const notify = (e: Entry) => e.listeners.notify();
 
 export function setEdgeOffers(projectId: string, offers: readonly EdgeOffer[]): void {
   const e = entryFor(projectId);
@@ -56,7 +57,7 @@ export function setEdgeOffers(projectId: string, offers: readonly EdgeOffer[]): 
 
 export function replaceEdgeOffer(projectId: string, pieceId: string, offer: EdgeOffer | null): void {
   const e = entryFor(projectId);
-  const rest = (e.offers ?? []).filter((o) => o.pieceId.toLowerCase() !== pieceId.toLowerCase());
+  const rest = (e.offers ?? []).filter((o) => !sameId(o.pieceId, pieceId));
   e.offers = offer === null ? rest : [...rest, offer];
   notify(e);
 }
@@ -66,15 +67,10 @@ export function useEdgeOffers(
   load: EdgeOffersLoad = fetchEdgeOffers,
 ): readonly EdgeOffer[] | null {
   const e = projectId === null ? null : entryFor(projectId);
-  const offers = useSyncExternalStore(
-    e === null
-      ? noSubscribe
-      : (f: () => void) => {
-          e.subs.add(f);
-          return () => e.subs.delete(f);
-        },
-    e === null ? nothing : () => e.offers,
-    e === null ? nothing : () => e.offers,
+  const offers = useStoreValue(
+    e === null ? null : { subscribe: e.listeners.add },
+    () => e!.offers,
+    null,
   );
   useEffect(() => {
     if (projectId === null) return;
@@ -144,8 +140,6 @@ export type EdgeProfileCardProps = {
   onPick(profileId: string): void;
 };
 
-const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
-
 export function EdgeProfileCard({
   piece,
   profiles,
@@ -157,8 +151,9 @@ export function EdgeProfileCard({
   const t = useT();
   const state = edgeOfferState(offer);
   const currentId = countertopPieceProfileId(piece);
-  const current = currentId === null ? null : (profiles?.find((p) => same(p.id, currentId)) ?? null);
-  const byId = (id: string) => profiles?.find((p) => same(p.id, id)) ?? null;
+  const current =
+    currentId === null ? null : (profiles?.find((p) => sameId(p.id, currentId)) ?? null);
+  const byId = (id: string) => profiles?.find((p) => sameId(p.id, id)) ?? null;
   const heading =
     state === 'open'
       ? t('office.countertops.edge.client_choosing')

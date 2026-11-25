@@ -17,10 +17,13 @@ import {
   type CabinetHingeSide,
   type ModelObject,
   type ObjectStatus,
+  OBJECT_STATUSES,
 } from '@ezdraft/geometry';
 import { CatalogPickerView } from '../../components/catalog/CatalogPicker';
-import { formatInches, sizeText, type CatalogItem } from '../../lib/catalog/catalog';
+import { sizeText, type CatalogItem } from '../../lib/catalog/catalog';
 import { useT } from '../../lib/messages';
+import { inchText } from '../../editor/shared/inch-text';
+import { sameId } from '../../editor/shared/ids';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { FloorChoice } from '../../editor/floors/floors';
 import type { ModelStore } from '../../editor/model/model-store';
@@ -62,8 +65,6 @@ export type CabinetInspectorProps = {
   // EZD-409: GET /api/permissions by default (Export shows the schedule's CSV button); tests pass their own.
   loadPermissions?: PermissionsLoad;
 };
-
-const inches = (n: number) => `${formatInches(n)}"`;
 
 export const fetchCatalog: CatalogLoad = async () => {
   const res = await fetch('/api/catalog', { cache: 'no-store', credentials: 'same-origin' });
@@ -128,7 +129,7 @@ export function CabinetInspector({
       catalog={catalog}
       canEdit={canEdit}
       canExport={canExport}
-      swapOpen={one !== null && swapFor !== null && swapFor.toLowerCase() === one.id.toLowerCase()}
+      swapOpen={one !== null && swapFor !== null && sameId(swapFor, one.id)}
       onSwapOpen={(open) =>
         selectionStore.getState().openSwap(open && one !== null ? one.id : null)
       }
@@ -193,7 +194,6 @@ const ENDS_KEYS: Record<CabinetFinishedEnds, MessageKey> = {
   right: 'office.cabinets.ends.right',
   both: 'office.cabinets.ends.both',
 };
-const STATUSES: readonly ObjectStatus[] = ['existing', 'demo', 'new'];
 const STATUS_KEYS: Record<ObjectStatus, MessageKey> = {
   existing: 'office.inspector.status.existing',
   demo: 'office.inspector.status.demo',
@@ -239,7 +239,7 @@ function BoxPanel({
   const item =
     box.catalogItemId === null
       ? null
-      : (items.find((i) => i.id.toLowerCase() === box.catalogItemId!.toLowerCase()) ?? null);
+      : (items.find((i) => sameId(i.id, box.catalogItemId!)) ?? null);
   const typeName = t(box.boxType !== null ? TYPE_KEYS[box.boxType]! : KIND_KEYS[box.kind]);
   const cost = catalogCost(item);
   const finishes = [
@@ -277,7 +277,7 @@ function BoxPanel({
               value={box.status}
               onChange={(e) => edit({ field: 'status', value: e.target.value as ObjectStatus })}
             >
-              {STATUSES.map((s) => (
+              {OBJECT_STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {t(STATUS_KEYS[s])}
                 </option>
@@ -513,14 +513,14 @@ function SizeField({
   onCommit(v: number): void;
 }): ReactElement {
   const t = useT();
-  const [text, setText] = useState(inches(value));
+  const [text, setText] = useState(inchText(value));
   const [refused, setRefused] = useState(false);
   if (!canEdit) {
     return (
       <div className={styles.field}>
         {label}
         <span className={styles.readOnly} data-testid={`box-inspector-${field}`}>
-          {inches(value)}
+          {inchText(value)}
         </span>
       </div>
     );

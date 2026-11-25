@@ -18,6 +18,7 @@ import {
   type Point,
 } from '@ezdraft/geometry';
 import type { Change } from '../model/patches';
+import { idKey } from '../shared/ids';
 import { countertopChange, countertopPieces } from './trace-tool';
 
 // The corners the outline snaps to: every base cabinet corner and every top corner on the floor.
@@ -118,8 +119,8 @@ export function countertopVertexChanges(
   to: Point,
   support?: CountertopSupportSettings,
 ): Change[] {
-  const key = id.toLowerCase();
-  const o = objects.find((x) => x.id.toLowerCase() === key);
+  const key = idKey(id);
+  const o = objects.find((x) => idKey(x.id) === key);
   if (o === undefined || o.type !== 'countertop_piece') return [];
   const next = moveCountertopVertex(o.data, index, to);
   if (next === null) return [];
