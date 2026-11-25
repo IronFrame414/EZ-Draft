@@ -11,9 +11,8 @@ import {
   setPermissions,
   test,
 } from '../test-harness/e2e/test';
+import { BENCHMARK_EDITOR_READY_TIMEOUT_MS } from '../test-harness/e2e/benchmark-open';
 import { appOriginHeaders } from '../test-harness/e2e/same-origin';
-
-const EDITOR_READY_TIMEOUT_MS = 60_000;
 
 test.describe('EZD-236 benchmark project', () => {
   test.afterAll(async () => {
@@ -55,7 +54,7 @@ test.describe('EZD-236 benchmark project', () => {
     await p.goto(`/projects/${id}`);
     await expect(p.locator('[data-testid="editor-state"][data-editor-state="ready"]')).toHaveCount(
       1,
-      { timeout: EDITOR_READY_TIMEOUT_MS },
+      { timeout: BENCHMARK_EDITOR_READY_TIMEOUT_MS },
     );
     console.log(`EZD-1971 benchmark project time to editor ready: ${Date.now() - openedAt} ms`);
     expect(
