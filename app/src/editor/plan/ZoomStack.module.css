@@ -29,3 +29,12 @@
 .button:not(:last-child) {
   border-bottom: 1px solid var(--ez-divider);
 }
+
+/* EZD-1979 (audit 2026-11-24 F4): under a coarse pointer the tablet edit bar runs along the canvas's top (margin 14 +
+   height 66 = 80 px, SelectionLayer.module.css .bar) and on iPad is wider than the canvas, so the stack starts 12 px
+   below it instead of under it. */
+@media (any-pointer: coarse) {
+  .stack {
+    top: 92px;
+  }
+}

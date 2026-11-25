@@ -103,3 +103,29 @@
   background: var(--ez-divider);
   margin: 0 4px;
 }
+
+/* EZD-1979 (audit 2026-11-24 F4): under a coarse pointer the tool strip is laid out as the last row of the canvas
+   state column (ProjectEditor.tsx), below the tablet edit bar and any banner (Select more, Save failed), and wraps
+   inside that column, which ends left of the zoom stack; so it covers no bar, banner or card. Wrapped rows sit a
+   full touch target apart. */
+@media (any-pointer: coarse) {
+  .bar {
+    position: static;
+    align-self: flex-start;
+    margin: 4px 0 0 12px;
+  }
+
+  .row {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .tools {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .item {
+    min-height: var(--ez-touch-target);
+  }
+}

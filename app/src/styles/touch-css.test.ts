@@ -142,9 +142,19 @@ describe('EZD-014b touch and hover CSS', () => {
       expect(tb).toContain(d);
     }
     const nameAfter = inMedia(eh, 'button.name::after', COARSE)?.decls ?? [];
-    for (const d of ["content: ''", 'position: absolute', 'inset: 0']) {
+    // EZD-1979 (audit F6): the name's tap area is the title block's top half and the header margin above, so the
+    // version link below it can have the bottom half (ProjectEditor.module.css .versionLink::after).
+    for (const d of [
+      "content: ''",
+      'position: absolute',
+      'top: calc(-1 * var(--ez-header-margin))',
+      'right: 0',
+      'bottom: 50%',
+      'left: 0',
+    ]) {
       expect(nameAfter).toContain(d);
     }
+    expect(inMedia(eh, 'header:has(> .titleBlock)', COARSE)?.decls).toContain('overflow: visible');
 
     // (f) hover
     const pressedSel = ".tool[aria-pressed='true'], .tool[aria-pressed='true']:hover";
