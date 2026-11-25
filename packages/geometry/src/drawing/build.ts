@@ -39,8 +39,6 @@ import type { RoomObject } from '../rooms/sync';
 import { hatchSegments } from './hatch';
 import { DRAWING_FONTS, measureTextPt, ROOM_LABEL_LETTER_SPACING_EM } from './text';
 import {
-  dimensionInputSchema,
-  drawingViewSchema,
   type DimensionInput,
   type DrawingItem,
   type DrawingList,
@@ -131,8 +129,11 @@ export function buildDrawingList(
   dimensions: readonly DimensionInput[] = [],
   options: DrawingListOptions = {},
 ): DrawingList {
-  const v = drawingViewSchema.parse(view);
-  const dims = dimensions.map((d) => dimensionInputSchema.parse(d));
+  // EZD-1903 (AC-EZD-1903-2): the view and the dimensions are built by the app, typed as DrawingView and
+  // DimensionInput, so they are not run through zod on every call. drawingViewSchema and dimensionInputSchema stay
+  // for input from outside the app.
+  const v = view;
+  const dims = dimensions;
   const level = v.level.toLowerCase();
 
   const onFloor = document.objects.filter(

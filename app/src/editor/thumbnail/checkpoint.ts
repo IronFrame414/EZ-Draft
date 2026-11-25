@@ -2,7 +2,7 @@
 // (`saveCheckpointThumbnail`)", "Requests", "Report", "Two calls at once"; section 3 Seam; Q-0664): the checkpoint,
 // then the thumbnail of the plan as drawn: capture, encode, part a's start route, the signed upload, part a's
 // complete route. Neither function throws; a failed thumbnail leaves the checkpoint as it is.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { uploadFile, type SignedUpload } from '../../lib/storage/upload';
 import {
   THUMB_CONTENT_TYPE,
@@ -36,13 +36,13 @@ export type ThumbnailDeps = {
   report?: (error: unknown) => void;
 };
 
-const CHECKPOINT_BODY = z.object({ version: z.object({ id: z.string().min(1) }) });
+const CHECKPOINT_BODY = z.object({ version: z.object({ id: z.string().check(z.minLength(1)) }) });
 const START_BODY = z.object({
   upload: z.object({
     bucket: z.literal('media'),
-    path: z.string().min(1),
-    token: z.string().min(1),
-    url: z.string().min(1),
+    path: z.string().check(z.minLength(1)),
+    token: z.string().check(z.minLength(1)),
+    url: z.string().check(z.minLength(1)),
   }),
 });
 
@@ -59,7 +59,7 @@ async function post<T>(
   fetchImpl: typeof fetch,
   url: string,
   expected: number,
-  schema: z.ZodType<T>,
+  schema: z.ZodMiniType<T>,
 ): Promise<Posted<T>> {
   let res: Response;
   try {

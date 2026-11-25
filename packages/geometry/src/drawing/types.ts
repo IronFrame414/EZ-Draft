@@ -3,7 +3,7 @@
 // EZD-205a Build step 12 (vault/plans/EZD-205a.md section 3): the room label text member and `roomLabelPt`.
 // EZD-204b Build step 4 (vault/plans/EZD-204b.md section 3): the `flagged` layer; the default door swing
 // constant removed (Q-0642).
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { pointSchema, type Point } from '../schema';
 
 export type LineWeightRole = 'cut' | 'beyond' | 'hidden' | 'dimension';
@@ -53,18 +53,20 @@ export type DrawingList = { level: string; items: DrawingItem[]; omitted: Omitte
 
 export const drawingViewSchema = z.strictObject({
   level: z.uuid(),
-  dimensionTextPt: z.number().positive(),
-  roomHatch: z.strictObject({ angleDeg: z.number(), spacingIn: z.number().positive() }).nullable(),
-  roomLabelPt: z.number().positive(),
+  dimensionTextPt: z.number().check(z.positive()),
+  roomHatch: z.nullable(
+    z.strictObject({ angleDeg: z.number(), spacingIn: z.number().check(z.positive()) }),
+  ),
+  roomLabelPt: z.number().check(z.positive()),
 });
 export type DrawingView = z.infer<typeof drawingViewSchema>;
 
 export const dimensionInputSchema = z.strictObject({
-  id: z.string().min(1),
+  id: z.string().check(z.minLength(1)),
   level: z.uuid(),
   from: pointSchema,
   to: pointSchema,
   offset: z.number(),
-  text: z.string().min(1),
+  text: z.string().check(z.minLength(1)),
 });
 export type DimensionInput = z.infer<typeof dimensionInputSchema>;

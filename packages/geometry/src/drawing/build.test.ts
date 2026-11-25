@@ -1,8 +1,8 @@
 // EZD-238 · T1, T2, T5 to T12, T14: buildDrawingList (vault/plans/EZD-238.md section 4, fixture FX).
 import { describe, it, expect } from 'vitest';
-import { z } from 'zod';
 import {
   buildDrawingList,
+  drawingViewSchema,
   type DimensionInput,
   type DrawingItem,
   type DrawingList,
@@ -360,11 +360,11 @@ describe('EZD-238 drawing list', () => {
     expect(l.items).toHaveLength(34);
   });
 
+  // EZD-1903 (AC-EZD-1903-2): buildDrawingList no longer parses the app-built view; the view schema still refuses it.
   it('EZD-238 T12 invalid view', () => {
-    expect(() => build(fx(), { ...V1, roomHatch: { angleDeg: 45, spacingIn: 0 } })).toThrow(
-      z.ZodError,
-    );
-    expect(() => build(fx(), { ...V1, dimensionTextPt: 0 })).toThrow(z.ZodError);
+    const bad = (view: unknown) => drawingViewSchema.safeParse(view).success;
+    expect(bad({ ...V1, roomHatch: { angleDeg: 45, spacingIn: 0 } })).toBe(false);
+    expect(bad({ ...V1, dimensionTextPt: 0 })).toBe(false);
   });
 
   it('EZD-238 T14 thickness sides: left', () => {
@@ -450,10 +450,11 @@ describe('EZD-205a room labels', () => {
     expect(labelOf(uid(4)).text).toBe('TINY \u00b7 0 SF');
     expectPt(labelOf(uid(5)).at, 200 / 3, 166 / 3);
 
-    expect(() => build(fx(), { ...V1, roomLabelPt: 0 })).toThrow(z.ZodError);
+    // EZD-1903 (AC-EZD-1903-2): the view schema, not buildDrawingList, refuses these views.
+    expect(drawingViewSchema.safeParse({ ...V1, roomLabelPt: 0 }).success).toBe(false);
     const noLabel: Partial<DrawingView> = { ...V1 };
     delete noLabel.roomLabelPt;
-    expect(() => build(fx(), noLabel as DrawingView)).toThrow(z.ZodError);
+    expect(drawingViewSchema.safeParse(noLabel).success).toBe(false);
   });
 });
 

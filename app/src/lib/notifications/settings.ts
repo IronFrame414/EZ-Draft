@@ -1,7 +1,7 @@
 // EZD-140 Step 5 (vault/plans/EZD-140.md section 3 "settings.ts"; Decided D1, D2, D13; Q-0393): each
 // person's In app and Email switch per notification kind, shared by the browser and the server. No row for a
 // kind means both on; the list is always the nine kinds in NOTIFICATION_KINDS order. No React, no Supabase.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { NOTIFICATION_KINDS, type NotificationKind } from './kinds';
 
 export type NotificationChannel = 'inApp' | 'email';
@@ -28,7 +28,7 @@ const inputSchema = z.strictObject({
         email: z.boolean(),
       }),
     )
-    .length(NOTIFICATION_KINDS.length),
+    .check(z.length(NOTIFICATION_KINDS.length)),
 });
 
 export function parseNotificationSettingsInput(

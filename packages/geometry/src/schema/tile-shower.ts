@@ -3,15 +3,15 @@
 // shower's own frame: origin footprint[0], x toward footprint[1], y toward footprint[3]. A `side` is an edge index:
 // edge i runs from footprint[i] to footprint[(i + 1) % 4]. The curb is measured above the top of the drain; null is
 // curbless. Pan slope is inches per foot, 1/4" by default (P-045).
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { COMPARISON_TOLERANCE_IN } from '../tolerance';
 import { levelSchema, objectStatusSchema, pointSchema, type Point } from './common';
 import { sub } from '../vec';
 
 export const DEFAULT_PAN_SLOPE_IN_PER_FT = 0.25;
 
-const sideSchema = z.int().min(0).max(3);
-const positive = z.number().positive();
+const sideSchema = z.int().check(z.gte(0), z.lte(3));
+const positive = z.number().check(z.positive());
 
 export const glassPieceSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('fixed'), length: positive, side: sideSchema }),
@@ -28,11 +28,10 @@ export const showerDrainSchema = z.discriminatedUnion('type', [
   z.strictObject({
     type: z.literal('linear'),
     side: sideSchema,
-    offset: z.number().min(0),
+    offset: z.number().check(z.gte(0)),
     length: positive,
   }),
 ]);
-
 
 // Four corners, both sides longer than the comparison tolerance, square corners and a closed parallelogram.
 export function isRectangle(c: readonly Point[]): boolean {
@@ -49,20 +48,22 @@ export function isRectangle(c: readonly Point[]): boolean {
 }
 
 export const tileShowerDataSchema = z.strictObject({
-  geometry: z.strictObject({ footprint: z.array(pointSchema).length(4).refine(isRectangle) }),
+  geometry: z.strictObject({
+    footprint: z.array(pointSchema).check(z.length(4), z.refine(isRectangle)),
+  }),
   status: objectStatusSchema,
   level: levelSchema,
   attributes: z.strictObject({
-    curb: z.strictObject({ height: positive, width: positive }).nullable(),
+    curb: z.nullable(z.strictObject({ height: positive, width: positive })),
     niches: z.array(
       z.strictObject({
         width: positive,
         height: positive,
-        bottomHeight: z.number().min(0),
+        bottomHeight: z.number().check(z.gte(0)),
         side: sideSchema,
       }),
     ),
-    bench: z.strictObject({ width: positive, depth: positive, height: positive }).nullable(),
+    bench: z.nullable(z.strictObject({ width: positive, depth: positive, height: positive })),
     glass: z.array(glassPieceSchema),
     panSlope: positive,
     drain: showerDrainSchema,

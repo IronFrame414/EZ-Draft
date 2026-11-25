@@ -2,7 +2,7 @@
 // D-Page; 11 Budgets; 09m Benchmark run rows 1 to 4; Q-0664; Q-0688 (a); S15i System status boards): the benchmark
 // run's shapes, its frame statistics and budget check, the device it ran on, the request checks, and the messages
 // the editor frame sends to the Benchmark card while it plays. Browser and server.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 
 export const BENCHMARK_PAGE_SIZE = 50;
 export const BENCHMARK_STEP_FRAMES = 180;
@@ -111,36 +111,36 @@ export function readDevice(
   };
 }
 
-const ms = z.number().min(0).max(600000);
+const ms = z.number().check(z.gte(0), z.lte(600000));
 const stepSchema = z
   .strictObject({
-    frames: z.number().int().min(1).max(10000),
+    frames: z.int().check(z.gte(1), z.lte(10000)),
     meanMs: ms,
     p95Ms: ms,
     maxMs: ms,
-    over100: z.number().int().min(0).max(10000),
+    over100: z.int().check(z.gte(0), z.lte(10000)),
   })
-  .refine((s) => s.over100 <= s.frames);
+  .check(z.refine((s) => s.over100 <= s.frames));
 export const benchmarkResultsSchema = z.strictObject({
   pan: stepSchema,
   zoom: stepSchema,
   drag: stepSchema,
-  memory: z.number().min(0).max(1000000).nullable(),
+  memory: z.nullable(z.number().check(z.gte(0), z.lte(1000000))),
 });
 export const benchmarkDeviceSchema = z.strictObject({
-  userAgent: z.string().min(1).max(USER_AGENT_MAX),
+  userAgent: z.string().check(z.minLength(1), z.maxLength(USER_AGENT_MAX)),
   screen: z.strictObject({
-    width: z.number().int().min(1).max(100000),
-    height: z.number().int().min(1).max(100000),
+    width: z.int().check(z.gte(1), z.lte(100000)),
+    height: z.int().check(z.gte(1), z.lte(100000)),
   }),
-  devicePixelRatio: z.number().gt(0).max(16),
-  hardwareConcurrency: z.number().int().min(1).max(1024).nullable(),
-  maxTouchPoints: z.number().int().min(0).max(256),
+  devicePixelRatio: z.number().check(z.gt(0), z.lte(16)),
+  hardwareConcurrency: z.nullable(z.int().check(z.gte(1), z.lte(1024))),
+  maxTouchPoints: z.int().check(z.gte(0), z.lte(256)),
 });
 export const APP_VERSION_PATTERN = /^([0-9a-f]{40}|dev-[0-9]{1,15})$/;
 const inputSchema = z.strictObject({
   device: benchmarkDeviceSchema,
-  appVersion: z.string().regex(APP_VERSION_PATTERN),
+  appVersion: z.string().check(z.regex(APP_VERSION_PATTERN)),
   results: benchmarkResultsSchema,
 });
 
@@ -209,7 +209,7 @@ const messageSchema = z.discriminatedUnion('kind', [
     type: z.literal(BENCHMARK_MESSAGE_TYPE),
     kind: z.literal('progress'),
     step: z.enum(BENCHMARK_STEPS),
-    frame: z.number().int().min(0).max(BENCHMARK_STEP_FRAMES),
+    frame: z.int().check(z.gte(0), z.lte(BENCHMARK_STEP_FRAMES)),
   }),
   z.strictObject({
     type: z.literal(BENCHMARK_MESSAGE_TYPE),

@@ -17,7 +17,7 @@
 // EZD-726: the `sheet_set` type (03b rule 3); a new type, so the version stays. Like a floor it names no level.
 // EZD-1009: the `design_option` type (03b rules 3 and 4); a new type, so the version stays. It names no level; each
 // add or replace object in its delta is checked against its own type's schema and holds that object's file ids.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { actGridDataSchema, type ActGridData } from './act-grid';
 import { beamDataSchema, type BeamData } from './beam';
 import { blockingDataSchema, type BlockingData } from './blocking';
@@ -211,7 +211,7 @@ const patchObjectsValid = (d: DesignOptionData): boolean =>
         DATA_SCHEMAS[p.object.type].safeParse(p.object.data).success),
   );
 
-const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
+const DATA_SCHEMAS: { [T in ObjectType]: z.ZodMiniType<DataByType[T]> } = {
   floor: floorDataSchema,
   wall: wallDataSchema,
   opening: openingDataSchema,
@@ -241,7 +241,7 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodType<DataByType[T]> } = {
   panel: panelDataSchema,
   circuit: circuitDataSchema,
   sheet_set: sheetSetDataSchema,
-  design_option: designOptionDataSchema.refine(patchObjectsValid),
+  design_option: designOptionDataSchema.check(z.refine(patchObjectsValid)),
   switch_zone: switchZoneDataSchema,
   ceiling_shape: ceilingShapeDataSchema,
   ceiling_tag: ceilingTagDataSchema,

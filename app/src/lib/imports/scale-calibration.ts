@@ -3,7 +3,7 @@
 // the stored calibration of one PDF page and what it measures. Points are PDF page points (user space, y up), so the
 // value does not depend on the size the page was drawn at. Pure TypeScript: no DOM, no pdf.js.
 import { MAX_WALL_LENGTH_IN, parseLength, type ParseLengthResult } from '@ezdraft/geometry';
-import { z } from 'zod';
+import * as z from 'zod/mini';
 
 export type PdfPoint = readonly [number, number];
 
@@ -21,23 +21,22 @@ const MAX_PT = 14_400 * 2;
 /** The two points must be at least 1 pt apart (vault/build/assumptions.md EZD-304). */
 export const MIN_CALIBRATION_PT = 1;
 
-const coord = z.number().finite().min(-MAX_PT).max(MAX_PT);
+const coord = z.number().check(z.gte(-MAX_PT), z.lte(MAX_PT));
 const point = z.tuple([coord, coord]);
 
 export const scaleCalibrationSchema = z
   .strictObject({
-    page: z.number().int().min(1).max(10_000),
+    page: z.int().check(z.gte(1), z.lte(10_000)),
     a: point,
     b: point,
     // As parseCalibrationLength gives it: over 0, at most 200 ft, in 1/16 in steps.
-    lengthIn: z
-      .number()
-      .finite()
-      .gt(0)
-      .max(MAX_WALL_LENGTH_IN)
-      .refine((v) => Number.isInteger(v * 16)),
+    lengthIn: z.number().check(
+      z.gt(0),
+      z.lte(MAX_WALL_LENGTH_IN),
+      z.refine((v) => Number.isInteger(v * 16)),
+    ),
   })
-  .refine((v) => pointDistance(v.a, v.b) >= MIN_CALIBRATION_PT);
+  .check(z.refine((v) => pointDistance(v.a, v.b) >= MIN_CALIBRATION_PT));
 
 export function pointDistance(p: PdfPoint, q: PdfPoint): number {
   return Math.hypot(q[0] - p[0], q[1] - p[1]);

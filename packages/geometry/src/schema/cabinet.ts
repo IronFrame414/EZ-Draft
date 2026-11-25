@@ -4,7 +4,7 @@
 // place in the run is its place in that list. Trim (toe kick, light rail, crown, valance) runs along a run's row.
 // Lengths are decimal inches and are never rounded (03g); widths outside the 3" steps are custom boxes (S04
 // Validation, Round 3).
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { levelSchema, objectStatusSchema, pointSchema, unitVectorSchema } from './common';
 
 // A run is small; the cap keeps one stored object bounded (as group.ts).
@@ -57,20 +57,25 @@ export type CabinetPanelKind = (typeof CABINET_PANEL_KINDS)[number];
 export const CABINET_TRIM_KINDS = ['toe_kick', 'light_rail', 'crown', 'valance'] as const;
 export type CabinetTrimKind = (typeof CABINET_TRIM_KINDS)[number];
 
-export const CABINET_CORNER_KINDS = ['lazy_susan', 'diagonal', 'corner_filler', 'dead_corner'] as const;
+export const CABINET_CORNER_KINDS = [
+  'lazy_susan',
+  'diagonal',
+  'corner_filler',
+  'dead_corner',
+] as const;
 export type CabinetCornerKind = (typeof CABINET_CORNER_KINDS)[number];
 
 export const CABINET_ROWS = ['base', 'upper'] as const;
 export type CabinetRow = (typeof CABINET_ROWS)[number];
 
-const length = z.number().positive().finite();
-const codeSchema = z.string().trim().min(1).max(CABINET_CODE_MAX);
-const catalogItemIdSchema = z.uuid().nullable();
-const finishSchema = z.string().max(CABINET_FINISH_MAX).nullable();
+const length = z.number().check(z.positive());
+const codeSchema = z.string().check(z.trim(), z.minLength(1), z.maxLength(CABINET_CODE_MAX));
+const catalogItemIdSchema = z.nullable(z.uuid());
+const finishSchema = z.nullable(z.string().check(z.maxLength(CABINET_FINISH_MAX)));
 const size = { width: length, depth: length, height: length };
 
 // Run members have no geometry of their own: where each stands follows from the run's start, axis and order.
-const member = <A extends z.ZodRawShape>(attributes: A) =>
+const member = <A extends z.core.$ZodLooseShape>(attributes: A) =>
   z.strictObject({
     status: objectStatusSchema,
     level: levelSchema,
@@ -94,10 +99,10 @@ export type CabinetBoxData = z.infer<typeof cabinetBoxDataSchema>;
 export const cabinetFillerDataSchema = member({
   code: codeSchema,
   ...size,
-  scribe: z.number().min(0).finite(),
+  scribe: z.number().check(z.gte(0)),
   catalogItemId: catalogItemIdSchema,
   finish: finishSchema,
-}).refine((d) => d.attributes.scribe <= d.attributes.width);
+}).check(z.refine((d) => d.attributes.scribe <= d.attributes.width));
 export type CabinetFillerData = z.infer<typeof cabinetFillerDataSchema>;
 
 export const cabinetPanelDataSchema = member({
@@ -121,7 +126,7 @@ export type CabinetCornerData = z.infer<typeof cabinetCornerDataSchema>;
 export const cabinetShelfDataSchema = member({
   code: codeSchema,
   ...size,
-  shelfCount: z.number().int().min(1).max(20),
+  shelfCount: z.int().check(z.gte(1), z.lte(20)),
   catalogItemId: catalogItemIdSchema,
   finish: finishSchema,
 });
@@ -141,26 +146,28 @@ export const cabinetTrimDataSchema = z.strictObject({
 });
 export type CabinetTrimData = z.infer<typeof cabinetTrimDataSchema>;
 
-const rowSchema = z.array(z.uuid()).max(CABINET_RUN_ROW_MAX);
+const rowSchema = z.array(z.uuid()).check(z.maxLength(CABINET_RUN_ROW_MAX));
 
 // `start` is the run's left end at the wall face; the run goes along `axis`. A run off every wall has no host.
 // An id appears at most once across both rows.
 export const cabinetRunDataSchema = z
   .strictObject({
     geometry: z.strictObject({
-      hostWallId: z.uuid().nullable(),
+      hostWallId: z.nullable(z.uuid()),
       start: pointSchema,
       axis: unitVectorSchema,
     }),
     level: levelSchema,
     attributes: z.strictObject({
-      name: z.string().trim().min(1).max(CABINET_RUN_NAME_MAX),
+      name: z.string().check(z.trim(), z.minLength(1), z.maxLength(CABINET_RUN_NAME_MAX)),
       base: rowSchema,
       upper: rowSchema,
     }),
   })
-  .refine((d) => {
-    const ids = [...d.attributes.base, ...d.attributes.upper].map((id) => id.toLowerCase());
-    return new Set(ids).size === ids.length;
-  });
+  .check(
+    z.refine((d) => {
+      const ids = [...d.attributes.base, ...d.attributes.upper].map((id) => id.toLowerCase());
+      return new Set(ids).size === ids.length;
+    }),
+  );
 export type CabinetRunData = z.infer<typeof cabinetRunDataSchema>;

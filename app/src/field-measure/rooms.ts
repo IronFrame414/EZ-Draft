@@ -2,7 +2,7 @@
 // one project's field measure session, as stored in field_measure_session.rooms and sent by the screen. The
 // Building is always the first room ("Room chips: Building edits the outside outline"). Wall lengths are kept per
 // wall in inches (null until typed; the keypad is EZD-1416). Shared by the screen and the server.
-import { z } from 'zod';
+import * as z from 'zod/mini';
 import { MAX_FIELD_LENGTH_IN } from './entry';
 import { CANVAS_H, CANVAS_W, SHAPE_KINDS, wallCount, type Pt, type ShapeKind } from './shapes';
 
@@ -11,41 +11,47 @@ export const MAX_FREE_CORNERS = 60;
 export const MAX_ROOM_NAME = 40;
 
 const point = z.object({
-  x: z.number().min(0).max(CANVAS_W),
-  y: z.number().min(0).max(CANVAS_H),
+  x: z.number().check(z.gte(0), z.lte(CANVAS_W)),
+  y: z.number().check(z.gte(0), z.lte(CANVAS_H)),
 });
 
 // 0 to MAX_FIELD_LENGTH_IN inches. EZD-1419: a length over 200 ft (2400") is kept once confirmed (S17b Validation;
 // entry.ts), up to 1000 ft.
-const inches = z.number().min(0).max(MAX_FIELD_LENGTH_IN).nullable();
+const inches = z.nullable(z.number().check(z.gte(0), z.lte(MAX_FIELD_LENGTH_IN)));
 
 export const roomSchema = z
-  .object({
-    id: z.string().regex(/^[A-Za-z0-9_-]{1,40}$/),
+  .strictObject({
+    id: z.string().check(z.regex(/^[A-Za-z0-9_-]{1,40}$/)),
     kind: z.enum(['building', 'room']),
-    name: z.string().trim().min(1).max(MAX_ROOM_NAME),
-    shape: z.enum(SHAPE_KINDS as [ShapeKind, ...ShapeKind[]]).nullable(),
-    corners: z.array(point).max(MAX_FREE_CORNERS),
+    name: z.string().check(z.trim(), z.minLength(1), z.maxLength(MAX_ROOM_NAME)),
+    shape: z.nullable(z.enum(SHAPE_KINDS as [ShapeKind, ...ShapeKind[]])),
+    corners: z.array(point).check(z.maxLength(MAX_FREE_CORNERS)),
     closed: z.boolean(),
-    lengths: z.array(inches).max(MAX_FREE_CORNERS),
+    lengths: z.array(inches).check(z.maxLength(MAX_FREE_CORNERS)),
     ceiling: inches,
   })
-  .strict()
-  .refine((r) => r.lengths.length === wallCount(r.shape, r.corners, r.closed), {
-    message: 'one length per wall',
-  })
-  .refine((r) => r.shape === 'walls' || (r.corners.length === 0 && r.closed === (r.shape !== null)), {
-    message: 'corners only in Walls mode',
-  });
+  .check(
+    z.refine((r) => r.lengths.length === wallCount(r.shape, r.corners, r.closed), {
+      message: 'one length per wall',
+    }),
+    z.refine(
+      (r) => r.shape === 'walls' || (r.corners.length === 0 && r.closed === (r.shape !== null)),
+      {
+        message: 'corners only in Walls mode',
+      },
+    ),
+  );
 
-export const roomsSchema = z
-  .array(roomSchema)
-  .min(1)
-  .max(MAX_ROOMS)
-  .refine((rs) => rs[0]?.kind === 'building' && rs.slice(1).every((r) => r.kind === 'room'), {
+export const roomsSchema = z.array(roomSchema).check(
+  z.minLength(1),
+  z.maxLength(MAX_ROOMS),
+  z.refine((rs) => rs[0]?.kind === 'building' && rs.slice(1).every((r) => r.kind === 'room'), {
     message: 'the Building comes first, once',
-  })
-  .refine((rs) => new Set(rs.map((r) => r.id)).size === rs.length, { message: 'room ids are unique' });
+  }),
+  z.refine((rs) => new Set(rs.map((r) => r.id)).size === rs.length, {
+    message: 'room ids are unique',
+  }),
+);
 
 export type FieldRoom = z.infer<typeof roomSchema>;
 
