@@ -514,7 +514,8 @@
     "EZD-1944",
     "EZD-1905",
     "EZD-1906b",
-    "EZD-1945"
+    "EZD-1945",
+    "EZD-1906c"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2008,6 +2009,14 @@
       "ts": "2026-11-25T06:51:44Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1906c",
+      "title": "Editor shared helpers in countertops, cabinets and their lazy screens; STATUSES and CM_PER_IN constants",
+      "commit": "465529f1",
+      "ts": "2026-11-25T07:34:22Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2230,12 +2239,6 @@
       "lane": 1,
       "title": "Sign-in returns the person to the page they asked for",
       "started": "2026-11-25T06:00:42Z",
-      "develop": "5fc10582"
-    },
-    "EZD-1906c": {
-      "lane": 3,
-      "title": "Editor shared helpers in countertops, cabinets and their lazy screens; STATUSES and CM_PER_IN constants",
-      "started": "2026-11-25T06:00:43Z",
       "develop": "5fc10582"
     }
   },
