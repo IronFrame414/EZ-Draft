@@ -3,9 +3,11 @@
    NotificationSettingsTab .switch. Spacing in px (no spacing tokens, L-013). */
 .item {
   position: relative;
+  flex: none;
   display: flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap; /* EZD-1981 (audit F5): Scale, Snap, View and Zoom stay on one line */
 }
 
 .trigger {
@@ -20,6 +22,7 @@
   margin: 0 -6px;
   border-radius: var(--ez-radius-5);
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .trigger[aria-expanded='true'] {
@@ -54,6 +57,7 @@
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-12);
   box-shadow: var(--ez-shadow-popover);
+  white-space: normal;
   font: 400 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-ink);
 }
@@ -178,6 +182,7 @@
   padding: 2px 8px;
   border-radius: var(--ez-radius-4);
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .segmentButton[aria-pressed='true'] {

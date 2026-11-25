@@ -24,12 +24,13 @@ export function ElectricalStatus({
     () => store.getState().objects,
   );
   const service = useMemo(() => panelRows(objects)[0]?.serviceSize ?? null, [objects]);
+  // EZD-1981 (audit F5): the two long cells may be cut with an ellipsis; the full text is their tooltip.
+  const layer = t('office.electrical.status.layer_power');
+  const code = t(`office.electrical.status.code.${DEFAULT_CODE_EDITION}`);
   return (
     <>
-      <StatusItem label="office.electrical.status.layer">
-        <span data-testid="status-electrical-layer">
-          {t('office.electrical.status.layer_power')}
-        </span>
+      <StatusItem label="office.electrical.status.layer" title={layer}>
+        <span data-testid="status-electrical-layer">{layer}</span>
       </StatusItem>
       {service === null ? null : (
         <StatusItem label="office.electrical.status.service">
@@ -38,10 +39,8 @@ export function ElectricalStatus({
           </span>
         </StatusItem>
       )}
-      <StatusItem label="office.electrical.status.code">
-        <span data-testid="status-electrical-code">
-          {t(`office.electrical.status.code.${DEFAULT_CODE_EDITION}`)}
-        </span>
+      <StatusItem label="office.electrical.status.code" title={code}>
+        <span data-testid="status-electrical-code">{code}</span>
       </StatusItem>
     </>
   );

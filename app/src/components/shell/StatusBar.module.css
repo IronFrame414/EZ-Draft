@@ -24,21 +24,40 @@
 }
 
 .end {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 20px;
 }
 
+/* EZD-1981 (AC-EZD-1981-1; audit F5): cells never wrap and never squeeze; only a `.fit` cell (a long value with
+   its full text as a tooltip) gives way, after the disclaimer, and is cut with an ellipsis. */
 .item {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .label {
+  flex: none;
   color: var(--ez-slate-300);
+  white-space: nowrap;
 }
 
 .value {
   color: var(--ez-ink);
+  white-space: nowrap;
+}
+
+.fit {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.fit .value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

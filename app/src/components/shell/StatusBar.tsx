@@ -20,14 +20,29 @@ export function StatusBar({ start, end }: { start?: ReactNode; end?: ReactNode }
   );
 }
 
-export function StatusItem({ label, children }: { label: MessageKey; children?: ReactNode }) {
+// EZD-1981 (AC-EZD-1981-1; audit F5): every cell stays on one line. A cell given `title` (its full value text) is
+// one of the long ones that may be cut with an ellipsis when the bar runs out of room; the title is its tooltip.
+export function StatusItem({
+  label,
+  title,
+  children,
+}: {
+  label: MessageKey;
+  title?: string;
+  children?: ReactNode;
+}) {
   const t = useT();
+  const fit = title !== undefined;
   return (
-    <div className={styles.item} data-status-item="">
+    <div
+      className={fit ? `${styles.item} ${styles.fit}` : styles.item}
+      data-status-item=""
+      data-status-fit={fit ? '' : undefined}
+    >
       <span className={styles.label} data-status-label="">
         {t(label)}
       </span>
-      <span className={styles.value} data-status-value="">
+      <span className={styles.value} data-status-value="" title={title}>
         {children}
       </span>
     </div>
