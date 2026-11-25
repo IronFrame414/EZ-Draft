@@ -515,7 +515,8 @@
     "EZD-1905",
     "EZD-1906b",
     "EZD-1945",
-    "EZD-1906c"
+    "EZD-1906c",
+    "EZD-1977"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2017,6 +2018,14 @@
       "ts": "2026-11-25T07:34:22Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1977",
+      "title": "Sign-in returns the person to the page they asked for",
+      "commit": "c32504db",
+      "ts": "2026-11-25T07:59:42Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2234,14 +2243,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-1977": {
-      "lane": 1,
-      "title": "Sign-in returns the person to the page they asked for",
-      "started": "2026-11-25T06:00:42Z",
-      "develop": "5fc10582"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-25T04:18:01Z",
   "hold": {},
   "perf_trend_at": "2026-11-25T03:16:23Z",
