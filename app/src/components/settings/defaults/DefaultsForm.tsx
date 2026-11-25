@@ -90,6 +90,21 @@ export function checkForm(
   return { changes, errors };
 }
 
+// EZD-1978 (found by e2e keyboard-shortcuts "Reset shortcut clears a row; Reset to default map fills it again"): the
+// form after a save comes back. A row edited while the save was on its way (its value differs from what was sent)
+// keeps the edit, so it is not lost and Save stays on for it; every other row shows the stored value.
+export function formAfterSave(
+  stored: StoredDefaults,
+  sent: DefaultsForm,
+  current: DefaultsForm,
+): DefaultsForm {
+  const next = formOf(stored);
+  for (const r of EDITABLE) {
+    if (!same(current[r.key], sent[r.key])) next[r.key] = current[r.key] as FormValue;
+  }
+  return next;
+}
+
 async function fieldsOf(res: Response): Promise<Record<string, MessageKey> | null> {
   const body: unknown = await res.json().catch(() => null);
   const fields = (body as { error?: { fields?: unknown } } | null)?.error?.fields;
@@ -140,7 +155,7 @@ export function DefaultsPage({ initial }: { initial: StoredDefaults }) {
       if (res.status === 200) {
         const body = (await res.json()) as { stored: StoredDefaults };
         setSaved(body.stored);
-        setForm(formOf(body.stored));
+        setForm((current) => formAfterSave(body.stored, form, current));
         router.refresh();
         return true;
       }
@@ -159,7 +174,7 @@ export function DefaultsPage({ initial }: { initial: StoredDefaults }) {
     } finally {
       setSaving(false);
     }
-  }, [changes, localErrors, router]);
+  }, [changes, form, localErrors, router]);
 
   useUnsavedChanges(dirty, save);
 
