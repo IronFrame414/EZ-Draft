@@ -513,7 +513,8 @@
     "EZD-1960",
     "EZD-1944",
     "EZD-1905",
-    "EZD-1906b"
+    "EZD-1906b",
+    "EZD-1945"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1999,6 +2000,14 @@
       "ts": "2026-11-25T06:00:14Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1945",
+      "title": "Loop: a git-config refusal pauses lanes instead of burning fix rounds",
+      "commit": "1c66e8b0",
+      "ts": "2026-11-25T06:51:44Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2216,8 +2225,22 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {},
+  "running": {
+    "EZD-1977": {
+      "lane": 1,
+      "title": "Sign-in returns the person to the page they asked for",
+      "started": "2026-11-25T06:00:42Z",
+      "develop": "5fc10582"
+    },
+    "EZD-1906c": {
+      "lane": 3,
+      "title": "Editor shared helpers in countertops, cabinets and their lazy screens; STATUSES and CM_PER_IN constants",
+      "started": "2026-11-25T06:00:43Z",
+      "develop": "5fc10582"
+    }
+  },
   "advisories_checked_at": "2026-11-25T04:18:01Z",
   "hold": {},
-  "perf_trend_at": "2026-11-25T03:16:23Z"
+  "perf_trend_at": "2026-11-25T03:16:23Z",
+  "set_aside_history": []
 }
