@@ -130,6 +130,15 @@
   overflow-wrap: anywhere;
 }
 
+/* EZD-1982 (AC-EZD-1982-1; audit F7): an email is never broken mid-word; one too long for the column ends in
+   "…" and keeps its full text in a title. */
+.subEmail {
+  overflow-wrap: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .av {
   box-sizing: border-box;
   width: 32px;
@@ -210,6 +219,18 @@
 .lastActive {
   font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
+}
+
+/* EZD-1982: the email inside a pending row's "{email} · sent {date}" line. It sits in the line as before
+   when there is room; in a narrow column it keeps to one line (ending in "…") and the rest wraps under it. */
+.subEmailPart {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: bottom;
+  overflow-wrap: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Pending row (board S15 row 5). */
@@ -378,6 +399,45 @@
 
 .nameCol {
   min-width: 120px;
+}
+
+/* EZD-1982 (AC-EZD-1982-1, -2; audit F7): below the desktop size the main card is narrow (iPad about 530 px).
+   The columns after Name take less side padding and their headings may wrap, and the Name column takes what is
+   left without growing past the table, so an email stays whole on one line (or ends in "…") and the table never
+   runs wider than the card. */
+@media (width < 1600px) {
+  .th:not(:first-child),
+  .td:not(:first-child) {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .th {
+    white-space: normal;
+  }
+
+  .nameCol {
+    max-width: 0;
+  }
+
+  /* The table no longer shrinks under the Roles row and note: it shows its rows whole and the main card
+     scrolls to the Roles row (SettingsShell .mainFlush). A long page still scrolls inside the table, which
+     stops 400 px short of the screen height (header, status bar, the card's wrapped head and the pager) so
+     the pager stays on screen. */
+  .body {
+    flex: none;
+  }
+
+  .table {
+    flex: none;
+    max-height: calc(100vh - 400px);
+  }
+
+  .th.moreCol,
+  .td.moreCol {
+    padding-left: 0;
+    padding-right: 10px;
+  }
 }
 
 @media (any-pointer: coarse) {

@@ -1036,16 +1036,21 @@ export function UsersPanel() {
     const now = new Date();
     let bold: string;
     let sub: string | null;
+    // EZD-1982: a bare email stays on one line (Users.module.css .subEmail).
+    let subIsEmail = false;
     if (row.status === 'invited') {
       bold = t('office.users.invite_pending');
-      if (row.invitedAt === null) sub = row.email;
-      else {
+      if (row.invitedAt === null) {
+        sub = row.email;
+        subIsEmail = true;
+      } else {
         const d = formatUserDate(row.invitedAt, now);
         sub = t('office.users.invite_sent', { email: row.email, date: t(d.key, d.params) });
       }
     } else {
       bold = shownName(row);
       sub = bold === row.email ? null : row.email;
+      subIsEmail = sub !== null;
     }
     return (
       <span className={styles.person}>
@@ -1055,8 +1060,27 @@ export function UsersPanel() {
             {bold}
           </span>
           {sub === null ? null : (
-            <span data-testid="user-sub" className={styles.sub}>
-              {sub}
+            <span
+              data-testid="user-sub"
+              className={subIsEmail ? `${styles.sub} ${styles.subEmail}` : styles.sub}
+              title={subIsEmail ? sub : undefined}
+            >
+              {subIsEmail || !sub.includes(row.email) ? (
+                sub
+              ) : (
+                // EZD-1982: in "{email} · sent {date}" the email keeps to one line too; the rest may wrap under it.
+                <>
+                  {sub.slice(0, sub.indexOf(row.email))}
+                  <span
+                    data-testid="user-sub-email"
+                    className={styles.subEmailPart}
+                    title={row.email}
+                  >
+                    {row.email}
+                  </span>
+                  {sub.slice(sub.indexOf(row.email) + row.email.length)}
+                </>
+              )}
             </span>
           )}
         </span>

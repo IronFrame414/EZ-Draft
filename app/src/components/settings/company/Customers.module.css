@@ -33,6 +33,7 @@
   font-family: var(--ez-font-mono);
   font-weight: 400;
   color: var(--ez-slate-300);
+  white-space: nowrap;
 }
 
 .toggle {
@@ -302,4 +303,26 @@
 .td button:disabled {
   color: var(--ez-slate-300);
   cursor: default;
+}
+
+/* EZD-1982 (AC-EZD-1982-1; audit F7): below the desktop size the Customers pane is narrow (iPad about 430 px),
+   so the title takes its own line and the search and Add customer share the next one; nothing is clipped. */
+@media (width < 1600px) {
+  .head {
+    flex-wrap: wrap;
+  }
+
+  .title {
+    flex-basis: 100%;
+  }
+
+  .search {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .emailCell {
+    overflow-wrap: anywhere;
+  }
 }

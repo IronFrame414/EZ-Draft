@@ -231,6 +231,13 @@
   border-radius: var(--ez-radius-12);
   box-shadow: var(--ez-shadow-card);
 }
+/* EZD-1982 (AC-EZD-1982-1; audit F7): at the desktop size the inspector is the board width (S15c, 612 px) so
+   its selects show their whole values; narrower screens keep the shared inspector width. */
+@media (width >= 1600px) {
+  .inspector {
+    width: 612px;
+  }
+}
 .inspectorEmpty {
   margin: auto;
   font-size: var(--ez-text-13);
