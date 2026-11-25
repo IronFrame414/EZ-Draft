@@ -506,7 +506,8 @@
     "EZD-1975",
     "EZD-1952",
     "EZD-1976",
-    "EZD-1946"
+    "EZD-1946",
+    "EZD-1903"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1936,6 +1937,14 @@
       "ts": "2026-11-25T02:20:08Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1903",
+      "title": "Slimmer zod in the editor: geometry schemas on zod/mini",
+      "commit": "7e5f4dba",
+      "ts": "2026-11-25T02:48:30Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2154,12 +2163,6 @@
     }
   },
   "running": {
-    "EZD-1903": {
-      "lane": 2,
-      "title": "Slimmer zod in the editor: geometry schemas on zod/mini",
-      "started": "2026-11-25T00:32:12Z",
-      "develop": "76f31d17"
-    },
     "EZD-1959": {
       "lane": 3,
       "title": "Bring the base local database up to date for live UI checks",
