@@ -27099,11 +27099,13 @@
   {
    "id": "EZD-1985",
    "phase": 10,
-   "title": "Fixtures panel fields are not cut off by the window edge",
+   "title": "Fixtures panel docks on the right and its fields are not cut off",
    "depends_raw": "",
    "spec_ref": "Live signed-in UI audit 2026-11-24 (EZD-1960), finding F12b in audit/ui-live-2026-11-24/REPORT.md; screenshots in audit/ui-live-2026-11-24/screens/. Read the finding row and its evidence before building",
    "spec_files": [],
-   "decisions": [],
+   "decisions": [
+    "Q-0809"
+   ],
    "mockups": [],
    "priority": 1,
    "phase_file": "tickets/phases/phase-10.md",
@@ -27188,6 +27190,48 @@
     "AC-EZD-1989-3"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-1990",
+   "phase": 10,
+   "title": "\"Page not found\" page with the app header and a Back to Projects button",
+   "depends_raw": "",
+   "spec_ref": "Josh 2026-11-25 answer Q-0808 to the live screen check (vault/questions/ui-audit-2026-11-25-for-josh.md).",
+   "spec_files": [],
+   "decisions": [
+    "Q-0808"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1990-1",
+    "AC-EZD-1990-2",
+    "AC-EZD-1990-3"
+   ],
+   "acs_source": "josh-2026-11-25"
+  },
+  {
+   "id": "EZD-1991",
+   "phase": 10,
+   "title": "Title block settings: \"Used on N sheets · Open Sheets\" line and \"Zoom to title block\" button",
+   "depends_raw": "",
+   "spec_ref": "Josh 2026-11-25 answer Q-0813 to the live screen check (vault/questions/ui-audit-2026-11-25-for-josh.md).",
+   "spec_files": [],
+   "decisions": [
+    "Q-0813"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1991-1",
+    "AC-EZD-1991-2",
+    "AC-EZD-1991-3"
+   ],
+   "acs_source": "josh-2026-11-25"
   }
  ],
  "recut_applied": "2026-10-20"

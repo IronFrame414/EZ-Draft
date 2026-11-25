@@ -68,3 +68,9 @@ The 11 clear bugs it found are already queued as fix tickets EZD-1977 to EZD-198
 ---
 
 **Also noted, not a question:** F16. The field pack's empty page has no "EZ Binder" back link. That link may have to wait for EZ Binder single sign-on, so it will be checked before anyone fixes it.
+
+---
+
+## Answers (Josh, chat, 2026-11-25)
+
+805 (b) build the client page sooner · 806 (a) · 807 (a) · 808 agree · 809 (a) dock right · 810 agree · 811 agree · 812 agree · 813 (a) build both. EZD-385: retire (recommendation followed). Recorded in vault/spec/decisions/04-app-shell-and-global-ui.md.
