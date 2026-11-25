@@ -31,6 +31,7 @@ import { changedFiles, createSelfRestart, runDryRun } from './loop/self-restart.
 import { buildOrder, phaseRank } from './loop/order.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 import { TYPES_FILE, orderMigrations, regenerateTypes, settleGeneratedConflicts, touchesSchema } from './loop/merge-files.mjs';
+import { PERF_TREND_ID, perfDue, runPerfTrend } from './loop/perf-trend.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const B = path.join(ROOT, 'vault/build');
@@ -775,6 +776,20 @@ async function guardDevelop(s) {
   // the next red streak runs another repair.
   if (res !== 'merged') log(`develop is red and repair ${t.id} failed; set aside, building continues`);
 }
+// EZD-1946 (audit 2026-11-23 B1, B2): once a day the perf trend takes a free lane: develop is built and measured and
+// one line is appended to perf-results/history.jsonl (scripts/loop/perf-trend.mjs). It holds the lane through
+// s.running (no file claims) and the `active` map, so drains and restarts wait for it; it never counts as a ticket.
+function startPerfTrend(s, lane, active) {
+  s.perf_trend_at = now();
+  s.running[PERF_TREND_ID] = { lane, title: 'perf trend on develop', started: now() };
+  saveState(s);
+  log(`perf trend: building and measuring develop on lane ${lane}`);
+  const wt = path.join(ROOT, '.claude/worktrees', PERF_TREND_ID);
+  const p = runPerfTrend({ root: ROOT, env: laneEnv(lane, wt), git, run: runCheck, log })
+    .catch((e) => log(`perf trend error: ${e?.stack || e}`))
+    .then(() => { delete s.running[PERF_TREND_ID]; saveState(s); active.delete(PERF_TREND_ID); });
+  active.set(PERF_TREND_ID, p);
+}
 
 // ---------- lanes ----------
 // config `lanes`: the database lanes to build on (0-3), or a count n meaning lanes 0..n-1. One ticket per lane.
@@ -900,6 +915,7 @@ async function main() {
     // A ticket whose footprint could not be predicted runs only alone.
     const alone = Object.keys(s.running).some((id) => readFootprints()[id]?.alone);
     if (alone) { await idle(60000); continue; }
+    if (free.length && !s.running[PERF_TREND_ID] && perfDue(s.perf_trend_at)) startPerfTrend(s, free.shift(), active);
     const list = eligible(s);
     if (!free.length) {
       // Every lane is busy: predict the next footprints now, so a lane that frees up starts without waiting for one.
