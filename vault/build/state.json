@@ -508,7 +508,8 @@
     "EZD-1976",
     "EZD-1946",
     "EZD-1903",
-    "EZD-1959"
+    "EZD-1959",
+    "EZD-1902"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1954,6 +1955,14 @@
       "ts": "2026-11-25T03:16:17Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1902",
+      "title": "Draw the plan with plain Three.js instead of React Three Fiber",
+      "commit": "93a4bfbd",
+      "ts": "2026-11-25T04:22:37Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2171,7 +2180,21 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {},
-  "advisories_checked_at": "2026-11-24T22:17:04Z",
-  "hold": {}
+  "running": {
+    "EZD-1944": {
+      "lane": 2,
+      "title": "Loop: a retry command that keeps a history of set-asides",
+      "started": "2026-11-25T03:16:35Z",
+      "develop": "22770201"
+    },
+    "EZD-1960": {
+      "lane": 3,
+      "title": "Live signed-in UI audit pass (report only)",
+      "started": "2026-11-25T03:16:39Z",
+      "develop": "22770201"
+    }
+  },
+  "advisories_checked_at": "2026-11-25T04:18:01Z",
+  "hold": {},
+  "perf_trend_at": "2026-11-25T03:16:23Z"
 }
