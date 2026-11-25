@@ -120,3 +120,17 @@
   font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the view filter,
+   the key buttons and the text buttons are at least 44 px; desktop sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .key {
+    height: var(--ez-touch-target);
+  }
+
+  .filter button,
+  .textButton {
+    min-width: var(--ez-touch-target);
+    min-height: var(--ez-touch-target);
+  }
+}

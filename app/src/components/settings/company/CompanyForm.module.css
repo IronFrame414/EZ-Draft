@@ -207,3 +207,18 @@
   color: var(--ez-slate-300);
   cursor: default;
 }
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the company fields
+   and the hint links are at least 44 px tall; desktop sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .input {
+    height: var(--ez-touch-target);
+  }
+
+  .hint a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--ez-touch-target);
+    vertical-align: middle;
+  }
+}

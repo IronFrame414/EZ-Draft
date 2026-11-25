@@ -326,3 +326,24 @@
     overflow-wrap: anywhere;
   }
 }
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the archived
+   toggle and the search input are at least 44 px (the search box grows around it); desktop sizes above are
+   unchanged. */
+@media (any-pointer: coarse) {
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--ez-touch-target);
+    min-height: var(--ez-touch-target);
+  }
+
+  .search {
+    height: auto;
+  }
+
+  .searchInput {
+    min-height: var(--ez-touch-target);
+  }
+}

@@ -363,3 +363,25 @@
   margin-left: auto;
   color: var(--ez-slate-500);
 }
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the switch gets a
+   transparent border so its tap area is at least 44 px while the drawn switch keeps its size, the links are at
+   least 44 px tall and the preview size buttons are 44 px; desktop sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .switch {
+    border: calc((var(--ez-touch-target) - 20px) / 2) solid transparent;
+    background-clip: padding-box;
+    box-sizing: content-box;
+  }
+
+  .link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--ez-touch-target);
+    vertical-align: middle;
+  }
+
+  .segmentButton {
+    height: var(--ez-touch-target);
+  }
+}

@@ -148,3 +148,18 @@
 .byDateRow dd {
   margin: 0;
 }
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the edition select
+   is 44 px tall and the switch gets a transparent border so its tap area is at least 44 px while the drawn switch
+   keeps its size; desktop sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .select {
+    height: var(--ez-touch-target);
+  }
+
+  .switch {
+    border: calc((var(--ez-touch-target) - 20px) / 2) solid transparent;
+    background-clip: padding-box;
+    box-sizing: content-box;
+  }
+}

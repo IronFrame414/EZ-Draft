@@ -217,3 +217,27 @@
   background: var(--ez-surface-sunken);
   color: var(--ez-slate-500);
 }
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the search box,
+   the number inputs, the segment buttons and the chips are at least 44 px, and a chip row takes its own line under its label; desktop sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .searchInput,
+  .input {
+    height: var(--ez-touch-target);
+  }
+
+  .row:has(> .control > .chips) {
+    flex-wrap: wrap;
+  }
+
+  .control:has(> .chips) {
+    flex: 1 1 100%;
+  }
+
+  .searchClear,
+  .segment button,
+  .chip {
+    min-width: var(--ez-touch-target);
+    min-height: var(--ez-touch-target);
+  }
+}

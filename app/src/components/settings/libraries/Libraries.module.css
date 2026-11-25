@@ -509,3 +509,31 @@
   align-items: center;
   gap: 4px;
 }
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the tabs, the
+   search box, the filter chips, the rows and the inspector fields are at least 44 px; desktop sizes above are
+   unchanged. */
+@media (any-pointer: coarse) {
+  .tab,
+  .row {
+    min-width: var(--ez-touch-target);
+    min-height: var(--ez-touch-target);
+  }
+
+  .chip,
+  .input:not(.textarea) {
+    height: var(--ez-touch-target);
+  }
+
+  .chip {
+    min-width: var(--ez-touch-target);
+  }
+
+  .search {
+    height: auto;
+  }
+
+  .searchInput {
+    min-height: var(--ez-touch-target);
+  }
+}

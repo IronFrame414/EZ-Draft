@@ -168,8 +168,9 @@ function AddSheet(): ReactElement {
 function PropertyImport({ screen }: { screen: SheetsScreen }): ReactElement {
   const t = useT();
   const [open, setOpen] = useState(false);
+  // EZD-1980: the button has a plain unstyled wrapper (nothing visible changes), so it is a box of its own in the list.
   return (
-    <>
+    <div>
       <button
         type="button"
         className={styles.add}
@@ -186,7 +187,7 @@ function PropertyImport({ screen }: { screen: SheetsScreen }): ReactElement {
           onSaved={() => void screen.load()}
         />
       ) : null}
-    </>
+    </div>
   );
 }
 

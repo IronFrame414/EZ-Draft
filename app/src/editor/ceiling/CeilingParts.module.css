@@ -71,3 +71,11 @@
   font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the Switching zones
+   button is at least 44 px tall; desktop sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .lightingButton {
+    min-height: var(--ez-touch-target);
+  }
+}

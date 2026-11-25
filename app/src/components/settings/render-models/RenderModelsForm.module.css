@@ -319,3 +319,24 @@
   color: var(--ez-slate-300);
   cursor: default;
 }
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the model selects
+   and the money inputs are at least 44 px (each money box grows around its input), and the tier table keeps its full
+   height instead of shrinking and clipping the Photoreal row; desktop sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .select {
+    height: var(--ez-touch-target);
+  }
+
+  .tableBox {
+    flex: none;
+  }
+
+  .moneyInput {
+    height: auto;
+  }
+
+  .moneyInput input {
+    min-height: var(--ez-touch-target);
+  }
+}

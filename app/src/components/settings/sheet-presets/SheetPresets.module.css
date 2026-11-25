@@ -542,3 +542,21 @@
 .toggleRow:disabled .switch {
   opacity: 0.6;
 }
+
+/* EZD-1980 (audit F8; 11 Non-functional requirements "44 px minimum on touch"): on a touch device the inspector
+   fields, the segment buttons, the name tokens, the scale chips and the switch rows are at least 44 px; desktop
+   sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .input,
+  .locked,
+  .segmentItem {
+    height: var(--ez-touch-target);
+  }
+
+  .token,
+  .chipButton,
+  .toggleRow {
+    min-width: var(--ez-touch-target);
+    min-height: var(--ez-touch-target);
+  }
+}
