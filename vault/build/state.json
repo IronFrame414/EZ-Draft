@@ -520,7 +520,8 @@
     "EZD-1979",
     "EZD-1989",
     "EZD-1988",
-    "EZD-1978"
+    "EZD-1978",
+    "EZD-1981"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2062,20 +2063,19 @@
       "ts": "2026-11-25T12:35:17Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1981",
+      "title": "Plan status bar cells stay on one line",
+      "commit": "a6e9e8b1",
+      "ts": "2026-11-25T14:45:37Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
-  "set_aside": {
-    "EZD-1980": {
-      "title": "Touch targets of at least 44 px on iPad in Settings, Libraries, Sheets and tool panels",
-      "ts": "2026-11-25T13:35:20Z",
-      "reason": "check red after merging newer develop (first try: builder timed out after 90 min with no commits)",
-      "detail": "Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T18 provider errors map to D-Map with one request, no usage row and no model change\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T18 provider errors map to D-Map with one request, no usage row and no model change\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T19 a reply that does not parse is billed when usage came back, and free when it did not\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T19 a reply that does not parse is billed when usage came back, and free when it did not\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T20 one prompt in flight, 30 a minute, and the time budget and a closed tab end the call\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T20 one prompt in flight, 30 a minute, and the time budget and a closed tab end the call\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T20 one prompt in flight, 30 a minute, and the time budget and a closed tab end the call\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/projects/[id]/assistant/route.test.ts > EZD-5602 assistant route > T22 a failed usage write is reported and the answer stands\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n ❯ src/server/db/permissions.test.ts (18 tests | 1 failed) 1389ms\n   ❯ EZD-101 permission and role tables (18)\n     × T11 new memberships: default role from role_preset, custom role, backfill 241ms\nstderr | src/app/api/profile/ai-key/route.test.ts > EZD-5601 AI key route > T11 add: a padded key at the size bound is checked, stored encrypted, shown as last4 and mailed once\nSentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\nstderr | src/app/api/profile/ai-key/route.test.ts > EZD-5601 AI key",
-      "branch": "t/EZD-1980",
-      "worktree": ".claude/worktrees/EZD-1980"
-    }
-  },
+  "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2117,7 +2117,6 @@
     "EZD-1962": 1,
     "EZD-1939": 1,
     "EZD-1959": 1,
-    "EZD-1980": 1,
     "EZD-1988": 1,
     "EZD-1978": 1
   },
@@ -2303,7 +2302,20 @@
       "reason": "develop kept moving: 3 merge rounds"
     }
   },
-  "running": {},
+  "running": {
+    "EZD-1982": {
+      "lane": 2,
+      "title": "Settings pages do not squeeze or clip at iPad width; Sheet presets inspector at board width",
+      "started": "2026-11-25T13:35:52Z",
+      "develop": "1557d548"
+    },
+    "EZD-1987": {
+      "lane": 3,
+      "title": "Supplier files page has the editor header",
+      "started": "2026-11-25T13:35:53Z",
+      "develop": "1557d548"
+    }
+  },
   "advisories_checked_at": "2026-11-25T10:18:53Z",
   "hold": {},
   "perf_trend_at": "2026-11-25T03:16:23Z",
