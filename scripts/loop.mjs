@@ -12,13 +12,14 @@
 // tickets may edit the same file: each ticket first predicts the files it will change (its footprint, cached in
 // vault/build/footprints.json), starts only when no running ticket holds any of them, claims files it finds it needs
 // later with scripts/loop/claim.mjs, and is checked for unclaimed changes before it merges (scripts/loop/lanes.mjs).
-import { spawn, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { summarize, reportMarkdown } from './usage-report.mjs';
-import { RESUME_PROMPT, describeExit, died, readLastEntry } from './loop/claude-exit.mjs';
+import { RESUME_PROMPT, describeExit, died, readLastEntry, signalOfCode, startClaude } from './loop/claude-exit.mjs';
+import { noteSignal, pgidOf, senderOf } from './loop/signal-log.mjs';
 import { randomUUID } from 'node:crypto';
 import { lastBeat, resetReason, sample, startNote, writeBeat } from './loop/heartbeat.mjs';
 import { TRACK as SECURITY_TRACK, readSeen, recordFixTicket, runAudit, unseen } from './loop/advisories.mjs';
@@ -241,12 +242,12 @@ async function runClaude(opts) {
   const sid = opts.resume || sessionId;
   const last = readLastEntry(opts.cwd, sid);
   const near = await sameSecond(r, opts.ticket);
-  log(`CLAUDE DIED ${opts.name}: ${describeExit(r)}; session ${sid}; ${near}; last entry: ${last || 'no transcript'}${r.text.trim() ? `; output: ${r.text.trim().slice(-300).replace(/\s+/g, ' ')}` : ''}`);
+  log(`CLAUDE DIED ${opts.name}: ${describeExit(r)}; session ${sid}; ${near}${sender(r)}; last entry: ${last || 'no transcript'}${r.text.trim() ? `; output: ${r.text.trim().slice(-300).replace(/\s+/g, ' ')}` : ''}`);
   const left = opts.timeoutMin - r.secs / 60;
   if (opts.readOnly || !last || left < 10) return { ...r, died: [describeExit(r)] };
   log(`${opts.name}: resuming session ${sid} once (${Math.round(left)} min left)`);
   const again = await runClaudeOnce({ ...opts, prompt: RESUME_PROMPT, resume: sid, sessionId: null, timeoutMin: left });
-  if (died(again)) log(`CLAUDE DIED again ${opts.name}: ${describeExit(again)}; ${await sameSecond(again, opts.ticket)}; last entry: ${readLastEntry(opts.cwd, sid) || 'no transcript'}`);
+  if (died(again)) log(`CLAUDE DIED again ${opts.name}: ${describeExit(again)}; ${await sameSecond(again, opts.ticket)}${sender(again)}; last entry: ${readLastEntry(opts.cwd, sid) || 'no transcript'}`);
   return { ...again, secs: r.secs + again.secs, died: [describeExit(r), ...(died(again) ? [describeExit(again)] : [])], recovered: !died(again) };
 }
 // The other tickets' events in the second the run ended. Waits for that second to be over first, so an event that lands
@@ -257,32 +258,35 @@ async function sameSecond(r, ticket) {
   if (wait > 0) await sleep(wait);
   return sameSecondEvents(events.list(), secondOf(at), ticket);
 }
+// EZD-1988: which loop code path, if any, signalled a run that died of a signal (scripts/loop/signal-log.mjs). claude
+// is spawned in the loop's own process group, so a signal to that group counts as reaching it.
+const LOOP_PGID = pgidOf(process.pid);
+function sender(r) {
+  if (!r.signal && !signalOfCode(r.code)) return '';
+  return `; ${senderOf({ pid: r.pid, pgid: LOOP_PGID, endedAt: r.endedAt || new Date() })}`;
+}
+// The claude timer's signal, recorded first; a run that has already ended is not signalled.
+function timerKill(p, signal) {
+  if (p.exitCode !== null || p.signalCode !== null) return;
+  noteSignal({ by: 'loop claude timer (scripts/loop.mjs runClaudeOnce)', target: p.pid, signal });
+  p.kill(signal);
+}
 function runClaudeOnce({ cwd, prompt, model, effort, name, resume, sessionId, timeoutMin, readOnly, lane = 0, ticket }) {
-  const args = ['-p', prompt, '--output-format', 'json', '--model', model, '--effort', effort, '--name', name];
-  if (resume) args.push('--resume', resume);
-  if (sessionId) args.push('--session-id', sessionId);
-  if (readOnly) {
-    args.push('--permission-mode', 'dontAsk',
-      '--allowedTools', 'Read', 'Grep', 'Glob', 'Bash(git diff:*)', 'Bash(git log:*)', 'Bash(git show:*)',
-      'Bash(node vault/tools/outline.mjs:*)', 'Bash(node vault/tools/next_ticket.mjs --reads:*)',
-      '--disallowedTools', 'Edit', 'Write', 'NotebookEdit');
-  } else {
-    args.push('--permission-mode', 'bypassPermissions');
-  }
   return new Promise((resolve) => {
     const started = Date.now();
-    const p = spawn('claude', args, { cwd, env: laneEnv(lane, cwd, ticket), stdio: ['ignore', 'pipe', 'pipe'] });
+    const p = startClaude({ prompt, cwd, env: laneEnv(lane, cwd, ticket), model, effort, name, resume, sessionId, readOnly });
     let out = ''; let err = '';
     p.stdout.on('data', (d) => { out += d; });
     p.stderr.on('data', (d) => { err += d; });
-    const timer = setTimeout(() => { p.kill('SIGTERM'); setTimeout(() => p.kill('SIGKILL'), 10000); }, timeoutMin * 60000);
+    // SIGTERM at the limit, SIGKILL 10 s later if it is still running.
+    const timer = setTimeout(() => { timerKill(p, 'SIGTERM'); setTimeout(() => timerKill(p, 'SIGKILL'), 10000); }, timeoutMin * 60000);
     p.on('close', (code, signal) => {
       clearTimeout(timer);
       const endedAt = new Date();
       events.note(`claude ${name} ended (exit code ${code ?? 'none'}${signal ? `, signal ${signal}` : ''})`, endedAt, ticket);
       const res = parseResult(out);
       const text = String(res?.result ?? '') + '\n' + err.slice(-2000) + (res ? '' : out.slice(-1000));
-      resolve({ code, signal, res, text, endedAt, secs: Math.round((Date.now() - started) / 1000),
+      resolve({ code, signal, pid: p.pid, res, text, endedAt, secs: Math.round((Date.now() - started) / 1000),
         timedOut: Date.now() - started >= timeoutMin * 60000 - 1000,
         limited: /(hit your|usage limit|weekly limit|rate limit|limit reached|resets \d)/i.test(text) && (res?.is_error || code !== 0) });
     });
@@ -348,6 +352,8 @@ function checkOnce(cwd, lane = 0) {
 }
 
 // ---------- prompts ----------
+// EZD-1988: a builder's `pkill -f "scripts/check.mjs"` stopped other lanes' builders and checks three times.
+const NO_PATTERN_KILL = 'Other lanes run their own checks, servers and claude sessions on this Mac. Never stop processes by name or pattern (no pkill, killall, or pgrep/ps piped to kill): `pkill -f "scripts/check.mjs"` stops every other lane\'s check and builder. Stop only what you started: a background task through its own controls, or a process by the pid it gave you.';
 // The parallel-build rules a builder gets (Josh 2026-11-16: lanes never edit the same file).
 function lanesNote(t) {
   const claims = readClaims(ROOT);
@@ -357,6 +363,7 @@ function lanesNote(t) {
     '', 'Parallel builds: other tickets are being built at the same time in other folders, each on its own database lane (EZD_LANE is set for you; the scripts pick it up).',
     `Files reserved for you: ${mine.length ? mine.join(', ') : '(none predicted)'}.`,
     others.length ? `Files other tickets hold now (never edit these): ${others.map(([id, c]) => `${id}: ${(c.files || []).join(', ') || '(none)'}`).join('; ')}.` : 'No other ticket holds files right now, but one may start while you work.',
+    NO_PATTERN_KILL,
     'Before you edit or create ANY file that is not in your reserved list, run `node scripts/loop/claim.mjs <file> [<file> ...]` (paths from the repo root). Exit 0 means it is yours. If it prints NOT CLAIMED, do not edit that file: find a way that stays inside your files, or commit what works and end with the BLOCKED line it prints.',
     `Shared files (${[...sharedSet(ROOT)].join(', ')}): any lane may edit these. Keep your change to them small and additive (add your own lines; never reorder, reformat or rewrite what is there), so a parallel change merges cleanly.`,
   ].join('\n');
@@ -394,6 +401,9 @@ function builderPrompt(t, plan, reads) {
   ].join('\n');
 }
 function fixPrompt(kind, detail) {
+  return `${fixPromptBody(kind, detail)}\n\n${NO_PATTERN_KILL}`;
+}
+function fixPromptBody(kind, detail) {
   if (kind === 'merge') return `develop moved while you worked (another lane merged). \`git merge develop\` stopped on conflicts in this folder; the conflicted files are below. Resolve every conflict keeping both changes' intent (${TYPES_FILE} is not in the list: the loop regenerates it after the merge, so leave it as it is), commit the merge, rerun the full check (node scripts/check.mjs) until it passes, and commit. The claim rules from the start still hold.\n\n${detail.slice(0, 6000)}`;
   return kind === 'check'
     ? `The full check (node scripts/check.mjs) failed after your work. The failing lines are below; the full output is in check.log in this folder. Fix the cause (do not weaken tests), rerun the full check until it passes, and commit.\n\n${detail.slice(0, 9000)}`

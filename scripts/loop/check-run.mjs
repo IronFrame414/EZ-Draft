@@ -3,8 +3,16 @@
 // children (an e2e server, vitest) can keep its output pipes open, so after a kill the run ends on the process exit
 // instead of waiting for the pipes to close.
 import { spawn } from 'node:child_process';
+import { noteSignal } from './signal-log.mjs';
 
 export const KILL_GRACE_MS = 10000;
+
+// EZD-1988: each signal is recorded (scripts/loop/signal-log.mjs) before it is sent; an ended check is not signalled.
+function send(p, signal) {
+  if (p.exitCode !== null || p.signalCode !== null) return;
+  noteSignal({ by: 'loop check timer (scripts/loop/check-run.mjs)', target: p.pid, signal });
+  p.kill(signal);
+}
 
 // SIGTERM after ms, SIGKILL graceMs later if the child has not exited. Both timers stop when the child exits.
 export function killAfter(p, ms, graceMs = KILL_GRACE_MS) {
@@ -12,8 +20,8 @@ export function killAfter(p, ms, graceMs = KILL_GRACE_MS) {
   let fired = false;
   const term = setTimeout(() => {
     fired = true;
-    p.kill('SIGTERM');
-    kill = setTimeout(() => p.kill('SIGKILL'), graceMs);
+    send(p, 'SIGTERM');
+    kill = setTimeout(() => send(p, 'SIGKILL'), graceMs);
   }, ms);
   const stop = () => { clearTimeout(term); clearTimeout(kill); };
   p.once('exit', stop);

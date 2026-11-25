@@ -12,6 +12,7 @@ import path from 'node:path';
 import { release, slotsFrom, tryTake } from './loop/heavy-lock.mjs';
 import { waitForDocker } from './loop/docker-wait.mjs';
 import { freePort, listenerGroups, portConfig } from './loop/free-port.mjs';
+import { sendSignal, signalLogPath } from './loop/signal-log.mjs';
 
 const args = process.argv.slice(2);
 const fast = args.includes('--fast');
@@ -126,14 +127,18 @@ function dropHeavy() { release(heavyHeld); heavyHeld = null; }
 const KILL_GRACE_MS = 10000;
 const groups = new Set();
 const groupAlive = (g) => { try { process.kill(-g, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
+// EZD-1988: the reaper and the step-group stop record each signal in the shared signal record
+// (scripts/loop/signal-log.mjs) before sending it, so a CLAUDE DIED line can name them.
 const REAPER = `
-const [grace, ...groups] = process.argv.slice(1).map(Number);
+const { appendFileSync } = require('node:fs');
+const [file, grace, ...groups] = process.argv.slice(1).map((a, i) => (i === 0 ? a : Number(a)));
 const alive = (g) => { try { process.kill(-g, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
+const note = (g) => { try { appendFileSync(file, JSON.stringify({ ts: new Date().toISOString(), by: 'check SIGKILL reaper (scripts/check.mjs)', from: process.pid, target: -g, signal: 'SIGKILL' }) + '\\n'); } catch {} };
 const until = Date.now() + grace;
 const tick = setInterval(() => {
   const live = groups.filter(alive);
   if (!live.length) process.exit(0);
-  if (Date.now() >= until) { for (const g of live) { try { process.kill(-g, 'SIGKILL'); } catch {} } process.exit(0); }
+  if (Date.now() >= until) { for (const g of live) { note(g); try { process.kill(-g, 'SIGKILL'); } catch {} } process.exit(0); }
 }, 200);
 `;
 // EZD-1970: Playwright starts the e2e web server in its own process group, out of reach of the step-group kill, so once
@@ -147,9 +152,9 @@ function stopSteps() {
   if (e2eStarted) { try { for (const g of listenerGroups(webPort)) groups.add(g); } catch {} }
   const live = [...groups].filter(groupAlive);
   if (!live.length) return [];
-  for (const g of live) { try { process.kill(-g, 'SIGTERM'); } catch {} }
+  for (const g of live) sendSignal(-g, 'SIGTERM', 'check step-group stop (scripts/check.mjs)');
   try {
-    spawn(process.execPath, ['-e', REAPER, String(KILL_GRACE_MS), ...live.map(String)], { detached: true, stdio: 'ignore' }).unref();
+    spawn(process.execPath, ['-e', REAPER, signalLogPath(), String(KILL_GRACE_MS), ...live.map(String)], { detached: true, stdio: 'ignore' }).unref();
   } catch {}
   return live;
 }
