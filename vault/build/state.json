@@ -530,7 +530,8 @@
     "EZD-1983",
     "EZD-1985",
     "EZD-1986",
-    "EZD-514"
+    "EZD-514",
+    "EZD-1990"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2152,11 +2153,19 @@
       "ts": "2026-11-25T22:33:03Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1990",
+      "title": "\"Page not found\" page with the app header and a Back to Projects button",
+      "commit": "aae5cbf3",
+      "ts": "2026-11-25T23:34:32Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2409,17 +2418,17 @@
     }
   },
   "running": {
-    "EZD-1990": {
-      "lane": 2,
-      "title": "\"Page not found\" page with the app header and a Back to Projects button",
-      "started": "2026-11-25T21:07:20Z",
-      "develop": "c91fe1a8"
-    },
     "EZD-1991": {
       "lane": 3,
       "title": "Title block settings: \"Used on N sheets · Open Sheets\" line and \"Zoom to title block\" button",
       "started": "2026-11-25T22:33:09Z",
       "develop": "3144af74"
+    },
+    "EZD-1993": {
+      "lane": 1,
+      "title": "CI: the gate finishes well inside its 45-minute limit on the GitHub runner",
+      "started": "2026-11-25T23:00:12Z",
+      "develop": "8082de22"
     }
   },
   "advisories_checked_at": "2026-11-25T22:19:22Z",
