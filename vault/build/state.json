@@ -2082,7 +2082,8 @@
     "EZD-1939": 1,
     "EZD-1959": 1,
     "EZD-1980": 1,
-    "EZD-1988": 1
+    "EZD-1988": 1,
+    "EZD-1978": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2260,20 +2261,24 @@
     "EZD-1988": {
       "ts": "2026-11-25T10:34:53Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1978": {
+      "ts": "2026-11-25T10:45:24Z",
+      "reason": "develop kept moving: 3 merge rounds"
     }
   },
   "running": {
-    "EZD-1978": {
-      "lane": 1,
-      "title": "Projects page does not break on a phone",
-      "started": "2026-11-25T07:59:48Z",
-      "develop": "45ee03ef"
-    },
     "EZD-1989": {
       "lane": 2,
       "title": "Fix: plan thumbnail T-B1 times out opening the benchmark project on CI (EZD-224b on CI)",
       "started": "2026-11-25T10:13:52Z",
       "develop": "3920fd68"
+    },
+    "EZD-1988": {
+      "lane": 3,
+      "title": "Loop: find and stop what sends SIGTERM to builders in the same second",
+      "started": "2026-11-25T10:35:26Z",
+      "develop": "5331d28c"
     }
   },
   "advisories_checked_at": "2026-11-25T10:18:53Z",
