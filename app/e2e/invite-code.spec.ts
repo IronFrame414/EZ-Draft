@@ -220,6 +220,7 @@ test.describe('EZD-138 invite link and code', () => {
     await tid(page, 'sign-in-email').fill(member.email);
     const after = new Date();
     await tid(page, 'sign-in-submit').click();
+    await tid(page, 'sign-in-link-send').click();
     await tid(page, 'sign-in-code').waitFor({ state: 'visible' });
     const mail = await waitForAuthEmail(member.email, { after });
     const secrets = [

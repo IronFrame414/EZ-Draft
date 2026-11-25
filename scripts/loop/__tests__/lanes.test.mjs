@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { claimFiles, drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, withClaims } from '../lanes.mjs';
+import { claimFiles, drift, impliedFiles, overlaps, parseFootprint, placeholderCovers, readClaims, schedule, withClaims } from '../lanes.mjs';
 
 const T = (id) => ({ id });
 
@@ -29,10 +29,12 @@ test('the same file in two footprints is a clash', () => {
   assert.deepEqual(overlaps(['app/a.ts'], { B: { files: ['app/b.ts'] } }, 'A'), []);
 });
 
-test('two different new migrations clash: the migrations folder is held by one lane at a time', () => {
-  const o = overlaps(['supabase/migrations/20261116000000_a.sql'], { B: { files: ['supabase/migrations/<new>.sql'] } }, 'A');
-  assert.equal(o.length, 1);
-  assert.equal(o[0].holder, 'B');
+// EZD-1941 (audit W2): a ticket holds the single migration file it adds, not the folder.
+test('two different new migrations do not clash; the same migration file still does', () => {
+  assert.deepEqual(overlaps(['supabase/migrations/20261116000000_a.sql'], { B: { files: ['supabase/migrations/<new>.sql'] } }, 'A'), []);
+  assert.deepEqual(overlaps(['supabase/migrations/20261116000000_a.sql'], { B: { files: ['supabase/migrations/20261116000100_b.sql'] } }, 'A'), []);
+  assert.deepEqual(overlaps(['supabase/migrations/20261116000000_a.sql'], { B: { files: ['supabase/migrations/20261116000000_a.sql'] } }, 'A'),
+    [{ file: 'supabase/migrations/20261116000000_a.sql', holder: 'B' }]);
 });
 
 test('a ticket never clashes with its own claim', () => {
@@ -106,7 +108,37 @@ test('a file in the shared list may be held by two lanes; every other file still
   assert.deepEqual(r.waiting.map((w) => w.id), ['C']);
 });
 
-test('two not-yet-named new files in one folder do not clash; two new migrations still do', () => {
+test('two not-yet-named new files in one folder do not clash, new migrations included (EZD-1941)', () => {
   assert.deepEqual(overlaps(['app/src/server/db/<new>'], { B: { files: ['app/src/server/db/<new>'] } }, 'A'), []);
-  assert.equal(overlaps(['supabase/migrations/<new>.sql'], { B: { files: ['supabase/migrations/<new>.sql'] } }, 'A').length, 1);
+  assert.deepEqual(overlaps(['supabase/migrations/<new>.sql'], { B: { files: ['supabase/migrations/<new>.sql'] } }, 'A'), []);
+});
+
+// EZD-1942: a file the branch added in a folder its footprint named with a `<new>` placeholder is in its claim.
+test('a new file under a claimed <new> placeholder is not drift; an edited file there still is', () => {
+  const claims = { A: { files: ['app/e2e/<new>', 'app/src/lib/x/<new>', 'app/src/y/<new>.spec.ts'] }, B: { files: ['app/e2e/old.spec.ts'] } };
+  const changed = ['app/e2e/new-flow.spec.ts', 'app/e2e/old.spec.ts', 'app/src/lib/x/a.test.ts', 'app/src/lib/x/deep/b.test.ts', 'app/src/y/c.spec.ts', 'app/src/y/d.test.ts'];
+  const added = ['app/e2e/new-flow.spec.ts', 'app/src/lib/x/a.test.ts', 'app/src/lib/x/deep/b.test.ts', 'app/src/y/c.spec.ts', 'app/src/y/d.test.ts'];
+  const d = drift(changed, claims, 'A', undefined, added);
+  // old.spec.ts existed (not added); deep/ is a subfolder; d.test.ts does not end with the placeholder's `.spec.ts`.
+  assert.deepEqual(d.unclaimed, ['app/e2e/old.spec.ts', 'app/src/lib/x/deep/b.test.ts', 'app/src/y/d.test.ts']);
+  assert.deepEqual(d.clashes, [{ file: 'app/e2e/old.spec.ts', holder: 'B' }]);
+  // Without the added list (the old call), every file outside the exact names drifts.
+  assert.equal(drift(changed, claims, 'A').unclaimed.length, 6);
+});
+
+test('placeholderCovers matches the same folder and the suffix after <new>', () => {
+  assert.equal(placeholderCovers('app/e2e/<new>', 'app/e2e/a.spec.ts'), true);
+  assert.equal(placeholderCovers('app/e2e/<new>.spec.ts', 'app/e2e/a.spec.ts'), true);
+  assert.equal(placeholderCovers('app/e2e/<new>.spec.ts', 'app/e2e/a.test.ts'), false);
+  assert.equal(placeholderCovers('app/e2e/<new>', 'app/e2e/sub/a.spec.ts'), false);
+  assert.equal(placeholderCovers('app/e2e/<new>', 'app/e2eX/a.spec.ts'), false);
+  assert.equal(placeholderCovers('app/e2e/a.ts', 'app/e2e/a.ts'), false);
+});
+
+test('a new file under a <new> placeholder is still a clash when another lane named the same new path', () => {
+  const claims = { A: { files: ['app/e2e/<new>'] }, B: { files: ['app/e2e/foo.spec.ts'] } };
+  const d = drift(['app/e2e/foo.spec.ts', 'app/e2e/bar.spec.ts'], claims, 'A', undefined, ['app/e2e/foo.spec.ts', 'app/e2e/bar.spec.ts']);
+  assert.deepEqual(d.unclaimed, []);
+  assert.deepEqual(d.placed, ['app/e2e/foo.spec.ts', 'app/e2e/bar.spec.ts']);
+  assert.deepEqual(d.clashes, [{ file: 'app/e2e/foo.spec.ts', holder: 'B' }]);
 });

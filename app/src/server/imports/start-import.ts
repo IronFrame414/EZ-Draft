@@ -6,6 +6,7 @@
 // Show 3D mesh for this import (S02 Show 3D mesh "Only when a GLB was uploaded").
 // EZD-306: dxfIds are the other DXF drawings (kind dxf) among them, the ones a conversion choice applies to.
 // EZD-305: pdfIds are the PDF drawings (kind pdf) among them, the ones the import job reads for walls.
+// EZD-915: supplierPdfIds are the supplier PDFs (kind supplier_pdf) among them, read for walls and cabinets.
 import type { DbClient } from '../storage';
 import { readSourceFileRefs } from '../storage/source-files';
 
@@ -17,6 +18,7 @@ export type StartImportResult =
       meshIds?: string[];
       dxfIds?: string[];
       pdfIds?: string[];
+      supplierPdfIds?: string[];
     }
   | { ok: false; code: 'project_not_found' | 'source_file_not_found' | 'upload_missing' };
 
@@ -37,6 +39,7 @@ export async function checkImportFiles(
   const meshIds: string[] = [];
   const dxfIds: string[] = [];
   const pdfIds: string[] = [];
+  const supplierPdfIds: string[] = [];
   for (const id of sourceFileIds) {
     const ref = refs.get(id.toLowerCase());
     if (ref === undefined || ref.projectId !== projectId) {
@@ -47,6 +50,7 @@ export async function checkImportFiles(
     if (ref.kind === 'polycam_glb') meshIds.push(id);
     if (ref.kind === 'dxf') dxfIds.push(id);
     if (ref.kind === 'pdf') pdfIds.push(id);
+    if (ref.kind === 'supplier_pdf') supplierPdfIds.push(id);
   }
   return {
     ok: true,
@@ -55,5 +59,6 @@ export async function checkImportFiles(
     meshIds,
     ...(dxfIds.length > 0 ? { dxfIds } : {}),
     ...(pdfIds.length > 0 ? { pdfIds } : {}),
+    ...(supplierPdfIds.length > 0 ? { supplierPdfIds } : {}),
   };
 }

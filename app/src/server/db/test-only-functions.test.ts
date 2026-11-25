@@ -163,6 +163,8 @@ describe('EZD-323 test-only database functions', () => {
     ];
     await withRollback(sql, async (tx) => {
       await make(tx as unknown as Sql, 'public.ezd323_test_probe');
+      // EZD-1932: a new public function is closed by default, so the probe is opened by hand.
+      await tx.unsafe('grant execute on function public.ezd323_test_probe() to anon, authenticated');
       expect(codes(await auditRls(tx, { repoRoot }), 'public.ezd323_test_probe()')).toEqual(THREE);
       await tx.unsafe(
         'revoke all on function public.ezd323_test_probe() from public, anon, authenticated',
@@ -185,6 +187,7 @@ describe('EZD-323 test-only database functions', () => {
     });
     await withRollback(sql, async (tx) => {
       await make(tx as unknown as Sql, 'public."EZD323_Test_Probe"');
+      await tx.unsafe('grant execute on function public."EZD323_Test_Probe"() to anon, authenticated');
       expect(codes(await auditRls(tx, { repoRoot }), 'public."EZD323_Test_Probe"()')).toEqual(
         THREE,
       );
@@ -214,17 +217,27 @@ describe('EZD-323 test-only database functions', () => {
       'app/src/app/api/dev/notifications/route.ts',
       // EZD-370: the sweep's AI key rewrap (ai-key-rewrap.ts line 26, called from api/jobs/sweep/route.ts line 35) reads every tenant's user_ai_key rows, granted to service_role only (EZD-5601; Q-0638).
       'app/src/server/jobs/ai-key-rewrap.ts',
+      // EZD-606: the panel label and directory reads read the panel_photo from the sources bucket inside the job (S06 Existing panel).
+      'app/src/server/jobs/ai-purposes/panel-read.ts',
+      // EZD-711: the property appraiser screenshot read stores and reads its image in the jobs bucket (no member policy; S01 "Paste screenshot").
+      'app/src/server/jobs/ai-purposes/property-appraiser-screenshot.ts',
       'app/src/server/jobs/db.ts',
       'app/src/server/jobs/default-hooks.ts',
+      // EZD-1408: the field task draft job reads the project's rooms and the company's templates and writes draft field_task rows (no member write policy on field_task; S22).
+      'app/src/server/jobs/handlers/field-task-draft.ts',
       // EZD-302: the import job reads the project's source files and writes import_session rows (service_role writes only).
       'app/src/server/jobs/handlers/import.ts',
       'app/src/server/jobs/handlers/notification-email.ts',
       // EZD-124: the project purge lists a deleted project's files (list_project_purge_files, service_role only) and removes them, sent files included (Q-0700 decisions 03).
       'app/src/server/jobs/handlers/project-purge.ts',
+      // EZD-901a: the reference conversion reads the project's DXF from the sources bucket, writes its layer buffers to the jobs bucket and writes reference_drawing rows (no member write policy; S11).
+      'app/src/server/jobs/handlers/reference-convert.ts',
       'app/src/server/jobs/queue.ts',
       'app/src/server/jobs/runner.ts',
       // EZD-125: the sweep's edit lock pass (called from api/jobs/sweep/route.ts) runs sweep_edit_locks, granted to service_role only (Q-0697 decisions 03).
       'app/src/server/lock/sweep.ts',
+      // EZD-1201: the sweep's share link reminder pass (called from api/jobs/sweep/route.ts) runs sweep_share_link_reminders, granted to service_role only (07 share_link.expiring).
+      'app/src/server/share-links/sweep.ts',
     ]);
   });
 });

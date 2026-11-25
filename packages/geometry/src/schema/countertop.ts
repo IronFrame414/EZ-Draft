@@ -5,7 +5,13 @@
 // outline[(i + 1) % n], so 03c's piece_id and segment are the piece and the edge's place in the list. Lengths are
 // decimal inches and are never rounded (03g).
 import { z } from 'zod';
-import { levelSchema, objectStatusSchema, polygonSchema } from './common';
+import {
+  levelSchema,
+  objectStatusSchema,
+  pointSchema,
+  polygonSchema,
+  unitVectorSchema,
+} from './common';
 
 // A piece is a handful of sides; the cap keeps one stored object bounded (as group.ts).
 export const COUNTERTOP_OUTLINE_MAX = 200;
@@ -19,6 +25,13 @@ export type CountertopEdgeKind = (typeof COUNTERTOP_EDGE_KINDS)[number];
 // Pieces are lettered A, B, C ... (03c "label (A/B…)"); past Z the letters double (AA, AB ...).
 export const COUNTERTOP_LABEL_PATTERN = /^[A-Z]{1,2}$/;
 
+// EZD-413 (S04b "Seam ... seam drawn red dashed", footer "pieces, seams"; vault/build/assumptions.md EZD-413): an
+// edge made by a seam carries the seam's id; both pieces either side of the seam hold the same id, so a seam counts
+// and draws once. A seam edge is a joint: kind wall, no overhang, no splash, no profile.
+export const COUNTERTOP_CUTOUT_KINDS = ['sink', 'cooktop'] as const;
+export type CountertopCutoutKind = (typeof COUNTERTOP_CUTOUT_KINDS)[number];
+export const COUNTERTOP_CUTOUTS_MAX = 20;
+
 // `overhang` is how far the edge stands past the cabinet face below it (0 for flush and wall edges);
 // `backsplashHeight` is set only on a wall edge (null there means no splash); `profileId` is the edge profile
 // picked from the library, never on a wall edge.
@@ -28,10 +41,42 @@ export const countertopEdgeSchema = z
     overhang: z.number().min(0).finite(),
     backsplashHeight: z.number().min(0).finite().nullable(),
     profileId: z.uuid().nullable(),
+    seamId: z.uuid().optional(),
   })
   .refine((e) => e.kind === 'wall' || e.backsplashHeight === null)
-  .refine((e) => e.kind !== 'wall' || e.profileId === null);
+  .refine((e) => e.kind !== 'wall' || e.profileId === null)
+  .refine((e) => e.seamId === undefined || (e.kind === 'wall' && e.backsplashHeight === null));
 export type CountertopEdge = z.infer<typeof countertopEdgeSchema>;
+
+// EZD-413 (03f "Countertop pieces, seams, cutouts (sink, cooktop)"; S04b "Cutout | Place a sink or cooktop cutout";
+// vault/build/assumptions.md EZD-413): a rectangular hole in the top. `center` is its middle; `axis` the unit
+// direction its width runs along, its depth square to it. `fixtureId` is the sink or cooktop it was placed over
+// (null when placed on a bare top); EZD-1602 reads that fixture's catalog cutout size.
+export const countertopCutoutSchema = z.strictObject({
+  id: z.uuid(),
+  kind: z.enum(COUNTERTOP_CUTOUT_KINDS),
+  center: pointSchema,
+  axis: unitVectorSchema,
+  width: z.number().positive().finite(),
+  depth: z.number().positive().finite(),
+  fixtureId: z.uuid().nullable(),
+});
+export type CountertopCutout = z.infer<typeof countertopCutoutSchema>;
+
+// EZD-416 (S04b Material tab "behind-range splash"; vault/build/assumptions.md EZD-416).
+export const COUNTERTOP_BEHIND_RANGE = ['splash', 'full_height'] as const;
+export type CountertopBehindRange = (typeof COUNTERTOP_BEHIND_RANGE)[number];
+
+// EZD-415: the deepest seating overhang past the company limit, the steel brackets it needs and the spacing they
+// were counted at (both null while Defaults → Countertops Bracket spacing is Not set).
+export const countertopSupportSchema = z
+  .strictObject({
+    overhang: z.number().positive().finite(),
+    brackets: z.number().int().positive().max(10000).nullable(),
+    spacing: z.number().positive().finite().nullable(),
+  })
+  .refine((s) => (s.brackets === null) === (s.spacing === null));
+export type CountertopSupportData = z.infer<typeof countertopSupportSchema>;
 
 export const countertopPieceDataSchema = z
   .strictObject({
@@ -46,6 +91,15 @@ export const countertopPieceDataSchema = z
       materialItemId: z.uuid().nullable(),
       thickness: z.number().positive().finite(),
       edges: z.array(countertopEdgeSchema).max(COUNTERTOP_OUTLINE_MAX),
+      // EZD-413: absent on pieces saved before cutouts existed; read as none.
+      cutouts: z.array(countertopCutoutSchema).max(COUNTERTOP_CUTOUTS_MAX).optional(),
+      // EZD-416 (S04b "Behind range row | Edit behind-range splash"): the splash behind the range, the backsplash
+      // height or full height. Absent on pieces saved before it; read as the backsplash height.
+      behindRange: z.enum(COUNTERTOP_BEHIND_RANGE).optional(),
+      // EZD-415 (S04b Support notice; phase-04 EZD-415 "stores a support requirement on the piece"): the seating
+      // support the top needs, written with each overhang change (countertops/support.ts). Absent or null = none.
+      // EZD-814 makes the detail and its brackets from it.
+      support: countertopSupportSchema.nullable().optional(),
     }),
   })
   .refine((d) => d.attributes.edges.length === d.geometry.outline.length)

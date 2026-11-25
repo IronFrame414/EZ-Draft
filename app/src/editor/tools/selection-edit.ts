@@ -29,6 +29,7 @@ import type { MessageKey } from '../../server/messages/catalog';
 import type { TypedValues } from '../typed-entry/typed-entry';
 // EZD-423: entryTool moved to entry-tool.ts (the editor entry reads it) and is re-exported here.
 import { entryTool } from './entry-tool';
+import { idKey } from '../shared/ids';
 
 export { entryTool };
 
@@ -90,13 +91,11 @@ export type SelectionFrame = {
   size: { at: Point; normal: Point; text: string } | null;
 };
 
-const lower = (id: string) => id.toLowerCase();
-
 const findWall = (objects: readonly ModelObject[], id: string): WallObject | null =>
-  objects.find((o): o is WallObject => o.type === 'wall' && lower(o.id) === lower(id)) ?? null;
+  objects.find((o): o is WallObject => o.type === 'wall' && idKey(o.id) === idKey(id)) ?? null;
 
 const findOpening = (objects: readonly ModelObject[], id: string): OpeningObject | null =>
-  objects.find((o): o is OpeningObject => o.type === 'opening' && lower(o.id) === lower(id)) ??
+  objects.find((o): o is OpeningObject => o.type === 'opening' && idKey(o.id) === idKey(id)) ??
   null;
 
 const mid = (a: Point, b: Point): Point => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });

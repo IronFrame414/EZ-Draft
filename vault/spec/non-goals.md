@@ -18,6 +18,7 @@ Updated from Q-0220 and Q-0236 (Josh 2026-10-20; D5 (a), Josh 2026-11-01). In v1
 - SMS notifications (v2).
 - Tile cut list (v2).
 - Commercial load calculation and service design (v2; Q-0767 moved it back out of v1).
+- Mechanical calculations, including the Manual J load calculation, Manual S equipment sizing and its report (v2; Q-0780 overrides Q-0778). v1 draws the mechanical layout, duct runs and the equipment schedule only.
 - Point-in-time recovery backups (v2).
 - Out of scope entirely (not planned for any version): new construction, commercial TI, point clouds, structural calculations, pricing engine, scheduling, payments, and client billing in any form (Q-0236).
 

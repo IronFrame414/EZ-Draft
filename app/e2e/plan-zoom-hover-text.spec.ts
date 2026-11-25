@@ -393,7 +393,7 @@ test.describe('EZD-207b plan canvas', () => {
     await expect(stack(page)).toBeVisible();
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     // EZD-601: plus Electrical, on every viewer's rail. EZD-412: and Countertops.
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(6);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(7); // EZD-222: plus Help
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail-tool]').first(),
     ).toHaveAttribute('data-rail-tool', 'select');

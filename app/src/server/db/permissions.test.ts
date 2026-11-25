@@ -455,10 +455,16 @@ describe('EZD-101 permission and role tables', () => {
     expect(set.error).toBeNull();
     const foreman = await insertMembership(foremanUser.appUserId);
     expect(foreman.role_id).toBe(await presetRoleId(tenantId, 'foreman'));
-    expect(await grantedKeys(foreman.id)).toHaveLength(11);
+    // EZD-1938 (AC-EZD-1938-1): the counts come from the catalog and the Foreman preset, so a new key needs no
+    // edit here: one row per catalog key, granted for the preset's keys. 11 and 37 check the derivation today.
+    const foremanGranted = PRESETS.foreman.length;
+    const foremanRowCount = PERMISSION_KEYS.length;
+    expect(foremanGranted).toBe(11);
+    expect(foremanRowCount).toBe(37);
+    expect(await grantedKeys(foreman.id)).toHaveLength(foremanGranted);
     const foremanRows =
       await sql`select 1 from public.user_permission where membership_id = ${foreman.id}::uuid`;
-    expect(foremanRows).toHaveLength(37);
+    expect(foremanRows).toHaveLength(foremanRowCount);
 
     // No preset on the person.
     const nobody = await createAppUser();

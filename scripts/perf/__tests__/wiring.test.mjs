@@ -1,5 +1,5 @@
 // EZD-017 T12 (vault/plans/EZD-017.md section 4; W1, W2, D1; EZD-000 T5; C1). Reads repo files; runs the
-// conventions check; reads scripts/gate.mjs without changing it.
+// conventions check; reads scripts/check.mjs (the gate) without changing it.
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { globSync, readFileSync } from 'node:fs';
@@ -97,11 +97,11 @@ describe('EZD-017 wiring', () => {
     });
     assert.equal(c.status, 0, c.stdout + c.stderr);
 
-    const gate = read('scripts', 'gate.mjs');
-    const m = gate.match(/const checks = \[([^\]]*)\]/);
-    assert.ok(m, 'gate.mjs checks list found');
-    const checks = [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]);
-    assert.ok(checks.includes('perf'), 'gate checks contain perf');
+    const gate = read('scripts', 'check.mjs');
+    const m = gate.match(/const LIVE_SCRIPT_DIRS = \[([^\]]*)\]/);
+    assert.ok(m, 'check.mjs LIVE_SCRIPT_DIRS found');
+    const dirs = [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]);
+    assert.ok(dirs.includes('perf'), 'the gate runs the perf script tests');
   });
 });
 

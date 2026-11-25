@@ -28,7 +28,7 @@
 /* Same as app/src/app/home.module.css .message. */
 .notice {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--ez-text-15);
   line-height: 1.45;
   color: var(--ez-ink);
 }
@@ -52,4 +52,31 @@
   color: var(--ez-cobalt-link);
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* EZD-1001a (S07 Layout "footer 'Model synced with plan'"; States "Model out of sync"): the 3D sync line, in the
+   mockup's small slate text, at the canvas region's bottom left until the 3D left panel (EZD-1005, EZD-1006) holds
+   it; never catches the pointer. */
+.sync3d {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  margin: 0;
+  padding: 6px 10px;
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-7);
+  pointer-events: none;
+}
+
+/* EZD-702a: on the Sheets tab the plan canvas stays mounted (its WebGL context is kept) but is not shown. */
+.backdropLayer {
+  position: absolute;
+  inset: 0;
+}
+
+.backdropHidden {
+  visibility: hidden;
 }

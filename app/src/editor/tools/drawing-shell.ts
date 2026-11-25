@@ -22,6 +22,7 @@ import { isTypingTarget } from '../typed-entry/typed-entry';
 import { gapBoxes } from './gap';
 import { toolForKey } from './rail-mode';
 import { VIEW_TOOL_IDS, type DrawingToolId } from './tool-defs';
+import { createListeners } from '../shared/value-store';
 
 export type DrawingEngine = { createDrawingController(deps: DrawingDeps): DrawingController };
 
@@ -77,13 +78,15 @@ export function createDrawingShell(deps: DrawingDeps, opts: ShellOptions): Drawi
   let holding = false;
   let engineReceiver: PlanPointerReceiver | null = null;
 
-  const uiListeners = new Set<() => void>();
-  const frameListeners = new Set<(frame: DrawingFrame | null) => void>();
+  const uiListeners = createListeners();
+  const frameListeners = createListeners<[DrawingFrame | null]>();
   let offEngine: Array<() => void> = [];
 
   const boxesOf = (objects: Objects) => {
     const level = floorOf(objects);
-    return level === null ? [] : gapBoxes(objects, level, { canEdit: canEdit(), drawingWallIds: [] });
+    return level === null
+      ? []
+      : gapBoxes(objects, level, { canEdit: canEdit(), drawingWallIds: [] });
   };
 
   // The ui given out: the shell's own before the engine loads, then the engine's whenever its values change.
@@ -102,7 +105,7 @@ export function createDrawingShell(deps: DrawingDeps, opts: ShellOptions): Drawi
   };
 
   const notify = () => {
-    for (const l of [...uiListeners]) l();
+    uiListeners.notify();
   };
 
   // Reads the engine's ui; true when it differs from the one given out.
@@ -177,11 +180,11 @@ export function createDrawingShell(deps: DrawingDeps, opts: ShellOptions): Drawi
       e.subscribe(() => {
         if (follow()) notify();
       }),
-      e.onFrame((f) => frameListeners.forEach((l) => l(f))),
+      e.onFrame((f) => frameListeners.notify(f)),
     ];
     if (follow()) notify();
     const f = e.getFrame();
-    if (f !== null) frameListeners.forEach((l) => l(f));
+    if (f !== null) frameListeners.notify(f);
   }
 
   function start(): void {
@@ -196,7 +199,8 @@ export function createDrawingShell(deps: DrawingDeps, opts: ShellOptions): Drawi
       () => {
         // A failed load is tried again on the next call or input (lazyModule clears it).
         loading = false;
-        if (!disposed) for (const name of FIRST_INPUT) opts.inputs?.addEventListener(name, start, true);
+        if (!disposed)
+          for (const name of FIRST_INPUT) opts.inputs?.addEventListener(name, start, true);
       },
     );
   }
@@ -234,14 +238,12 @@ export function createDrawingShell(deps: DrawingDeps, opts: ShellOptions): Drawi
     },
     subscribe(listener) {
       if (disposed) return () => {};
-      uiListeners.add(listener);
-      return () => void uiListeners.delete(listener);
+      return uiListeners.add(listener);
     },
     getFrame: () => engine?.getFrame() ?? null,
     onFrame(listener) {
       if (disposed) return () => {};
-      frameListeners.add(listener);
-      return () => void frameListeners.delete(listener);
+      return frameListeners.add(listener);
     },
     selectTool(id) {
       if (disposed) return;
@@ -254,7 +256,7 @@ export function createDrawingShell(deps: DrawingDeps, opts: ShellOptions): Drawi
     keyDown(event) {
       if (disposed) return false;
       if (engine !== null) return engine.keyDown(event);
-      const tool = toolForKey(event, canEdit());
+      const tool = toolForKey(event, canEdit(), deps.keys?.());
       const plain = !event.defaultPrevented && !isTypingTarget(event.target);
       // With a tool on, Esc and Enter are the tool's (the engine reads them when it loads).
       const toolKey =

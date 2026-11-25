@@ -2,6 +2,7 @@
 // EZD-000 · Conventions check C1–C8 (vault/plans/EZD-000.md, Step 3; docs/architecture.md, Machine checks).
 // EZD-001 · C9 test files carry a ticket ID (vault/plans/EZD-001.md, Step 6.1; Q-0006).
 // EZD-010a · C10 colors only in app/src/styles/tokens.css (vault/plans/EZD-010a.md, Step 3).
+// EZD-1954 · C11 font sizes only through --ez-text-* tokens in CSS modules (audit 2026-11-23 U5; AC-EZD-1954-3).
 // Plain Node 22, no dependencies. Usage: node scripts/conventions/check.mjs [rootDir]
 // Prints one line per violation, `[Cn] <repo-relative path>: <problem>`, and exits 1 if any; else prints a pass line and exits 0.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
@@ -432,6 +433,33 @@ function checkC10() {
   }
 }
 
+// ---------- C11 Font sizes only through the type scale (EZD-1954; audit 2026-11-23 U5) ----------
+
+// Every *.module.css under app/src/: a font-size or font shorthand declaration never writes an absolute length
+// (px, rem, pt, pc, cm, mm, in, q). Sizes come from var(--ez-text-*) in app/src/styles/tokens.css. Relative sizes
+// (em, %, keywords such as inherit) scale from a token and pass. Comments are stripped.
+const C11_ABS = /(?:^|[\s/(,])-?(?:\d+\.?\d*|\.\d+)(?:px|rem|pt|pc|cm|mm|in|q)(?![\w-])/i;
+
+function checkC11() {
+  for (const file of walk('app/src')) {
+    if (!file.endsWith('.module.css')) continue;
+    const text = readFileSync(abs(file), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const re = /([^{};]*)([{};])/g;
+    let m;
+    while ((m = re.exec(text))) {
+      if (m[2] === '{') continue;
+      const colon = m[1].indexOf(':');
+      if (colon < 0) continue;
+      const prop = m[1].slice(0, colon).trim().toLowerCase();
+      if (prop !== 'font-size' && prop !== 'font') continue;
+      const value = m[1].slice(colon + 1).replace(/var\([^)]*\)/g, ' ');
+      if (C11_ABS.test(value)) {
+        fail('C11', file, `literal font size in "${m[1].trim().replace(/\s+/g, ' ')}"; use var(--ez-text-*) from app/src/styles/tokens.css`);
+      }
+    }
+  }
+}
+
 // ---------- run ----------
 
 checkC1();
@@ -444,10 +472,11 @@ checkC7();
 checkC8();
 checkC9();
 checkC10();
+checkC11();
 
 if (problems.length) {
   for (const line of problems) console.log(line);
   console.log(`conventions check: ${problems.length} violation${problems.length === 1 ? '' : 's'} (see docs/architecture.md, Machine checks)`);
   process.exit(1);
 }
-console.log(`conventions check: C1–C10 pass (${rel(root) || '.'})`);
+console.log(`conventions check: C1–C11 pass (${rel(root) || '.'})`);

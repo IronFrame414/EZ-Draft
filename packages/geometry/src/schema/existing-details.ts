@@ -7,6 +7,12 @@
 // - access: attic hatch (EZD-507 adds access panel), a rectangle like a fixture.
 // - soffit: a polygon; `dropHeight` is measured down from the room's ceiling height.
 // - chase: a polygon.
+// EZD-507 (S05 Controls "Recessed light", "Ceiling fan", "Smoke or CO detector", "Speaker or low voltage", "Access
+// panel", "Fixture type tag edit"; 03f:13 "lights (type tag), fans, detectors, low voltage (... speakers, cameras,
+// Wi-Fi APs)"; Q-0704 03-data-model row 2 "EZD-507 adds access_panel"): the ceiling devices join `device` as kinds,
+// with the optional fixture type fields (type tag, lumens, color temperature, trim, catalog item); the access panel
+// joins `access`. Added enum values and optional fields only, so every stored object stays valid and the version
+// stays.
 import { z } from 'zod';
 import {
   levelSchema,
@@ -33,7 +39,37 @@ export const hvacDataSchema = z.strictObject({
 });
 export type HvacData = z.infer<typeof hvacDataSchema>;
 
-export const DEVICE_KINDS = ['smoke_detector', 'co_detector', 'smoke_co_detector'] as const;
+export const DEVICE_KINDS = [
+  'smoke_detector',
+  'co_detector',
+  'smoke_co_detector',
+  'recessed_light',
+  'ceiling_fan',
+  'speaker',
+  'camera',
+  'wifi_ap',
+  // EZD-602 (S06 Controls "Device toolbar: Receptacle ... type (duplex, 240V)", "Switch: Places single, 3-way, dimmer
+  // switches", "Low voltage: Places data, TV, doorbell, speakers"; 03f:13; vault/build/assumptions.md EZD-602): the
+  // wall devices of the electrical plan, one kind per toolbar choice as EZD-507 split the detectors. Added enum
+  // values only, so every stored object stays valid and the version stays.
+  'receptacle_duplex',
+  'receptacle_240v',
+  'switch_single',
+  'switch_3way',
+  'switch_dimmer',
+  'data',
+  'tv',
+  'doorbell',
+] as const;
+export type DeviceKind = (typeof DEVICE_KINDS)[number];
+// EZD-507: the kinds that carry a fixture type (S05 "Fixture type tag edit ... on a light"; board S05Ceiling fixture
+// schedule "A 4" can", "F Fan 52""; vault/build/assumptions.md EZD-507).
+export const FIXTURE_TYPE_DEVICE_KINDS = [
+  'recessed_light',
+  'ceiling_fan',
+] as const satisfies readonly DeviceKind[];
+/** EZD-515: a fan with no blade span set reads as 52" (board S05Ceiling "F Fan 52""). */
+export const DEFAULT_FAN_BLADE_SPAN_IN = 52;
 export const deviceDataSchema = z.strictObject({
   geometry: z.strictObject({ point: pointSchema }),
   status: objectStatusSchema,
@@ -45,11 +81,34 @@ export const deviceDataSchema = z.strictObject({
     kind: z.enum(DEVICE_KINDS),
     circuit: z.uuid().nullable().optional(),
     protection: circuitProtectionSchema.nullable().optional(),
+    // EZD-507: the fixture type; absent reads as not set. Color temperature is in kelvin.
+    typeTag: z.string().trim().min(1).nullable().optional(),
+    lumens: z.number().int().positive().nullable().optional(),
+    colorTemp: z.number().int().positive().nullable().optional(),
+    trim: z.string().trim().min(1).nullable().optional(),
+    catalogItemId: z.uuid().nullable().optional(),
+    // EZD-515 (S05 Validation "Ceiling fan blade clearance"; vault/build/assumptions.md EZD-515): a fan's blade span,
+    // tip to tip, in inches; absent reads as DEFAULT_FAN_BLADE_SPAN_IN. Optional, so the version stays.
+    bladeSpan: z.number().positive().nullable().optional(),
+    // EZD-603 (S06 Controls "Device height note toggle ... Shows a height note (e.g. "MW +66"") on the plan for that
+    // device. | Off by default."; R24 #36; 03f:13 "receptacles (GFCI/AFCI, height, circuit)"; vault/build/assumptions.md
+    // EZD-603): the per-device note toggle (absent reads as off), the note's optional label ("MW") and the device's
+    // height above the floor in inches (to its center). All optional, so every stored device stays valid and the
+    // version stays.
+    heightNote: z.boolean().optional(),
+    heightLabel: z.string().trim().min(1).max(16).nullable().optional(),
+    height: z.number().positive().nullable().optional(),
+    // EZD-605 (S06 Controls "Device toolbar: Switch leg | Draw a switch leg from switch to fixtures (dashed)"; S05
+    // Controls "Switching zones ... Zones sync to switch legs on the electrical plan"; vault/build/assumptions.md
+    // EZD-605): on a switch, the switching zone it controls. Its switch leg runs to the lights inside that zone, worked
+    // out from the outline, so a zone edit is a leg edit. Absent or null: no leg. Optional, so the version stays.
+    zone: z.uuid().nullable().optional(),
   }),
 });
 export type DeviceData = z.infer<typeof deviceDataSchema>;
 
-export const ACCESS_KINDS = ['attic_hatch'] as const;
+export const ACCESS_KINDS = ['attic_hatch', 'access_panel'] as const;
+export type AccessKind = (typeof ACCESS_KINDS)[number];
 export const accessDataSchema = z.strictObject({
   geometry: rectGeometry,
   status: objectStatusSchema,
@@ -77,3 +136,15 @@ export const chaseDataSchema = z.strictObject({
   attributes: z.strictObject({}),
 });
 export type ChaseData = z.infer<typeof chaseDataSchema>;
+
+// EZD-510 (S05 Controls "Switching zones | Left panel, Lighting | Draws switching zones and dimmers on the RCP (dashed
+// accent lines)"; S05 Data shown "Switching zones and dimmers"; vault/build/assumptions.md EZD-510 "Zone data"): a
+// switching zone is a closed outline drawn by clicks on one room's ceiling, with a dimmer or not. The lights inside it
+// are worked out from the outline, never stored (EZD-605 syncs them to switch legs). A new type, so the version stays.
+export const switchZoneDataSchema = z.strictObject({
+  geometry: z.strictObject({ roomId: z.uuid(), boundary: polygonSchema }),
+  status: objectStatusSchema,
+  level: levelSchema,
+  attributes: z.strictObject({ dimmer: z.boolean() }),
+});
+export type SwitchZoneData = z.infer<typeof switchZoneDataSchema>;

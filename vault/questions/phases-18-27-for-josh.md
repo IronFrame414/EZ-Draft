@@ -54,7 +54,7 @@ One piece is held for agent work, not for you: the optional load calc method (EZ
 - (a) As above (recommended)
 - (b) As above, but you tell me what to change (for example, add an isometric view, or fill in the change-out forms)
 
-**Josh's answer (2026-11-18):** "why cant manual j be automated within ez draft?. plumbing and electric often need 2 pages or more. E-1 would be the layout with devices and symbols. E-2 if a second floor or location or detail is needed. then panel schedule and load calc. same goes for mechanical and plumbing". Recorded as Q-0763: each trade runs to as many sheets as it needs (E1.0 layout, E2.0 for a second floor, location or detail, then the panel schedule and load calc; plumbing and mechanical the same). The rest of (a) stands, since the reply did not change it, and you review it at the phase check. EZD-730 and EZD-731 are released. **Still open: Manual J in EZ Draft** (answered in chat 2026-11-18); EZD-732 waits on it.
+**Josh's answer (2026-11-18):** "why cant manual j be automated within ez draft?. plumbing and electric often need 2 pages or more. E-1 would be the layout with devices and symbols. E-2 if a second floor or location or detail is needed. then panel schedule and load calc. same goes for mechanical and plumbing". Recorded as Q-0763: each trade runs to as many sheets as it needs (E1.0 layout, E2.0 for a second floor, location or detail, then the panel schedule and load calc; plumbing and mechanical the same). The rest of (a) stands, since the reply did not change it, and you review it at the phase check. EZD-730 and EZD-731 are released. **Manual J follow-up, Josh (2026-11-20): "my local building departments accept it so this should be built and incorporated in v1".** Recorded as Q-0778. EZD-732 is released (it reads a typed Manual J load for now). New tickets EZD-740 (inputs), EZD-741 (calculation) and EZD-742 (report on the mechanical sheets) wait until the method and a worked example are written into the spec from a cited source. **Replaced 2026-11-20 by Q-0780:** mechanical calculations move to v2, so EZD-732 and EZD-740 to EZD-742 are retired.
 
 ---
 
@@ -157,7 +157,7 @@ One piece is held for agent work, not for you: the optional load calc method (EZ
 - (a) Leave them out of v1 and list them as not checked (recommended)
 - (b) Tell me which to add (stairs first?). Each becomes a new drawing piece, and its rules wait for it.
 
-**Josh's reply (2026-11-18): "why cant they be drawn?"** Answered in chat 2026-11-18. Still open; holds nothing. Until Josh picks, the rules are listed as not checked.
+**Josh's reply (2026-11-18): "why cant they be drawn?"** Answered in chat 2026-11-18. Still open; holds nothing. Until Josh picks, the rules are listed as not checked. 2026-11-20: Josh asked for one question per item; that list, with this question's items, is question 8 of vault/questions/phases-38-47-for-josh.md. **Answered 2026-11-20: "yes to everything".** Recorded as Q-0789: new phase 57 adds every one of these objects and turns their rules on.
 
 ---
 
@@ -176,3 +176,26 @@ These pieces have a written description in the spec but no drawing. Your answer 
 - (b) Make drawings first for the ones you list. Those tickets would wait for the drawings.
 
 **Josh's answer (2026-11-18): (a), "yes".** Recorded as Q-0769.
+
+---
+
+## Added 2026-11-20: reflected ceiling plan sheet is optional
+
+**Josh (2026-11-20): "this isn't always needed but should be one of the check boxes to add".** Recorded as Q-0779. A fourth tick box, "Reflected ceiling plan", sits with Electrical, Plumbing and Mechanical. Ticked, the A6.0 sheet is in the set; unticked, it is left out, and drawn ceiling work then gets a Check warning. It starts unticked; that default and the wording are listed in `vault/build/assumptions.md` for you to confirm. Tickets: EZD-739 (new), EZD-701, EZD-708a, EZD-641.
+
+---
+
+## 10. Manual J: get the ACCA book, and check what your department accepts (added 2026-11-20)
+
+**What it is:** to build Manual J into EZ Draft (your answer of 2026-11-20), the agents need ACCA's procedure, its tables and a worked example with known answers. A search of ACCA, DOE, FSEC, RESNET and ENERGY STAR found no free source that has all three. They are only in the ACCA book: Manual J, 8th edition (ANSI/ACCA 2-2016). ACCA's site also says "Only ACCA-approved software complies with our design standards and meets building code requirements", and the code allows "other approved" methods only with the building official's approval.
+
+**Why you're being asked:** buying the book and asking your building department are things only you can do.
+
+**What waits on it:** only the three Manual J tickets (EZD-740 inputs, EZD-741 calculation, EZD-742 report). The equipment-size check (EZD-732) builds now, using a Manual J load typed from a report.
+
+**My recommendation: (a), but ask your department first.** Ask whether they accept a Manual J report from EZ Draft, or only from ACCA-approved software. If only approved software, (b) avoids building something they would reject.
+
+- (a) Buy the ACCA Manual J 8th edition PDF (and Manual S) and give it to the agents (it stays out of git, like the NEC book). EZ Draft builds its own Manual J, and you confirm your department accepts its report.
+- (b) Keep typing in the Manual J load from your A/C sub's approved program. EZ Draft checks the equipment against it and prints it on the mechanical sheet. The three Manual J tickets are retired.
+
+**Josh's answer (2026-11-20): "push mechanical calculations to v2. keep duct layout in v1. vent locations can be added to RCP as option for user".** Recorded as Q-0780, which replaces Q-0778. The ACCA book is not needed. EZD-732 and EZD-740 to EZD-742 are retired to v2; the duct layout stays in v1 (new EZD-743), and vents on the ceiling plan are optional.

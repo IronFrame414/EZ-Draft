@@ -12,7 +12,10 @@ const PAGE_FILES = [
   'app/src/app/(editor)/dev/saves/[id]/page.tsx',
   'app/src/app/(editor)/projects/[id]/import/[jobId]/page.tsx',
   'app/src/app/(editor)/projects/[id]/page.tsx',
+  'app/src/app/(editor)/projects/[id]/supplier/page.tsx',
   'app/src/app/(field)/dev/entry/field/page.tsx',
+  'app/src/app/(field)/projects/[id]/field-measure/page.tsx',
+  'app/src/app/(field)/projects/[id]/field/page.tsx',
   'app/src/app/(office)/dev/entry/office/page.tsx',
   'app/src/app/(office)/dev/settings/page.tsx',
   'app/src/app/(office)/settings/[section]/page.tsx',
@@ -23,6 +26,7 @@ const PAGE_FILES = [
   'app/src/app/(office)/settings/render-models/page.tsx',
   'app/src/app/(office)/settings/sheet-presets/page.tsx',
   'app/src/app/(office)/settings/system-status/page.tsx',
+  'app/src/app/(office)/settings/title-block/page.tsx',
   'app/src/app/(office)/page.tsx',
   'app/src/app/(office)/settings/page.tsx',
   'app/src/app/(office)/settings/users/page.tsx',
@@ -33,6 +37,7 @@ const PAGE_FILES = [
   'app/src/app/dev/cloud-check/page.tsx',
   'app/src/app/dev/device/page.tsx',
   'app/src/app/dev/errors/page.tsx',
+  'app/src/app/dev/field-outbox/[id]/page.tsx',
   'app/src/app/dev/header/page.tsx',
   'app/src/app/dev/jobs/page.tsx',
   'app/src/app/dev/lazy/page.tsx',
@@ -78,6 +83,7 @@ const OWN_PAGES = new Set([
   'code-edition',
   'sheet-presets',
   'render-models',
+  'title-block',
 ]);
 
 function pathsFor(file: string, env: { projectId: string }): string[] {

@@ -1223,6 +1223,141 @@
           "load": 12000
         }
       }
+    },
+    {
+      "id": "9c3a2e5f-7d4b-4a1c-9e83-2f6b5d4c3a01",
+      "type": "sheet_set",
+      "schema_version": 6,
+      "data": {
+        "kind": "client",
+        "sheetIds": [],
+        "size": "11x17",
+        "keyPlacement": "cover_only",
+        "submittalProfileId": null,
+        "lastIssuedVersionId": null
+      }
+    },
+    {
+      "id": "5e1d9a3c-2b7f-4c8e-a061-3f9b7d2c4e15",
+      "type": "design_option",
+      "schema_version": 6,
+      "data": {
+        "groupId": "0c4f2a8e-6b1d-4e3a-9f57-8d2c1b0e7a64",
+        "groupName": "Beams",
+        "label": "B",
+        "name": "Box beams",
+        "status": "draft",
+        "modelDelta": [
+          {
+            "op": "remove",
+            "id": "7a1e0c3d-5b2f-4e8a-9c61-0d4f3b2a1e03"
+          }
+        ]
+      }
+    },
+    {
+      "id": "9c3e1f7a-4b2d-4e6a-8f15-2d7b0c9e3a41",
+      "type": "switch_zone",
+      "schema_version": 6,
+      "data": {
+        "geometry": {
+          "roomId": "6a5bae36-e7f4-4459-a3b8-b1528fbd8a21",
+          "boundary": [
+            {
+              "x": 12,
+              "y": 12
+            },
+            {
+              "x": 60,
+              "y": 12
+            },
+            {
+              "x": 60,
+              "y": 84
+            },
+            {
+              "x": 12,
+              "y": 84
+            }
+          ]
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "dimmer": true
+        }
+      }
+    },
+    {
+      "id": "5d8a2c61-3f4e-4b7a-9c20-6e1b4d7f8a52",
+      "type": "ceiling_shape",
+      "schema_version": 6,
+      "data": {
+        "geometry": {
+          "roomId": "6a5bae36-e7f4-4459-a3b8-b1528fbd8a21",
+          "boundary": [
+            {
+              "x": 12,
+              "y": 12
+            },
+            {
+              "x": 60,
+              "y": 12
+            },
+            {
+              "x": 60,
+              "y": 84
+            },
+            {
+              "x": 12,
+              "y": 84
+            }
+          ]
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "kind": "tray",
+          "depth": 12
+        }
+      }
+    },
+    {
+      "id": "7e4b1a93-2c5d-4f8e-a16b-3d9c0e2f5b74",
+      "type": "ceiling_tag",
+      "schema_version": 6,
+      "data": {
+        "geometry": {
+          "point": {
+            "x": 36,
+            "y": 48
+          }
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "5d2a8c41-7e3f-4b19-9a6d-0c8e2f4b7a13",
+      "type": "act_grid",
+      "schema_version": 6,
+      "data": {
+        "geometry": {
+          "roomId": "6a5bae36-e7f4-4459-a3b8-b1528fbd8a21",
+          "start": {
+            "x": 12,
+            "y": 24
+          }
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "module": "2x2",
+          "direction": "with_long_wall",
+          "balanced": true
+        }
+      }
     }
   ]
 }

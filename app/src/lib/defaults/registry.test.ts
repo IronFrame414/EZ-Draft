@@ -9,6 +9,7 @@ import {
   DEFAULT_COLUMNS,
   DEFAULT_GROUPS,
   PER_PROJECT_KEYS,
+  STORABLE_KEYS,
   defaultRow,
 } from './registry';
 import {
@@ -28,7 +29,7 @@ const row = (key: string) => {
 const parse = (key: string, text: string) => parseFormValue(row(key), text);
 
 describe('EZD-116 registry (AC-EZD-116-2)', () => {
-  it('lists every S15d row in the board groups, Walls after Increments, no Keyboard shortcuts', () => {
+  it('lists every S15d row in the board groups, Walls after Increments, Keyboard shortcuts last', () => {
     expect(DEFAULT_GROUPS).toEqual([
       'units',
       'increments',
@@ -45,8 +46,11 @@ describe('EZD-116 registry (AC-EZD-116-2)', () => {
       'history',
       'client',
       'integrations',
+      'keyboard_shortcuts',
     ]);
-    expect(DEFAULT_COLUMNS.flat()).toHaveLength(DEFAULT_GROUPS.length);
+    // EZD-222: Keyboard shortcuts is a table under the three columns.
+    expect(DEFAULT_COLUMNS.flat()).toHaveLength(DEFAULT_GROUPS.length - 1);
+    expect(DEFAULT_COLUMNS.flat()).not.toContain('keyboard_shortcuts');
     const keys = DEFAULTS_REGISTRY.map((r) => r.key);
     expect(new Set(keys).size).toBe(keys.length);
     // S15d Controls, one key per row (row 44 is two keys), plus Walls and Snap increment.
@@ -102,8 +106,10 @@ describe('EZD-116 registry (AC-EZD-116-2)', () => {
     ]) {
       expect(keys, k).toContain(k);
     }
-    expect(keys.some((k) => /shortcut|keyboard/.test(k))).toBe(false);
-    expect(DEFAULTS_REGISTRY.some((r) => (r.group as string) === 'keyboard_shortcuts')).toBe(false);
+    // EZD-222: the one Keyboard shortcuts row holds the whole key map.
+    expect(DEFAULTS_REGISTRY.filter((r) => r.group === 'keyboard_shortcuts').map((r) => r.key)).toEqual([
+      'keyboard_shortcuts',
+    ]);
     for (const r of DEFAULTS_REGISTRY) {
       expect(r.label, r.key).toMatch(/^office\.defaults\.row\./);
       expect(DEFAULT_GROUPS, r.key).toContain(r.group);
@@ -281,5 +287,31 @@ describe('EZD-116 copy at creation (AC-EZD-116-7; 09o Copy at creation)', () => 
       cabinet_autofill_increment: 3,
       countertop_increment: 0.5,
     });
+  });
+});
+
+// EZD-415 (phase-04 EZD-415 "seat width and bracket spacing are Defaults → Countertops values"; assumption EZD-415):
+// two Countertops lengths, owner-entered (no default), not per project, never 0 (they divide a side's length).
+describe('EZD-415 bracket spacing and seat width', () => {
+  it('are Countertops lengths after the support limit, Not set by default and not copied per project', () => {
+    const keys = DEFAULTS_REGISTRY.filter((r) => r.group === 'countertops').map((r) => r.key);
+    expect(keys.slice(keys.indexOf('seating_support_limit'))).toEqual([
+      'seating_support_limit',
+      'countertop_bracket_spacing',
+      'countertop_seat_width',
+    ]);
+    for (const k of ['countertop_bracket_spacing', 'countertop_seat_width']) {
+      expect(defaultRow(k)).toMatchObject({ type: 'length', unit: 'in', default: null, perProject: false });
+      expect(effectiveValue(k, {}), k).toBeNull();
+      expect(effectiveValue(k, { [k]: 24 }), k).toBe(24);
+      expect(checkValue(defaultRow(k)!, 24).ok, k).toBe(true);
+      expect(checkValue(defaultRow(k)!, 23.5625).ok, k).toBe(true);
+      expect(checkValue(defaultRow(k)!, 0).ok, k).toBe(false);
+      expect(checkValue(defaultRow(k)!, -1).ok, k).toBe(false);
+      expect(STORABLE_KEYS, k).toContain(k);
+      expect(PER_PROJECT_KEYS, k).not.toContain(k);
+    }
+    // The support limit itself may still be any length the cross check allows.
+    expect(checkValue(defaultRow('seating_support_limit')!, 10).ok).toBe(true);
   });
 });

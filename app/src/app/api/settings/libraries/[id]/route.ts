@@ -4,6 +4,9 @@
 // switch), 404 for a malformed id, 400 (body), 404 when no visible row (another company's item included),
 // 400 `library_item_read_only` for a kind this page does not edit, then the write. Nothing changed is 200
 // with no write and no event. Each write emits its library.item_* event after it commits.
+// EZD-1408 (S15h Permissions): a field task template is changed (never deleted: one per room type) with the Libraries switch or Edit
+// field tasks; with Edit field tasks alone any other kind is 403. A template keeps its room type; its name and
+// phases change.
 import { z } from 'zod';
 import { EDITABLE_KINDS, type LibraryItem } from '../../../../../lib/libraries/libraries';
 import { endedSessionResponse } from '../../../../../server/auth/ended-session';
@@ -19,14 +22,20 @@ import {
   isAbbreviationTaken,
   noteFieldsChanged,
   parseLibraryPatch,
+  templateFieldsChanged,
   toLibraryItem,
 } from '../../../../../server/libraries/libraries';
-import { requireApiPermission } from '../../../../../server/permissions';
+import { can, requireApiPermission, type Permitted } from '../../../../../server/permissions';
 
 export const dynamic = 'force-dynamic';
 
 const headers = { 'Cache-Control': 'no-store' };
 const ROUTE = '/api/settings/libraries/[id]';
+
+// Edit field tasks opens field task templates only (EZD-1408).
+const ANY_LIBRARY_PERMISSION = ['settings_libraries', 'edit_field_tasks'] as const;
+const mayEdit = (p: Permitted, item: LibraryItem) =>
+  can(p.ctx, 'settings_libraries') || item.kind === 'task_template';
 
 const fail = (status: number, code: string, messageKey = `error.${code}`) =>
   Response.json({ error: { code, message_key: messageKey } }, { status, headers });
@@ -56,7 +65,7 @@ export async function PATCH(
   ctx: { params: Promise<{ id: string }> },
 ): Promise<Response> {
   try {
-    const p = await requireApiPermission('settings_libraries');
+    const p = await requireApiPermission(ANY_LIBRARY_PERMISSION);
     if (p instanceof Response) return p;
     const { id } = await ctx.params;
     if (!z.uuid().safeParse(id).success) return fail(404, 'library_item_not_found');
@@ -71,12 +80,14 @@ export async function PATCH(
     const client = createSessionClient();
     const before = await readItem(client, id);
     if (before === null) return fail(404, 'library_item_not_found');
+    if (!mayEdit(p, before)) return fail(403, 'permission_denied', 'error.not_authorized');
     if (!EDITABLE_KINDS.includes(before.kind)) return fail(400, 'library_item_read_only');
-    const parsed = parseLibraryPatch(raw, before.kind);
+    const parsed = parseLibraryPatch(raw, before.kind, before);
     if (!parsed.ok) return fail(400, parsed.code);
 
     let fields: ('name' | 'data')[] = [];
     if (before.kind === 'note') fields = noteFieldsChanged(before, parsed.value);
+    else if (before.kind === 'task_template') fields = templateFieldsChanged(before, parsed.value);
     else {
       if (parsed.value.name !== before.name) fields.push('name');
       if (before.kind === 'abbreviation' && parsed.value.meaning !== before.meaning)
@@ -85,7 +96,7 @@ export async function PATCH(
     if (fields.length === 0) return Response.json({ item: before }, { status: 200, headers });
 
     const update =
-      before.kind === 'abbreviation' || before.kind === 'note'
+      before.kind === 'abbreviation' || before.kind === 'note' || before.kind === 'task_template'
         ? { name: parsed.value.name, data: dataFor(parsed.value) }
         : { name: parsed.value.name };
     const { data, error } = await client
@@ -126,7 +137,7 @@ export async function DELETE(
   ctx: { params: Promise<{ id: string }> },
 ): Promise<Response> {
   try {
-    const p = await requireApiPermission('settings_libraries');
+    const p = await requireApiPermission(ANY_LIBRARY_PERMISSION);
     if (p instanceof Response) return p;
     const { id } = await ctx.params;
     if (!z.uuid().safeParse(id).success) return fail(404, 'library_item_not_found');
@@ -134,7 +145,10 @@ export async function DELETE(
     const client = createSessionClient();
     const before = await readItem(client, id);
     if (before === null) return fail(404, 'library_item_not_found');
-    if (!EDITABLE_KINDS.includes(before.kind)) return fail(400, 'library_item_read_only');
+    if (!mayEdit(p, before)) return fail(403, 'permission_denied', 'error.not_authorized');
+    // S15h: one template per room type, so a field task template is changed, never deleted (EZD-1408).
+    if (!EDITABLE_KINDS.includes(before.kind) || before.kind === 'task_template')
+      return fail(400, 'library_item_read_only');
     // The event names the company; read it before the row is gone.
     const tenantId = await currentTenantId(client);
 

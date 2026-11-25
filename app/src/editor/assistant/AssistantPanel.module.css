@@ -7,7 +7,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-ink);
 }
 
@@ -27,7 +27,7 @@
 
 .title {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -40,7 +40,7 @@
 }
 
 .subtitle {
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -90,7 +90,7 @@
   color: var(--ez-ink);
   padding: 9px 12px;
   border-radius: var(--ez-radius-12) var(--ez-radius-12) var(--ez-radius-4) var(--ez-radius-12);
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   line-height: 1.4;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -107,7 +107,7 @@
 
 .waiting {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   line-height: 1.45;
   color: var(--ez-slate-500);
 }
@@ -116,7 +116,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   line-height: 1.45;
   color: var(--ez-ink);
 }
@@ -129,7 +129,7 @@
 
 .cost {
   font-family: var(--ez-font-mono);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
   padding-top: 8px;
   border-top: 1px dashed var(--ez-border);
@@ -142,7 +142,7 @@
   border-radius: var(--ez-radius-10);
   background: var(--ez-amber-alert);
   border: 1px solid var(--ez-amber-alert-border);
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   line-height: 1.45;
 }
 
@@ -191,14 +191,14 @@
 
 .noKeyHeading {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--ez-text-16);
   font-weight: 600;
   line-height: 1.35;
 }
 
 .noKeyBody {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-slate-700);
   line-height: 1.5;
 }
@@ -242,7 +242,7 @@
 .textarea {
   resize: none;
   font-family: var(--ez-font-sans);
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   line-height: 1.4;
   color: var(--ez-ink);
   padding: 10px 12px;
@@ -276,7 +276,7 @@
   border-radius: var(--ez-radius-8);
   background: var(--ez-surface);
   font-family: var(--ez-font-sans);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   font-weight: 500;
   color: var(--ez-ink);
   cursor: pointer;
@@ -323,7 +323,7 @@
 
 .modelHeading {
   display: block;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-500);
   padding: 6px 10px 4px;
@@ -339,7 +339,7 @@
   background: transparent;
   text-align: left;
   font-family: var(--ez-font-sans);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-ink);
   cursor: pointer;
   width: 100%;
@@ -365,7 +365,7 @@
 }
 
 .optionCost {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 

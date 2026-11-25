@@ -3,6 +3,15 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import {
+  PHASES_MAX,
+  ROOM_TYPES,
+  TEMPLATE_TASKS_PER_PHASE_MAX,
+  checkTemplatePhases,
+  cleanPhases,
+  templateOf,
+  type TaskTemplate,
+} from '../../lib/field-tasks/templates';
+import {
   NOTE_GROUPS,
   NOTE_PROJECT_TYPES,
   checkLibraryDraft,
@@ -43,6 +52,10 @@ export function toLibraryItem(row: Row): LibraryItem {
     updatedAt: row.updated_at,
   };
   if (kind === 'note') item.note = noteDataOf(data);
+  if (kind === 'task_template') {
+    const template = templateOf(data);
+    if (template !== null) item.template = template;
+  }
   return item;
 }
 
@@ -69,7 +82,12 @@ export async function listLibraryItems(
 
 type Parsed<T> = { ok: true; value: T } | { ok: false; code: LibraryCode };
 
-export type LibraryValues = { name: string; meaning: string | null; note?: NoteData };
+export type LibraryValues = {
+  name: string;
+  meaning: string | null;
+  note?: NoteData;
+  template?: TaskTemplate;
+};
 
 const text = z.string().max(1000);
 const createSchema = z.strictObject({ kind: z.literal('abbreviation'), name: text, meaning: text });
@@ -82,6 +100,46 @@ const noteFields = {
 };
 const noteCreateSchema = z.strictObject({ kind: z.literal('note'), ...noteFields });
 const notePatchSchema = z.strictObject(noteFields);
+
+// EZD-1408 (S15h Field task templates): a template is its name, its room type (fixed once made: one template per
+// room type) and its phases in order.
+const phaseSchema = z.strictObject({
+  id: z.string().regex(/^[a-z0-9_-]{1,40}$/),
+  name: z.string().max(500),
+  tasks: z.array(z.string().max(2000)).max(TEMPLATE_TASKS_PER_PHASE_MAX * 2),
+});
+const templateFields = {
+  name: text,
+  phases: z
+    .array(phaseSchema)
+    .max(PHASES_MAX * 2)
+    .refine((ps) => new Set(ps.map((p) => p.id)).size === ps.length),
+};
+const templateCreateSchema = z.strictObject({
+  kind: z.literal('task_template'),
+  roomType: z.enum(ROOM_TYPES),
+  ...templateFields,
+});
+const templatePatchSchema = z.strictObject(templateFields);
+
+function checkedTemplate(
+  name: string,
+  roomType: TaskTemplate['roomType'],
+  phases: TaskTemplate['phases'],
+): Parsed<LibraryValues> {
+  const nameCode = checkLibraryDraft({ name, meaning: null });
+  if (nameCode !== null) return { ok: false, code: nameCode };
+  const code = checkTemplatePhases(phases);
+  if (code !== null) return { ok: false, code };
+  return {
+    ok: true,
+    value: {
+      name: name.trim(),
+      meaning: null,
+      template: { roomType, phases: cleanPhases(phases) },
+    },
+  };
+}
 
 function checkedNote(body: {
   text: string;
@@ -110,7 +168,13 @@ function checked(name: string, meaning: string | null): Parsed<LibraryValues> {
 // Abbreviations (S15h Symbols + abbreviations) and notes (EZD-714, S15h Notes) are added from this page.
 export function parseLibraryCreate(
   body: unknown,
-): Parsed<LibraryValues & { kind: 'abbreviation' | 'note' }> {
+): Parsed<LibraryValues & { kind: 'abbreviation' | 'note' | 'task_template' }> {
+  const template = templateCreateSchema.safeParse(body);
+  if (template.success) {
+    const { name, roomType, phases } = template.data;
+    const r = checkedTemplate(name, roomType, phases);
+    return r.ok ? { ok: true, value: { ...r.value, kind: 'task_template' } } : r;
+  }
   const note = noteCreateSchema.safeParse(body);
   if (note.success) {
     const r = checkedNote(note.data);
@@ -122,8 +186,19 @@ export function parseLibraryCreate(
   return r.ok ? { ok: true, value: { ...r.value, kind: 'abbreviation' } } : r;
 }
 
-// An abbreviation takes a name and a meaning; a saved group a name only.
-export function parseLibraryPatch(body: unknown, kind: LibraryKind): Parsed<LibraryValues> {
+// An abbreviation takes a name and a meaning; a saved group a name only; a task template (EZD-1408) a name and
+// its phases, keeping its room type (`before`).
+export function parseLibraryPatch(
+  body: unknown,
+  kind: LibraryKind,
+  before?: LibraryItem,
+): Parsed<LibraryValues> {
+  if (kind === 'task_template') {
+    const roomType = before?.template?.roomType;
+    const parsed = templatePatchSchema.safeParse(body);
+    if (!parsed.success || roomType === undefined) return { ok: false, code: 'invalid_input' };
+    return checkedTemplate(parsed.data.name, roomType, parsed.data.phases);
+  }
   if (kind === 'note') {
     const note = notePatchSchema.safeParse(body);
     return note.success ? checkedNote(note.data) : { ok: false, code: 'invalid_input' };
@@ -136,6 +211,12 @@ export function parseLibraryPatch(body: unknown, kind: LibraryKind): Parsed<Libr
 }
 
 export function dataFor(values: LibraryValues): { [key: string]: Json } {
+  if (values.template !== undefined) {
+    return {
+      roomType: values.template.roomType,
+      phases: values.template.phases.map((p) => ({ id: p.id, name: p.name, tasks: [...p.tasks] })),
+    };
+  }
   if (values.note !== undefined) {
     return { group: values.note.group, projectTypes: [...values.note.projectTypes] };
   }
@@ -156,6 +237,27 @@ export function noteFieldsChanged(before: LibraryItem, after: LibraryValues): ('
   )
     fields.push('data');
   return fields;
+}
+
+// EZD-1408: what a template edit changed (the name, or the phases as data).
+export function templateFieldsChanged(
+  before: LibraryItem,
+  after: LibraryValues,
+): ('name' | 'data')[] {
+  const fields: ('name' | 'data')[] = [];
+  if (after.name !== before.name) fields.push('name');
+  if (JSON.stringify(after.template?.phases) !== JSON.stringify(before.template?.phases))
+    fields.push('data');
+  return fields;
+}
+
+// EZD-1408 (S15h "One template per room type"): the company already has a template for this room type.
+export function isTemplateTaken(error: { code?: string; message?: string } | null): boolean {
+  return (
+    error !== null &&
+    error.code === '23505' &&
+    (error.message ?? '').includes('library_item_task_template_key')
+  );
 }
 
 export function isAbbreviationTaken(error: { code?: string; message?: string } | null): boolean {

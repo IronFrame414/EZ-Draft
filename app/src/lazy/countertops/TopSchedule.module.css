@@ -1,0 +1,125 @@
+/* EZD-418: the countertop inspector place, its footer, and the top schedule over it (as the cabinet schedule,
+   lazy/cabinet-run/CabinetSchedule.module.css, and the run inspector footer). */
+.panel {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: var(--ez-text-14);
+  color: var(--ez-ink);
+}
+
+.grow {
+  flex: 1;
+}
+
+/* Board footer: two buttons side by side, Top schedule on the right (Edit offered edges, EZD-417, on the left). */
+.footer {
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.footerButton {
+  grid-column: 2;
+  height: 40px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: 600 var(--ez-text-14) var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.footerButton[aria-expanded='true'] {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  background: var(--ez-surface);
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.close {
+  border: 0;
+  background: transparent;
+  font-size: var(--ez-text-18);
+  color: var(--ez-slate-500);
+  cursor: pointer;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 18px;
+}
+
+.empty {
+  margin: 0;
+  padding: 10px 0;
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-500);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--ez-text-13);
+}
+
+.table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--ez-slate-500);
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.table td {
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--ez-divider);
+  vertical-align: top;
+}
+
+.num {
+  font-family: var(--ez-font-mono);
+  white-space: nowrap;
+}
+
+.foot {
+  padding: 12px 18px 18px;
+  border-top: 1px solid var(--ez-divider);
+}
+
+.export {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: 600 var(--ez-text-14) var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.export:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

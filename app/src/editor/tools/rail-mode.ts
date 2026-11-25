@@ -4,6 +4,7 @@
 import { isTypingTarget } from '../typed-entry/typed-entry';
 import type { DrawingToolId } from './tool-defs';
 import type { ToolKeyEvent } from './drawing-controller';
+import { DEFAULT_BINDINGS, commandForKey, type ShortcutBindings } from '../../lib/defaults/shortcut-keys';
 
 export function railMode(o: {
   editor: 'loading' | 'ready' | 'failed' | 'no-access' | 'not-found';
@@ -17,27 +18,20 @@ export function railMode(o: {
   return 'enabled';
 }
 
-const EDIT_KEYS: Readonly<Record<string, DrawingToolId>> = {
-  w: 'wall',
-  r: 'room-rect',
-  d: 'door',
-  n: 'window',
-  m: 'move',
-  f: 'fixtures',
-  s: 'sketch',
-};
+// EZD-222 (S15d Keyboard shortcuts): the keys come from the company key map, as in the engine's `keyDown`.
+const EDIT_TOOLS: ReadonlySet<string> = new Set(['wall', 'room-rect', 'door', 'window', 'move', 'fixtures', 'sketch']);
+// EZD-231 Measure, EZD-404 Cabinets, EZD-412 Countertops and EZD-601 Electrical work without Edit model.
+const VIEW_TOOLS: ReadonlySet<string> = new Set(['measure', 'cabinets', 'countertops', 'electrical']);
 
 /** The tool a key turns on with no tool, pick or entry on, or null when the key is not a tool key there. */
-export function toolForKey(e: ToolKeyEvent, enabled: boolean): DrawingToolId | null {
+export function toolForKey(
+  e: ToolKeyEvent,
+  enabled: boolean,
+  bindings: ShortcutBindings = DEFAULT_BINDINGS,
+): DrawingToolId | null {
   if (e.defaultPrevented || isTypingTarget(e.target)) return null;
-  const plain = !e.ctrlKey && !e.metaKey && !e.altKey;
-  const key = e.key.toLowerCase();
-  // EZD-231: Shift+L (Measure), EZD-404: C (Cabinets) and EZD-601: E (Electrical) work without Edit model.
-  if (plain && e.shiftKey && key === 'l') return 'measure';
-  if (plain && !e.shiftKey && key === 'c') return 'cabinets';
-  // EZD-412: K (Countertops) too.
-  if (plain && !e.shiftKey && key === 'k') return 'countertops';
-  if (plain && !e.shiftKey && key === 'e') return 'electrical';
-  if (!enabled || !plain) return null;
-  return EDIT_KEYS[key] ?? null;
+  const command = commandForKey(bindings, e);
+  if (command === null) return null;
+  if (VIEW_TOOLS.has(command)) return command as DrawingToolId;
+  return enabled && EDIT_TOOLS.has(command) ? (command as DrawingToolId) : null;
 }

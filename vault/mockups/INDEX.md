@@ -9,6 +9,7 @@ Exported Oct 11, 2026 from the EZ Draft design canvas (https://claude.ai/artifac
 - Every screen now has a Studio board. S01b (wizard) is drawn as a dialog over S01, so its background shows S01's `{{...}}` placeholders.
 - S15 shows 29 permission switches. The S15 spec text says "28" in places, but its own Permission list names 29; the list is what counts.
 - S02 footer shows the one tolerance setting from Defaults (decision 30); the 1/8" value is sample data.
+- S03Plan.png has a glitch: at the bottom right of the inspector it shows the raw icon name `more_hori` where a more-horizontal icon (⋯, Material Symbols `more_horiz`) belongs. Draw the icon; do not copy the text (audit 2026-11-23, U10).
 
 | Screen | Name | PNG | HTML |
 | --- | --- | --- | --- |

@@ -12,6 +12,7 @@ import {
   type ModelObject,
   type ObjectStatus,
   type RoomObject,
+  type WireSize,
 } from '@ezdraft/geometry';
 import type { Objects } from '../model/patches';
 
@@ -36,10 +37,11 @@ function parsedObjects(objects: Objects): ModelObject[] {
 export type PanelRow = {
   id: string;
   name: string;
-  mainBreaker: number;
+  // EZD-604: null while Not set (a new Panel A).
+  mainBreaker: number | null;
   serviceSize: number | null;
   parentPanel: string | null;
-  spaces: number;
+  spaces: number | null;
 };
 
 /** The model's panels: main panels (no parent) first, then subpanels, each in stored order. */
@@ -78,13 +80,40 @@ export type CircuitRow = {
   protection: CircuitProtection | null;
   dedicated: boolean;
   load: number;
+  // EZD-604 (S06 Circuit row "breaker/type/count"; board "4 rcpt", "9 fix."): its devices, by sort.
+  count: DeviceCount;
+  // EZD-604: its wire size (AWG); null on a circuit stored before EZD-604.
+  wire: WireSize | null;
 };
+
+// EZD-604: receptacles; lights and fans (fixtures); every other device.
+export type DeviceCount = { receptacles: number; fixtures: number; other: number };
+
+const FIXTURE_KINDS = new Set(['recessed_light', 'ceiling_fan']);
+
+function deviceCounts(all: readonly ModelObject[]): Map<string, DeviceCount> {
+  const out = new Map<string, DeviceCount>();
+  for (const o of all) {
+    if (o.type !== 'device') continue;
+    const c = o.data.attributes.circuit;
+    if (typeof c !== 'string') continue;
+    const n = out.get(lower(c)) ?? { receptacles: 0, fixtures: 0, other: 0 };
+    const kind = o.data.attributes.kind;
+    if (kind.startsWith('receptacle_')) n.receptacles++;
+    else if (FIXTURE_KINDS.has(kind)) n.fixtures++;
+    else n.other++;
+    out.set(lower(c), n);
+  }
+  return out;
+}
 
 /** The circuits on one panel, by space. */
 export function circuitRows(objects: Objects, panelId: string | null): CircuitRow[] {
   if (panelId === null) return [];
   const rows: CircuitRow[] = [];
-  for (const o of parsedObjects(objects)) {
+  const all = parsedObjects(objects);
+  const counts = deviceCounts(all);
+  for (const o of all) {
     if (o.type !== 'circuit' || lower(o.data.attributes.panel) !== lower(panelId)) continue;
     const a = o.data.attributes;
     rows.push({
@@ -97,6 +126,8 @@ export function circuitRows(objects: Objects, panelId: string | null): CircuitRo
       protection: a.protection,
       dedicated: a.dedicated,
       load: a.load,
+      count: counts.get(lower(o.id)) ?? { receptacles: 0, fixtures: 0, other: 0 },
+      wire: a.wire ?? null,
     });
   }
   return rows.sort((x, y) => x.space - y.space);

@@ -49,12 +49,33 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
     signedIn: true,
     placement: 'bar',
   },
+  // EZD-914: Supplier markup; the screen's status bar shows the line.
+  {
+    file: 'src/app/(editor)/projects/[id]/supplier/page.tsx',
+    path: '/projects/00000000-0000-4000-8000-000000000000/supplier',
+    signedIn: true,
+    placement: 'bar',
+  },
   // EZD-307: Import review; an import that does not exist still shows the status bar with the line.
   {
     file: 'src/app/(editor)/projects/[id]/import/[jobId]/page.tsx',
     path: '/projects/00000000-0000-4000-8000-000000000000/import/00000000-0000-4000-8000-000000000000',
     signedIn: true,
     placement: 'bar',
+  },
+  // EZD-1415: Field measure; a project that does not exist is not found, which shows the line on the page.
+  {
+    file: 'src/app/(field)/projects/[id]/field-measure/page.tsx',
+    path: '/projects/00000000-0000-4000-8000-000000000000/field-measure',
+    signedIn: true,
+    placement: 'page',
+  },
+  // EZD-1404: the field pack; a project that does not exist is not found, which shows the line on the page.
+  {
+    file: 'src/app/(field)/projects/[id]/field/page.tsx',
+    path: '/projects/00000000-0000-4000-8000-000000000000/field',
+    signedIn: true,
+    placement: 'page',
   },
   {
     file: 'src/app/(field)/dev/entry/field/page.tsx',
@@ -123,8 +144,14 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
     placement: 'bar',
   },
   {
-    file: 'src/app/(office)/settings/[section]/page.tsx',
+    file: 'src/app/(office)/settings/title-block/page.tsx',
     path: '/settings/title-block',
+    signedIn: true,
+    placement: 'bar',
+  },
+  {
+    file: 'src/app/(office)/settings/[section]/page.tsx',
+    path: '/settings/catalog',
     signedIn: true,
     placement: 'bar',
   },

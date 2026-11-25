@@ -3,6 +3,9 @@
 // Q-0503; Q-0507): sends one person's queued edits from any office page, and holds the sign-out check. The
 // drain module is loaded only when something is queued (or the count cannot be read). Without a provider,
 // the check passes.
+// EZD-1402 (phase-14 EZD-1402; Q-0503; Q-0507 "the outbox drains whenever the app is open"): the page's one field
+// sender. It starts with the drain when something is queued, or on first use (useFieldSync), and sign-out sends
+// queued field actions too.
 import {
   createContext,
   useContext,
@@ -15,11 +18,18 @@ import {
 import type { ReactElement, ReactNode } from 'react';
 import { countQueued } from '../../lib/outbox/device-db';
 import type { Actor } from '../../lib/outbox/outbox';
-import type { DrainHandle } from '../../lib/outbox/office-drain';
+import type { DrainHandle, FieldDrainHandle } from '../../lib/outbox/office-drain';
+import type { FieldSync } from '../../lib/outbox/field-sync';
 import { ConfirmDialog } from '../states/ConfirmDialog';
 import { createConfirmController } from '../states/confirm-controller';
 
-type DrainContext = { actor: Actor | null; handle(): DrainHandle | null };
+type DrainContext = {
+  actor: Actor | null;
+  handle(): DrainHandle | null;
+  field(): FieldDrainHandle | null;
+  // Starts the field sender if it is not running; null without an actor or when the module cannot load.
+  startField(): Promise<FieldDrainHandle | null>;
+};
 
 const Context = createContext<DrainContext | null>(null);
 
@@ -47,19 +57,29 @@ export function OutboxDrain({
   notice?: ReactNode;
 }) {
   const handleRef = useRef<DrainHandle | null>(null);
+  const fieldRef = useRef<FieldDrainHandle | null>(null);
   const appUserId = actor?.appUserId;
   const tenantId = actor?.tenantId;
   const membershipId = actor?.membershipId;
-  const value = useMemo<DrainContext>(
-    () => ({
-      actor:
-        appUserId === undefined || tenantId === undefined || membershipId === undefined
-          ? null
-          : { appUserId, tenantId, membershipId },
+  const value = useMemo<DrainContext>(() => {
+    const who: Actor | null =
+      appUserId === undefined || tenantId === undefined || membershipId === undefined
+        ? null
+        : { appUserId, tenantId, membershipId };
+    return {
+      actor: who,
       handle: () => handleRef.current,
-    }),
-    [appUserId, tenantId, membershipId],
-  );
+      field: () => fieldRef.current,
+      async startField() {
+        if (who === null) return null;
+        if (fieldRef.current !== null) return fieldRef.current;
+        const drain = await loadOfficeDrain();
+        if (drain === null) return null;
+        fieldRef.current ??= drain.startFieldDrain(who);
+        return fieldRef.current;
+      },
+    };
+  }, [appUserId, tenantId, membershipId]);
 
   useEffect(() => {
     if (appUserId === undefined || tenantId === undefined || membershipId === undefined) return;
@@ -71,11 +91,14 @@ export function OutboxDrain({
       const drain = await loadOfficeDrain();
       if (cancelled || drain === null) return;
       handleRef.current = drain.startDrain(who);
+      fieldRef.current ??= drain.startFieldDrain(who);
     })();
     return () => {
       cancelled = true;
       handleRef.current?.dispose();
       handleRef.current = null;
+      fieldRef.current?.dispose();
+      fieldRef.current = null;
     };
   }, [appUserId, tenantId, membershipId]);
 
@@ -97,7 +120,11 @@ export function useOutboxSignOut(): { check(): Promise<boolean>; dialog: ReactEl
     if (ctx === null || actor === null) return true;
     if ((await countQueued(actor.appUserId, actor.tenantId)) === 0) return true;
     const drain = await loadOfficeDrain();
-    if (drain !== null && (await drain.sendBeforeSignOut(actor, ctx.handle())) === 'sent') return true;
+    if (
+      drain !== null &&
+      (await drain.sendBeforeSignOut(actor, ctx.handle(), undefined, ctx.field())) === 'sent'
+    )
+      return true;
     const choice = await controller.open({
       title: 'office.outbox.sign_out_title',
       message: 'office.outbox.sign_out_message',
@@ -112,6 +139,24 @@ export function useOutboxSignOut(): { check(): Promise<boolean>; dialog: ReactEl
     <ConfirmDialog key={request.id} request={request} onChoose={controller.choose} />
   ) : null;
   return { check, dialog };
+}
+
+// EZD-1402: the page's field sender (queue a field action with `add`); null outside a provider, without an actor,
+// or until it has started.
+export function useFieldSync(): FieldSync | null {
+  const ctx = useContext(Context);
+  const [sync, setSync] = useState<FieldSync | null>(null);
+  useEffect(() => {
+    if (ctx === null) return;
+    let live = true;
+    void ctx.startField().then((h) => {
+      if (live) setSync(h?.sync ?? null);
+    });
+    return () => {
+      live = false;
+    };
+  }, [ctx]);
+  return sync;
 }
 
 // EZD-134: who is signed in for the outbox, or null outside a provider or without a loaded actor.

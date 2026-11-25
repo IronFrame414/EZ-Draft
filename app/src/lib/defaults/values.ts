@@ -12,7 +12,9 @@ import {
   type DefaultRow,
   type DefaultValue,
   type LengthRange,
+  type ShortcutMap,
 } from './registry';
+import { checkOverrides, overridesOf, effectiveBindings, resolveOverrides } from './shortcuts';
 
 export type StoredDefaults = Record<string, unknown>;
 export type EffectiveDefaults = Record<string, DefaultValue | null>;
@@ -26,9 +28,10 @@ const isObject = (v: unknown): v is Record<string, unknown> =>
 const sixteenth = (n: number) => Number.isInteger(n * 16);
 const whole = (n: unknown): n is number => typeof n === 'number' && Number.isInteger(n);
 
-// Positive-only lengths: increments, wall sizes and the walk eye height cannot be 0.
+// Positive-only lengths: increments, wall sizes and the walk eye height cannot be 0, nor a row flagged positive
+// (EZD-415: bracket spacing and seat width divide a side's length).
 function lengthKind(row: DefaultRow): 'positive' | 'other' {
-  return row.group === 'increments' || row.group === 'walls' || row.group === 'three_d'
+  return row.positive === true || row.group === 'increments' || row.group === 'walls' || row.group === 'three_d'
     ? 'positive'
     : 'other';
 }
@@ -54,6 +57,8 @@ export function refusalKey(row: DefaultRow): MessageKey {
       return row.zeroAllowed ? 'office.defaults.error.days_zero' : 'office.defaults.error.days';
     case 'count':
       return 'office.defaults.error.count';
+    case 'shortcuts':
+      return 'office.defaults.error.shortcuts';
     default:
       return 'office.defaults.error.choice';
   }
@@ -94,6 +99,9 @@ export function checkValue(row: DefaultRow, v: unknown): CheckResult {
         new Set(v).size === v.length
         ? OK
         : no;
+    // EZD-222: known commands, key text or '' (cleared), no browser key, no key shared in a view.
+    case 'shortcuts':
+      return checkOverrides(v) === null ? OK : no;
     default:
       return no;
   }
@@ -103,6 +111,11 @@ export function effectiveValue(key: string, stored: StoredDefaults | null | unde
   const row = defaultRow(key);
   if (!row) return null;
   const v = stored?.[key];
+  // EZD-230: a stored key map reads with the owner's keys over the defaults (shortcuts.ts resolveOverrides).
+  if (row.type === 'shortcuts') {
+    const own = v === undefined || v === null ? null : resolveOverrides(v);
+    return own === null ? row.default : (own as DefaultValue);
+  }
   if (v !== undefined && v !== null && checkValue(row, v).ok) return v as DefaultValue;
   return row.default;
 }
@@ -166,7 +179,7 @@ export function applyChanges(stored: StoredDefaults, changes: Changes): StoredDe
 
 // ---- Form text (the page's inputs) ----
 
-export type FormValue = string | boolean | readonly string[] | { min: string; max: string };
+export type FormValue = string | boolean | readonly string[] | { min: string; max: string } | ShortcutMap;
 
 const fmtLen = (n: number) => formatLength(n, 16);
 
@@ -185,6 +198,9 @@ export function formValueOf(row: DefaultRow, v: DefaultValue | null): FormValue 
       return Array.isArray(v) ? (v as readonly string[]) : [];
     case 'choice':
       return typeof v === 'string' ? v : '';
+    // EZD-222: the changes, in command order.
+    case 'shortcuts':
+      return overridesOf(effectiveBindings(v));
     default:
       return v === null || v === undefined ? '' : String(v);
   }
@@ -216,6 +232,11 @@ export function parseFormValue(row: DefaultRow, f: FormValue): ParseResult {
   }
   if (row.type === 'switch') return done(f === true);
   if (row.type === 'scales') return done(f as readonly string[]);
+  // EZD-222: no changes left is the default map, so the key is removed.
+  if (row.type === 'shortcuts') {
+    const map = f as ShortcutMap;
+    return Object.keys(map).length === 0 ? { ok: true, value: null } : done(map);
+  }
   if (typeof f !== 'string') return no;
   if (f.trim() === '') return { ok: true, value: null };
   switch (row.type) {

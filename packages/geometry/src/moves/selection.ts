@@ -34,10 +34,16 @@ const isOpening = (o: ModelObject): o is OpeningObject => o.type === 'opening';
 
 const isBlocking = (o: ModelObject): o is BlockingObject => o.type === 'blocking';
 
-type Loose = FixtureObject | UtilityPointObject | TileShowerObject;
+// EZD-602 (S06 Controls "Canvas drag device | Canvas | Moves device; live distances."): an electrical device moves
+// by the delta as a utility point does (both are a point).
+type DeviceObject = Extract<ModelObject, { type: 'device' }>;
+type Loose = FixtureObject | UtilityPointObject | TileShowerObject | DeviceObject;
 
 const isLoose = (o: ModelObject): o is Loose =>
-  o.type === 'fixture' || o.type === 'utility_point' || o.type === 'tile_shower';
+  o.type === 'fixture' ||
+  o.type === 'utility_point' ||
+  o.type === 'tile_shower' ||
+  o.type === 'device';
 
 const shift = (p: Point, d: Point): Point => ({ x: p.x + d.x, y: p.y + d.y });
 
@@ -51,7 +57,11 @@ function moveLoose(o: Loose, d: Point): ModelObject {
         geometry: { ...o.data.geometry, center: shift(o.data.geometry.center, d) },
       },
     };
-  return { ...o, data: { ...o.data, geometry: { point: shift(o.data.geometry.point, d) } } };
+  // A utility point or a device: one point.
+  return {
+    ...o,
+    data: { ...o.data, geometry: { point: shift(o.data.geometry.point, d) } },
+  } as ModelObject;
 }
 
 export function typedMoveDelta(distance: number, direction: Point): Point | null {

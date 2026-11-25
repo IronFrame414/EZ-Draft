@@ -9,6 +9,10 @@
 // Assistant change all or nothing: it drains the outbox first, then sends the change as one batch of at most
 // MAX_CHANGES_PER_SAVE marked `assistant: true`, and waits for the answer. A refusal or failure drops it from the
 // device again, moves nothing to the conflict list and leaves the drains as they were.
+// EZD-1402 (11 Offline "changes queue on the device and sync on reconnect the same way as an autosave, followed by
+// one checkpoint"; 04 Header card subtitle "Offline, 3 changes queued"): a change queued while offline is marked;
+// when a drain has saved marked changes of a project and the outbox is empty, one checkpoint of that project
+// follows. `queued` is the number of changes waiting on this device.
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { Change } from '../../editor/model/patches';
 import { APP_BUILD_HEADER, appBuild } from '../app-version';
@@ -48,6 +52,8 @@ export type SyncState = {
   lastSavedAt: number | null;
   // EZD-299b Build step 5: bumped whenever the device conflict list changes.
   conflictRev: number;
+  // EZD-1402: the changes waiting in this person's outbox on this device; absent until first read.
+  queued?: number;
 };
 
 // EZD-5605 D-SendNow: `unsaved` means nothing was sent (offline, blocked, outbox not drained, no lock, storage);
@@ -124,7 +130,7 @@ function toRequestChange(e: OutboxEntry) {
 }
 
 export type PendingWrite =
-  | { projectId: string; lockEpoch: number; changes: Change[]; now: number }
+  | { projectId: string; lockEpoch: number; changes: Change[]; now: number; offline?: boolean }
   | { projectId: string; sent: OutboxEntry[]; saved: SavedObject[] };
 
 async function reportAt(error: unknown, location: string): Promise<void> {
@@ -163,6 +169,8 @@ export function createOutboxSync(o: {
   online?: OnlineSource;
   debounceMs?: number;
   onSaved?: (projectId: string, saved: SavedObject[]) => void;
+  // EZD-1402: the one checkpoint after an offline sync; by default the checkpoints route.
+  checkpoint?: (projectId: string) => Promise<void>;
 }): OutboxSync {
   const storage = o.storage;
   const fetchImpl = o.fetchImpl ?? fetch;
@@ -186,6 +194,17 @@ export function createOutboxSync(o: {
   let disposed = false;
   // Decided "Storage failure" (Q-0596): writes the device storage refused, in order, run again by retry().
   const unstored: PendingWrite[] = [];
+  // EZD-1402: projects whose offline changes were saved since their last checkpoint.
+  const offlineSaved = new Set<string>();
+  const checkpoint =
+    o.checkpoint ??
+    (async (projectId: string) => {
+      const res = await fetchImpl(`/api/projects/${encodeURIComponent(projectId)}/checkpoints`, {
+        method: 'POST',
+        headers: { [MEMBERSHIP_HEADER]: o.actor.membershipId },
+      });
+      if (!res.ok) throw new Error(`offline_checkpoint_${res.status}`);
+    });
 
   const set = (patch: Partial<SyncState>) => store.setState(patch);
   const isOnline = () => online.getSnapshot();
@@ -218,6 +237,30 @@ export function createOutboxSync(o: {
   };
 
   const bumpConflicts = () => set({ conflictRev: store.getState().conflictRev + 1 });
+
+  // EZD-1402: reads the outbox count into `queued` while offline (the only time the header shows it, so an online
+  // autosave reads nothing more); a failed read leaves it as it was.
+  const recount = async () => {
+    if (isOnline()) return;
+    try {
+      const n = (await storage.list()).length;
+      if (!disposed && store.getState().queued !== n) set({ queued: n });
+    } catch {
+      /* the storage failure is reported where it is written */
+    }
+  };
+
+  // EZD-1402: one checkpoint per project whose offline changes are now all saved; a failure is reported, not retried.
+  const checkpointOffline = async () => {
+    for (const projectId of [...offlineSaved]) {
+      offlineSaved.delete(projectId);
+      try {
+        await checkpoint(projectId);
+      } catch (error) {
+        await reportAt(error, 'outbox.offline_checkpoint');
+      }
+    }
+  };
 
   const send = async (
     batch: Batch,
@@ -418,6 +461,7 @@ export function createOutboxSync(o: {
       }
       if (batch === null) {
         set({ status: 'saved', lastSavedAt: Date.now() });
+        await checkpointOffline();
         return;
       }
       if (batch.send.length === 0) continue;
@@ -465,6 +509,7 @@ export function createOutboxSync(o: {
         await storageFailed(error);
         return;
       }
+      if (batch.send.some((e) => e.offline === true)) offlineSaved.add(batch.projectId);
       set({ failures: 0 });
     }
   };
@@ -548,10 +593,13 @@ export function createOutboxSync(o: {
     },
   };
 
+  void recount();
+
   const unsubscribe = online.subscribe(() => {
     if (disposed) return;
     if (!isOnline()) {
       if (store.getState().status !== 'idle') set({ status: restingStatus() });
+      void recount();
       return;
     }
     if (store.getState().status === 'offline') {
@@ -566,20 +614,22 @@ export function createOutboxSync(o: {
     enqueue(projectId, lockEpoch, changes) {
       const write = writes.then(async () => {
         const now = Date.now();
+        const offline = !isOnline();
         // Behind an unstored write: kept in order after it, never written ahead of it.
         if (unstored.length > 0) {
-          unstored.push({ projectId, lockEpoch, changes, now });
+          unstored.push({ projectId, lockEpoch, changes, now, offline });
           set({ status: 'error', problem: 'storage_failed' });
           return;
         }
         try {
-          await storage.put(projectId, lockEpoch, changes, now);
+          await storage.put(projectId, lockEpoch, changes, now, offline);
         } catch (error) {
-          unstored.push({ projectId, lockEpoch, changes, now });
+          unstored.push({ projectId, lockEpoch, changes, now, offline });
           await storageFailed(error);
           return;
         }
         if (disposed) return;
+        await recount();
         if (store.getState().status !== 'saving') set({ status: restingStatus() });
         if (!blocked()) schedule(debounceMs);
       });
@@ -606,7 +656,7 @@ export function createOutboxSync(o: {
           const op = unstored[0];
           try {
             if ('sent' in op) await storage.commit(op.projectId, op.sent, op.saved);
-            else await storage.put(op.projectId, op.lockEpoch, op.changes, op.now);
+            else await storage.put(op.projectId, op.lockEpoch, op.changes, op.now, op.offline);
           } catch (error) {
             await storageFailed(error);
             return;

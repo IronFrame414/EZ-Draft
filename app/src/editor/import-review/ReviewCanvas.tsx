@@ -27,6 +27,7 @@ import {
   itemExtents,
   type Decisions,
   type Pt,
+  type ReviewCabinet,
   type ReviewItem,
 } from '../../lib/imports/review';
 import {
@@ -68,6 +69,15 @@ export function itemState(
   if (item.id === selectedId) return 'selected';
   if (decisions[item.id] === 'accepted') return 'accepted';
   return isHighConfidence(item, cutoff) ? 'accepted' : 'to_check';
+}
+
+/** EZD-915: the plan box a cabinet is drawn as: its outline, else its label width by depth about its centre. */
+export function cabinetBox(c: ReviewCabinet): { min: Pt; max: Pt } {
+  if (c.outline) return c.outline;
+  return {
+    min: { x: c.center.x - c.width / 2, y: c.center.y - c.depth / 2 },
+    max: { x: c.center.x + c.width / 2, y: c.center.y + c.depth / 2 },
+  };
 }
 
 type View = { zoom: number; panX: number; panY: number };
@@ -363,8 +373,32 @@ export function ReviewCanvas({
               );
             })}
             {items.map((item) => {
+              // EZD-915: a supplier cabinet is drawn as its plan box (its outline, else its label size at its centre).
+              if (item.type !== 'cabinet') return null;
+              const state = itemState(item, selectedId, cutoff, decisions);
+              const box = cabinetBox(item);
+              return (
+                <rect
+                  key={item.id}
+                  data-testid="review-item"
+                  data-id={item.id}
+                  data-state={state}
+                  data-decision={decisions[item.id] ?? 'none'}
+                  x={box.min.x}
+                  y={box.min.y}
+                  width={box.max.x - box.min.x}
+                  height={box.max.y - box.min.y}
+                  className={`${styles.underlay} ${styles[state]}`}
+                  vectorEffect="non-scaling-stroke"
+                  onPointerDown={(e) => pick(e, item.id)}
+                  onPointerMove={(e) => hoverOn(e, item.id)}
+                  onPointerLeave={hoverOff}
+                />
+              );
+            })}
+            {items.map((item) => {
               // EZD-312: a ceiling slope has no plan line; it is chosen from the list and fixed in the inspector.
-              if (item.type === 'room' || item.type === 'ceiling_slope') return null;
+              if (item.type === 'room' || item.type === 'ceiling_slope' || item.type === 'cabinet') return null;
               const state = itemState(item, selectedId, cutoff, decisions);
               let a = { x: 0, y: 0 };
               let b = { x: 0, y: 0 };

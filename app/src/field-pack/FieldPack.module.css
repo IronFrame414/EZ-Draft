@@ -1,0 +1,135 @@
+.headerEnd {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badge {
+  min-height: var(--ez-touch-target);
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-ink);
+  color: var(--ez-surface);
+  font: inherit;
+  font-family: var(--ez-font-mono);
+  font-size: var(--ez-text-12);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.note {
+  padding: 8px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-canvas);
+}
+
+.noteDate {
+  margin: 0;
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}
+
+.noteText {
+  margin: 2px 0 0;
+  font-size: var(--ez-text-13);
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ez-touch-target);
+  padding: 0 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-surface);
+  color: var(--ez-slate-700);
+  font: inherit;
+  font-size: var(--ez-text-13);
+  cursor: pointer;
+}
+
+.chipOn {
+  background: var(--ez-cobalt-tint);
+  border-color: var(--ez-cobalt);
+  color: var(--ez-cobalt-deep);
+  font-weight: 600;
+}
+
+.panel {
+  min-height: 100%;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60%;
+  padding: 24px 16px;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: var(--ez-text-15);
+  color: var(--ez-slate-500);
+  text-align: center;
+}
+
+.tabBar {
+  flex: none;
+  display: flex;
+  border-top: 1px solid var(--ez-border);
+  background: var(--ez-surface);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 56px;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: var(--ez-slate-500);
+  font: inherit;
+  font-size: var(--ez-text-12);
+  cursor: pointer;
+}
+
+.tabOn {
+  color: var(--ez-cobalt);
+  font-weight: 600;
+}
+
+.tabIcon {
+  position: relative;
+  display: inline-flex;
+}
+
+.count {
+  position: absolute;
+  top: -4px;
+  left: 14px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+  font-size: var(--ez-text-10);
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}

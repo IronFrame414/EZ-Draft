@@ -15,6 +15,7 @@ import { createDrawingShell, FIRST_INPUT, type DrawingEngine } from './drawing-s
 import { railMode, toolForKey } from './rail-mode';
 import { baseObjects, idSeq, roomsOf, uid, wallsOf, WHEN, WHO, withWalls } from './test-utils/fixtures';
 import type { ObjectValue } from '../../lib/outbox/model-api';
+import { effectiveBindings, type ShortcutBindings } from '../../lib/defaults/shortcuts';
 
 const PPI = 8 / 3;
 const pt = (x: number, y: number): Point => ({ x, y });
@@ -198,7 +199,10 @@ describe('EZD-423 drawing shell', () => {
     expect(shell.keyDown(ke('Escape'))).toBe(false);
     expect(shell.keyDown(ke('Enter'))).toBe(false);
     expect(load).not.toHaveBeenCalled();
-    expect(shell.keyDown(ke('R', { shiftKey: true }))).toBe(true);
+    // EZD-230: Shift+R is Reference (04 Tool rail), not a tool key yet; Shift+W still falls back to Wall.
+    expect(shell.keyDown(ke('R', { shiftKey: true }))).toBe(false);
+    expect(load).not.toHaveBeenCalled();
+    expect(shell.keyDown(ke('W', { shiftKey: true }))).toBe(true);
     expect(load).toHaveBeenCalledTimes(1);
   });
 
@@ -380,5 +384,75 @@ describe('EZD-423 drawing shell', () => {
 
   it('railMode is the engine export unchanged', () => {
     expect(engineRailMode).toBe(railMode);
+  });
+});
+
+// EZD-222 (AC-EZD-222-1 "Rebinding the Wall key changes the tool shortcut"; S15d Keyboard shortcuts): the key map in
+// force is read on every key, before and after the engine loads. Wall moved to B: B turns Wall on, W does not.
+describe('EZD-222 rebound tool keys', () => {
+  function rebound(keys: () => ShortcutBindings) {
+    const store = createModelStore({ objects: baseObjects() });
+    const h = fakeHandle();
+    let resolve: (m: DrawingEngine) => void = () => {};
+    const load = vi.fn(
+      () =>
+        new Promise<DrawingEngine>((r) => {
+          resolve = r;
+        }),
+    );
+    const shell = createDrawingShell(
+      {
+        handle: h.handle,
+        store,
+        viewer: { appUserId: WHO, canEdit: true },
+        onMessage: () => {},
+        newId: idSeq(100),
+        now: () => WHEN,
+        keys,
+      },
+      { load, inputs: fakeInputs() },
+    );
+    const arrive = async () => {
+      resolve({ createDrawingController });
+      await Promise.resolve();
+      await Promise.resolve();
+    };
+    return { shell, load, arrive };
+  }
+
+  it('toolForKey reads the given map', () => {
+    const b = effectiveBindings({ wall: 'B' });
+    expect(toolForKey(ke('b'), true, b)).toBe('wall');
+    expect(toolForKey(ke('w'), true, b)).toBeNull();
+    expect(toolForKey(ke('w'), true)).toBe('wall');
+    // Measure still needs no Edit model under its own key.
+    expect(toolForKey(ke('L', { shiftKey: true }), false, b)).toBe('measure');
+  });
+
+  it('before the load: W is no tool key, B asks for Wall', () => {
+    const { shell, load } = rebound(() => effectiveBindings({ wall: 'B' }));
+    expect(shell.keyDown(ke('w'))).toBe(false);
+    expect(load).not.toHaveBeenCalled();
+    expect(shell.keyDown(ke('b'))).toBe(true);
+    expect(load).toHaveBeenCalledTimes(1);
+  });
+
+  it('after the load the engine reads the map live: a change applies on the next key', async () => {
+    let map = effectiveBindings({ wall: 'B' });
+    const { shell, arrive } = rebound(() => map);
+    shell.selectTool('move');
+    await arrive();
+    expect(shell.getUi().tool).toBe('move');
+    shell.keyDown(ke('Escape'));
+    expect(shell.getUi().tool).toBeNull();
+    expect(shell.keyDown(ke('w'))).toBe(false);
+    expect(shell.getUi().tool).toBeNull();
+    expect(shell.keyDown(ke('b'))).toBe(true);
+    expect(shell.getUi().tool).toBe('wall');
+    shell.keyDown(ke('Escape'));
+    map = effectiveBindings({});
+    expect(shell.keyDown(ke('b'))).toBe(false);
+    expect(shell.keyDown(ke('w'))).toBe(true);
+    expect(shell.getUi().tool).toBe('wall');
   });
 });

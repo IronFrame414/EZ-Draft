@@ -2,8 +2,8 @@
 // exported method of every route, in the plan's order. Each request is the success request of that route's own
 // route.test.ts unless the plan says otherwise; the status is the plan's (200 when not shown). `after` keeps the
 // ids a later case needs in env.created. Test-only.
-import { randomUUID } from 'node:crypto';
-import { adminDb, type Member } from '../rls/fixtures';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { adminDb, harnessSql, type Member } from '../rls/fixtures';
 import { NOTIFICATION_KINDS } from '../../src/lib/notifications/kinds';
 import { DEV_SAMPLE_PARAMS } from '../../src/app/dev/notifications/NotificationsProbe';
 import { logoPathFor } from '../../src/server/company/company';
@@ -24,9 +24,18 @@ export type MoneyRouteCase = {
   load: () => Promise<Record<string, unknown>>;
   request: (env: CaseEnv) => Promise<{ request: Request; params?: Record<string, string> }>;
   expectStatus: number;
+  // EZD-914: the status for a member without this switch, when the route refuses that member (supplier files are
+  // cost files, so a member without See company costs gets 403 and no body to scan).
+  expectStatusWithout?: { permission: string; status: number };
   after?: (body: unknown, env: CaseEnv) => void;
   note?: string;
 };
+
+/** The status a case expects for a member holding `granted`. */
+export function expectedStatus(c: MoneyRouteCase, granted: readonly string[]): number {
+  const w = c.expectStatusWithout;
+  return w !== undefined && !granted.includes(w.permission) ? w.status : c.expectStatus;
+}
 
 const BASE = 'http://localhost';
 const API = 'app/src/app/api/';
@@ -53,6 +62,21 @@ const field = (body: unknown, ...keys: string[]): string => {
   if (typeof v !== 'string') throw new Error(`response has no string at ${keys.join('.')}`);
   return v;
 };
+
+// EZD-1201: the project's newest sent package (the share link the send case made).
+async function latestSentPackage(
+  env: CaseEnv,
+): Promise<{ id: string; model_version_id: string; recipients: unknown }> {
+  const { data, error } = await adminDb()
+    .from('sent_package')
+    .select('id, model_version_id, recipients')
+    .eq('project_id', env.projectId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+  if (error || !data) throw new Error(`sent_package read failed: ${error?.code}`);
+  return data as { id: string; model_version_id: string; recipients: unknown };
+}
 
 const KIND = NOTIFICATION_KINDS[0];
 const ALL_ON = NOTIFICATION_KINDS.map((kind) => ({ kind, inApp: true, email: true }));
@@ -114,6 +138,21 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     method: 'PUT',
     load: () => import('../../src/app/api/profile/notifications/route'),
     request: sendJson('PUT', '/api/profile/notifications', { settings: SETTINGS_CHANGED }),
+    expectStatus: 200,
+  },
+  // EZD-230: the user's own rail tool order.
+  {
+    file: `${API}profile/rail-order/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/profile/rail-order/route'),
+    request: get('/api/profile/rail-order'),
+    expectStatus: 200,
+  },
+  {
+    file: `${API}profile/rail-order/route.ts`,
+    method: 'PUT',
+    load: () => import('../../src/app/api/profile/rail-order/route'),
+    request: sendJson('PUT', '/api/profile/rail-order', { order: ['wall', 'select'] }),
     expectStatus: 200,
   },
   {
@@ -304,6 +343,73 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     }),
     expectStatus: 200,
     note: 'EZD-304: the project PDFs with their scale (no money)',
+  },
+  // EZD-914: the Supplier files panel. Supplier files are cost files, so a member without See company costs is refused
+  // (403, no body). The answers are source_file ids, names, kinds, sizes, supplier name and email, and a signed
+  // upload (no money). The complete case makes its own unfinished row and object, so it runs for both members.
+  {
+    file: `${API}projects/[id]/supplier-files/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/supplier-files/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/supplier-files`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    expectStatusWithout: { permission: 'see_company_costs', status: 403 },
+    note: 'EZD-914: the project supplier files (no money)',
+  },
+  {
+    file: `${API}projects/[id]/supplier-files/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/supplier-files/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/supplier-files`, {
+        kind: 'order_report',
+        originalName: '2020_order_report.pdf',
+        contentType: 'application/pdf',
+        size: 100,
+        supplierName: 'Cabinet Co',
+        supplierContactEmail: 'orders@cabinet.example',
+      })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 201,
+    expectStatusWithout: { permission: 'see_company_costs', status: 403 },
+    note: 'EZD-914: source_file view and signed upload (no money)',
+  },
+  {
+    file: `${API}supplier-files/[id]/complete/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/supplier-files/[id]/complete/route'),
+    request: async (env) => {
+      const id = randomUUID();
+      const path = `${env.tenantId}/${env.projectId}/${id}`;
+      const row = await adminDb().from('source_file').insert({
+        id,
+        tenant_id: env.tenantId,
+        project_id: env.projectId,
+        kind: 'image',
+        storage_path: path,
+        original_name: '2020_persp_02.png',
+        content_type: 'image/png',
+        size_bytes: 100,
+        uploaded_by: env.member.appUserId,
+        supplier_name: 'Cabinet Co',
+      });
+      if (row.error) throw new Error(`insert failed: ${row.error.message}`);
+      const { error } = await adminDb()
+        .storage.from('sources')
+        .upload(path, PNG_100, { contentType: 'image/png' });
+      if (error) throw new Error(`upload failed: ${error.message}`);
+      env.created.set('supplierCompletePath', path);
+      return {
+        request: new Request(`${BASE}/api/supplier-files/${id}/complete`, { method: 'POST' }),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-914: source_file view (no money)',
   },
   {
     file: `${API}source-files/[id]/scale/route.ts`,
@@ -659,6 +765,18 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-712: Project settings picks the profile; 200 { profileId } (no money)',
   },
+  // EZD-726: the set selector query (the project's permit and client sets with their sheets).
+  {
+    file: `${API}projects/[id]/sheet-sets/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/sheet-sets/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/sheet-sets`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-726: the sets and their sheets; 200 { sets } (no money)',
+  },
   // EZD-714: the notes the project's set prints (general notes for its type and its profile's required notes).
   {
     file: `${API}projects/[id]/notes/route.ts`,
@@ -670,6 +788,105 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     }),
     expectStatus: 200,
     note: 'EZD-714: the set notes; 200 { general, required } (no money)',
+  },
+  // EZD-1404: the phone field pack; a project with no issue answers pack null.
+  {
+    file: `${API}projects/[id]/field-pack/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/field-pack/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/field-pack`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-1404: the field pack; 200 { projectName, clientName, pack } (no money)',
+  },
+  // EZD-1415: Field measure rooms; GET reads them (a new project: the Building alone), PUT saves an L-shaped room.
+  {
+    file: `${API}projects/[id]/field-measure/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/field-measure/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/field-measure`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-1415: the field measure rooms; 200 { rooms } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/field-measure/route.ts`,
+    method: 'PUT',
+    load: () => import('../../src/app/api/projects/[id]/field-measure/route'),
+    request: async (env) => ({
+      ...(await sendJson('PUT', `/api/projects/${env.projectId}/field-measure`, {
+        rooms: [
+          {
+            id: 'building',
+            kind: 'building',
+            name: 'Building',
+            shape: 'l',
+            corners: [],
+            closed: true,
+            lengths: [null, null, null, null, null, null],
+            ceiling: null,
+          },
+        ],
+      })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-1415: saves the field measure rooms; 200 { status } (no money)',
+  },
+  // EZD-1419: the office reopens sent field measure rooms; nothing sent yet answers not_sent.
+  {
+    file: `${API}projects/[id]/field-measure/reopen/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/field-measure/reopen/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/field-measure/reopen`, {})()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-1419: reopens sent field measure rooms; 200 { status } (no money)',
+  },
+  // EZD-1402: the field action routes; the photo start signs an upload, the record takes a measurement.
+  {
+    file: `${API}projects/[id]/field-actions/photo/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/field-actions/photo/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/field-actions/photo`, {
+        method: 'POST',
+        headers: { ...JSON_HEADERS, 'x-ezdraft-membership': env.member.membershipId },
+        body: JSON.stringify({ id: randomUUID(), kind: 'photo_pin', photo: 'jpg' }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-1402: signs a field photo upload; 200 { upload } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/field-actions/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/field-actions/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/field-actions`, {
+        method: 'POST',
+        headers: { ...JSON_HEADERS, 'x-ezdraft-membership': env.member.membershipId },
+        body: JSON.stringify({
+          id: randomUUID(),
+          deviceId: randomUUID(),
+          kind: 'measurement',
+          ops: { value: 144 },
+          baseVersionId: null,
+          queuedAt: Date.now(),
+          photo: null,
+        }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-1402: records a queued field action; 200 { status, syncedAt } (no money)',
   },
   // EZD-233: the Plan editor's saved groups; POST saves one lavatory as a group.
   {
@@ -917,6 +1134,22 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     request: sendJson('PATCH', '/api/settings/code-edition', { optionalLoadCalc: true }),
     expectStatus: 200,
     note: 'EZD-613: save the company code edition; 200 { edition, optionalLoadCalc, available } (no money)',
+  },
+  {
+    file: `${API}settings/title-block/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/title-block/route'),
+    request: get('/api/settings/title-block'),
+    expectStatus: 200,
+    note: 'EZD-709: the company title block; 200 { config, company, codeEdition } (no money)',
+  },
+  {
+    file: `${API}settings/title-block/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/settings/title-block/route'),
+    request: sendJson('PATCH', '/api/settings/title-block', { showCompany: false }),
+    expectStatus: 200,
+    note: 'EZD-709: save the company-block switch; 200 { showCompany } (no money)',
   },
   {
     file: `${API}settings/render-models/route.ts`,
@@ -1265,6 +1498,115 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 201,
     note: 'EZD-111: one send; 201 { send } (no money)',
   },
+  // EZD-1201: the share link routes, on the link the send case made. resolve runs on a second row of the same
+  // send with a fresh token this case knows (the send's token is only in its email). No money field in any answer.
+  {
+    file: `${API}share-links/resolve/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/share-links/resolve/route'),
+    request: async (env) => {
+      const sent = await latestSentPackage(env);
+      const token = randomBytes(32).toString('base64url');
+      const { error } = await adminDb()
+        .from('sent_package')
+        .insert({
+          tenant_id: env.tenantId,
+          project_id: env.projectId,
+          model_version_id: sent.model_version_id,
+          kind: 'client',
+          recipients: sent.recipients,
+          token_hash: createHash('sha256').update(token).digest('hex'),
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        });
+      if (error) throw new Error(`sent_package insert failed: ${error.code}`);
+      return sendJson('POST', '/api/share-links/resolve', { token })();
+    },
+    expectStatus: 200,
+    note: 'EZD-1201: an active link; 200 { link: { status, expiresAt } } (no money)',
+  },
+  {
+    file: `${API}share-links/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/share-links/route'),
+    request: async (env) => get(`/api/share-links?projectId=${env.projectId}`)(),
+    expectStatus: 200,
+    note: 'EZD-1201: the Share panel list; 200 { links } (no money)',
+  },
+  {
+    file: `${API}share-links/[id]/renew/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/share-links/[id]/renew/route'),
+    request: async (env) => {
+      const { id } = await latestSentPackage(env);
+      return {
+        request: new Request(`${BASE}/api/share-links/${id}/renew`, { method: 'POST' }),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-1201: Renew; 200 { link } (no money)',
+  },
+  {
+    file: `${API}share-links/[id]/revoke/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/share-links/[id]/revoke/route'),
+    request: async (env) => {
+      const { id } = await latestSentPackage(env);
+      return {
+        request: new Request(`${BASE}/api/share-links/${id}/revoke`, { method: 'POST' }),
+        params: { id },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-1201: Turn off; 200 { link } (no money)',
+  },
+  // EZD-417: the edge profile library and Edit offered edges. The PUT offers the company's first profile on a top
+  // with a rate; the GET reads it back. ratePerLf only with See sell prices.
+  {
+    file: `${API}edge-profiles/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/edge-profiles/route'),
+    request: get('/api/edge-profiles'),
+    expectStatus: 200,
+    note: 'EZD-417: the library; 200 { profiles } (no price is stored on a profile)',
+  },
+  {
+    file: `${API}projects/[id]/edge-offer/route.ts`,
+    method: 'PUT',
+    load: () => import('../../src/app/api/projects/[id]/edge-offer/route'),
+    request: async (env) => {
+      await harnessSql()`select private.seed_edge_profiles(${env.tenantId}::uuid)`;
+      const { data, error } = await adminDb()
+        .from('edge_profile')
+        .select('id')
+        .eq('tenant_id', env.tenantId)
+        .order('position')
+        .limit(1)
+        .single();
+      if (error || !data) throw new Error(`edge_profile read failed: ${error?.code}`);
+      return {
+        request: new Request(`${BASE}/api/projects/${env.projectId}/edge-offer`, {
+          method: 'PUT',
+          headers: JSON_HEADERS,
+          body: JSON.stringify({ pieceId: randomUUID(), choices: [{ profileId: data.id, ratePerLf: 12 }] }),
+        }),
+        params: { id: env.projectId },
+      };
+    },
+    expectStatus: 200,
+    note: 'EZD-417: Edit offered edges; 200 { offer } (ratePerLf only with See sell prices)',
+  },
+  {
+    file: `${API}projects/[id]/edge-offer/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/edge-offer/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/edge-offer`),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-417: the offers; 200 { offers } (ratePerLf only with See sell prices)',
+  },
   // EZD-122: the Versions panel routes, after the send so the thumbnail cases' version stays the newest.
   {
     file: `${API}projects/[id]/versions/route.ts`,
@@ -1354,6 +1696,64 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     }),
     expectStatus: 200,
     note: 'EZD-214: the phase view; 200 { phase } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/property-record/route.ts`,
+    method: 'PUT',
+    load: () => import('../../src/app/api/projects/[id]/property-record/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/property-record`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({
+          fields: { parcelNo: null, owner: 'Money case', legalDescription: null, yearBuilt: 1975, livingArea: null },
+          sourceUrl: null,
+        }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-711: the property appraiser import save; 200 { record } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/property-record/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/property-record/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/property-record`),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-711: the project property record; 200 { record } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/panel-read/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/panel-read/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/panel-read`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ fileId: randomUUID(), read: 'label' }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 404,
+    note: 'EZD-606: a file id with no panel photo row starts no job; 404 file_not_found (no money)',
+  },
+  {
+    file: `${API}property-records/read/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/property-records/read/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/property-records/read`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ projectId: env.projectId, url: 'https://example.com/parcel' }),
+      }),
+    }),
+    expectStatus: 200,
+    note: 'EZD-711: a link the server may not fetch answers unreadable with no job; 200 { output } (no money)',
   },
   {
     file: `${API}projects/[id]/defaults/route.ts`,

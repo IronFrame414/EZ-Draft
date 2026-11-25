@@ -39,7 +39,7 @@
   display: flex;
   align-items: baseline;
   gap: 1px;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -55,7 +55,7 @@
 }
 
 .title {
-  font-size: 15px;
+  font-size: var(--ez-text-15);
   font-weight: 600;
 }
 
@@ -63,7 +63,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
   text-decoration: none;
 }
@@ -73,7 +73,7 @@
 }
 
 .company {
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -97,7 +97,7 @@
 }
 
 .navLabel {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-500);
   padding: 16px 14px 6px;
@@ -116,7 +116,7 @@
   gap: 10px;
   padding: 9px 10px;
   border-radius: var(--ez-radius-8);
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-slate-700);
   text-decoration: none;
 }
@@ -138,7 +138,7 @@
 
 .badge {
   margin-left: auto;
-  font: 400 11px var(--ez-font-mono);
+  font: 400 var(--ez-text-11) var(--ez-font-mono);
   color: var(--ez-slate-300);
 }
 
@@ -190,7 +190,7 @@
 
 .mainTitle {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--ez-text-20);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -201,7 +201,7 @@
 
 .mainSubtitle {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -224,7 +224,7 @@
   margin: 0 var(--ez-body-padding) var(--ez-body-padding);
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-8);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-family: var(--ez-font-mono);
   color: var(--ez-slate-500);
 }

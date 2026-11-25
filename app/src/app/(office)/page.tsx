@@ -44,6 +44,12 @@ export default async function ProjectsPage(): Promise<ReactElement> {
   // Delete need Delete projects.
   const canEdit = ctx !== 'failed' && can(ctx, 'edit_model');
   const canDelete = ctx !== 'failed' && can(ctx, 'delete_projects');
+  // EZD-1419 (S17b Entry points; Q-0178): every card offers Field measure to a member who may measure (Send field
+  // measurement) or reopen sent rooms (Approve field measurements); a viewer still opens the screen by its link
+  // (vault/build/assumptions.md EZD-1419).
+  const canMeasure =
+    ctx !== 'failed' &&
+    (can(ctx, 'send_field_measurement') || can(ctx, 'approve_field_measurements'));
   const account = {
     ...(await loadProjectsAccount(createSessionClient(), session)),
     showSettings,
@@ -59,6 +65,7 @@ export default async function ProjectsPage(): Promise<ReactElement> {
               canImport={canImport}
               canEdit={canEdit}
               canDelete={canDelete}
+              canMeasure={canMeasure}
             />
           ) : (
             <ProjectsNoAccessView account={account} />

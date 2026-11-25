@@ -33,7 +33,7 @@ export function roomTransitionRows(objects: Objects, roomId: string): RoomTransi
   }
   const key = roomId.toLowerCase();
   const room = parsed.find((o) => o.type === 'room' && o.id.toLowerCase() === key);
-  if (room === undefined || room.type === 'floor') return [];
+  if (room === undefined || room.type !== 'room') return [];
   const names = new Map(
     parsed.flatMap((o) => (o.type === 'room' ? [[o.id.toLowerCase(), o.data.attributes.name]] : [])),
   );

@@ -26,13 +26,63 @@ const supabaseBin = path.join(repo, 'node_modules', '.bin', 'supabase');
 let gateSecretFile = path.join(repo, 'supabase', '.temp', 'ezd-api-gate-secret');
 const DOCKER_MESSAGE = 'Local Supabase needs Docker running (start Docker Desktop).';
 
+// EZD-1965: every CLI call has a time limit (20 min for start, stop and db reset; 2 min for the rest) and is killed with
+// SIGKILL past it, the whole process tree included: the bin is a sh shim that runs `node supabase.js`, which runs the
+// Go binary, and a timeout on the shim alone left `supabase db reset` running for days (2026-11-23). The CLI runs
+// under a small node runner (LIMIT_RUNNER) that kills the tree; it stays in the check step's process group, so a
+// stopped check (scripts/check.mjs) kills it too. EZD_SUPABASE_LONG_LIMIT_MS / EZD_SUPABASE_SHORT_LIMIT_MS override
+// the limits for tests.
+const LONG_LIMIT_MS = 20 * 60000;
+const SHORT_LIMIT_MS = 2 * 60000;
+const LONG_COMMANDS = new Set(['start', 'stop', 'db reset']);
+const TIMED_OUT = 124;
+const LIMIT_RUNNER = `
+const { spawn, execFileSync } = require('node:child_process');
+const [limit, bin, ...args] = process.argv.slice(1);
+const child = spawn(bin, args, { stdio: 'inherit' });
+const tree = (root) => {
+  let rows = [];
+  try { rows = execFileSync('ps', ['-A', '-o', 'pid=,ppid='], { encoding: 'utf8' }).trim().split('\\n').map((l) => l.trim().split(/\\s+/).map(Number)); } catch {}
+  const out = [root];
+  for (let i = 0; i < out.length; i++) for (const [pid, ppid] of rows) if (ppid === out[i] && !out.includes(pid)) out.push(pid);
+  return out;
+};
+const killTree = (sig) => { for (const pid of tree(child.pid).reverse()) { try { process.kill(pid, sig); } catch {} } };
+const timer = setTimeout(() => { killTree('SIGKILL'); process.exit(${TIMED_OUT}); }, Number(limit));
+for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => { killTree(sig); setTimeout(() => { killTree('SIGKILL'); process.exit(1); }, 5000); });
+child.on('error', (e) => { process.stderr.write(String(e.message) + '\\n'); process.exit(1); });
+child.on('exit', (code, signal) => { clearTimeout(timer); process.exit(code ?? (signal ? 1 : 0)); });
+`;
+
+function limitFor(args) {
+  const cmd = args[0] === 'db' ? `db ${args[1]}` : args[0];
+  const long = LONG_COMMANDS.has(cmd);
+  const override = Number(process.env[long ? 'EZD_SUPABASE_LONG_LIMIT_MS' : 'EZD_SUPABASE_SHORT_LIMIT_MS']);
+  return override > 0 ? override : long ? LONG_LIMIT_MS : SHORT_LIMIT_MS;
+}
+
+function formatLimit(ms) {
+  if (ms % 60000 === 0) return `${ms / 60000} min`;
+  if (ms % 1000 === 0) return `${ms / 1000} s`;
+  return `${ms} ms`;
+}
+
 function cli(args, { inherit = false } = {}) {
-  const r = spawnSync(supabaseBin, args, {
+  const limit = limitFor(args);
+  const r = spawnSync(process.execPath, ['-e', LIMIT_RUNNER, String(limit), supabaseBin, ...args], {
     cwd: repo,
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
     stdio: inherit ? ['ignore', 'inherit', 'pipe'] : ['ignore', 'pipe', 'pipe'],
+    // Backstop if the runner itself hangs; the runner's own limit comes first.
+    timeout: limit + 30000,
+    killSignal: 'SIGKILL',
   });
+  // A timed-out call ends local.mjs here: a hung `status` must not read as "stack not running" (stack-config.mjs).
+  if (r.status === TIMED_OUT || r.signal === 'SIGKILL') {
+    process.stderr.write(`supabase ${args.join(' ')} did not finish within ${formatLimit(limit)}: killed it (SIGKILL)\n`);
+    process.exit(1);
+  }
   const out = (r.stdout || '') + (r.stderr || '') + (r.error ? String(r.error.message) : '');
   return { ok: r.status === 0 && !r.error, status: r.status, out, stdout: r.stdout || '', stderr: r.stderr || '' };
 }

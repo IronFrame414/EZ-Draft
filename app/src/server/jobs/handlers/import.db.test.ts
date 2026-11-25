@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { holdJobQueueShared } from '../../../../test-harness/jobs/queue-lock';
 import { expectSafeToRunTwice } from '../../../../test-harness/jobs/run-twice';
 import { describeTenantIsolation } from '../../../../test-harness/rls/isolation';
 import {
@@ -53,6 +54,16 @@ const repo = path.resolve(
 const CLEAN = path.join(repo, 'fixtures/synthetic/room-12x10.dxf');
 const expected = JSON.parse(readFileSync(`${CLEAN}.expected.json`, 'utf8'));
 const db = (s: Session) => s.serverDb as unknown as DbClient;
+
+// This file leaves due job rows in the queue, so it holds the shared job-queue lock for its whole run
+// (test-harness/jobs/README.md): the unscoped sweep tests then never claim them.
+let releaseJobQueue: (() => Promise<void>) | undefined;
+beforeAll(async () => {
+  releaseJobQueue = await holdJobQueueShared();
+}, 180000);
+afterAll(async () => {
+  await releaseJobQueue?.();
+});
 
 describe('EZD-302 import job', () => {
   const paths: string[] = [];

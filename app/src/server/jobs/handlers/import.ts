@@ -12,7 +12,10 @@
 // source_kind is dxf. A dxf file without a choice is a reference only and gets no session.
 // EZD-305 (S01 PDF: detect type; S02 States Empty): a PDF (kind pdf) is read on its calibrated page (page 1 without a
 // scale) and its wall lines detected (pdf-walls/detect); source_kind pdf. A scanned PDF has no lines, so its session is
-// ready with no items, which Import review shows as "Nothing detected" (EZD-314). A supplier PDF is not read here.
+// ready with no items, which Import review shows as "Nothing detected" (EZD-314).
+// EZD-915 (S12 Supplier PDF import; S02 States "Supplier kitchen PDF"): a supplier PDF (kind supplier_pdf) is read on
+// every page (page 1 the plan, later pages elevations) for walls and labelled cabinets (supplier-pdf/detect); its
+// session's source_kind is supplier and import.ready counts its cabinets. A scanned supplier PDF gives no items.
 import { z } from 'zod';
 import {
   DXF_LAYER_NAME_MAX,
@@ -25,7 +28,8 @@ import { detectPolycamDxf, type Detection, type LayerMap } from '../polycam-dxf/
 import { layerMapFromChoice } from '../polycam-dxf/layer-choice';
 import { DxfReadError, readDxf } from '../polycam-dxf/read-dxf';
 import { detectPdfWalls } from '../pdf-walls/detect';
-import { PdfReadError, readPdfPage } from '../pdf-walls/read-pdf';
+import { PdfReadError, readPdfPage, readPdfPages } from '../pdf-walls/read-pdf';
+import { detectSupplierPdf, type SupplierDetection } from '../supplier-pdf/detect';
 import { readObject } from '../../storage/objects';
 import { readJobPdfCalibration, readJobSourceFiles } from '../../storage/source-files';
 import { createJobsDbClient } from '../db';
@@ -53,14 +57,18 @@ export const importDxfFileSchema = z.strictObject({
   layers: z.array(dxfLayerChoiceSchema).min(1).max(DXF_LAYERS_MAX),
 });
 
-export type ImportCounts = { walls: number; openings: number; rooms: number };
+export type ImportCounts = { walls: number; openings: number; rooms: number; cabinets?: number };
 
-export function detectionItems(d: Detection) {
-  return [...d.walls, ...d.openings, ...d.rooms];
+const hasCabinets = (d: Detection | SupplierDetection): d is SupplierDetection => 'cabinets' in d;
+
+export function detectionItems(d: Detection | SupplierDetection) {
+  return [...d.walls, ...d.openings, ...d.rooms, ...(hasCabinets(d) ? d.cabinets : [])];
 }
 
-export function detectionCounts(d: Detection): ImportCounts {
-  return { walls: d.walls.length, openings: d.openings.length, rooms: d.rooms.length };
+export function detectionCounts(d: Detection | SupplierDetection): ImportCounts {
+  const c: ImportCounts = { walls: d.walls.length, openings: d.openings.length, rooms: d.rooms.length };
+  if (hasCabinets(d)) c.cabinets = d.cabinets.length;
+  return c;
 }
 
 async function detectPdf(
@@ -96,7 +104,7 @@ export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
     // Each file to detect, with the layer map it is read with (undefined: the Polycam layer names).
     const scans: Array<{
       file: (typeof files)[number];
-      sourceKind: 'scan' | 'dxf' | 'pdf';
+      sourceKind: 'scan' | 'dxf' | 'pdf' | 'supplier';
       layerMap?: LayerMap;
     }> = [];
     for (const id of ctx.payload.sourceFileIds) {
@@ -104,6 +112,7 @@ export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
       if (!file || !file.uploaded) continue;
       if (file.kind === 'polycam_dxf') scans.push({ file, sourceKind: 'scan' });
       if (file.kind === 'pdf') scans.push({ file, sourceKind: 'pdf' });
+      if (file.kind === 'supplier_pdf') scans.push({ file, sourceKind: 'supplier' });
       const chosen = choices.get(id.toLowerCase());
       if (file.kind === 'dxf' && chosen) {
         scans.push({ file, sourceKind: 'dxf', layerMap: layerMapFromChoice(chosen) });
@@ -141,11 +150,14 @@ export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
           const detection =
             sourceKind === 'pdf'
               ? await detectPdf(db, { tenantId, projectId }, file.id, bytes)
-              : detectPolycamDxf(readDxf(bytes), layerMap ? { layerMap } : {});
+              : sourceKind === 'supplier'
+                ? detectSupplierPdf(await readPdfPages(bytes))
+                : detectPolycamDxf(readDxf(bytes), layerMap ? { layerMap } : {});
           const c = detectionCounts(detection);
           counts.walls += c.walls;
           counts.openings += c.openings;
           counts.rooms += c.rooms;
+          if (c.cabinets !== undefined) counts.cabinets = (counts.cabinets ?? 0) + c.cabinets;
           row = { status: 'ready', items: detectionItems(detection), summary: c, error: null };
         } catch (e) {
           if (!(e instanceof DxfReadError) && !(e instanceof PdfReadError)) throw e;

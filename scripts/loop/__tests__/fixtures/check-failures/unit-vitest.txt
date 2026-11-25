@@ -1,0 +1,21 @@
+step: unit and database tests
+command: pnpm -r --if-present --filter !./spikes/** run test
+full log: /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-503/check.log
+
+== failure lines ==
+ FAIL  |app| src/server/db/permissions.test.ts > permissions > T11 every preset has a row for every key
+AssertionError: expected [ …(12) ] to have a length of 11 but got 12
+ FAIL  |app| src/lib/review/sources.test.ts > review sources > lists field measure
+AssertionError: expected undefined to be 'field_measure'
+ Test Files  2 failed | 410 passed (412)
+      Tests  2 failed | 4510 passed (4512)
+
+== last lines ==
+ FAIL  |app| src/server/db/permissions.test.ts > permissions > T11 every preset has a row for every key
+AssertionError: expected [ …(12) ] to have a length of 11 but got 12
+ ❯ src/server/db/permissions.test.ts:458:22
+ FAIL  |app| src/lib/review/sources.test.ts > review sources > lists field measure
+AssertionError: expected undefined to be 'field_measure'
+ ❯ src/lib/review/sources.test.ts:31:7
+ Test Files  2 failed | 410 passed (412)
+      Tests  2 failed | 4510 passed (4512)

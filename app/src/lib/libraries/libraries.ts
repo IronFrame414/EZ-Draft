@@ -1,6 +1,7 @@
 // EZD-131 (S15h Layout, Controls, Decisions 1; 03e library_item): the Settings > Libraries tabs in mockup
 // order and the library item shape. Browser and server.
 import type { MessageKey } from '../../server/messages/catalog';
+import type { TaskTemplate, TemplateCode } from '../field-tasks/templates';
 
 export const LIBRARY_KINDS = [
   'note',
@@ -80,10 +81,16 @@ export const LIBRARY_TABS: readonly LibraryTab[] = [
   },
 ];
 
-// Kinds that can be added (S15h: abbreviations may be added; EZD-714 notes) and changed (abbreviations, notes;
-// saved groups are renamed or deleted). The other kinds' own tickets add their editors.
-export const CREATABLE_KINDS: readonly LibraryKind[] = ['note', 'abbreviation'];
-export const EDITABLE_KINDS: readonly LibraryKind[] = ['note', 'abbreviation', 'saved_group'];
+// Kinds that can be added (S15h: abbreviations may be added; EZD-714 notes; EZD-1408 field task templates) and
+// changed (abbreviations, notes, templates; saved groups are renamed or deleted). The other kinds' own tickets add
+// their editors.
+export const CREATABLE_KINDS: readonly LibraryKind[] = ['note', 'abbreviation', 'task_template'];
+export const EDITABLE_KINDS: readonly LibraryKind[] = [
+  'note',
+  'abbreviation',
+  'saved_group',
+  'task_template',
+];
 
 export const LIBRARY_NAME_MAX = 120;
 export const LIBRARY_MEANING_MAX = 200;
@@ -106,6 +113,8 @@ export type LibraryItem = {
   updatedAt: string;
   // A note's group and project types; present on notes only.
   note?: NoteData;
+  // EZD-1408: a field task template's room type and phases; present on task templates only.
+  template?: TaskTemplate;
 };
 
 export type LibraryCode =
@@ -116,7 +125,9 @@ export type LibraryCode =
   | 'library_meaning_too_long'
   | 'library_note_required'
   | 'library_note_too_long'
-  | 'library_note_project_type_required';
+  | 'library_note_project_type_required'
+  | TemplateCode
+  | 'task_template_exists';
 
 export type LibraryDraft = { name: string; meaning: string | null };
 

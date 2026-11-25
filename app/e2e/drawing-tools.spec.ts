@@ -210,8 +210,9 @@ test.describe('EZD-210b drawing tools', () => {
     const tools = rail(page).locator('[data-rail="top"] [data-rail-tool]');
     const bottom = rail(page).locator('[data-rail="bottom"] [data-rail-tool]');
     await expect(tools).toHaveCount(13); // EZD-601: plus Electrical, after Cabinets; EZD-412: plus Countertops
-    await expect(bottom).toHaveCount(1);
-    await expect(bottom).toHaveAttribute('data-rail-tool', 'assistant');
+    await expect(bottom).toHaveCount(2); // EZD-222: Assistant, then Help
+    await expect(bottom.nth(0)).toHaveAttribute('data-rail-tool', 'assistant');
+    await expect(bottom.nth(1)).toHaveAttribute('data-rail-tool', 'help');
     await expect(tools.nth(0)).toHaveAttribute('data-rail-tool', 'select');
     await expect(tools.nth(1)).toHaveAttribute('data-rail-tool', 'move');
     await expect(tools.nth(2)).toHaveAttribute('data-rail-tool', 'wall');
@@ -295,7 +296,7 @@ test.describe('EZD-210b drawing tools', () => {
     await openReady(page, ids.P1);
     await page.keyboard.press('w');
     await expect(rail(page)).toHaveCount(1);
-    await expect(rail(page).locator('[data-rail-tool]')).toHaveCount(6); // EZD-601: plus Electrical; EZD-412: plus Countertops
+    await expect(rail(page).locator('[data-rail-tool]')).toHaveCount(7); // EZD-601: plus Electrical; EZD-412: plus Countertops; EZD-222: plus Help
     await expect(tool(page, 'wall')).toHaveCount(0);
     await expect(id(page, 'typed-bar')).toHaveCount(0);
     await expect(id(page, 'gap-box')).toHaveCount(1);
@@ -528,7 +529,7 @@ test.describe('EZD-210b drawing tools', () => {
       await addGap(page);
       await view(page);
       expect(await expectTouchTargets(page, rail(page).locator('[data-rail="top"]'))).toBe(13); // EZD-601: plus Electrical; EZD-412: plus Countertops
-      expect(await expectTouchTargets(page, rail(page).locator('[data-rail="bottom"]'))).toBe(1);
+      expect(await expectTouchTargets(page, rail(page).locator('[data-rail="bottom"]'))).toBe(2); // EZD-222: Assistant and Help
       expect(await expectTouchTargets(page, id(page, 'gap-box'))).toBe(1);
     },
   );

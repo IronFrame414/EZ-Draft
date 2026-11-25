@@ -3,6 +3,11 @@
 // gate, squash merge to develop, push. Runs unattended as the launchd agent com.ezdraft.build (scripts/launchd/build.mjs).
 // A ticket that does not finish for any reason is set aside (vault/build/set-aside.md) and the loop moves on.
 // Pause: touch vault/build/STOP (running tickets finish first). State: vault/build/state.json.
+// Self-restart (EZD-1967): a merge that changes the loop's own code drains like STOP, dry-runs the new code and exits 75
+// so launchd relaunches it (scripts/loop/self-restart.mjs).
+// Build order (EZD-1940): security fixes, the config.json `priority` list, retried tickets, then phase, build position
+// and id (scripts/loop/order.mjs). A ticket that failed once is requeued at the front, so the priority list is no longer
+// needed to bring a retry forward.
 // Lanes (Josh 2026-11-16): up to config `lanes` tickets build at once, each with its own database lane. No two running
 // tickets may edit the same file: each ticket first predicts the files it will change (its footprint, cached in
 // vault/build/footprints.json), starts only when no running ticket holds any of them, claims files it finds it needs
@@ -18,7 +23,14 @@ import { randomUUID } from 'node:crypto';
 import { lastBeat, resetReason, sample, startNote, writeBeat } from './loop/heartbeat.mjs';
 import { TRACK as SECURITY_TRACK, readSeen, recordFixTicket, runAudit, unseen } from './loop/advisories.mjs';
 import { effectiveStatuses } from './loop/holds.mjs';
+import { BUILD_FILES } from './loop/build-files.mjs';
+import { runCheck } from './loop/check-run.mjs';
+import { createEvents, failureSummary, msToSecondEnd, oneLine, sameSecondEvents, secondOf } from './loop/failure-lines.mjs';
+import { withImportingTests } from './loop/import-graph.mjs';
+import { changedFiles, createSelfRestart, runDryRun } from './loop/self-restart.mjs';
+import { buildOrder, phaseRank } from './loop/order.mjs';
 import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
+import { TYPES_FILE, orderMigrations, regenerateTypes, settleGeneratedConflicts, touchesSchema } from './loop/merge-files.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const B = path.join(ROOT, 'vault/build');
@@ -41,7 +53,8 @@ const DEFAULTS = {
   trial_size: 20, lanes: [0, 1, 2], footprint_effort: 'low', footprint_timeout_min: 15, footprint_lookahead: 6,
   merge_rounds: 3, holder_wait_min: 240, idle_minutes: 30, limit_sleep_minutes: 30, limit_probe_minutes: 5, red_streak_guard: 3,
   skip_tracks: ['tooling'], skip_statuses: ['blocked'],
-  // Tickets built first when eligible, even after a failure (a retried ticket otherwise waits at the back of the queue).
+  // Tickets built first when eligible (after security fixes). Not needed for retries: a retried ticket already goes
+  // before every fresh ticket of the same priority rank (EZD-1940, scripts/loop/order.mjs).
   priority: [],
   // Josh 2026-11-14: a ticket in this phase rank or higher starts only when every ticket in every lower phase rank is
   // complete (done, a skipped track or a skipped status). A set-aside ticket is not complete and holds the gate.
@@ -51,6 +64,10 @@ const DEFAULTS = {
   // Josh 2026-11-19: security is handled as the app is built. pnpm audit runs this often; a new advisory becomes a fix
   // ticket at the front of the line (scripts/loop/advisories.mjs).
   advisory_check_hours: 6,
+  // Josh 2026-11-20: "All fixes should use the next model up." Every fix round (check, review, merge) and every fix
+  // ticket (a title starting "Fix:" or the security track) is built with fix_model; a fix_model run that gives no
+  // result at all falls back to builder_model once.
+  fix_model: 'claude-fable-5-2',
 };
 const SECURITY_PATHS = /(supabase\/migrations|\/server\/|rls|auth|permission|share|price|money|cost|webhook|invite|role)/i;
 
@@ -59,7 +76,10 @@ const readJson = (p, fb) => { try { return JSON.parse(readFileSync(p, 'utf8')); 
 const cfg = () => ({ ...DEFAULTS, ...readJson(P.config, {}) });
 const now = () => new Date().toISOString().replace(/\.\d+Z$/, 'Z');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-function log(msg) { const line = `[${now()}] ${msg}`; console.log(line); appendFileSync(P.log, line + '\n'); }
+// Every logged line (and each check end and claude run end) is kept a while in `events`, so a CLAUDE DIED line can name
+// the other lanes' events in the same second (EZD-1939, audit 2026-11-23 W5).
+const events = createEvents();
+function log(msg) { const at = new Date(); const line = `[${secondOf(at)}] ${msg}`; events.note(msg, at); console.log(line); appendFileSync(P.log, line + '\n'); }
 // Another process (a claude session's `git status`, a builder) can hold a checkout's index.lock for a moment; a git
 // call that fails only on that lock is retried, so a commit never stops halfway with its files staged.
 function git(args, cwd = ROOT, opts = {}) {
@@ -71,8 +91,7 @@ function git(args, cwd = ROOT, opts = {}) {
   }
 }
 // Build files the loop writes and commits itself. A merge in the main checkout needs them unstaged.
-const BUILD_FILES = ['vault/build/state.json', 'vault/build/set-aside.md', 'vault/build/usage.jsonl', 'vault/build/trial-report.md'];
-// loop.log is gitignored (*.log); listing it made every `git add` fail, so no build file was ever committed (2026-11-17).
+// The list is in scripts/loop/build-files.mjs; loop.log is not on it (gitignored, audit 2026-11-23 W8).
 // A read-only checkout of develop for the footprint calls, so a claude session's git calls never touch the main
 // checkout's index while the loop commits there.
 function footprintTree() {
@@ -152,8 +171,6 @@ function writeSetAside(s) {
 
 // ---------- tickets ----------
 function tickets() { const t = readJson(path.join(ROOT, 'vault/tickets/tickets.json'), {}); return Array.isArray(t) ? t : t.tickets || []; }
-// Phase 56 (AI assistant) is built right after phase 5 and before phase 6 (vault/tickets/PHASES.md, Q-0630).
-const phaseRank = (p) => (Number(p) === 56 ? 5.5 : Number(p));
 // Lower-rank tickets that keep a ticket of rank r from starting under the phase gate (empty when r is below the gate).
 function gateBlockers(t, s, c = cfg(), statuses = seedStatuses()) {
   const r = phaseRank(t.phase);
@@ -174,11 +191,8 @@ function candidates(s, c, statuses) {
     && !(phaseRank(t.phase) > Number(c.max_phase ?? 999))
     && !c.skip_tracks.includes(t.track) && !c.skip_statuses.includes(statuses[t.id])
     && (t.depends_on || []).every((d) => done.has(d)));
-  const retried = (t) => (s.retries?.[t.id] ? 1 : 0);
-  const rank = (t) => { const i = (c.priority || []).indexOf(t.id); return i < 0 ? 1e9 : i; };
-  const sec = (t) => (t.track === SECURITY_TRACK ? 0 : 1);
-  list.sort((a, b) => (sec(a) - sec(b)) || (rank(a) - rank(b)) || (retried(a) - retried(b)) || (phaseRank(a.phase) - phaseRank(b.phase)) || ((a.build_position ?? 1e9) - (b.build_position ?? 1e9)) || a.id.localeCompare(b.id));
-  return list;
+  // Security, priority list, retried first, phase, build position, id (scripts/loop/order.mjs, EZD-1940).
+  return buildOrder(list, { retries: s.retries, priority: c.priority });
 }
 // Every candidate the phase gate lets through, in build order. A running ticket counts as not done for the gate.
 function eligible(s) {
@@ -198,6 +212,8 @@ function gateNote(s) {
   const ids = waits.map((x) => `${x.id}${aside.has(x.id) ? ' (set aside)' : ''}`);
   return `phase gate (gate_from_phase ${c.gate_from_phase}): ${held.length} ticket(s) from phase ${held[0].phase} up wait on ${waits.length} lower-phase ticket(s): ${ids.slice(0, 25).join(', ')}${ids.length > 25 ? `, +${ids.length - 25} more` : ''}`;
 }
+// Fix tickets (Josh 2026-11-20) are built with fix_model: a title starting "Fix:" or the security track.
+function isFixTicket(t) { return t?.track === SECURITY_TRACK || /^Fix:/i.test(String(t?.title || '')); }
 function readingList(id) {
   const r = spawnSync('node', ['vault/tools/next_ticket.mjs', '--reads', id, 'builder'], { cwd: ROOT, encoding: 'utf8' });
   return r.status === 0 ? r.stdout.trim() : '';
@@ -219,13 +235,22 @@ async function runClaude(opts) {
   if (!died(r)) return r;
   const sid = opts.resume || sessionId;
   const last = readLastEntry(opts.cwd, sid);
-  log(`CLAUDE DIED ${opts.name}: ${describeExit(r)}; session ${sid}; last entry: ${last || 'no transcript'}${r.text.trim() ? `; output: ${r.text.trim().slice(-300).replace(/\s+/g, ' ')}` : ''}`);
+  const near = await sameSecond(r, opts.ticket);
+  log(`CLAUDE DIED ${opts.name}: ${describeExit(r)}; session ${sid}; ${near}; last entry: ${last || 'no transcript'}${r.text.trim() ? `; output: ${r.text.trim().slice(-300).replace(/\s+/g, ' ')}` : ''}`);
   const left = opts.timeoutMin - r.secs / 60;
   if (opts.readOnly || !last || left < 10) return { ...r, died: [describeExit(r)] };
   log(`${opts.name}: resuming session ${sid} once (${Math.round(left)} min left)`);
   const again = await runClaudeOnce({ ...opts, prompt: RESUME_PROMPT, resume: sid, sessionId: null, timeoutMin: left });
-  if (died(again)) log(`CLAUDE DIED again ${opts.name}: ${describeExit(again)}; last entry: ${readLastEntry(opts.cwd, sid) || 'no transcript'}`);
+  if (died(again)) log(`CLAUDE DIED again ${opts.name}: ${describeExit(again)}; ${await sameSecond(again, opts.ticket)}; last entry: ${readLastEntry(opts.cwd, sid) || 'no transcript'}`);
   return { ...again, secs: r.secs + again.secs, died: [describeExit(r), ...(died(again) ? [describeExit(again)] : [])], recovered: !died(again) };
+}
+// The other tickets' events in the second the run ended. Waits for that second to be over first, so an event that lands
+// just after the exit (another lane's check ending, a REQUEUED) is counted too.
+async function sameSecond(r, ticket) {
+  const at = r.endedAt || new Date();
+  const wait = msToSecondEnd(at) - (Date.now() - at.getTime());
+  if (wait > 0) await sleep(wait);
+  return sameSecondEvents(events.list(), secondOf(at), ticket);
 }
 function runClaudeOnce({ cwd, prompt, model, effort, name, resume, sessionId, timeoutMin, readOnly, lane = 0, ticket }) {
   const args = ['-p', prompt, '--output-format', 'json', '--model', model, '--effort', effort, '--name', name];
@@ -248,9 +273,11 @@ function runClaudeOnce({ cwd, prompt, model, effort, name, resume, sessionId, ti
     const timer = setTimeout(() => { p.kill('SIGTERM'); setTimeout(() => p.kill('SIGKILL'), 10000); }, timeoutMin * 60000);
     p.on('close', (code, signal) => {
       clearTimeout(timer);
+      const endedAt = new Date();
+      events.note(`claude ${name} ended (exit code ${code ?? 'none'}${signal ? `, signal ${signal}` : ''})`, endedAt, ticket);
       const res = parseResult(out);
       const text = String(res?.result ?? '') + '\n' + err.slice(-2000) + (res ? '' : out.slice(-1000));
-      resolve({ code, signal, res, text, secs: Math.round((Date.now() - started) / 1000),
+      resolve({ code, signal, res, text, endedAt, secs: Math.round((Date.now() - started) / 1000),
         timedOut: Date.now() - started >= timeoutMin * 60000 - 1000,
         limited: /(hit your|usage limit|weekly limit|rate limit|limit reached|resets \d)/i.test(text) && (res?.is_error || code !== 0) });
     });
@@ -284,23 +311,30 @@ function recordUsage(ticket, role, requested, r) {
   return row;
 }
 // The full gate on the ticket's lane. Asynchronous, so the other lanes keep going while it runs.
+// A red check also gets `summary`: one whole line naming the failed stage and up to 5 failing tests, read in full from
+// this check's check-failures.log (EZD-1939). A check-failures.log older than this check is an earlier run's, not read.
+// The files a branch changes against develop, and an async runner on the lane's database (EZD-1941).
+const branchChanges = (wt) => git(['diff', '--name-only', 'develop...HEAD'], wt).out.split('\n').filter(Boolean);
+const laneRun = (wt, lane) => (cmd, args) => runCheck({ cmd, args, cwd: wt, env: laneEnv(lane, wt), timeoutMs: 25 * 60000 });
+
 function check(cwd, lane = 0) {
-  return new Promise((resolve) => {
-    const p = spawn('node', [path.join(ROOT, 'scripts/check.mjs'), cwd], { cwd, env: laneEnv(lane, cwd), stdio: ['ignore', 'pipe', 'pipe'] });
-    let out = '';
-    p.stdout.on('data', (d) => { out += d; });
-    p.stderr.on('data', (d) => { out += d; });
-    const timer = setTimeout(() => p.kill('SIGTERM'), 90 * 60000);
-    const done = (code) => {
-      clearTimeout(timer);
+  const started = Date.now();
+  // Past 90 min: SIGTERM, then SIGKILL 10 s later if the check is still running (audit 2026-11-23 W6).
+  return runCheck({ cmd: 'node', args: [path.join(ROOT, 'scripts/check.mjs'), cwd], cwd, env: laneEnv(lane, cwd), timeoutMs: 90 * 60000 })
+    .then(({ code, out, timedOut }) => {
       const pass = code === 0 && /CHECK PASS/.test(out);
+      events.note(`lane ${lane} check ended (${path.basename(cwd)}): ${pass ? 'pass' : 'red'}`, new Date(), path.basename(cwd));
       let detail = out.trim();
-      if (!pass) { try { detail += '\n' + readFileSync(path.join(cwd, 'check-failures.log'), 'utf8').slice(0, 9000); } catch {} }
-      resolve({ pass, detail });
-    };
-    p.on('close', done);
-    p.on('error', (e) => { out += String(e); done(1); });
-  });
+      let summary = '';
+      if (!pass) {
+        const fp = path.join(cwd, 'check-failures.log');
+        let failures = '';
+        try { if (statSync(fp).mtimeMs >= started - 1000) failures = readFileSync(fp, 'utf8'); } catch {}
+        if (failures) detail += '\n' + failures.slice(0, 9000);
+        summary = failureSummary({ failures, out, timedOut, root: cwd });
+      }
+      return { pass, detail, summary, timedOut };
+    });
 }
 
 // ---------- prompts ----------
@@ -350,7 +384,7 @@ function builderPrompt(t, plan, reads) {
   ].join('\n');
 }
 function fixPrompt(kind, detail) {
-  if (kind === 'merge') return `develop moved while you worked (another lane merged). \`git merge develop\` stopped on conflicts in this folder; the conflicted files are below. Resolve every conflict keeping both changes' intent, commit the merge, rerun the full check (node scripts/check.mjs) until it passes, and commit. The claim rules from the start still hold.\n\n${detail.slice(0, 6000)}`;
+  if (kind === 'merge') return `develop moved while you worked (another lane merged). \`git merge develop\` stopped on conflicts in this folder; the conflicted files are below. Resolve every conflict keeping both changes' intent (${TYPES_FILE} is not in the list: the loop regenerates it after the merge, so leave it as it is), commit the merge, rerun the full check (node scripts/check.mjs) until it passes, and commit. The claim rules from the start still hold.\n\n${detail.slice(0, 6000)}`;
   return kind === 'check'
     ? `The full check (node scripts/check.mjs) failed after your work. The failing lines are below; the full output is in check.log in this folder. Fix the cause (do not weaken tests), rerun the full check until it passes, and commit.\n\n${detail.slice(0, 9000)}`
     : `An independent reviewer found blocking problems. Fix each one, rerun the full check (node scripts/check.mjs) until it passes, and commit. If you believe a finding is wrong, say why in one line instead of changing code.\n\n${detail}`;
@@ -418,9 +452,11 @@ function addDeps(id, ids) {
   git(['commit', '-q', '-m', `chore(tickets): ${id} depends on ${added.join(', ')} (build loop: named as needed first)`, '--', 'vault/tickets/tickets.json']);
   return added;
 }
-// First failure: back in line (at the end), with any ticket named as needed first added to depends_on.
+// First failure: back in line (at the front: retried tickets go first, EZD-1940), with any ticket named as needed first added to depends_on.
 // Second failure: set aside for Josh (Josh 2026-11-13).
-function setAside(s, t, reason, detail, wt, needs = []) {
+// line: the one-line detail for loop.log (a red check's summary); without it, the detail's head in whole words.
+function setAside(s, t, reason, detail, wt, needs = [], line = '') {
+  const shown = line || (detail ? oneLine(detail) : '');
   if (!(s.retries?.[t.id]) && !String(t.id).startsWith('EZD-REPAIR')) {
     s.retries = { ...(s.retries || {}), [t.id]: 1 };
     s.retry_log = { ...(s.retry_log || {}), [t.id]: { ts: now(), reason } };
@@ -428,14 +464,14 @@ function setAside(s, t, reason, detail, wt, needs = []) {
     endRun(s, t.id);
     saveFootprint(t.id, null);
     cleanupWorktree(t.id);
-    log(`REQUEUED ${t.id} (first failure: ${reason})${added.length ? `; now waits for ${added.join(', ')}` : ''}${detail ? `\n  detail: ${String(detail).replace(/\s+/g, ' ').slice(-600)}` : ''}`);
+    log(`REQUEUED ${t.id} (first failure: ${reason})${added.length ? `; now waits for ${added.join(', ')}` : ''}${shown ? `\n  detail: ${shown}` : ''}`);
     saveState(s);
     return;
   }
   s.set_aside[t.id] = { title: t.title, ts: now(), reason: s.retry_log?.[t.id] ? `${reason} (first try: ${s.retry_log[t.id].reason})` : reason, detail: detail || '', branch: `t/${t.id}`, worktree: path.relative(ROOT, wt) };
   endRun(s, t.id);
   saveFootprint(t.id, null);
-  log(`SET ASIDE ${t.id}: ${reason}`);
+  log(`SET ASIDE ${t.id}: ${reason}${shown ? `\n  detail: ${shown}` : ''}`);
   saveState(s);
 }
 // A ticket stops building: it leaves `running` and gives up its claim.
@@ -485,15 +521,24 @@ async function review(t, wt, s, round, lane) {
 async function predictFootprint(t) {
   const c = cfg();
   const plan = existsSync(path.join(ROOT, 'vault/plans', `${t.id}.md`));
-  const r = await runClaude({ cwd: footprintTree(), prompt: footprintPrompt(t, plan, readingList(t.id)), model: c.builder_model,
+  const tree = footprintTree();
+  const r = await runClaude({ cwd: tree, prompt: footprintPrompt(t, plan, readingList(t.id)), model: c.builder_model,
     effort: c.footprint_effort, name: `${t.id} footprint`, timeoutMin: c.footprint_timeout_min, readOnly: true });
   recordUsage(t.id, 'footprint', c.builder_model, r);
   if (r.limited) return { limited: true, r };
   const fp = parseFootprint(r.res?.result ?? '');
   if (!fp) return { error: `no footprint: ${String(r.res?.result ?? r.text).slice(-300)}` };
+  // The tests that import a claimed file join the claim (EZD-1942): a static import scan of develop's read-only
+  // footprint checkout, cached per develop commit. A scan failure leaves the footprint as predicted.
+  let tests = '';
+  try {
+    const x = withImportingTests(tree, fp.files, { key: git(['rev-parse', 'HEAD'], tree).out.trim() || null, skip: sharedSet(ROOT) });
+    fp.files = impliedFiles(x.files, new Set());
+    tests = `; +${x.added.length} importing tests (scan ${x.ms} ms${x.hubs.length ? `; not followed: ${x.hubs.map((h) => `${h.file} (${h.tests} tests)`).slice(0, 3).join(', ')}` : ''})`;
+  } catch (e) { tests = `; import scan failed: ${e.message}`; }
   const saved = { ...fp, ts: now() };
   saveFootprint(t.id, saved);
-  log(`FOOTPRINT ${t.id}: ${fp.files.length} files${fp.notes ? ` (${fp.notes.slice(0, 120)})` : ''}`);
+  log(`FOOTPRINT ${t.id}: ${fp.files.length} files${tests}${fp.notes ? ` (${fp.notes.slice(0, 120)})` : ''}`);
   return { fp: saved };
 }
 
@@ -514,8 +559,9 @@ async function doTicket(t, s, lane, kind = 'ticket') {
   };
   const plan = existsSync(path.join(ROOT, 'vault/plans', `${t.id}.md`));
   const prompt = t.prompt ? `${t.prompt}\n${lanesNote(t)}` : builderPrompt(t, plan, readingList(t.id));
-  let r = await runClaude({ cwd: wt, prompt, model: c.builder_model, effort: c.builder_effort, name: `${t.id} build`, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
-  recordUsage(t.id, 'builder', c.builder_model, r);
+  const buildModel = isFixTicket(t) ? (c.fix_model || c.builder_model) : c.builder_model;
+  let r = await runClaude({ cwd: wt, prompt, model: buildModel, effort: c.builder_effort, name: `${t.id} build`, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
+  recordUsage(t.id, 'builder', buildModel, r);
   if (r.limited) return stopForLimit(r);
   let session = r.res?.session_id;
   const held = heldBy(r.res?.result);
@@ -527,8 +573,14 @@ async function doTicket(t, s, lane, kind = 'ticket') {
 
   const commitAll = () => { if (git(['status', '--porcelain'], wt).out) { git(['add', '-A'], wt); git(['commit', '-q', '-m', `feat(${t.id}): uncommitted builder work`], wt); } };
   const fix = async (kindOf, detail, label) => {
-    const f = await runClaude({ cwd: wt, prompt: fixPrompt(kindOf, detail), model: c.builder_model, effort: c.builder_effort, name: `${t.id} ${label}`, resume: session, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
-    recordUsage(t.id, `builder-fix-${kindOf}`, c.builder_model, f);
+    const fixModel = c.fix_model || c.builder_model;
+    let f = await runClaude({ cwd: wt, prompt: fixPrompt(kindOf, detail), model: fixModel, effort: c.builder_effort, name: `${t.id} ${label}`, resume: session, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
+    recordUsage(t.id, `builder-fix-${kindOf}`, fixModel, f);
+    if (fixModel !== c.builder_model && !f.res && !f.timedOut && !f.limited) {
+      log(`${t.id} ${label}: ${fixModel} gave no result; trying ${c.builder_model}`);
+      f = await runClaude({ cwd: wt, prompt: fixPrompt(kindOf, detail), model: c.builder_model, effort: c.builder_effort, name: `${t.id} ${label} (fallback)`, resume: session, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
+      recordUsage(t.id, `builder-fix-${kindOf}`, c.builder_model, f);
+    }
     if (f.res?.session_id) session = f.res.session_id;
     return f;
   };
@@ -540,13 +592,13 @@ async function doTicket(t, s, lane, kind = 'ticket') {
   }
   let ck = await check(wt, lane);
   for (let i = 0; !ck.pass && i < c.fix_rounds; i++) {
-    log(`${t.id} check red (round ${i + 1}); builder fixing`);
+    log(`${t.id} check red (round ${i + 1}); builder fixing\n  detail: ${ck.summary}`);
     const f = await fix('check', ck.detail, `fix check ${i + 1}`);
     if (f.limited) return stopForLimit(f);
     commitAll();
     ck = await check(wt, lane);
   }
-  if (!ck.pass) { setAside(s, t, `check still red after ${c.fix_rounds} fix rounds`, ck.detail.slice(-3000), wt); s.red_streak++; saveState(s); return 'red'; }
+  if (!ck.pass) { setAside(s, t, `check still red after ${c.fix_rounds} fix rounds`, ck.detail.slice(-3000), wt, [], ck.summary); s.red_streak++; saveState(s); return 'red'; }
 
   // review, with fix rounds
   let rv = await review(t, wt, s, 1, lane);
@@ -557,7 +609,7 @@ async function doTicket(t, s, lane, kind = 'ticket') {
     if (f.limited) return stopForLimit(f);
     commitAll();
     ck = await check(wt, lane);
-    if (!ck.pass) { setAside(s, t, 'check red after a review fix', ck.detail.slice(-3000), wt); return 'aside'; }
+    if (!ck.pass) { setAside(s, t, 'check red after a review fix', ck.detail.slice(-3000), wt, [], ck.summary); return 'aside'; }
     rv = await review(t, wt, s, i + 2, lane);
   }
   if (rv.limited) return stopForLimit(rv.r);
@@ -567,44 +619,79 @@ async function doTicket(t, s, lane, kind = 'ticket') {
   // is claimed now if free; if another running ticket holds it, this ticket waits for that one to merge first, then
   // takes in develop and re-checks below, so the two changes never land unchecked together.
   const changed = git(['diff', '--name-only', 'develop...HEAD'], wt).out.split('\n').filter(Boolean);
-  let d = drift(changed, readClaims(ROOT), t.id, sharedSet(ROOT));
+  const added = git(['diff', '--name-only', '--diff-filter=A', 'develop...HEAD'], wt).out.split('\n').filter(Boolean);
+  let d = drift(changed, readClaims(ROOT), t.id, sharedSet(ROOT), added);
   if (d.unclaimed.length) {
     log(`DRIFT ${t.id}: changed ${d.unclaimed.length} file(s) outside its claim: ${d.unclaimed.slice(0, 8).join(', ')}`);
-    const free = d.unclaimed.filter((f) => !d.clashes.some((x) => x.file === f || (x.file.endsWith('/') && f.startsWith(x.file))));
-    if (free.length) withClaims(ROOT, (cl) => { if (cl[t.id]) cl[t.id].files = impliedFiles([...cl[t.id].files, ...free], sharedSet(ROOT)); });
   }
+  // Unclaimed files and new files under a <new> placeholder join the claim by name if free.
+  const free = [...d.unclaimed, ...d.placed].filter((f) => !d.clashes.some((x) => x.file === f || (x.file.endsWith('/') && f.startsWith(x.file))));
+  if (free.length) withClaims(ROOT, (cl) => { if (cl[t.id]) cl[t.id].files = impliedFiles([...cl[t.id].files, ...free], sharedSet(ROOT)); });
   const waitStart = Date.now();
   while (d.clashes.length) {
     const holders = [...new Set(d.clashes.map((x) => x.holder))];
     if (Date.now() - waitStart > c.holder_wait_min * 60000) { setAside(s, t, `changed files held by ${holders.join(', ')} for over ${c.holder_wait_min} min`, JSON.stringify(d.clashes), wt); return 'aside'; }
     if (Date.now() - waitStart < 1000) log(`${t.id} changed files ${d.clashes.map((x) => x.file).join(', ')} held by ${holders.join(', ')}; waits for them to finish before merging`);
     await sleep(60000);
-    d = drift(changed, readClaims(ROOT), t.id, sharedSet(ROOT));
-    if (!d.clashes.length) withClaims(ROOT, (cl) => { if (cl[t.id]) cl[t.id].files = impliedFiles([...cl[t.id].files, ...d.unclaimed], sharedSet(ROOT)); });
+    d = drift(changed, readClaims(ROOT), t.id, sharedSet(ROOT), added);
+    if (!d.clashes.length) withClaims(ROOT, (cl) => { if (cl[t.id]) cl[t.id].files = impliedFiles([...cl[t.id].files, ...d.unclaimed, ...d.placed], sharedSet(ROOT)); });
   }
 
   // Merge: develop must be an ancestor of the branch at the moment of the squash. Bringing develop in and re-checking
   // takes time, during which another lane may merge; then the round repeats. The squash itself is synchronous, so no
   // other lane can merge between the ancestor test and the commit.
+  // EZD-1941: the types check (committed types equal the ones generated from the branch's migrations, else no merge)
+  // is an await, so it runs inside the rounds and the ancestor test is repeated after it: no await sits between the
+  // last ancestor test and the squash.
+  let typesOk = false;
   for (let round = 0; ; round++) {
-    if (git(['merge-base', '--is-ancestor', 'develop', 'HEAD'], wt).ok) break;
+    if (git(['merge-base', '--is-ancestor', 'develop', 'HEAD'], wt).ok) {
+      if (typesOk || !touchesSchema(branchChanges(wt))) break;
+      const tc = await regenerateTypes(laneRun(wt, lane), wt, { check: true });
+      if (!tc.ok) { setAside(s, t, `${TYPES_FILE} differs from the regenerated types (${tc.step})`, tc.out.slice(-3000), wt); return 'aside'; }
+      typesOk = true; round--;
+      continue;
+    }
+    typesOk = false;
     if (round >= c.merge_rounds) { setAside(s, t, `develop kept moving: ${c.merge_rounds} merge rounds`, '', wt); return 'aside'; }
     const m = git(['merge', '-q', '--no-edit', 'develop'], wt);
     if (!m.ok) {
-      const conflicted = git(['diff', '--name-only', '--diff-filter=U'], wt).out;
-      if (!conflicted) { git(['merge', '--abort'], wt); setAside(s, t, 'merge with develop failed', m.err || m.out, wt); return 'aside'; }
-      log(`${t.id} merge conflict with develop in ${conflicted.split('\n').join(', ')}; builder resolving`);
-      const f = await fix('merge', `${conflicted}\n\n${m.out}\n${m.err}`, `resolve merge ${round + 1}`);
-      if (f.limited) { git(['merge', '--abort'], wt); return stopForLimit(f); }
-      if (git(['diff', '--name-only', '--diff-filter=U'], wt).out || existsSync(path.join(wt, '.git')) && git(['rev-parse', '-q', '--verify', 'MERGE_HEAD'], wt).ok) {
-        git(['merge', '--abort'], wt); setAside(s, t, 'merge clash with develop not resolved', conflicted, wt); return 'aside';
+      const all = git(['diff', '--name-only', '--diff-filter=U'], wt).out;
+      if (!all) { git(['merge', '--abort'], wt); setAside(s, t, 'merge with develop failed', m.err || m.out, wt); return 'aside'; }
+      // EZD-1941: the generated database types are never hand-merged; they are regenerated below.
+      const rest = settleGeneratedConflicts(all.split('\n').filter(Boolean), git, wt);
+      const conflicted = rest.join('\n');
+      if (!rest.length) {
+        log(`${t.id} merge conflict with develop only in ${TYPES_FILE}; regenerating it`);
+        const cm = git(['commit', '-q', '--no-edit'], wt);
+        if (!cm.ok) { git(['merge', '--abort'], wt); setAside(s, t, 'merge commit failed', cm.err || cm.out, wt); return 'aside'; }
+      } else {
+        log(`${t.id} merge conflict with develop in ${rest.join(', ')}; builder resolving`);
+        const f = await fix('merge', `${conflicted}\n\n${m.out}\n${m.err}`, `resolve merge ${round + 1}`);
+        if (f.limited) { git(['merge', '--abort'], wt); return stopForLimit(f); }
+        if (git(['diff', '--name-only', '--diff-filter=U'], wt).out || existsSync(path.join(wt, '.git')) && git(['rev-parse', '-q', '--verify', 'MERGE_HEAD'], wt).ok) {
+          git(['merge', '--abort'], wt); setAside(s, t, 'merge clash with develop not resolved', conflicted, wt); return 'aside';
+        }
       }
     }
     commitAll();
+    // EZD-1941: the branch's migrations apply after develop's newest; the types are regenerated from the merged
+    // migrations and committed (the check below and the types check before the squash compare them).
+    const om = orderMigrations(git, wt, t.id);
+    if (!om.ok) { setAside(s, t, 'renaming migrations after develop failed', om.error, wt); return 'aside'; }
+    if (om.renames.length) log(`${t.id} migrations renamed to apply after develop's newest: ${om.renames.map((r) => `${path.basename(r.from)} -> ${path.basename(r.to)}`).join(', ')}`);
+    if (touchesSchema(branchChanges(wt))) {
+      const rg = await regenerateTypes(laneRun(wt, lane), wt);
+      if (!rg.ok) { setAside(s, t, `regenerating ${TYPES_FILE} after the merge failed (${rg.step})`, rg.out.slice(-3000), wt); return 'aside'; }
+      if (git(['status', '--porcelain', '--', TYPES_FILE], wt).out) git(['commit', '-q', '-m', `chore(${t.id}): ${TYPES_FILE} regenerated after merging develop`, '--', TYPES_FILE], wt);
+      // Just generated from these migrations and committed: equal by construction, no second database reset.
+      typesOk = !git(['status', '--porcelain', '--', TYPES_FILE], wt).out;
+    }
     ck = await check(wt, lane);
-    if (!ck.pass) { setAside(s, t, 'check red after merging newer develop', ck.detail.slice(-3000), wt); return 'aside'; }
+    if (!ck.pass) { setAside(s, t, 'check red after merging newer develop', ck.detail.slice(-3000), wt, [], ck.summary); return 'aside'; }
   }
 
+  // end of the merge rounds: only synchronous steps from here to the squash commit (EZD-1941)
   // squash merge into develop in the main checkout
   if (git(['rev-parse', '--abbrev-ref', 'HEAD']).out !== 'develop') { setAside(s, t, 'main checkout is not on develop', '', wt); return 'aside'; }
   // The squash commit must hold the ticket's change only: unstage the loop's own build files first. Anything else
@@ -627,6 +714,7 @@ async function doTicket(t, s, lane, kind = 'ticket') {
   saveState(s);
   cleanupWorktree(t.id);
   log(`MERGED ${t.id} as ${sha} (lane ${lane})`);
+  if (SELF.onMerge(sha, changedFiles(sha, git))) log(`loop change ${sha} merged: no new tickets; restarting once running tickets finish`);
   return 'merged';
 }
 
@@ -742,6 +830,7 @@ async function ensureFootprints(s, list) {
 }
 
 // ---------- main ----------
+const SELF = createSelfRestart({ log, exit: (code) => process.exit(code), dryRun: () => runDryRun({ cwd: ROOT }) });
 async function main() {
   const s = loadState();
   // Heartbeat (2026-11-17): explain the gap since the last run, then record the machine's state every minute.
@@ -749,8 +838,15 @@ async function main() {
   const prev = lastBeat(P.heartbeat);
   const gap = startNote(prev, { now: first.ts, boot: first.boot, reason: prev && prev.boot !== first.boot ? resetReason(prev.ts) : null });
   if (gap) log(gap);
-  log(`loop start (pid ${process.pid}; lanes ${laneList().join(', ')})`);
-  const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock');
+  // Josh 2026-11-20: two heavy-check slots are a trial. A Mac reset since the last run puts it back to one slot.
+  if (gap && gap.startsWith('MAC RESTARTED')) {
+    try {
+      const raw = readJson(P.config, {});
+      if (Number(raw.heavy_slots) > 1) { raw.heavy_slots = 1; raw.heavy_slots_note = `${raw.heavy_slots_note || ''} Set back to 1 by the loop after a Mac reset (${now()}).`.trim(); writeFileSync(P.config, JSON.stringify(raw, null, 2) + '\n'); log('heavy_slots set back to 1 after the Mac reset'); }
+    } catch (e) { log(`could not reset heavy_slots: ${e?.message || e}`); }
+  }
+  log(`loop start at ${git(['rev-parse', '--short', 'HEAD']).out || 'unknown'} (pid ${process.pid}; lanes ${laneList().join(', ')})`);
+  const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock'); // slot 1; heartbeat reads every slot
   const beat = () => { try { writeBeat(P.heartbeat, sample({ running: Object.keys(s.running), heavyLock })); } catch (e) { console.log(`heartbeat: ${e?.message || e}`); } };
   writeBeat(P.heartbeat, { ...first, running: [] });
   setInterval(beat, 60000);
@@ -769,7 +865,15 @@ async function main() {
     const c = cfg();
     adoptHandEdits(s);
     const lanes = laneList(c);
-    if (existsSync(P.stop)) { note(`STOP file present; ${active.size ? `${active.size} running ticket(s) finish first` : 'waiting'}`); await idle(60000); continue; }
+    // Drain (STOP file or a merged loop change): no new starts; running tickets finish first.
+    if (existsSync(P.stop) || SELF.draining()) {
+      if (SELF.draining() && !active.size) {
+        saveState(s); push(s);
+        if (SELF.tryRestart(active.size) === 'not-loaded') continue;
+      }
+      const why = SELF.draining() ? `loop change ${SELF.pending()} merged` : 'STOP file present';
+      note(`${why}; ${active.size ? `${active.size} running ticket(s) finish first` : 'waiting'}`); await idle(60000); continue;
+    }
     if (existsSync(P.attention)) { note('ATTENTION.md present; waiting'); await idle(10 * 60000); continue; }
     if (s.sleep_until && Date.parse(s.sleep_until) > Date.now()) {
       if (Date.parse(s.next_probe || 0) <= Date.now()) {

@@ -8,7 +8,7 @@
 }
 
 .title {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-500);
 }
@@ -18,7 +18,7 @@
   gap: 10px;
   align-items: flex-start;
   margin: 0;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-ink);
 }
 
@@ -34,12 +34,12 @@
 .hint,
 .note {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-700);
 }
 
 .alert {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-red);
 }

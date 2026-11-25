@@ -7,6 +7,8 @@ import {
   COUNTERTOP_DEFAULT_THICKNESS,
   countertopFromOutline,
   moveCountertopVertex,
+  withCountertopSupport,
+  type CountertopSupportSettings,
   nextCountertopLabels,
   outlineClick,
   outlineTypedPoint,
@@ -107,16 +109,19 @@ export function countertopOutlineChanges(
   return { changes: [countertopChange(id, data)], id };
 }
 
-// Corner `index` of piece `id` dragged to `to`; [] when the piece is not there or the outline would not be valid.
+// Corner `index` of piece `id` dragged to `to`; [] when the piece is not there or the outline would not be valid. With
+// `support` (EZD-415) the seating support requirement is worked out again for the new side lengths.
 export function countertopVertexChanges(
   objects: readonly ModelObject[],
   id: string,
   index: number,
   to: Point,
+  support?: CountertopSupportSettings,
 ): Change[] {
   const key = id.toLowerCase();
   const o = objects.find((x) => x.id.toLowerCase() === key);
   if (o === undefined || o.type !== 'countertop_piece') return [];
   const next = moveCountertopVertex(o.data, index, to);
-  return next === null ? [] : [countertopChange(o.id, next)];
+  if (next === null) return [];
+  return [countertopChange(o.id, support === undefined ? next : withCountertopSupport(next, support))];
 }

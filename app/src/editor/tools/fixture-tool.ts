@@ -19,6 +19,8 @@
 import {
   CURRENT_SCHEMA_VERSION,
   DEFAULT_PAN_SLOPE_IN_PER_FT,
+  type AccessKind,
+  type DeviceKind,
   parseStoredObject,
   type FixtureKind,
   type HvacKind,
@@ -88,7 +90,12 @@ export const SOFFIT_DROP_START_IN = 12;
 
 // EZD-731: the mechanical kinds in panel order, equipment first, and their starting sizes, width x depth in inches
 // (registers as the existing ones; vault/build/assumptions.md EZD-731).
-export const MECHANICAL_KINDS = ['air_handler', 'condenser', 'supply', 'return'] as const satisfies readonly HvacKind[];
+export const MECHANICAL_KINDS = [
+  'air_handler',
+  'condenser',
+  'supply',
+  'return',
+] as const satisfies readonly HvacKind[];
 export const MECHANICAL_SIZES: Readonly<Record<HvacKind, { width: number; depth: number }>> = {
   air_handler: { width: 22, depth: 22 },
   condenser: { width: 30, depth: 30 },
@@ -271,7 +278,11 @@ function placeBlockingChange(
 
 // EZD-220: a pin at the click, always Existing, with no photo yet (the photo is attached from its inspector once
 // the upload has finished, so the save check never sees an unfinished file).
-function placePin(kind: PinKind, at: Point, ctx: { level: string; newId: () => string }): Change | null {
+function placePin(
+  kind: PinKind,
+  at: Point,
+  ctx: { level: string; newId: () => string },
+): Change | null {
   const id = ctx.newId();
   const data = {
     geometry: { point: { x: at.x, y: at.y } },
@@ -279,7 +290,12 @@ function placePin(kind: PinKind, at: Point, ctx: { level: string; newId: () => s
     level: ctx.level,
     attributes: { kind, photoFileId: null },
   };
-  const parsed = parseStoredObject({ id, type: 'pin', schema_version: CURRENT_SCHEMA_VERSION, data });
+  const parsed = parseStoredObject({
+    id,
+    type: 'pin',
+    schema_version: CURRENT_SCHEMA_VERSION,
+    data,
+  });
   if (!parsed.ok) return null;
   return {
     id,
@@ -345,7 +361,10 @@ export function existingDetailData(
       };
     }
     default:
-      return { type: 'device', data: { ...base, geometry: { point: center }, attributes: { kind: detail } } };
+      return {
+        type: 'device',
+        data: { ...base, geometry: { point: center }, attributes: { kind: detail } },
+      };
   }
 }
 
@@ -390,12 +409,75 @@ function placeMechanical(
 ): Change | null {
   const id = ctx.newId();
   const data = mechanicalData(kind, at, ctx.level, ctx.status ?? NEW_OBJECT_STATUS);
-  const parsed = parseStoredObject({ id, type: 'hvac', schema_version: CURRENT_SCHEMA_VERSION, data });
+  const parsed = parseStoredObject({
+    id,
+    type: 'hvac',
+    schema_version: CURRENT_SCHEMA_VERSION,
+    data,
+  });
   if (!parsed.ok) return null;
   return {
     id,
     value: {
       type: 'hvac',
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      data: parsed.object.data as unknown as Record<string, unknown>,
+    },
+  };
+}
+
+// EZD-507: the ceiling devices, each a device kind or an access kind.
+export type CeilingDeviceKind = DeviceKind | AccessKind;
+
+// EZD-507: an access panel's starting size, width x depth in inches (vault/build/assumptions.md EZD-507); an attic
+// hatch starts as the existing one.
+export const CEILING_ACCESS_SIZES: Readonly<Record<AccessKind, { width: number; depth: number }>> =
+  {
+    access_panel: { width: 14, depth: 14 },
+    attic_hatch: EXISTING_DETAIL_SIZES.attic_hatch,
+  };
+
+const isAccessKind = (kind: CeilingDeviceKind): kind is AccessKind =>
+  Object.hasOwn(CEILING_ACCESS_SIZES, kind);
+
+/** EZD-507: the object type and data a ceiling device takes, at the click, with the given status. */
+export function ceilingDeviceData(
+  kind: CeilingDeviceKind,
+  at: Point,
+  level: string,
+  status: ObjectStatus,
+): { type: 'device' | 'access'; data: Record<string, unknown> } {
+  const center = { x: at.x, y: at.y };
+  if (isAccessKind(kind))
+    return {
+      type: 'access',
+      data: {
+        geometry: { center, axis: { x: 1, y: 0 } },
+        status,
+        level,
+        attributes: { kind, ...CEILING_ACCESS_SIZES[kind] },
+      },
+    };
+  return {
+    type: 'device',
+    data: { geometry: { point: center }, status, level, attributes: { kind } },
+  };
+}
+
+/** EZD-507: the change one click of a ceiling device tool makes, or null when it does not make a valid object. */
+export function placeCeilingDevice(
+  kind: CeilingDeviceKind,
+  at: Point,
+  ctx: { level: string; newId: () => string; status?: ObjectStatus },
+): Change | null {
+  const id = ctx.newId();
+  const { type, data } = ceilingDeviceData(kind, at, ctx.level, ctx.status ?? NEW_OBJECT_STATUS);
+  const parsed = parseStoredObject({ id, type, schema_version: CURRENT_SCHEMA_VERSION, data });
+  if (!parsed.ok) return null;
+  return {
+    id,
+    value: {
+      type,
       schemaVersion: CURRENT_SCHEMA_VERSION,
       data: parsed.object.data as unknown as Record<string, unknown>,
     },

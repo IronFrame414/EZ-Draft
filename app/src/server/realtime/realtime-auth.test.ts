@@ -6,6 +6,10 @@
 // "Unauthorized: You do not have permissions to read from this Channel topic"). "Receives nothing" = zero
 // matching events 3,000 ms after the send returns; SUBSCRIBED and presence within 10,000 ms (plan Tests
 // intro). Payloads are compared after toEventPayload (Step 5).
+// EZD-1949: the local server holds every refused join's reply about 5 s and handles one socket's joins one
+// at a time, so the tests run concurrently (each live test has its own projects, so no broadcast reaches
+// another test's channels) and T6 joins its six topics at once, each on its own socket. Every wait and
+// every assertion is unchanged.
 import { randomUUID } from 'node:crypto';
 import type postgres from 'postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -57,14 +61,14 @@ async function sqlStateOf(run: () => Promise<unknown>): Promise<string | undefin
   }
 }
 
-describe('EZD-018 realtime authorization', () => {
+describe.concurrent('EZD-018 realtime authorization', () => {
   let tenantA: string;
+  // T6, T7 and T9 only; each live test makes its own projects.
   let p1: string;
-  let p2: string;
 
   beforeAll(async () => {
     tenantA = await createTenant();
-    [p1, p2] = await createProjects(tenantA, 2);
+    [p1] = await createProjects(tenantA, 1);
   });
 
   afterAll(async () => {
@@ -76,6 +80,7 @@ describe('EZD-018 realtime authorization', () => {
   it(
     'EZD-018 done when: a scoped user cannot subscribe to a project outside their list @smoke',
     async () => {
+      const [p1, p2] = await createProjects(tenantA, 2);
       const s = await createMember({ tenantId: tenantA, scope: 'listed', listed: [p1] });
       const { accessToken } = await signIn(s.email);
       const rt = await connectRealtime(accessToken);
@@ -108,6 +113,7 @@ describe('EZD-018 realtime authorization', () => {
   it(
     'EZD-018 T3 other tenant, no user token and ended session are refused; all-scope member joins',
     async () => {
+      const [p1] = await createProjects(tenantA, 1);
       const tenantB = await createTenant();
       const x = await createMember({ tenantId: tenantB, scope: 'all' });
       const d = await createMember({ tenantId: tenantA, scope: 'all' });
@@ -181,6 +187,7 @@ describe('EZD-018 realtime authorization', () => {
     async () => {
       const a = await createMember({ tenantId: tenantA, scope: 'all' });
       const b = await createMember({ tenantId: tenantA, scope: 'all' });
+      const [p1] = await createProjects(tenantA, 1);
       const topic = `project:${p1}`;
       const aToken = (await signIn(a.email)).accessToken;
       const ca = (await connectRealtime(aToken)).join(topic, {
@@ -235,10 +242,11 @@ describe('EZD-018 realtime authorization', () => {
         'user:',
         `project:${p1}:x`,
       ];
-      for (const topic of topics) {
-        const rt = await connectRealtime(token);
-        const c = rt.join(topic);
-        await c.joined;
+      const channels = await Promise.all(
+        topics.map(async (topic) => (await connectRealtime(token)).join(topic)),
+      );
+      await Promise.all(channels.map((c) => c.joined));
+      for (const c of channels) {
         expect(wasRefused(c), c.topic).toBe(true);
       }
     },
@@ -318,6 +326,7 @@ describe('EZD-018 realtime authorization', () => {
   it(
     'EZD-018 T23 deactivation pushes session.ended on the user channel',
     async () => {
+      const [p1] = await createProjects(tenantA, 1);
       const d = await createMember({ tenantId: tenantA, scope: 'all' });
       const dToken = (await signIn(d.email)).accessToken;
       const rt = await connectRealtime(dToken);
@@ -344,6 +353,7 @@ describe('EZD-018 realtime authorization', () => {
     LONG,
   );
   it('EZD-297 control: an event that is not delivered fails the R1 check', async () => {
+    const [p1, p2] = await createProjects(tenantA, 2);
     const s = await createMember({ tenantId: tenantA, scope: 'listed', listed: [p1] });
     const { accessToken } = await signIn(s.email);
     const rt = await connectRealtime(accessToken);

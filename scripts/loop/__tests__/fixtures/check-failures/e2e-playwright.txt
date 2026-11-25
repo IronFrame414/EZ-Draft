@@ -1,0 +1,31 @@
+step: e2e
+command: pnpm -r --if-present --filter !./spikes/** run e2e
+full log: /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1962/check.log
+
+== failure lines ==
+    Error: expect(received).toBe(expected) // Object.is equality
+    Expected: 0
+    Received: 1
+    Error: expect(locator).toHaveText(expected) failed
+ ELIFECYCLE  Command failed with exit code 1.
+Error: ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL × "pnpm recursive run" failed in /Users/josh/Projects/ezdraft/.claude/
+
+== last lines ==
+  1) [desktop] › e2e/status-bar.spec.ts:264:7 › EZD-219 status bar popovers › EZD-219 B4 the live cursor readout makes no React commit ──────────────────
+    Error: expect(received).toBe(expected) // Object.is equality
+    Expected: 0
+    Received: 1
+  2) [phone] › e2e/field-measure-entry.spec.ts:143:7 › EZD-1419 Field measure entry points and states › AC-EZD-1419-2 a sent room is read-only on the phone until the office reopens it @phone ──
+    Error: expect(locator).toHaveText(expected) failed
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Usage: pnpm exec playwright show-trace test-results/status-bar-EZD-219-status--ae958-adout-makes-no-React-commit-desktop/trace.zip
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+  1 failed
+    [desktop] › e2e/status-bar.spec.ts:264:7 › EZD-219 status bar popovers › EZD-219 B4 the live cursor readout makes no React commit
+  1 flaky
+    [phone] › e2e/field-measure-entry.spec.ts:143:7 › EZD-1419 Field measure entry points and states › AC-EZD-1419-2 a sent room is read-only on the phone until the office reopens it @phone
+  7 did not run
+  649 passed (7.0m)
+ ELIFECYCLE  Command failed with exit code 1.
+Error: ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL × "pnpm recursive run" failed in /Users/josh/Projects/ezdraft/.claude/
+│ worktrees/EZD-1962/app

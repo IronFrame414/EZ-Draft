@@ -8,7 +8,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-ink);
 }
 
@@ -28,12 +28,12 @@
 }
 
 .title {
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
 }
 
 .subtitle {
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -64,14 +64,14 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
 /* .fl input, .fl select */
 .input,
 .select {
-  font: 400 14px var(--ez-font-mono);
+  font: 400 var(--ez-text-14) var(--ez-font-mono);
   color: var(--ez-ink);
   padding: 9px 10px;
   border: 1px solid var(--ez-border);
@@ -113,7 +113,7 @@
 
 /* .sh */
 .head {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-500);
 }
@@ -144,7 +144,7 @@
   align-items: center;
   gap: 8px;
   padding: 7px 10px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .row + .row {
@@ -175,7 +175,7 @@
   align-items: center;
   gap: 6px;
   padding: 5px 10px;
-  font: 500 13px var(--ez-font-sans);
+  font: 500 var(--ez-text-13) var(--ez-font-sans);
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-8);
   background: var(--ez-surface);
@@ -197,7 +197,7 @@
   padding: 9px 10px;
   border: 1px dashed var(--ez-border);
   border-radius: var(--ez-radius-8);
-  font: 400 14px var(--ez-font-mono);
+  font: 400 var(--ez-text-14) var(--ez-font-mono);
   color: var(--ez-ink);
   background: var(--ez-group-band);
 }
@@ -234,7 +234,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   cursor: pointer;
 }
 
@@ -247,7 +247,7 @@
 
 /* .hint */
 .hint {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
   line-height: 1.4;
 }
@@ -255,7 +255,7 @@
 /* .tg; the badge adds flex and a gap. */
 .tag,
 .badge {
-  font: 500 11px var(--ez-font-mono);
+  font: 500 var(--ez-text-11) var(--ez-font-mono);
   color: var(--ez-slate-500);
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-5);
@@ -286,7 +286,7 @@
   border-radius: var(--ez-radius-7);
   border: 0;
   background: transparent;
-  font: 500 13px var(--ez-font-sans);
+  font: 500 var(--ez-text-13) var(--ez-font-sans);
   cursor: pointer;
 }
 
@@ -352,20 +352,20 @@
 }
 
 .result {
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   font-weight: 500;
 }
 
 /* .pt */
 .plain {
   display: block;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-ink);
   font-family: var(--ez-font-mono);
 }
 
 .layerLine {
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .mixed {
@@ -419,13 +419,13 @@
 }
 
 .emptyText {
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   font-weight: 500;
 }
 
 .error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-red);
 }
 

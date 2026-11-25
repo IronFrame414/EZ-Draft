@@ -1,0 +1,16 @@
+/* EZD-1001a (S07 States "Empty"): the empty-model message, centred over the canvas region as the plan's hint
+   (EmptyPlanHint.module.css), never catching the pointer. */
+
+.empty {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  max-width: 320px;
+  text-align: center;
+  font-size: var(--ez-text-14);
+  font-weight: 500;
+  color: var(--ez-slate-500);
+  pointer-events: none;
+}

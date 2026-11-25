@@ -411,7 +411,99 @@
     "EZD-601",
     "EZD-1102",
     "EZD-412",
-    "EZD-134"
+    "EZD-134",
+    "EZD-413",
+    "EZD-739",
+    "EZD-1401",
+    "EZD-426",
+    "EZD-427",
+    "EZD-222",
+    "EZD-230",
+    "EZD-1415",
+    "EZD-1314",
+    "EZD-1416",
+    "EZD-701",
+    "EZD-416",
+    "EZD-418",
+    "EZD-726",
+    "EZD-1001a",
+    "EZD-1201",
+    "EZD-507",
+    "EZD-1408",
+    "EZD-709",
+    "EZD-702a",
+    "EZD-1009",
+    "EZD-508",
+    "EZD-901a",
+    "EZD-1402",
+    "EZD-503",
+    "EZD-1417",
+    "EZD-515",
+    "EZD-504",
+    "EZD-414",
+    "EZD-1419",
+    "EZD-702b",
+    "EZD-914",
+    "EZD-710",
+    "EZD-915",
+    "EZD-510",
+    "EZD-417",
+    "EZD-711",
+    "EZD-602",
+    "EZD-513",
+    "EZD-603",
+    "EZD-403",
+    "EZD-706",
+    "EZD-1404",
+    "EZD-728",
+    "EZD-604",
+    "EZD-1001b",
+    "EZD-606",
+    "EZD-611a",
+    "EZD-609",
+    "EZD-511",
+    "EZD-643",
+    "EZD-1930",
+    "EZD-1933",
+    "EZD-1935",
+    "EZD-1937",
+    "EZD-1931",
+    "EZD-1936",
+    "EZD-1938",
+    "EZD-1932",
+    "EZD-1949",
+    "EZD-1942",
+    "EZD-1954",
+    "EZD-1957",
+    "EZD-1943",
+    "EZD-1961",
+    "EZD-1963",
+    "EZD-1934",
+    "EZD-1965",
+    "EZD-1968",
+    "EZD-1964",
+    "EZD-1966",
+    "EZD-1967",
+    "EZD-1947",
+    "EZD-1950",
+    "EZD-1969",
+    "EZD-1962",
+    "EZD-1951",
+    "EZD-1418",
+    "EZD-1939",
+    "EZD-1901",
+    "EZD-1970",
+    "EZD-415",
+    "EZD-1971",
+    "EZD-1972",
+    "EZD-1940",
+    "EZD-1904",
+    "EZD-1906a",
+    "EZD-1973",
+    "EZD-605",
+    "EZD-1941",
+    "EZD-1974",
+    "EZD-1975"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1081,26 +1173,745 @@
       "ts": "2026-11-20T11:40:30Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-413",
+      "title": "Seams and cutouts",
+      "commit": "b5a660c9",
+      "ts": "2026-11-20T13:40:40Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-739",
+      "title": "Scope tick boxes",
+      "commit": "edc8f833",
+      "ts": "2026-11-20T15:21:40Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1401",
+      "title": "Service worker cache",
+      "commit": "f10db4c6",
+      "ts": "2026-11-20T16:14:33Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-426",
+      "title": "Fix: test fixture cleanup deadlocks when two browser-test workers delete at the same time",
+      "commit": "bfa56b84",
+      "ts": "2026-11-20T18:26:26Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-427",
+      "title": "Fix: the EZD-009 background-jobs browser test fails at random under load and sets tickets aside",
+      "commit": "f0e7e5ab",
+      "ts": "2026-11-20T19:35:19Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-222",
+      "title": "Keyboard shortcuts and Help",
+      "commit": "c98830e6",
+      "ts": "2026-11-20T21:47:41Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-230",
+      "title": "Default key map and full rail",
+      "commit": "042ea352",
+      "ts": "2026-11-21T00:01:50Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1415",
+      "title": "Field measure: shapes and walls",
+      "commit": "01c8a6a7",
+      "ts": "2026-11-21T03:29:31Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1314",
+      "title": "Canonical event registry",
+      "commit": "9a20d935",
+      "ts": "2026-11-21T03:54:25Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1416",
+      "title": "Field measure: keypad and closure",
+      "commit": "ecc5dab5",
+      "ts": "2026-11-21T05:39:33Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-701",
+      "title": "Sheet model and default set",
+      "commit": "821cc952",
+      "ts": "2026-11-21T06:09:45Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-416",
+      "title": "Left panel and status bar",
+      "commit": "819a4bb7",
+      "ts": "2026-11-21T06:35:49Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-418",
+      "title": "Top schedule",
+      "commit": "9954b68e",
+      "ts": "2026-11-21T07:29:48Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-726",
+      "title": "Sheet sets",
+      "commit": "a1ca695e",
+      "ts": "2026-11-21T08:03:02Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1001a",
+      "title": "3D scene core",
+      "commit": "a8d15b52",
+      "ts": "2026-11-21T09:20:56Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1201",
+      "title": "Share links",
+      "commit": "66aa28f2",
+      "ts": "2026-11-21T09:39:17Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-507",
+      "title": "Ceiling devices",
+      "commit": "db74594a",
+      "ts": "2026-11-21T11:14:39Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1408",
+      "title": "Field task templates and publishing",
+      "commit": "9ca0fce4",
+      "ts": "2026-11-21T11:39:37Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-709",
+      "title": "Title block settings",
+      "commit": "dbee8c03",
+      "ts": "2026-11-21T14:10:51Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-702a",
+      "title": "Sheets screen",
+      "commit": "2b5a1e21",
+      "ts": "2026-11-21T14:39:26Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1009",
+      "title": "Design options data",
+      "commit": "9ec87890",
+      "ts": "2026-11-22T00:21:14Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-508",
+      "title": "Fixture schedule panel",
+      "commit": "3d586656",
+      "ts": "2026-11-22T02:11:13Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-901a",
+      "title": "Reference conversion job",
+      "commit": "a020491c",
+      "ts": "2026-11-22T02:40:35Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1402",
+      "title": "Offline change queue",
+      "commit": "e3f26abd",
+      "ts": "2026-11-22T04:09:38Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-503",
+      "title": "Ceiling type editor",
+      "commit": "6326b3b3",
+      "ts": "2026-11-22T04:32:44Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1417",
+      "title": "Field measure: offline save and send",
+      "commit": "2bf0ea0f",
+      "ts": "2026-11-22T05:22:05Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-515",
+      "title": "Fan clearance and hosted flags",
+      "commit": "450ea4fd",
+      "ts": "2026-11-22T06:39:16Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-504",
+      "title": "Walls cut under slopes",
+      "commit": "03e8cd32",
+      "ts": "2026-11-22T08:12:40Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-414",
+      "title": "Edges and overhangs",
+      "commit": "060cba25",
+      "ts": "2026-11-22T08:43:53Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1419",
+      "title": "Field measure entry points and states",
+      "commit": "370fe8c3",
+      "ts": "2026-11-22T09:13:33Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-702b",
+      "title": "Sheet renderer",
+      "commit": "55b023e4",
+      "ts": "2026-11-22T10:35:25Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-914",
+      "title": "Supplier files panel",
+      "commit": "1c0116a3",
+      "ts": "2026-11-22T11:48:20Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-710",
+      "title": "Title block on sheets",
+      "commit": "626b6a44",
+      "ts": "2026-11-22T15:07:18Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-915",
+      "title": "Supplier vector PDF import",
+      "commit": "a6a91815",
+      "ts": "2026-11-22T15:39:16Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-510",
+      "title": "Switching zones",
+      "commit": "467fd783",
+      "ts": "2026-11-22T16:23:26Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-417",
+      "title": "Edge profiles",
+      "commit": "bdcf3c5d",
+      "ts": "2026-11-22T17:19:56Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-711",
+      "title": "Property appraiser import",
+      "commit": "0b537495",
+      "ts": "2026-11-22T18:33:09Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-602",
+      "title": "Device toolbar",
+      "commit": "0c5399cf",
+      "ts": "2026-11-22T19:03:50Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-513",
+      "title": "Soffits, trays, coffers, crown, tags",
+      "commit": "f41f8a98",
+      "ts": "2026-11-22T21:55:30Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-603",
+      "title": "Device height notes",
+      "commit": "7dd1c481",
+      "ts": "2026-11-23T00:10:47Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-403",
+      "title": "Cabinet library panel",
+      "commit": "1e17ce4f",
+      "ts": "2026-11-23T01:14:39Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-706",
+      "title": "Symbol key",
+      "commit": "d79e12ee",
+      "ts": "2026-11-23T01:39:05Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1404",
+      "title": "Field pack shell",
+      "commit": "8b89663a",
+      "ts": "2026-11-23T02:13:30Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-728",
+      "title": "Cover sheet A0.0",
+      "commit": "5e16f199",
+      "ts": "2026-11-23T03:16:49Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-604",
+      "title": "Circuits",
+      "commit": "b9f03675",
+      "ts": "2026-11-23T03:41:33Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1001b",
+      "title": "3D ceilings and beams",
+      "commit": "f6b664b6",
+      "ts": "2026-11-23T04:11:32Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-606",
+      "title": "Panel and existing panel dialog",
+      "commit": "1b07f0d3",
+      "ts": "2026-11-23T06:21:38Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-611a",
+      "title": "Code check engine and rule registry",
+      "commit": "880fa94c",
+      "ts": "2026-11-23T07:16:52Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-609",
+      "title": "Panel schedule",
+      "commit": "31415284",
+      "ts": "2026-11-23T07:52:35Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-511",
+      "title": "ACT grid",
+      "commit": "b48ab0cf",
+      "ts": "2026-11-23T09:22:33Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-643",
+      "title": "Other code editions",
+      "commit": "6e61c453",
+      "ts": "2026-11-23T09:44:06Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1930",
+      "title": "Security headers: frame-ancestors 'self', nosniff, Permissions-Policy",
+      "commit": "06d534d6",
+      "ts": "2026-11-23T12:52:31Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1933",
+      "title": "Signed-out error-alert functions cannot be used to flood the owner with email",
+      "commit": "a4e608b7",
+      "ts": "2026-11-23T13:44:03Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1935",
+      "title": "Fix: conflict-list B6 fails at random after the member's sessions end",
+      "commit": "62767c3f",
+      "ts": "2026-11-23T14:13:48Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1937",
+      "title": "Fix: project-offline EZD-1401 offline open fails at random on iPad",
+      "commit": "9cdac70d",
+      "ts": "2026-11-23T15:16:38Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1931",
+      "title": "One gate for /dev and /api/dev in the request proxy",
+      "commit": "8a12bfbb",
+      "ts": "2026-11-23T15:56:06Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1936",
+      "title": "Fix: settings-users B8 iPad touch-target test fails at random",
+      "commit": "7d8676f7",
+      "ts": "2026-11-23T16:24:15Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1938",
+      "title": "Permission tests count from the catalog; expected refresh refusals stay out of the gate log",
+      "commit": "271721c0",
+      "ts": "2026-11-23T16:51:39Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1932",
+      "title": "Database and server hardening: function defaults fail closed, server-only secret files, deny-all table tests",
+      "commit": "33c26a92",
+      "ts": "2026-11-23T17:26:26Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1949",
+      "title": "Speed up the slowest unit and database tests",
+      "commit": "dc68d41c",
+      "ts": "2026-11-23T18:33:43Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1942",
+      "title": "Loop: footprints include the tests of the files they claim",
+      "commit": "747a0ecf",
+      "ts": "2026-11-23T21:31:41Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1954",
+      "title": "Design tokens: a type scale and no literal font sizes",
+      "commit": "28f63c93",
+      "ts": "2026-11-23T21:58:20Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1957",
+      "title": "Docs: mockup glitch note and setup warnings",
+      "commit": "8698ce0c",
+      "ts": "2026-11-23T23:19:28Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1943",
+      "title": "Loop: small fixes (check timer SIGKILL, loop.log commit error)",
+      "commit": "2c6933db",
+      "ts": "2026-11-24T00:35:18Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1961",
+      "title": "Sign-in shows each way in separately (Q-0800)",
+      "commit": "78677e4f",
+      "ts": "2026-11-24T01:25:58Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1963",
+      "title": "Fix: field-measure-entry AC-EZD-1419-2 fails at random on the phone project",
+      "commit": "f7e03227",
+      "ts": "2026-11-24T01:52:31Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1934",
+      "title": "Move dev-only glob and minimatch to patched versions",
+      "commit": "20b6da4a",
+      "ts": "2026-11-24T02:51:12Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1965",
+      "title": "Check: a stopped or timed-out check leaves no processes behind",
+      "commit": "434cfb41",
+      "ts": "2026-11-24T03:53:26Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1968",
+      "title": "Loop watchdog: restart the build service when the loop stops making progress",
+      "commit": "8c44bac6",
+      "ts": "2026-11-24T04:25:51Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1964",
+      "title": "Fix: property-appraiser-import EZD-711 AC-1 fails at random",
+      "commit": "aefd6ad0",
+      "ts": "2026-11-24T05:03:29Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1966",
+      "title": "Check: wait for Docker instead of failing the ticket when Docker is down",
+      "commit": "a15f3bbc",
+      "ts": "2026-11-24T05:26:47Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1967",
+      "title": "Loop: restart itself after a change to its own code is merged",
+      "commit": "b742c9cb",
+      "ts": "2026-11-24T07:02:25Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1947",
+      "title": "Gate: scripts tests run outside the heavy lock",
+      "commit": "11e05de5",
+      "ts": "2026-11-24T07:32:19Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1950",
+      "title": "Speed up the money-pages e2e sweep",
+      "commit": "021d6f47",
+      "ts": "2026-11-24T08:01:52Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1969",
+      "title": "Fix: status-bar EZD-219 B4 fails at random",
+      "commit": "dc4368a7",
+      "ts": "2026-11-24T08:19:05Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1962",
+      "title": "Wording: \"Couldn't read this page\" on the property record import (Q-0802)",
+      "commit": "e79b36bf",
+      "ts": "2026-11-24T09:41:36Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1951",
+      "title": "Remove the retired build machinery from scripts/",
+      "commit": "9b98d14d",
+      "ts": "2026-11-24T10:28:46Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1418",
+      "title": "Field measure into Import review",
+      "commit": "1bbf6c0b",
+      "ts": "2026-11-24T11:57:05Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1939",
+      "title": "Loop: failure lines in loop.log name the failing tests",
+      "commit": "b97c0075",
+      "ts": "2026-11-24T14:20:58Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1901",
+      "title": "Editor feature contract and characterization tests",
+      "commit": "6a6441a3",
+      "ts": "2026-11-24T15:23:55Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1970",
+      "title": "Check: free the lane web port before e2e so a stale server is never reused",
+      "commit": "6a360e95",
+      "ts": "2026-11-24T16:17:42Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-415",
+      "title": "Seating support check",
+      "commit": "a3e78140",
+      "ts": "2026-11-24T17:12:14Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1971",
+      "title": "Fix: benchmark project B1 fails on CI waiting for the editor",
+      "commit": "a34e7620",
+      "ts": "2026-11-24T17:51:16Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1972",
+      "title": "Fix: first open of 3D on the benchmark project stays within 1,000 ms on CI",
+      "commit": "1890c262",
+      "ts": "2026-11-24T18:47:02Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1940",
+      "title": "Loop: retried tickets go first, not last",
+      "commit": "904e57b6",
+      "ts": "2026-11-24T19:17:37Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1904",
+      "title": "Geometry: one vector helper module",
+      "commit": "08f559eb",
+      "ts": "2026-11-24T19:49:47Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1906a",
+      "title": "Editor shared helpers (ids, value store, store hook, inch text) in tools, selection, edit",
+      "commit": "98b3c004",
+      "ts": "2026-11-24T20:30:19Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1973",
+      "title": "Fix: the first tap after a touch drag on the tool rail is sometimes lost",
+      "commit": "b3e2b2ba",
+      "ts": "2026-11-24T21:46:08Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-605",
+      "title": "Switch legs",
+      "commit": "25c7022b",
+      "ts": "2026-11-24T22:14:56Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1941",
+      "title": "Loop: architecture.md, database.types.ts and single migration files stop blocking lanes",
+      "commit": "f7785141",
+      "ts": "2026-11-24T22:44:27Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1974",
+      "title": "Fix: the EZD-136 every-page disclaimer test times out on CI",
+      "commit": "e5390c56",
+      "ts": "2026-11-24T23:06:33Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1975",
+      "title": "Fix: the sheet renders 3 or 4 times instead of 2 after Plan edits (EZD-702b AC-1/AC-2 on CI)",
+      "commit": "9e0a81cc",
+      "ts": "2026-11-24T23:43:00Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
-  "set_aside": {
-    "EZD-222": {
-      "title": "Keyboard shortcuts and Help",
-      "ts": "2026-11-18T18:21:56Z",
-      "reason": "builder crashed (no result) (first try: builder timed out after 90 min with no commits)",
-      "detail": "\n",
-      "branch": "t/EZD-222",
-      "worktree": ".claude/worktrees/EZD-222"
-    },
-    "EZD-403": {
-      "title": "Cabinet library panel",
-      "ts": "2026-11-20T09:26:14Z",
-      "reason": "check red after merging newer develop (first try: check still red after 2 fix rounds)",
-      "detail": " EZD-021 net guard in browser tests › EZD-021 T14 (a) a page request to a live host fails the test (78ms)\n  ✘  217 [desktop] › e2e/net-guard.spec.ts:22:9 › EZD-021 net guard in browser tests › server log › EZD-021 T14 (b) a line in the server guard log fails the test (4ms)\n  ✘  219 [desktop] › e2e/net-guard.spec.ts:40:7 › EZD-159 net guard blocks page WebSockets › EZD-159 T7 a page WebSocket to a live host fails the test (116ms)\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] Error: aborted\n[WebServer]     at ignore-listed frames {\n[WebServer]   code: 'ECONNRESET'\n[WebServer] }\n  1) [desktop] › e2e/move.spec.ts:165:7 › EZD-212b Move tool › EZD-212b B1 Move the host wall away from a door \n    Error: expect(received).toEqual(expected) // deep equality\n    - Expected  - 3\n    + Received  + 1\n    - Array [\n    -   \"ae7e5749-80ac-4ca5-8887-0d83f3ee4978\",\n    - ]\n    + Array []\n      175 |\n      176 |     await clickAt(page, 144, 100);\n    > 177 |     expect(await selectedIds(page)).toEqual([seed.E]);\n          |                                     ^\n      178 |     const before = geoOf(await objects(page), seed.E);\n      179 |     near(before.start.x, 144, 9);\n      180 |     near(before.end.x, 144, 9);\n        at /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-403/app/e2e/move.spec.ts:177:37\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n    Error Context: test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/error-context.md\n    Error Context: test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/error-context.md\n    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/trace.zip\n    Usage:\n        pnpm exec playwright show-trace test-results/move-EZD-212b-Move-tool-EZ-62e2d--host-wall-away-from-a-door-desktop/trace.zip\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n  1 failed\n    [desktop] › e2e/move.spec.ts:165:7 › EZD-212b Move tool › EZD-212b B1 Move the host wall away from a door \n  7 did not run\n  564 passed (4.8m)\n[ELIFECYCLE] Command failed with exit code 1.\nError: \nERR_PNPM_RECURSIVE_RUN_FIRST_FAIL\n  × \"pnpm recursive run\" failed in /Users/josh/Projects/ezdraft/.claude/\n  │ worktrees/EZD-403/app\n",
-      "branch": "t/EZD-403",
-      "worktree": ".claude/worktrees/EZD-403"
-    }
-  },
+  "set_aside": {},
   "red_streak": 0,
   "push_pending": true,
   "trial_report_written": true,
@@ -1113,17 +1924,37 @@
     "EZD-216": 1,
     "EZD-215": 1,
     "EZD-306": 1,
-    "EZD-222": 1,
     "EZD-124": 1,
     "EZD-312": 1,
     "EZD-134": 1,
     "EZD-305": 1,
-    "EZD-403": 1,
-    "EZD-701": 1,
     "EZD-123": 1,
     "EZD-424": 1,
     "EZD-412": 1,
-    "EZD-1009": 1
+    "EZD-1009": 1,
+    "EZD-739": 1,
+    "EZD-1402": 1,
+    "EZD-403": 1,
+    "EZD-414": 1,
+    "EZD-503": 1,
+    "EZD-515": 1,
+    "EZD-508": 1,
+    "EZD-702b": 1,
+    "EZD-1418": 1,
+    "EZD-1422": 1,
+    "EZD-916": 1,
+    "EZD-605": 1,
+    "EZD-512": 1,
+    "EZD-607": 1,
+    "EZD-1409": 1,
+    "EZD-1934": 1,
+    "EZD-1943": 1,
+    "EZD-1947": 1,
+    "EZD-1964": 1,
+    "EZD-1967": 1,
+    "EZD-1962": 1,
+    "EZD-1939": 1,
+    "EZD-1944": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -1175,8 +2006,8 @@
       "reason": "builder crashed (no result)"
     },
     "EZD-403": {
-      "ts": "2026-11-18T13:04:15Z",
-      "reason": "check still red after 2 fix rounds"
+      "ts": "2026-11-21T02:05:35Z",
+      "reason": "check red after a review fix"
     },
     "EZD-701": {
       "ts": "2026-11-19T13:10:45Z",
@@ -1201,15 +2032,97 @@
     "EZD-425": {
       "ts": "2026-11-20T03:14:56Z",
       "reason": "check still red after 2 fix rounds"
+    },
+    "EZD-739": {
+      "ts": "2026-11-20T13:13:29Z",
+      "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-1402": {
+      "ts": "2026-11-21T01:41:38Z",
+      "reason": "check red after a review fix"
+    },
+    "EZD-414": {
+      "ts": "2026-11-21T04:19:16Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-503": {
+      "ts": "2026-11-21T13:01:51Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-515": {
+      "ts": "2026-11-21T13:17:54Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-508": {
+      "ts": "2026-11-21T23:43:24Z",
+      "reason": "builder timed out after 90 min with no commits"
+    },
+    "EZD-702b": {
+      "ts": "2026-11-22T00:43:36Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1418": {
+      "ts": "2026-11-22T07:31:02Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1422": {
+      "ts": "2026-11-22T14:09:32Z",
+      "reason": "review: needs EZD-1418 first"
+    },
+    "EZD-916": {
+      "ts": "2026-11-22T20:29:04Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-605": {
+      "ts": "2026-11-23T05:15:10Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-512": {
+      "ts": "2026-11-23T11:31:31Z",
+      "reason": "develop kept moving: 3 merge rounds"
+    },
+    "EZD-607": {
+      "ts": "2026-11-23T12:18:43Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1409": {
+      "ts": "2026-11-23T12:31:37Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1939": {
+      "ts": "2026-11-24T10:08:00Z",
+      "reason": "check red after a review fix"
+    },
+    "EZD-1934": {
+      "ts": "2026-11-23T19:27:36Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1943": {
+      "ts": "2026-11-23T23:22:57Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1947": {
+      "ts": "2026-11-24T00:43:03Z",
+      "reason": "check still red after 2 fix rounds"
+    },
+    "EZD-1964": {
+      "ts": "2026-11-24T02:02:04Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1967": {
+      "ts": "2026-11-24T05:56:32Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1962": {
+      "ts": "2026-11-24T06:26:11Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1944": {
+      "ts": "2026-11-24T16:20:05Z",
+      "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-413": {
-      "lane": 2,
-      "title": "Seams and cutouts",
-      "started": "2026-11-20T11:13:11Z",
-      "develop": "9991d2fc"
-    }
-  },
-  "advisories_checked_at": "2026-11-20T10:58:15Z"
+  "running": {},
+  "advisories_checked_at": "2026-11-24T22:17:04Z",
+  "hold": {}
 }

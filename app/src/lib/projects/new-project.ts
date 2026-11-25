@@ -11,12 +11,46 @@ export const PROJECT_NAME_MAX = 1000;
 export const PROJECT_ADDRESS_MAX = 1000;
 export const SCOPE_OF_WORK_MAX = 20000;
 
+// EZD-739 (Q-0764; Q-0779): the scope tick boxes under Scope of work, in this order: Electrical, Plumbing,
+// Mechanical and Reflected ceiling plan. Stored on the project (project.scope_trades); all unticked on a new
+// project.
+export const SCOPE_TRADES = ['electrical', 'plumbing', 'mechanical', 'rcp'] as const;
+export type ScopeTrade = (typeof SCOPE_TRADES)[number];
+
+export function isScopeTrade(v: unknown): v is ScopeTrade {
+  return typeof v === 'string' && (SCOPE_TRADES as readonly string[]).includes(v);
+}
+
+// The ticked boxes in the fixed order, each once.
+export function normalizeScopeTrades(trades: readonly ScopeTrade[]): ScopeTrade[] {
+  return SCOPE_TRADES.filter((t) => trades.includes(t));
+}
+
+// Tick or untick one box.
+export function toggleScopeTrade(
+  trades: readonly ScopeTrade[],
+  trade: ScopeTrade,
+  ticked: boolean,
+): ScopeTrade[] {
+  return normalizeScopeTrades(ticked ? [...trades, trade] : trades.filter((t) => t !== trade));
+}
+
+export function sameScopeTrades(a: readonly ScopeTrade[], b: readonly ScopeTrade[]): boolean {
+  const x = normalizeScopeTrades(a);
+  const y = normalizeScopeTrades(b);
+  return x.length === y.length && x.every((t, i) => t === y[i]);
+}
+
 export type NewProjectBody = {
   name: string;
   address: string;
   type: ProjectType;
   customerId: string | null;
   scopeOfWork: string;
+  // EZD-739: the ticked scope boxes; absent is none ticked.
+  scopeTrades?: ScopeTrade[];
+  // EZD-643 (Q-0765): the optional permit application date, 'YYYY-MM-DD'; absent is none.
+  permitApplicationDate?: string;
   template?: TemplateBody | null;
   // EZD-301: present only for a project started from a file.
   source?: 'file';
@@ -29,6 +63,9 @@ export type NewProjectDraft = {
   type: ProjectType | null;
   customer: Customer | null;
   scopeOfWork: string;
+  scopeTrades: ScopeTrade[];
+  // EZD-643: absent or '' is no date.
+  permitApplicationDate?: string;
 };
 
 export const EMPTY_NEW_PROJECT: NewProjectDraft = {
@@ -38,6 +75,7 @@ export const EMPTY_NEW_PROJECT: NewProjectDraft = {
   type: null,
   customer: null,
   scopeOfWork: '',
+  scopeTrades: [],
 };
 
 // The name follows the type ("<Type> remodel") until the user types in the name field.
@@ -58,6 +96,8 @@ export function isDraftEdited(d: NewProjectDraft): boolean {
     d.name !== '' ||
     d.address !== '' ||
     d.scopeOfWork !== '' ||
+    d.scopeTrades.length > 0 ||
+    (d.permitApplicationDate ?? '') !== '' ||
     d.type !== null ||
     d.customer !== null
   );
@@ -71,5 +111,7 @@ export function toCreateBody(d: NewProjectDraft): NewProjectBody | null {
     type: d.type,
     customerId: d.customer?.id ?? null,
     scopeOfWork: d.scopeOfWork.trim(),
+    scopeTrades: normalizeScopeTrades(d.scopeTrades),
+    ...(d.permitApplicationDate ? { permitApplicationDate: d.permitApplicationDate } : {}),
   };
 }

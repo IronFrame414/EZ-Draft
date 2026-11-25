@@ -8,6 +8,19 @@
 //   `serviceSize` (amps) is the service the main panel is on; null on a subpanel.
 // - circuit: on `panel`, from space `space`; a 2-pole circuit also takes space + 2 (numbered "1-3"). `load` is its
 //   connected VA. Its level is its panel's level; it has no geometry of its own (its devices carry the places).
+// EZD-604 (phase-06 EZD-604 "Panel object in model_json (name, existing or new, parent panel for subpanels, service
+// size, main breaker, spaces) with a default "Panel A""; "breaker, wire, name editable"; vault/build/assumptions.md
+// EZD-604): a new panel's main breaker and spaces may be Not set (null), as its service size already could. A circuit
+// gains its wire size (AWG; material is EZD-610's) and `order`, the devices in the order they were clicked onto it
+// (the circuit line runs through them in this order). Both optional and the nullable fields only widen, so every
+// stored object stays valid and the version stays.
+// EZD-606 (phase-06 EZD-606 "Existing panel fields on the panel object in model_json (brand, label photo), so every
+// version carries its own panel"; S06 Controls "Existing panel ... Service size, main breaker, panel label photo (AI
+// reads brand, rating, spaces; user confirms), existing circuit list ..., existing large appliances (range, dryer, AC,
+// water heater)"; 03c panel "brand, label_photo_id"; vault/build/assumptions.md EZD-606): the panel gains its brand,
+// its label photo (a panel_photo source_file, checked on save) and the existing large appliances, each with its
+// rating in VA when known (null: the calc's default, EZD-614). The existing circuit list is the panel's circuits of
+// status existing. All three optional, so every stored object stays valid and the version stays.
 import { z } from 'zod';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
 
@@ -17,6 +30,17 @@ export const circuitProtectionSchema = z.enum(CIRCUIT_PROTECTIONS);
 
 const amps = z.number().int().positive();
 
+export const PANEL_BRAND_MAX = 80;
+
+// S06 Controls "existing large appliances (range, dryer, AC, water heater)", each at most once.
+export const EXISTING_APPLIANCE_KINDS = ['range', 'dryer', 'ac', 'water_heater'] as const;
+export type ExistingApplianceKind = (typeof EXISTING_APPLIANCE_KINDS)[number];
+export const existingApplianceSchema = z.strictObject({
+  kind: z.enum(EXISTING_APPLIANCE_KINDS),
+  va: z.number().int().positive().nullable(),
+});
+export type ExistingAppliance = z.infer<typeof existingApplianceSchema>;
+
 export const panelDataSchema = z.strictObject({
   geometry: z.strictObject({ point: pointSchema }),
   status: objectStatusSchema,
@@ -25,13 +49,35 @@ export const panelDataSchema = z.strictObject({
     name: z.string().min(1),
     parentPanel: z.uuid().nullable(),
     serviceSize: amps.nullable(),
-    mainBreaker: amps,
-    spaces: z.number().int().positive(),
+    mainBreaker: amps.nullable(),
+    spaces: z.number().int().positive().nullable(),
+    brand: z.string().min(1).max(PANEL_BRAND_MAX).nullable().optional(),
+    labelPhoto: z.uuid().nullable().optional(),
+    appliances: z.array(existingApplianceSchema).max(EXISTING_APPLIANCE_KINDS.length).optional(),
   }),
 });
 export type PanelData = z.infer<typeof panelDataSchema>;
 
 export const CIRCUIT_POLES = [1, 2] as const;
+
+// EZD-604: copper and aluminum building-wire sizes, 14 AWG to 4/0 (09b gives 14 to 6; NE4-133 the larger ones).
+export const WIRE_SIZES = [
+  '14',
+  '12',
+  '10',
+  '8',
+  '6',
+  '4',
+  '3',
+  '2',
+  '1',
+  '1/0',
+  '2/0',
+  '3/0',
+  '4/0',
+] as const;
+export type WireSize = (typeof WIRE_SIZES)[number];
+export const wireSizeSchema = z.enum(WIRE_SIZES);
 
 export const circuitDataSchema = z.strictObject({
   status: objectStatusSchema,
@@ -45,6 +91,8 @@ export const circuitDataSchema = z.strictObject({
     protection: circuitProtectionSchema.nullable(),
     dedicated: z.boolean(),
     load: z.number().nonnegative(),
+    wire: wireSizeSchema.optional(),
+    order: z.array(z.uuid()).optional(),
   }),
 });
 export type CircuitData = z.infer<typeof circuitDataSchema>;

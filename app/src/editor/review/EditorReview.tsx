@@ -4,9 +4,11 @@
 // load"): the editor's review pill and list. On open the editor reads the project's stored count (the same
 // project.open_items_count the Projects card shows); the pill opens the list, which reads the open items then and
 // takes the fresh count with them. Shown to every viewer of the project (View projects), not only editors.
+// EZD-1401: the list's code is a lazy module loaded on the first press (lazy/review-list).
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
-import { ReviewList, type ReviewListState } from '../../components/shell/ReviewList';
+import type { ReviewListState } from '../../components/shell/ReviewList';
+import { lazyModule } from '../../lib/lazy/lazy-module';
 import { ReviewPill } from '../../components/shell/ReviewPill';
 import { reviewHttpApi, type ReviewApi } from './review-api';
 
@@ -14,12 +16,17 @@ export type EditorReviewProps = { projectId: string; api?: ReviewApi };
 
 const defaultApi = reviewHttpApi();
 
+// EZD-1401 (11 Budgets; EZD-120c B11): the list's code loads with the first press of the pill, alongside its read;
+// a failed download is tried again on the next press.
+const reviewListModule = lazyModule(() => import('../../lazy/review-list'));
+
 export function EditorReview({
   projectId,
   api = defaultApi,
 }: EditorReviewProps): ReactElement | null {
   const [count, setCount] = useState(0);
   const [list, setList] = useState<ReviewListState | null>(null);
+  const [listCode, setListCode] = useState(() => reviewListModule.peek());
   const anchorRef = useRef<HTMLButtonElement | null>(null);
   const listId = useId();
   const loadRef = useRef<AbortController | null>(null);
@@ -56,9 +63,11 @@ export function EditorReview({
   }, []);
 
   const toggle = useCallback(() => {
-    if (list === null) loadList();
-    else close();
-  }, [list, loadList, close]);
+    if (list === null) {
+      if (listCode === undefined) void reviewListModule.load().then(setListCode, () => undefined);
+      loadList();
+    } else close();
+  }, [list, listCode, loadList, close]);
 
   if (count <= 0) return null;
   return (
@@ -70,8 +79,8 @@ export function EditorReview({
         onToggle={toggle}
         listId={listId}
       />
-      {list !== null ? (
-        <ReviewList
+      {list !== null && listCode !== undefined ? (
+        <listCode.ReviewList
           state={list}
           anchorRef={anchorRef}
           id={listId}

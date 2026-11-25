@@ -7,6 +7,9 @@
 // target. emit is wrapped in vi.fn over createEmitter({ sinks: [] }).emit, so the registry check stays.
 // Emails are read from the local mail catcher (CLAUDE.md rule 6); sends to one address 1,100 ms apart (D2).
 // Members are made fresh in fresh tenants; no seeded row changes. Expected values: section 4 Sources.
+// EZD-1949: the 1,100 ms gap is kept on an injected clock (test-harness/auth-send-clock.ts) that moves the
+// address's last Auth send times back instead of sleeping, counted from when the previous send returned;
+// the 3 s quiet waits before "no more email" counts are a mail fence (mailFence). Auth's window is unchanged.
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -24,10 +27,12 @@ import {
 import {
   addMembership,
   cleanupTestMembers,
+  createPasswordMember,
   createTestMember,
   type TestMember,
 } from '../../../test-harness/auth-users';
-import { countAuthEmails, waitForAuthEmail } from '../../../test-harness/mail-catcher';
+import { authSendClock, sendAuthEmail } from '../../../test-harness/auth-send-clock';
+import { countAuthEmails, mailFence, waitForAuthEmail } from '../../../test-harness/mail-catcher';
 import { JOSH_USER_ID } from '../../../test-utils/seed-ids';
 import type { Database } from '../db/database.types';
 import { emit } from '../events';
@@ -154,21 +159,23 @@ async function run(store: Store, action: () => Promise<unknown>): Promise<Outcom
   }
 }
 
-// D2: sends to one address at least 1,100 ms apart.
+// D2: sends to one address at least 1,100 ms apart, on the address's Auth send clock (EZD-1949).
 const lastSend = new Map<string, number>();
 async function spaced(email: string) {
+  const clock = authSendClock(email);
   const last = lastSend.get(email);
   if (last !== undefined) {
-    const wait = last + 1100 - Date.now();
-    if (wait > 0) await sleep(wait);
+    const wait = last + 1100 - clock.now();
+    if (wait > 0) await clock.sleep(wait);
   }
-  lastSend.set(email, Date.now());
 }
+const sent = (email: string) => lastSend.set(email, authSendClock(email).now());
 
 async function request(store: Store, email: string): Promise<{ result: unknown; before: Date }> {
   await spaced(email);
   const before = new Date();
   const out = await run(store, () => requestSignIn(form({ email })));
+  sent(email);
   expect(out).toHaveProperty('resolved');
   return { result: (out as { resolved: unknown }).resolved, before };
 }
@@ -256,10 +263,14 @@ async function settle(p: Promise<unknown>) {
 describe('EZD-007d sign-in actions and invite acceptance', () => {
   let tenantA: string;
   let tenantB: string;
+  let fenceEmail: string;
+  // EZD-1949: every email Auth sent before this one is in the catcher once it arrives.
+  const fence = () => mailFence(fenceEmail, () => sendAuthEmail(fenceEmail));
 
   beforeAll(async () => {
     tenantA = await createTenant();
     tenantB = await createTenant();
+    fenceEmail = (await createPasswordMember({ tenantId: tenantA })).email;
   });
 
   beforeEach(() => {
@@ -279,7 +290,7 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
     const { result, before } = await request(newStore(), m.email);
     expect(result).toEqual({ step: 'code' });
     const mail = await waitForAuthEmail(m.email, { after: before });
-    await sleep(3000);
+    await fence();
     expect(await countAuthEmails(m.email, { after: before })).toBe(1);
 
     const decoded = mail.html.replace(/&amp;/g, '&');
@@ -357,7 +368,7 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
     expect(ck.length).toBeGreaterThanOrEqual(1);
     expect(cu[cu.length - 1].options).toEqual(ck[ck.length - 1].options);
     expect(await authUsersWithEmail(unknown)).toBe(0);
-    await sleep(3000);
+    await fence();
     expect(await countAuthEmails(unknown)).toBe(0);
 
     // (b) real Auth, back to back, no 1,100 ms wait
@@ -369,10 +380,10 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
       const out = await run(newStore(), () => requestSignIn(form({ email })));
       answers.push((out as { resolved?: unknown }).resolved);
     }
-    lastSend.set(member.email, Date.now());
+    sent(member.email);
     for (const a of answers) expect(a).toEqual({ step: 'code' });
     await waitForAuthEmail(member.email, { after: before });
-    await sleep(3000);
+    await fence();
     expect(await countAuthEmails(member.email, { after: before })).toBe(1);
     expect(await countAuthEmails(unknown2)).toBe(0);
   }, 60000);
@@ -400,7 +411,7 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
       expect(result).toEqual({ step: 'code' });
       refused.push({ m, before });
     }
-    await sleep(3000);
+    await fence();
     for (const { m, before } of refused) {
       expect(await countAuthEmails(m.email, { after: before })).toBe(0);
       expect(await authUsersWithEmail(m.email)).toBe(0);
@@ -567,8 +578,7 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
     await anon.auth.signUp({ email: p.email, password });
-    lastSend.set(p.email, Date.now());
-    await sleep(1100);
+    sent(p.email);
     const row = await harnessSql()`
       select email_confirmed_at, encrypted_password from auth.users where email = ${p.email}`;
     expect(row.length).toBe(1);

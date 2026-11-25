@@ -26,13 +26,13 @@
 
 .title {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
 }
 
 .message {
   margin: 3px 0 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 

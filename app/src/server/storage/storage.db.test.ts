@@ -55,6 +55,7 @@ const STORAGE_POLICIES = [
   'storage_media_insert',
   'storage_media_delete',
   'storage_media_thumb_insert',
+  'storage_media_field_photo_insert',
 ];
 
 const sha = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
@@ -177,10 +178,11 @@ describe('EZD-132 file storage', () => {
       select policyname, cmd, roles::text[] as roles, qual, with_check
       from pg_policies where schemaname = 'storage' and tablename = 'objects'`;
     // EZD-224 (vault/plans/EZD-224.md section 3 Shared lists; L-024, dated 2026-11-11, newest migration
-    // 20261110130000): six policies, storage_media_thumb_insert added.
+    // 20261110130000): six policies, storage_media_thumb_insert added. EZD-1402 (20261121210000): seven,
+    // storage_media_field_photo_insert added.
     const names = policies.map((p) => p.policyname);
     for (const name of STORAGE_POLICIES) expect(names).toContain(name);
-    expect(names).toHaveLength(6);
+    expect(names).toHaveLength(7);
     for (const p of policies) {
       expect(['UPDATE', 'ALL'], p.policyname).not.toContain(p.cmd);
       const text = `${p.qual ?? ''} ${p.with_check ?? ''}`;

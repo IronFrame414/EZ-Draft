@@ -29,8 +29,18 @@ export const WRITE_PERMISSION_EXEMPTIONS: ReadonlyArray<{ path: string; reason: 
       'every user changes their own notification settings; no permission switch (S15; Q-0393; EZD-140)',
   },
   {
+    path: 'app/src/app/api/profile/rail-order/route.ts',
+    reason:
+      'every user sets the tool order of their own rail; no permission switch (Q-0038, Q-0122; EZD-230)',
+  },
+  {
     path: 'app/src/app/api/settings/users/[id]/password/route.ts',
     reason:
       'Owner preset, no switch; checked inside owner_password_target and record_member_password_set, Q-0096 P4 (EZD-105b)',
+  },
+  {
+    path: 'app/src/app/api/share-links/resolve/route.ts',
+    reason:
+      'the signed-out client link lookup (no member session; POST keeps the token out of URLs); anon may only run resolve_share_link, which writes nothing but its event_log row (EZD-1201; Q-0700)',
   },
 ];

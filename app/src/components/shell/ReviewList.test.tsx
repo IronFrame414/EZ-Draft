@@ -49,4 +49,19 @@ describe('EZD-127 ReviewList', () => {
       'To reviewNothing to review',
     );
   });
+
+  // EZD-1418 (S02 Entry points "rooms sent from the phone"): the field measurements line opens Import review.
+  it('a line with a page is a link to it; the others stay plain text', () => {
+    const html = render({
+      kind: 'ready',
+      groups: [
+        { source: 'field_conflict', count: 2 },
+        { source: 'field_measure', count: 1, href: '/projects/p1/import/j1' },
+      ],
+    });
+    const links = elements(html, 'review-group-link');
+    expect(links).toHaveLength(1);
+    expect(attr(links[0].attrs, 'href')).toBe('/projects/p1/import/j1');
+    expect(textOf(links[0].inner)).toBe('Field measurements');
+  });
 });

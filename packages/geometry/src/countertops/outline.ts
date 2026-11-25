@@ -5,6 +5,8 @@
 import { outlineAreaSqIn } from '../rooms/area';
 import type { CountertopEdge, CountertopPieceData, Point } from '../schema';
 import { COUNTERTOP_LABEL_PATTERN, COUNTERTOP_OUTLINE_MAX } from '../schema';
+import { cutoutFitsPiece } from './cutout';
+import { dist } from '../vec';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -25,8 +27,6 @@ export function nextCountertopLabels(used: readonly string[], count: number): st
   }
   return out;
 }
-
-const dist = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 
 function segmentsCross(a: Point, b: Point, c: Point, d: Point): boolean {
   const o = (p: Point, q: Point, r: Point) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
@@ -157,7 +157,8 @@ export function countertopFromOutline(
 }
 
 // Corner `index` moved to `to`; null when the index is not a corner or the outline it leaves is not valid. The edges
-// keep their kinds and overhangs.
+// keep their kinds and overhangs. EZD-413: also null when the corner ends a seam (the piece across the seam would not
+// move with it) or when a cutout would no longer lie wholly on the top.
 export function moveCountertopVertex(
   piece: CountertopPieceData,
   index: number,
@@ -165,7 +166,11 @@ export function moveCountertopVertex(
 ): CountertopPieceData | null {
   const { outline } = piece.geometry;
   if (!Number.isInteger(index) || index < 0 || index >= outline.length) return null;
+  const { edges } = piece.attributes;
+  const before = edges[(index - 1 + outline.length) % outline.length];
+  if (edges[index]?.seamId !== undefined || before?.seamId !== undefined) return null;
   const next = outline.map((p, i) => (i === index ? { x: to.x, y: to.y } : p));
   if (!isValidCountertopOutline(next)) return null;
+  if (!(piece.attributes.cutouts ?? []).every((c) => cutoutFitsPiece(next, c))) return null;
   return { ...piece, geometry: { ...piece.geometry, outline: next } };
 }

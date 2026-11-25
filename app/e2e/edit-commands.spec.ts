@@ -244,6 +244,8 @@ test.describe('EZD-217 edit commands', () => {
     test.setTimeout(90_000);
     await seeded(page, signInAs);
     const bar = id(page, 'edit-bar');
+    // The bar loads lazily on touch screens (EZD-233), so wait for it before reading its buttons once.
+    await expect(id(page, 'edit-undo')).toBeVisible();
     const order = await bar
       .locator('button')
       .evaluateAll((list) => list.map((b) => b.getAttribute('data-testid')));

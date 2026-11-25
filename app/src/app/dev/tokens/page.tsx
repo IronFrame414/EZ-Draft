@@ -44,6 +44,8 @@ function sampleFor(token: (typeof TOKENS)[number]) {
       );
     case 'shadow':
       return <div className={styles.swatch} style={{ boxShadow: v }} />;
+    case 'type':
+      return <div style={{ fontSize: v }}>Sample text</div>;
     case 'frame': {
       const style: CSSProperties = FRAME_HEIGHT.includes(token.name) ? { height: v } : { width: v };
       const cls = FRAME_HEIGHT.includes(token.name) ? styles.heightSample : styles.widthSample;

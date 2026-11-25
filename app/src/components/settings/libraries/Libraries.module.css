@@ -27,7 +27,7 @@
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   background: none;
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-slate-500);
   cursor: pointer;
 }
@@ -66,7 +66,7 @@
   outline: none;
   flex: 1;
   min-width: 0;
-  font: 400 13px var(--ez-font-sans);
+  font: 400 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-ink);
   background: transparent;
 }
@@ -100,7 +100,7 @@
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-8);
   background: var(--ez-surface);
-  font: 400 13px var(--ez-font-sans);
+  font: 400 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-ink);
   text-align: left;
   cursor: pointer;
@@ -130,7 +130,7 @@
   align-items: flex-start;
   gap: 10px;
   padding: 16px 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -143,7 +143,7 @@
 
 .inspectorEmpty {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -161,14 +161,14 @@
 
 .inspectorTitle {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
   color: var(--ez-ink);
   overflow-wrap: anywhere;
 }
 
 .inspectorKind {
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -176,7 +176,7 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -190,7 +190,7 @@
   background: var(--ez-surface);
   color: var(--ez-ink);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
 }
 
 .input:focus-visible {
@@ -201,7 +201,7 @@
 
 .error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-red);
 }
 
@@ -232,7 +232,7 @@
   background: var(--ez-surface);
   color: var(--ez-slate-700);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   cursor: pointer;
 }
 
@@ -253,7 +253,7 @@
   align-items: baseline;
   gap: 8px;
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-700);
 }
@@ -266,7 +266,7 @@
 
 .groupEmpty {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -296,7 +296,7 @@
 .legend {
   margin-bottom: 5px;
   padding: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -304,6 +304,208 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-ink);
+}
+
+/* EZD-1408 (S15h Field task templates; board S15hLibraries). */
+.ttBody {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 16px;
+  min-width: 0;
+}
+
+.ttRooms,
+.ttPhases {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ttHead {
+  font: 600 var(--ez-text-12) var(--ez-font-sans);
+  color: var(--ez-slate-700);
+}
+
+.ttPhasesHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ttRoom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
+  color: var(--ez-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ttRoomText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ttRoomName {
+  font-weight: 600;
+}
+
+.ttMuted {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}
+
+.ttFootnote {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-cobalt-tint);
+  font-size: var(--ez-text-12);
+  line-height: 1.45;
+  color: var(--ez-slate-700);
+}
+
+.ttLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: 500 var(--ez-text-12) var(--ez-font-sans);
+  color: var(--ez-cobalt);
+  cursor: pointer;
+}
+
+.ttPhaseList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ttPhase {
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+}
+
+.ttPhaseOpen {
+  border-color: var(--ez-cobalt);
+}
+
+.ttPhaseRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.ttHandle,
+.ttIconButton {
+  display: inline-flex;
+  padding: 2px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--ez-slate-500);
+  cursor: pointer;
+}
+
+.ttHandle {
+  cursor: grab;
+}
+
+.ttNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--ez-border);
+  font: 500 var(--ez-text-12) var(--ez-font-mono);
+  color: var(--ez-slate-700);
+}
+
+.ttNumOn {
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+}
+
+.ttPhaseName {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 4px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  font: 500 var(--ez-text-14) var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.ttPhaseName:focus-visible {
+  outline: none;
+  border-color: var(--ez-cobalt);
+}
+
+.ttCount {
+  font: 400 var(--ez-text-12) var(--ez-font-mono);
+  color: var(--ez-slate-500);
+}
+
+.ttTasks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 12px 10px 44px;
+}
+
+.ttTask {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ttTaskInput {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: 6px;
+  font: 400 var(--ez-text-13) var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.ttSequence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ez-slate-500);
+}
+
+.ttSequenceItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }

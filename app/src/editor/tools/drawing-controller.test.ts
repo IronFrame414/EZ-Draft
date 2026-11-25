@@ -214,7 +214,9 @@ describe('EZD-210b drawing controller', () => {
     const { controller } = setup();
     expect(controller.keyDown(ke('w'))).toBe(true);
     expect(controller.getUi().tool).toBe('wall');
-    expect(controller.keyDown(ke('R', { shiftKey: true }))).toBe(true);
+    // EZD-230: Shift+R is Reference (04 Tool rail), not built yet, so it turns no tool on; plain R is Room rectangle.
+    expect(controller.keyDown(ke('R', { shiftKey: true }))).toBe(false);
+    expect(controller.keyDown(ke('r'))).toBe(true);
     expect(controller.getUi().tool).toBe('room-rect');
     expect(controller.keyDown(ke('w', { ctrlKey: true }))).toBe(false);
     expect(controller.keyDown(ke('w', { defaultPrevented: true }))).toBe(false);

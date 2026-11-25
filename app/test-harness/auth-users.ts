@@ -5,6 +5,7 @@
 // memberships, then the app_user rows (membership has no cascade from tenant), and is called in afterAll
 // before EZD-006's cleanup(). EZD-007d adds addMembership here.
 import { randomUUID } from 'node:crypto';
+import { retryOnDeadlock } from './rls/deadlock-retry';
 import { adminDb, harnessSql } from './rls/fixtures';
 
 export type TestMemberStatus = 'invited' | 'active' | 'deactivated';
@@ -134,11 +135,14 @@ export async function cleanupTestMembers(): Promise<void> {
     const users = await s`select id from auth.users where email = any(${emails}::text[])`;
     for (const u of users) await adminDb().auth.admin.deleteUser(u.id as string);
   }
+  // EZD-426: each delete reruns on a deadlock with another worker's cleanup.
   if (membershipIds.length) {
-    await s`delete from public.membership where id = any(${membershipIds}::uuid[])`;
+    await retryOnDeadlock(
+      () => s`delete from public.membership where id = any(${membershipIds}::uuid[])`,
+    );
   }
   if (appUserIds.length) {
-    await s`delete from public.app_user where id = any(${appUserIds}::uuid[])`;
+    await retryOnDeadlock(() => s`delete from public.app_user where id = any(${appUserIds}::uuid[])`);
   }
   emails.length = 0;
   membershipIds.length = 0;

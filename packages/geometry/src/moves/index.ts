@@ -4,3 +4,4 @@ export * from './slide';
 export * from './resize-wall';
 export * from './resize-opening';
 export * from './chips';
+export * from './device-chips';

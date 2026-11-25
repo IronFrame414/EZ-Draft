@@ -134,3 +134,20 @@ export function insertAfterInCabinetRun(
   const at = ids.findIndex((x) => same(x, afterId)) + 1;
   return withRow(run, row, [...ids.slice(0, at), newId, ...ids.slice(at)]);
 }
+
+// EZD-403 (S04 Controls "Library row ... | Drag onto plan strip or elevation to insert a box; drop position sets order
+// in the run"; AC-EZD-403-1): the run with `newId` placed at `index` (0-based, clamped) of `row`; null when the id is
+// in the run already or the run holds its most members.
+export function insertAtInCabinetRow(
+  run: CabinetRun,
+  row: CabinetRow,
+  index: number,
+  newId: string,
+): CabinetRun | null {
+  if (cabinetRowOf(run, newId) !== null) return null;
+  if (run.data.attributes.base.length + run.data.attributes.upper.length >= CABINET_RUN_ROW_MAX)
+    return null;
+  const ids = run.data.attributes[row];
+  const at = Math.max(0, Math.min(ids.length, Math.trunc(index)));
+  return withRow(run, row, [...ids.slice(0, at), newId, ...ids.slice(at)]);
+}

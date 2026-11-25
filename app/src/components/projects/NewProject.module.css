@@ -41,13 +41,13 @@
 
 .title {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
 }
 
 .subtitle {
   margin: 2px 0 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -63,13 +63,13 @@
   flex-direction: column;
   gap: 5px;
   min-width: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 500;
   color: var(--ez-slate-500);
 }
 
 .input {
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   padding: 8px 10px;
   border: 1px solid var(--ez-border);
@@ -121,7 +121,7 @@
 
 .hint {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--ez-text-11);
   font-weight: 400;
   color: var(--ez-slate-400);
 }
@@ -144,7 +144,7 @@
 
 .error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-red);
 }
 
@@ -163,7 +163,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-400);
   white-space: nowrap;
 }
@@ -218,7 +218,7 @@
   border: 0;
   border-radius: var(--ez-radius-8);
   background: none;
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   text-align: left;
   cursor: pointer;
@@ -238,7 +238,7 @@
   align-items: center;
   justify-content: center;
   flex: none;
-  font: 600 11px var(--ez-font-sans);
+  font: 600 var(--ez-text-11) var(--ez-font-sans);
   background: var(--ez-cobalt-tint);
   color: var(--ez-cobalt-text);
 }
@@ -250,7 +250,7 @@
 }
 
 .line {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -267,7 +267,7 @@
 .note {
   margin: 0;
   padding: 10px 12px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -294,7 +294,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -306,7 +306,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font: 500 12px var(--ez-font-mono);
+  font: 500 var(--ez-text-12) var(--ez-font-mono);
 }
 
 .stepDone {
@@ -337,7 +337,7 @@
 
 .stepText {
   font-family: var(--ez-font-mono);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
   white-space: nowrap;
 }
@@ -390,7 +390,7 @@
 }
 
 .sec {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-500);
   letter-spacing: 0.02em;
@@ -398,7 +398,7 @@
 }
 
 .recapBox {
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   padding: 8px 10px;
   border: 1px solid var(--ez-border);
@@ -460,11 +460,11 @@
 
 .sourceName {
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
 }
 
 .sourceSub {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -486,12 +486,12 @@
 }
 
 .blockTitle {
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   font-weight: 600;
 }
 
 .blockSub {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-400);
 }
 
@@ -503,7 +503,7 @@
 
 .unitsPrecision {
   font-family: var(--ez-font-mono);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
 }
 
 .createWill {
@@ -513,7 +513,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .createWillTitle {
@@ -548,7 +548,7 @@
 .menuHeading {
   margin: 0;
   padding: 8px 12px 4px;
-  font: 600 11px var(--ez-font-sans);
+  font: 600 var(--ez-text-11) var(--ez-font-sans);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ez-slate-400);

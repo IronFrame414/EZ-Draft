@@ -62,6 +62,19 @@ function jarOver(store: Map<string, string>): SessionCookieJar {
 
 const macrotask = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
+// EZD-1938 (AC-EZD-1938-2): Supabase Auth logs the refusal these tests expect (console.error or console.warn,
+// depending on the code path) as a stack trace. A spy scoped to the test (restored by afterEach) keeps it out of
+// the gate log; it fails the test if anything other than the expected refusal is logged.
+function expectRefusalLogsOnly(match: { name: string; status: number }) {
+  const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  return () => {
+    for (const call of [...error.mock.calls, ...warn.mock.calls]) {
+      expect(call[0]).toMatchObject(match);
+    }
+  };
+}
+
 async function signInCookies(email: string): Promise<{ cookies: Map<string, string>; exp: number }> {
   const { data: link, error: linkError } = await adminDb().auth.admin.generateLink({
     type: 'magiclink',
@@ -153,11 +166,13 @@ describe('EZD-421 the shared ended-session rule', () => {
     const { cookies, exp } = await signInCookies(m.email);
     state.store = new Map(cookies);
     pastExpiry(exp);
+    const onlyRefusals = expectRefusalLogsOnly({ name: 'AuthApiError', status: 400 });
     const res = await endedSessionResponse(DENIED);
     expect(res).not.toBeNull();
     expect(res!.status).toBe(401);
     expect(res!.headers.get('cache-control')).toBe('no-store');
     expect(await res!.json()).toEqual(NOT_SIGNED_IN);
+    onlyRefusals();
   });
 
   it('T4 the session was ended in the database (token still valid): 401', async () => {
@@ -201,6 +216,8 @@ describe('EZD-421 the shared ended-session rule', () => {
     const { cookies, exp } = await signInCookies(m.email);
     state.store = new Map(cookies);
     pastExpiry(exp, 'status500');
+    const onlyRefusals = expectRefusalLogsOnly({ name: 'AuthRetryableFetchError', status: 500 });
     await expect(endedSessionResponse(DENIED)).resolves.toBeNull();
+    onlyRefusals();
   });
 });

@@ -164,7 +164,7 @@ describe('EZD-005a tenancy tables', () => {
       license_no: 'CGC000000',
       contact: { phone: '000', email: 'office@example.com', website: 'x', address: 'y' },
       title_block: { line1: 'x' },
-      code_edition: 'fbc8',
+      code_edition: 'fbc8_nec2020',
       defaults: { a: 1 },
       created_at: now,
       updated_at: now,
@@ -193,7 +193,7 @@ describe('EZD-005a tenancy tables', () => {
       property_record_id: randomUUID(),
       // EZD-712: the column now references the company's own submittal_profile row, so a random id is refused.
       submittal_profile_id: null,
-      code_edition: 'fbc8',
+      code_edition: 'fbc8_nec2020',
       phase_default: 'proposed',
       scope_of_work: 'Remodel',
       settings: { b: 2 },

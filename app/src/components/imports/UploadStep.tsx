@@ -30,6 +30,8 @@ export type UploadStepProps = {
 
 const REFUSAL_KEYS: Record<RefusalReason, MessageKey> = {
   dwg: 'office.upload.dwg_prompt',
+  // EZD-914: a 2020 Design file dropped here gets the same prompt as in the Supplier files panel.
+  proprietary_2020: 'office.supplier.prompt_2020',
   unsupported: 'office.upload.unsupported',
   too_large: 'office.upload.too_large',
   empty: 'office.upload.empty',

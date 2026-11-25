@@ -1,0 +1,213 @@
+{
+  "fixture": "architect-plan-rev-nohandles.dxf",
+  "generatedBy": "scripts/fixtures/generate-architect.mjs",
+  "sources": [
+    "Ticket EZD-901a Scope: layers, blocks, hatches, text, dims, two paper-space layouts; a revised copy",
+    "AC-EZD-901a-1: entity count per layer equals the parser count; an unsupported type is in the not-read count",
+    "EZD-909a: the fixture pair, once with handles kept and once with handles stripped",
+    "R26 R16; docs/architecture.md DXF (EZD-029) counting method"
+  ],
+  "units": "in",
+  "header": {
+    "$ACADVER": "AC1015",
+    "$INSUNITS": 1
+  },
+  "handles": false,
+  "layers": [
+    {
+      "name": "0",
+      "aci": 7
+    },
+    {
+      "name": "A-WALL",
+      "aci": 7
+    },
+    {
+      "name": "A-DOOR",
+      "aci": 3
+    },
+    {
+      "name": "A-GLAZ",
+      "aci": 5
+    },
+    {
+      "name": "A-FURN",
+      "aci": 8
+    },
+    {
+      "name": "A-PATT",
+      "aci": 9
+    },
+    {
+      "name": "A-ANNO-TEXT",
+      "aci": 2
+    },
+    {
+      "name": "A-ANNO-DIMS",
+      "aci": 1
+    },
+    {
+      "name": "A-ANNO-NOTE",
+      "aci": 6
+    },
+    {
+      "name": "A-TTLB",
+      "aci": 7
+    }
+  ],
+  "spaces": [
+    {
+      "id": "model",
+      "kind": "model",
+      "block": "*Model_Space",
+      "name": "Model"
+    },
+    {
+      "id": "layout1",
+      "kind": "paper",
+      "block": "*Paper_Space",
+      "name": "A1.0 Floor plan"
+    },
+    {
+      "id": "layout2",
+      "kind": "paper",
+      "block": "*Paper_Space0",
+      "name": "A2.0 Notes"
+    }
+  ],
+  "layouts": [
+    {
+      "block": "*Paper_Space",
+      "name": "A1.0 Floor plan",
+      "entities": 6
+    },
+    {
+      "block": "*Paper_Space0",
+      "name": "A2.0 Notes",
+      "entities": 5
+    }
+  ],
+  "blocks": {
+    "BED": 2,
+    "LAV": 2,
+    "*D1": 6,
+    "*D2": 6
+  },
+  "entityCount": 38,
+  "entitiesByType": {
+    "LINE": 20,
+    "LWPOLYLINE": 1,
+    "ARC": 1,
+    "INSERT": 1,
+    "CIRCLE": 1,
+    "ELLIPSE": 1,
+    "SPLINE": 1,
+    "HATCH": 2,
+    "TEXT": 6,
+    "MTEXT": 1,
+    "DIMENSION": 2,
+    "LEADER": 1
+  },
+  "entitiesByLayer": {
+    "A-WALL": 9,
+    "A-DOOR": 2,
+    "A-GLAZ": 3,
+    "A-FURN": 4,
+    "A-PATT": 2,
+    "A-ANNO-TEXT": 3,
+    "A-ANNO-DIMS": 2,
+    "A-ANNO-NOTE": 1,
+    "A-TTLB": 11
+  },
+  "entitiesByLayerAndSpace": {
+    "A-WALL": {
+      "model": 9,
+      "layout1": 0,
+      "layout2": 0
+    },
+    "A-DOOR": {
+      "model": 2,
+      "layout1": 0,
+      "layout2": 0
+    },
+    "A-GLAZ": {
+      "model": 3,
+      "layout1": 0,
+      "layout2": 0
+    },
+    "A-FURN": {
+      "model": 4,
+      "layout1": 0,
+      "layout2": 0
+    },
+    "A-PATT": {
+      "model": 2,
+      "layout1": 0,
+      "layout2": 0
+    },
+    "A-ANNO-TEXT": {
+      "model": 3,
+      "layout1": 0,
+      "layout2": 0
+    },
+    "A-ANNO-DIMS": {
+      "model": 2,
+      "layout1": 0,
+      "layout2": 0
+    },
+    "A-ANNO-NOTE": {
+      "model": 1,
+      "layout1": 0,
+      "layout2": 0
+    },
+    "A-TTLB": {
+      "model": 0,
+      "layout1": 6,
+      "layout2": 5
+    }
+  },
+  "notRead": {
+    "LEADER": 1
+  },
+  "notReadByLayer": {
+    "A-ANNO-NOTE": 1
+  },
+  "revisionOf": "architect-plan.dxf",
+  "changes": {
+    "note": "Handles stripped: the same changes, matched by layer, type and nearest geometry (EZD-909a)",
+    "added": [
+      {
+        "handle": "200",
+        "layer": "A-GLAZ",
+        "type": "LINE"
+      }
+    ],
+    "removed": [
+      {
+        "handle": "10E",
+        "layer": "A-FURN",
+        "type": "INSERT"
+      }
+    ],
+    "moved": [
+      {
+        "handle": "108",
+        "layer": "A-WALL",
+        "type": "LWPOLYLINE",
+        "byIn": [
+          6,
+          0
+        ]
+      }
+    ],
+    "changed": [
+      {
+        "handle": "118",
+        "layer": "A-ANNO-DIMS",
+        "type": "DIMENSION",
+        "from": "15'-0\"",
+        "to": "15'-6\""
+      }
+    ]
+  }
+}

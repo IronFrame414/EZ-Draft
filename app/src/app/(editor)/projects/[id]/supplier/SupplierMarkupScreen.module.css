@@ -1,0 +1,13 @@
+/* EZD-914 (S12 Layout canvas split): until the rendering and plan cards come (EZD-917), the canvas shows its hint. */
+.canvas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-500);
+}

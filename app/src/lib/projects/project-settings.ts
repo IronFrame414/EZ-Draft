@@ -5,7 +5,12 @@
 // three, client from the customer list) and the Defaults value checks (AC-EZD-116-4).
 import type { MessageKey } from '../../server/messages/catalog';
 import type { Customer } from '../customers/customers';
-import type { CodeEdition } from '../code-edition/editions';
+import {
+  BY_PERMIT_DATE,
+  isPermitDate,
+  type CodeEdition,
+  type CompanyEditionDefault,
+} from '../code-edition/editions';
 import { PER_PROJECT_KEYS, defaultRow } from '../defaults/registry';
 import { formValueOf, parseFormValue } from '../defaults/values';
 import {
@@ -13,7 +18,11 @@ import {
   PROJECT_NAME_MAX,
   PROJECT_TYPES,
   SCOPE_OF_WORK_MAX,
+  isScopeTrade,
+  normalizeScopeTrades,
+  sameScopeTrades,
   type ProjectType,
+  type ScopeTrade,
 } from './new-project';
 
 // The per-project keys in the dialog, registry order (waste factors, the four overhangs, the cabinet auto-fill
@@ -35,6 +44,10 @@ export type ProjectSettings = {
     address: string;
     type: ProjectType;
     scopeOfWork: string;
+    // EZD-739 (Q-0764; Q-0779): the ticked scope boxes; absent reads as none ticked.
+    scopeTrades?: ScopeTrade[];
+    // EZD-643 (Q-0765): the optional permit application date, 'YYYY-MM-DD'; absent or null is none.
+    permitApplicationDate?: string | null;
   };
   client: ProjectSettingsClient | null;
   // Each per-project key's effective value: the project's copy, else the company's effective value (null is
@@ -42,7 +55,8 @@ export type ProjectSettings = {
   defaults: Record<string, number | null>;
   // EZD-613 (S15g Decision 2): the project's own code edition (null: none picked, it reads the company default)
   // and the edition it runs.
-  codeEdition: { own: CodeEdition | null; effective: CodeEdition };
+  // EZD-643 (Q-0765): `auto` is true when the edition follows the permit application date (absent reads false).
+  codeEdition: { own: CodeEdition | null; effective: CodeEdition; auto?: boolean };
   // What this member may change. `typeAndDefaults` is Edit model on the project; the dialog also needs this tab
   // to hold the edit lock (the database checks the epoch).
   can: { details: boolean; client: boolean; typeAndDefaults: boolean };
@@ -52,10 +66,13 @@ export type ProjectSettingsPatch = {
   name?: string;
   address?: string;
   scopeOfWork?: string;
+  scopeTrades?: ScopeTrade[];
   type?: ProjectType;
   customerId?: string | null;
   defaults?: Record<string, number>;
-  codeEdition?: CodeEdition;
+  // EZD-643: an edition picked by hand, or By permit date (the edition follows the date again).
+  codeEdition?: CompanyEditionDefault;
+  permitApplicationDate?: string | null;
   lockEpoch?: number;
 };
 
@@ -67,16 +84,21 @@ export const PROJECT_FIELD_KEYS = [
   'type',
   'customer_id',
   'code_edition',
+  'scope_trades',
+  'permit_application_date',
 ] as const;
 
 export type ProjectSettingsDraft = {
   name: string;
   address: string;
   scopeOfWork: string;
+  scopeTrades: ScopeTrade[];
   type: ProjectType;
   client: Customer | null;
   defaults: Record<string, string>;
-  codeEdition: CodeEdition;
+  codeEdition: CompanyEditionDefault;
+  // EZD-643: '' is no date.
+  permitApplicationDate: string;
 };
 
 export function draftOf(s: ProjectSettings): ProjectSettingsDraft {
@@ -90,6 +112,7 @@ export function draftOf(s: ProjectSettings): ProjectSettingsDraft {
     name: s.project.name,
     address: s.project.address,
     scopeOfWork: s.project.scopeOfWork,
+    scopeTrades: scopeTradesOf(s),
     type: s.project.type,
     client: s.client
       ? {
@@ -102,8 +125,15 @@ export function draftOf(s: ProjectSettings): ProjectSettingsDraft {
         }
       : null,
     defaults,
-    codeEdition: s.codeEdition.own ?? s.codeEdition.effective,
+    codeEdition: codeEditionChoiceOf(s),
+    permitApplicationDate: s.project.permitApplicationDate ?? '',
   };
+}
+
+// EZD-643 (Q-0765): what the Code edition select shows: By permit date for an automatic project, else the
+// project's edition.
+export function codeEditionChoiceOf(s: ProjectSettings): CompanyEditionDefault {
+  return s.codeEdition.auto ? BY_PERMIT_DATE : (s.codeEdition.own ?? s.codeEdition.effective);
 }
 
 // The fields this tab may change: details with Edit model; type and defaults also with the lock held here;
@@ -150,10 +180,22 @@ export function toPatchBody(
     if (name !== s.project.name) body.name = name;
     if (address !== s.project.address) body.address = address;
     if (scope !== s.project.scopeOfWork.trim()) body.scopeOfWork = scope;
+    // EZD-739: the boxes are sent only when the ticked set changed (order does not count).
+    if (!sameScopeTrades(d.scopeTrades, scopeTradesOf(s))) {
+      body.scopeTrades = normalizeScopeTrades(d.scopeTrades);
+    }
     // EZD-613: sent only when it differs from the edition the project runs, so opening and saving the dialog
     // never fixes a project to the company default.
-    if (d.codeEdition !== (s.codeEdition.own ?? s.codeEdition.effective)) {
+    // EZD-643: By permit date counts as a choice of its own.
+    if (d.codeEdition !== codeEditionChoiceOf(s)) {
       body.codeEdition = d.codeEdition;
+    }
+    // EZD-643 (Q-0765): the permit application date, sent only when it changed; '' clears it.
+    const permit = d.permitApplicationDate.trim();
+    if (permit !== (s.project.permitApplicationDate ?? '')) {
+      if (permit !== '' && !isPermitDate(permit))
+        fields.permitApplicationDate = 'office.project_settings.permit_date_invalid';
+      else body.permitApplicationDate = permit === '' ? null : permit;
     }
   }
   if (e.client && (d.client?.id ?? null) !== (s.client?.id ?? null)) {
@@ -183,6 +225,10 @@ export function toPatchBody(
   }
   if (Object.keys(fields).length > 0) return { ok: false, fields };
   return { ok: true, body };
+}
+
+export function scopeTradesOf(s: ProjectSettings): ScopeTrade[] {
+  return normalizeScopeTrades((s.project.scopeTrades ?? []).filter(isScopeTrade));
 }
 
 export function isProjectType(v: unknown): v is ProjectType {

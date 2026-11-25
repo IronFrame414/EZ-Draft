@@ -120,7 +120,7 @@ function toView(row: ViewRow): SourceFileView {
 
 // EZD-322 D2: the caller's own switch, read live through current_permissions on the caller's client. A missing
 // context or a missing key is permission_denied; a failed read is storage_unavailable (no table call either way).
-async function requireSeeCompanyCosts(client: DbClient, appUserId: string): Promise<void> {
+export async function requireSeeCompanyCosts(client: DbClient, appUserId: string): Promise<void> {
   let ctx: Awaited<ReturnType<typeof loadPermissionContext>>;
   try {
     ctx = await loadPermissionContext(client, appUserId);
@@ -443,4 +443,95 @@ export async function listProjectPdfs(
     .limit(READ_CHUNK);
   if (error) throw new StorageError('storage_unavailable', { cause: error });
   return data.map(toPdfScaleView);
+}
+
+// EZD-901a: the id of a completed upload of this kind and file name in the project, read through the caller's
+// client (RLS applies), or null. The benchmark project's reference DXF is attached once (references/benchmark-reference.ts).
+export async function findUploadedSourceFile(
+  client: DbClient,
+  input: { projectId: string; kind: SourceFileKind; originalName: string },
+): Promise<string | null> {
+  const { data, error } = await client
+    .from('source_file')
+    .select('id')
+    .eq('project_id', input.projectId)
+    .eq('kind', input.kind)
+    .eq('original_name', input.originalName)
+    .not('uploaded_at', 'is', null)
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new StorageError('storage_unavailable', { cause: error });
+  return data?.id ?? null;
+}
+
+// EZD-914 (S12 Data shown "Supplier files: name, type, received date, supplier name ..."; File row; Q-0323 "EZD-132 keeps
+// See company costs on supplier files and order reports"; EZD-322): the Supplier files panel's list. Supplier files are
+// cost files, so the caller's own See company costs switch is checked live before any read (table policies check only
+// tenant and project, Q-0323). Read through the caller's client, so RLS decides the project (another company's or an
+// unlisted project's files are absent). A supplier file is a supplier PDF or order report, or any upload that carries
+// a supplier name (the panel sends one with every file, vault/build/assumptions.md EZD-914). Only finished uploads.
+export type SupplierFileView = {
+  id: string;
+  kind: SourceFileKind;
+  originalName: string;
+  sizeBytes: number;
+  supplierName: string | null;
+  supplierContactEmail: string | null;
+  uploadedAt: string;
+};
+
+export const SUPPLIER_FILE_LIST_LIMIT = 100;
+
+export async function listSupplierFiles(
+  client: DbClient,
+  appUserId: string,
+  projectId: string,
+): Promise<SupplierFileView[]> {
+  if (!z.uuid().safeParse(projectId).success) throw new StorageError('project_not_found');
+  await requireSeeCompanyCosts(client, appUserId);
+  const { data, error } = await client
+    .from('source_file')
+    .select('id, kind, original_name, size_bytes, supplier_name, supplier_contact_email, uploaded_at')
+    .eq('project_id', projectId)
+    .not('uploaded_at', 'is', null)
+    .or('kind.in.(supplier_pdf,order_report),supplier_name.not.is.null')
+    .order('uploaded_at', { ascending: false })
+    .order('id', { ascending: true })
+    .limit(SUPPLIER_FILE_LIST_LIMIT);
+  if (error) throw new StorageError('storage_unavailable', { cause: error });
+  return data.map((row) => ({
+    id: row.id,
+    kind: row.kind as SourceFileKind,
+    originalName: row.original_name,
+    sizeBytes: row.size_bytes,
+    supplierName: row.supplier_name,
+    supplierContactEmail: row.supplier_contact_email,
+    uploadedAt: row.uploaded_at as string,
+  }));
+}
+
+// EZD-606 (S06 Existing panel "panel label photo ... read from directory photo"): a panel photo the panel read may
+// send, read through the caller's client (RLS): a finished panel_photo upload of the project. Null otherwise (no
+// row, another project, another kind, an unfinished upload).
+export type PanelPhotoFile = { storagePath: string; contentType: string };
+
+export async function readPanelPhotoFile(
+  client: DbClient,
+  projectId: string,
+  sourceFileId: string,
+): Promise<PanelPhotoFile | null> {
+  const { data, error } = await client
+    .from('source_file')
+    .select('project_id, kind, storage_path, content_type, uploaded_at')
+    .eq('id', sourceFileId)
+    .maybeSingle();
+  if (error) throw new StorageError('storage_unavailable', { cause: error });
+  if (
+    data === null ||
+    data.project_id.toLowerCase() !== projectId.toLowerCase() ||
+    data.kind !== 'panel_photo' ||
+    data.uploaded_at === null
+  )
+    return null;
+  return { storagePath: data.storage_path, contentType: data.content_type };
 }

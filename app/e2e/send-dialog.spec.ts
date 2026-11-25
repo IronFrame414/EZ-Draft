@@ -291,7 +291,9 @@ test.describe('EZD-111 Send dialog', () => {
       expect(await expectTouchTargets(page, dialog(page))).toBe(3);
       await id(page, 'send-submit').click();
       await expect(dialog(page)).toHaveAttribute('data-send-state', 'sent');
-      expect(await expectTouchTargets(page, dialog(page))).toBe(4);
+      // EZD-1201: the sent link's row adds Renew and Turn off.
+      await expect(id(page, 'share-link')).toHaveCount(1);
+      expect(await expectTouchTargets(page, dialog(page))).toBe(6);
       await id(page, 'send-cancel').click();
       await expect(dialog(page)).toHaveCount(0);
 

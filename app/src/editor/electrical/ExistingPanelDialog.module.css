@@ -1,0 +1,216 @@
+/* EZD-606 (Q-0769: no board; the nearest approved dialog's style): the Existing panel dialog. Shell values copied
+   from app/src/editor/send/SendDialog.module.css; tokens only for color. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--ez-overlay);
+}
+
+.content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 101;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-14);
+  background: var(--ez-surface);
+  box-shadow: var(--ez-shadow-dialog);
+  color: var(--ez-ink);
+}
+
+.body {
+  padding: 18px 20px 14px;
+  overflow-y: auto;
+}
+
+.dialogTitle {
+  margin: 0 0 14px;
+  font-size: var(--ez-text-18);
+  font-weight: 600;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}
+
+.withUnit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.unit {
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}
+
+.input {
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
+  color: var(--ez-ink);
+  padding: 7px 9px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  background: var(--ez-surface);
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--ez-cobalt);
+  box-shadow: 0 0 0 3px var(--ez-cobalt-tint);
+}
+
+@media (any-pointer: coarse) {
+  .input {
+    min-height: var(--ez-touch-target);
+  }
+}
+
+.space {
+  width: 64px;
+  flex: none;
+}
+
+.va {
+  width: 140px;
+  flex: none;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ez-border);
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sectionTitle {
+  flex: 1;
+  font-size: var(--ez-text-12);
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+
+.note,
+.message {
+  margin: 0;
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-500);
+}
+
+.read {
+  padding: 10px 12px;
+  border: 1px solid var(--ez-amber-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-amber-banner);
+}
+
+.readHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: var(--ez-text-13);
+  font-weight: 600;
+}
+
+.tag {
+  font-size: var(--ez-text-11);
+  font-weight: 600;
+  color: var(--ez-amber-strong);
+}
+
+.values {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: var(--ez-text-13);
+}
+
+.values dt {
+  color: var(--ez-slate-500);
+}
+
+.values dd {
+  margin: 0;
+}
+
+.readList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: var(--ez-text-13);
+}
+
+.readActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 140px;
+  font-size: var(--ez-text-13);
+}
+
+.error {
+  margin: 12px 0 0;
+  font-size: var(--ez-text-12);
+  color: var(--ez-red);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--ez-border);
+}
+
+.footerSpacer {
+  flex: 1;
+}

@@ -18,9 +18,9 @@ import {
   roomPlateHeight,
   roomRidgeHeight,
 } from './beams';
+import { dot } from '../vec';
 
 const tol = COMPARISON_TOLERANCE_IN;
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y;
 
 export type SectionPoint = { x: number; z: number };
 

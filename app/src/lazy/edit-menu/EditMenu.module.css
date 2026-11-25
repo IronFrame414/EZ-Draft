@@ -26,7 +26,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 6px 10px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   text-align: left;
   color: var(--ez-ink);
   background: none;
@@ -69,7 +69,7 @@
 
 .heading {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   font-weight: 600;
   color: var(--ez-ink);
 }
@@ -81,20 +81,20 @@
 }
 
 .label {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
 .input {
   padding: 6px 8px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   border: 1px solid var(--ez-divider);
   border-radius: var(--ez-radius-8);
 }
 
 .error {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-red-text);
 }
 
@@ -107,7 +107,7 @@
 .button,
 .primary {
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   border-radius: var(--ez-radius-7);
   cursor: pointer;
 }

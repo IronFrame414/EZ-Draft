@@ -328,7 +328,7 @@ test.describe('EZD-207a plan canvas', () => {
     await openReady(page, ids.P1);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     // EZD-601: plus Electrical, on every viewer's rail. EZD-412: and Countertops.
-    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(6);
+    await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]')).toHaveCount(7); // EZD-222: plus Help
     await expect(page.locator('[data-shell-region="rail"] [data-rail-tool]').first()).toHaveAttribute(
       'data-rail-tool',
       'select',
@@ -410,17 +410,18 @@ test.describe('EZD-207a plan canvas', () => {
     await expect(planCanvas(page)).toHaveAttribute('data-plan-state', 'ready');
   });
 
-  test('EZD-207a B7 the editor header has only the Plan tab and the frame has the left panel and the inspector (EZD-218), only the disclaimer', async ({
+  test('EZD-207a B7 the editor header has the Plan and 3D tabs and the frame has the left panel and the inspector (EZD-218), only the disclaimer', async ({
     page,
     signInAs,
   }) => {
     const { ids, user } = await fixtureS();
     await signInAs(user.email);
     await openReady(page, ids.P1);
+    // EZD-1001a: 3D ships, so its tab follows Plan (Q-0500); Plan is the open view.
     const tabs = page.locator('header nav button');
-    await expect(tabs).toHaveCount(1);
-    await expect(tabs).toHaveText('Plan');
-    await expect(tabs).toHaveAttribute('aria-current', 'page');
+    // EZD-702a: Sheets ships and follows 3D.
+    await expect(tabs).toHaveText(['Plan', '3D', 'Sheets']);
+    await expect(tabs.first()).toHaveAttribute('aria-current', 'page');
     // EZD-218: the plan editor has its left panel (S03 Layout).
     await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(1);
     await expect(page.locator('[data-shell-region="inspector"]')).toHaveCount(1);
@@ -430,10 +431,13 @@ test.describe('EZD-207a plan canvas', () => {
     ).toHaveCount(13); // EZD-601: plus Electrical; EZD-412: plus Countertops
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
-    ).toHaveCount(1);
+    ).toHaveCount(2); // EZD-222: Assistant, then Help
     await expect(
-      page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
+      page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]').nth(0),
     ).toHaveAttribute('data-rail-tool', 'assistant');
+    await expect(
+      page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]').nth(1),
+    ).toHaveAttribute('data-rail-tool', 'help');
     await expect(page.locator('[data-status-item]')).toHaveCount(6);
     await expect(page.getByTestId('disclaimer')).toBeVisible();
   });

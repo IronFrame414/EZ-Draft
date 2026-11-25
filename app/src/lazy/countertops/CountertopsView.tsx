@@ -4,24 +4,40 @@
 // "Undo / redo, Esc"; S04b States "No cabinets: Trace cabinets disabled with hint"; S04b Permissions "View projects:
 // view pieces ... Edit model: Trace cabinets, Draw outline ... Requires the edit lock"; board S04bCountertops;
 // AC-EZD-412-1; vault/build/assumptions.md EZD-412): the countertop screen over the plan while the Countertops tool is
-// on. Drawn as one SVG in inches, model y up (the SVG's y is the model's y turned over). Seam and Cutout are EZD-413,
-// the left panel and status bar EZD-416, the inspector EZD-414 to EZD-417. Loaded through lazyModule on first use.
+// on. Drawn as one SVG in inches, model y up (the SVG's y is the model's y turned over). The left panel and status bar
+// are EZD-416, the inspector EZD-414 to EZD-417. Loaded through lazyModule on first use.
+// EZD-413 (S04b Controls "Seam | Click across a piece to split it; seam drawn red dashed | Pieces relabel (A, B, C)",
+// "Cutout | Place a sink or cooktop cutout"; board S04bCountertops legend "Cutout", "Seam"; AC-EZD-413-1, -2;
+// vault/build/assumptions.md EZD-413): the Seam and Cutout tools, seams drawn red dashed, cutouts dashed with their
+// kind, and the typed W × D of a cutout.
+// EZD-414 (S04b Controls "Click edge | Canvas | Selects that edge; inspector highlights the side | Hint: "Click any
+// edge, then pick its overhang"", "Overhang chip on edge | Canvas | Click to type a value | Seating overhang shows as
+// filled chip"; board S04bCountertops chips "1 1/2", "12" seating"; AC-EZD-414-1; vault/build/assumptions.md
+// EZD-414): a click near an edge picks it; every exposed edge carries its overhang chip, typed into with Edit model
+// and the lock.
 import {
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type PointerEvent as ReactPointerEvent,
   type ReactElement,
 } from 'react';
-import { useStore } from 'zustand';
 import {
   cabinetFootprints,
+  COUNTERTOP_CUTOUT_DEFAULT_SIZE,
+  countertopSeamLines,
+  cutoutCorners,
   parseLength,
   wallFaceLines,
+  countertopEdgeSegment,
+  type CountertopCutout,
+  type CountertopCutoutKind,
   type ModelObject,
   type Point,
+  type SeamChord,
 } from '@ezdraft/geometry';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
@@ -29,13 +45,10 @@ import type { ModelStore } from '../../editor/model/model-store';
 import type { Change } from '../../editor/model/patches';
 import { isTypingTarget } from '../../editor/typed-entry/typed-entry';
 import type { FloorChoice } from '../../editor/floors/floors';
-import { useChosenFloor } from '../../editor/floors/use-chosen-floor';
-import { openFloorId } from '../../editor/plan/batches';
-import { modelObjects } from '../../editor/cabinets/cabinet-view';
+import type { CountertopSelectionStore } from '../../editor/countertops/selection-store';
 import {
   canTraceCabinets,
   countertopPieceAt,
-  countertopPieces,
   countertopTraceChanges,
   countertopTraceDefaults,
   type CountertopPiece,
@@ -49,6 +62,21 @@ import {
   type OutlineInput,
   type OutlineToolState,
 } from '../../editor/countertops/outline-tool';
+import { countertopSeamChanges, seamPreviewAt } from '../../editor/countertops/seam-tool';
+import {
+  countertopCutoutAt,
+  countertopCutoutChanges,
+  countertopCutoutSizeChanges,
+} from '../../editor/countertops/cutout-tool';
+import {
+  countertopEdgeAt,
+  countertopSupportSettings,
+  countertopTypedChanges,
+} from '../../editor/countertops/overhang-tool';
+import { formatInches } from '../../lib/catalog/catalog';
+import { countertopIncrement, useCountertopFloor } from './use-countertop-floor';
+import { edgeOfferPillState, type EdgeOffer, type EdgeOffersLoad } from '../../editor/countertops/edge-profile';
+import { EdgeProfilePill, useEdgeOffers, useProjectId } from './EdgeProfileCard';
 import styles from './CountertopsView.module.css';
 
 export type CountertopsViewProps = {
@@ -59,7 +87,16 @@ export type CountertopsViewProps = {
   newId?: () => string;
   // The effective Defaults (overhang_standard, overhang_against_wall, countertop_increment); null while not read.
   defaults?: Readonly<Record<string, unknown>> | null;
+  // EZD-416: the selection shared with the left panel and the inspector; without it the screen keeps its own.
+  selection?: CountertopSelectionStore;
+  // EZD-417 (S04b "Edge profile status pill"): the project (else the editor route's id) and its offers' load; tests
+  // may pass the offers already read.
+  projectId?: string | null;
+  loadOffers?: EdgeOffersLoad;
+  offers?: readonly EdgeOffer[];
 };
+
+const noSubscribe = () => () => {};
 
 // The pick, snap and close radius on screen.
 const PICK_PX = 10;
@@ -70,6 +107,16 @@ const svgPt = (p: Point) => `${p.x},${-p.y}`;
 const svgPoints = (ps: readonly Point[]) => ps.map(svgPt).join(' ');
 
 type Drag = { id: string; index: number; from: Point; at: Point };
+// The Seam or Cutout tool, when one is on (Draw outline keeps its own state).
+type PlaceTool = 'seam' | 'cutout' | null;
+type CutoutPick = { pieceId: string; cutoutId: string };
+// EZD-414: the overhang chip being typed into.
+type ChipTyping = { pieceId: string; edge: number; text: string };
+type Picked = { pieceId: string | null; edge: number | null };
+const NOTHING: Picked = { pieceId: null, edge: null };
+
+// A size as typed back into the W × D fields: decimal inches without trailing zeros.
+const sizeText = (n: number) => String(Math.round(n * 10000) / 10000);
 
 export function CountertopsView({
   store,
@@ -77,23 +124,18 @@ export function CountertopsView({
   canEdit = false,
   newId,
   defaults = null,
+  selection,
+  projectId: givenProjectId,
+  loadOffers,
+  offers: givenOffers,
 }: CountertopsViewProps): ReactElement {
   const t = useT();
-  const chosen = useChosenFloor(floors);
-  const objects = useStore(store, (s) => s.objects);
-  const floorId = useMemo(
-    () => (floors === undefined ? null : openFloorId(objects, chosen)),
-    [objects, chosen, floors],
-  );
-  const parsed = useMemo(() => modelObjects(objects), [objects]);
+  // EZD-417: the project's edge offers, shared with the inspector (a save there updates the pill).
+  const projectId = useProjectId(givenProjectId);
+  const sharedOffers = useEdgeOffers(givenOffers === undefined ? projectId : null, loadOffers);
+  const offers = givenOffers ?? sharedOffers;
   // The floor the screen shows: the open floor, or (with no floor list) the floor of the first run or top.
-  const level = useMemo(() => {
-    if (floorId !== null) return floorId;
-    const o = parsed.find((x) => x.type === 'cabinet_run' || x.type === 'countertop_piece');
-    return o !== undefined && 'level' in o.data ? (o.data.level as string) : null;
-  }, [floorId, parsed]);
-
-  const pieces = useMemo(() => countertopPieces(parsed, level), [parsed, level]);
+  const { parsed, level, pieces } = useCountertopFloor(store, floors);
   const cabinets = useMemo(
     () => (level === null ? [] : cabinetFootprints(parsed, level)),
     [parsed, level],
@@ -101,20 +143,43 @@ export function CountertopsView({
   const walls = useMemo(() => wallBodies(parsed, level), [parsed, level]);
   const traceable = useMemo(() => canTraceCabinets(parsed, level), [parsed, level]);
   const targets = useMemo(() => outlineSnapTargets(parsed, level), [parsed, level]);
-  const increment = useMemo(() => {
-    const v = defaults?.['countertop_increment'];
-    return typeof v === 'number' && v > 0 ? v : 0.5;
-  }, [defaults]);
+  const increment = useMemo(() => countertopIncrement(defaults), [defaults]);
 
-  const [selected, setSelected] = useState<string | null>(null);
+  // EZD-416: the selection is the editor's when it passes one (the left panel shares it), else the screen's own.
+  const [own, setOwn] = useState<Picked>(NOTHING);
+  const shared = useSyncExternalStore(
+    selection ? selection.subscribe : noSubscribe,
+    () => selection?.getState().selection ?? NOTHING,
+    () => selection?.getState().selection ?? NOTHING,
+  );
+  const picked = selection ? shared : own;
+  const selected = picked.pieceId;
+  // EZD-414: a piece and, when one was clicked, its edge.
+  const select = useCallback(
+    (id: string | null, edge: number | null = null) =>
+      selection
+        ? selection.getState().select(id, edge)
+        : setOwn(id === null ? NOTHING : { pieceId: id, edge }),
+    [selection],
+  );
+  const setSelected = useCallback((id: string | null) => select(id), [select]);
+  const [typing, setTyping] = useState<ChipTyping | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [outline, setOutline] = useState<OutlineToolState>(INITIAL_OUTLINE_STATE);
   const [drag, setDrag] = useState<Drag | null>(null);
   const [lengthText, setLengthText] = useState('');
   const [scale, setScale] = useState(1);
+  const [placeTool, setPlaceTool] = useState<PlaceTool>(null);
+  const [seamPreview, setSeamPreview] = useState<SeamChord | null>(null);
+  const [cutKind, setCutKind] = useState<CountertopCutoutKind>('sink');
+  const [cutW, setCutW] = useState(sizeText(COUNTERTOP_CUTOUT_DEFAULT_SIZE.sink.width));
+  const [cutD, setCutD] = useState(sizeText(COUNTERTOP_CUTOUT_DEFAULT_SIZE.sink.depth));
+  const [cutPick, setCutPick] = useState<CutoutPick | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const editing = canEdit && level !== null;
   const draw = drawing && editing;
+  const seamOn = placeTool === 'seam' && editing && !draw;
+  const cutoutOn = placeTool === 'cutout' && editing && !draw;
 
   const box = useMemo(() => viewBox(walls, cabinets, pieces), [walls, cabinets, pieces]);
 
@@ -181,10 +246,16 @@ export function CountertopsView({
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented) return;
       if (e.key === 'Escape') {
-        if (drawing) {
+        if (typing !== null) {
+          setTyping(null);
+        } else if (drawing) {
           setDrawing(false);
           setOutline(INITIAL_OUTLINE_STATE);
           setLengthText('');
+        } else if (placeTool !== null) {
+          setPlaceTool(null);
+          setSeamPreview(null);
+          setCutPick(null);
         } else if (drag !== null) setDrag(null);
         else if (selected !== null) setSelected(null);
         else return;
@@ -200,7 +271,7 @@ export function CountertopsView({
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [drawing, drag, selected, canEdit, store]);
+  }, [typing, drawing, placeTool, drag, selected, setSelected, canEdit, store]);
 
   const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
     if (e.button !== 0) return;
@@ -210,7 +281,90 @@ export function CountertopsView({
       step({ type: 'click', at });
       return;
     }
-    setSelected(countertopPieceAt(pieces, at));
+    if (seamOn) {
+      const r = countertopSeamChanges(parsed, level, at, increment, makeId, countertopSupportSettings(defaults));
+      if (apply(r.changes).length > 0 && r.ids !== null) setSelected(r.ids[0]);
+      setSeamPreview(null);
+      return;
+    }
+    if (cutoutOn) {
+      const hit = countertopCutoutAt(pieces, at);
+      if (hit !== null) {
+        pickCutout(hit.pieceId, hit.cutout);
+        return;
+      }
+      const w = parseLength(cutW, 'positive');
+      const d = parseLength(cutD, 'positive');
+      const size = COUNTERTOP_CUTOUT_DEFAULT_SIZE[cutKind];
+      const r = countertopCutoutChanges(
+        parsed,
+        level,
+        at,
+        { kind: cutKind, width: w.ok ? w.inches : size.width, depth: d.ok ? d.inches : size.depth },
+        makeId,
+        increment,
+      );
+      if (apply(r.changes).length > 0 && r.pieceId !== null && r.cutout !== null)
+        pickCutout(r.pieceId, r.cutout);
+      return;
+    }
+    // EZD-414: a click near an edge picks that edge (and its top); elsewhere on a top, the top.
+    const edgeHit = countertopEdgeAt(pieces, at, PICK_PX * scale);
+    if (edgeHit !== null) select(edgeHit.pieceId, edgeHit.edge);
+    else setSelected(countertopPieceAt(pieces, at));
+    setTyping(null);
+  };
+
+  // EZD-414: a chip picks its edge; with Edit model and the lock it opens for typing.
+  const chipDown = (e: ReactPointerEvent, pieceId: string, edge: number, overhang: number) => {
+    // While Draw outline, Seam or Cutout is on, the click is theirs.
+    if (draw || seamOn || cutoutOn) return;
+    e.stopPropagation();
+    // Keeps the browser's mousedown from taking focus back off the chip's field as it opens.
+    e.preventDefault();
+    if (e.button !== 0) return;
+    select(pieceId, edge);
+    setTyping(editing && !draw ? { pieceId, edge, text: formatInches(overhang) } : null);
+  };
+  const typedChip = () => {
+    if (typing === null) return;
+    const r = parseLength(typing.text, 'other');
+    if (r.ok && r.inches >= 0)
+      apply(
+        countertopTypedChanges(pieces, typing.pieceId, typing.edge, r.inches, countertopSupportSettings(defaults)),
+      );
+    setTyping(null);
+  };
+
+  // A cutout picked (placed or clicked): it and its top are selected and the W × D fields show its size.
+  const pickCutout = (pieceId: string, c: CountertopCutout) => {
+    setSelected(pieceId);
+    setCutPick({ pieceId, cutoutId: c.id });
+    setCutKind(c.kind);
+    setCutW(sizeText(c.width));
+    setCutD(sizeText(c.depth));
+  };
+
+  // Enter in the W × D fields: the picked cutout takes the typed size; with none picked, the next one placed does.
+  const typedSize = () => {
+    const w = parseLength(cutW, 'positive');
+    const d = parseLength(cutD, 'positive');
+    if (!w.ok || !d.ok || cutPick === null) return;
+    apply(countertopCutoutSizeChanges(parsed, cutPick.pieceId, cutPick.cutoutId, w.inches, d.inches));
+  };
+
+  const chooseKind = (k: CountertopCutoutKind) => {
+    setCutKind(k);
+    setCutPick(null);
+    setCutW(sizeText(COUNTERTOP_CUTOUT_DEFAULT_SIZE[k].width));
+    setCutD(sizeText(COUNTERTOP_CUTOUT_DEFAULT_SIZE[k].depth));
+  };
+
+  const togglePlace = (which: 'seam' | 'cutout') => {
+    if (drawing) stopDrawing();
+    setSeamPreview(null);
+    setCutPick(null);
+    setPlaceTool(placeTool === which ? null : which);
   };
 
   const onPointerMove = (e: ReactPointerEvent<SVGSVGElement>) => {
@@ -218,13 +372,14 @@ export function CountertopsView({
     if (at === null) return;
     if (drag !== null) setDrag({ ...drag, at: snapDrag(at, targets, ctx.radius, increment) });
     else if (draw) step({ type: 'move', at });
+    else if (seamOn) setSeamPreview(seamPreviewAt(parsed, level, at, increment)?.chord ?? null);
   };
 
   const onPointerUp = () => {
     if (drag === null) return;
     // A press and release in place changes nothing (no undo step, no save).
     if (drag.at.x !== drag.from.x || drag.at.y !== drag.from.y)
-      apply(countertopVertexChanges(parsed, drag.id, drag.index, drag.at));
+      apply(countertopVertexChanges(parsed, drag.id, drag.index, drag.at, countertopSupportSettings(defaults)));
     setDrag(null);
   };
 
@@ -235,11 +390,18 @@ export function CountertopsView({
     setLengthText('');
   };
 
-  const hint = !traceable
-    ? t('office.countertops.hint_no_cabinets')
-    : draw
-      ? t('office.countertops.hint_draw')
-      : null;
+  const hint = draw
+    ? t('office.countertops.hint_draw')
+    : seamOn
+      ? t('office.countertops.hint_seam')
+      : cutoutOn
+        ? t('office.countertops.hint_cutout')
+        : !traceable
+          ? t('office.countertops.hint_no_cabinets')
+          : pieces.length > 0
+            ? t('office.countertops.hint_edge')
+            : null;
+  const seams = countertopSeamLines(pieces.map((p) => p.data));
 
   const shownOutline = (p: CountertopPiece): Point[] =>
     drag !== null && drag.id === p.id
@@ -273,16 +435,92 @@ export function CountertopsView({
             data-testid="countertop-draw"
             aria-pressed={draw}
             disabled={!editing}
-            onClick={() => (draw ? stopDrawing() : setDrawing(true))}
+            onClick={() => {
+              if (draw) stopDrawing();
+              else {
+                setPlaceTool(null);
+                setSeamPreview(null);
+                setCutPick(null);
+                setDrawing(true);
+              }
+            }}
           >
             <Icon name="draw" size={18} />
             {t('office.countertops.draw')}
+          </button>
+          <button
+            type="button"
+            className={styles.tool}
+            data-testid="countertop-seam-tool"
+            aria-pressed={seamOn}
+            disabled={!editing || pieces.length === 0}
+            onClick={() => togglePlace('seam')}
+          >
+            <Icon name="view_column_2" size={18} />
+            {t('office.countertops.seam')}
+          </button>
+          <button
+            type="button"
+            className={styles.tool}
+            data-testid="countertop-cutout-tool"
+            aria-pressed={cutoutOn}
+            disabled={!editing || pieces.length === 0}
+            onClick={() => togglePlace('cutout')}
+          >
+            <Icon name="crop_square" size={18} />
+            {t('office.countertops.cutout')}
           </button>
         </div>
         {hint !== null ? (
           <p className={styles.hint} data-testid="countertop-hint">
             {hint}
           </p>
+        ) : null}
+        {cutoutOn ? (
+          <form
+            className={styles.cutoutForm}
+            data-testid="countertop-cutout-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              typedSize();
+            }}
+          >
+            <div className={styles.kinds} role="group" aria-label={t('office.countertops.cutout_kind')}>
+              {(['sink', 'cooktop'] as const).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  className={styles.kind}
+                  data-testid={`countertop-cutout-${k}`}
+                  aria-pressed={cutKind === k}
+                  onClick={() => chooseKind(k)}
+                >
+                  {t(k === 'sink' ? 'office.countertops.cutout_sink' : 'office.countertops.cutout_cooktop')}
+                </button>
+              ))}
+            </div>
+            <label>
+              {t('office.countertops.cutout_width')}
+              <input
+                data-testid="countertop-cutout-width"
+                value={cutW}
+                inputMode="decimal"
+                autoComplete="off"
+                onChange={(e) => setCutW(e.target.value)}
+              />
+            </label>
+            <label>
+              {t('office.countertops.cutout_depth')}
+              <input
+                data-testid="countertop-cutout-depth"
+                value={cutD}
+                inputMode="decimal"
+                autoComplete="off"
+                onChange={(e) => setCutD(e.target.value)}
+              />
+            </label>
+            <button type="submit" hidden />
+          </form>
         ) : null}
         {draw && draftPts.length > 0 ? (
           <form
@@ -304,12 +542,26 @@ export function CountertopsView({
             </label>
           </form>
         ) : null}
+        {/* EZD-417 (S04b "Edge profile status pill ... Shows Open, Chosen states"; board "Edge profile: client
+            choosing"): the selected top's state, else the tops' on this floor. */}
+        {pieces.length > 0 ? (
+          <span className={styles.pillSlot}>
+            <EdgeProfilePill
+              state={edgeOfferPillState(
+                offers,
+                pieces.map((p) => p.id),
+                selected,
+              )}
+            />
+          </span>
+        ) : null}
       </div>
       <svg
         ref={svgRef}
         className={styles.plan}
         data-testid="countertop-plan"
         data-drawing={draw ? 'true' : 'false'}
+        data-place={seamOn ? 'seam' : cutoutOn ? 'cutout' : 'none'}
         viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`}
         preserveAspectRatio="xMidYMid meet"
         onPointerDown={onPointerDown}
@@ -382,6 +634,180 @@ export function CountertopsView({
             </g>
           );
         })}
+        {pieces.flatMap((p) =>
+          (p.data.attributes.cutouts ?? []).map((c) => {
+            const on =
+              cutPick !== null &&
+              cutPick.cutoutId.toLowerCase() === c.id.toLowerCase() &&
+              cutPick.pieceId.toLowerCase() === p.id.toLowerCase();
+            return (
+              <g
+                key={c.id}
+                data-testid="countertop-cutout"
+                data-id={c.id}
+                data-kind={c.kind}
+                data-width={c.width}
+                data-depth={c.depth}
+                data-selected={on ? 'true' : 'false'}
+              >
+                <polygon
+                  className={on ? styles.cutoutOn : styles.cutout}
+                  points={svgPoints(cutoutCorners(c))}
+                  vectorEffect="non-scaling-stroke"
+                />
+                <text
+                  className={styles.cutoutLabel}
+                  x={c.center.x}
+                  y={-c.center.y}
+                  fontSize={8 * scale}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                >
+                  {t(
+                    c.kind === 'sink'
+                      ? 'office.countertops.cutout_label_sink'
+                      : 'office.countertops.cutout_label_cooktop',
+                  )}
+                </text>
+              </g>
+            );
+          }),
+        )}
+        {pieces.flatMap((p) => {
+          const pts = shownOutline(p);
+          const isOn = selected !== null && p.id.toLowerCase() === selected.toLowerCase();
+          const ccw = signedArea(pts) > 0;
+          return p.data.attributes.edges.flatMap((edge, i) => {
+            const out: ReactElement[] = [];
+            const [a, b] = countertopEdgeSegment(pts, i);
+            if (isOn && picked.edge === i)
+              out.push(
+                <line
+                  key={`on${p.id}${i}`}
+                  className={styles.edgeOn}
+                  data-testid="countertop-edge-selected"
+                  data-id={p.id}
+                  data-edge={i}
+                  x1={a.x}
+                  y1={-a.y}
+                  x2={b.x}
+                  y2={-b.y}
+                  vectorEffect="non-scaling-stroke"
+                />,
+              );
+            if (edge.kind === 'wall') return out;
+            const len = Math.hypot(b.x - a.x, b.y - a.y);
+            if (!(len > 0)) return out;
+            const nx = ((b.y - a.y) / len) * (ccw ? 1 : -1);
+            const ny = (-(b.x - a.x) / len) * (ccw ? 1 : -1);
+            const seating = edge.kind === 'seating';
+            // Seating chips sit inside the top over the overhang (board "12" seating"); others just outside.
+            const off = (seating ? -14 : 12) * scale;
+            const cx = (a.x + b.x) / 2 + nx * off;
+            const cy = (a.y + b.y) / 2 + ny * off;
+            const text = seating
+              ? t('office.countertops.chip_seating', { value: `${formatInches(edge.overhang)}"` })
+              : formatInches(edge.overhang);
+            const w = (text.length * 6.5 + 16) * scale;
+            const h = 18 * scale;
+            const isTyping =
+              typing !== null && typing.pieceId === p.id && typing.edge === i;
+            out.push(
+              <g
+                key={`chip${p.id}${i}`}
+                data-testid="countertop-overhang-chip"
+                data-id={p.id}
+                data-label={p.data.attributes.label}
+                data-edge={i}
+                data-kind={edge.kind}
+                className={styles.chipHit}
+                onPointerDown={(e) => chipDown(e, p.id, i, edge.overhang)}
+              >
+                {isTyping ? (
+                  <foreignObject x={cx - 36 * scale} y={-cy - h / 2} width={72 * scale} height={h}>
+                    <form
+                      className={styles.chipForm}
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        typedChip();
+                      }}
+                    >
+                      <input
+                        className={styles.chipInput}
+                        data-testid="countertop-overhang-input"
+                        aria-label={t('office.countertops.overhang_input')}
+                        style={{ fontSize: `${11 * scale}px` }}
+                        value={typing.text}
+                        inputMode="decimal"
+                        autoComplete="off"
+                        autoFocus
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onChange={(e) => setTyping({ ...typing, text: e.target.value })}
+                        onBlur={() => setTyping(null)}
+                      />
+                    </form>
+                  </foreignObject>
+                ) : (
+                  <>
+                    <rect
+                      className={seating ? styles.chipSeating : styles.chip}
+                      x={cx - w / 2}
+                      y={-cy - h / 2}
+                      width={w}
+                      height={h}
+                      rx={h / 2}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <text
+                      className={seating ? styles.chipSeatingText : styles.chipText}
+                      x={cx}
+                      y={-cy}
+                      fontSize={10 * scale}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                    >
+                      {text}
+                    </text>
+                  </>
+                )}
+              </g>,
+            );
+            return out;
+          });
+        })}
+        {seams.map((s) => (
+          <g key={`${s.seamId}${s.a.x},${s.a.y}`} data-testid="countertop-seam" data-id={s.seamId}>
+            <line
+              className={styles.seam}
+              x1={s.a.x}
+              y1={-s.a.y}
+              x2={s.b.x}
+              y2={-s.b.y}
+              vectorEffect="non-scaling-stroke"
+            />
+            <text
+              className={styles.seamLabel}
+              x={(s.a.x + s.b.x) / 2}
+              y={-(s.a.y + s.b.y) / 2}
+              dy={-6 * scale}
+              fontSize={8 * scale}
+              textAnchor="middle"
+            >
+              {t('office.countertops.seam_label')}
+            </text>
+          </g>
+        ))}
+        {seamOn && seamPreview !== null ? (
+          <line
+            className={styles.seamPreview}
+            data-testid="countertop-seam-preview"
+            x1={seamPreview.a.x}
+            y1={-seamPreview.a.y}
+            x2={seamPreview.b.x}
+            y2={-seamPreview.b.y}
+            vectorEffect="non-scaling-stroke"
+          />
+        ) : null}
         {draw && rubber.length > 0 ? (
           <g data-testid="countertop-draft">
             <polyline
@@ -415,6 +841,16 @@ function snapDrag(at: Point, targets: readonly Point[], radius: number, incremen
     x: Math.round(at.x / increment) * increment,
     y: Math.round(at.y / increment) * increment,
   };
+}
+
+function signedArea(pts: readonly Point[]): number {
+  let a = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i]!;
+    const q = pts[(i + 1) % pts.length]!;
+    a += p.x * q.y - q.x * p.y;
+  }
+  return a / 2;
 }
 
 function centre(pts: readonly Point[]): Point {

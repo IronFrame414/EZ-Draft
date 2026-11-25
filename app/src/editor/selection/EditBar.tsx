@@ -10,6 +10,7 @@ import type { IconName } from '../../components/icon/icon-names.generated';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { EditController, EditUi } from '../edit/edit-controller';
+import { useStoreValue } from '../shared/use-store-value';
 import type { SelectionController } from './selection-controller';
 import styles from './SelectionLayer.module.css';
 
@@ -27,8 +28,6 @@ const NO_UI: EditUi = Object.freeze({
   hasSelection: false,
   hasClip: false,
 });
-const noUi = () => NO_UI;
-const noSub = () => () => {};
 
 export function EditBar({
   selection,
@@ -41,11 +40,7 @@ export function EditBar({
     () => selection.getUi().selectMore,
     () => false,
   );
-  const ui = useSyncExternalStore(
-    edit ? edit.subscribe : noSub,
-    edit ? edit.getUi : noUi,
-    edit ? edit.getUi : noUi,
-  );
+  const ui = useStoreValue(edit, (e) => e.getUi(), NO_UI);
   const command = (
     name: 'undo' | 'redo' | 'delete' | 'duplicate' | 'copy' | 'paste',
     icon: IconName,

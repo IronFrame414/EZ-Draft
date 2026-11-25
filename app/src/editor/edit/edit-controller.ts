@@ -5,6 +5,11 @@
 // EZD-233 (S03 Context menu; vault/build/assumptions.md EZD-233): `run` applies one context menu command (Mirror,
 // Align, Group, Ungroup, Set status) built by the lazy context menu module, as one edit, and selects what it says.
 // EZD-6001 (vault/plans/EZD-6001.md D-Wire): "the open floor" is the floor the user chose.
+import {
+  DEFAULT_BINDINGS,
+  commandForKey,
+  type ShortcutBindings,
+} from '../../lib/defaults/shortcut-keys';
 import type { Point, ObjectStatus } from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { ArrangeContext, ArrangeResult } from './arrange-changes';
@@ -17,6 +22,7 @@ import type { DrawingController, ToolKeyEvent } from '../tools/drawing-controlle
 import { newObjectId } from '../tools/model-changes';
 import { isTypingTarget } from '../typed-entry/typed-entry';
 import { copyItems, deleteChanges, pasteChanges, type ClipItem } from './edit-changes';
+import { createListeners } from '../shared/value-store';
 
 export type EditUi = {
   readonly canEdit: boolean;
@@ -37,6 +43,8 @@ export type EditDeps = {
   newStatus?: () => ObjectStatus;
   // EZD-6001 D-Wire: the floor the user chose; without it edits act on the lowest floor.
   floors?: FloorChoice;
+  // EZD-222 (S15d Keyboard shortcuts): the company key map in force; the default map without it.
+  keys?: () => ShortcutBindings;
 };
 
 export type EditController = {
@@ -77,7 +85,7 @@ export function createEditController(deps: EditDeps): EditController {
   let disposed = false;
   let clip: readonly ClipItem[] = [];
   let depth = 0;
-  const listeners = new Set<() => void>();
+  const listeners = createListeners();
 
   const compute = (): EditUi => {
     if (disposed || !canEdit) return NO_UI;
@@ -99,7 +107,7 @@ export function createEditController(deps: EditDeps): EditController {
     const next = compute();
     if (sameUi(next, ui)) return;
     ui = next;
-    for (const l of [...listeners]) l();
+    listeners.notify();
   };
 
   const unsubscribeStore = canEdit ? store.subscribe(refresh) : () => {};
@@ -237,23 +245,16 @@ export function createEditController(deps: EditDeps): EditController {
 
   function keyDown(e: ToolKeyEvent): boolean {
     if (disposed || !canEdit || e.defaultPrevented || isTypingTarget(e.target)) return false;
-    if ((e.ctrlKey || e.metaKey) && !e.altKey) {
-      const k = e.key.toLowerCase();
-      if (k === 'z') {
-        if (e.shiftKey) redo();
-        else undo();
-        return true;
-      }
-      if (k === 'c' && !e.shiftKey) {
-        copy();
-        return true;
-      }
-      if (k === 'v' && !e.shiftKey) {
-        paste('cursor');
-        return true;
-      }
-      return false;
+    // EZD-222: Undo, Redo, Copy and Paste keys come from the company key map.
+    const command = commandForKey(deps.keys?.() ?? DEFAULT_BINDINGS, e);
+    if (command === 'undo' || command === 'redo' || command === 'copy' || command === 'paste') {
+      if (command === 'undo') undo();
+      else if (command === 'redo') redo();
+      else if (command === 'copy') copy();
+      else paste('cursor');
+      return true;
     }
+    if (e.ctrlKey || e.metaKey) return false;
     if ((e.key === 'Delete' || e.key === 'Backspace') && !e.ctrlKey && !e.metaKey && !e.altKey) {
       deleteSelection();
       return true;
@@ -265,8 +266,7 @@ export function createEditController(deps: EditDeps): EditController {
     getUi: () => (disposed ? NO_UI : ui),
     subscribe(listener) {
       if (disposed) return () => {};
-      listeners.add(listener);
-      return () => void listeners.delete(listener);
+      return listeners.add(listener);
     },
     keyDown,
     undo,

@@ -21,6 +21,7 @@
 // EZD-733 (phase-07 EZD-733 "visible cuts on the plan"; AC-EZD-733-1; vault/build/assumptions.md EZD-733): a floor
 // tile layout draws one hatch over its room, the outline of every piece (cut pieces are the ones the room's edge
 // trims), 'beyond', in the layout's status layer; a layout whose room is gone is omitted as host_not_found.
+import { hasLevel } from '../schema';
 import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
 import { tileLayoutPieces, type TileLayoutObject } from '../tile/hosts';
 import { doorSymbolInFrame } from '../openings/door-symbol';
@@ -46,6 +47,7 @@ import {
   type DrawingView,
   type OmittedObject,
 } from './types';
+import { add } from '../vec';
 
 type WallObject = Extract<ModelObject, { type: 'wall' }>;
 type OpeningObject = Extract<ModelObject, { type: 'opening' }>;
@@ -63,7 +65,6 @@ type Frame = {
   vertical: boolean;
 };
 
-const add = (p: Point, v: Point, k: number): Point => ({ x: p.x + v.x * k, y: p.y + v.y * k });
 const at = (f: Frame, s: number, o: number): Point => add(add(f.start, f.d, s), f.n, o);
 
 function unit(from: Point, to: Point): { d: Point; n: Point; length: number } {
@@ -135,7 +136,7 @@ export function buildDrawingList(
   const level = v.level.toLowerCase();
 
   const onFloor = document.objects.filter(
-    (o) => o.type !== 'floor' && o.data.level.toLowerCase() === level,
+    (o) => hasLevel(o) && o.data.level.toLowerCase() === level,
   );
   const walls = onFloor.filter((o): o is WallObject => o.type === 'wall');
   const openings = onFloor.filter((o): o is OpeningObject => o.type === 'opening');

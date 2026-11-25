@@ -29,7 +29,7 @@
 
 .heading {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   font-weight: 600;
   color: var(--ez-ink);
 }
@@ -42,7 +42,7 @@
 
 .title {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-500);
 }
@@ -55,7 +55,7 @@
 
 .kind {
   padding: 4px 8px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-ink);
   background: var(--ez-surface);
   border: 1px solid var(--ez-divider);
@@ -82,35 +82,35 @@
 }
 
 .label {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
 .input {
   min-width: 0;
   padding: 6px 8px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   border: 1px solid var(--ez-divider);
   border-radius: var(--ez-radius-8);
 }
 
 .hint {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-700);
 }
 
 .list {
   margin: 0;
   padding-left: 18px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-ink);
 }
 
 .close {
   align-self: flex-start;
   padding: 4px 10px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   background: var(--ez-surface);
   border: 1px solid var(--ez-divider);
   border-radius: var(--ez-radius-7);

@@ -96,4 +96,25 @@
   --ez-preview-remove: oklch(0.55 0.19 28);
   --ez-preview-remove-tint: oklch(0.97 0.02 28);
   --ez-radius-3: 3px;
+  /* Type scale: font sizes the Studio mockup HTML uses (vault/mockups/html/project); audit 2026-11-23 U5; EZD-1954 */
+  --ez-text-7: 7px;
+  --ez-text-9: 9px;
+  --ez-text-10: 10px;
+  --ez-text-11: 11px;
+  --ez-text-11-5: 11.5px;
+  --ez-text-12: 12px;
+  --ez-text-12-5: 12.5px;
+  --ez-text-13: 13px;
+  --ez-text-14: 14px;
+  --ez-text-15: 15px;
+  --ez-text-16: 16px;
+  --ez-text-17: 17px;
+  --ez-text-18: 18px;
+  --ez-text-20: 20px;
+  --ez-text-22: 22px;
+  --ez-text-24: 24px;
+  --ez-text-28: 28px;
+  /* SVG text in drawing units (cabinet run elevation), not screen pixels; EZD-1954 */
+  --ez-text-drawing-3: 3px;
+  --ez-text-drawing-3-5: 3.5px;
 }

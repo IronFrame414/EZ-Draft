@@ -149,6 +149,11 @@ describe('EZD-307 import review data', () => {
     expect(sourceLine(files)).toBe('Polycam Space · DXF + GLB');
     expect(sourceLine(files.slice(0, 1))).toBe('Polycam Space · DXF');
   });
+
+  // EZD-1418 (S02 Entry points "rooms sent from the phone (17b Field measure, source kind field_measure)").
+  it('names rooms sent from the phone Field measure', () => {
+    expect(sourceLine([{ name: 'Field measure', kind: 'field_measure' }])).toBe('Field measure');
+  });
 });
 
 // EZD-308 (AC-EZD-308-1 "Accept N accepts only items above the cutoff"; S02 Controls Mode One by one, Accept + fix,

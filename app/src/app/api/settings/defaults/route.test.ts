@@ -286,4 +286,51 @@ describe('EZD-116 /api/settings/defaults', () => {
     state.store = new Map(ownerCookies);
     expect((await projectDefaults('00000000-0000-4000-8000-000000000000')).res.status).toBe(404);
   });
+
+  // EZD-222 (S15d Keyboard shortcuts "Keys are checked for collisions within the same view"; phase-02.md EZD-222
+  // "Already used by check, browser keys refused"): the server refuses what the table refuses.
+  it('EZD-222: a key used twice in a view or kept by the browser is refused; a free key saves and loads', async () => {
+    for (const map of [{ wall: 'R' }, { wall: 'Mod+W' }, { nope: 'B' }, { wall: 'b' }]) {
+      state.store = new Map(ownerCookies);
+      const r = await patch({ changes: { keyboard_shortcuts: map } });
+      expect(r.res.status, JSON.stringify(map)).toBe(400);
+      expect((r.json as { error: { fields: Record<string, string> } }).error.fields).toEqual({
+        keyboard_shortcuts: 'office.defaults.error.shortcuts',
+      });
+    }
+    state.store = new Map(ownerCookies);
+    expect((await patch({ changes: { keyboard_shortcuts: { wall: 'B' } } })).res.status).toBe(200);
+    expect((await stored()).keyboard_shortcuts).toEqual({ wall: 'B' });
+    state.store = new Map(ownerCookies);
+    const r = await get();
+    expect((r.json as { effective: Record<string, unknown> }).effective.keyboard_shortcuts).toEqual({ wall: 'B' });
+  });
+
+  // EZD-415 (phase-04 EZD-415 "seat width and bracket spacing are Defaults → Countertops values"): the two new
+  // lengths are refused at 0, save through the database's key list and read back as effective values.
+  it('EZD-415: bracket spacing and seat width save and load; 0 is refused', async () => {
+    for (const key of ['countertop_bracket_spacing', 'countertop_seat_width']) {
+      state.store = new Map(ownerCookies);
+      const r = await patch({ changes: { [key]: 0 } });
+      expect(r.res.status, key).toBe(400);
+      expect((r.json as { error: { fields: Record<string, string> } }).error.fields).toEqual({
+        [key]: 'office.length.refused',
+      });
+    }
+    state.store = new Map(ownerCookies);
+    const r = await patch({
+      changes: { seating_support_limit: 10, countertop_bracket_spacing: 24, countertop_seat_width: 24 },
+    });
+    expect(r.res.status).toBe(200);
+    expect(await stored()).toMatchObject({
+      seating_support_limit: 10,
+      countertop_bracket_spacing: 24,
+      countertop_seat_width: 24,
+    });
+    state.store = new Map(ownerCookies);
+    const eff = ((await get()).json as { effective: Record<string, unknown> }).effective;
+    expect([eff.seating_support_limit, eff.countertop_bracket_spacing, eff.countertop_seat_width]).toEqual([
+      10, 24, 24,
+    ]);
+  });
 });

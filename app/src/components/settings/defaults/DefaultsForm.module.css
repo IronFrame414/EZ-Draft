@@ -27,7 +27,7 @@
   background: var(--ez-surface);
   color: var(--ez-ink);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
 }
 .searchClear {
   position: absolute;
@@ -62,13 +62,13 @@
   align-items: center;
   gap: 8px;
   border-bottom: 1px solid var(--ez-divider);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   font-weight: 600;
   color: var(--ez-slate-700);
 }
 .groupNote {
   margin-left: auto;
-  font-size: 11.5px;
+  font-size: var(--ez-text-11-5);
   font-weight: 400;
   color: var(--ez-slate-400);
 }
@@ -83,11 +83,11 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-ink);
 }
 .hint {
-  font-size: 11px;
+  font-size: var(--ez-text-11);
   color: var(--ez-slate-400);
 }
 .control {
@@ -106,7 +106,7 @@
   background: var(--ez-surface);
   color: var(--ez-ink);
   font-family: var(--ez-font-mono);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   text-align: right;
 }
 .input:focus-visible {
@@ -122,16 +122,16 @@
   border-color: var(--ez-red);
 }
 .unit {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 .mono {
   font-family: var(--ez-font-mono);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-700);
 }
 .notSet {
-  font-size: 12.5px;
+  font-size: var(--ez-text-11-5);
   color: var(--ez-slate-400);
 }
 .segment {
@@ -147,7 +147,7 @@
   background: none;
   color: var(--ez-slate-500);
   font: inherit;
-  font-size: 12.5px;
+  font-size: var(--ez-text-12-5);
   padding: 6px 10px;
   cursor: pointer;
 }
@@ -171,11 +171,11 @@
   color: var(--ez-cobalt);
 }
 .rowError {
-  font-size: 11.5px;
+  font-size: var(--ez-text-11-5);
   color: var(--ez-red);
 }
 .noMatch {
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 .footer {
@@ -189,7 +189,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-amber-text);
 }
 .dot {
@@ -199,7 +199,7 @@
   background: var(--ez-amber);
 }
 .lengthsHint {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-400);
 }
 .spacer {

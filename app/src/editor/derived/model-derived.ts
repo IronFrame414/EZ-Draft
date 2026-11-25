@@ -12,6 +12,7 @@ import {
   type ModelObject,
   type ObjectOf,
   type RoomObject,
+  hasLevel,
 } from '@ezdraft/geometry';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import type { ModelStore } from '../model/model-store';
@@ -61,7 +62,7 @@ export function objectsSource(objects: Objects, parsed: ParsedObjects): DerivedS
         for (const [id, value] of objects) {
           if (value.type !== type) continue;
           const object = parse(id, value);
-          if (object !== null && object.type !== 'floor' && object.data.level.toLowerCase() === lower) {
+          if (object !== null && hasLevel(object) && object.data.level.toLowerCase() === lower) {
             out.push(object);
           }
         }

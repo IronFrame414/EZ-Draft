@@ -1,0 +1,256 @@
+/* EZD-403 (board S04Cabinets left panel "Cabinet library"): tabs as the countertop panel (.seg, .segOn), the search
+   field, the "Line: …" label, rows with the mono code, the name and the drag handle, the "Fillers, panels, trim"
+   section label, and the Runs tab's run rows. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  font-size: var(--ez-text-14);
+  color: var(--ez-ink);
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px;
+  border-bottom: 1px solid var(--ez-border);
+}
+
+.seg {
+  flex: 1;
+  text-align: center;
+  min-height: 44px;
+  padding: 7px;
+  color: var(--ez-slate-500);
+  border-radius: var(--ez-radius-8);
+  border: 0;
+  background: transparent;
+  font: 500 var(--ez-text-13) var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.segOn {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+  font-weight: 600;
+}
+
+.body {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+  padding-bottom: 12px;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 10px 4px;
+  padding: 0 12px;
+  min-height: 44px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  color: var(--ez-slate-500);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: var(--ez-text-13);
+  color: var(--ez-ink);
+}
+
+.lineWrap {
+  position: relative;
+}
+
+.line,
+.lbl {
+  display: block;
+  font-size: var(--ez-text-12);
+  font-weight: 600;
+  color: var(--ez-slate-500);
+  padding: 14px 14px 6px;
+}
+
+.line {
+  width: 100%;
+  min-height: 36px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.line:hover {
+  color: var(--ez-ink);
+}
+
+.lines {
+  position: absolute;
+  z-index: 5;
+  left: 10px;
+  right: 10px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+}
+
+.lineOption {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: var(--ez-radius-8);
+  cursor: pointer;
+}
+
+.lineOption:hover {
+  background: var(--ez-hover);
+}
+
+.lineOn {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0 6px;
+  list-style: none;
+}
+
+.rows + .lbl {
+  border-top: 1px solid var(--ez-divider);
+  margin-top: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 8px;
+  border-radius: var(--ez-radius-8);
+}
+
+.draggable {
+  cursor: grab;
+}
+
+.draggable:hover {
+  background: var(--ez-hover);
+}
+
+.draggable:active {
+  cursor: grabbing;
+}
+
+.code {
+  font-family: var(--ez-font-mono);
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}
+
+.name {
+  font-size: var(--ez-text-14);
+}
+
+.handle {
+  fill: var(--ez-slate-500);
+}
+
+.trims {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.trim {
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  font-family: var(--ez-font-mono);
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+  cursor: pointer;
+}
+
+.trim:hover:enabled {
+  background: var(--ez-hover);
+  color: var(--ez-ink);
+}
+
+.trim:disabled {
+  cursor: default;
+}
+
+.empty {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-500);
+}
+
+.run {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.run:hover {
+  background: var(--ez-hover);
+}
+
+.runOn,
+.runOn:hover {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.runName {
+  font-size: var(--ez-text-14);
+  font-weight: 500;
+}
+
+.runMeta {
+  font-family: var(--ez-font-mono);
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}
+
+.fitOk {
+  color: var(--ez-green);
+}
+
+.fitWarn {
+  color: var(--ez-amber-text);
+}

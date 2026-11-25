@@ -1,6 +1,6 @@
 // EZD-116 (AC-EZD-116-1, -2, -5). Renders the Defaults page inside MessagesProvider > StateHost >
 // UnsavedChangesProvider as company-form.test.tsx does. Expected values: board S15dDefaults (three columns of
-// groups, no Keyboard shortcuts card, Save and Discard disabled with no edits, the lengths hint), S15d States
+// groups, the Keyboard shortcuts table last (EZD-222), Save and Discard disabled with no edits, the lengths hint), S15d States
 // (a row with no stored value and no registry default reads "Not set"), Q-0697 03 (Save sends only the edited
 // keys; a refused row keeps them from saving).
 import type { ReactElement } from 'react';
@@ -36,7 +36,7 @@ const attr = (tag: string | null, name: string) =>
   new RegExp(`\\s${name}="([^"]*)"`).exec(tag ?? '')?.[1] ?? null;
 
 describe('EZD-116 Defaults page markup', () => {
-  it('AC-2: groups in board order, no Keyboard shortcuts; AC-5: Save and Discard off with no edits', () => {
+  it('AC-2: groups in board order, Keyboard shortcuts last (EZD-222); AC-5: Save and Discard off with no edits', () => {
     const html = render(<DefaultsPage initial={{}} />);
     const groups = [...html.matchAll(/data-testid="defaults-group" data-group="([a-z_]+)"/g)].map(
       (m) => m[1],
@@ -57,8 +57,9 @@ describe('EZD-116 Defaults page markup', () => {
       'history',
       'client',
       'integrations',
+      'keyboard_shortcuts',
     ]);
-    expect(html).not.toContain('Keyboard shortcuts');
+    expect(html).toContain('Keyboard shortcuts');
     expect(html).toContain('Search defaults');
     expect(isDisabled(openTag(html, 'defaults-save'))).toBe(true);
     expect(isDisabled(openTag(html, 'defaults-discard'))).toBe(true);

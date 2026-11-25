@@ -7,15 +7,13 @@ import { COMPARISON_TOLERANCE_IN, pointsEqual } from '../tolerance';
 import { findWallJoins } from '../walls/joins';
 import { wallFaceLines, wallLength, type WallLine, type WallObject } from '../walls/wall';
 import { outlineAreaSqIn, pointInRing, ringSignedAreaSqIn } from './area';
+import { cross, dot, sub } from '../vec';
 
 export type RoomOutline = { boundary: Point[]; wallIds: string[] };
 
 // One direction of a graph edge. `forward` = it runs start to end of its wall.
 type HalfEdge = { from: number; to: number; wall: number; forward: boolean };
 
-const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
-const cross = (a: Point, b: Point) => a.x * b.y - a.y * b.x;
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y;
 const copy = (p: Point): Point => ({ x: p.x, y: p.y });
 
 // The intersection of the two drawn lines (the caller knows they cross).

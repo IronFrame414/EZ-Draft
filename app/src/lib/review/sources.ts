@@ -30,8 +30,9 @@ export const REVIEW_SOURCE_LABEL_KEYS: Record<ReviewSource, MessageKey> = {
 export const isReviewSource = (v: unknown): v is ReviewSource =>
   typeof v === 'string' && (REVIEW_SOURCES as readonly string[]).includes(v);
 
-// One line of the review list: a source and how many of its items are open.
-export type ReviewGroup = { source: ReviewSource; count: number };
+// One line of the review list: a source and how many of its items are open. EZD-1418: `href` is where the line
+// opens, when its source has a page (field measurements: Import review of the newest sent rooms).
+export type ReviewGroup = { source: ReviewSource; count: number; href?: string };
 
 // The pill reads only the project's stored count; the list (opened on demand) also gets the groups.
 export type ReviewSummary = { count: number; groups?: ReviewGroup[] };

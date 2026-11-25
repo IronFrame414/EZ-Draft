@@ -175,17 +175,21 @@ test.describe('EZD-120c editor route', () => {
     await signInAs(user.email);
     await openReady(page, ids.P1);
     await expect(saveState(page).locator('xpath=..')).toHaveText('Zed Co · Working copy · Saved');
-    await expect(page.locator('header nav button')).toHaveCount(1);
+    // EZD-1001a: 3D ships, so its tab follows Plan (Q-0500). EZD-702a: Sheets ships and follows 3D.
+    await expect(page.locator('header nav button')).toHaveText(['Plan', '3D', 'Sheets']);
     await expect(page.locator('[data-shell-region="rail"]')).toHaveCount(1);
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="top"] [data-rail-tool]'),
     ).toHaveCount(13); // EZD-601: plus Electrical; EZD-412: plus Countertops
     await expect(
       page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
-    ).toHaveCount(1);
+    ).toHaveCount(2); // EZD-222: Assistant, then Help
     await expect(
-      page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]'),
+      page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]').nth(0),
     ).toHaveAttribute('data-rail-tool', 'assistant');
+    await expect(
+      page.locator('[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]').nth(1),
+    ).toHaveAttribute('data-rail-tool', 'help');
     // EZD-218: the plan editor has its left panel (S03 Layout).
     await expect(page.locator('[data-shell-region="left-panel"]')).toHaveCount(1);
     await expect(page.locator('[data-shell-region="inspector"]')).toHaveCount(1);

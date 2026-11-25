@@ -32,6 +32,33 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   },
   { fn: 'mark_sent_package_emailed', args: { p_sent_package: null } },
   { fn: 'resolve_sent_package', args: { p_token_hash: null } },
+  // EZD-1201: the share link functions (authenticated) and the share link status (anon only);
+  // sweep_share_link_reminders is service_role only.
+  { fn: 'resolve_share_link', args: { p_token_hash: null, p_view: null } },
+  { fn: 'renew_share_link', args: { p_sent_package: null, p_expiry_days: null, p_ip: null } },
+  { fn: 'revoke_share_link', args: { p_sent_package: null } },
+  { fn: 'list_share_links', args: { p_project: null } },
+  // EZD-417: the edge profile library (seeds a company's first read) and Edit offered edges (authenticated only).
+  { fn: 'edge_profile_library', args: {} },
+  { fn: 'save_edge_offer', args: { p_project: null, p_piece: null, p_choices: null, p_rates: null } },
+  // EZD-711: the property appraiser import's save (authenticated only).
+  {
+    fn: 'set_property_record',
+    args: {
+      p_project: null,
+      p_parcel_no: null,
+      p_owner: null,
+      p_legal_description: null,
+      p_year_built: null,
+      p_living_area: null,
+      p_source_url: null,
+    },
+  },
+  // EZD-611a: a code check run is stored (authenticated only).
+  {
+    fn: 'record_code_check_run',
+    args: { p_project: null, p_model_version: null, p_edition: null, p_warnings: null },
+  },
   // EZD-122: Name snapshot and Revert (authenticated only).
   { fn: 'name_snapshot', args: { p_project: null, p_version: null, p_name: null } },
   {
@@ -184,6 +211,8 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'update_tenant_defaults', args: { p_set: {}, p_remove: [] } },
   // EZD-613: the Code edition write path, authenticated only.
   { fn: 'update_tenant_code_edition', args: { p_code_edition: null, p_optional_load_calc: null } },
+  // EZD-709: the Title block write path, authenticated only.
+  { fn: 'update_tenant_title_block', args: { p_show_company: true } },
   // EZD-1102: the Render models write path, authenticated only.
   { fn: 'save_render_settings', args: { p_tiers: [], p_allowance: null } },
   // EZD-712: the Sheet presets (submittal profile) write paths, authenticated only.
@@ -207,6 +236,8 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'mark_all_notifications_read', args: {} },
   // EZD-140 section 3 (vault/plans/EZD-140.md): the notification settings save, authenticated only.
   { fn: 'save_my_notification_settings', args: { p_settings: [] } },
+  // EZD-230 (Q-0122): the user's own rail tool order (authenticated only).
+  { fn: 'update_my_rail_order', args: { p_order: [] } },
   // EZD-117a section 3 (vault/plans/EZD-117a.md; E3): the Projects list and count, authenticated only.
   // EZD-117b section 3 (vault/plans/EZD-117b.md; E3): both take p_search from M3.
   { fn: 'list_projects', args: { p_sort: 'edited', p_search: '' } },
@@ -328,4 +359,25 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     fn: 'update_project_settings',
     args: { p_project: '00000000-0000-4000-8000-000000000000', p_changes: {} },
   },
+  // EZD-1415: the field measure save, authenticated only.
+  { fn: 'save_field_measure_session', args: { p_project: null, p_rooms: null } },
+  // EZD-1419: the office reopens sent field measure rooms, authenticated only.
+  { fn: 'reopen_field_measure_session', args: { p_project: null } },
+  // EZD-1402: the field action photo start and record, authenticated only.
+  { fn: 'start_field_photo', args: { p_project: null, p_action: null, p_kind: null, p_ext: null } },
+  {
+    fn: 'sync_field_action',
+    args: {
+      p_id: null,
+      p_project: null,
+      p_device: null,
+      p_kind: null,
+      p_ops: null,
+      p_base_version: null,
+      p_queued_at: null,
+      p_photo: null,
+    },
+  },
+  // EZD-1418: the import of a recorded field measure send, authenticated only.
+  { fn: 'create_field_measure_import', args: { p_project: null, p_change: null, p_items: null } },
 ];

@@ -1,0 +1,32 @@
+step: scripts tests
+command: /usr/local/bin/node --import ./app/test-harness/net-guard/preload.mjs --test --test-concurrency=4 --test-timeout=300000 scripts/loop/__tests__/lanes.test.mjs
+full log: /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1940/check.log
+
+== failure lines ==
+not ok 3 - a retried ticket is picked before three fresh ones
+  location: '/Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1940/scripts/loop/__tests__/lanes.test.mjs:88:1'
+  name: 'AssertionError'
+not ok 1 - /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1940/scripts/loop/__tests__/lanes.test.mjs
+  location: '/Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1940/scripts/loop/__tests__/lanes.test.mjs:1:1'
+
+== last lines ==
+TAP version 13
+not ok 3 - a retried ticket is picked before three fresh ones
+  ---
+  duration_ms: 0.594792
+  type: 'test'
+  location: '/Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1940/scripts/loop/__tests__/lanes.test.mjs:88:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+  name: 'AssertionError'
+  ...
+not ok 1 - /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1940/scripts/loop/__tests__/lanes.test.mjs
+  ---
+  type: 'test'
+  location: '/Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1940/scripts/loop/__tests__/lanes.test.mjs:1:1'
+  failureType: 'subtestsFailed'
+  ...
+# tests 24
+# pass 23
+# fail 1

@@ -91,12 +91,18 @@ Interactive (until the ceiling is set):
 One ticket per session; `/clear` after each, then the next `/build-ticket <id>` (the session-start hook names it). When `vault/budget.json` has a ceiling, unattended:
 
 ```bash
-node scripts/run.mjs            # loops: next unit → fresh claude -p → cost log → ledger check
-node scripts/run.mjs --status   # budget, next unit, which CLI flags the installed version supports
-node scripts/run.mjs --once     # one unit
+node scripts/launchd/build.mjs install   # runs scripts/loop.mjs as the launchd agent com.ezdraft.build
+node scripts/launchd/build.mjs status    # loaded, pid, last exit, log paths
 ```
 
-It stops and notifies you (ntfy) only when something needs you: budget hold, questions, sign-off, a blocked phase, a failed ledger check, a built phase. `touch vault/handoff/STOP` stops it after the current unit. When Phase 0 is built it runs `gate-phase 0`, opens the PR and notifies you; you work the punch list on the preview and merge; then it runs `wrap 0` and stops at Phase 1's `spec-check` (needs you; see `vault/tickets/PHASES.md` for the re-cut to approve first).
+(Build v3, 2026-11-13. The old launcher `scripts/run.mjs` was deleted by EZD-1951; `node scripts/launchd/install.mjs uninstall` removes its old launchd agents. `touch vault/build/STOP` pauses the loop after the current ticket.)
+
+(Old launcher, for the record:) it stopped and notified you (ntfy) only when something needed you: budget hold, questions, sign-off, a blocked phase, a failed ledger check, a built phase. `touch vault/handoff/STOP` stops it after the current unit. When Phase 0 is built it runs `gate-phase 0`, opens the PR and notifies you; you work the punch list on the preview and merge; then it runs `wrap 0` and stops at Phase 1's `spec-check` (needs you; see `vault/tickets/PHASES.md` for the re-cut to approve first).
+
+## Warnings (audit 2026-11-23)
+
+- **The base local stack is not the lanes' stack.** The base local Supabase stack (lane 0, port 54321, used by the main checkout with `EZD_LANE` unset) is not used by lanes 1-3; each lane has its own stack. Nothing keeps lane 0 current, so it falls behind: in the audit it was at 133 of 156 migrations with a stale gate secret, and signing in failed. Before any interactive UI check against `127.0.0.1:54321`, bring it up to date with `pnpm db:up` in the main checkout. It resets the database, so local data on lane 0 is wiped; run it only when no lane-0 gate is using the stack.
+- **Make worktrees by hand.** A worktree made by the Claude desktop app sets `extensions.worktreeConfig` in the repo's git config, and that can turn the lanes' gates red (the audit's incident turned two red). Use `git worktree add` and point the session at that folder.
 
 ## Notes
 

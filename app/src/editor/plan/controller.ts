@@ -23,6 +23,7 @@
 // greyed floor plan, through the view the lazy RCP module builds from the floor list; a switch redraws as a View change
 // does. Bounds stay the floor plan's, so Fit is the same on every surface. `drawn()` reports the surface and batches.
 import type { DerivedStats, DrawingList, ObjectStatus, Point } from '@ezdraft/geometry';
+import type { Camera, Object3D } from 'three';
 import type { PlanSurface } from '../ceiling/surface';
 import type { PhaseFilter } from '../../lib/plan/phase-view';
 import { DEFAULT_PLAN_SCALE, isPlanScale, type PlanScale } from '../../lib/plan/plan-scale';
@@ -32,6 +33,8 @@ import type { ModelStore } from '../model/model-store';
 import { chosenFloor, type FloorChoice } from '../floors/floors';
 import type { Objects } from '../model/patches';
 import { roomFieldsModule as planDetails } from '../layers/room-fields-module';
+import { circuitView } from '../electrical/circuit-view';
+import { heightNotesShown } from '../electrical/height-notes-shown';
 import {
   buildPlanBatches,
   drawingBounds,
@@ -85,11 +88,19 @@ export type PlanStats = {
   selectionUploads: number;
 };
 export const ZOOM_STEP_FACTOR = 1.25;
+// EZD-1001a (11 rule 4): another scene drawn into the plan's one renderer, with its own camera; it asks for a frame
+// through the function it is given while shown.
+export type SceneView = {
+  object: Object3D;
+  camera: Camera;
+  setInvalidate(fn: (() => void) | null): void;
+};
 export type RenderRoot = {
   start(size: Size): Promise<void>;
   resize(size: Size): void;
   setCamera(frame: CameraFrame): void;
   invalidate(): void;
+  setScene?(view: SceneView | null): void;
   stats(): { frames: number; drawCalls: number };
   captureFrame(source: CaptureSource): Promise<ThumbnailCapture>;
   unmount(): void;
@@ -140,6 +151,8 @@ export type PlanController = {
   stats(): PlanStats;
   derivedStats(): DerivedStats;
   captureThumbnail(): Promise<ThumbnailCapture | null>;
+  // EZD-1001a: draw `view` (the 3D scene) instead of the plan in the same renderer; null draws the plan again.
+  showScene(view: SceneView | null): void;
   atlasFailed(): boolean;
   subscribeAtlasFailed(listener: () => void): () => void;
   // EZD-304: the calibrated PDF page under the plan for tracing; null removes it.
@@ -151,6 +164,8 @@ export type PlanController = {
     surface: PlanSurface;
     batches: Array<{ key: string; color: PlanBatch['color']; order: number }>;
   };
+  // EZD-513: the text items drawn (dimension lengths, tags), with their object ids, for the test hook.
+  drawnTexts(): Array<{ objectId: string; text: string }>;
   dispose(): void;
 };
 
@@ -216,6 +231,7 @@ export function createPlanController(
   let fitted = false;
   let root: RenderRoot | null = null;
   let ready = false;
+  let shownScene: SceneView | null = null;
   let attachToken = 0;
   let input: PlanInput | null = null;
   let receiver: PlanPointerReceiver | null = null;
@@ -277,7 +293,18 @@ export function createPlanController(
     const objects = o.store.getState().objects;
     const floor = planDrawingList(
       objects,
-      { roomAreaSqFt: derived.roomAreaSqFt, extraItems: details?.planDetailItems },
+      {
+        roomAreaSqFt: derived.roomAreaSqFt,
+        // EZD-603: the left panel's Height notes switch. EZD-604: the circuits, with the chosen circuit and the
+        // Home runs chip.
+        extraItems: details
+          ? (objs, lvl, pt) =>
+              details.planDetailItems(objs, lvl, pt, {
+                heightNotes: heightNotesShown.get(),
+                circuits: { all: objects, ...circuitView.get() },
+              })
+          : undefined,
+      },
       phase,
       chosenFloor(o.floors),
     );
@@ -433,6 +460,17 @@ export function createPlanController(
           if (next === shownFloor) return;
           refreshAll();
         });
+
+  // EZD-603: the left panel's Height notes switch redraws as a View change does.
+  const unsubscribeHeightNotes = heightNotesShown.subscribe(() => {
+    if (disposed) return;
+    refreshAll();
+  });
+  // EZD-604: so do the circuit chosen in the electrical left panel and its Home runs chip.
+  const unsubscribeCircuitView = circuitView.subscribe(() => {
+    if (disposed) return;
+    refreshAll();
+  });
 
   const zoomBy = (factor: number) => {
     const size = regionSize();
@@ -626,6 +664,7 @@ export function createPlanController(
       ) {
         created.resize({ width: canvasRect.width, height: canvasRect.height });
       }
+      if (shownScene !== null) created.setScene?.(shownScene);
       updateCamera();
       redraw();
       if (!atlasRequested && deps.createAtlas !== undefined) requestAtlas(deps.createAtlas);
@@ -726,6 +765,10 @@ export function createPlanController(
       surface: surfaceView === null ? 'floor' : surface,
       batches: drawnBatches.map((b) => ({ key: b.key, color: { ...b.color }, order: b.order })),
     }),
+    drawnTexts: () =>
+      (list?.items ?? []).flatMap((i) =>
+        i.kind === 'text' ? [{ objectId: i.objectId, text: i.text }] : [],
+      ),
     derivedStats: () => derived.stats(),
     stats() {
       const s = root !== null && ready ? root.stats() : { frames: 0, drawCalls: 0 };
@@ -738,8 +781,19 @@ export function createPlanController(
         selectionUploads,
       };
     },
+    showScene(view) {
+      if (view === shownScene) return;
+      shownScene = view;
+      if (root === null || !ready) return;
+      root.setScene?.(view);
+      if (view === null) {
+        updateCamera();
+        redraw();
+      }
+    },
     async captureThumbnail() {
-      if (root === null || !ready) return null;
+      // EZD-1001a: the thumbnail is of the plan; none is taken while the 3D scene is drawn.
+      if (root === null || !ready || shownScene !== null) return null;
       // Loaded on first use so the thumbnail rules stay out of the editor's first download (500,000 byte budget).
       const { thumbnailSource } = await import('../../lib/thumbnail/thumbnail');
       if (root === null || !ready) return null;
@@ -752,6 +806,8 @@ export function createPlanController(
       unsubscribe();
       unsubscribePhase();
       unsubscribeFloors();
+      unsubscribeHeightNotes();
+      unsubscribeCircuitView();
       input?.dispose();
       input = null;
       detachCanvas();

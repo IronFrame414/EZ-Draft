@@ -17,7 +17,7 @@ import { MessagesProvider } from '../../../lib/messages';
 import { catalogFor } from '../../../server/messages/catalog';
 import { StateHost } from '../../states/StateHost';
 import { UnsavedChangesProvider } from '../unsaved-changes';
-import { CodeEditionLoadError, CodeEditionPage, changesOf } from './CodeEditionForm';
+import { CodeEditionLoadError, CodeEditionPage, changesOf, statusDefaultLabel } from './CodeEditionForm';
 import Loading from '../../../app/(office)/settings/code-edition/loading';
 
 const render = (el: ReactElement) =>
@@ -53,7 +53,11 @@ describe('EZD-613 Code edition page markup', () => {
     const options = [...html.matchAll(/<option value="([a-z0-9_]+)"[^>]*>([^<]*)<\/option>/g)].map(
       (m) => [m[1], m[2]],
     );
-    expect(options).toEqual([['fbc9_nec2023', 'FBC 9th ed. · NEC 2023']]);
+    // EZD-643 adds By permit date (automatic) ahead of the editions (board S15gCode).
+    expect(options).toEqual([
+      ['by_permit_date', 'By permit date (automatic)'],
+      ['fbc9_nec2023', 'FBC 9th ed. · NEC 2023'],
+    ]);
     const sets = [...html.matchAll(/data-edition="([a-z0-9_]+)"/g)].map((m) => m[1]);
     expect(sets).toEqual(['fbc9_nec2023']);
     expect(isDisabled(openTag(html, 'code-edition-save'))).toBe(true);
@@ -70,6 +74,43 @@ describe('EZD-613 Code edition page markup', () => {
     expect(changesOf(SETTINGS, { edition: 'fbc9_nec2023', optionalLoadCalc: true })).toEqual({
       optionalLoadCalc: true,
     });
+  });
+
+  it('EZD-643 (Q-0765; board S15gCode): By permit date shows its two lines; both rule sets are listed', () => {
+    const both = {
+      edition: 'by_permit_date' as const,
+      optionalLoadCalc: false,
+      available: ['fbc9_nec2023' as const, 'fbc8_nec2020' as const],
+    };
+    const html = render(<CodeEditionPage initial={both} />);
+    const options = [
+      ...html.matchAll(/<option value="([a-z0-9_]+)"([^>]*)>([^<]*)<\/option>/g),
+    ].map((m) => [m[1], m[3], m[2].includes('selected')]);
+    expect(options).toEqual([
+      ['by_permit_date', 'By permit date (automatic)', true],
+      ['fbc9_nec2023', 'FBC 9th ed. · NEC 2023', false],
+      ['fbc8_nec2020', 'FBC 8th ed. · NEC 2020', false],
+    ]);
+    const lines = /data-testid="code-edition-by-date"[^>]*>(.*?)<\/dl>/.exec(html)?.[1] ?? '';
+    expect(text(lines).trim()).toBe(
+      'From 12/31/26 FBC 9th ed. · NEC 2023 Before FBC 8th ed. · NEC 2020',
+    );
+    const sets = [...html.matchAll(/data-edition="([a-z0-9_]+)"/g)].map((m) => m[1]);
+    expect(sets).toEqual(['fbc9_nec2023', 'fbc8_nec2020']);
+    // A fixed edition hides the two lines.
+    expect(
+      render(<CodeEditionPage initial={{ ...both, edition: 'fbc8_nec2020' }} />),
+    ).not.toContain('code-edition-by-date');
+    expect(changesOf(both, { edition: 'fbc9_nec2023', optionalLoadCalc: false })).toEqual({
+      edition: 'fbc9_nec2023',
+    });
+  });
+
+  it('EZD-643 (board S15gCode footer): the status bar Default reads "By permit date", an edition its label', () => {
+    const en = catalogFor('office', 'en');
+    expect(en[statusDefaultLabel('by_permit_date')]).toBe('By permit date');
+    expect(en[statusDefaultLabel('fbc9_nec2023')]).toBe('FBC 9th ed. · NEC 2023');
+    expect(en[statusDefaultLabel('fbc8_nec2020')]).toBe('FBC 8th ed. · NEC 2020');
   });
 
   it('loading shows skeletons; a failed load shows the error with Retry', () => {

@@ -16,6 +16,11 @@ import {
 } from '../test-harness/e2e/test';
 
 const tid = (page: Page, id: string) => page.getByTestId(id);
+// EZD-1408: the values of a list of inputs, in order.
+const valuesOf = (page: Page, id: string) =>
+  expect.poll(() =>
+    page.getByTestId(id).evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value)),
+  );
 const tab = (page: Page, id: string) =>
   page.locator(`[data-testid="libraries-tab"][data-tab="${id}"]`);
 
@@ -26,7 +31,6 @@ const EMPTY: [string, string, string][] = [
   ['hatches', 'Hatches', 'No custom hatches yet'],
   ['parts', 'Parts', 'No parts yet'],
   ['saved_groups', 'Saved groups', 'No saved groups yet'],
-  ['task_templates', 'Field task templates', 'No field task templates yet'],
 ];
 
 async function openLibraries(signInAs: (email: string) => Promise<unknown>, page: Page) {
@@ -66,6 +70,11 @@ test.describe('EZD-131 libraries', () => {
       );
     }
 
+    // EZD-1408: Field task templates is never empty: one template per room type from the default sequence.
+    await tab(page, 'task_templates').click();
+    await expect(tab(page, 'task_templates')).toHaveText('Field task templates');
+    await expect(tid(page, 'template-room')).toHaveCount(4);
+
     await tab(page, 'symbols').click();
     await tid(page, 'libraries-add').click();
     await expect(tid(page, 'library-inspector-title')).toHaveText('New abbreviation');
@@ -92,6 +101,28 @@ test.describe('EZD-131 libraries', () => {
     await expect(tid(page, 'libraries-no-match')).toHaveText('Nothing matches "AFCI".');
     await tid(page, 'libraries-search').fill('circuit');
     await expect(tid(page, 'library-row-name')).toHaveText(['GFCI']);
+  });
+
+  // EZD-706 (S15h Symbols + abbreviations "Read-only system set; abbreviations may be added"; assumptions.md EZD-706).
+  test('EZD-706: the Symbols tab lists the read-only system symbols and abbreviations under the company ones', async ({
+    page,
+    signInAs,
+  }) => {
+    await openLibraries(signInAs, page);
+    await tab(page, 'symbols').click();
+    await expect(page.locator('[data-testid="libraries-empty"][data-tab="symbols"]')).toBeVisible();
+    await expect(tid(page, 'system-symbols')).toContainText('System symbols');
+    await expect(page.locator('[data-testid="system-symbol"][data-symbol="device.receptacle_duplex"]')).toHaveText(
+      'Duplex receptacle',
+    );
+    await expect(tid(page, 'system-abbreviation').first()).toHaveText('AFFAbove finished floor');
+    // Read-only: a system row opens nothing in the inspector.
+    await page.locator('[data-testid="system-symbol"][data-symbol="wall.new"]').click();
+    await expect(tid(page, 'library-inspector-empty')).toBeVisible();
+    // The tab search filters the system set too.
+    await tid(page, 'libraries-search').fill('recept');
+    await expect(tid(page, 'system-symbol')).toHaveText(['Duplex receptacle', '240V receptacle']);
+    await expect(tid(page, 'system-abbreviation')).toHaveCount(0);
   });
 
   test('a saved group is renamed and deleted from its tab', async ({ page, signInAs }) => {
@@ -216,5 +247,142 @@ test.describe('EZD-131 libraries', () => {
     await page.goto('/settings/libraries');
     await expect(tid(page, 'no-access')).toBeVisible();
     await expect(tid(page, 'libraries-panel')).toHaveCount(0);
+  });
+
+  // EZD-1408 (S15h Tab: Field task templates; Drag handle on phase row "Reorders phases"; Permissions "Edit field
+  // tasks may also edit field task templates"; AC-EZD-1408-1 "A Kitchen template with reordered phases saves").
+  // Expected values: the room types Kitchen, Bath, Laundry, Other and the default sequence Demo, Rough-in,
+  // Inspection, Drywall, Finish (S15h; board S15hLibraries).
+  test('AC-EZD-1408-1: a Kitchen template with reordered phases saves', async ({
+    page,
+    signInAs,
+  }) => {
+    const tenant = await openLibraries(signInAs, page);
+    await tab(page, 'task_templates').click();
+    const phaseNames = page.locator('[data-testid="template-phase-name"]');
+    const sequence = tid(page, 'template-sequence-phase');
+
+    await expect(page.locator('[data-testid="template-room"] span span:first-child')).toHaveText([
+      'Kitchen',
+      'Bath',
+      'Laundry',
+      'Other',
+    ]);
+    await expect(tid(page, 'template-room-summary').first()).toHaveText('5 phases · 0 tasks');
+    await expect(tid(page, 'library-inspector-title')).toHaveText('Kitchen');
+    await valuesOf(page, 'template-phase-name').toEqual([
+      'Demo',
+      'Rough-in',
+      'Inspection',
+      'Drywall',
+      'Finish',
+    ]);
+
+    // Drag Rough-in by its handle onto Demo.
+    const handle = (n: number) => tid(page, 'template-phase-handle').nth(n);
+    await handle(1).dragTo(tid(page, 'template-phase').nth(0));
+    await valuesOf(page, 'template-phase-name').toEqual([
+      'Rough-in',
+      'Demo',
+      'Inspection',
+      'Drywall',
+      'Finish',
+    ]);
+    // The arrow keys on a focused handle move it too: Finish up one.
+    await handle(4).focus();
+    await page.keyboard.press('ArrowUp');
+    await valuesOf(page, 'template-phase-name').toEqual([
+      'Rough-in',
+      'Demo',
+      'Inspection',
+      'Finish',
+      'Drywall',
+    ]);
+    await expect(sequence).toHaveText(['Rough-in', 'Demo', 'Inspection', 'Finish', 'Drywall']);
+
+    // Rename, add and delete phases; a starter task on the new phase.
+    await phaseNames.nth(4).fill('Hang drywall');
+    await tid(page, 'template-add-phase').click();
+    await phaseNames.nth(5).fill('Punch list');
+    await tid(page, 'template-add-task').click();
+    await tid(page, 'template-task').fill('Walk the job with the client');
+    await tid(page, 'template-phase-delete').nth(2).click();
+    await valuesOf(page, 'template-phase-name').toEqual([
+      'Rough-in',
+      'Demo',
+      'Finish',
+      'Hang drywall',
+      'Punch list',
+    ]);
+
+    // Two phases with one name are refused in place.
+    await phaseNames.nth(4).fill('demo');
+    await tid(page, 'template-save').click();
+    await expect(tid(page, 'library-form-error')).toHaveText('Two phases have the same name.');
+    await phaseNames.nth(4).fill('Punch list');
+
+    await tid(page, 'template-save').click();
+    await expect(tid(page, 'template-room-summary').first()).toHaveText('5 phases · 1 task');
+    await page.reload();
+    await tab(page, 'task_templates').click();
+    await valuesOf(page, 'template-phase-name').toEqual([
+      'Rough-in',
+      'Demo',
+      'Finish',
+      'Hang drywall',
+      'Punch list',
+    ]);
+    const rows = await harnessSql()<
+      { name: string; data: { roomType: string; phases: { name: string }[] } }[]
+    >`
+      select name, data from public.library_item where tenant_id = ${tenant}::uuid and kind = 'task_template'`;
+    expect(rows).toHaveLength(1);
+    expect(rows[0].name).toBe('Kitchen');
+    expect(rows[0].data.roomType).toBe('kitchen');
+    expect(rows[0].data.phases.map((p) => p.name)).toEqual([
+      'Rough-in',
+      'Demo',
+      'Finish',
+      'Hang drywall',
+      'Punch list',
+    ]);
+
+    // Reset to default sequence, saved again, is the default.
+    await tid(page, 'template-reset').click();
+    await expect(sequence).toHaveText(['Demo', 'Rough-in', 'Inspection', 'Drywall', 'Finish']);
+    await tid(page, 'template-save').click();
+    await expect(tid(page, 'template-room-summary').first()).toHaveText('5 phases · 0 tasks');
+  });
+
+  test('EZD-1408: with Edit field tasks alone, Libraries shows only Field task templates', async ({
+    page,
+    signInAs,
+  }) => {
+    const tenant = await createTenant();
+    const member = await createMember({ tenantId: tenant, scope: 'all' });
+    await setPermissions(tenant, member.membershipId, ['view_projects', 'edit_field_tasks']);
+    await signInAs(member.email);
+    await page.goto('/settings/libraries');
+    await expect(page.locator('main h1')).toHaveText('Libraries');
+    await expect(tid(page, 'libraries-tab')).toHaveText(['Field task templates']);
+    await tid(page, 'template-room').nth(1).click();
+    await expect(tid(page, 'library-inspector-title')).toHaveText('Bath');
+    await tid(page, 'template-phase-handle').nth(0).focus();
+    await page.keyboard.press('ArrowDown');
+    // The save must be answered before the reload, or the reload cancels it and the default order comes back.
+    const saved = page.waitForResponse(
+      (r) => r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/settings/libraries',
+    );
+    await tid(page, 'template-save').click();
+    expect((await saved).ok()).toBe(true);
+    await page.reload();
+    await tid(page, 'template-room').nth(1).click();
+    await valuesOf(page, 'template-phase-name').toEqual([
+      'Rough-in',
+      'Demo',
+      'Inspection',
+      'Drywall',
+      'Finish',
+    ]);
   });
 });

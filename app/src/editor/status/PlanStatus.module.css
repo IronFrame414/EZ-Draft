@@ -54,7 +54,7 @@
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-12);
   box-shadow: var(--ez-shadow-popover);
-  font: 400 13px var(--ez-font-sans);
+  font: 400 var(--ez-text-13) var(--ez-font-sans);
   color: var(--ez-ink);
 }
 
@@ -67,7 +67,7 @@
   margin-top: 6px;
   padding: 8px 10px 4px;
   border-top: 1px solid var(--ez-divider);
-  font-size: 11px;
+  font-size: var(--ez-text-11);
   color: var(--ez-slate-400);
 }
 
@@ -90,7 +90,7 @@
 
 .option {
   font-family: var(--ez-font-mono);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
 }
 
 .switchRow {
@@ -148,7 +148,7 @@
   background: var(--ez-surface);
   color: var(--ez-ink);
   font-family: var(--ez-font-mono);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
 }
 
 @media (any-pointer: coarse) {
@@ -173,7 +173,7 @@
   border: 0;
   background: transparent;
   font-family: var(--ez-font-mono);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
   padding: 2px 8px;
   border-radius: var(--ez-radius-4);

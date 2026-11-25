@@ -61,6 +61,7 @@ export type ImportReviewView = {
 const pt = z.object({ x: z.number(), y: z.number() });
 const confidence = z.number().min(0).max(100);
 const side = z.enum(['north', 'east', 'south', 'west']);
+const viewCheck = z.enum(['agrees', 'differs', 'missing']);
 const itemSchema = z.discriminatedUnion('type', [
   z.object({
     id: z.string(),
@@ -91,6 +92,8 @@ const itemSchema = z.discriminatedUnion('type', [
     boundary: z.array(pt),
     closed: z.boolean(),
     areaSqIn: z.number(),
+    // EZD-1418: a field measure room keeps the name it was given on the phone.
+    name: z.string().min(1).max(40).optional(),
   }),
   // EZD-312: a ceiling slope read for a room (lib/imports/review.ts ReviewCeilingSlope).
   z.object({
@@ -106,12 +109,38 @@ const itemSchema = z.discriminatedUnion('type', [
     highHeight: z.number().positive(),
     pitchPer12: z.number().nonnegative(),
   }),
+  // EZD-915: a cabinet read from a supplier PDF (lib/imports/review.ts ReviewCabinet).
+  z.object({
+    id: z.string(),
+    type: z.literal('cabinet'),
+    number: z.number().int(),
+    confidence,
+    code: z.string(),
+    boxType: z.enum(['base', 'drawer_base', 'sink_base', 'wall']),
+    width: z.number().positive(),
+    depth: z.number().positive(),
+    height: z.number().positive(),
+    center: pt,
+    outline: z.object({ min: pt, max: pt }).nullable(),
+    run: z.number().int().positive(),
+    check: z.object({
+      plan: viewCheck,
+      elevation: viewCheck,
+      planSize: z.object({ long: z.number(), short: z.number() }).nullable(),
+      elevationSize: z.object({ width: z.number(), height: z.number() }).nullable(),
+    }),
+  }),
 ]);
 
 const payloadSchema = z.object({
   sourceFileIds: z.array(z.string()).default([]),
   meshFileIds: z.array(z.string()).optional(),
+  // EZD-1418: an import of rooms sent from the phone names the send (supabase/migrations/…_field_measure_import.sql).
+  fieldMeasureChangeId: z.string().optional(),
 });
+
+/** EZD-1418: the one "file" of a field measure import, the rooms sent from the phone (it has no source file). */
+export const FIELD_MEASURE_FILE: ReviewFile = { name: 'Field measure', kind: 'field_measure' };
 
 /** Null when the job is not an import of this project or RLS hides it. */
 export async function readImportReview(
@@ -149,7 +178,10 @@ export async function readImportReview(
     projectName: project.data.name,
     cutoff: reviewCutoff(effectiveValue('high_confidence_cutoff', stored)),
     tolerance: reviewTolerance(effectiveValue('measurement_tolerance', stored)),
-    files: ordered.map((f) => ({ name: f.name, kind: f.kind })),
+    files:
+      payload.success && payload.data.fieldMeasureChangeId !== undefined
+        ? [FIELD_MEASURE_FILE]
+        : ordered.map((f) => ({ name: f.name, kind: f.kind })),
     decisions: {},
     fixes: {},
     mode: DEFAULT_REVIEW_MODE,
@@ -197,7 +229,9 @@ export async function readImportReview(
   }
   const failed = sessions.data.find((s) => s.status === 'failed');
   if (failed) {
-    const name = files.get(failed.source_file_id.toLowerCase())?.name ?? firstScan;
+    const name =
+      (failed.source_file_id === null ? undefined : files.get(failed.source_file_id.toLowerCase()))?.name ??
+      firstScan;
     return { ...base, status: 'failed', failedFile: name, items: [], meshUrl: null };
   }
   if (sessions.data.some((s) => s.status === 'detecting')) {

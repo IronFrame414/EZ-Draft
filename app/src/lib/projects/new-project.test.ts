@@ -31,6 +31,7 @@ describe('EZD-118 new project draft helpers', () => {
       type: null,
       customer: null,
       scopeOfWork: '',
+      scopeTrades: [],
     });
 
     const bath = applyType(EMPTY_NEW_PROJECT, 'bath', 'Bath remodel');
@@ -61,6 +62,7 @@ describe('EZD-118 new project draft helpers', () => {
       type: 'kitchen',
       customer: CUSTOMER,
       scopeOfWork: '  A  ',
+      scopeTrades: [],
     };
     expect(toCreateBody(valid)).toEqual({
       name: 'A',
@@ -68,7 +70,22 @@ describe('EZD-118 new project draft helpers', () => {
       type: 'kitchen',
       customerId: 'c1',
       scopeOfWork: 'A',
+      scopeTrades: [],
     });
     expect(toCreateBody(EMPTY_NEW_PROJECT)).toBeNull();
+  });
+
+  it('EZD-643 (Q-0765): the optional permit application date is sent when given and marks the draft edited', () => {
+    const d: NewProjectDraft = {
+      ...EMPTY_NEW_PROJECT,
+      name: 'Bath',
+      address: '1 Oak',
+      type: 'bath',
+    };
+    expect(toCreateBody(d)).not.toHaveProperty('permitApplicationDate');
+    expect(toCreateBody({ ...d, permitApplicationDate: '2027-01-04' })).toMatchObject({
+      permitApplicationDate: '2027-01-04',
+    });
+    expect(isDraftEdited({ ...EMPTY_NEW_PROJECT, permitApplicationDate: '2027-01-04' })).toBe(true);
   });
 });

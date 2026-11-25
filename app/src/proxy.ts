@@ -4,16 +4,27 @@
 // the 400-day auth cookies here, so the 400 days count from the last use.
 // EZD-342 (vault/plans/EZD-342.md; Q-0600): the https test and the session-cookie names come from cookie-names.ts.
 // On https an unmarked request's plain session cookies are deleted (host-only, Max-Age=0, Secure, Path=/).
-// EZD-346 (vault/plans/EZD-346.md; Q-0599): a write to /api that is not same-origin is refused first.
+// EZD-346 (vault/plans/EZD-346.md; Q-0599): a write to /api that is not same-origin is refused.
+// EZD-1931 (audit 2026-11-23 S7): before anything else, /dev and /api/dev answer 404 on Vercel production and
+// preview (app/src/server/dev-gate.ts). The matcher names /dev (and the
+// percent-escaped spellings of /dev and /api) so a dotted path under it still reaches the gate.
 import { NextResponse, type NextRequest } from 'next/server';
 import { HOST_COOKIE_PREFIX, isForwardedHttps, isSessionCookieName } from './lib/auth/cookie-names';
 import { signedOutCookieName } from './lib/auth/device-sign-out';
+import { refuseDevPath } from './server/dev-gate';
 import { isPublicPath } from './server/auth/public-paths';
 import { refuseCrossOriginWrite } from './server/auth/same-origin';
 import { createSessionClient, type SessionCookieJar } from './server/auth/supabase-server';
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|.*\\..*).*)', '/api/:path*'],
+  matcher: [
+    '/((?!_next/static|_next/image|.*\\..*).*)',
+    '/api/:path*',
+    '/dev/:path*',
+    // EZD-1931: the same two with any letter percent-escaped (/%64ev/a.b), which the router decodes.
+    '/((?:d|%64)(?:e|%65)(?:v|%76)(?:/.*)?)',
+    '/((?:a|%61)(?:p|%70)(?:i|%69)(?:/.*)?)',
+  ],
 };
 
 type Written = { name: string; value: string; options: Parameters<SessionCookieJar['set']>[2] };
@@ -42,6 +53,8 @@ function signedOutMarked(request: NextRequest): NextResponse | null {
 }
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
+  const devRefused = refuseDevPath(request.nextUrl.pathname);
+  if (devRefused !== null) return devRefused;
   const refused = refuseCrossOriginWrite(request);
   if (refused !== null) return refused;
   const marked = signedOutMarked(request);

@@ -30,6 +30,7 @@ import {
 } from '@ezdraft/geometry';
 import type { MessageKey } from '../../server/messages/catalog';
 import type { TypedValues } from '../typed-entry/typed-entry';
+import { idKey } from '../shared/ids';
 
 export type OpeningInput =
   | {
@@ -95,16 +96,15 @@ const step = (
   exit = false,
 ): OpeningStep => ({ state, save, select, message, exit });
 
-const lower = (id: string) => id.toLowerCase();
 const screenDistance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 
 function wallById(ctx: OpeningContext, id: string | null): WallObject | null {
   if (id === null) return null;
-  return ctx.walls.find((w) => lower(w.id) === lower(id)) ?? null;
+  return ctx.walls.find((w) => idKey(w.id) === idKey(id)) ?? null;
 }
 
 function openingById(ctx: OpeningContext, id: string): OpeningObject | null {
-  return ctx.openings.find((o) => lower(o.id) === lower(id)) ?? null;
+  return ctx.openings.find((o) => idKey(o.id) === idKey(id)) ?? null;
 }
 
 const hostOf = (o: OpeningObject, ctx: OpeningContext) => wallById(ctx, o.data.geometry.hostWallId);

@@ -240,6 +240,12 @@ describe('EZD-109 event log sink', () => {
       type: 'project',
       id: P,
     });
+    // EZD-711: the property appraiser import is logged on the project.
+    expect(
+      objectOf(
+        event('property_record.imported', { projectId: P, recordId: C, fields: ['owner'], leadFlag: true }),
+      ),
+    ).toEqual({ type: 'project', id: P });
     expect(objectOf(event('room.closure_overridden', { roomId: C, gapIn: 1, userId: U }))).toEqual({
       type: 'model_object',
       id: C,

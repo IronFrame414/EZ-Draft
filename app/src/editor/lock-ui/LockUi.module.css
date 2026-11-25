@@ -9,7 +9,7 @@
   border: 1px solid var(--ez-lock-border);
   background: var(--ez-amber-tint);
   color: var(--ez-lock-text);
-  font-size: 14px;
+  font-size: var(--ez-text-14);
 }
 
 .bannerText {
@@ -22,7 +22,7 @@
 }
 
 .bannerHint {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-amber-text);
 }
 
@@ -54,7 +54,7 @@
   border-radius: var(--ez-radius-999);
   background: var(--ez-ink);
   color: var(--ez-surface);
-  font-size: 11px;
+  font-size: var(--ez-text-11);
   font-weight: 600;
 }
 
@@ -73,7 +73,7 @@
 
 .countdown {
   margin: 10px 0 0;
-  font: 500 28px var(--ez-font-mono);
+  font: 500 var(--ez-text-28) var(--ez-font-mono);
   color: var(--ez-ink);
 }
 
@@ -94,7 +94,7 @@
 
 .success [data-toast-action] {
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-green);
   border-color: var(--ez-green-button-border);
 }
@@ -107,6 +107,6 @@
 /* EZD-225 (board S06 line 100): 13 px, #9aa3af (--ez-slate-300). */
 .pausedNote {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-300);
 }

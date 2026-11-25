@@ -117,7 +117,7 @@ describe('EZD-306 import route carries the DXF layer choice', () => {
     );
   });
 
-  it('a drawing kept as reference only queues nothing', async () => {
+  it('a drawing kept as reference only queues no import, only its reference conversion (EZD-901a)', async () => {
     signedIn();
     vi.mocked(checkImportFiles).mockResolvedValueOnce({
       ok: true,
@@ -125,8 +125,27 @@ describe('EZD-306 import route carries the DXF layer choice', () => {
       scanIds: [],
       dxfIds: [F2],
     });
-    expect((await call({ sourceFileIds: [F2] })).status).toBe(202);
-    expect(enqueueJob).not.toHaveBeenCalled();
+    const res = await call({ sourceFileIds: [F2] });
+    expect(res.status).toBe(202);
+    expect((await res.json()).jobId).toBeNull();
+    expect(enqueueJob).toHaveBeenCalledTimes(1);
+    expect(enqueueJob).toHaveBeenCalledWith(
+      {},
+      { kind: 'reference_convert', projectId: P, payload: { sourceFileId: F2 } },
+    );
+  });
+
+  // EZD-901a: a converted drawing queues its import detection first, then its reference conversion.
+  it('a converted drawing queues the import job and then its reference conversion', async () => {
+    signedIn();
+    vi.mocked(checkImportFiles).mockResolvedValueOnce({
+      ok: true,
+      tenantId: T,
+      scanIds: [],
+      dxfIds: [F2],
+    });
+    await call({ sourceFileIds: [F2], dxfLayers: [{ sourceFileId: F2, layers }] });
+    expect(vi.mocked(enqueueJob).mock.calls.map((c) => c[1].kind)).toEqual(['import', 'reference_convert']);
   });
 
   it('a choice for a file that is not a dxf drawing of the import is 400 and starts nothing', async () => {

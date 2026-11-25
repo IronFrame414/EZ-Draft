@@ -20,6 +20,9 @@ export type SettingsSection = {
   id: SettingsSectionId;
   slug: string;
   permission: PermissionKey;
+  // EZD-1408 (S15h Permissions "Edit field tasks may also edit field task templates"): a second switch that
+  // also opens the section (for Libraries, its Field task templates tab only).
+  alsoPermission?: PermissionKey;
   label: MessageKey;
   location: MessageKey;
   icon: IconName;
@@ -103,6 +106,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     id: 'libraries',
     slug: 'libraries',
     permission: 'settings_libraries',
+    alsoPermission: 'edit_field_tasks',
     label: 'office.settings.section.libraries',
     location: 'office.settings.location.libraries',
     icon: 'library_books',
@@ -135,7 +139,9 @@ export function sectionForPath(pathname: string | null): SettingsSection | null 
 }
 
 export function allowedSections(can: (p: PermissionKey) => boolean): SettingsSection[] {
-  return SETTINGS_SECTIONS.filter((s) => can(s.permission));
+  return SETTINGS_SECTIONS.filter(
+    (s) => can(s.permission) || (s.alsoPermission !== undefined && can(s.alsoPermission)),
+  );
 }
 
 // EZD-289 (vault/plans/EZD-289.md Decided "Who sees the link"): a user may open Settings when at least one

@@ -286,7 +286,7 @@ describe('EZD-011b exports, memo and view constants', () => {
     const css = readFileSync(path.join(here, 'Wordmark.module.css'), 'utf8');
     const w = block(css, '.wordmark');
     expect(w).toContain('color: var(--ez-ink)');
-    expect(w).toContain('font-size: 18px');
+    expect(w).toContain('font-size: var(--ez-text-18)');
     expect(w).toContain('font-weight: 600');
     expect(block(css, '.accent')).toContain('color: var(--ez-cobalt)');
   });

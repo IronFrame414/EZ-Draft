@@ -1,0 +1,10 @@
+step: database
+command: pnpm run db:up
+full log: /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-1418/check.log
+
+== failure lines ==
+
+
+== last lines ==
+$ node scripts/db/local.mjs up
+supabase start failed: port 55422 is already allocated

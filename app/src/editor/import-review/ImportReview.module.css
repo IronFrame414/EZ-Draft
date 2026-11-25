@@ -26,7 +26,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .stepDone,
@@ -58,7 +58,7 @@
   height: 18px;
   border-radius: var(--ez-radius-999);
   border: 1px solid currentColor;
-  font-size: 11px;
+  font-size: var(--ez-text-11);
 }
 
 .stepCurrent .stepNumber {
@@ -87,7 +87,7 @@
   margin: auto;
   padding: 24px;
   color: var(--ez-slate-700);
-  font-size: 14px;
+  font-size: var(--ez-text-14);
 }
 
 .body {
@@ -136,13 +136,13 @@
 
 .title {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--ez-text-16);
   font-weight: 600;
 }
 
 .summary {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -153,7 +153,7 @@
 
 .sectionTitle {
   margin: 0 8px 6px;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 500;
   color: var(--ez-slate-500);
 }
@@ -177,7 +177,7 @@
   background: transparent;
   color: var(--ez-ink);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   text-align: left;
   cursor: pointer;
 }
@@ -200,7 +200,7 @@
 }
 
 .rowPct {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -234,7 +234,7 @@
 
 .counts {
   margin: 2px 8px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -245,7 +245,7 @@
 
 .muted {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -255,7 +255,7 @@
 
 .itemName {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--ez-text-17);
   font-weight: 600;
 }
 
@@ -267,7 +267,7 @@
 }
 
 .fieldLabel {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -278,7 +278,7 @@
   border-radius: var(--ez-radius-8);
   background: var(--ez-surface-sunken);
   font-family: var(--ez-font-mono);
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-slate-500);
 }
 
@@ -286,7 +286,7 @@
   margin: auto 0 0;
   padding: 12px 16px;
   border-top: 1px solid var(--ez-divider);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -360,7 +360,7 @@
   border-radius: var(--ez-radius-8);
   background: var(--ez-red-tint);
   color: var(--ez-red-text);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .meshOn {
@@ -378,7 +378,7 @@
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-10);
   background: var(--ez-surface);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-700);
 }
 
@@ -413,7 +413,7 @@
   background: transparent;
   color: var(--ez-ink);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   cursor: pointer;
 }
 
@@ -447,7 +447,7 @@
   background: transparent;
   color: var(--ez-cobalt-link);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   cursor: pointer;
 }
 
@@ -470,7 +470,7 @@
 
 .decision {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   font-weight: 600;
 }
 
@@ -514,7 +514,7 @@
   background: var(--ez-cobalt);
   color: var(--ez-surface);
   font-family: var(--ez-font-mono);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   white-space: nowrap;
   pointer-events: none;
 }
@@ -535,7 +535,7 @@
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-10);
   background: var(--ez-surface);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .leftFootActions {
@@ -549,7 +549,7 @@
   padding: 8px 16px;
   color: var(--ez-red-text);
   background: var(--ez-red-tint);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 /* EZD-310: typed vs scan conflicts (board S02 inspector). */
@@ -566,7 +566,7 @@
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-8);
   font-family: var(--ez-font-mono);
-  font-size: 14px;
+  font-size: var(--ez-text-14);
 }
 
 .typedInput:focus {
@@ -580,7 +580,7 @@
 
 .typedRefused {
   margin: 6px 0 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-red-text);
 }
 
@@ -597,7 +597,7 @@
   border-radius: 999px;
   background: var(--ez-amber-tint);
   color: var(--ez-amber-text);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
 }
 
@@ -623,7 +623,7 @@
   border-radius: var(--ez-radius-8);
   background: transparent;
   font: inherit;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   text-align: left;
   cursor: pointer;
 }
@@ -650,7 +650,7 @@
 .gapLabel {
   fill: var(--ez-red-text);
   font-family: var(--ez-font-mono);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
 }
 
 /* EZD-311: the gap marker selects its room; pick mode shows a crosshair. */
@@ -670,7 +670,7 @@
   border-radius: var(--ez-radius-8);
   color: var(--ez-red-text);
   background: var(--ez-red-tint);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 /* EZD-314: import states. The lock banner and the read-only note sit under the header, as the close error does. */
@@ -686,14 +686,14 @@
   border-radius: var(--ez-radius-8);
   color: var(--ez-amber-text);
   background: var(--ez-amber-tint);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .retryError {
   display: block;
   margin-top: 8px;
   color: var(--ez-red-text);
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 /* A wall the import read as bearing (S02 Validation "flagged"). */
@@ -703,7 +703,7 @@
   border-radius: 999px;
   background: var(--ez-red-tint);
   color: var(--ez-red-text);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
 }
 

@@ -179,6 +179,10 @@ describe('EZD-421 route bodies after the session read', () => {
     it(`AC-EZD-421-1 ${route.name}: an ended session answers 401 no-store and writes no alert`, async () => {
       state.store = new Map(cookies);
       const counts = arm(exp, route.trigger, 'ended');
+      // EZD-1938 (AC-EZD-1938-2): Supabase Auth logs the expected refused refresh (console.error or console.warn)
+      // as a stack trace; a spy scoped to this test (restored by afterEach) keeps it out of the gate log.
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const res = await route.call();
       expect(counts.afterTrigger).toBe(true);
       expect(counts.anonRouteCalls).toBeGreaterThan(0);
@@ -186,6 +190,9 @@ describe('EZD-421 route bodies after the session read', () => {
       expect(res.headers.get('cache-control')).toBe('no-store');
       expect(await res.json()).toEqual(NOT_SIGNED_IN);
       expect(counts.alertWrites).toBe(0);
+      for (const call of [...error.mock.calls, ...warn.mock.calls]) {
+        expect(call[0]).toMatchObject({ name: 'AuthApiError', status: 400, code: 'refresh_token_not_found' });
+      }
     });
 
     it(`AC-EZD-421-2 ${route.name}: a live session's 42501 keeps its 500 and its alert`, async () => {

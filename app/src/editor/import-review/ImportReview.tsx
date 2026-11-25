@@ -55,6 +55,8 @@ import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import {
   acceptHighConfidence,
+  cabinetCheckLines,
+  cabinetSizeText,
   decide,
   DEFAULT_REVIEW_MODE,
   firstUnresolved,
@@ -72,6 +74,7 @@ import {
   type Decision,
   type Decisions,
   type Pt,
+  type ReviewCabinet,
   type ReviewFile,
   type ReviewItem,
   type ReviewMode,
@@ -267,6 +270,8 @@ export function ImportReview({
 
   const review = load.kind === 'loaded' ? load.review : null;
   const files = review?.files ?? [];
+  // EZD-1418: rooms sent from the phone (S02 Entry points "source kind field_measure").
+  const fromFieldMeasure = files.length > 0 && files.every((f) => f.kind === 'field_measure');
   const closed = review?.status === 'finished' || review?.status === 'cancelled';
   const canEdit = review?.canEdit ?? true;
   const lock = useReviewLock({ projectId, viewerId: review?.viewerId, canEdit, fetchImpl });
@@ -374,7 +379,9 @@ export function ImportReview({
           </span>
           {files.length > 0 ? (
             <span className={headerStyles.subtitle} data-testid="import-review-subtitle">
-              {t('office.review.subtitle', { files: files.map((f) => f.name).join(' + ') })}
+              {fromFieldMeasure
+                ? t('office.review.subtitle_field_measure')
+                : t('office.review.subtitle', { files: files.map((f) => f.name).join(' + ') })}
             </span>
           ) : null}
         </div>
@@ -518,6 +525,46 @@ const MODE_LABEL: Record<ReviewMode, MessageKey> = {
   accept_fix: 'office.review.mode_accept_fix',
   by_room: 'office.review.mode_by_room',
 };
+
+// EZD-915 (S02 States "Supplier kitchen PDF: cabinet labels read (W3030, B24) and plan vs elevation cross-check
+// results shown per cabinet"): a supplier cabinet's size from its label and how each view reads against it.
+const CHECK_KEYS = {
+  agrees: 'office.review.cabinet_check_agrees',
+  differs: 'office.review.cabinet_check_differs',
+  missing: 'office.review.cabinet_check_missing',
+} as const;
+
+function CabinetFields({ item }: { item: ReviewCabinet }): ReactElement {
+  const t = useT();
+  return (
+    <>
+      <div className={styles.field}>
+        <span className={styles.fieldLabel}>{t('office.review.cabinet_size')}</span>
+        <span className={styles.scanValue} data-testid="import-review-cabinet-size">
+          {cabinetSizeText(item)}
+        </span>
+      </div>
+      <div className={styles.field}>
+        <span className={styles.fieldLabel}>{t('office.review.cabinet_check')}</span>
+        {cabinetCheckLines(item).map((line) => (
+          <span
+            key={line.view}
+            className={styles.muted}
+            data-testid="import-review-cabinet-check"
+            data-view={line.view}
+            data-state={line.state}
+          >
+            {t(CHECK_KEYS[line.state], {
+              view: t(line.view === 'plan' ? 'office.review.cabinet_view_plan' : 'office.review.cabinet_view_elevation'),
+              code: item.code,
+              size: line.size ?? '',
+            })}
+          </span>
+        ))}
+      </div>
+    </>
+  );
+}
 
 type RowDot = 'selected' | 'accepted' | 'rejected' | 'to_check';
 
@@ -1109,6 +1156,8 @@ export function ReadyBody({
                   readMesh={readSlopeCeiling}
                   onFix={(fix) => onFix(selected.id, fix)}
                 />
+              ) : selected.type === 'cabinet' ? (
+                <CabinetFields item={selected} />
               ) : selected.type === 'room' ? (
                 <div className={styles.field}>
                   <span className={styles.fieldLabel}>{t('office.review.scan_reads')}</span>
@@ -1200,7 +1249,9 @@ export function ReadyBody({
           <>
             <StatusItem label="office.review.status_source">{sourceLine(review.files)}</StatusItem>
             <StatusItem label="office.review.status_accuracy">
-              {t('office.review.status_accuracy_value')}
+              {review.files.length > 0 && review.files.every((f) => f.kind === 'field_measure')
+                ? t('office.review.status_accuracy_field_measure')
+                : t('office.review.status_accuracy_value')}
             </StatusItem>
             <StatusItem label="office.review.status_input">
               {t('office.review.status_input_value')}

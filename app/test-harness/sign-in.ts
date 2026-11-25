@@ -8,7 +8,9 @@ export async function signInWithCode(page: Page, email: string): Promise<void> {
   await page.goto('/sign-in');
   await page.getByTestId('sign-in-email').fill(email);
   const after = new Date();
+  // EZD-1961 (Q-0800): the link has its own view; open it, then send.
   await page.getByTestId('sign-in-submit').click();
+  await page.getByTestId('sign-in-link-send').click();
   await page.getByTestId('sign-in-code').waitFor({ state: 'visible' });
   const mail = await waitForAuthEmail(email, { after });
   await page.getByTestId('sign-in-code').fill(mail.code);

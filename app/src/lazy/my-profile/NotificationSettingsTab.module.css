@@ -9,7 +9,7 @@
 
 .help {
   margin: 0 0 8px;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -20,13 +20,13 @@
   gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid var(--ez-divider-row);
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-ink);
 }
 
 .head {
   padding-top: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-500);
   text-transform: uppercase;

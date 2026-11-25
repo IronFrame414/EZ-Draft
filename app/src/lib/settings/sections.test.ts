@@ -203,6 +203,8 @@ describe('EZD-103a settings sections', () => {
     expect(allowedIds(FOREMAN)).toEqual(['libraries']);
     expect(allowedIds(DESIGNER)).toEqual(['catalog', 'libraries']);
     expect(allowedIds(CREW)).toEqual([]);
+    // EZD-1408 (S15h Permissions): Edit field tasks alone opens Libraries.
+    expect(allowedIds(['edit_field_tasks'])).toEqual(['libraries']);
     expect(allowedIds(PERMISSION_KEYS)).toEqual(ALL);
 
     expect(initialsFor('Josh Bishop', 'josh@example.com')).toBe('JB');
@@ -223,8 +225,11 @@ describe('EZD-289 mayOpenSettings', () => {
     // (a) no switch on
     expect(mayOpenSettings(() => false)).toBe(false);
 
-    // (b) every key that is not a Settings switch on
-    const notSettings = PERMISSION_KEYS.filter((k) => !k.startsWith('settings_'));
+    // (b) every key that is not a Settings switch on. EZD-1408 (S15h Permissions): Edit field tasks also opens
+    // Libraries (its Field task templates tab), so it counts as a Settings switch here.
+    const notSettings = PERMISSION_KEYS.filter(
+      (k) => !k.startsWith('settings_') && k !== 'edit_field_tasks',
+    );
     expect(notSettings.length).toBeGreaterThan(0);
     const onB = new Set<PermissionKey>(notSettings);
     expect(mayOpenSettings((p) => onB.has(p))).toBe(false);

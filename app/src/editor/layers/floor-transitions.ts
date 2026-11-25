@@ -20,6 +20,7 @@ import {
   type Point,
   type RoomData,
   type WallObject,
+  hasLevel,
 } from '@ezdraft/geometry';
 
 const MAX_TEXT_LENGTH = 32;
@@ -138,7 +139,7 @@ function wallCover(f: Frame, wall: WallObject): [number, number] | null {
 // Every transition on one level of the objects given, openings first, then shared edges, each in stored order.
 export function roomTransitions(objects: readonly ModelObject[], level: string): RoomTransition[] {
   const lv = level.toLowerCase();
-  const here = objects.filter((o) => o.type !== 'floor' && o.data.level.toLowerCase() === lv);
+  const here = objects.filter((o) => hasLevel(o) && o.data.level.toLowerCase() === lv);
   const rooms = here.filter((o): o is TransitionRoom => o.type === 'room');
   if (rooms.length < 2) return [];
   const walls = here.filter((o): o is WallObject => o.type === 'wall');

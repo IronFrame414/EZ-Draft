@@ -4,17 +4,22 @@
 // Settings > Code edition page body. Three cards as on the board: the default edition for new projects (v1: FBC
 // 9th ed. with NEC 2023 only), the available rule sets and the electrical defaults (the optional load-calc method
 // switch). Save in the header writes both; existing projects keep their own edition. The rule list, Mark verified
-// and the rule counts are EZD-1710 (assumptions EZD-613). Offline: read-only.
+// and the rule counts are EZD-1710 (assumptions EZD-613). Offline: read-only. EZD-643 (Q-0220; Q-0765; board
+// S15gCode): the select also offers FBC 8th ed. with NEC 2020 and "By permit date (automatic)", which shows the
+// board's two lines (from 12/31/26 the 9th Edition, before it the 8th).
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import {
+  BY_PERMIT_DATE,
+  companyEditionLabel,
   editionLabel,
-  isCodeEdition,
-  type CodeEdition,
+  isCompanyEditionDefault,
+  type CompanyEditionDefault,
   type CodeEditionPatch,
   type CodeEditionSettings,
 } from '../../../lib/code-edition/editions';
 import { useT } from '../../../lib/messages';
+import type { MessageKey } from '../../../server/messages/catalog';
 import { useOnline } from '../../../lib/network';
 import { Icon } from '../../icon/Icon';
 import { InlineError } from '../../states/InlineError';
@@ -24,7 +29,7 @@ import { SettingsMain, useSettingsStatus, type SettingsStatusEntry } from '../Se
 import { useUnsavedChanges } from '../unsaved-changes';
 import styles from './CodeEditionForm.module.css';
 
-type Form = { edition: CodeEdition; optionalLoadCalc: boolean };
+type Form = { edition: CompanyEditionDefault; optionalLoadCalc: boolean };
 
 // The PATCH body for what changed; null when nothing did.
 export function changesOf(saved: CodeEditionSettings, form: Form): CodeEditionPatch | null {
@@ -32,6 +37,12 @@ export function changesOf(saved: CodeEditionSettings, form: Form): CodeEditionPa
   if (form.edition !== saved.edition) patch.edition = form.edition;
   if (form.optionalLoadCalc !== saved.optionalLoadCalc) patch.optionalLoadCalc = form.optionalLoadCalc;
   return Object.keys(patch).length > 0 ? patch : null;
+}
+
+// EZD-643 (board S15gCode footer): the status bar's Default value. By permit date reads "By permit date" there;
+// "(automatic)" is only in the select.
+export function statusDefaultLabel(e: CompanyEditionDefault): MessageKey {
+  return e === BY_PERMIT_DATE ? 'office.code_edition.status_by_permit_date' : companyEditionLabel(e);
 }
 
 export function CodeEditionPage({
@@ -92,7 +103,7 @@ export function CodeEditionPage({
       {
         id: 'default',
         label: 'office.code_edition.status_default',
-        value: t(editionLabel(saved.edition)),
+        value: t(statusDefaultLabel(saved.edition)),
       },
     ],
     [t, saved.edition],
@@ -143,15 +154,27 @@ export function CodeEditionPage({
               value={form.edition}
               onChange={(e) => {
                 const v = e.target.value;
-                if (isCodeEdition(v)) setForm((f) => ({ ...f, edition: v }));
+                if (isCompanyEditionDefault(v)) setForm((f) => ({ ...f, edition: v }));
               }}
             >
-              {saved.available.map((e) => (
+              {([BY_PERMIT_DATE, ...saved.available] as CompanyEditionDefault[]).map((e) => (
                 <option key={e} value={e}>
-                  {t(editionLabel(e))}
+                  {t(companyEditionLabel(e))}
                 </option>
               ))}
             </select>
+            {form.edition === BY_PERMIT_DATE ? (
+              <dl className={styles.byDate} data-testid="code-edition-by-date">
+                <div className={styles.byDateRow}>
+                  <dt>{t('office.code_edition.by_date_from')}</dt>
+                  <dd>{t(editionLabel('fbc9_nec2023'))}</dd>
+                </div>
+                <div className={styles.byDateRow}>
+                  <dt>{t('office.code_edition.by_date_before')}</dt>
+                  <dd>{t(editionLabel('fbc8_nec2020'))}</dd>
+                </div>
+              </dl>
+            ) : null}
           </section>
           <section className={styles.box}>
             <h2 className={styles.boxTitle}>{t('office.code_edition.rule_sets_title')}</h2>

@@ -1,0 +1,59 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 1224 792] /Resources << /Font << /F1 7 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 1224 792] /Resources << /Font << /F1 7 0 R >> >> /Contents 6 0 R >>
+endobj
+5 0 obj
+<< /Length 270 >>
+stream
+1.5 w
+300 450 m 390 450 l S
+300 456.75 m 390 456.75 l S
+0.5 w
+300 414 m 336 414 l 336 450 l 300 450 l h S
+BT /F1 8 Tf 310.884 428 Td (B24) Tj ET
+336 432 m 381 432 l 381 450 l 336 450 l h S
+BT /F1 8 Tf 345.828 437 Td (W3030) Tj ET
+BT /F1 8 Tf 289.552 392 Td (PLAN) Tj ET
+
+endstream
+endobj
+6 0 obj
+<< /Length 233 >>
+stream
+0.5 w
+300 200 m 336 200 l 336 251.75 l 300 251.75 l h S
+BT /F1 8 Tf 310.884 221.875 Td (B24) Tj ET
+336 281 m 381 281 l 381 326 l 336 326 l h S
+BT /F1 8 Tf 345.828 299.5 Td (W3030) Tj ET
+BT /F1 8 Tf 273.768 178 Td (ELEVATION A) Tj ET
+
+endstream
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000127 00000 n 
+0000000254 00000 n 
+0000000381 00000 n 
+0000000702 00000 n 
+0000000986 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+1083
+%%EOF

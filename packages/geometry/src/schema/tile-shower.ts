@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import { COMPARISON_TOLERANCE_IN } from '../tolerance';
 import { levelSchema, objectStatusSchema, pointSchema, type Point } from './common';
+import { sub } from '../vec';
 
 export const DEFAULT_PAN_SLOPE_IN_PER_FT = 0.25;
 
@@ -32,7 +33,6 @@ export const showerDrainSchema = z.discriminatedUnion('type', [
   }),
 ]);
 
-const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
 
 // Four corners, both sides longer than the comparison tolerance, square corners and a closed parallelogram.
 export function isRectangle(c: readonly Point[]): boolean {

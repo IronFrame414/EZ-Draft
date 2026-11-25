@@ -20,7 +20,7 @@
 .close {
   border: 0;
   background: transparent;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   color: var(--ez-slate-500);
   cursor: pointer;
 }
@@ -35,14 +35,14 @@
 .empty {
   margin: 0;
   padding: 10px 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
 }
 
 .table th {
@@ -84,7 +84,7 @@
   border-radius: var(--ez-radius-8);
   background: var(--ez-surface);
   color: var(--ez-ink);
-  font: 600 14px var(--ez-font-sans);
+  font: 600 var(--ez-text-14) var(--ez-font-sans);
   cursor: pointer;
 }
 

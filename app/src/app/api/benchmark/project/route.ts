@@ -2,6 +2,7 @@
 // "Production"; section 3 route row; Q-0211; AC-EZD-236-2): make the company's benchmark project, or return the
 // one it has. Order: 401, 403 without System status, 403 without Edit model, 403 when the database refuses,
 // else 201 (made now) or 200 (already there) { project: { id } }. The request body is never read.
+// EZD-901a: the project also gets its 150,000-entity reference DXF, uploaded as the caller (once per project).
 import { createSessionClient } from '../../../../server/auth/supabase-server';
 import { ensureBenchmarkProject } from '../../../../server/benchmark/benchmark-project';
 import { reportRouteFailure } from '../../../../server/errors/route-failure';
@@ -25,7 +26,9 @@ export async function POST(_request: Request): Promise<Response> {
     }
     const denied = requirePermission(p.ctx, 'edit_model');
     if (denied !== null) return denied;
-    const result = await ensureBenchmarkProject(createSessionClient());
+    const result = await ensureBenchmarkProject(createSessionClient(), {
+      appUserId: p.session.appUserId,
+    });
     if (!result.ok) return fail(403, 'permission_denied', 'error.not_authorized');
     return Response.json(
       { project: { id: result.projectId } },

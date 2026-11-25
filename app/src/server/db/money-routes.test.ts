@@ -10,6 +10,7 @@ import { CANARY_CASE, CANARY_FIELDS } from '../../../test-harness/money/canary-r
 import { MONEY_PAGE_CASES } from '../../../test-harness/money/page-cases';
 import { listPages, uncoveredPages } from '../../../test-harness/money/pages';
 import {
+  expectedStatus,
   MONEY_ROUTE_CASES,
   type CaseEnv,
 } from '../../../test-harness/money/route-cases';
@@ -121,7 +122,7 @@ describe('EZD-133 money fields only with their permission', () => {
     try {
       for (const u of [noCost, noSell]) {
         if (!u) continue;
-        const sources = ['storagePath', 'uploadStepPath']
+        const sources = ['storagePath', 'uploadStepPath', 'supplierCompletePath']
           .map((k) => u.env.created.get(k))
           .filter((p): p is string => !!p);
         const media = ['checkedLogoPath', 'logoPath', 'thumbPath']
@@ -146,11 +147,11 @@ describe('EZD-133 money fields only with their permission', () => {
     expect(result.stale).toEqual([]);
   });
 
-  it('C4 every page file has a money page case and every case names a real page; there are 45 pages @smoke', () => {
+  it('C4 every page file has a money page case and every case names a real page; there are 50 pages @smoke', () => {
     const result = uncoveredPages(APP_SRC, MONEY_PAGE_CASES);
     expect(result.missing).toEqual([]);
     expect(result.stale).toEqual([]);
-    expect(listPages(APP_SRC).length).toBe(45);
+    expect(listPages(APP_SRC).length).toBe(50);
   });
 
   it('K1 the canary route leaks its cost key and the scan reports it @smoke', async () => {
@@ -184,8 +185,9 @@ describe('EZD-133 money fields only with their permission', () => {
       } finally {
         vi.resetModules();
       }
-      if (outcome.status !== c.expectStatus) {
-        failures.push(`${c.method} ${c.file}: status ${outcome.status}, expected ${c.expectStatus}`);
+      const expected = expectedStatus(c, u.granted);
+      if (outcome.status !== expected) {
+        failures.push(`${c.method} ${c.file}: status ${outcome.status}, expected ${expected}`);
       }
       if (outcome.violations.length > 0) {
         failures.push(`${c.method} ${c.file}: ${outcome.violations.join(', ')}`);

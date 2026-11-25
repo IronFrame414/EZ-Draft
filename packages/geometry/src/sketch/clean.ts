@@ -3,6 +3,7 @@
 // so the same hand-drawn shape cleans the same way at any zoom (vault/build/assumptions.md EZD-223).
 import type { Point } from '../schema/common';
 import type { SketchShape } from './shape';
+import { dist, sub } from '../vec';
 
 // A stroke whose ends are closer than this share of its length is closed.
 export const SKETCH_CLOSED_SHARE = 0.2;
@@ -16,8 +17,6 @@ export const SKETCH_ARC_MIN_BEND = 0.08;
 export const SKETCH_CORNER_SHARE = 0.06;
 export const SKETCH_RIGHT_ANGLE_DEG = 20;
 
-const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
-const dist = (a: Point, b: Point): number => Math.hypot(a.x - b.x, a.y - b.y);
 
 function pathLength(points: readonly Point[]): number {
   let l = 0;

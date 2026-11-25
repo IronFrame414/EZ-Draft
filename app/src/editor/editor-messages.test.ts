@@ -32,8 +32,16 @@ describe('EZD-120c editor messages', () => {
       'office.editor.load_failed': "Couldn't load this project.",
       'office.editor.offline': 'Offline. Changes are saved on this device and will sync.',
     };
-    expect(keysOf(en)).toEqual(Object.keys(expected).sort());
+    // EZD-1402 (04 Header card subtitle "Offline, 3 changes queued"): the offline word with the queued count.
+    const plural = {
+      'office.editor.offline_queued': {
+        one: 'Offline, {count} change queued',
+        other: 'Offline, {count} changes queued',
+      },
+    };
+    expect(keysOf(en)).toEqual([...Object.keys(expected), ...Object.keys(plural)].sort());
     for (const [key, value] of Object.entries(expected)) expect(E[key], key).toBe(value);
+    for (const [key, value] of Object.entries(plural)) expect(E[key], key).toEqual(value);
     expect(keysOf(es)).toEqual([]);
   });
 });

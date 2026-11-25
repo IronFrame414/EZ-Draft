@@ -43,6 +43,7 @@ async function requestCode(page: Page, email: string): Promise<AuthEmail> {
   await page.getByTestId('sign-in-email').fill(email);
   const after = new Date();
   await page.getByTestId('sign-in-submit').click();
+  await page.getByTestId('sign-in-link-send').click();
   await page.getByTestId('sign-in-code').waitFor({ state: 'visible' });
   return waitForAuthEmail(email, { after });
 }
@@ -76,6 +77,7 @@ test.describe('EZD-007f sign-in pages', () => {
       await page.getByTestId('sign-in-email').fill(m.email);
       const after = new Date();
       await page.getByTestId('sign-in-submit').click();
+      await page.getByTestId('sign-in-link-send').click();
       const mail = await waitForAuthEmail(m.email, { after });
       await page.goto(mail.link);
       await page.getByTestId('confirm-submit').click();
@@ -264,6 +266,7 @@ test.describe('EZD-007f sign-in pages', () => {
     await page.getByTestId('sign-in-email').fill(m.email);
     const after = new Date();
     await page.getByTestId('sign-in-submit').click();
+    await page.getByTestId('sign-in-link-send').click();
     await page.getByTestId('sign-in-code').waitFor({ state: 'visible' });
     await expect(page.getByTestId('sign-in-check-spam')).toBeVisible();
     await expect(page.getByTestId('sign-in-check-spam')).toHaveText(
@@ -374,6 +377,7 @@ test.describe('EZD-007f sign-in pages', () => {
     await failOn('/sign-in');
     await page.getByTestId('sign-in-email').fill(email);
     await page.getByTestId('sign-in-submit').click();
+    await page.getByTestId('sign-in-link-send').click();
     await expect(page.getByTestId('sign-in-error')).toHaveText(text('en', 'error.sign_in_failed'));
     expect(path(page)).toBe('/sign-in');
     await expect(page.getByTestId('sign-in-email')).toBeVisible();
@@ -384,7 +388,7 @@ test.describe('EZD-007f sign-in pages', () => {
     await expect(langBox(page)).toHaveAttribute('lang', 'es');
     await failOn('/sign-in');
     await page.getByTestId('sign-in-email').fill(email);
-    await page.getByTestId('sign-in-submit').click();
+    await page.getByTestId('sign-in-link-send').click();
     await expect(page.getByTestId('sign-in-error')).toHaveText(text('es', 'error.sign_in_failed'));
 
     // (c) Spanish confirm form.

@@ -3,54 +3,34 @@
 // "Status bar adds View, Scale and Joists status"; S05 States "Joists unknown"; board S05Ceiling footer "View Reflected
 // ceiling plan", "Joists unknown · beam clash checks off"): the parts the editor shows on Ceiling or Both. The ACT
 // border sizes join the legend with the ACT grid (EZD-511); the joist text changes with Framing known (EZD-514).
-import { useEffect, type ReactElement } from 'react';
-import { StatusItem } from '../../components/shell/StatusBar';
-import { useT } from '../../lib/messages';
-import { isFloorToolKey, type SurfaceSetting } from './surface';
-import styles from './CeilingParts.module.css';
+// EZD-508: the legend and the status items moved to CeilingShown.tsx, which loads with the RCP drawing; the keys stay.
+import { useEffect, useRef } from 'react';
+import { isFloorToolKey, isSelectKey, type SurfaceSetting } from './surface';
+import type { ShortcutBindings } from '../../lib/defaults/shortcut-keys';
 
-export function CeilingLegend(): ReactElement {
-  const t = useT();
-  return (
-    <div className={styles.legend} data-testid="ceiling-legend">
-      <span className={styles.zone} data-legend="switch-zone" aria-hidden="true" />
-      <span>{t('office.ceiling.legend.switch_zone')}</span>
-    </div>
-  );
-}
-
-export function CeilingViewStatus(): ReactElement {
-  const t = useT();
-  return (
-    <StatusItem label="office.ceiling.status.view">
-      <span data-testid="status-ceiling-view">{t('office.ceiling.status.rcp')}</span>
-    </StatusItem>
-  );
-}
-
-export function JoistsStatus(): ReactElement {
-  const t = useT();
-  return (
-    <StatusItem label="office.ceiling.status.joists">
-      <span data-testid="status-joists">{t('office.ceiling.status.joists_unknown')}</span>
-    </StatusItem>
-  );
-}
-
-// On Ceiling or Both the standard tools' keys are swallowed before the plan's key handlers see them; V and Esc end
-// the ceiling tool (Select).
-export function useCeilingKeys(setting: SurfaceSetting | null, onSelect: () => void): void {
+// On Ceiling or Both the standard tools' keys are swallowed before the plan's key handlers see them; the Select key
+// and Esc end the ceiling tool (Select). EZD-222: the keys are the company's (`keys`), read on every key.
+export function useCeilingKeys(
+  setting: SurfaceSetting | null,
+  onSelect: () => void,
+  keys?: () => ShortcutBindings,
+): void {
+  const keysRef = useRef(keys);
+  useEffect(() => {
+    keysRef.current = keys;
+  });
   useEffect(() => {
     if (setting === null) return;
     const onKey = (e: KeyboardEvent) => {
       if (setting.get().surface === 'floor') return;
-      if (isFloorToolKey(e)) {
+      const bindings = keysRef.current?.();
+      if (isFloorToolKey(e, bindings)) {
         e.stopImmediatePropagation();
         return;
       }
+      if (e.defaultPrevented || setting.get().tool === null) return;
       const plain = !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey;
-      if (!plain || e.defaultPrevented) return;
-      if (setting.get().tool !== null && (e.key === 'Escape' || e.key.toLowerCase() === 'v')) {
+      if ((plain && e.key === 'Escape') || isSelectKey(e, bindings)) {
         setting.setTool(null);
         onSelect();
       }

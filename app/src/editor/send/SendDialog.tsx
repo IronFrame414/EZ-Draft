@@ -4,6 +4,7 @@
 // is the project's client as the server reads it (read-only); the optional note is the only input. Before the
 // send the outbox is drained, so the server checkpoint holds the latest edits. After the send, Copy link copies
 // the link of the email, also when the email did not go. One send per opening. The shell copies CustomerDialog.
+// EZD-1201: the Share panel's earlier links (on or off, client, expiry, Renew, Turn off) sit under the send.
 import { Dialog } from 'radix-ui';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { InlineError } from '../../components/states/InlineError';
@@ -24,6 +25,7 @@ import {
 import type { MessageKey } from '../../server/messages/catalog';
 import { formatClock } from '../save-state';
 import styles from './SendDialog.module.css';
+import { ShareLinks } from './ShareLinks';
 
 export type SendDialogProps = {
   projectId: string;
@@ -227,6 +229,14 @@ export function SendDialog({
                     })}
               </p>
             ) : null}
+            {k === 'no-client' || k === 'load-failed' ? null : (
+              <ShareLinks
+                projectId={projectId}
+                online={online}
+                refreshKey={sent === null ? 0 : 1}
+                fetchImpl={fetchImpl}
+              />
+            )}
           </div>
           <div className={styles.footer}>
             <span className={styles.footerSpacer} />

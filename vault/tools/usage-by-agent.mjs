@@ -324,11 +324,9 @@ async function main() {
   else process.stdout.write(md + '\n');
 }
 
-// EZD-378 D-Usage: the default folder, then each launcher account's folder (scripts/launcher-accounts.json).
+// EZD-378 D-Usage: the default folder. The launcher's per-account folders went with scripts/launcher-idle.mjs (EZD-1951).
 async function defaultProjects(repo) {
-  let accounts = [];
-  try { accounts = (await import(path.join(repo, 'scripts/launcher-idle.mjs'))).readAccounts(repo).accounts ?? []; } catch { accounts = []; }
-  return [projectsDirFor(repo), ...accounts.map((a) => projectsDirFor(repo, a.path))];
+  return [projectsDirFor(repo)];
 }
 
 const isMain = (() => { try { return !!process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();

@@ -1,0 +1,122 @@
+/* EZD-222 (S15d Layout "Keyboard shortcuts is a table"): the table under the three columns, styled as the
+   DefaultsForm groups; colours, radii and fonts are tokens only. */
+.card {
+  margin-top: 22px;
+}
+.head {
+  margin: 0 0 6px;
+  padding-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--ez-divider);
+  font-size: var(--ez-text-13);
+  font-weight: 600;
+  color: var(--ez-slate-700);
+}
+.head h2 {
+  margin: 0;
+  font: inherit;
+}
+.resetMap {
+  margin-left: auto;
+}
+.table {
+  width: 100%;
+  max-width: 560px;
+  border-collapse: collapse;
+  font-size: var(--ez-text-13);
+}
+.table th {
+  text-align: left;
+  font-weight: 500;
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+  padding: 4px 0;
+}
+.table td {
+  padding: 3px 0;
+  color: var(--ez-ink);
+  border-top: 1px solid var(--ez-divider);
+}
+.key {
+  min-width: 96px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-7);
+  background: var(--ez-surface);
+  font: 400 var(--ez-text-11-5) var(--ez-font-mono);
+  color: var(--ez-ink);
+  cursor: pointer;
+}
+.key[aria-pressed='true'] {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt);
+}
+.key:disabled {
+  cursor: default;
+  color: var(--ez-slate-500);
+}
+.none {
+  color: var(--ez-slate-400);
+}
+.textButton {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--ez-text-12-5);
+  color: var(--ez-cobalt-text);
+  cursor: pointer;
+  padding: 4px 6px;
+}
+.textButton:disabled {
+  color: var(--ez-slate-300);
+  cursor: default;
+}
+.message {
+  font-size: var(--ez-text-11-5);
+  color: var(--ez-red);
+}
+/* Board S15dDefaults: the subtitle, the view filter beside Reset to default map, and the note under the table. */
+.subtitle {
+  margin: 2px 0 0;
+  font-size: var(--ez-text-12);
+  font-weight: 400;
+  color: var(--ez-slate-500);
+}
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 560px;
+  margin: 8px 0;
+}
+.filter {
+  display: flex;
+  gap: 2px;
+}
+.filter button {
+  border: 0;
+  border-radius: var(--ez-radius-7);
+  background: none;
+  font: inherit;
+  font-size: var(--ez-text-12-5);
+  color: var(--ez-slate-500);
+  padding: 5px 9px;
+  cursor: pointer;
+}
+.filter button[aria-pressed='true'] {
+  background: var(--ez-hover);
+  color: var(--ez-ink);
+}
+.note {
+  max-width: 560px;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-hover);
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}

@@ -7,7 +7,14 @@
 // EZD-714 (S15h Tab: Notes): notes are added, edited and deleted; the tab shows general notes and code notes
 // for one project type at a time (All by default), in the order a set prints them. Offline the page is
 // read-only.
-import { useCallback, useState } from 'react';
+// EZD-1408 (S15h Tab: Field task templates; Permissions): the Field task templates tab is its own editor
+// (TaskTemplates). With Edit field tasks and no Libraries switch (onlyTemplates) it is the only tab.
+// EZD-706 (S15h Tab: Symbols + abbreviations "Full symbol and abbreviation library ... Read-only system set;
+// abbreviations may be added"; Decision 1): under the company abbreviations, the system symbols and abbreviations
+// (@ezdraft/geometry SYSTEM_SYMBOLS, SYSTEM_ABBREVIATIONS), read-only, filtered by the same search. Their names are
+// sheet text, English only (S13 Decision 7).
+import { useCallback, useState, type ReactElement } from 'react';
+import { SYSTEM_ABBREVIATIONS, SYSTEM_SYMBOLS } from '@ezdraft/geometry';
 import {
   CREATABLE_KINDS,
   EDITABLE_KINDS,
@@ -36,6 +43,7 @@ import { useConfirm } from '../../states/ConfirmProvider';
 import { Skeleton, SkeletonGroup } from '../../states/Skeleton';
 import { StateButton } from '../../states/StateButton';
 import styles from './Libraries.module.css';
+import { TaskTemplates } from './TaskTemplates';
 
 type Selection =
   { mode: 'none' } | { mode: 'new'; kind: 'abbreviation' | 'note' } | { mode: 'item'; id: string };
@@ -54,9 +62,12 @@ const FIELD_CODES: ReadonlySet<string> = new Set<LibraryCode | 'library_abbrevia
   'library_note_project_type_required',
 ]);
 
-export type LibrariesPanelProps = { initialTab?: LibraryTabId };
+export type LibrariesPanelProps = { initialTab?: LibraryTabId; onlyTemplates?: boolean };
 
-export function LibrariesPanel({ initialTab = 'notes' }: LibrariesPanelProps) {
+export function LibrariesPanel({
+  initialTab = 'notes',
+  onlyTemplates = false,
+}: LibrariesPanelProps) {
   const t = useT();
   const online = useOnline();
   const [tabId, setTabId] = useState<LibraryTabId>(initialTab);
@@ -65,11 +76,13 @@ export function LibrariesPanel({ initialTab = 'notes' }: LibrariesPanelProps) {
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [selection, setSelection] = useState<Selection>({ mode: 'none' });
   const [noteFilter, setNoteFilter] = useState<NoteFilter>('all');
-  const tab = LIBRARY_TABS.find((x) => x.id === tabId) ?? LIBRARY_TABS[0];
+  const tabs = onlyTemplates ? LIBRARY_TABS.filter((x) => x.id === 'task_templates') : LIBRARY_TABS;
+  const tab = tabs.find((x) => x.id === tabId) ?? tabs[0];
+  const isTemplates = tab.id === 'task_templates';
 
   const load = useCallback(
     async (signal: AbortSignal): Promise<LibraryItem[]> => {
-      if (tab.kind === null) {
+      if (tab.kind === null || tab.kind === 'task_template') {
         setItems([]);
         return [];
       }
@@ -95,7 +108,9 @@ export function LibrariesPanel({ initialTab = 'notes' }: LibrariesPanelProps) {
   };
 
   const term = q.trim();
-  const canCreate = tab.kind !== null && CREATABLE_KINDS.includes(tab.kind);
+  // Field task templates are one per room type, made by saving one (TaskTemplates); no Add button.
+  const canCreate =
+    tab.kind !== null && tab.kind !== 'task_template' && CREATABLE_KINDS.includes(tab.kind);
   const newKind: 'abbreviation' | 'note' = tab.kind === 'note' ? 'note' : 'abbreviation';
   const addLabel: MessageKey =
     newKind === 'note' ? 'office.libraries.add_note' : 'office.libraries.add_abbreviation';
@@ -175,7 +190,58 @@ export function LibrariesPanel({ initialTab = 'notes' }: LibrariesPanelProps) {
   const selected =
     selection.mode === 'item' ? (items.find((i) => i.id === selection.id) ?? null) : null;
 
+  // EZD-706: the read-only system set on the Symbols + abbreviations tab.
+  const systemBody = (): ReactElement => {
+    const has = (...texts: string[]) =>
+      term === '' || texts.some((x) => x.toLowerCase().includes(term.toLowerCase()));
+    const symbols = SYSTEM_SYMBOLS.filter((s) => has(s.label));
+    const abbreviations = SYSTEM_ABBREVIATIONS.filter((a) => has(a.name, a.meaning));
+    return (
+      <div data-testid="libraries-system" className={styles.notes}>
+        <p className={styles.groupEmpty}>{t('office.libraries.system_read_only')}</p>
+        <section data-testid="system-symbols" className={styles.group}>
+          <h3 className={styles.groupHead}>
+            {t('office.libraries.system_symbols')}
+            <span className={styles.groupCount}>{symbols.length}</span>
+          </h3>
+          <ul className={styles.list}>
+            {symbols.map((s) => (
+              <li key={s.id} data-testid="system-symbol" data-symbol={s.id} className={styles.row}>
+                <span className={styles.rowName}>{s.label}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section data-testid="system-abbreviations" className={styles.group}>
+          <h3 className={styles.groupHead}>
+            {t('office.libraries.system_abbreviations')}
+            <span className={styles.groupCount}>{abbreviations.length}</span>
+          </h3>
+          <ul className={styles.list}>
+            {abbreviations.map((a) => (
+              <li key={a.name} data-testid="system-abbreviation" className={styles.row}>
+                <span className={styles.rowName}>{a.name}</span>
+                <span className={styles.rowMeaning}>{a.meaning}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    );
+  };
+
   const body = (data: LibraryItem[]) => {
+    if (tab.id !== 'symbols') return companyBody(data);
+    return (
+      <>
+        <h3 className={styles.groupHead}>{t('office.libraries.company_abbreviations')}</h3>
+        {companyBody(data)}
+        {systemBody()}
+      </>
+    );
+  };
+
+  const companyBody = (data: LibraryItem[]) => {
     if (data.length === 0) {
       return (
         <div data-testid="libraries-empty" data-tab={tab.id} className={styles.empty}>
@@ -222,7 +288,7 @@ export function LibrariesPanel({ initialTab = 'notes' }: LibrariesPanelProps) {
           aria-label={t('office.settings.section.libraries')}
           className={styles.tabs}
         >
-          {LIBRARY_TABS.map((x) => (
+          {tabs.map((x) => (
             <button
               key={x.id}
               type="button"
@@ -263,49 +329,53 @@ export function LibrariesPanel({ initialTab = 'notes' }: LibrariesPanelProps) {
           ) : null}
         </div>
       </div>
-      <div className={styles.columns}>
-        <div data-testid="libraries-body" role="tabpanel" className={styles.body}>
-          <AsyncView
-            key={tab.id}
-            load={load}
-            skeleton={
-              <SkeletonGroup count={4}>
-                <Skeleton height="36px" />
-              </SkeletonGroup>
-            }
-            errorMessage="office.libraries.load_failed"
-          >
-            {body}
-          </AsyncView>
+      {isTemplates ? (
+        <TaskTemplates online={online} query={q} />
+      ) : (
+        <div className={styles.columns}>
+          <div data-testid="libraries-body" role="tabpanel" className={styles.body}>
+            <AsyncView
+              key={tab.id}
+              load={load}
+              skeleton={
+                <SkeletonGroup count={4}>
+                  <Skeleton height="36px" />
+                </SkeletonGroup>
+              }
+              errorMessage="office.libraries.load_failed"
+            >
+              {body}
+            </AsyncView>
+          </div>
+          <aside data-testid="library-inspector" className={styles.inspector}>
+            {selection.mode === 'new' ? (
+              <ItemForm
+                key={`new-${selection.kind}`}
+                item={null}
+                newKind={selection.kind}
+                online={online}
+                onCancel={() => setSelection({ mode: 'none' })}
+                onSaved={(item) => afterWrite({ mode: 'item', id: item.id })}
+                onDeleted={() => afterWrite({ mode: 'none' })}
+              />
+            ) : selected !== null ? (
+              <ItemForm
+                key={selected.id + selected.updatedAt}
+                item={selected}
+                newKind={newKind}
+                online={online}
+                onCancel={() => setSelection({ mode: 'none' })}
+                onSaved={(item) => afterWrite({ mode: 'item', id: item.id })}
+                onDeleted={() => afterWrite({ mode: 'none' })}
+              />
+            ) : (
+              <p data-testid="library-inspector-empty" className={styles.inspectorEmpty}>
+                {t('office.libraries.inspector_empty')}
+              </p>
+            )}
+          </aside>
         </div>
-        <aside data-testid="library-inspector" className={styles.inspector}>
-          {selection.mode === 'new' ? (
-            <ItemForm
-              key={`new-${selection.kind}`}
-              item={null}
-              newKind={selection.kind}
-              online={online}
-              onCancel={() => setSelection({ mode: 'none' })}
-              onSaved={(item) => afterWrite({ mode: 'item', id: item.id })}
-              onDeleted={() => afterWrite({ mode: 'none' })}
-            />
-          ) : selected !== null ? (
-            <ItemForm
-              key={selected.id + selected.updatedAt}
-              item={selected}
-              newKind={newKind}
-              online={online}
-              onCancel={() => setSelection({ mode: 'none' })}
-              onSaved={(item) => afterWrite({ mode: 'item', id: item.id })}
-              onDeleted={() => afterWrite({ mode: 'none' })}
-            />
-          ) : (
-            <p data-testid="library-inspector-empty" className={styles.inspectorEmpty}>
-              {t('office.libraries.inspector_empty')}
-            </p>
-          )}
-        </aside>
-      </div>
+      )}
     </div>
   );
 }

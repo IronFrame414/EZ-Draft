@@ -47,6 +47,11 @@ async function signsInWithPassword(
   }
 }
 
+// The inspector's Project access field loads after the inspector opens, and its loaded form is taller than its
+// placeholder, so the Password section below it moves down. A click on Set password sent in that moment lands above
+// the button and nothing opens (seen in the gate, EZD-1951). Wait for the loaded field before clicking.
+const accessLoaded = (page: Page) => expect(page.getByTestId('users-access-all')).toBeVisible();
+
 test.describe('EZD-105b Owner-set password', () => {
   test.afterAll(async () => {
     try {
@@ -91,6 +96,7 @@ test.describe('EZD-105b Owner-set password', () => {
     await expect(tid(page, 'users-inspector-name')).toHaveText('Ann Lee');
     const section = tid(page, 'users-password');
     await expect(section).toContainText('Password');
+    await accessLoaded(page);
     await tid(page, 'user-set-password').click();
     await expect(dialog).toHaveAttribute('data-step', 'confirm');
     await expect(dialog).toContainText(
@@ -151,6 +157,7 @@ test.describe('EZD-105b Owner-set password', () => {
     await signInAs(o.email);
     await page.goto('/settings/users');
     await rowOf(page, 'Ann Lee').click();
+    await accessLoaded(page);
     await tid(page, 'user-set-password').click();
     const dialog = tid(page, 'set-password-dialog');
 
@@ -215,6 +222,7 @@ test.describe('EZD-105b Owner-set password', () => {
     const section = tid(page, 'users-password');
     await section.scrollIntoViewIfNeeded();
     expect(await expectTouchTargets(page, section)).toBe(1);
+    await accessLoaded(page);
     await tid(page, 'user-set-password').click();
     const dialog = tid(page, 'set-password-dialog');
     await expect(dialog).toHaveAttribute('data-step', 'confirm');

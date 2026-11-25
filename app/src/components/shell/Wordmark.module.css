@@ -2,7 +2,7 @@
   display: flex;
   align-items: baseline;
   gap: 1px;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--ez-ink);

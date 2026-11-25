@@ -2,7 +2,7 @@
 
 // EZD-116 (S15d; board S15dDefaults; Q-0697 decisions 03 "Defaults data", 05 "Settings → Defaults"; ARCH
 // Settings shell and Unsaved edits page contracts): the Settings > Defaults page body. Rows come from the one
-// registry in the board's three columns; no Keyboard shortcuts card until EZD-222 (Q-0226). An empty row with
+// registry in the board's three columns, then the Keyboard shortcuts table (EZD-222, ShortcutsTable). An empty row with
 // no registry default reads "Not set". Each edited value is checked on its row (S15d Validation; Q-0561;
 // Q-0706); a refused row keeps Save off, so nothing saves. Save writes only the edited keys.
 import { useRouter } from 'next/navigation';
@@ -34,6 +34,9 @@ import { StateButton } from '../../states/StateButton';
 import { SettingsMain, useSettingsStatus, type SettingsStatusEntry } from '../SettingsShell';
 import { useSettingsDraft, useUnsavedChanges } from '../unsaved-changes';
 import styles from './DefaultsForm.module.css';
+import { ShortcutsTable } from './ShortcutsTable';
+import { SHORTCUT_COMMANDS } from '../../../lib/defaults/shortcuts';
+import type { ShortcutMap } from '../../../lib/defaults/registry';
 
 export type DefaultsForm = Record<string, FormValue>;
 
@@ -340,7 +343,12 @@ export function DefaultsPage({ initial }: { initial: StoredDefaults }) {
   };
 
   const columns = DEFAULT_COLUMNS.map((col) => col.map(groupView));
-  const anyShown = columns.some((col) => col.some((g) => g !== null));
+  // EZD-222: the Keyboard shortcuts table matches on its title or a command name.
+  const shortcutsShown =
+    q === '' ||
+    t(GROUP_LABEL.keyboard_shortcuts).toLowerCase().includes(q) ||
+    SHORTCUT_COMMANDS.some((c) => t(c.label).toLowerCase().includes(q));
+  const anyShown = shortcutsShown || columns.some((col) => col.some((g) => g !== null));
   const buttonsOff = !dirty || saving || !online;
 
   const search = (
@@ -389,13 +397,24 @@ export function DefaultsPage({ initial }: { initial: StoredDefaults }) {
             </div>
           ) : null}
           {anyShown ? (
-            <div className={styles.columns}>
-              {columns.map((col, i) => (
-                <div key={i} className={styles.column}>
-                  {col}
-                </div>
-              ))}
-            </div>
+            <>
+              <div className={styles.columns}>
+                {columns.map((col, i) => (
+                  <div key={i} className={styles.column}>
+                    {col}
+                  </div>
+                ))}
+              </div>
+              {shortcutsShown ? (
+                <ShortcutsTable
+                  value={form.keyboard_shortcuts as ShortcutMap}
+                  onChange={(next) => set('keyboard_shortcuts', next)}
+                  readOnly={readOnly}
+                  query={query}
+                  error={errors.keyboard_shortcuts}
+                />
+              ) : null}
+            </>
           ) : (
             <p data-testid="defaults-no-match" className={styles.noMatch}>
               {t('office.defaults.no_match')}

@@ -13,6 +13,7 @@
 // EZD-215 (AC-EZD-215-1, -2): exports the bearing wall rule.
 // EZD-733 (AC-EZD-733-1): exports the tile layout pieces and cuts.
 // EZD-505 (AC-EZD-505-1): exports the beam sets.
+// EZD-1009 (AC-EZD-1009-2): exports the design option apply.
 // EZD-229 (11 Budgets; EZD-120c B11): the benchmark model is its own entry, `@ezdraft/geometry/benchmark`, so the
 // editor's first download does not carry the 3,000-object generator that only the lazy benchmark runner, the server
 // and the dev pages use.
@@ -27,9 +28,24 @@ export * from './countertops/piece';
 // EZD-412: Trace cabinets and Draw outline.
 export * from './countertops/outline';
 export * from './countertops/trace';
+// EZD-413: seams and cutouts.
+export * from './countertops/seam';
+export * from './countertops/cutout';
+// EZD-416: the left panel and status bar readouts.
+export * from './countertops/panel';
+// EZD-418: the top schedule rows.
+export * from './countertops/schedule';
+// EZD-414: edges and overhangs.
+export * from './countertops/overhang';
+// EZD-415: the seating support check.
+export * from './countertops/support';
+// EZD-417: edge profiles and the offered total.
+export * from './countertops/edge-profile';
 export * from './derived';
 export * from './drawing';
 export * from './fixtures';
+// EZD-611a: the code check engine and rule registry.
+export * from './code-check';
 export * from './length';
 export * from './moves';
 export * from './numbers';
@@ -39,6 +55,8 @@ export * from './plumbing/locations';
 export * from './rooms';
 export * from './rules/bearing';
 export * from './schema';
+// EZD-1009: design option patches applied for display.
+export * from './options/apply';
 export * from './selection';
 export * from './sketch';
 export * from './snap/index';
@@ -46,3 +64,9 @@ export * from './tile';
 export * from './tolerance';
 export * from './walls';
 export * from './turn';
+// EZD-1001a: the wall face the lazy 3D scene extrudes.
+export * from './scene3d/wall-face';
+// EZD-1001b: ceilings, soffits, trays, coffers and beams for the lazy 3D scene.
+export * from './scene3d/ceiling-mesh';
+// EZD-706: the system symbol library and the symbols a sheet uses.
+export * from './drawing/symbol-key';

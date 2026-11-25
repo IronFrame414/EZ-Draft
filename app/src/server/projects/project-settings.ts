@@ -19,6 +19,9 @@ import {
   PROJECT_NAME_MAX,
   PROJECT_TYPES,
   SCOPE_OF_WORK_MAX,
+  SCOPE_TRADES,
+  isScopeTrade,
+  normalizeScopeTrades,
 } from '../../lib/projects/new-project';
 import {
   isProjectType,
@@ -26,7 +29,12 @@ import {
   type ProjectSettings,
   type ProjectSettingsPatch,
 } from '../../lib/projects/project-settings';
-import { CODE_EDITIONS, isCodeEdition, projectEdition } from '../../lib/code-edition/editions';
+import {
+  COMPANY_EDITION_DEFAULTS,
+  isCodeEdition,
+  isPermitDate,
+  projectEdition,
+} from '../../lib/code-edition/editions';
 import { can, type PermissionContext } from '../permissions';
 import type { Database, Json } from '../db/database.types';
 import { loadTenantDefaults, projectCopyOf } from '../defaults/defaults';
@@ -56,7 +64,7 @@ export async function loadProjectSettings(
     client
       .from('project')
       .select(
-        'id, name, address, type, scope_of_work, settings, code_edition, customer!project_customer_fk(id, name, email, phone)',
+        'id, name, address, type, scope_of_work, scope_trades, settings, code_edition, code_edition_auto, permit_application_date, created_at, customer!project_customer_fk(id, name, email, phone)',
       )
       .eq('id', id)
       .maybeSingle(),
@@ -84,6 +92,8 @@ export async function loadProjectSettings(
       address: p.address,
       type: isProjectType(p.type) ? p.type : 'kitchen',
       scopeOfWork: p.scope_of_work ?? '',
+      scopeTrades: normalizeScopeTrades((p.scope_trades ?? []).filter(isScopeTrade)),
+      permitApplicationDate: p.permit_application_date,
     },
     client: c
       ? contact
@@ -93,7 +103,11 @@ export async function loadProjectSettings(
     defaults,
     codeEdition: {
       own: isCodeEdition(p.code_edition) ? p.code_edition : null,
-      effective: projectEdition(p.code_edition, tenant.data?.code_edition ?? null),
+      effective: projectEdition(p.code_edition, tenant.data?.code_edition ?? null, {
+        permitDate: p.permit_application_date,
+        createdAt: p.created_at,
+      }),
+      auto: p.code_edition_auto,
     },
     can: {
       details: editModel,
@@ -112,10 +126,12 @@ const patchSchema = z.strictObject({
   name: trimmed(PROJECT_NAME_MAX).optional(),
   address: trimmed(PROJECT_ADDRESS_MAX).optional(),
   scopeOfWork: trimmed(SCOPE_OF_WORK_MAX).optional(),
+  scopeTrades: z.array(z.enum(SCOPE_TRADES)).max(SCOPE_TRADES.length).optional(),
   type: z.enum(PROJECT_TYPES).optional(),
   customerId: z.uuid().nullable().optional(),
   defaults: z.record(z.string(), z.unknown()).optional(),
-  codeEdition: z.enum(CODE_EDITIONS).optional(),
+  codeEdition: z.enum(COMPANY_EDITION_DEFAULTS).optional(),
+  permitApplicationDate: z.string().refine(isPermitDate).nullable().optional(),
   lockEpoch: z.number().int().min(0).optional(),
 });
 
@@ -150,9 +166,14 @@ export function parseProjectSettingsPatch(body: unknown): ParsedPatch {
     if (scope.length > SCOPE_OF_WORK_MAX) fields.scopeOfWork = 'office.project_settings.too_long';
     else patch.scopeOfWork = scope;
   }
+  if (d.scopeTrades !== undefined) {
+    if (new Set(d.scopeTrades).size !== d.scopeTrades.length) return { ok: false };
+    patch.scopeTrades = normalizeScopeTrades(d.scopeTrades);
+  }
   if (d.type !== undefined) patch.type = d.type;
   if (d.customerId !== undefined) patch.customerId = d.customerId;
   if (d.codeEdition !== undefined) patch.codeEdition = d.codeEdition;
+  if (d.permitApplicationDate !== undefined) patch.permitApplicationDate = d.permitApplicationDate;
   if (d.defaults !== undefined) {
     const defaults: Record<string, number> = {};
     for (const [key, value] of Object.entries(d.defaults)) {
@@ -224,9 +245,13 @@ export async function saveProjectSettings(
   if (patch.name !== undefined) changes.name = patch.name;
   if (patch.address !== undefined) changes.address = patch.address;
   if (patch.scopeOfWork !== undefined) changes.scope_of_work = patch.scopeOfWork;
+  if (patch.scopeTrades !== undefined) changes.scope_trades = patch.scopeTrades;
   if (patch.type !== undefined) changes.type = patch.type;
   if (patch.customerId !== undefined) changes.customer_id = patch.customerId;
   if (patch.codeEdition !== undefined) changes.code_edition = patch.codeEdition;
+  if (patch.permitApplicationDate !== undefined) {
+    changes.permit_application_date = patch.permitApplicationDate;
+  }
   if (Object.keys(defaults).length > 0) changes.defaults = defaults;
   const { data, error } = await client.rpc('update_project_settings', {
     p_project: id,

@@ -7,6 +7,9 @@
 // EZD-215 (AC-EZD-215-3, -4, -6): one engineer note alone shows its form (EngineerNoteForm); a wall with a note
 // whose letter is not on file shows "Engineer required", with or without Edit model.
 // EZD-505: one beam set alone shows the beam inspector (tools/BeamPanel.tsx).
+// EZD-507: one light or fan alone shows its inspector with the Fixture type (tools/DevicePanel.tsx).
+// EZD-510: one switching zone alone shows its inspector with the Dimmer box (tools/SwitchZonePanel.tsx).
+// EZD-511: one ACT grid alone shows its inspector (tools/ActGridPanel.tsx).
 import type { FloorChoice } from '../floors/floors';
 import { useChosenFloor } from '../floors/use-chosen-floor';
 import {
@@ -67,6 +70,9 @@ import {
 import { ResolveGap, type ResolveGapProps } from './ResolveGap';
 import { PinPanel } from './PinPanel';
 import { BeamPanel } from '../tools/BeamPanel';
+import { CeilingFlags, DevicePanel } from '../tools/DevicePanel';
+import { SwitchZoneInspector } from '../tools/SwitchZonePanel';
+import { ActGridInspector } from '../tools/ActGridPanel';
 import { EngineerNoteForm } from './EngineerNoteForm';
 import styles from './InspectorPanel.module.css';
 
@@ -103,6 +109,10 @@ export type InspectorPanelProps = {
   floors?: FloorChoice;
   // EZD-220: the project a pin photo is sent to; without it a pin's photo is shown but not attached.
   projectId?: string;
+  // EZD-515: the Defaults "Fan blade clearance"; null or absent is Not set (no fan check).
+  fanClearance?: number | null;
+  // EZD-511: the Defaults "ACT minimum border" as a share of the tile; absent is half a tile.
+  actMinShare?: number;
 };
 
 export type InspectorContentProps = {
@@ -129,6 +139,8 @@ export function InspectorPanel({
   newStatus,
   floors,
   projectId,
+  fanClearance = null,
+  actMinShare = 0.5,
 }: InspectorPanelProps): ReactElement {
   const chosen = useChosenFloor(floors);
   const objects = useSyncExternalStore(
@@ -157,6 +169,12 @@ export function InspectorPanel({
   const noteAlone = ids.length === 1 && isType(objects, ids[0]!, 'engineer_note') ? ids[0]! : null;
   // EZD-505: one beam set alone shows the beam inspector.
   const beamAlone = ids.length === 1 && isType(objects, ids[0]!, 'beam') ? ids[0]! : null;
+  // EZD-510: one switching zone alone.
+  const zoneAlone = ids.length === 1 && isType(objects, ids[0]!, 'switch_zone') ? ids[0]! : null;
+  // EZD-511: one ACT grid alone.
+  const gridAlone = ids.length === 1 && isType(objects, ids[0]!, 'act_grid') ? ids[0]! : null;
+  // EZD-507: one light or fan alone. EZD-603: any one device alone (each has its height note).
+  const deviceAlone = ids.length === 1 && isType(objects, ids[0]!, 'device') ? ids[0]! : null;
 
   // EZD-213c D-Panel: the gap of the one selected wall.
   const drawingUi = useSyncExternalStore(
@@ -247,6 +265,33 @@ export function InspectorPanel({
   if (beamAlone !== null)
     return <BeamPanel key={beamAlone} store={store} beamId={beamAlone} canEdit={canEdit} />;
 
+  if (gridAlone !== null)
+    return (
+      <ActGridInspector
+        key={gridAlone}
+        store={store}
+        gridId={gridAlone}
+        canEdit={canEdit}
+        minShare={actMinShare}
+      />
+    );
+
+  if (zoneAlone !== null)
+    return (
+      <SwitchZoneInspector key={zoneAlone} store={store} zoneId={zoneAlone} canEdit={canEdit} />
+    );
+
+  if (deviceAlone !== null)
+    return (
+      <DevicePanel
+        key={deviceAlone}
+        store={store}
+        deviceId={deviceAlone}
+        canEdit={canEdit}
+        fanClearance={fanClearance}
+      />
+    );
+
   // EZD-215: one engineer note alone shows its form.
   if (noteAlone !== null)
     return (
@@ -259,7 +304,7 @@ export function InspectorPanel({
       />
     );
 
-  return (
+  const content = (
     <InspectorContent
       key={idsKey}
       view={view}
@@ -273,6 +318,17 @@ export function InspectorPanel({
       gap={gap}
     />
   );
+  // EZD-515 (S05 Validation "Hosted ceiling item left off any ceiling surface: red flag"; Q-0630 "the words show in
+  // the inspector on click"): one other hosted ceiling item alone (detector, low voltage, access panel, register)
+  // shows its flag above its inspector.
+  if (ids.length === 1)
+    return (
+      <>
+        <CeilingFlags objects={objects} id={ids[0]!} canEdit={canEdit} fanClearance={fanClearance} />
+        {content}
+      </>
+    );
+  return content;
 }
 
 export function InspectorContent(props: InspectorContentProps): ReactElement {

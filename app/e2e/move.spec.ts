@@ -174,7 +174,9 @@ test.describe('EZD-212b Move tool', () => {
     await expect(id(page, 'typed-bar-label')).toHaveText('Distance');
 
     await clickAt(page, 144, 100);
-    expect(await selectedIds(page)).toEqual([seed.E]);
+    // EZD-222: a click made before the drawing engine has loaded is held and applied when it arrives (EZD-423), so
+    // the selection is waited for; the expected value is unchanged.
+    await expect.poll(() => selectedIds(page)).toEqual([seed.E]);
     const before = geoOf(await objects(page), seed.E);
     near(before.start.x, 144, 9);
     near(before.end.x, 144, 9);

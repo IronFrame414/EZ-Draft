@@ -22,7 +22,7 @@
 }
 .boxTitle {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 600;
   color: var(--ez-slate-500);
 }
@@ -36,7 +36,7 @@
   background: var(--ez-surface);
   color: var(--ez-ink);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
 }
 .select:disabled {
   background: var(--ez-surface-sunken);
@@ -54,7 +54,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-ink);
 }
 .ruleSet svg {
@@ -62,7 +62,7 @@
 }
 .note {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   line-height: 1.4;
   color: var(--ez-slate-500);
 }
@@ -76,12 +76,12 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   font-weight: 600;
   color: var(--ez-ink);
 }
 .switchHint {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   font-weight: 400;
   color: var(--ez-slate-500);
 }
@@ -128,4 +128,23 @@
 .saveButton:disabled {
   opacity: 0.45;
   cursor: default;
+}
+/* EZD-643 (board S15gCode): the two lines under "By permit date (automatic)". */
+.byDate {
+  margin: 10px 0 0;
+  display: grid;
+  gap: 4px;
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-700);
+}
+.byDateRow {
+  display: flex;
+  gap: 8px;
+}
+.byDateRow dt {
+  min-width: 84px;
+  color: var(--ez-slate-500);
+}
+.byDateRow dd {
+  margin: 0;
 }

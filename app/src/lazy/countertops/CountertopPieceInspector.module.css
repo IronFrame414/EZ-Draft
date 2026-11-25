@@ -1,0 +1,337 @@
+/* EZD-414: the countertop piece inspector (board S04bCountertops inspector: header, Overhang by side, preset chips). */
+.inspector {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font: 600 var(--ez-text-18) var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+  font-size: var(--ez-text-12);
+  font-weight: 600;
+}
+
+.summary {
+  margin: 0;
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-500);
+}
+
+.lbl {
+  margin: 0;
+  font: 600 var(--ez-text-13) var(--ez-font-sans);
+  color: var(--ez-slate-700);
+}
+
+/* Front on top, Left and Right beside the cabinets, Back below (board). */
+.diagram {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-areas:
+    '. front .'
+    'left cab right'
+    '. back .';
+  gap: 8px;
+  align-items: center;
+}
+
+.front {
+  grid-area: front;
+}
+.left {
+  grid-area: left;
+}
+.right {
+  grid-area: right;
+}
+.back {
+  grid-area: back;
+}
+
+.cabinets {
+  grid-area: cab;
+  min-height: 64px;
+  border: 1px dashed var(--ez-cobalt);
+  border-radius: var(--ez-radius-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: var(--ez-text-11);
+  color: var(--ez-slate-500);
+}
+
+.mono {
+  font-family: var(--ez-font-mono);
+  color: var(--ez-ink);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.sideLabel {
+  font-size: var(--ez-text-11);
+  color: var(--ez-slate-500);
+}
+
+.input,
+.inputOn {
+  width: 100%;
+  max-width: 72px;
+  height: 32px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: 500 var(--ez-text-13) var(--ez-font-mono);
+  text-align: center;
+}
+
+/* S04b "Active side has blue border". */
+.inputOn {
+  border: 2px solid var(--ez-cobalt);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: 999px;
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: 500 var(--ez-text-13) var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.chip[aria-pressed='true'] {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.chip:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* EZD-417: the Edge profile card, its offered list (board S04bCountertops inspector) and the canvas pill. */
+.edgeSection {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.edgeHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.edgeNote {
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}
+
+.edgeCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+}
+
+.edgeCardText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.edgeName {
+  font-weight: 600;
+  font-size: var(--ez-text-14);
+  color: var(--ez-ink);
+}
+
+.edgeSub {
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}
+
+.edgeBadge,
+.edgeBadgeOpen {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: var(--ez-text-12);
+  font-weight: 600;
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.edgeBadgeOpen {
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+}
+
+.edgePick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-700);
+}
+
+.edgeSelect {
+  min-width: 0;
+  flex: 1;
+  max-width: 200px;
+  height: 32px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  font: var(--ez-text-14) var(--ez-font-sans);
+  color: var(--ez-ink);
+}
+
+.profileDrawing {
+  width: 42px;
+  height: 28px;
+  flex: none;
+  object-fit: contain;
+}
+
+.profileDrawingLarge {
+  width: 60px;
+  height: 40px;
+  flex: none;
+  object-fit: contain;
+}
+
+.offered {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.offeredTitle {
+  margin: 0;
+  font: 400 var(--ez-text-13) var(--ez-font-sans);
+  color: var(--ez-slate-500);
+}
+
+.offeredList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.offeredRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: var(--ez-text-14);
+}
+
+.offeredName {
+  flex: 1;
+}
+
+.offeredPrice {
+  font-family: var(--ez-font-mono);
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-500);
+}
+
+.pill,
+.pillOpen {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ez-surface);
+  color: var(--ez-slate-700);
+  font: 500 var(--ez-text-13) var(--ez-font-sans);
+  box-shadow: var(--ez-shadow-floating);
+  cursor: pointer;
+}
+
+.pillOpen {
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+}
+
+/* EZD-415: the support notice (board: amber box, info icon) and the Seats row. */
+.notice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-strong);
+  font-size: var(--ez-text-13);
+  line-height: 1.4;
+}
+
+.notice a {
+  color: inherit;
+  font-weight: 600;
+}
+
+.seats {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--ez-text-13);
+  color: var(--ez-ink);
+}
+
+.seatsLabel {
+  color: var(--ez-slate-500);
+}

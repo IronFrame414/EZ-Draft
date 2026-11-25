@@ -5,3 +5,6 @@ export type { CabinetRunScreenProps, CabinetRunViewProps } from './CabinetRunVie
 // EZD-406: the box inspector, from the same module.
 export { BoxInspectorScreen, CabinetInspector } from './BoxInspector';
 export type { BoxInspectorScreenProps, CabinetInspectorProps } from './BoxInspector';
+// EZD-403: the cabinet library in the left panel, from the same module.
+export { CabinetLibrary } from './CabinetLibrary';
+export type { CabinetLibraryProps } from './CabinetLibrary';

@@ -1,0 +1,58 @@
+/* EZD-230 (Q-0038 (b)): the "More tools" flyout beside the rail (ToolRail.tsx), kept apart from the rail's own
+   rules (touch-css.test.ts). */
+.flyout {
+  position: absolute;
+  left: 52px;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  min-width: 200px;
+  background: var(--ez-surface);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  box-shadow: var(--ez-shadow-floating);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--ez-radius-7);
+  background: transparent;
+  color: var(--ez-slate-700);
+  font: inherit;
+  font-size: var(--ez-text-13);
+  text-align: left;
+  cursor: pointer;
+}
+
+.item > span {
+  flex: 1;
+}
+
+@media (hover: hover) {
+  .item:hover {
+    background: var(--ez-hover);
+  }
+}
+
+.item[aria-pressed='true'] {
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-cobalt-text);
+}
+
+.key {
+  font-family: var(--ez-font-mono);
+  color: var(--ez-slate-400);
+}
+
+.item:disabled {
+  color: var(--ez-slate-300);
+  cursor: default;
+}

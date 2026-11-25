@@ -16,6 +16,7 @@ import type { ModelObject, Point } from '../schema';
 import { COMPARISON_TOLERANCE_IN } from '../tolerance';
 import { CABINET_COUNTERTOP_THICKNESS, cabinetRunLayout } from './elevation';
 import type { CabinetRun } from './run';
+import { dot, sub } from '../vec';
 
 // The seeded generic line (EZD-401, R23): base boxes B9 to B36, base-row boxes 24" deep and 34 1/2" high, filler F3.
 export const CABINET_AUTOFILL_MIN_BOX = 9;
@@ -37,8 +38,6 @@ export const CABINET_AUTOFILL_APPLIANCES = [
 const TOL = COMPARISON_TOLERANCE_IN;
 const EPS = 1e-9;
 const lower = (s: string) => s.toLowerCase();
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y;
-const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
 const inchText = (n: number) => String(Math.round(n * 1000) / 1000);
 
 export type CabinetFillLine = {

@@ -10,7 +10,7 @@
   background: var(--ez-surface);
   border: 1px solid var(--ez-border);
   border-radius: var(--ez-radius-8);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
   font-family: var(--ez-font-mono);
 }

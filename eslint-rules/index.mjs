@@ -2,6 +2,7 @@
 import noLiteralUiString from './no-literal-ui-string.mjs';
 import importBoundaries from './import-boundaries.mjs';
 import noBrowserTableQuery from './no-browser-table-query.mjs';
+import noClientServerOnly from './no-client-server-only.mjs';
 
 export default {
   meta: { name: 'ezdraft' },
@@ -9,5 +10,6 @@ export default {
     'no-literal-ui-string': noLiteralUiString,
     'import-boundaries': importBoundaries,
     'no-browser-table-query': noBrowserTableQuery,
+    'no-client-server-only': noClientServerOnly,
   },
 };

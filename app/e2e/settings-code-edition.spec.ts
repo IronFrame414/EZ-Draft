@@ -3,7 +3,8 @@
 // (the page and save need settings_code_edition; the nav item is absent without it; no access in place,
 // Q-0214), S15g (Default for new projects, v1 FBC 9th ed. with NEC 2023 only, Q-0220; Optional load-calc method
 // switch; Save; the note "Changing the default does not change existing projects."; existing projects keep their
-// own edition), S15g States (offline read-only).
+// own edition), S15g States (offline read-only). EZD-643: Q-0765 and board S15gCode (By permit date, From 12/31/26,
+// Before, FBC 8th ed. · NEC 2020).
 import type { Page } from '@playwright/test';
 import {
   cleanup,
@@ -64,7 +65,12 @@ test.describe('EZD-613 Settings > Code edition', () => {
       'Changing the default does not change existing projects.',
     );
     await expect(tid(page, 'code-edition-default')).toHaveValue('fbc9_nec2023');
-    await expect(tid(page, 'code-edition-default').locator('option')).toHaveText(['FBC 9th ed. · NEC 2023']);
+    // EZD-643 (Q-0220; Q-0765; board S15gCode) adds By permit date and the 8th Edition.
+    await expect(tid(page, 'code-edition-default').locator('option')).toHaveText([
+      'By permit date (automatic)',
+      'FBC 9th ed. · NEC 2023',
+      'FBC 8th ed. · NEC 2020',
+    ]);
     await expect(tid(page, 'code-edition-rule-sets')).toContainText('FBC 9th ed. · NEC 2023');
     await expect(tid(page, 'code-edition-save')).toBeDisabled();
 
@@ -88,6 +94,42 @@ test.describe('EZD-613 Settings > Code edition', () => {
 
     await page.reload();
     await expect(tid(page, 'code-edition-optional-load-calc')).toHaveAttribute('aria-checked', 'true');
+  });
+
+  test('EZD-643: By permit date shows its two lines, saves, and new projects follow their permit date', async ({
+    page,
+    signInAs,
+  }) => {
+    const tenant = await open(signInAs, page);
+    await expect(tid(page, 'code-edition-rule-sets')).toContainText('FBC 8th ed. · NEC 2020');
+    await expect(tid(page, 'code-edition-by-date')).toHaveCount(0);
+    await tid(page, 'code-edition-default').selectOption('by_permit_date');
+    await expect(tid(page, 'code-edition-by-date')).toContainText('From 12/31/26');
+    await expect(tid(page, 'code-edition-by-date')).toContainText('Before');
+    const saved = page.waitForResponse(
+      (r) => r.url().endsWith('/api/settings/code-edition') && r.request().method() === 'PATCH',
+    );
+    await tid(page, 'code-edition-save').click();
+    expect((await saved).status()).toBe(200);
+    const t = (
+      await harnessSql()`select code_edition from public.tenant where id = ${tenant}::uuid`
+    )[0];
+    expect(t.code_edition).toBe('by_permit_date');
+
+    // Q-0765: a project made now follows its permit application date.
+    const [project] = await createProjects(tenant, 1);
+    await harnessSql()`update public.project set permit_application_date = '2026-12-15' where id = ${project}::uuid`;
+    const p = (
+      await harnessSql()`select code_edition, code_edition_auto from public.project where id = ${project}::uuid`
+    )[0];
+    expect(p).toEqual({ code_edition: 'fbc8_nec2020', code_edition_auto: true });
+
+    await page.reload();
+    await expect(tid(page, 'code-edition-default')).toHaveValue('by_permit_date');
+    // Board S15gCode footer: the status bar says "By permit date", without "(automatic)".
+    const status = page.locator('[data-settings-status="default"]');
+    await expect(status).toContainText('By permit date');
+    await expect(status).not.toContainText('(automatic)');
   });
 
   test('offline: banner, controls read-only, Save disabled', async ({ page, signInAs, network }) => {

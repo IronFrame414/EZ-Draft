@@ -11,6 +11,9 @@ import { ImportedNotice } from '../../../../editor/plan/ImportedNotice';
 import { parseImported } from '../../../../editor/plan/imported';
 import { MessagesProvider } from '../../../../lib/messages';
 import { requireSession } from '../../../../server/auth/session';
+import { createSessionClient } from '../../../../server/auth/supabase-server';
+import { loadRailOrder } from '../../../../server/profile/rail-order';
+import { projectMeshUrl } from '../../../../server/imports/project-mesh';
 import { reportError } from '../../../../server/errors/report';
 import { can } from '../../../../server/permissions';
 import { settingsPermissionContext } from '../../../../server/settings/shell-data';
@@ -26,8 +29,29 @@ export default async function EditorPage({
 }): Promise<ReactElement> {
   // Render per request, as the Projects page does (app/src/app/(office)/page.tsx).
   await connection();
-  await requireSession();
+  const session = await requireSession();
   const { id } = await params;
+  // EZD-230 (Q-0038, Q-0122): the user's own rail tool order, read with the page so the editor asks for nothing
+  // more; a failed read is reported and the rail keeps its default order.
+  let railOrder: string[] = [];
+  try {
+    railOrder = await loadRailOrder(createSessionClient(), session);
+  } catch {
+    await reportError(new Error('editor_rail_order_load_failed'), {
+      source: 'function',
+      location: 'editor.rail_order',
+    });
+  }
+  // EZD-503: the project's Polycam GLB link for Read heights from scan; a failed read is reported and hides it.
+  let meshUrl: string | null = null;
+  try {
+    meshUrl = await projectMeshUrl(createSessionClient(), id);
+  } catch {
+    await reportError(new Error('editor_mesh_link_failed'), {
+      source: 'function',
+      location: 'editor.mesh_link',
+    });
+  }
   const query = searchParams === undefined ? undefined : await searchParams;
   const open = query?.conflicts === 'open' ? { conflictsOpen: true } : {};
   // EZD-237 (vault/plans/EZD-237.md D-Editor): `?benchmark=run` plays the benchmark (the Benchmark card's frame).
@@ -45,16 +69,22 @@ export default async function EditorPage({
     ctx !== null && ctx !== 'failed' && can(ctx, 'send_to_client', { projectId: id })
       ? { canSend: true }
       : {};
+  // EZD-416: Settings → Defaults decides the countertop panel's "Change in company settings" link.
+  const defaultsLink =
+    ctx !== null && ctx !== 'failed' && can(ctx, 'settings_defaults') ? { canManageDefaults: true } : {};
   return (
     <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
       <StateHost>
         {imported ? <ImportedNotice counts={imported} /> : null}
         <ProjectEditor
           projectId={id}
+          railOrder={railOrder}
+          {...(meshUrl === null ? {} : { meshUrl })}
           devHooks={process.env.VERCEL_ENV !== 'production'}
           {...open}
           {...bench}
           {...send}
+          {...defaultsLink}
         />
       </StateHost>
     </MessagesProvider>

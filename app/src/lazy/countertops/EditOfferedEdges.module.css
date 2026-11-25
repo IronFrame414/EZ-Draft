@@ -1,0 +1,155 @@
+/* EZD-417: Edit offered edges, over the inspector as the top schedule (TopSchedule.module.css), and its footer button
+   on the left of Top schedule (board S04bCountertops inspector footer). */
+.footerButton {
+  grid-column: 1;
+  height: 40px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: 600 var(--ez-text-14) var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.footerButton:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  background: var(--ez-surface);
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--ez-divider);
+}
+
+.close {
+  border: 0;
+  background: transparent;
+  font-size: var(--ez-text-18);
+  color: var(--ez-slate-500);
+  cursor: pointer;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.intro,
+.exposed {
+  margin: 0;
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-500);
+}
+
+.exposed {
+  font-family: var(--ez-font-mono);
+}
+
+.cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px 84px;
+  gap: 8px;
+  font-size: var(--ez-text-12);
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px 84px;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--ez-divider);
+  font-size: var(--ez-text-14);
+}
+
+.tick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.rate,
+.rateBad {
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  font: var(--ez-text-13) var(--ez-font-mono);
+  text-align: right;
+}
+
+.rateBad {
+  border-color: var(--ez-red);
+}
+
+.total {
+  font-family: var(--ez-font-mono);
+  font-size: var(--ez-text-13);
+  text-align: right;
+  color: var(--ez-slate-700);
+}
+
+.error {
+  margin: 0;
+  font-size: var(--ez-text-13);
+  color: var(--ez-red-text);
+}
+
+.foot {
+  padding: 12px 18px 18px;
+  border-top: 1px solid var(--ez-divider);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.cancel,
+.save {
+  height: 40px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: 600 var(--ez-text-14) var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.save {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+}
+
+.save:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

@@ -77,16 +77,16 @@ describe('EZD-613 update_tenant_code_edition and the project edition', () => {
   it('AC-EZD-613-1: a project keeps its edition after the default changes', async () => {
     const kept = await create(owner, 'Keeps its edition');
     const unset = await create(owner, 'No edition yet');
-    // New projects store no edition (assumptions EZD-613): they read the company default.
-    expect((await projectRow(kept)).code_edition).toBeNull();
+    // EZD-643 (Q-0765): a new project stores the company default's edition (a company with none: the 9th).
+    expect((await projectRow(kept)).code_edition).toBe('fbc9_nec2023');
 
     // The project gets its own edition in Project settings (Edit model, no lock needed).
-    const set = await setProjectEdition(owner, kept, 'fbc9_nec2023');
+    const set = await setProjectEdition(owner, kept, 'fbc8_nec2020');
     expect(set.error).toBeNull();
     expect((set.data as { status: string; changed: string[] }).changed).toEqual(['code_edition']);
     const keptBefore = await projectRow(kept);
     const unsetBefore = await projectRow(unset);
-    expect(keptBefore.code_edition).toBe('fbc9_nec2023');
+    expect(keptBefore.code_edition).toBe('fbc8_nec2020');
 
     // The company default changes.
     const r = await setDefault(owner, 'fbc9_nec2023', true);
@@ -100,11 +100,11 @@ describe('EZD-613 update_tenant_code_edition and the project edition', () => {
     expect(await projectRow(kept)).toEqual(keptBefore);
     expect(await projectRow(unset)).toEqual(unsetBefore);
 
-    // A later default (an edition EZD-643 adds, Q-0765) still leaves the project on its own edition.
-    await harnessSql()`update public.tenant set code_edition = 'fbc8_nec2020' where id = ${tenantA}::uuid`;
+    // A later default (By permit date, EZD-643, Q-0765) still leaves the project on its own edition.
+    await harnessSql()`update public.tenant set code_edition = 'by_permit_date' where id = ${tenantA}::uuid`;
     const tenant = await tenantRow(tenantA);
-    expect(projectEdition((await projectRow(kept)).code_edition, tenant.code_edition)).toBe('fbc9_nec2023');
-    expect((await projectRow(kept)).code_edition).toBe('fbc9_nec2023');
+    expect(projectEdition((await projectRow(kept)).code_edition, tenant.code_edition)).toBe('fbc8_nec2020');
+    expect((await projectRow(kept)).code_edition).toBe('fbc8_nec2020');
     await harnessSql()`update public.tenant set code_edition = 'fbc9_nec2023' where id = ${tenantA}::uuid`;
   });
 
@@ -126,7 +126,7 @@ describe('EZD-613 update_tenant_code_edition and the project edition', () => {
     const before = await tenantRow(tenantA);
     expect((await setDefault(plain, 'fbc9_nec2023', true)).error?.code).toBe('42501');
     expect((await setDefault(owner, 'FBC 2023', null)).error?.code).toBe('22023');
-    expect((await setDefault(owner, 'fbc8_nec2020', null)).error?.code).toBe('22023');
+    expect((await setDefault(owner, 'fbc7_nec2017', null)).error?.code).toBe('22023');
     expect(await tenantRow(tenantA)).toEqual(before);
   });
 
@@ -135,7 +135,7 @@ describe('EZD-613 update_tenant_code_edition and the project edition', () => {
     for (const bad of ['FBC 2023', 9, null]) {
       expect((await setProjectEdition(owner, p, bad)).error?.code, String(bad)).toBe('22023');
     }
-    expect((await projectRow(p)).code_edition).toBeNull();
+    expect((await projectRow(p)).code_edition).toBe('fbc9_nec2023');
   });
 
   it("one company cannot change or read another company's code edition", async () => {
@@ -152,6 +152,6 @@ describe('EZD-613 update_tenant_code_edition and the project edition', () => {
     const p = await create(owner, 'Company A project');
     const cross = await setProjectEdition(ownerB, p, 'fbc9_nec2023');
     expect(cross.error).not.toBeNull();
-    expect((await projectRow(p)).code_edition).toBeNull();
+    expect((await projectRow(p)).code_edition).toBe('fbc9_nec2023');
   });
 });

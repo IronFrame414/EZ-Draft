@@ -1,0 +1,508 @@
+/* EZD-1415: S17b Field measure (board S17bFieldMeasure). Tokens from src/styles/tokens.css; touch targets 44 px. */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-family: var(--ez-font-sans);
+}
+
+.header {
+  padding: 10px 16px 10px;
+  border-bottom: 1px solid var(--ez-divider);
+  background: var(--ez-surface);
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--ez-touch-target);
+  color: var(--ez-slate-500);
+  font-size: var(--ez-text-13);
+  text-decoration: none;
+}
+
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--ez-text-18);
+  font-weight: 600;
+}
+
+.project {
+  color: var(--ez-slate-500);
+  font-size: var(--ez-text-12);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--ez-touch-target);
+  padding: 0 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-surface);
+  color: var(--ez-slate-700);
+  font: inherit;
+  font-size: var(--ez-text-13);
+  font-weight: 500;
+}
+
+.chipOn {
+  background: var(--ez-cobalt-tint);
+  border-color: var(--ez-cobalt);
+  color: var(--ez-cobalt-deep);
+  font-weight: 600;
+}
+
+.addRoom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.addForm {
+  display: flex;
+  gap: 6px;
+}
+
+.nameInput {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--ez-touch-target);
+  padding: 0 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  font: inherit;
+  font-size: var(--ez-text-14);
+}
+
+.primary,
+.secondary {
+  min-height: var(--ez-touch-target);
+  padding: 0 14px;
+  border-radius: var(--ez-radius-8);
+  font: inherit;
+  font-size: var(--ez-text-14);
+  font-weight: 600;
+}
+
+.primary {
+  border: 0;
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+}
+
+.primary:disabled {
+  opacity: 0.5;
+}
+
+.secondary {
+  border: 1px solid var(--ez-border);
+  background: var(--ez-surface);
+  color: var(--ez-slate-700);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 14px 16px;
+}
+
+.shapes {
+  display: flex;
+  gap: 6px;
+}
+
+.shape {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--ez-touch-target);
+  padding: 8px 4px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  color: var(--ez-slate-500);
+  font: inherit;
+  font-size: var(--ez-text-11);
+  font-weight: 500;
+}
+
+.shapeOn {
+  border: 2px solid var(--ez-cobalt);
+  padding: 7px 3px;
+  background: var(--ez-unread-tint);
+  color: var(--ez-cobalt-deep);
+  font-weight: 600;
+}
+
+.canvasCard {
+  position: relative;
+  padding: 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  background: var(--ez-surface);
+}
+
+.canvas {
+  position: relative;
+  width: 100%;
+}
+
+.canvasSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: manipulation;
+}
+
+.canvasSvg[data-drawing='true'] {
+  cursor: crosshair;
+}
+
+.floor {
+  fill: var(--ez-canvas);
+}
+
+.wall {
+  stroke: var(--ez-ink);
+  stroke-width: 4;
+  stroke-linecap: square;
+  fill: none;
+}
+
+.wallOn {
+  stroke: var(--ez-cobalt);
+}
+
+.wallHit {
+  stroke: transparent;
+  stroke-width: 18;
+  cursor: pointer;
+}
+
+.wallLength {
+  font-family: var(--ez-font-mono);
+  font-size: var(--ez-text-11);
+  fill: var(--ez-ink);
+  pointer-events: none;
+}
+
+.corner {
+  fill: var(--ez-ink);
+}
+
+.firstCorner {
+  fill: var(--ez-surface);
+  stroke: var(--ez-cobalt);
+  stroke-width: 2;
+}
+
+.letter {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ez-touch-target);
+  height: var(--ez-touch-target);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  transform: translate(-50%, -50%);
+}
+
+.letter span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-ink);
+  color: var(--ez-surface);
+  font-size: var(--ez-text-11);
+  font-weight: 700;
+}
+
+.letterOn span {
+  background: var(--ez-cobalt);
+}
+
+.canvasHint {
+  margin: 4px 0 0;
+  color: var(--ez-slate-500);
+  font-size: var(--ez-text-12);
+  text-align: center;
+}
+
+.fields {
+  display: flex;
+  gap: 8px;
+}
+
+.field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 64px;
+  padding: 6px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+}
+
+.field[data-field='wall'] {
+  flex: 1.6;
+}
+
+.fieldOn {
+  border: 2px solid var(--ez-cobalt);
+  padding: 5px 11px;
+}
+
+.fieldLabel {
+  color: var(--ez-slate-500);
+  font-size: var(--ez-text-12);
+}
+
+.fieldOn .fieldLabel {
+  color: var(--ez-cobalt-deep);
+  font-weight: 600;
+}
+
+.fieldValue,
+.fieldInput {
+  font-family: var(--ez-font-mono);
+  font-size: var(--ez-text-20);
+  color: var(--ez-ink);
+}
+
+.fieldInput {
+  width: 100%;
+  min-height: var(--ez-touch-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.fieldInput[aria-invalid='true'] {
+  color: var(--ez-red-text);
+}
+
+.refused {
+  color: var(--ez-red-text);
+  font-size: var(--ez-text-11);
+}
+
+.hintLine {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  color: var(--ez-slate-500);
+  font-size: var(--ez-text-12);
+}
+
+.progress {
+  flex: none;
+}
+
+/* EZD-1416: auto-filled length (grey), closure badge, keypad (board S17bFieldMeasure). */
+
+.wallLengthAuto {
+  fill: var(--ez-slate-400);
+}
+
+.fieldAuto {
+  color: var(--ez-slate-400);
+}
+
+.closure {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0 4px;
+  padding: 4px 10px;
+  border-radius: var(--ez-radius-999);
+  background: var(--ez-canvas);
+  color: var(--ez-slate-500);
+  font-size: var(--ez-text-12);
+}
+
+.closureOk {
+  background: var(--ez-green-tint);
+  color: var(--ez-green);
+}
+
+.closureAmber {
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-text);
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin: 4px -14px 0;
+  padding: 8px;
+  background: var(--ez-canvas-grid);
+}
+
+.key {
+  min-height: var(--ez-touch-target);
+  height: 46px;
+  border: 0;
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-family: var(--ez-font-mono);
+  font-size: var(--ez-text-18);
+}
+
+.keyMark {
+  background: var(--ez-canvas);
+  font-size: var(--ez-text-14);
+}
+
+.keyNext {
+  grid-column: span 2;
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+  font-family: var(--ez-font-sans);
+  font-size: var(--ez-text-15);
+  font-weight: 600;
+}
+
+.key:disabled {
+  opacity: 0.5;
+}
+
+/* EZD-1417: Saved on phone status (board: green, cloud icon, top right) and the menu holding Send to office. */
+.topEnd {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--ez-text-13);
+}
+
+.statusOk {
+  color: var(--ez-green);
+}
+
+.statusWait {
+  color: var(--ez-slate-500);
+}
+
+.statusBad {
+  color: var(--ez-red-text);
+}
+
+.menuWrap {
+  position: relative;
+}
+
+.menuButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--ez-touch-target);
+  min-height: var(--ez-touch-target);
+  border: 0;
+  background: none;
+  color: var(--ez-slate-700);
+  cursor: pointer;
+}
+
+.menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 10;
+  min-width: 180px;
+  padding: 4px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  box-shadow: var(--ez-shadow-floating);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--ez-touch-target);
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--ez-radius-8);
+  background: none;
+  color: var(--ez-ink);
+  font: inherit;
+  font-size: var(--ez-text-14);
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuItem:disabled {
+  color: var(--ez-slate-400);
+  cursor: default;
+}
+
+/* EZD-1419 (S17b States "sent (read-only until reopened by office)"): the read-only line under the title. */
+.readOnly {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--ez-cobalt-tint);
+  color: var(--ez-slate-700);
+  font-size: var(--ez-text-12);
+}

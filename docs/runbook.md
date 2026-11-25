@@ -296,3 +296,16 @@ Only Josh can do these (account, sudo, Docker Desktop settings). Order: steps 1 
    - ezdraft's password must be as strong as yours and not reused, because it can unlock this Mac's disk. Never sign ezdraft in with an Apple ID.
 
 Orchestrator setup (row O1), after step 2: each as ezdraft through `S` = `/usr/bin/sudo -n /bin/launchctl asuser 502 /usr/bin/sudo -n -u ezdraft -- /usr/bin/env -i HOME=/Users/ezdraft PATH=/opt/homebrew/bin:/usr/bin:/bin`, run from `/`: (a) `S /bin/mkdir -p -m 0755 /Users/ezdraft/gate`; (b) `S FNM_DIR=/Users/ezdraft/.local/share/fnm /opt/homebrew/bin/fnm install v22.23.3`; (c) `S PATH=<B>:/usr/bin:/bin <B>/npm install -g pnpm@12.14.0` with `<B>` = `/Users/ezdraft/.local/share/fnm/node-versions/v22.23.3/installation/bin`; then Josh does step 3. Checks: (d) `S /usr/bin/id -u` prints `502`; (e) `S /bin/cat /Users/josh/.zprofile` exits non-zero with `Permission denied`; (f) `S /bin/launchctl print gui/501` exits non-zero.
+
+## Loop watchdog (EZD-1968)
+
+launchd restarts the build loop (`com.ezdraft.build`) when it crashes, not when it hangs. The watchdog is a second LaunchAgent, `com.ezdraft.build-watchdog`, that runs `scripts/launchd/watchdog.mjs` every 5 minutes. It restarts the loop with `launchctl kickstart -k gui/<uid>/com.ezdraft.build` when `vault/build/heartbeat.jsonl`'s last beat is more than 15 minutes old or `vault/build/loop.log` has had no new line for 6 hours, and writes `WATCHDOG restarted the loop: <reason>` to loop.log. It restarts at most once an hour, does nothing while `vault/build/STOP` exists, and does nothing when `com.ezdraft.build` is not loaded. It only reads files and calls launchctl.
+
+Josh installs it, from the main checkout (`/Users/josh/Projects/ezdraft`, not a worktree, because the plist points at the folder it is run from):
+- `node scripts/launchd/build.mjs install-watchdog`
+- `node scripts/launchd/build.mjs uninstall-watchdog`
+- `node scripts/launchd/build.mjs status` shows both services. Watchdog log: `~/Library/Logs/ezdraft/watchdog.log`.
+
+## Loop build order (EZD-1940)
+
+The loop builds eligible tickets in this order: security fix tickets, then the `priority` list in `vault/build/config.json`, then retried tickets (a ticket that failed once and was requeued), then phase, build position and ticket id (`scripts/loop/order.mjs`). A retried ticket goes before every fresh ticket of the same priority rank, so the config.json priority list is no longer needed for retries; use it only to bring a fresh ticket forward. The running loop uses the new order only after a restart: its own self-restart after it merges a change under `scripts/loop/` (EZD-1967), or Josh or the overseer restarting `com.ezdraft.build`. The ticket itself never restarts it.

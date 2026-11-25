@@ -9,6 +9,7 @@
 //   By room groups (S02 Controls Mode; Decisions).
 // - Labels and scan values for the list and inspector (S02 Data shown "type, label, status, confidence %").
 import { formatLength, PLAN_DISPLAY_DENOMINATOR } from '@ezdraft/geometry';
+import { formatInches } from '../catalog/catalog';
 
 export type Pt = { x: number; y: number };
 export type Side = 'north' | 'east' | 'south' | 'west';
@@ -46,6 +47,8 @@ export type ReviewRoom = {
   areaSqIn: number;
   /** EZD-311: the gap (in) the room was kept out of square on; set from its fix (lib/imports/review-fix.ts). */
   keptGap?: Pt;
+  /** EZD-1418: the room's name as typed or picked on the phone (S17b + Room); a scan's rooms have none. */
+  name?: string;
 };
 
 /**
@@ -68,7 +71,43 @@ export type ReviewCeilingSlope = {
   pitchPer12: number;
 };
 
-export type ReviewItem = ReviewWall | ReviewOpening | ReviewRoom | ReviewCeilingSlope;
+/** EZD-915: the box types a supplier cabinet label names (the seed line's codes B, DB, SB and W; assumptions). */
+export type CabinetLabelType = 'base' | 'drawer_base' | 'sink_base' | 'wall';
+
+/** EZD-915: how one view of a supplier PDF reads against the cabinet's label. */
+export type CabinetViewCheck = 'agrees' | 'differs' | 'missing';
+
+/**
+ * EZD-915 (S12 Supplier PDF import "cabinet labels set size and type; plan and elevations cross-checked; result goes
+ * to Import review with confidence colors"; S02 States "Supplier kitchen PDF: cabinet labels read (W3030, B24) and
+ * plan vs elevation cross-check results shown per cabinet"): a cabinet box read from a supplier PDF's plan. Its type
+ * and size come from its label; `outline` is the box drawn around the label on the plan (model inches), and `check`
+ * says whether the plan outline and the elevation agree with the label, with what each measured.
+ */
+export type ReviewCabinet = {
+  id: string;
+  type: 'cabinet';
+  number: number;
+  confidence: number;
+  code: string;
+  boxType: CabinetLabelType;
+  width: number;
+  depth: number;
+  height: number;
+  center: Pt;
+  outline: { min: Pt; max: Pt } | null;
+  /** Cabinets whose plan outlines touch share a run number (1, 2, ...). */
+  run: number;
+  check: {
+    plan: CabinetViewCheck;
+    elevation: CabinetViewCheck;
+    /** The plan outline's two sides (in), larger first; null without an outline. */
+    planSize: { long: number; short: number } | null;
+    elevationSize: { width: number; height: number } | null;
+  };
+};
+
+export type ReviewItem = ReviewWall | ReviewOpening | ReviewRoom | ReviewCeilingSlope | ReviewCabinet;
 
 /**
  * The high-confidence cutoff (%) used while the company's Defaults value is Not set. S15d makes the cutoff a
@@ -137,6 +176,8 @@ export function reviewSummary(
     if (item.type === 'wall') accepted.walls += 1;
     else if (item.type === 'room') accepted.rooms += 1;
     else if (item.type === 'ceiling_slope') continue;
+    // EZD-915: a cabinet counts with "fixtures + cabinets" (S02 Controls Accepted summary).
+    else if (item.type === 'cabinet') accepted.fixtures += 1;
     else if (item.kind === 'door') accepted.doors += 1;
     else accepted.windows += 1;
   }
@@ -228,6 +269,22 @@ function distanceToBoundary(p: Pt, room: ReviewRoom): number {
 /** How far a point may sit from a room's boundary and still belong to it: half the wall, at least 6 in. */
 export const ROOM_EDGE_REACH_IN = 6;
 
+/** EZD-915: a point inside a room's boundary (ray casting) or within reach of its edge. */
+function inRoom(p: Pt, room: ReviewRoom): boolean {
+  const b = room.boundary;
+  if (b.length < 2) return false;
+  if (distanceToBoundary(p, room) <= ROOM_EDGE_REACH_IN) return true;
+  if (!room.closed) return false;
+  let inside = false;
+  for (let i = 0, j = b.length - 1; i < b.length; j = i, i += 1) {
+    if (b[i].y > p.y !== b[j].y > p.y && p.x < ((b[j].x - b[i].x) * (p.y - b[i].y)) / (b[j].y - b[i].y) + b[i].x) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+
 const reach = (thickness: number | null) => Math.max(ROOM_EDGE_REACH_IN, (thickness ?? 0) / 2);
 
 /**
@@ -256,6 +313,8 @@ export function roomGroups(items: readonly ReviewItem[]): RoomGroup[] {
     // EZD-312: a ceiling slope goes with the room it was read for.
     else if (item.type === 'ceiling_slope')
       roomId = item.roomId !== null && groups.has(item.roomId) ? item.roomId : null;
+    // EZD-915: a cabinet goes with the room its centre is in or on.
+    else if (item.type === 'cabinet') roomId = rooms.find((rm) => inRoom(item.center, rm))?.id ?? null;
     else if (item.hostWallId !== null && wallRoom.has(item.hostWallId)) roomId = wallRoom.get(item.hostWallId) ?? null;
     else roomId = rooms.find((rm) => on(item.center, rm, ROOM_EDGE_REACH_IN))?.id ?? null;
     groups.get(roomId)?.push(item);
@@ -285,15 +344,18 @@ export function itemLabel(item: ReviewItem, items: readonly ReviewItem[]): strin
   if (item.type === 'room') return `Room ${item.number}`;
   // EZD-312: "Ceiling slope, east" (S02 Data shown; board S02), named by the side it rises toward.
   if (item.type === 'ceiling_slope') return `Ceiling slope, ${item.highSide}`;
+  // EZD-915: a cabinet by its label (S02 States "cabinet labels read (W3030, B24)").
+  if (item.type === 'cabinet') return `Cabinet ${item.code}`;
   return item.kind === 'door' ? `Door D${item.number}` : `Window W${item.number}`;
 }
 
-export type ItemTypeWord = 'Wall' | 'Door' | 'Window' | 'Room' | 'Ceiling';
+export type ItemTypeWord = 'Wall' | 'Door' | 'Window' | 'Room' | 'Ceiling' | 'Cabinet';
 
 export function itemTypeWord(item: ReviewItem): ItemTypeWord {
   if (item.type === 'wall') return 'Wall';
   if (item.type === 'room') return 'Room';
   if (item.type === 'ceiling_slope') return 'Ceiling';
+  if (item.type === 'cabinet') return 'Cabinet';
   return item.kind === 'door' ? 'Door' : 'Window';
 }
 
@@ -305,6 +367,7 @@ export function scanReads(item: ReviewItem): string {
   }
   if (item.type === 'opening') return formatLength(item.width, PLAN_DISPLAY_DENOMINATOR);
   if (item.type === 'ceiling_slope') return slopeText(item);
+  if (item.type === 'cabinet') return cabinetSizeText(item);
   return `${Math.round(item.areaSqIn / 144)} SF`;
 }
 
@@ -312,6 +375,39 @@ export function scanReads(item: ReviewItem): string {
 export function slopeText(s: { lowHeight: number; highHeight: number; pitchPer12: number }): string {
   const pitch = Math.round(s.pitchPer12 * 10) / 10;
   return `${formatLength(s.lowHeight, PLAN_DISPLAY_DENOMINATOR)} to ${formatLength(s.highHeight, PLAN_DISPLAY_DENOMINATOR)} · ${pitch}/12`;
+}
+
+/**
+ * EZD-915: a cabinet's size from its label, W x D x H (S12 Data shown "Plan boxes: ... W x D x H") in inches as the
+ * catalog card writes sizes (formatInches), e.g. "24 × 24 × 34 1/2".
+ */
+export function cabinetSizeText(c: { width: number; depth: number; height: number }): string {
+  return [c.width, c.depth, c.height].map(formatInches).join(' × ');
+}
+
+export type CabinetCheckLine = {
+  view: 'plan' | 'elevation';
+  state: CabinetViewCheck;
+  /** What the view measured in inches, e.g. "27 × 34 1/2"; null when nothing was measured. */
+  size: string | null;
+};
+
+/**
+ * EZD-915 (S02 States "plan vs elevation cross-check results shown per cabinet"): one line per view for the
+ * inspector: the view agrees with the label, reads another size, or was not found (a plan box with no outline).
+ */
+export function cabinetCheckLines(c: ReviewCabinet): CabinetCheckLine[] {
+  const p = c.check.planSize;
+  const e = c.check.elevationSize;
+  const line = (view: CabinetCheckLine['view'], size: string | null): CabinetCheckLine => ({
+    view,
+    state: size === null ? 'missing' : c.check[view],
+    size,
+  });
+  return [
+    line('plan', p ? `${formatInches(p.long)} × ${formatInches(p.short)}` : null),
+    line('elevation', e ? `${formatInches(e.width)} × ${formatInches(e.height)}` : null),
+  ];
 }
 
 export type ReviewFile = { name: string; kind: string };
@@ -323,6 +419,10 @@ export type ReviewFile = { name: string; kind: string };
 export function sourceLine(files: readonly ReviewFile[]): string {
   const scan = files.some((f) => f.kind === 'polycam_dxf' || f.kind === 'polycam_glb');
   if (!scan && files.length > 0 && files.every((f) => f.kind === 'pdf')) return 'PDF';
+  // EZD-915: an import from supplier PDFs alone (wording for Josh to confirm, assumptions EZD-915).
+  if (!scan && files.length > 0 && files.every((f) => f.kind === 'supplier_pdf')) return 'Supplier PDF';
+  // EZD-1418: rooms sent from the phone (S02 Entry points "source kind field_measure"; assumptions EZD-1418).
+  if (!scan && files.length > 0 && files.every((f) => f.kind === 'field_measure')) return 'Field measure';
   const hasMesh = files.some((f) => f.kind === 'polycam_glb');
   return hasMesh ? 'Polycam Space · DXF + GLB' : 'Polycam Space · DXF';
 }
@@ -336,6 +436,7 @@ export function itemExtents(items: readonly ReviewItem[]): Extents | null {
     if (item.type === 'wall') pts.push(item.geometry.start, item.geometry.end);
     else if (item.type === 'room') pts.push(...item.boundary);
     else if (item.type === 'opening') pts.push(item.center);
+    else if (item.type === 'cabinet') pts.push(...(item.outline ? [item.outline.min, item.outline.max] : [item.center]));
   }
   if (pts.length === 0) return null;
   return {

@@ -1,5 +1,7 @@
 // EZD-131 (S15h; AC-EZD-131-1; Q-0225): Settings > Libraries. Without the Libraries switch, the no-access line
 // in place (HTTP 200, URL unchanged). This static folder takes precedence over [section].
+// EZD-1408 (S15h Permissions "Edit field tasks may also edit field task templates. Without either, the section is
+// hidden"): with Edit field tasks and no Libraries switch, only the Field task templates tab shows.
 import { connection } from 'next/server';
 import { LibrariesPanel } from '../../../../components/settings/libraries/LibrariesPanel';
 import { SettingsMain } from '../../../../components/settings/SettingsShell';
@@ -14,7 +16,8 @@ export default async function Page() {
   const ctx = await settingsPermissionContext();
   // The layout shows the load error.
   if (ctx === 'failed') return null;
-  if (!can(ctx, 'settings_libraries')) {
+  const full = can(ctx, 'settings_libraries');
+  if (!full && !can(ctx, 'edit_field_tasks')) {
     return (
       <SettingsMain>
         <NoAccess />
@@ -27,7 +30,7 @@ export default async function Page() {
       title="office.settings.section.libraries"
       subtitle="office.libraries.subtitle"
     >
-      <LibrariesPanel />
+      {full ? <LibrariesPanel /> : <LibrariesPanel initialTab="task_templates" onlyTemplates />}
     </SettingsMain>
   );
 }

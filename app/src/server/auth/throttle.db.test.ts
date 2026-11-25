@@ -6,7 +6,9 @@
 // from the gate secret the Vitest global setup sets. The IP tests use their own TEST-NET-3 addresses
 // (RFC 5737) and clear their rows before and after, so no bucket is shared with another test.
 // Sends to one address are spaced by the local [auth.email] max_frequency (supabase/config.toml) plus 100 ms,
-// counted from the moment the previous send to that address returned (EZD-391).
+// counted from the moment the previous send to that address returned (EZD-391). EZD-1949: the gap is kept on
+// an injected clock (test-harness/auth-send-clock.ts) that moves the address's last Auth send times back
+// instead of sleeping, and T13's quiet wait is a mail fence (mailFence); Auth's window is unchanged.
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -17,7 +19,13 @@ import {
   createPasswordMember,
   createTestMember,
 } from '../../../test-harness/auth-users';
-import { countAuthEmails, waitForAuthEmail } from '../../../test-harness/mail-catcher';
+import {
+  authSendClock,
+  manualClock,
+  sendAuthEmail,
+  type Clock,
+} from '../../../test-harness/auth-send-clock';
+import { countAuthEmails, mailFence, waitForAuthEmail } from '../../../test-harness/mail-catcher';
 import { adminSql } from '../../../test-harness/rls/db';
 import { auditRls } from '../../../test-harness/rls/audit';
 import {
@@ -37,17 +45,20 @@ import { throttleKey } from './throttle';
 type Write = { name: string; value: string; options: Record<string, unknown>; deleted: boolean };
 type Store = { map: Map<string, string>; writes: Write[] };
 
-const state = vi.hoisted(() => ({
-  store: { map: new Map<string, string>(), writes: [] as unknown[] } as {
-    map: Map<string, string>;
-    writes: unknown[];
-  },
-  xff: null as string | null,
-}));
+// EZD-1949: T11-T14 run concurrently, so run() gives each call its own store and x-forwarded-for through
+// AsyncLocalStorage; state.store is the fallback outside run().
+type Person = { store: { map: Map<string, string>; writes: unknown[] }; xff: string | null };
+const state = await vi.hoisted(async () => {
+  const { AsyncLocalStorage } = await import('node:async_hooks');
+  return {
+    store: { map: new Map<string, string>(), writes: [] as unknown[] } as Person['store'],
+    person: new AsyncLocalStorage<Person>(),
+  };
+});
 
 vi.mock('next/headers', () => ({
   cookies: async () => {
-    const s = state.store;
+    const s = state.person.getStore()?.store ?? state.store;
     const record = (name: string, value: string, options: Record<string, unknown>) => {
       const deleted = value === '' || options.maxAge === 0;
       s.writes.push({ name, value, options, deleted });
@@ -85,7 +96,8 @@ vi.mock('next/headers', () => ({
   },
   headers: async () => {
     const h = new Headers();
-    if (state.xff) h.set('x-forwarded-for', state.xff);
+    const xff = state.person.getStore()?.xff ?? null;
+    if (xff) h.set('x-forwarded-for', xff);
     return h;
   },
 }));
@@ -109,10 +121,15 @@ function form(fields: Record<string, string>): FormData {
 
 type Outcome = { redirect: string } | { resolved: unknown };
 
-async function run(store: Store, action: () => Promise<unknown>): Promise<Outcome> {
+async function run(
+  store: Store,
+  action: () => Promise<unknown>,
+  xff: string | null = null,
+): Promise<Outcome> {
   activate(store);
+  const person = { store: store as unknown as Person['store'], xff };
   try {
-    const value = await action();
+    const value = await state.person.run(person, action);
     await macrotask();
     return { resolved: value };
   } catch (e) {
@@ -150,17 +167,22 @@ function maxFrequencyMs(): number {
 }
 
 const lastSend = new Map<string, number>();
-async function spaced<T>(email: string, gapMs: number, send: () => Promise<T>): Promise<T> {
+async function spaced<T>(
+  email: string,
+  gapMs: number,
+  send: () => Promise<T>,
+  clock: Clock = authSendClock(email),
+): Promise<T> {
   const last = lastSend.get(email);
   if (last !== undefined) {
-    let wait = last + gapMs - performance.now();
+    let wait = last + gapMs - clock.now();
     while (wait > 0) {
-      await sleep(wait);
-      wait = last + gapMs - performance.now();
+      await clock.sleep(wait);
+      wait = last + gapMs - clock.now();
     }
   }
   const out = await send();
-  lastSend.set(email, performance.now());
+  lastSend.set(email, clock.now());
   return out;
 }
 
@@ -185,7 +207,6 @@ describe('EZD-033 sign-in throttle', () => {
   });
 
   beforeEach(() => {
-    state.xff = null;
     activate(newStore());
   });
 
@@ -196,7 +217,7 @@ describe('EZD-033 sign-in throttle', () => {
     await closeHarness();
   });
 
-  it('EZD-033 T11 wrong passwords are throttled per email and the emailed code stays open', async () => {
+  it.concurrent('EZD-033 T11 wrong passwords are throttled per email and the emailed code stays open', async () => {
     const w = await createPasswordMember({ tenantId: tenant });
     const store = newStore();
     for (let i = 1; i <= 5; i += 1) {
@@ -243,7 +264,7 @@ describe('EZD-033 sign-in throttle', () => {
     ).toEqual({ resolved: { error: 'password_throttled' } });
   }, 120000);
 
-  it('EZD-033 T12 wrong codes are throttled per email; the password stays open', async () => {
+  it.concurrent('EZD-033 T12 wrong codes are throttled per email; the password stays open', async () => {
     const k = await createPasswordMember({ tenantId: tenant });
     const store = newStore();
     const before = new Date();
@@ -272,7 +293,7 @@ describe('EZD-033 sign-in throttle', () => {
     ).toEqual({ redirect: '/' });
   }, 120000);
 
-  it('EZD-033 T13 EZD-391 sign-in emails are throttled per email, the same for an unknown address', async () => {
+  it.concurrent('EZD-033 T13 EZD-391 sign-in emails are throttled per email, the same for an unknown address', async () => {
     const e = await createTestMember({ tenantId: tenant, status: 'active' });
     const ghost = unknownEmail();
     for (const email of [e.email, ghost]) {
@@ -286,33 +307,39 @@ describe('EZD-033 sign-in throttle', () => {
         });
       }
     }
-    await sleep(3000);
+    const fence = await createPasswordMember({ tenantId: tenant });
+    await mailFence(fence.email, () => sendAuthEmail(fence.email));
     expect(await countAuthEmails(e.email)).toBe(5);
   }, 120000);
 
-  it('EZD-033 T14 per-IP throttle', async () => {
+  it.concurrent('EZD-033 T14 per-IP throttle', async () => {
     const member = await createPasswordMember({ tenantId: tenant });
-    state.xff = IP_A;
+    let xff = IP_A;
     for (let i = 1; i <= 30; i += 1) {
       expect(
-        await run(newStore(), () => requestSignIn(form({ email: unknownEmail() }))),
+        await run(newStore(), () => requestSignIn(form({ email: unknownEmail() })), xff),
         `request ${i}`,
       ).toEqual({ resolved: { step: 'code' } });
     }
-    expect(await run(newStore(), () => requestSignIn(form({ email: unknownEmail() })))).toEqual({
+    expect(
+      await run(newStore(), () => requestSignIn(form({ email: unknownEmail() })), xff),
+    ).toEqual({
       resolved: { error: 'ip_throttled' },
     });
     const store = newStore();
     expect(
       await run(store, () =>
         signInWithPassword(form({ email: member.email, password: member.password })),
+        xff,
       ),
     ).toEqual({ resolved: { error: 'ip_throttled' } });
     expect(sbWrites(store)).toEqual([]);
     expect(await throttleRows('ip', throttleKey('ip', IP_A))).toBe(30);
 
-    state.xff = IP_B;
-    expect(await run(newStore(), () => requestSignIn(form({ email: unknownEmail() })))).toEqual({
+    xff = IP_B;
+    expect(
+      await run(newStore(), () => requestSignIn(form({ email: unknownEmail() })), xff),
+    ).toEqual({
       resolved: { step: 'code' },
     });
   }, 120000);
@@ -535,20 +562,31 @@ describe('EZD-033 sign-in throttle', () => {
 describe('EZD-391 send spacing', () => {
   it('EZD-391 S1 the next send to an address starts the gap after the previous send returned', async () => {
     const email = `spacing-${randomUUID().slice(0, 12)}@example.test`;
+    const clock = manualClock(1_000);
     let end1 = 0;
     let start2 = 0;
     expect(
-      await spaced(email, 200, async () => {
-        await sleep(500);
-        end1 = performance.now();
-        return 'first';
-      }),
+      await spaced(
+        email,
+        200,
+        async () => {
+          await clock.sleep(500);
+          end1 = clock.now();
+          return 'first';
+        },
+        clock,
+      ),
     ).toBe('first');
     expect(
-      await spaced(email, 200, async () => {
-        start2 = performance.now();
-        return 'second';
-      }),
+      await spaced(
+        email,
+        200,
+        async () => {
+          start2 = clock.now();
+          return 'second';
+        },
+        clock,
+      ),
     ).toBe('second');
     expect(start2 - end1).toBeGreaterThanOrEqual(200);
   });

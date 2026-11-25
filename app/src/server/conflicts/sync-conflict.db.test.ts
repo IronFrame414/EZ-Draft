@@ -2,7 +2,8 @@
 // D-Resolves, D-Cap; section 4; AC-EZD-299-11). Calls go through the gated serverDb of `signIn`, as a route
 // does. Expected values: the plan's Tests table rows (Q-0531, Q-0540, Q-0632 (a), S2).
 import { randomUUID } from 'node:crypto';
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { holdJobQueueShared } from '../../../test-harness/jobs/queue-lock';
 import { setPermissions } from '../../../test-harness/permissions/grant';
 import {
   adminDb,
@@ -85,6 +86,16 @@ async function world(): Promise<World> {
   await setPermissions(tenant, m2.membershipId, [...EDITOR]);
   return { tenant, project, m1, m2, s1: await signIn(m1.email) };
 }
+
+// This file leaves due job rows in the queue, so it holds the shared job-queue lock for its whole run
+// (test-harness/jobs/README.md): the unscoped sweep tests then never claim them.
+let releaseJobQueue: (() => Promise<void>) | undefined;
+beforeAll(async () => {
+  releaseJobQueue = await holdJobQueueShared();
+}, 180000);
+afterAll(async () => {
+  await releaseJobQueue?.();
+});
 
 describe('EZD-299a sync_conflict table and functions', () => {
   afterAll(async () => {

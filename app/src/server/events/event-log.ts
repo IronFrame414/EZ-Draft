@@ -98,7 +98,9 @@ export const EVENT_LOG: EventLogRules = {
   'field.measurement_rejected': SINK,
   'field.measure_sent': SINK,
   'field_pack.issued': SINK,
-  'share_link.expiring': SINK,
+  'offline_change.synced': SINK,
+  // EZD-1201: written by sweep_share_link_reminders in the reminder transaction.
+  'share_link.expiring': TRANSACTION,
   'cleanup.due': SINK,
   'code_check.completed': SINK,
   'design_option.created': SINK,
@@ -133,6 +135,11 @@ export const EVENT_LOG: EventLogRules = {
     mode: 'sink',
     object: (e) => ({ type: 'tenant', id: e.tenantId }),
   },
+  // EZD-709 (S15b Events emitted): Settings > Title block saved.
+  'tenant.title_block_updated': {
+    mode: 'sink',
+    object: (e) => ({ type: 'tenant', id: e.tenantId }),
+  },
   // EZD-1102 (S15f Events emitted): Settings > Render models saved.
   'render.model_config_updated': {
     mode: 'sink',
@@ -162,6 +169,11 @@ export const EVENT_LOG: EventLogRules = {
     object: (e) => ({ type: 'customer', id: e.payload.customerId }),
   },
   'project.created': {
+    mode: 'sink',
+    object: (e) => ({ type: 'project', id: e.payload.projectId }),
+  },
+  // EZD-711: the property appraiser import, on the project.
+  'property_record.imported': {
     mode: 'sink',
     object: (e) => ({ type: 'project', id: e.payload.projectId }),
   },
@@ -222,6 +234,12 @@ export const EVENT_LOG: EventLogRules = {
   // EZD-409: one row per save that wrote cabinet objects, on the project (at most one per save, within the
   // rows-per-save budget Q-0735 keeps for model.saved).
   'cabinet_schedule.updated': SINK,
+  // EZD-1201: written by resolve_share_link and renew_share_link in their own transactions.
+  'share_link.viewed': TRANSACTION,
+  'share_link.expired': TRANSACTION,
+  'share_link.renewed': TRANSACTION,
+  // EZD-417: written by save_edge_offer in its own transaction.
+  'edge_profile.offered': TRANSACTION,
 };
 
 // The first x-forwarded-for entry when it is one IPv4 or IPv6 address (no port, brackets or zone id), else

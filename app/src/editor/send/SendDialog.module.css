@@ -29,7 +29,7 @@
 
 .dialogTitle {
   margin: 0 0 14px;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
 }
 
@@ -41,12 +41,12 @@
 }
 
 .toLabel {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
 .toValue {
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
 }
 
@@ -54,12 +54,12 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
 .input {
-  font: 400 14px var(--ez-font-sans);
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
   color: var(--ez-ink);
   padding: 9px 10px;
   border: 1px solid var(--ez-border);
@@ -83,7 +83,7 @@
 
 .message {
   margin: 12px 0 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-ink);
 }
 
@@ -93,13 +93,13 @@
 
 .notice {
   margin: 8px 0 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
 .error {
   margin: 12px 0 0;
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-red);
 }
 
@@ -119,4 +119,62 @@
 .sendButton:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+/* EZD-1201: the Share panel's links under the send (Q-0213; Q-0781 in this dialog's style). */
+.links {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ez-border);
+}
+
+.linksTitle {
+  margin: 0 0 8px;
+  font-size: var(--ez-text-12);
+  font-weight: 600;
+  color: var(--ez-slate-500);
+}
+
+.linkList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.linkRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.linkText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.linkVersion {
+  font: 400 var(--ez-text-14) var(--ez-font-sans);
+  color: var(--ez-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.linkState {
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}
+
+.linkActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
 }

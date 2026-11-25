@@ -19,6 +19,9 @@ export type OutboxEntry = {
   value: ObjectValue | null;
   rev: number;
   queuedAt: number;
+  // EZD-1402 (11 Offline "sync on reconnect the same way as an autosave, followed by one checkpoint"): set when
+  // the change was queued while the device was offline; kept when a later online edit replaces the value.
+  offline?: true;
 };
 
 export type RefusedCode =
@@ -91,7 +94,14 @@ export type Batch = {
 };
 
 export type OutboxStorage = {
-  put(projectId: string, lockEpoch: number, changes: Change[], now: number): Promise<void>;
+  // EZD-1402: `offline` marks the entries queued while the device was offline.
+  put(
+    projectId: string,
+    lockEpoch: number,
+    changes: Change[],
+    now: number,
+    offline?: boolean,
+  ): Promise<void>;
   list(): Promise<OutboxEntry[]>;
   commit(projectId: string, sent: OutboxEntry[], saved: SavedObject[]): Promise<void>;
   drop(entries: OutboxEntry[]): Promise<void>;

@@ -9,7 +9,7 @@
   margin: 0;
   max-width: 320px;
   text-align: center;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   font-weight: 500;
   color: var(--ez-slate-500);
   pointer-events: none;

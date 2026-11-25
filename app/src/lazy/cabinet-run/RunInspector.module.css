@@ -7,7 +7,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  font-size: 14px;
+  font-size: var(--ez-text-14);
   color: var(--ez-ink);
 }
 
@@ -20,12 +20,12 @@
 
 .title {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   font-weight: 600;
 }
 
 .subtitle {
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   color: var(--ez-slate-500);
 }
 
@@ -39,7 +39,7 @@
 
 .head {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   font-weight: 600;
   color: var(--ez-slate-500);
 }
@@ -95,12 +95,12 @@
 }
 
 .tileLabel {
-  font-size: 13px;
+  font-size: var(--ez-text-13);
   font-weight: 500;
 }
 
 .tileValue {
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
@@ -113,13 +113,13 @@
 
 .list {
   font-family: var(--ez-font-mono);
-  font-size: 12px;
+  font-size: var(--ez-text-12);
   color: var(--ez-slate-500);
 }
 
 .total {
   font-family: var(--ez-font-mono);
-  font-size: 15px;
+  font-size: var(--ez-text-15);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -140,7 +140,7 @@
   border-radius: var(--ez-radius-8);
   background: var(--ez-surface);
   color: var(--ez-ink);
-  font: 600 14px var(--ez-font-sans);
+  font: 600 var(--ez-text-14) var(--ez-font-sans);
   cursor: pointer;
 }
 
@@ -170,7 +170,7 @@
 .close {
   border: 0;
   background: transparent;
-  font-size: 18px;
+  font-size: var(--ez-text-18);
   color: var(--ez-slate-500);
   cursor: pointer;
 }

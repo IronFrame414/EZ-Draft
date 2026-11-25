@@ -6,6 +6,7 @@
 import type { RailEntry, RailTool } from '../../components/shell/rail-types';
 import type { ToolKeyEvent } from '../tools/drawing-controller';
 import { isTypingTarget } from '../typed-entry/typed-entry';
+import { DEFAULT_BINDINGS, commandForKey, type ShortcutBindings } from '../../lib/defaults/shortcut-keys';
 
 export const PLAN_SURFACES = ['floor', 'ceiling', 'both'] as const;
 export type PlanSurface = (typeof PLAN_SURFACES)[number];
@@ -21,7 +22,9 @@ export type CeilingToolId =
   | 'low-voltage'
   | 'access-panel'
   | 'soffit'
-  | 'tag';
+  | 'tag'
+  // EZD-510: Switching zones, turned on from the left panel's Lighting section (board S05Ceiling), not the rail.
+  | 'switch-zone';
 
 export type SurfaceState = { surface: PlanSurface; tool: CeilingToolId | null };
 
@@ -53,11 +56,13 @@ export function createSurfaceSetting(surface: PlanSurface = 'floor'): SurfaceSet
 }
 
 // S05 Entry points "the Ceiling tool (roofing icon) in the standard tool rail".
+// EZD-230 (04 Tool rail "Ceiling | G"): its key is the company's, shown through railToolsWithKeys.
 export const CEILING_RAIL_TOOL: RailTool = {
   kind: 'tool',
   id: 'ceiling',
   icon: 'roofing',
   label: 'office.tool.ceiling',
+  shortcut: 'G',
 };
 
 // S05 Layout, in its order; the separator after Select as on board S05Ceiling.
@@ -122,14 +127,36 @@ export function ceilingRail(
   return { top, disabled: standard.disabled, only: standard.only };
 }
 
-// The standard tools' keys do nothing on the ceiling surfaces (their tools are not on the ceiling rail); V and the
-// edit keys stay. Shift+L is Measure, which is not on the ceiling rail either.
-// EZD-412: K (Countertops) too.
-const FLOOR_KEYS = new Set(['w', 'r', 'd', 'n', 'm', 'f', 's', 'c', 'k', 'e']);
-export function isFloorToolKey(e: ToolKeyEvent): boolean {
+// The standard tools' keys do nothing on the ceiling surfaces (their tools are not on the ceiling rail); Select, Help
+// and the edit keys stay. Measure is not on the ceiling rail either.
+// EZD-222 (S15d Keyboard shortcuts): the keys are the company's, so a rebound tool key is swallowed and its old
+// letter is not.
+// EZD-230: the tab keys (digits, which also open the typed boxes), Save, Check (on every mode rail, 04), Pan, Look up
+// and Ceiling itself are not floor tool keys either.
+const KEPT_COMMANDS: ReadonlySet<string> = new Set([
+  'select',
+  'help',
+  'undo',
+  'redo',
+  'copy',
+  'paste',
+  'ceiling',
+  'check',
+  'pan',
+  'look-up',
+  'tab-plan',
+  'tab-3d',
+  'tab-sheets',
+  'tab-render',
+  'save',
+]);
+export function isFloorToolKey(e: ToolKeyEvent, bindings: ShortcutBindings = DEFAULT_BINDINGS): boolean {
   if (e.defaultPrevented || isTypingTarget(e.target)) return false;
-  if (e.ctrlKey || e.metaKey || e.altKey) return false;
-  const key = e.key.toLowerCase();
-  if (e.shiftKey) return key === 'l';
-  return FLOOR_KEYS.has(key);
+  const command = commandForKey(bindings, e);
+  return command !== null && !KEPT_COMMANDS.has(command);
+}
+
+/** EZD-222: whether the key is the company's Select key, which ends the ceiling tool as Esc does. */
+export function isSelectKey(e: ToolKeyEvent, bindings: ShortcutBindings = DEFAULT_BINDINGS): boolean {
+  return !e.defaultPrevented && !isTypingTarget(e.target) && commandForKey(bindings, e) === 'select';
 }

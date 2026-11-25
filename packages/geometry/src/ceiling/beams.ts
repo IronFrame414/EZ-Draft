@@ -19,173 +19,18 @@ import type {
   RoomData,
   WallData,
 } from '../schema';
-import type { PickShape } from '../selection/shapes';
+import { add, dot } from '../vec';
+
+// EZD-1009: the layout and pick shape live in beam-layout.ts (the editor's first download takes only that file).
+export * from './beam-layout';
 
 const tol = COMPARISON_TOLERANCE_IN;
-
 type Room = { id: string; data: RoomData };
 type Wall = { id: string; data: WallData };
-
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y;
-const add = (a: Point, b: Point, k = 1): Point => ({ x: a.x + b.x * k, y: a.y + b.y * k });
 const perp = (u: Point): Point => ({ x: -u.y, y: u.x });
-
 function unit(a: Point, b: Point): Point | null {
   const L = Math.hypot(b.x - a.x, b.y - a.y);
   return L <= tol ? null : { x: (b.x - a.x) / L, y: (b.y - a.y) / L };
-}
-
-/** The room's ridge direction: its ridge line, else its longest boundary edge. */
-export function ridgeDirection(room: RoomData): Point {
-  const ridge = room.attributes.ceiling?.ridge ?? null;
-  const fromRidge = ridge === null ? null : unit(ridge.start, ridge.end);
-  if (fromRidge !== null) return fromRidge;
-  const b = room.geometry.boundary;
-  let best: Point = { x: 1, y: 0 };
-  let longest = 0;
-  for (let i = 0; i < b.length; i++) {
-    const p = b[i]!;
-    const q = b[(i + 1) % b.length]!;
-    const L = Math.hypot(q.x - p.x, q.y - p.y);
-    if (L > longest + tol) {
-      longest = L;
-      best = unit(p, q) ?? best;
-    }
-  }
-  return best;
-}
-
-/** `along`: the direction each beam runs; `across`: the direction the beams are spaced in. */
-export function beamFrame(beam: BeamData, room: RoomData): { along: Point; across: Point } {
-  const u = ridgeDirection(room);
-  return beam.attributes.direction === 'across_ridge'
-    ? { along: perp(u), across: u }
-    : { along: u, across: perp(u) };
-}
-
-export type BeamLine = { from: Point; to: Point };
-
-export type BeamLayout = {
-  /** Each beam's centre line, in the order across the span. */
-  beams: BeamLine[];
-  /** On-centre spacing; with one beam, the span. */
-  spacing: number;
-  count: number;
-  span: number;
-  along: Point;
-  across: Point;
-};
-
-/** The room's extent along `axis`, as [min, max] of the boundary's projections. */
-function extent(boundary: readonly Point[], axis: Point): [number, number] {
-  let lo = Infinity;
-  let hi = -Infinity;
-  for (const p of boundary) {
-    const t = dot(p, axis);
-    lo = Math.min(lo, t);
-    hi = Math.max(hi, t);
-  }
-  return [lo, hi];
-}
-
-/** Where the line { p : p·across = at } crosses the boundary, as [min, max] along `along`; null when it misses. */
-function chord(
-  boundary: readonly Point[],
-  across: Point,
-  along: Point,
-  at: number,
-): [number, number] | null {
-  const ts: number[] = [];
-  for (let i = 0; i < boundary.length; i++) {
-    const a = boundary[i]!;
-    const c = boundary[(i + 1) % boundary.length]!;
-    const da = dot(a, across) - at;
-    const dc = dot(c, across) - at;
-    if ((da > 0 && dc > 0) || (da < 0 && dc < 0)) continue;
-    if (da === dc) {
-      ts.push(dot(a, along), dot(c, along));
-      continue;
-    }
-    const k = da / (da - dc);
-    ts.push(dot(a, along) + (dot(c, along) - dot(a, along)) * k);
-  }
-  if (ts.length < 2) return null;
-  const lo = Math.min(...ts);
-  const hi = Math.max(...ts);
-  return hi - lo <= tol ? null : [lo, hi];
-}
-
-/** The number of beams and their spacing across a span (S05 "Spacing input", "Count input"). */
-export function beamCountAndSpacing(
-  span: number,
-  layout: BeamData['attributes']['layout'],
-): { count: number; spacing: number } {
-  if (layout.by === 'count') return { count: layout.count, spacing: span / layout.count };
-  const count = Math.max(1, Math.floor(span / layout.spacing + 1e-9));
-  return { count, spacing: count === 1 && span < layout.spacing ? span : layout.spacing };
-}
-
-/** The set's beams on its room's ceiling (plan view; the same for every placement). */
-export function beamLayout(beam: BeamData, room: RoomData): BeamLayout {
-  const { along, across } = beamFrame(beam, room);
-  const boundary = room.geometry.boundary;
-  const [lo, hi] = extent(boundary, across);
-  const span = hi - lo;
-  const { count, spacing } = beamCountAndSpacing(span, beam.attributes.layout);
-  const pitch = beam.attributes.layout.by === 'spacing' ? beam.attributes.layout.spacing : spacing;
-  const shift = beam.geometry.shift;
-  const middle = (lo + hi) / 2 + dot(shift, across);
-  const beams: BeamLine[] = [];
-  for (let i = 0; i < count; i++) {
-    const at = middle + (i - (count - 1) / 2) * (count === 1 ? 0 : pitch);
-    const c = chord(boundary, across, along, at);
-    if (c === null) continue;
-    let [from, to] = c;
-    const length = beam.attributes.length;
-    if (length !== null) {
-      const centre = (from + to) / 2 + dot(shift, along);
-      from = centre - length / 2;
-      to = centre + length / 2;
-    }
-    const base = { x: across.x * at, y: across.y * at };
-    beams.push({ from: add(base, along, from), to: add(base, along, to) });
-  }
-  return { beams, spacing, count, span, along, across };
-}
-
-/** Each beam's outline in plan: its centre line widened by the beam width. */
-export function beamOutlines(beam: BeamData, room: RoomData): [Point, Point, Point, Point][] {
-  const { beams, across } = beamLayout(beam, room);
-  const h = beam.attributes.width / 2;
-  return beams.map((l) => [
-    add(l.from, across, -h),
-    add(l.to, across, -h),
-    add(l.to, across, h),
-    add(l.from, across, h),
-  ]);
-}
-
-/** The set picks by the box around all its beams; null when no beam lands in the room. */
-export function beamSetPickShape(beam: BeamData, room: RoomData): PickShape | null {
-  const outlines = beamOutlines(beam, room);
-  if (outlines.length === 0) return null;
-  const { along, across } = beamFrame(beam, room);
-  let a0 = Infinity;
-  let a1 = -Infinity;
-  let c0 = Infinity;
-  let c1 = -Infinity;
-  for (const p of outlines.flat()) {
-    a0 = Math.min(a0, dot(p, along));
-    a1 = Math.max(a1, dot(p, along));
-    c0 = Math.min(c0, dot(p, across));
-    c1 = Math.max(c1, dot(p, across));
-  }
-  const at = (a: number, c: number): Point => add({ x: along.x * a, y: along.y * a }, across, c);
-  return {
-    kind: 'quad',
-    points: [at(a0, c0), at(a1, c0), at(a1, c1), at(a0, c1)],
-    area: (a1 - a0) * (c1 - c0),
-  };
 }
 
 /** The set moved by `delta` (S05 "Beams in a set move as a set"). */
@@ -193,8 +38,9 @@ export function moveBeamSet(beam: BeamData, delta: Point): BeamData {
   return { ...beam, geometry: { ...beam.geometry, shift: add(beam.geometry.shift, delta) } };
 }
 
-/** The walls of the room's level whose face lies along one of the room's boundary edges. */
-function roomWalls(room: Room, walls: readonly Wall[]): Wall[] {
+/** The walls of the room's level whose face lies along one of the room's boundary edges. EZD-503: exported for the
+ * ceiling type editor's per-wall heights. */
+export function roomWalls(room: Room, walls: readonly Wall[]): Wall[] {
   const b = room.data.geometry.boundary;
   const level = room.data.level.toLowerCase();
   return walls.filter((w) => {
@@ -204,8 +50,7 @@ function roomWalls(room: Room, walls: readonly Wall[]): Wall[] {
       const u = unit(f.start, f.end);
       if (u === null) return false;
       const L = dot({ x: f.end.x - f.start.x, y: f.end.y - f.start.y }, u);
-      const off = (p: Point) =>
-        Math.abs((p.x - f.start.x) * u.y - (p.y - f.start.y) * u.x);
+      const off = (p: Point) => Math.abs((p.x - f.start.x) * u.y - (p.y - f.start.y) * u.x);
       const t = (p: Point) => (p.x - f.start.x) * u.x + (p.y - f.start.y) * u.y;
       for (let i = 0; i < b.length; i++) {
         const p = b[i]!;
@@ -278,7 +123,9 @@ export function adjoiningRoom(room: Room, rooms: readonly Room[]): Room | null {
     }
     if (
       run > bestRun + tol ||
-      (best !== null && Math.abs(run - bestRun) <= tol && other.id.toLowerCase() < best.id.toLowerCase())
+      (best !== null &&
+        Math.abs(run - bestRun) <= tol &&
+        other.id.toLowerCase() < best.id.toLowerCase())
     ) {
       best = other;
       bestRun = run;
@@ -320,7 +167,9 @@ export function beamSetWarnings(beam: BeamData, objects: readonly ModelObject[])
       o.type === 'room' && o.id.toLowerCase() === roomId,
   );
   if (room === undefined) return [];
-  const walls = objects.filter((o): o is Extract<ModelObject, { type: 'wall' }> => o.type === 'wall');
+  const walls = objects.filter(
+    (o): o is Extract<ModelObject, { type: 'wall' }> => o.type === 'wall',
+  );
   return beamWarnings(beam, {
     ridge: roomRidgeHeight(room.data),
     plate: roomPlateHeight(room, walls),
@@ -345,8 +194,12 @@ export function newBeamSet(
   objects: readonly ModelObject[],
   status: BeamData['status'],
 ): BeamData {
-  const rooms = objects.filter((o): o is Extract<ModelObject, { type: 'room' }> => o.type === 'room');
-  const walls = objects.filter((o): o is Extract<ModelObject, { type: 'wall' }> => o.type === 'wall');
+  const rooms = objects.filter(
+    (o): o is Extract<ModelObject, { type: 'room' }> => o.type === 'room',
+  );
+  const walls = objects.filter(
+    (o): o is Extract<ModelObject, { type: 'wall' }> => o.type === 'wall',
+  );
   const ceilingType = room.data.attributes.ceilingType ?? 'flat';
   const plate = roomPlateHeight(room, walls);
   const next = adjoiningRoom(room, rooms);

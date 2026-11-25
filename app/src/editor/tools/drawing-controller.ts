@@ -44,6 +44,7 @@ import {
   selectionChips,
   swingSideOf,
   wallChips,
+  deviceChips,
   wallLength,
   type ChipSide,
   type DoorSwing,
@@ -135,8 +136,14 @@ import {
   type FixtureChoice,
   type LooseObject,
 } from './index';
+import { devicesOn } from './device-move';
 import { fixturesModule } from './fixtures-module';
 import { VIEW_TOOL_IDS } from './tool-defs';
+import {
+  DEFAULT_BINDINGS,
+  commandForKey,
+  type ShortcutBindings,
+} from '../../lib/defaults/shortcut-keys';
 import { sketchModule } from './sketch-module';
 import { initialSketchState, reduceSketch, type SketchState } from './sketch-tool';
 import {
@@ -146,6 +153,8 @@ import {
   type MeasureInput,
   type MeasureState,
 } from './measure-tool';
+import { idKey, sameIds } from '../shared/ids';
+import { createListeners } from '../shared/value-store';
 
 export type DrawingFrame = {
   rect: boolean;
@@ -238,6 +247,8 @@ export type DrawingDeps = {
   phase?: PhaseSource;
   // EZD-6001 D-Wire: the floor the user chose; without it new objects go on the lowest floor.
   floors?: FloorChoice;
+  // EZD-222 (S15d Keyboard shortcuts): the company key map in force, read on every key; the default map without it.
+  keys?: () => ShortcutBindings;
 };
 
 export type DrawingController = {
@@ -290,16 +301,12 @@ type SnapContext = { anchor: Point | null; referenceDirection: Point | null };
 
 const NO_CONTEXT: SnapContext = { anchor: null, referenceDirection: null };
 
-const sameIds = (a: readonly string[], b: readonly string[]) =>
-  a.length === b.length && a.every((id, i) => id === b[i]);
-
 const sameBoxes = (a: readonly GapBox[], b: readonly GapBox[]) =>
   a.length === b.length && JSON.stringify(a) === JSON.stringify(b);
 
 const wallsIn = (models: readonly ModelObject[]): WallObject[] =>
   models.filter((o): o is WallObject => o.type === 'wall');
 
-const lower = (id: string) => id.toLowerCase();
 const otherSide = (side: DoorSwing | null): DoorSwing => (side === 'left' ? 'right' : 'left');
 
 export function createDrawingController(deps: DrawingDeps): DrawingController {
@@ -309,6 +316,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   const snapSettings = deps.snapSettings ?? (() => DEFAULT_SNAP_SETTINGS);
   const ipadDrawing = deps.ipadDrawing ?? (() => 'finger' as const);
   const clock = deps.clock ?? (() => performance.now());
+  const keys = deps.keys ?? (() => DEFAULT_BINDINGS);
 
   const floorOf = (o: Objects) => openFloorId(o, chosenFloor(deps.floors));
   let objects: Objects = store.getState().objects;
@@ -325,6 +333,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   // EZD-227: the level's grab-bar blocking, which moves and is placed against the walls.
   let blockings: ModelObject[] = level === null ? [] : blockingsOn(objects, level);
   let beams: ModelObject[] = level === null ? [] : beamsOn(objects, level);
+  // EZD-602: the electrical devices, which a drag in electrical mode moves.
+  let devices: ModelObject[] = level === null ? [] : devicesOn(objects, level);
   // EZD-225: `let`, so `pause` can turn editing off when the lock is lost.
   let enabled = viewer.canEdit && level !== null;
 
@@ -357,8 +367,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   // EZD-223: the sketch strokes drawn on this page.
   let sketches: SketchShape[] = [];
 
-  const uiListeners = new Set<() => void>();
-  const frameListeners = new Set<(frame: DrawingFrame | null) => void>();
+  const uiListeners = createListeners();
+  const frameListeners = createListeners<[DrawingFrame | null]>();
 
   const computeBoxes = (): GapBox[] =>
     level === null
@@ -404,7 +414,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     ui = next;
     syncReceiver();
     syncHover();
-    for (const l of [...uiListeners]) l();
+    uiListeners.notify();
   };
 
   const receiver: PlanPointerReceiver = (event) => onPointer(event);
@@ -469,6 +479,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
           loose = level === null ? [] : looseOn(objects, level);
           blockings = level === null ? [] : blockingsOn(objects, level);
           beams = level === null ? [] : beamsOn(objects, level);
+          devices = level === null ? [] : devicesOn(objects, level);
           moveCache = null;
           index = createWallSnapIndex(snapWalls(models));
           drawingIds = currentDrawingIds();
@@ -487,6 +498,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     loose = level === null ? [] : looseOn(objects, level);
     blockings = level === null ? [] : blockingsOn(objects, level);
     beams = level === null ? [] : beamsOn(objects, level);
+    devices = level === null ? [] : devicesOn(objects, level);
     moveCache = null;
     if (level !== prevLevel || level === null) {
       index = createWallSnapIndex(snapWalls(models));
@@ -513,7 +525,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   // D7 (a): the walls and openings a move reads.
   function moveModels(): ModelObject[] {
-    if (moveCache === null) moveCache = [...models, ...openings, ...blockings, ...loose, ...beams];
+    if (moveCache === null)
+      moveCache = [...models, ...openings, ...blockings, ...loose, ...beams, ...devices];
     return moveCache;
   }
 
@@ -535,10 +548,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   }
 
   const findOpening = (id: string): OpeningObject | null =>
-    openings.find((o) => lower(o.id) === lower(id)) ?? null;
+    openings.find((o) => idKey(o.id) === idKey(id)) ?? null;
 
   const findWall = (id: string | null): WallObject | null =>
-    id === null ? null : (walls.find((w) => lower(w.id) === lower(id)) ?? null);
+    id === null ? null : (walls.find((w) => idKey(w.id) === idKey(id)) ?? null);
 
   // The opening the tool owns, when it is still in the model.
   const ownedOpening = (t: OpeningTool): OpeningObject | null =>
@@ -630,7 +643,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     if (ids.length !== 1) return result;
     const id = ids[0]!;
     const after = afterOf(outcome !== null && outcome.ok ? outcome.changed : []);
-    const o = after.find((x) => lower(x.id) === lower(id));
+    const o = after.find((x) => idKey(x.id) === idKey(id));
     if (o?.type === 'wall') {
       return {
         ...result,
@@ -641,6 +654,14 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     if (o?.type === 'opening') {
       return { ...result, opening: selectedOpeningFrame(o, after, false), selection: null };
     }
+    // EZD-602 (S06 "Canvas drag device: Moves device; live distances"): a dragged device shows its distances.
+    if (o?.type === 'device') {
+      return {
+        ...result,
+        opening: null,
+        selection: { handles: [], active: null, wallChips: deviceChips(after, o.id), size: null },
+      };
+    }
     return result;
   }
 
@@ -648,8 +669,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   function afterOf(changed: readonly ModelObject[]): ModelObject[] {
     const from = moveModels();
     if (changed.length === 0) return from;
-    const byId = new Map(changed.map((o) => [lower(o.id), o]));
-    return from.map((o) => byId.get(lower(o.id)) ?? o);
+    const byId = new Map(changed.map((o) => [idKey(o.id), o]));
+    return from.map((o) => byId.get(idKey(o.id)) ?? o);
   }
 
   // EZD-212c D9, D10: P211b's opening frame of one selected opening, its host and offsets read from `from`.
@@ -661,7 +682,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     const fromWalls = wallsIn(from);
     const hostId = o.data.geometry.hostWallId;
     const host =
-      hostId === null ? null : (fromWalls.find((w) => lower(w.id) === lower(hostId)) ?? null);
+      hostId === null ? null : (fromWalls.find((w) => idKey(w.id) === idKey(hostId)) ?? null);
     if (host === null) return null;
     return {
       data: o.data,
@@ -682,7 +703,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     const id = ids[0]!;
     const from = moveModels();
     const o = from.find(
-      (x) => (x.type === 'wall' || x.type === 'opening') && lower(x.id) === lower(id),
+      (x) => (x.type === 'wall' || x.type === 'opening') && idKey(x.id) === idKey(id),
     );
     if (o === undefined) return null;
     const selection: SelectionFrame = {
@@ -707,7 +728,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     const after = afterOf(changed ?? []);
     let size: SelectionFrame['size'] = null;
     if (h.kind === 'opening' && changed !== null && outcome !== null) {
-      const o = changed.find((x) => x.type === 'opening' && lower(x.id) === lower(h.id));
+      const o = changed.find((x) => x.type === 'opening' && idKey(x.id) === idKey(h.id));
       const normal = sizeChipNormal(after, h.id);
       if (o !== undefined && o.type === 'opening' && normal !== null)
         size = { at: o.data.geometry.center, normal, text: formatChipDistance(outcome.size) };
@@ -794,7 +815,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   function emitFrame(): void {
     frame = buildFrame();
-    for (const l of [...frameListeners]) l(frame);
+    frameListeners.notify(frame);
   }
 
   function finishStep(step: {
@@ -821,8 +842,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     refreshDrawingIds();
     // EZD-213c D-Finish: a chain that ended and left a gap selects the gap's last wall.
     const lastDrawn = before[before.length - 1];
-    if (lastDrawn !== undefined && !drawingIds.some((id) => lower(id) === lower(lastDrawn))) {
-      const box = ui.boxes.find((b) => b.wallIds.some((id) => lower(id) === lower(lastDrawn)));
+    if (lastDrawn !== undefined && !drawingIds.some((id) => idKey(id) === idKey(lastDrawn))) {
+      const box = ui.boxes.find((b) => b.wallIds.some((id) => idKey(id) === idKey(lastDrawn)));
       const id = box === undefined ? null : gapLastWallId(box);
       if (id !== null) link?.select([id]);
     }
@@ -1149,8 +1170,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     if (outcome.changed.length === 0) return;
     const before = moveModels();
-    const swapped = new Map(outcome.changed.map((o) => [lower(o.id), o]));
-    const after = before.map((o) => swapped.get(lower(o.id)) ?? o);
+    const swapped = new Map(outcome.changed.map((o) => [idKey(o.id), o]));
+    const after = before.map((o) => swapped.get(idKey(o.id)) ?? o);
     const fixtureMoved = outcome.changed.some((o) => o.type === 'fixture');
     store.applyEdit(
       moveEditChanges(
@@ -1247,7 +1268,9 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   // D7 (h): a Select drag handed over by the selection controller.
   function startDrag(ids: readonly string[], press: Point): void {
-    if (disposed || !enabled || level === null || tool !== null || ids.length === 0) return;
+    // EZD-602: electrical mode leaves the plan's presses to selection, so its drags move as under Select.
+    if (disposed || !enabled || level === null || ids.length === 0) return;
+    if (tool !== null && tool.id !== 'electrical') return;
     const base = moveSnap(press, null, []);
     drag = startMoveDrag(moveModels(), ids, base);
     emitFrame();
@@ -1302,7 +1325,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
                     ? { id, state: initialMeasureState() }
                     : id === 'cabinets' || id === 'countertops' || id === 'electrical'
                       ? { id, state: null }
-                    : { id, state: initialOpeningToolState(id) };
+                      : { id, state: initialOpeningToolState(id) };
     if (id === 'fixtures') loadFixtures();
     if (id === 'sketch') sketchModule.preload();
     // EZD-404: the cabinet screen covers the plan, so no plan object stays selected under it.
@@ -1372,7 +1395,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     if (ids.length !== 1) return;
     const from = moveModels();
     if (!selectionChips(from, ids).some((c) => c.side === side)) return;
-    const o = from.find((x) => lower(x.id) === lower(ids[0]!));
+    const o = from.find((x) => idKey(x.id) === idKey(ids[0]!));
     if (o === undefined) return;
     const objectKind =
       o.type === 'wall' ? 'wall' : o.type === 'opening' ? o.data.attributes.kind : null;
@@ -1403,40 +1426,28 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
 
   function keyDown(e: ToolKeyEvent): boolean {
     if (disposed || e.defaultPrevented || isTypingTarget(e.target)) return false;
-    // EZD-231: Shift+L and, while measuring, Esc work without Edit model; plain L stays free.
-    if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'l') {
-      selectTool('measure');
+    // EZD-222: the tool keys come from the company key map (S15d Keyboard shortcuts).
+    const command = commandForKey(keys(), e);
+    // EZD-231 Measure, EZD-404 Cabinets, EZD-412 Countertops and EZD-601 Electrical keys work without Edit model, and
+    // so does Esc while one of them is on.
+    if (
+      command === 'measure' ||
+      command === 'cabinets' ||
+      command === 'countertops' ||
+      command === 'electrical'
+    ) {
+      selectTool(command);
       return true;
     }
     if (tool !== null && tool.id === 'measure' && e.key === 'Escape') {
       measureInput({ type: 'escape' });
       return true;
     }
-    // EZD-404: C and, while the cabinet screen is open, Esc work without Edit model.
-    if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'c') {
-      selectTool('cabinets');
-      return true;
-    }
-    if (tool !== null && tool.id === 'cabinets' && e.key === 'Escape') {
-      selectTool(null);
-      return true;
-    }
-    // EZD-412 (S04b Entry points "Countertops (K) tool on the rail"; S04b Permissions "View projects: view pieces"): K
-    // and, while the countertop screen is open, Esc work without Edit model.
-    if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'k') {
-      selectTool('countertops');
-      return true;
-    }
-    if (tool !== null && tool.id === 'countertops' && e.key === 'Escape') {
-      selectTool(null);
-      return true;
-    }
-    // EZD-601: E (electrical mode) and, while it is on, Esc work without Edit model.
-    if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'e') {
-      selectTool('electrical');
-      return true;
-    }
-    if (tool !== null && tool.id === 'electrical' && e.key === 'Escape') {
+    if (
+      tool !== null &&
+      (tool.id === 'cabinets' || tool.id === 'countertops' || tool.id === 'electrical') &&
+      e.key === 'Escape'
+    ) {
       selectTool(null);
       return true;
     }
@@ -1494,34 +1505,16 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       emitFrame();
       return true;
     }
-    if (e.ctrlKey || e.metaKey || e.altKey) return false;
-    const key = e.key.toLowerCase();
-    if (key === 'w') {
-      selectTool('wall');
-      return true;
-    }
-    if (key === 'r') {
-      selectTool('room-rect');
-      return true;
-    }
-    if (key === 'd') {
-      selectTool('door');
-      return true;
-    }
-    if (key === 'n') {
-      selectTool('window');
-      return true;
-    }
-    if (key === 'm') {
-      selectTool('move');
-      return true;
-    }
-    if (key === 'f') {
-      selectTool('fixtures');
-      return true;
-    }
-    if (key === 's') {
-      selectTool('sketch');
+    if (
+      command === 'wall' ||
+      command === 'room-rect' ||
+      command === 'door' ||
+      command === 'window' ||
+      command === 'move' ||
+      command === 'fixtures' ||
+      command === 'sketch'
+    ) {
+      selectTool(command);
       return true;
     }
     return false;
@@ -1559,7 +1552,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       const entry = ui.entry;
       if (entry !== null) {
         const ids = next.getUi().ids;
-        const same = ids.length === 1 && lower(ids[0]!) === lower(entry.id);
+        const same = ids.length === 1 && idKey(ids[0]!) === idKey(entry.id);
         if (!same || entry.kind === 'handle') cancelEntry();
       }
       if (isOpeningTool(tool) || tool === null) emitFrame();
@@ -1580,7 +1573,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     const one =
       ids.length === 1
         ? from.find(
-            (x) => (x.type === 'wall' || x.type === 'opening') && lower(x.id) === lower(ids[0]!),
+            (x) => (x.type === 'wall' || x.type === 'opening') && idKey(x.id) === idKey(ids[0]!),
           )
         : undefined;
     if (one === undefined) {
@@ -1705,14 +1698,12 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     getUi: () => ui,
     subscribe(listener) {
       if (disposed) return () => {};
-      uiListeners.add(listener);
-      return () => void uiListeners.delete(listener);
+      return uiListeners.add(listener);
     },
     getFrame: () => frame,
     onFrame(listener) {
       if (disposed) return () => {};
-      frameListeners.add(listener);
-      return () => void frameListeners.delete(listener);
+      return frameListeners.add(listener);
     },
     selectTool,
     typed,
@@ -1744,7 +1735,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       setUi({ pick: null, gapMessage: null, boxes: computeBoxes() });
       ui = { ...ui, enabled };
       syncReceiver();
-      for (const l of [...uiListeners]) l();
+      uiListeners.notify();
     },
     dispose() {
       if (disposed) return;

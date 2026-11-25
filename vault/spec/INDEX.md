@@ -87,6 +87,7 @@ Code rule catalog: `code-rules.json` (1,248 rules, source of truth for the code_
   - [09q · Fixtures, existing conditions, tile shower, blocking and bearing walls: worked examples](sections/09q-existing-conditions-examples.md) — Q-0704
   - [09r · Load calc optional method, cases 1, 3, 4 and Table 220.55: worked examples](sections/09r-load-calc-examples.md) — Q-0761
   - [09s · Common loads seed: typical appliance ratings](sections/09s-common-loads-seed.md) — Q-0766, Q-0770
+  - [09t · Manual J load calculation](sections/09t-manual-j.md) — v2 (Q-0780); Q-0778 is overridden
 - [Permissions and settings](sections/10-permissions-and-settings.md)
 - [Non-functional requirements](sections/11-non-functional-requirements.md)
 - [Build phases and acceptance tests](sections/12-build-phases-and-acceptance-tests.md)

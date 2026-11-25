@@ -12,6 +12,11 @@
 // its whole group.
 // EZD-218 (Q-0677 (a); AC-EZD-218-5): rooms are picked by a click, a box and Select all, but a press with no other
 // object under it still starts a box, even inside a room, and a room is never dragged. A room draws its outline.
+import {
+  DEFAULT_BINDINGS,
+  commandForKey,
+  type ShortcutBindings,
+} from '../../lib/defaults/shortcut-keys';
 import type { Point } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { ModelStore } from '../model/model-store';
@@ -39,6 +44,8 @@ import { isTypingTarget } from '../typed-entry/typed-entry';
 import { expandGroups } from './groups';
 import type { PhaseFilter } from '../../lib/plan/phase-view';
 import { createPickIndex } from './pick-index';
+import { sameIds } from '../shared/ids';
+import { createListeners } from '../shared/value-store';
 
 export const SELECT_RAIL_TOOL: RailTool = {
   kind: 'tool',
@@ -78,6 +85,8 @@ export type SelectionDeps = {
   phase?: PhaseFilter & { subscribe(listener: () => void): () => void };
   // EZD-6001 D-Wire: the floor the user chose; without it the lowest floor is picked from.
   floors?: FloorChoice;
+  // EZD-222 (S15d Keyboard shortcuts): the company key map in force; the default map without it.
+  keys?: () => ShortcutBindings;
 };
 
 export type ReceiverSlots = {
@@ -121,9 +130,6 @@ const ESCAPE: ToolKeyEvent = {
   target: null,
 };
 
-const sameIds = (a: readonly string[], b: readonly string[]) =>
-  a.length === b.length && a.every((id, i) => id === b[i]);
-
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 
 const noop = () => {};
@@ -137,9 +143,9 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
   let press: Press | null = null;
   let box: SelectionBox | null = null;
   let disposed = false;
-  const uiListeners = new Set<() => void>();
-  const boxListeners = new Set<(box: SelectionBox | null) => void>();
-  const doubleClickListeners = new Set<(id: string) => void>();
+  const uiListeners = createListeners();
+  const boxListeners = createListeners<[SelectionBox | null]>();
+  const doubleClickListeners = createListeners<[string]>();
 
   const tolerance = () => HOVER_CAPTURE_PX / handle.getPixelsPerInch();
 
@@ -149,12 +155,12 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     if (!idsChanged && selectMore === ui.selectMore) return;
     ui = { ids: idsChanged ? [...ids] : ui.ids, selectMore };
     if (idsChanged) handle.setSelectedIds(ui.ids);
-    for (const l of [...uiListeners]) l();
+    uiListeners.notify();
   };
 
   const setBox = (next: SelectionBox | null) => {
     box = next;
-    for (const l of [...boxListeners]) l(next);
+    boxListeners.notify(next);
   };
 
   const dropPress = () => {
@@ -284,7 +290,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
       if (c.length === 0) return;
       cycle = { at: e.screen, i: 0 };
       setUi([c[0]!]);
-      for (const l of [...doubleClickListeners]) l(c[0]!);
+      doubleClickListeners.notify(c[0]!);
     }
     // `click` is ignored (R4).
   };
@@ -420,19 +426,17 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     getUi: () => ui,
     subscribe(listener) {
       if (disposed) return noop;
-      uiListeners.add(listener);
-      return () => void uiListeners.delete(listener);
+      return uiListeners.add(listener);
     },
     getBox: () => box,
     onBox(listener) {
       if (disposed) return noop;
-      boxListeners.add(listener);
-      return () => void boxListeners.delete(listener);
+      return boxListeners.add(listener);
     },
     keyDown(e) {
       if (disposed || e.defaultPrevented || isTypingTarget(e.target)) return false;
       if (e.key === 'Escape') return escape(e);
-      if ((e.key === 'v' || e.key === 'V') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (commandForKey(deps.keys?.() ?? DEFAULT_BINDINGS, e) === 'select') {
         return selectToolStep();
       }
       if ((e.key === 'a' || e.key === 'A') && (e.ctrlKey || e.metaKey) && !e.altKey) {
@@ -467,8 +471,7 @@ export function createSelectionController(deps: SelectionDeps): SelectionControl
     pickAt: (model) => index.pick(model, tolerance()),
     onDoubleClick(listener) {
       if (disposed) return noop;
-      doubleClickListeners.add(listener);
-      return () => void doubleClickListeners.delete(listener);
+      return doubleClickListeners.add(listener);
     },
     dispose() {
       if (disposed) return;
