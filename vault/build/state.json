@@ -518,7 +518,8 @@
     "EZD-1906c",
     "EZD-1977",
     "EZD-1979",
-    "EZD-1989"
+    "EZD-1989",
+    "EZD-1988"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2044,6 +2045,14 @@
       "ts": "2026-11-25T11:15:36Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1988",
+      "title": "Loop: find and stop what sends SIGTERM to builders in the same second",
+      "commit": "9bd3a359",
+      "ts": "2026-11-25T12:09:08Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2277,17 +2286,17 @@
     }
   },
   "running": {
-    "EZD-1988": {
-      "lane": 3,
-      "title": "Loop: find and stop what sends SIGTERM to builders in the same second",
-      "started": "2026-11-25T10:35:26Z",
-      "develop": "5331d28c"
-    },
     "EZD-1978": {
       "lane": 1,
       "title": "Projects page does not break on a phone",
       "started": "2026-11-25T10:46:07Z",
       "develop": "b7f0eddf"
+    },
+    "EZD-1980": {
+      "lane": 2,
+      "title": "Touch targets of at least 44 px on iPad in Settings, Libraries, Sheets and tool panels",
+      "started": "2026-11-25T11:15:44Z",
+      "develop": "9bb823d5"
     }
   },
   "advisories_checked_at": "2026-11-25T10:18:53Z",
