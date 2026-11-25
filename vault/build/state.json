@@ -523,7 +523,8 @@
     "EZD-1978",
     "EZD-1981",
     "EZD-1987",
-    "EZD-1982"
+    "EZD-1982",
+    "EZD-1992"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2089,6 +2090,14 @@
       "ts": "2026-11-25T16:07:58Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1992",
+      "title": "Fix: permissions T11 backfill fails at random on a tenant foreign key (EZD-101 T11)",
+      "commit": "0131473f",
+      "ts": "2026-11-25T16:55:15Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2332,14 +2341,14 @@
       "started": "2026-11-25T15:21:34Z",
       "develop": "9881b420"
     },
-    "EZD-1992": {
-      "lane": 1,
-      "title": "Fix: permissions T11 backfill fails at random on a tenant foreign key (EZD-101 T11)",
-      "started": "2026-11-25T15:45:29Z",
-      "develop": "90c94c75"
+    "EZD-1980": {
+      "lane": 2,
+      "title": "Touch targets of at least 44 px on iPad in Settings, Libraries, Sheets and tool panels",
+      "started": "2026-11-25T16:08:08Z",
+      "develop": "037aa8c2"
     }
   },
-  "advisories_checked_at": "2026-11-25T10:18:53Z",
+  "advisories_checked_at": "2026-11-25T16:19:16Z",
   "hold": {},
   "perf_trend_at": "2026-11-25T03:16:23Z",
   "set_aside_history": []
