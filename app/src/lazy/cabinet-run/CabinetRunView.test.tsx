@@ -122,6 +122,17 @@ describe('EZD-404 cabinet run screen', () => {
     );
     expect(s).toContain('Drag boxes or Auto-fill run');
   });
+
+  // EZD-1986 (AC-EZD-1986-1; audit F9): with no run the screen is marked empty, so its see-through style applies and
+  // the room shows on the plan; it holds only the prompt (no plan strip or elevation drawn over the room).
+  it('EZD-1986 a floor with no run marks the screen empty and draws nothing but the prompt', () => {
+    const s = html(
+      <CabinetRunScreen view={null} selection={NO_CABINET_SELECTION} onInput={() => {}} />,
+    );
+    expect(s).toMatch(/<section[^>]*data-testid="cabinet-run"[^>]*data-empty=""/);
+    expect(s).not.toContain('<svg');
+    expect(s.replace(/<[^>]+>/g, '')).toBe('Drag boxes or Auto-fill run');
+  });
 });
 
 // EZD-410 (AC-EZD-410-1 "A wall move that strands a cabinet flags it red"; S04 Validation "red 'Not on a wall' flag").

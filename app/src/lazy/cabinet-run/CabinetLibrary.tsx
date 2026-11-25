@@ -4,7 +4,7 @@
 // vault/build/assumptions.md EZD-403): the cabinet library in the left panel while the Cabinets tool is on. Rows are
 // dragged onto the plan strip or the elevation (CabinetRunView takes the drop); the Runs tab opens another run of the
 // floor; the line picker chooses the vendor line whose catalog items the placed boxes take.
-import { useMemo, useState, type DragEvent, type ReactElement } from 'react';
+import { Fragment, useMemo, useState, type DragEvent, type ReactElement } from 'react';
 import { useStore } from 'zustand';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
@@ -302,20 +302,28 @@ function BoxesTab({
             {found.trims.length > 0 ? (
               <li className={styles.row} data-testid="cabinet-library-trim-row">
                 <span className={styles.trims}>
-                  {found.trims.map(({ trim }) => (
-                    <button
-                      key={trim.kind}
-                      type="button"
-                      className={styles.trim}
-                      data-testid={`cabinet-library-trim-${trim.kind}`}
-                      draggable={canEdit}
-                      onDragStart={canEdit ? dragTrim(trim) : undefined}
-                      disabled={addTrim === undefined}
-                      title={t(TRIM_TITLE[trim.kind] ?? 'office.cabinets.library.row.trim')}
-                      onClick={() => addTrim?.(trim)}
-                    >
-                      {trim.code}
-                    </button>
+                  {found.trims.map(({ trim }, i) => (
+                    // EZD-1986 (audit F9; board S04Cabinets "TK / LR / CM"): the codes run as text in the code
+                    // column, split by slashes as on the board; each code is still its own button.
+                    <Fragment key={trim.kind}>
+                      {i > 0 ? (
+                        <span className={styles.trimSep} aria-hidden="true">
+                          /
+                        </span>
+                      ) : null}
+                      <button
+                        type="button"
+                        className={styles.trim}
+                        data-testid={`cabinet-library-trim-${trim.kind}`}
+                        draggable={canEdit}
+                        onDragStart={canEdit ? dragTrim(trim) : undefined}
+                        disabled={addTrim === undefined}
+                        title={t(TRIM_TITLE[trim.kind] ?? 'office.cabinets.library.row.trim')}
+                        onClick={() => addTrim?.(trim)}
+                      >
+                        {trim.code}
+                      </button>
+                    </Fragment>
                   ))}
                 </span>
                 <span className={styles.name}>{t('office.cabinets.library.row.trim')}</span>

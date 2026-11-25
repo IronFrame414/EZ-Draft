@@ -1703,7 +1703,20 @@ export function ProjectEditor({
               ) : null}
             </>
           }
-          rail={show3d || showSheets ? null : rail}
+          rail={
+            show3d || showSheets || rail === null ? null : (
+              // EZD-1986 (audit F9): while the cabinet library is open the pressed Cabinets tool shows no tooltip,
+              // which would sit over the library's rows. The wrapper is always there, so the rail is not remounted
+              // (and keeps its focus) when the tool turns on or off; only its class changes.
+              <div
+                className={
+                  cabinetsOn ? `${styles.railWrap} ${styles.cabinetsRail}` : styles.railWrap
+                }
+              >
+                {rail}
+              </div>
+            )
+          }
           leftPanel={leftPanel ?? undefined}
           leftPanelLabel={leftPanel === null ? undefined : 'office.shell.left_panel'}
           canvas={canvas}
