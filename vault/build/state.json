@@ -526,7 +526,8 @@
     "EZD-1982",
     "EZD-1992",
     "EZD-1984",
-    "EZD-1980"
+    "EZD-1980",
+    "EZD-1983"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2116,11 +2117,19 @@
       "ts": "2026-11-25T17:56:31Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1983",
+      "title": "Users settings says \"Role presets\" as on the S15 board",
+      "commit": "0c28ea77",
+      "ts": "2026-11-25T18:31:58Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
