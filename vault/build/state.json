@@ -507,7 +507,8 @@
     "EZD-1952",
     "EZD-1976",
     "EZD-1946",
-    "EZD-1903"
+    "EZD-1903",
+    "EZD-1959"
   ],
   "seeded_done": 324,
   "merged": [
@@ -1945,6 +1946,14 @@
       "ts": "2026-11-25T02:48:30Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1959",
+      "title": "Bring the base local database up to date for live UI checks",
+      "commit": "dca2ce9b",
+      "ts": "2026-11-25T03:16:17Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2162,14 +2171,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-1959": {
-      "lane": 3,
-      "title": "Bring the base local database up to date for live UI checks",
-      "started": "2026-11-25T01:57:36Z",
-      "develop": "527dc92f"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-24T22:17:04Z",
   "hold": {}
 }
