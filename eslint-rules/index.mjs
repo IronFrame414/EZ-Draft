@@ -3,6 +3,7 @@ import noLiteralUiString from './no-literal-ui-string.mjs';
 import importBoundaries from './import-boundaries.mjs';
 import noBrowserTableQuery from './no-browser-table-query.mjs';
 import noClientServerOnly from './no-client-server-only.mjs';
+import geometryRootIndexFrozen from './geometry-root-index-frozen.mjs';
 
 export default {
   meta: { name: 'ezdraft' },
@@ -11,5 +12,6 @@ export default {
     'import-boundaries': importBoundaries,
     'no-browser-table-query': noBrowserTableQuery,
     'no-client-server-only': noClientServerOnly,
+    'geometry-root-index-frozen': geometryRootIndexFrozen,
   },
 };

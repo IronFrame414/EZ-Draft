@@ -442,6 +442,8 @@ EZD-001 (vault/plans/EZD-001.md Step 3). There is no root `tsconfig.json`, so a 
 
 Internal packages are TypeScript source with no build step: `packages/geometry/package.json` has `"type": "module"` and `exports["."] = "./src/index.ts"`, and consumers compile it. The first ticket that imports it adds `"@ezdraft/geometry": "workspace:*"` to its `package.json` and, in the app, `transpilePackages: ['@ezdraft/geometry']` in `app/next.config.ts`. `app/next.config.ts` pins `outputFileTracingRoot` and `turbopack.root` to the workspace root because worktrees sit inside the main checkout and Next.js otherwise infers the root from the nearest lockfile upward.
 
+Geometry areas by subpath (EZD-1905): `packages/geometry/package.json` exports `"."` (the root index) and `"./*": "./src/*/index.ts"`, so every folder under `packages/geometry/src` with an `index.ts` is `@ezdraft/geometry/<area>` in app code, tests, workers and the build. The root index `packages/geometry/src/index.ts` is frozen: lint rule `ezdraft/geometry-root-index-frozen` fails on any export line other than the 41 it had on 2026-11-24, and it keeps all of them. Planners: a new geometry module goes in an area folder (new or existing), is re-exported from that folder's `index.ts`, and is imported as `@ezdraft/geometry/<area>`; a plan never lists the root index as a file to edit.
+
 
 ### Design tokens, fonts and icons
 
