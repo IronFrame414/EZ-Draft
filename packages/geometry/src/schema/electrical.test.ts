@@ -155,3 +155,45 @@ describe('EZD-606 existing panel fields', () => {
     if (bare.ok) expect(fileRefs(bare.object)).toEqual([]);
   });
 });
+
+describe('EZD-607 panel load calc inputs', () => {
+  const calc = {
+    method: 'standard',
+    floorAreaSqFt: 2450,
+    smallApplianceCircuits: 2,
+    laundryCircuits: 1,
+    loads: [
+      { id: 'dw', name: 'Dishwasher', kind: 'fixed_appliance', va: 1200 },
+      {
+        id: 'ac',
+        name: 'A/C',
+        kind: 'cooling',
+        va: null,
+        applianceType: 'ac',
+        motor: true,
+        existing: true,
+        confirmed: false,
+      },
+    ],
+    overrides: { dw: 1300 },
+    largestMotorId: 'ac',
+  };
+
+  it('a panel without loadCalc stays valid at the current version; one with it parses', () => {
+    expect(CURRENT_SCHEMA_VERSION).toBe(7);
+    expect(parse('panel', (d) => delete d.attributes.loadCalc)).toBe(true);
+    expect(parse('panel', (d) => (d.attributes.loadCalc = structuredClone(calc)))).toBe(true);
+  });
+
+  it('refuses an unknown load kind, a negative circuit count and an unknown field', () => {
+    const bad = (f: (c: Rec) => void) => {
+      const c = structuredClone(calc) as unknown as Rec;
+      f(c);
+      return parse('panel', (d) => (d.attributes.loadCalc = c));
+    };
+    expect(bad((c) => ((c.loads as Rec[])[0]!.kind = 'toaster'))).toBe(false);
+    expect(bad((c) => (c.laundryCircuits = -1))).toBe(false);
+    expect(bad((c) => (c.extra = 1))).toBe(false);
+    expect(bad((c) => (c.floorAreaSqFt = null))).toBe(true);
+  });
+});

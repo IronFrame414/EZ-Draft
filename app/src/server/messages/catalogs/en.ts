@@ -2728,6 +2728,8 @@ export const en = {
   'office.electrical.status.layer_power': 'Power + lighting',
   'office.electrical.status.service': 'Service',
   'office.electrical.status.service_amps': '{amps}A',
+  // EZD-607: board S06Electrical "Service 200A · 149.5A calc".
+  'office.electrical.status.service_calc': '{amps}A · {calc}A calc',
   'office.electrical.status.code': 'Code',
   'office.electrical.status.code.fbc9_nec2023': 'NEC 2023 · FBC 9th ed.',
   // EZD-602: the device toolbar and the device right-click menu (board S06Electrical; S06 Controls; assumptions EZD-602).
