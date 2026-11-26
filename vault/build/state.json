@@ -549,7 +549,8 @@
     "EZD-705",
     "EZD-1910",
     "EZD-509",
-    "EZD-1911"
+    "EZD-1911",
+    "EZD-715"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2323,6 +2324,14 @@
       "ts": "2026-11-26T11:32:15Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-715",
+      "title": "PDF export job",
+      "commit": "6be7568c",
+      "ts": "2026-11-26T11:59:09Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2580,17 +2589,17 @@
     }
   },
   "running": {
-    "EZD-715": {
-      "lane": 1,
-      "title": "PDF export job",
-      "started": "2026-11-26T09:59:48Z",
-      "develop": "4c0eb454"
-    },
     "EZD-716": {
       "lane": 2,
       "title": "Issue checklist",
       "started": "2026-11-26T09:59:48Z",
       "develop": "4c0eb454"
+    },
+    "EZD-1912": {
+      "lane": 3,
+      "title": "Move controller construction out of ProjectEditor",
+      "started": "2026-11-26T11:32:42Z",
+      "develop": "6f2333e4"
     }
   },
   "advisories_checked_at": "2026-11-26T10:20:19Z",
