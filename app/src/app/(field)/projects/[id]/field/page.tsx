@@ -17,6 +17,7 @@ import { createSessionClient } from '../../../../../server/auth/supabase-server'
 import { loadOutboxActor } from '../../../../../server/outbox/actor';
 import { catalogFor } from '../../../../../server/messages/catalog';
 import { can, getPermissionContext } from '../../../../../server/permissions';
+import { valueOf } from '../../../../../server/settled';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -32,16 +33,20 @@ export default async function FieldPackPage({
   const ctx = await getPermissionContext();
   if (ctx === null || !can(ctx, 'view_projects', { projectId: id })) notFound();
   const client = createSessionClient();
-  const project = await client.from('project').select('id').eq('id', id).maybeSingle();
+  // Performance audit 2026-11-26: once the permission check has passed, the project, the user's language and the
+  // outbox actor do not depend on each other, so the three reads start together and the phone waits for the slowest
+  // one, not for their sum. The answers are taken in the old order (server/settled.ts).
+  const [projectRead, userRead, actorRead] = await Promise.allSettled([
+    client.from('project').select('id').eq('id', id).maybeSingle(),
+    client.from('app_user').select('language').eq('id', session.appUserId).maybeSingle(),
+    loadOutboxActor(),
+  ]);
+  const project = valueOf(projectRead);
   if (project.error) throw project.error;
   if (project.data === null) notFound();
-  const user = await client
-    .from('app_user')
-    .select('language')
-    .eq('id', session.appUserId)
-    .maybeSingle();
+  const user = valueOf(userRead);
   const language: Language = user.data?.language === 'es' ? 'es' : 'en';
-  const actor = await loadOutboxActor();
+  const actor = valueOf(actorRead);
   return (
     <MessagesProvider language={language} messages={catalogFor('field', language)}>
       <StateHost>
