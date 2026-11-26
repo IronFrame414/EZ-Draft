@@ -81,6 +81,7 @@ export const ICON_NAMES = [
   'report',
   'roofing',
   'rotate_right',
+  'rule',
   'search',
   'select_all',
   'sell',

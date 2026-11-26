@@ -63,7 +63,10 @@ export const EVENTS = {
   // EZD-1201 (07 share_link.expiring): written as the event_log row by sweep_share_link_reminders.
   'share_link.expiring': { kind: 'internal' },
   'cleanup.due': { kind: 'internal', later: 'EZD-123' },
-  'code_check.completed': { kind: 'internal', later: 'EZD-612' },
+  // EZD-612 (07 code_check.completed "with warning count"; assumptions EZD-611a, EZD-612 events row): a Check run,
+  // and one warning accepted with a note (ids only, never the note).
+  'code_check.completed': { kind: 'internal' },
+  'code_warning.accepted': { kind: 'internal' },
   'design_option.created': { kind: 'internal' },
   'design_option.updated': { kind: 'internal' },
   'version.sent': { kind: 'internal' },
@@ -234,7 +237,13 @@ export interface EventPayloads {
   'share_link.expiring': { projectId: string; expiresAt: string };
   'edge_profile.offered': { projectId: string; pieceId: string; choices: string[] };
   'cleanup.due': Record<string, unknown>;
-  'code_check.completed': Record<string, unknown>;
+  'code_check.completed': {
+    runId: string;
+    edition: string;
+    warningCount: number;
+    resultCount: number;
+  };
+  'code_warning.accepted': { runId: string; ruleId: string; objectId: string };
   // EZD-1009: the saved option, its group and label, and its status after the save.
   'design_option.created': DesignOptionEvent;
   'design_option.updated': DesignOptionEvent;

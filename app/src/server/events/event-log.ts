@@ -103,6 +103,7 @@ export const EVENT_LOG: EventLogRules = {
   'share_link.expiring': TRANSACTION,
   'cleanup.due': SINK,
   'code_check.completed': SINK,
+  'code_warning.accepted': SINK,
   'design_option.created': SINK,
   'design_option.updated': SINK,
   // EZD-121 (Q-0700 03): written by send_to_client in the send transaction.

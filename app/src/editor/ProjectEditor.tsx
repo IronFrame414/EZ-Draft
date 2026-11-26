@@ -219,6 +219,9 @@ import { fixturesModule } from './tools/fixtures-module';
 import type { FixturesPanelProps } from '../lazy/fixtures-panel';
 import { createDrawingShell } from './tools/drawing-shell';
 import { DrawingLayer, DrawingRail } from './tools/DrawingTools';
+import { CheckPill } from './check/CheckPill';
+import type { CheckResultsPanelProps } from './check/CheckResultsPanel';
+import { useCodeCheck } from './check/use-code-check';
 import styles from './ProjectEditor.module.css';
 
 // EZD-120d: `openDeps` is passed to openEditorSession (the test page injects a fault into the save); `onSession`
@@ -681,6 +684,82 @@ export function ProjectEditor({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [helpReady, bindings]);
+  // EZD-612 (S03 Check; S06 Check, Check status pill; 04 Tool rail "Check | Shift+C"): the code check on a loaded
+  // editor. It flushes unsaved edits first, so the check reads what is on screen.
+  const flushEdits = useCallback(async () => {
+    await sync?.flush();
+  }, [sync]);
+  const codeCheck = useCodeCheck({
+    projectId,
+    enabled: helpReady,
+    store: session?.store ?? null,
+    flush: flushEdits,
+  });
+  const runCheck = codeCheck.runCheck;
+  const checkKeyOn = helpReady && codeCheck.canRun;
+  useEffect(() => {
+    if (!checkKeyOn) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || isTypingTarget(e.target)) return;
+      if (commandForKey(bindings, e) !== 'check') return;
+      e.preventDefault();
+      runCheck();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [checkKeyOn, bindings, runCheck]);
+  // Go to (S03 "click a warning to zoom to the object"): selects the object and zooms to it; a hidden phase is shown.
+  const goToObject = useCallback(
+    (id: string) => {
+      if (plan === null) return;
+      const status = (
+        session?.store.getState().objects.get(id)?.data as { status?: string } | undefined
+      )?.status;
+      if (layers !== null && status !== undefined) {
+        const eyes = layers.eyes() as Record<string, boolean>;
+        if (eyes[status] === false) layers.setEye(status as never, true);
+      }
+      selection?.select([id]);
+      plan.handle.showObject(id);
+    },
+    [plan, session, layers, selection],
+  );
+  const checkObjectName = useCallback(
+    (id: string): string | null => {
+      const o = session?.store.getState().objects.get(id);
+      if (o === undefined) return null;
+      const a = (o.data as { attributes?: { name?: unknown; kind?: unknown } }).attributes;
+      if (typeof a?.name === 'string' && a.name !== '') return a.name;
+      const kind = typeof a?.kind === 'string' ? a.kind : o.type;
+      const words = kind.replace(/_/g, ' ');
+      return words.charAt(0).toUpperCase() + words.slice(1);
+    },
+    [session],
+  );
+  const checkParts =
+    helpReady && (codeCheck.canRun || codeCheck.run !== null) ? (
+      <>
+        <CheckPill
+          run={codeCheck.run}
+          changedSinceRun={codeCheck.changedSinceRun}
+          onOpen={codeCheck.show}
+        />
+        {codeCheck.open ? (
+          <LazyCheckPanel
+            status={codeCheck.status}
+            run={codeCheck.run}
+            changedSinceRun={codeCheck.changedSinceRun}
+            canRun={codeCheck.canRun}
+            canAccept={codeCheck.canAccept}
+            objectName={checkObjectName}
+            onGoTo={goToObject}
+            onRun={codeCheck.runCheck}
+            onAccept={codeCheck.accept}
+            onClose={codeCheck.close}
+          />
+        ) : null}
+      </>
+    ) : null;
   // EZD-408: the Defaults "Cabinet auto-fill increment" (per project) for Auto-fill run; null while not read.
   const readAutoFillIncrement = () => {
     const v = sessionDefaults?.get()['cabinet_autofill_increment'];
@@ -1399,6 +1478,7 @@ export function ProjectEditor({
             ? { shortcut: shortcutText(bindings, 'help'), onOpen: () => setHelpOpen(true) }
             : null
         }
+        check={checkKeyOn ? { shortcut: shortcutText(bindings, 'check'), onRun: runCheck } : null}
         bindings={bindings}
         order={railOrder}
         onReorder={onRailReorder}
@@ -1525,6 +1605,7 @@ export function ProjectEditor({
       ) : null}
       {stateArea}
       {panel}
+      {checkParts}
       {helpOpen ? <LazyHelpPanel bindings={bindings} onClose={closeHelp} /> : null}
       {part('canvas')}
     </>
@@ -2154,6 +2235,14 @@ const helpPanelModule = lazyModule(() => import('../lazy/help-panel'));
 function LazyHelpPanel(props: { bindings: ShortcutBindings; onClose: () => void }) {
   const mod = useLazy(helpPanelModule);
   return mod ? <mod.HelpPanel {...props} /> : null;
+}
+
+// EZD-612 (11 Budgets): the code check list loads when it is first opened.
+const checkPanelModule = lazyModule(() => import('./check/CheckResultsPanel'));
+
+function LazyCheckPanel(props: CheckResultsPanelProps) {
+  const mod = useLazy(checkPanelModule);
+  return mod ? <mod.CheckResultsPanel {...props} /> : null;
 }
 
 function LazyConflictPanel(props: ConflictPanelProps) {

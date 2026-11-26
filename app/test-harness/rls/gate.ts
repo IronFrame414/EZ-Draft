@@ -59,6 +59,9 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     fn: 'record_code_check_run',
     args: { p_project: null, p_model_version: null, p_edition: null, p_warnings: null },
   },
+  // EZD-612: a warning accepted with a note, and acceptances carried to the next run (authenticated only).
+  { fn: 'accept_code_warning', args: { p_run: null, p_rule: null, p_object: null, p_note: null } },
+  { fn: 'carry_code_check_acceptances', args: { p_run: null } },
   // EZD-122: Name snapshot and Revert (authenticated only).
   { fn: 'name_snapshot', args: { p_project: null, p_version: null, p_name: null } },
   {

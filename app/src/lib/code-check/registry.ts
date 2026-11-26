@@ -4,10 +4,13 @@
 import { createRuleRegistry, type RuleRegistry, type RuleSet } from '@ezdraft/geometry';
 import { bathClearanceRuleSets } from '@ezdraft/geometry/checks';
 import { CODE_EDITIONS } from '../code-edition/editions';
+import { ceilingRuleSets } from './ceiling-rules';
 
 export const CODE_RULE_SETS: readonly RuleSet[] = [
   // EZD-228: the bath clearance check, company rules run on every edition (assumptions EZD-611a, EZD-228).
   ...bathClearanceRuleSets(CODE_EDITIONS),
+  // EZD-612: the ceiling checks of EZD-514 and EZD-515 (fan clearance, keep-clear, off the ceiling).
+  ...ceilingRuleSets(CODE_EDITIONS),
 ];
 
 export function appRuleRegistry(sets: readonly RuleSet[] = CODE_RULE_SETS): RuleRegistry {

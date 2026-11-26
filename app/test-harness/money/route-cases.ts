@@ -801,6 +801,49 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-1404: the field pack; 200 { projectName, clientName, pack } (no money)',
   },
+  // EZD-612: the code check; GET reads the latest run, POST runs Check, PATCH accepts a warning (an unknown rule is 400).
+  {
+    file: `${API}projects/[id]/code-check/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/code-check/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/code-check`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-612: the latest code check run; 200 { run, canRun, canAccept } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/code-check/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/code-check/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/code-check`, {})()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    after: (body, env) => {
+      const run = (body as { run?: { runId?: string } | null }).run;
+      if (run?.runId) env.created.set('codeCheckRunId', run.runId);
+    },
+    note: 'EZD-612: runs Check; 200 { run, canRun, canAccept } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/code-check/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/projects/[id]/code-check/route'),
+    request: async (env) => ({
+      ...(await sendJson('PATCH', `/api/projects/${env.projectId}/code-check`, {
+        runId: made(env, 'codeCheckRunId'),
+        ruleId: 'ZZ-999',
+        objectId: '00000000-0000-4000-8000-000000000001',
+        note: 'Accepted',
+      })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 400,
+    note: 'EZD-612: accepts a warning with a note; 200 { run, canRun, canAccept } (no money)',
+  },
   // EZD-1415: Field measure rooms; GET reads them (a new project: the Building alone), PUT saves an L-shaped room.
   {
     file: `${API}projects/[id]/field-measure/route.ts`,

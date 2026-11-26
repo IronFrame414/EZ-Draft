@@ -1431,7 +1431,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "accept_invite":
+            "accept_code_warning":
+{ Args: { "p_note": string,"p_object": string,"p_rule": string,"p_run": string }; Returns: Json
+                           },
+"accept_invite":
 { Args: { "p_ip"?: unknown,"p_token_sha256": string }; Returns: Json
                            },
 "acquire_edit_lock":
@@ -1454,6 +1457,9 @@ isOneToOne: false
                            },
 "cancel_invite":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
+                           },
+"carry_code_check_acceptances":
+{ Args: { "p_run": string }; Returns: number
                            },
 "complete_project":
 { Args: { "p_project": string }; Returns: Json

@@ -54,6 +54,7 @@ Until the EZ Binder side exists, these run against the stub server from EZD-019.
 | `share_link.expiring` | Reminder before 30-day expiry (lead time is a company setting) |
 | `cleanup.due` | Cleanup sheet for unsent versions older than 30 days |
 | `code_check.completed` | Warning list on Electrical and in the issue checklist |
+| code\_warning.accepted (new) | Event log only: a code warning accepted with a note (EZD-612); the note stays on the check run |
 | lock.request\_declined / lock.conflict | Requester told the holder kept editing; former holder gets the conflict list after an offline auto release |
 | field.measurement\_approved / field.measurement\_rejected | Model update and conflict list; or the note goes back to the Foreman |
 | field.measure\_sent | Import review items (source kind field\_measure); office notified |
