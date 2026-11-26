@@ -536,7 +536,8 @@
     "EZD-1991",
     "EZD-228",
     "EZD-1948",
-    "EZD-1422"
+    "EZD-1422",
+    "EZD-216"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2206,6 +2207,14 @@
       "ts": "2026-11-26T03:16:52Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-216",
+      "title": "Dimensions and text",
+      "commit": "ed6e3f04",
+      "ts": "2026-11-26T03:55:09Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2462,14 +2471,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-216": {
-      "lane": 1,
-      "title": "Dimensions and text",
-      "started": "2026-11-26T01:31:09Z",
-      "develop": "fb24dd6b"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-25T22:19:22Z",
   "hold": {},
   "perf_trend_at": "2026-11-25T03:16:23Z",
