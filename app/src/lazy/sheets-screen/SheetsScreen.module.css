@@ -508,3 +508,125 @@
     min-width: var(--ez-touch-target);
   }
 }
+
+/* EZD-716 (board S13Sheets inspector): the canvas part with the inspector docked at its right, and the issue
+   checklist (green check, amber warning, red gate; Review / Open links in the accent). */
+.workspace {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: 12px;
+}
+
+.workspaceMain {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.inspector {
+  flex: 0 0 336px;
+  min-height: 0;
+  overflow-y: auto;
+  box-sizing: border-box;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-12);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+}
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--ez-border);
+}
+
+.checklistTitle {
+  margin: 0;
+  font: 600 var(--ez-text-17) var(--ez-font-sans);
+}
+
+.checklistNote {
+  margin: 0;
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-500);
+}
+
+.checklistRows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklistRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.checkIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
+
+.checkPass {
+  background: var(--ez-green-tint);
+  color: var(--ez-green);
+}
+
+.checkWarning {
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-icon);
+}
+
+.checkGate {
+  background: var(--ez-red);
+  color: var(--ez-surface);
+}
+
+.checkText {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.checkTitle {
+  font-size: var(--ez-text-14);
+}
+
+.checkDetail {
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-500);
+}
+
+.checkLink {
+  flex: 0 0 auto;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  font: 500 var(--ez-text-14) var(--ez-font-sans);
+  color: var(--ez-cobalt-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

@@ -18,6 +18,11 @@
 // view and scale. editViewport() writes one viewport change to the model through the editor's store (Edit model, plus
 // the edit lock, is the caller's check, as for the plan's tools). Each set's sheets follow the model's floors
 // (withFloorSheets, Q-0509): a floor added or removed in the editor adds or removes its plan sheets at once.
+// EZD-716 (S13 Layout "Inspector: Issue checklist"; AC-EZD-716-1): the issue checklist (GET
+// /api/projects/[id]/code-check?checklist=1) is read with the sets and again each time the screen is shown, so a fix
+// made on the Plan tab and saved shows here. reloadChecklist() reads it again (after a warning is accepted). The
+// "Load calc complete" row is worked out here from the live model's main panel (editor/electrical, as the electrical
+// status bar), with the project's edition from the answer, and again when the model changes.
 import type { SheetSetKind, SheetSize } from '@ezdraft/geometry';
 import { listFloors } from '../../editor/floors/floors';
 import type { Change, Objects } from '../../editor/model/patches';
@@ -29,6 +34,14 @@ import { parseSetNotes } from './cover-sheet';
 import { sameDrawing } from './same-drawing';
 import { sheetSymbolKey, type SheetKey } from './sheet-key';
 import type { ProjectTitleBlock } from '../../lib/title-block/sheet-title-block';
+import {
+  issueChecklist,
+  type IssueChecklist,
+  type LoadCalcFacts,
+  type ProjectIssueFacts,
+} from '../../lib/sheets/issue-checklist';
+import { panelRows } from '../../editor/electrical/electrical';
+import { panelLoadCalc } from '../../editor/electrical/existing-panel';
 import type { SheetRenderer } from '../sheets';
 
 export type SheetsScreenState = {
@@ -53,6 +66,9 @@ export type SheetsScreenState = {
   // for the viewport tool's floor choice.
   viewports: SheetViewport[];
   floors: { id: string; name: string }[];
+  // EZD-716: the issue checklist; null until read. `checklistLoad` is 'failed' when the last read failed.
+  checklist: IssueChecklist | null;
+  checklistLoad: 'loading' | 'ready' | 'failed';
 };
 
 // The model the sheets draw (the editor's routed store).
@@ -62,6 +78,16 @@ export type SheetsModelSource = {
   // EZD-703: one undoable model edit (ModelStore.applyEdit); a source without it is read-only.
   applyEdit?(changes: Change[]): string[];
 };
+
+// EZD-716: the main panel's load calc (the first panel, as the electrical status bar reads it).
+export function liveLoadCalc(objects: Objects, edition: string): LoadCalcFacts {
+  const main = panelRows(objects)[0];
+  if (main === undefined) return { state: 'none' };
+  const r = panelLoadCalc(objects, main.id);
+  if (r === null) return { state: 'none' };
+  if (!r.ok) return { state: 'error' };
+  return { state: 'done', edition, serviceAmps: r.service?.amps ?? null, pass: r.service?.pass ?? null };
+}
 
 export type SheetsScreenDeps = { loadRenderer?: () => Promise<SheetRenderer>; newId?: () => string };
 
@@ -81,6 +107,8 @@ export type SheetsScreen = {
   setShown(shown: boolean): void;
   // EZD-703: one change to the open sheet's viewports; false when nothing was changed.
   editViewport(change: ViewportChange): boolean;
+  // EZD-716: reads the issue checklist again.
+  reloadChecklist(): Promise<void>;
   dispose(): void;
 };
 
@@ -104,6 +132,8 @@ export function createSheetsScreen(
     key: null,
     viewports: [],
     floors: [],
+    checklist: null,
+    checklistLoad: 'loading',
   };
   const listeners = new Set<() => void>();
   const update = (next: Partial<SheetsScreenState>) => {
@@ -178,10 +208,46 @@ export function createSheetsScreen(
     update({ viewports: vps });
   };
 
+  // EZD-716: the latest read wins; an older answer landing after it is dropped. The facts read, and the model the
+  // load calc was last worked out for.
+  let checklistRead = 0;
+  let facts: { facts: ProjectIssueFacts; checklist: IssueChecklist } | null = null;
+  let calcFor: Objects | null = null;
+  const refreshChecklist = (force = false) => {
+    if (facts === null) return;
+    if (source === null) {
+      if (force) update({ checklist: facts.checklist, checklistLoad: 'ready' });
+      return;
+    }
+    const objects = source.getState().objects;
+    if (!force && objects === calcFor) return;
+    calcFor = objects;
+    const next = issueChecklist({ ...facts.facts, loadCalc: liveLoadCalc(objects, facts.facts.edition) });
+    if (force || JSON.stringify(next) !== JSON.stringify(state.checklist))
+      update({ checklist: next, checklistLoad: 'ready' });
+  };
+  const reloadChecklist = async () => {
+    const n = ++checklistRead;
+    if (state.checklist === null) update({ checklistLoad: 'loading' });
+    try {
+      const res = await fetchFn(`/api/projects/${projectId}/code-check?checklist=1`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(String(res.status));
+      const body = (await res.json()) as Partial<{ facts: ProjectIssueFacts; checklist: IssueChecklist }>;
+      if (typeof body.facts !== 'object' || body.facts === null || typeof body.checklist !== 'object')
+        throw new Error('bad_answer');
+      if (n !== checklistRead) return;
+      facts = { facts: body.facts, checklist: body.checklist as IssueChecklist };
+      refreshChecklist(true);
+    } catch {
+      if (n === checklistRead) update({ checklistLoad: 'failed' });
+    }
+  };
+
   // One render at a time: a change while one is drawing is drawn when it ends.
   let busy = false;
   const refresh = () => {
     refreshFloors();
+    refreshChecklist();
     refreshKey();
     if (shown) refreshViewports();
     if (busy || !shown || source === null || state.load !== 'ready') return;
@@ -238,6 +304,7 @@ export function createSheetsScreen(
     },
     async load() {
       update({ load: 'loading' });
+      void reloadChecklist();
       const notes = fetchFn(`/api/projects/${projectId}/notes`, { cache: 'no-store' })
         .then((r) => (r.ok ? r.json() : null))
         .then(parseSetNotes, () => null);
@@ -292,6 +359,7 @@ export function createSheetsScreen(
       unwatch?.();
       unwatch = null;
       if (shown && source !== null) unwatch = source.subscribe(refresh);
+      if (shown && state.load === 'ready') void reloadChecklist();
       refresh();
     },
     editViewport(change) {
@@ -304,6 +372,7 @@ export function createSheetsScreen(
       refresh();
       return true;
     },
+    reloadChecklist,
     dispose() {
       unwatch?.();
       unwatch = null;

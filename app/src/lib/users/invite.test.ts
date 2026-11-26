@@ -16,7 +16,8 @@ describe('EZD-105 invite dialog rules', () => {
   it('I2 each refusal shows its approved line; the other company is never named', () => {
     const shown = (code: string) => {
       const key = inviteRefusalKey(code);
-      return key === null ? null : en[key];
+      // Read through a plain record: indexing the catalog by the whole MessageKey union is too complex for tsc.
+      return key === null ? null : (en as Readonly<Record<string, unknown>>)[key];
     };
     expect(shown('invalid_email')).toBe('Enter a full email address, like name@company.com.');
     expect(shown('already_member')).toBe('This person is already on your team.');

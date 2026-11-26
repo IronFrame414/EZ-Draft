@@ -3,6 +3,9 @@
 // session client, whose RLS and definer functions check again.
 // - GET (View projects): 200 { run, changedSinceRun, canRun, canAccept }; run is the latest stored run or null, and
 //   changedSinceRun is true when an object was saved after it (S06 "Check not run since last change").
+//   EZD-716 (S13 Issue checklist; AC-EZD-716-1): GET ?checklist=1 answers 200 { facts, checklist } instead: the
+//   Sheets inspector's issue checklist (server/sheets/issue-checklist), the facts read (all but the load calc) and
+//   the rows in board order with whether Issue is blocked. Same key and order (View projects; 404 out of scope).
 // - POST (Run code check; view only is fine, S06:100): checks the saved working copy (loadModel) with the project's
 //   edition, records the run, carries the previous run's acceptances that still apply, and emits
 //   code_check.completed with the counts. 200 { run, canRun, canAccept }. It never changes the model.
@@ -28,6 +31,8 @@ import { reportError } from '../../../../../server/errors/report';
 import { reportRouteFailure } from '../../../../../server/errors/route-failure';
 import { emit } from '../../../../../server/events';
 import { loadModel } from '../../../../../server/model/model';
+import { loadIssueChecklist } from '../../../../../server/sheets/issue-checklist';
+import type { IssueChecklist, ProjectIssueFacts } from '../../../../../lib/sheets/issue-checklist';
 import {
   can,
   requireApiPermission,
@@ -43,6 +48,8 @@ const MAX_BODY_CHARS = 8192;
 
 const fail = (status: number, code: string, messageKey = `error.${code}`) =>
   Response.json({ error: { code, message_key: messageKey } }, { status, headers });
+
+export type IssueChecklistAnswer = { facts: ProjectIssueFacts; checklist: IssueChecklist };
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -100,7 +107,7 @@ async function projectTenant(id: string): Promise<string | null> {
   return data?.tenant_id ?? null;
 }
 
-export async function GET(_request: Request, { params }: Ctx): Promise<Response> {
+export async function GET(request: Request, { params }: Ctx): Promise<Response> {
   try {
     const { id } = await params;
     const p = await requireApiPermission('view_projects');
@@ -108,6 +115,11 @@ export async function GET(_request: Request, { params }: Ctx): Promise<Response>
     if (!z.uuid().safeParse(id).success) return fail(404, 'project_not_found');
     const denied = requirePermission(p.ctx, 'view_projects', { projectId: id });
     if (denied) return denied;
+    if (new URL(request.url).searchParams.get('checklist') === '1') {
+      const out: IssueChecklistAnswer | null = await loadIssueChecklist(createSessionClient(), id, p.ctx, p.session);
+      if (out === null) return fail(404, 'project_not_found');
+      return Response.json(out, { status: 200, headers });
+    }
     if ((await projectTenant(id)) === null) return fail(404, 'project_not_found');
     return await answer(p, id, await latestCodeCheckRun(createSessionClient(), id));
   } catch (e) {
