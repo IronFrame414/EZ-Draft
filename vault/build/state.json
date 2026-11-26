@@ -566,7 +566,8 @@
     "EZD-1501",
     "EZD-708a",
     "EZD-1611b",
-    "EZD-708b"
+    "EZD-708b",
+    "EZD-232"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2474,6 +2475,14 @@
       "title": "E1.0 electrical plan",
       "commit": "57191756",
       "ts": "2026-11-26T22:24:00Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-232",
+      "title": "Manual revision cloud (plan)",
+      "commit": "4a9ea96c",
+      "ts": "2026-11-26T23:23:51Z",
       "kind": "ticket",
       "lane": 2
     }
