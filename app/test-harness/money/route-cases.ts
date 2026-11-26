@@ -331,6 +331,19 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 202,
     note: 'EZD-301: project id and source file ids (no money)',
   },
+  // EZD-715: start a PDF export of the permit set; the answer is the job id only (no money).
+  {
+    file: `${API}projects/[id]/exports/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/exports/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/exports`, { set: 'permit' })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 202,
+    expectStatusWithout: { permission: 'export', status: 403 },
+    note: 'EZD-715: the export job id (no money)',
+  },
   // EZD-304: the scale of the PDF uploaded above (kind pdf, finished): the project's PDFs, then set and read its
   // scale. Answers are source_file ids, names, the calibration and a signed link (no money).
   {

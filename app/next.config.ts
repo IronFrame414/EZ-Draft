@@ -30,7 +30,9 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@ezdraft/geometry'],
   // EZD-305: the import job reads PDFs with pdf.js's Node build on the server (job run on enqueue); it loads its own
   // worker module at run time, so it is required from node_modules, not bundled.
-  serverExternalPackages: ['pdfjs-dist'],
+  // EZD-715: the PDF export job writes with PDFKit, which reads its own data files at run time, so it is required from
+  // node_modules too.
+  serverExternalPackages: ['pdfjs-dist', 'pdfkit'],
   // EZD-299a Build step 5 (vault/plans/EZD-299a.md Decided D-Build; Q-0626): one build number per build, inlined
   // into the browser and server bundles, so a save from an older app is refused (app/src/lib/app-version.ts).
   // EZD-237 (vault/plans/EZD-237.md D-Version; Q-0664): the deploy's commit, which a benchmark run names.

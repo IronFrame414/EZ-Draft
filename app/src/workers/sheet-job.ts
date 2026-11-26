@@ -19,6 +19,7 @@ import {
   printMarksSvg,
   sheetSvg,
   splitPrintMarkBand,
+  type DrawingList,
   type ModelObject,
   type SheetArea,
   type SheetView,
@@ -66,8 +67,13 @@ function readInput(input: unknown): SheetJobInput {
   return i as SheetJobInput;
 }
 
-export function sheetJob(input: unknown): SheetSvg {
-  const { objects, level, scale, area, view } = readInput(input);
+// EZD-715: the drawing list of one viewport (its floor, its view), shared with the PDF export job so the PDF draws
+// exactly what the sheet preview draws (R7).
+export function viewportDrawingList(
+  objects: readonly StoredObject[],
+  level: string,
+  view?: SheetView,
+): DrawingList {
   const parsed: ModelObject[] = [];
   for (const stored of objects) {
     const r = parseStoredObject(stored);
@@ -79,10 +85,15 @@ export function sheetJob(input: unknown): SheetSvg {
       parsed.push({ ...r.object, data: { ...r.object.data, status: viewDrawsAs(view, status) } } as ModelObject);
     else parsed.push(r.object);
   }
-  const list = buildDrawingList(
+  return buildDrawingList(
     { objects: parsed },
     { level, dimensionTextPt: SHEET_LABEL_PT, roomHatch: null, roomLabelPt: SHEET_LABEL_PT },
   );
+}
+
+export function sheetJob(input: unknown): SheetSvg {
+  const { objects, level, scale, area, view } = readInput(input);
+  const list = viewportDrawingList(objects, level, view);
   const { drawing } = splitPrintMarkBand(area);
   const svg = sheetSvg(list, { scale: scale ?? ntsScale(list, drawing), area: drawing });
   if (svg.markup === '') return svg;
@@ -90,7 +101,7 @@ export function sheetJob(input: unknown): SheetSvg {
 }
 
 // The scale that fits the drawing to the area, at NTS_FILL.
-function ntsScale(list: ReturnType<typeof buildDrawingList>, area: SheetArea): number {
+export function ntsScale(list: DrawingList, area: SheetArea): number {
   const b = drawingListBounds(list);
   const w = b === null ? 0 : b.maxX - b.minX;
   const h = b === null ? 0 : b.maxY - b.minY;
