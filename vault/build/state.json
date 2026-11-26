@@ -532,7 +532,8 @@
     "EZD-1986",
     "EZD-514",
     "EZD-1990",
-    "EZD-1993"
+    "EZD-1993",
+    "EZD-1991"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2170,6 +2171,14 @@
       "ts": "2026-11-26T00:24:52Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1991",
+      "title": "Title block settings: \"Used on N sheets · Open Sheets\" line and \"Zoom to title block\" button",
+      "commit": "e84ecc7c",
+      "ts": "2026-11-26T00:49:01Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2427,12 +2436,6 @@
     }
   },
   "running": {
-    "EZD-1991": {
-      "lane": 3,
-      "title": "Title block settings: \"Used on N sheets · Open Sheets\" line and \"Zoom to title block\" button",
-      "started": "2026-11-25T22:33:09Z",
-      "develop": "3144af74"
-    },
     "EZD-228": {
       "lane": 2,
       "title": "Bath clearance check",
