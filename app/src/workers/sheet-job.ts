@@ -5,13 +5,20 @@
 // it shows (lib/sheets/viewport.ts; the Existing view takes Demo objects and draws them as existing, 09m row 4), before the drawing list is built, so rooms, dimensions and flagged items follow
 // their own object's status; no view draws every status. A null scale is not to scale: the drawing is fitted to the
 // area.
+// EZD-705 (S13 Validation "Every sheet gets a scale bar and a printed check dimension"; 09h "NTS details stamped
+// \"NTS\""; AC-EZD-705-1): a viewport that draws anything keeps a strip at the bottom of its area for its print marks
+// (packages/geometry drawing/print-marks.ts): a scale bar and a check dimension at its scale, or NTS. The drawing is
+// centred in the area above the strip.
 import { viewDrawsAs, viewShows } from '../lib/sheets/viewport';
 import {
   SHEET_VIEWS,
   buildDrawingList,
   drawingListBounds,
   parseStoredObject,
+  printMarks,
+  printMarksSvg,
   sheetSvg,
+  splitPrintMarkBand,
   type ModelObject,
   type SheetArea,
   type SheetView,
@@ -76,10 +83,17 @@ export function sheetJob(input: unknown): SheetSvg {
     { objects: parsed },
     { level, dimensionTextPt: SHEET_LABEL_PT, roomHatch: null, roomLabelPt: SHEET_LABEL_PT },
   );
-  if (scale !== null) return sheetSvg(list, { scale, area });
+  const { drawing } = splitPrintMarkBand(area);
+  const svg = sheetSvg(list, { scale: scale ?? ntsScale(list, drawing), area: drawing });
+  if (svg.markup === '') return svg;
+  return { ...svg, markup: svg.markup + printMarksSvg(printMarks(scale, area)) };
+}
+
+// The scale that fits the drawing to the area, at NTS_FILL.
+function ntsScale(list: ReturnType<typeof buildDrawingList>, area: SheetArea): number {
   const b = drawingListBounds(list);
   const w = b === null ? 0 : b.maxX - b.minX;
   const h = b === null ? 0 : b.maxY - b.minY;
   const fit = Math.min(w > 0 ? area.width / w : Infinity, h > 0 ? area.height / h : Infinity);
-  return sheetSvg(list, { scale: Number.isFinite(fit) ? fit * NTS_FILL : 1, area });
+  return Number.isFinite(fit) ? fit * NTS_FILL : 1;
 }

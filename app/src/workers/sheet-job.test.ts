@@ -180,3 +180,78 @@ describe('EZD-702b sheet job', () => {
     expect(() => sheetJob(input({ scale: 0 }))).toThrow('sheet_input');
   });
 });
+
+// EZD-705 AC-EZD-705-1 (S13 Validation "Every sheet gets a scale bar and a printed check dimension";
+// vault/build/assumptions/EZD-705.md: a 0 to 8 ft scale bar and a check dimension labeled 4'-0", 1" on paper at
+// 1/4" = 1'-0", 2" at 1/2" = 1'-0"). The label is read back as feet and inches, so the check is label x scale.
+// AC-EZD-705-2 (field check: Josh measures a print): the paper lengths asserted here (4'-0" measures 1" at 1/4" and
+// 2" at 1/2") are the automated basis for Josh's measurement of the printed check dimension.
+const markLines = (markup: string, mark: string) =>
+  [...markup.matchAll(/<line ([^>]*)\/>/g)]
+    .map((m) => m[1]!)
+    .filter((a) => a.includes(`data-print-mark="${mark}"`))
+    .map((a) => {
+      const v = (n: string) => Number(new RegExp(` ${n}="([^"]*)"`).exec(` ${a}`)![1]);
+      return { x1: v('x1'), y1: v('y1'), x2: v('x2'), y2: v('y2') };
+    });
+const markText = (markup: string, mark: string): string[] =>
+  [...markup.matchAll(new RegExp(`<text [^>]*data-print-mark="${mark}"[^>]*>([^<]*)</text>`, 'g'))].map((m) =>
+    m[1]!.replace(/&quot;/g, '"').replace(/&#39;/g, "'"),
+  );
+const labelInches = (label: string): number => {
+  const m = /^(\d+)'-(\d+)"$/.exec(label);
+  if (m === null) throw new Error(`not a feet-inches label: ${label}`);
+  return Number(m[1]) * 12 + Number(m[2]);
+};
+
+describe('EZD-705 print marks on the sheet', () => {
+  it('EZD-705 AC-1 AC-2 the check dimension is drawn at its labeled length x the viewport scale', () => {
+    for (const [scale, paperIn] of [
+      [0.25 / 12, 1],
+      [0.5 / 12, 2],
+    ] as const) {
+      const svg = sheetJob(input({ scale }));
+      const [line] = markLines(svg.markup, 'check-dimension');
+      const [label] = markText(svg.markup, 'check-dimension-label');
+      expect(line).toBeDefined();
+      expect(label).toBe(`4'-0"`);
+      const drawn = Math.hypot(line!.x2 - line!.x1, line!.y2 - line!.y1);
+      expect(drawn).toBeCloseTo(labelInches(label!) * scale, 6);
+      expect(drawn).toBeCloseTo(paperIn, 6);
+    }
+  });
+
+  it('EZD-705 every scaled viewport gets a 0 to 8 ft scale bar inside its area, below the drawing', () => {
+    const area = sheetDrawingArea('24x36');
+    const svg = sheetJob(input());
+    const rects = [...svg.markup.matchAll(/<rect ([^>]*data-print-mark="scale-bar"[^>]*)\/>/g)].map((m) => {
+      const v = (n: string) => Number(new RegExp(` ${n}="([^"]*)"`).exec(` ${m[1]!}`)![1]);
+      return { x: v('x'), y: v('y'), w: v('width'), h: v('height') };
+    });
+    expect(rects.length).toBeGreaterThan(0);
+    const left = Math.min(...rects.map((r) => r.x));
+    const right = Math.max(...rects.map((r) => r.x + r.w));
+    // 8 ft at 1/4" = 1'-0" is 2" of paper.
+    expect(right - left).toBeCloseTo(2, 6);
+    expect(markText(svg.markup, 'scale-bar-label')).toEqual(['0', `4'`, `8'`]);
+    const markTop = Math.min(...rects.map((r) => r.y));
+    for (const r of rects) {
+      expect(r.x).toBeGreaterThanOrEqual(area.x);
+      expect(r.x + r.w).toBeLessThanOrEqual(area.x + area.width);
+      expect(r.y + r.h).toBeLessThanOrEqual(area.y + area.height);
+    }
+    // The walls sit above the marks.
+    for (const l of [W1, W2, W3, W4].flatMap((id) => linesOf(svg.markup, id)))
+      expect(Math.max(l.y1, l.y2)).toBeLessThan(markTop);
+    // The marks are not model objects.
+    expect(svg.shown.every((id) => id !== '')).toBe(true);
+  });
+
+  it('EZD-705 an NTS viewport is stamped NTS with no scale bar or check dimension; an empty one has no marks', () => {
+    const nts = sheetJob(input({ scale: null }));
+    expect(markText(nts.markup, 'nts')).toEqual(['NTS']);
+    expect(nts.markup).not.toContain('data-print-mark="scale-bar"');
+    expect(nts.markup).not.toContain('data-print-mark="check-dimension"');
+    expect(sheetJob(input({ level: '99999999-9999-4999-8999-999999999999' })).markup).toBe('');
+  });
+});

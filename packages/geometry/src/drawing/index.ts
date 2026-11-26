@@ -6,6 +6,8 @@ export * from './text';
 export * from './types';
 // EZD-702b: the sheet SVG for the sheet worker.
 export * from './sheet-svg';
+// EZD-705: the scale bar and check dimension of a viewport.
+export * from './print-marks';
 // EZD-710: the sheet title block.
 export * from './title-block';
 // EZD-216: dimension and note values, auto dimensions and paper sizes, exported with the drawing list that draws them.

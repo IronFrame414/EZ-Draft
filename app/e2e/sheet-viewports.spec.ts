@@ -119,4 +119,39 @@ test.describe('EZD-703 Viewports and scales', () => {
     await expect(id(page, 'sheet-viewport-0-scale')).toHaveValue('1/2');
     await expect.poll(async () => (await faceLengths(drawing, existing!)).map((f) => Math.round(f * 1000) / 1000)).toContain(5);
   });
+  // EZD-705 AC-EZD-705-1 (S13 Validation "Every sheet gets a scale bar and a printed check dimension"; settled
+  // vault/build/assumptions/EZD-705.md: a check dimension labeled 4'-0", 1" on paper at 1/4" = 1'-0", 2" at 1/2").
+  test('EZD-705 AC-1 the check dimension on the sheet measures its label x the viewport scale', async ({ page, signInAs }) => {
+    const { ids, user } = await fixtureS();
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await addWalls(page, ['existing']);
+    await saved(page);
+
+    await tab(page, 'Sheets').click();
+    const drawing = id(page, 'sheet-drawing');
+    await id(page, 'sheet-row-A1.0').click();
+    await expect(id(page, 'sheet-preview')).toHaveAttribute('data-sheet', 'A1.0');
+    const check = drawing.locator('line[data-print-mark="check-dimension"]');
+    const label = drawing.locator('text[data-print-mark="check-dimension-label"]');
+    const drawn = () =>
+      check.evaluate((e) => {
+        const n = (a: string) => Number(e.getAttribute(a));
+        return Math.round(Math.hypot(n('x2') - n('x1'), n('y2') - n('y1')) * 1000) / 1000;
+      });
+    const labelInches = async () => {
+      const m = /^(\d+)'-(\d+)"$/.exec((await label.textContent()) ?? '');
+      return m === null ? NaN : Number(m[1]) * 12 + Number(m[2]);
+    };
+    await expect(check).toHaveCount(1);
+    await expect(label).toHaveText(`4'-0"`);
+    await expect(drawing.locator('rect[data-print-mark="scale-bar"]').first()).toBeAttached();
+    expect(await drawn()).toBeCloseTo(((await labelInches()) * 0.25) / 12, 3);
+    expect(await drawn()).toBeCloseTo(1, 3);
+
+    await id(page, 'sheet-viewport-0-scale').selectOption('1/2');
+    await expect(id(page, 'status-sheet-scale')).toHaveText(`1/2" = 1'-0"`);
+    await expect.poll(drawn).toBeCloseTo(2, 3);
+    expect(await drawn()).toBeCloseTo(((await labelInches()) * 0.5) / 12, 3);
+  });
 });
