@@ -34,6 +34,8 @@
 // double-click on a dimension or note opens the box on it (`openTextEdit`). The box's text is committed here; while a
 // dimension's line is being placed, a typed character opens the box for its override. Dimensions and notes move with
 // Move and Select drags.
+// EZD-232 (S03 rail Revision cloud; 04 Tool rail "Revision cloud | Q"; Q-0200): the Revision cloud tool draws a
+// rectangular cloud with its delta tag (`reduceCloud`), stored as a manual `revision_cloud`.
 import {
   DEFAULT_SNAP_SETTINGS,
   DOOR_TARGET_PX,
@@ -190,7 +192,13 @@ import {
   type TextInput,
   type TextToolState,
 } from './text-tool';
-import { annotationsOn, dimensionChange, textChange } from './model-changes';
+import { annotationsOn, dimensionChange, revisionCloudChange, textChange } from './model-changes';
+import {
+  initialCloudState,
+  reduceCloud,
+  type CloudInput,
+  type CloudToolState,
+} from './revision-cloud-tool';
 import { idKey, sameIds } from '../shared/ids';
 import { createListeners } from '../shared/value-store';
 
@@ -345,6 +353,7 @@ type ToolState =
   | { id: 'sketch'; state: SketchState }
   | { id: 'dimension'; state: DimensionToolState }
   | { id: 'text'; state: TextToolState }
+  | { id: 'revision-cloud'; state: CloudToolState }
   | { id: 'measure'; state: MeasureState }
   | { id: 'cabinets'; state: null }
   | { id: 'countertops'; state: null }
@@ -643,6 +652,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       tool.id === 'sketch' ||
       tool.id === 'dimension' ||
       tool.id === 'text' ||
+      tool.id === 'revision-cloud' ||
       tool.id === 'measure' ||
       tool.id === 'cabinets' ||
       tool.id === 'countertops' ||
@@ -900,6 +910,17 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     )
       return null;
     if (tool.id === 'dimension') return dimensionFrame(tool.state);
+    // EZD-232: the cloud's rectangle from its first corner to the pointer.
+    if (tool.id === 'revision-cloud') {
+      const c = tool.state.corner;
+      return {
+        ...EMPTY_FRAME,
+        rect: c !== null,
+        from: c?.at ?? null,
+        to: tool.state.at,
+        opening: null,
+      };
+    }
     if (tool.id === 'measure') {
       const { from, to } = tool.state;
       return {
@@ -1131,6 +1152,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       onTextPointer(event);
       return;
     }
+    if (tool.id === 'revision-cloud') {
+      onCloudPointer(event);
+      return;
+    }
     if (isOpeningTool(tool)) {
       onOpeningPointer(event);
       return;
@@ -1233,6 +1258,37 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     tool = { id: 'dimension', state: step.state };
     if (step.place !== null) placeDimension(step.place);
     if (ui.dimensionMode !== step.state.mode) setUi({ dimensionMode: step.state.mode });
+    emitFrame();
+  }
+
+  // EZD-232: a press, drag and lift (or two clicks) draws a cloud; the new cloud is selected, as a new note is.
+  function onCloudPointer(event: PlanPointerEvent): void {
+    if (tool === null || tool.id !== 'revision-cloud' || level === null) return;
+    const kind = event.kind;
+    const i: CloudInput | null =
+      kind === 'down' || kind === 'up'
+        ? { type: kind, at: event.model, screen: event.screen }
+        : kind === 'move'
+          ? { type: 'move', at: event.model }
+          : kind === 'cancel'
+            ? { type: 'cancel' }
+            : null;
+    if (i !== null) cloudInput(i);
+  }
+
+  function cloudInput(i: CloudInput): void {
+    if (tool === null || tool.id !== 'revision-cloud' || level === null) return;
+    const step = reduceCloud(tool.state, i, level);
+    if (step.exit) {
+      selectTool(null);
+      return;
+    }
+    tool = { id: 'revision-cloud', state: step.state };
+    if (step.place !== null) {
+      const id = newId();
+      store.applyEdit([revisionCloudChange({ id, type: 'revision_cloud', data: step.place })]);
+      link?.select([id]);
+    }
     emitFrame();
   }
 
@@ -1675,11 +1731,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
                     ? { id, state: initialDimensionState() }
                     : id === 'text'
                       ? { id, state: initialTextState() }
-                      : id === 'measure'
-                        ? { id, state: initialMeasureState() }
-                        : id === 'cabinets' || id === 'countertops' || id === 'electrical'
-                          ? { id, state: null }
-                          : { id, state: initialOpeningToolState(id) };
+                      : id === 'revision-cloud'
+                        ? { id, state: initialCloudState() }
+                        : id === 'measure'
+                          ? { id, state: initialMeasureState() }
+                          : id === 'cabinets' || id === 'countertops' || id === 'electrical'
+                            ? { id, state: null }
+                            : { id, state: initialOpeningToolState(id) };
     if (id === 'fixtures') loadFixtures();
     if (id === 'sketch') sketchModule.preload();
     // EZD-404: the cabinet screen covers the plan, so no plan object stays selected under it.
@@ -1775,6 +1833,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     if (tool.id === 'dimension')
       tool = { id: 'dimension', state: initialDimensionState(tool.state.mode) };
     else if (tool.id === 'text') tool = { id: 'text', state: initialTextState() };
+    else if (tool.id === 'revision-cloud')
+      tool = { id: 'revision-cloud', state: initialCloudState() };
     else if (isOpeningTool(tool)) openingInput({ type: 'escape' });
     else if (tool.id === 'move') moveInput({ type: 'escape' });
     else if (tool.id === 'sketch' && tool.state.stroke !== null)
@@ -1842,6 +1902,11 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       else tool = { id: 'text', state: step.state };
       return true;
     }
+    // EZD-232: Esc drops a started cloud, else ends the tool.
+    if (tool !== null && tool.id === 'revision-cloud' && e.key === 'Escape') {
+      cloudInput({ type: 'escape' });
+      return true;
+    }
     if (e.key === 'Escape' && (ui.entry !== null || claim !== null)) {
       cancelEntry();
       return true;
@@ -1887,6 +1952,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         tool.id === 'sketch' ||
         tool.id === 'dimension' ||
         tool.id === 'text' ||
+        tool.id === 'revision-cloud' ||
         tool.id === 'measure' ||
         tool.id === 'cabinets' ||
         tool.id === 'countertops' ||
@@ -1906,7 +1972,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       command === 'fixtures' ||
       command === 'dimension' ||
       command === 'text' ||
-      command === 'sketch'
+      command === 'sketch' ||
+      command === 'revision-cloud'
     ) {
       selectTool(command);
       return true;

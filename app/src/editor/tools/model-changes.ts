@@ -12,6 +12,7 @@
 import {
   type DimensionObject,
   type TextObject,
+  type RevisionCloudData,
   blockingHostUpdates,
   CURRENT_SCHEMA_VERSION,
   numberNewObjects,
@@ -208,6 +209,20 @@ export const dimensionChange = (o: DimensionObject): Change => ({
   id: o.id,
   value: {
     type: 'dimension',
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: o.data as unknown as Record<string, unknown>,
+  },
+});
+
+// EZD-232: a revision cloud, written as it is.
+export const revisionCloudChange = (o: {
+  id: string;
+  type: 'revision_cloud';
+  data: RevisionCloudData;
+}): Change => ({
+  id: o.id,
+  value: {
+    type: 'revision_cloud',
     schemaVersion: CURRENT_SCHEMA_VERSION,
     data: o.data as unknown as Record<string, unknown>,
   },

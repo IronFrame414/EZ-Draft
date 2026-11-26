@@ -354,7 +354,7 @@ test.describe('EZD-208b selection', () => {
     const bottomTools = page.locator(
       '[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]',
     );
-    await expect(topTools).toHaveCount(15); // EZD-601: plus Electrical; EZD-412: plus Countertops; EZD-216: plus Dimension, Text
+    await expect(topTools).toHaveCount(16); // EZD-601: plus Electrical; EZD-412: plus Countertops; EZD-216: plus Dimension, Text; EZD-232: plus Revision cloud
     await expect(bottomTools).toHaveCount(2); // EZD-222: Assistant, then Help
     await expect(bottomTools.nth(0)).toHaveAttribute('data-rail-tool', 'assistant');
     await expect(bottomTools.nth(1)).toHaveAttribute('data-rail-tool', 'help');

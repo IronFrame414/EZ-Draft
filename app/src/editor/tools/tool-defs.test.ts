@@ -123,6 +123,13 @@ describe('EZD-210a tool definitions', () => {
       },
       { kind: 'tool', id: 'text', icon: 'title', label: 'office.tool.text', shortcut: 'T' },
       { kind: 'tool', id: 'sketch', icon: 'draw', label: 'office.tool.sketch', shortcut: 'S' },
+      {
+        kind: 'tool',
+        id: 'revision-cloud',
+        icon: 'cloud',
+        label: 'office.tool.revision_cloud',
+        shortcut: 'Q',
+      },
     ]);
     const names: readonly string[] = ICON_NAMES;
     expect(names).toContain('view_column_2');

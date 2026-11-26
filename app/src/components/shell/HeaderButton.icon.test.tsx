@@ -45,6 +45,7 @@ const EXPECTED_ICONS = [
   'chevron_left',
   'chevron_right',
   'close',
+  'cloud', // EZD-232
   'cloud_off',
   'compare_arrows',
   'contact_mail',

@@ -410,6 +410,7 @@ describe('EZD-208a selection controller', () => {
       'dimension', // EZD-216
       'text',
       'sketch',
+      'revision-cloud', // EZD-232
       'measure',
     ]);
     expect(edit?.disabled).toBe(false);

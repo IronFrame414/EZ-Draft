@@ -284,6 +284,8 @@ export const PROJECTORS: {
   // EZD-216: dimensions and notes are not sent; the assistant adds them (add_dimension, add_text) but does not read them.
   dimension: notSent,
   text: notSent,
+  // EZD-232: revision clouds are not sent until a ticket decides what of them the assistant reads.
+  revision_cloud: notSent,
 };
 
 const LABEL_WORDS = new Set(ROOM_LABEL_WORDS.map((w) => w.toLowerCase()));

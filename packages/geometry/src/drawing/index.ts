@@ -12,3 +12,5 @@ export * from './print-marks';
 export * from './title-block';
 // EZD-216: dimension and note values, auto dimensions and paper sizes, exported with the drawing list that draws them.
 export * from '../dimensions';
+// EZD-232: a revision cloud's scallops and delta tag.
+export * from './revision-cloud';

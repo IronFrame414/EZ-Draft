@@ -54,7 +54,8 @@ export function objectLayers(type: string, status: unknown, kind?: unknown): Lay
   if (type === 'room') out.push('rooms');
   if (inPlumbing(type, kind)) out.push('plumbing');
   if (type === 'hvac') out.push('mechanical');
-  if (type === 'dimension') out.push('dimensions');
+  // EZD-232: a revision cloud is drawn with the dimensions, so their eye and lock take it too.
+  if (type === 'dimension' || type === 'revision_cloud') out.push('dimensions');
   return out;
 }
 

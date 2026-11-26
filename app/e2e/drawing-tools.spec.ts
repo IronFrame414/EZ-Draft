@@ -252,7 +252,7 @@ test.describe('EZD-210b drawing tools', () => {
     await expect(rail(page)).toHaveCount(1);
     const tools = rail(page).locator('[data-rail="top"] [data-rail-tool]');
     const bottom = rail(page).locator('[data-rail="bottom"] [data-rail-tool]');
-    await expect(tools).toHaveCount(15); // EZD-601: plus Electrical, after Cabinets; EZD-412: plus Countertops; EZD-216: plus Dimension, Text
+    await expect(tools).toHaveCount(16); // EZD-601: plus Electrical, after Cabinets; EZD-412: plus Countertops; EZD-216: plus Dimension, Text; EZD-232: plus Revision cloud
     await expect(bottom).toHaveCount(2); // EZD-222: Assistant, then Help
     await expect(bottom.nth(0)).toHaveAttribute('data-rail-tool', 'assistant');
     await expect(bottom.nth(1)).toHaveAttribute('data-rail-tool', 'help');
@@ -647,7 +647,10 @@ test.describe('EZD-210b drawing tools', () => {
       await openReady(page, ids.P1);
       await addGap(page);
       await view(page);
-      expect(await expectTouchTargets(page, rail(page).locator('[data-rail="top"]'))).toBe(15); // EZD-601: plus Electrical; EZD-412: plus Countertops; EZD-216: plus Dimension, Text
+      // EZD-232: 16 top tools need 16 x (44 + 2) = 736 px, more than this rail's height (15 fitted: at least 690 px),
+      // so 14 tools and the More tools button fit (Q-0038 (b)); the other two are in its flyout.
+      await expect(rail(page).locator('[data-rail-tool="more-tools"]')).toBeVisible();
+      expect(await expectTouchTargets(page, rail(page).locator('[data-rail="top"]'))).toBe(15); // EZD-601: plus Electrical; EZD-412: plus Countertops; EZD-216: plus Dimension, Text; EZD-232: plus Revision cloud, so More tools
       expect(await expectTouchTargets(page, rail(page).locator('[data-rail="bottom"]'))).toBe(2); // EZD-222: Assistant and Help
       expect(await expectTouchTargets(page, id(page, 'gap-box'))).toBe(1);
     },
