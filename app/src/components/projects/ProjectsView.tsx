@@ -392,6 +392,18 @@ export function ProjectsView({
           canDelete,
           canMeasure,
           api: cardActionsHttpApi,
+          // EZD-1422 (Q-0204): the waiting line's Resend, Copy link and Cancel.
+          onFieldMeasureResent: (sent) =>
+            toast.show(
+              sent.emailSent
+                ? { message: 'office.field_measure_request.sent', params: { name: sent.sentTo } }
+                : {
+                    message: 'office.field_measure_request.email_failed',
+                    params: { name: sent.sentTo },
+                  },
+            ),
+          onFieldMeasureCopied: () =>
+            toast.show({ message: 'office.projects.menu.field_measure_copied' }),
           onChanged: () => store.refresh(),
           onFailed: () => {
             toast.show({ message: 'office.projects.menu.failed' });
@@ -466,6 +478,21 @@ export function ProjectsView({
           onCreated={(id, jobId) =>
             router.push(jobId ? importReviewPath(id, jobId) : '/projects/' + id)
           }
+          onFieldMeasureSent={(_id, sent) => {
+            // EZD-1422 (S01 Input source): the project stays on Projects, waiting for the rooms (Q-0204).
+            setCreating(null);
+            store.refresh();
+            if (sent === null) {
+              toast.show({ message: 'office.field_measure_request.failed' });
+            } else {
+              toast.show({
+                message: sent.emailSent
+                  ? 'office.field_measure_request.sent'
+                  : 'office.field_measure_request.email_failed',
+                params: { name: sent.sentTo },
+              });
+            }
+          }}
         />
       ) : null}
     </>

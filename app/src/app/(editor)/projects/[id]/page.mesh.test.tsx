@@ -22,6 +22,9 @@ vi.mock('../../../../server/settings/shell-data', () => ({
 }));
 vi.mock('../../../../server/imports/project-mesh', () => ({ projectMeshUrl: vi.fn() }));
 vi.mock('../../../../server/errors/report', () => ({ reportError: vi.fn(async () => ({})) }));
+vi.mock('../../../../server/field-measure/review-redirect', () => ({
+  fieldMeasureReviewJob: vi.fn(async () => null),
+}));
 
 import { ProjectEditor } from '../../../../editor/ProjectEditor';
 import { reportError } from '../../../../server/errors/report';

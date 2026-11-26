@@ -7,6 +7,8 @@
 // EZD-1419 (S17b Entry points; Q-0178 "any staff member may be sent mid-job to re-measure"): Field measure, first,
 // opens the project's phone Field measure screen for a member who may measure (Send field measurement) or reopen
 // sent rooms (Approve field measurements), so the menu shows for them too.
+// EZD-1422 (Q-0204): while the card waits for field measurements, the sender or a member with Edit model gets
+// Resend field measure link, Copy field measure link and Cancel field measure request (the server decides again).
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { useT } from '../../lib/messages';
 import {
@@ -18,6 +20,7 @@ import type { ProjectStatus, ProjectSummary } from '../../lib/projects/projects'
 import touch from '../../styles/touch.module.css';
 import { Icon } from '../icon/Icon';
 import { Menu, MenuItem } from '../menu/Menu';
+import type { FieldMeasureRequestSent } from '../../lib/projects/field-measure-request';
 import { DeleteProjectDialog } from './DeleteProjectDialog';
 import { ProjectCard } from './ProjectCard';
 import styles from './Projects.module.css';
@@ -34,6 +37,10 @@ export type CardMenuHandlers = {
   onArchive(): void;
   onRestore(): void;
   onDelete(): void;
+  // EZD-1422: shown with a waiting field measure request the user may change.
+  onFieldMeasureResend?(): void;
+  onFieldMeasureCopy?(): void;
+  onFieldMeasureCancel?(): void;
 };
 
 export function ProjectCardMenu({
@@ -55,7 +62,10 @@ export function ProjectCardMenu({
     archived: project.archived === true,
     complete: project.status === 'complete',
   });
-  if (items.length === 0 && !canMeasure) return null;
+  const wait = project.fieldMeasureWait;
+  const canChangeRequest =
+    !!wait && (wait.mine || canEdit) && on.onFieldMeasureResend !== undefined;
+  if (items.length === 0 && !canMeasure && !canChangeRequest) return null;
   const item = `${styles.menuItem} ${touch.target}`;
   return (
     <Menu
@@ -75,7 +85,32 @@ export function ProjectCardMenu({
           {t('office.projects.menu.field_measure')}
         </MenuItem>
       ) : null}
-      {canMeasure && items.length > 0 ? (
+      {canChangeRequest ? (
+        <>
+          <MenuItem
+            testId="project-card-field-measure-resend"
+            className={item}
+            onSelect={() => on.onFieldMeasureResend?.()}
+          >
+            {t('office.projects.menu.field_measure_resend')}
+          </MenuItem>
+          <MenuItem
+            testId="project-card-field-measure-copy"
+            className={item}
+            onSelect={() => on.onFieldMeasureCopy?.()}
+          >
+            {t('office.projects.menu.field_measure_copy')}
+          </MenuItem>
+          <MenuItem
+            testId="project-card-field-measure-cancel"
+            className={item}
+            onSelect={() => on.onFieldMeasureCancel?.()}
+          >
+            {t('office.projects.menu.field_measure_cancel')}
+          </MenuItem>
+        </>
+      ) : null}
+      {(canMeasure || canChangeRequest) && items.length > 0 ? (
         <div role="separator" className={styles.menuDivider} />
       ) : null}
       {items.includes('rename') ? (
@@ -186,6 +221,9 @@ export type CardMenuConfig = {
   /** EZD-1419: offer Field measure (Send field measurement or Approve field measurements). */
   canMeasure?: boolean;
   api: CardActionsApi;
+  // EZD-1422 (Q-0204): after Resend (who got the link, and whether the email went) and Copy link.
+  onFieldMeasureResent?(sent: FieldMeasureRequestSent): void;
+  onFieldMeasureCopied?(): void;
   // After a change committed: the list and counts reload.
   onChanged(): void;
   // A change that did not save.
@@ -222,6 +260,29 @@ export function ProjectCardWithMenu({
       onArchive={() => void run(config.api.setArchived(project.id, true))}
       onRestore={() => void run(config.api.setArchived(project.id, false))}
       onDelete={() => setDeleting(true)}
+      onFieldMeasureResend={() =>
+        void fieldMeasureRequest(project.id, 'POST').then(
+          (sent) => {
+            if (sent !== null) config.onFieldMeasureResent?.(sent);
+            config.onChanged();
+          },
+          () => config.onFailed(),
+        )
+      }
+      onFieldMeasureCopy={() =>
+        void navigator.clipboard
+          .writeText(window.location.origin + fieldMeasureHref(project.id))
+          .then(
+            () => config.onFieldMeasureCopied?.(),
+            () => config.onFailed(),
+          )
+      }
+      onFieldMeasureCancel={() =>
+        void fieldMeasureRequest(project.id, 'DELETE').then(
+          () => config.onChanged(),
+          () => config.onFailed(),
+        )
+      }
     />
   );
   return (
@@ -258,4 +319,17 @@ export function ProjectCardWithMenu({
       ) : null}
     </>
   );
+}
+
+/** EZD-1422 (Q-0204): Resend (POST) or Cancel (DELETE) the card's field measure request; throws when refused. */
+export async function fieldMeasureRequest(
+  projectId: string,
+  method: 'POST' | 'DELETE',
+): Promise<FieldMeasureRequestSent | null> {
+  const res = await fetch(`/api/projects/${projectId}/field-measure/request`, {
+    method,
+    credentials: 'same-origin',
+  });
+  if (!res.ok) throw new Error(`field_measure_request_${res.status}`);
+  return method === 'POST' ? ((await res.json()) as FieldMeasureRequestSent) : null;
 }

@@ -3277,6 +3277,30 @@ export const en = {
   'office.ceiling.status.joists_entered': 'entered · beam clash checks on',
   'office.device.keep_clear.joist': 'Can is on a joist. Move it clear.',
   'office.device.keep_clear.beam': 'Can is on a beam. Move it clear.',
+  // EZD-1422 (S01 Input source; board S01b Field measure card and hint; Q-0204): Field measure as wizard input.
+  'office.new_project.source_field_measure': 'Field measure',
+  'office.new_project.source_field_measure_sub':
+    'Foreman measures rooms on the phone. Project opens on Import review when rooms arrive.',
+  'office.new_project.source_field_measure_hint':
+    'Field measure asks which Foreman gets the link (email + Copy link)',
+  'office.new_project.field_measure_pick_foreman': 'Pick the Foreman who gets the link.',
+  'office.new_project.create_will_email_foreman': "Email {name} the Field measure link",
+  'office.new_project.create_will_open_review': 'Open Import review when the rooms arrive',
+  'office.field_measure_request.sent': 'Field measure link sent to {name}',
+  'office.field_measure_request.email_failed':
+    "The project was created, but the email to {name} didn't go. Use Resend or Copy link on the project card.",
+  'office.field_measure_request.failed': "The project was created, but the Field measure link wasn't sent.",
+  'office.field_measure_request.email_subject': 'Measure {project} on your phone',
+  'office.field_measure_request.email_greeting': 'Hello {name},',
+  'office.field_measure_request.email_body':
+    '{company} asked you to measure the rooms for {project}. Open the link on your phone, measure each room and tap Send to office.',
+  'office.field_measure_request.email_link': 'Open Field measure',
+  'office.projects.card.field_measure_waiting': 'Waiting for field measurements',
+  'office.projects.card.field_measure_sent_to': 'Sent to {name}',
+  'office.projects.menu.field_measure_resend': 'Resend field measure link',
+  'office.projects.menu.field_measure_copy': 'Copy field measure link',
+  'office.projects.menu.field_measure_cancel': 'Cancel field measure request',
+  'office.projects.menu.field_measure_copied': 'Link copied',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

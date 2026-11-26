@@ -42,6 +42,9 @@ export type ProjectSummary = {
   archived?: boolean;
   // EZD-314 (S01 States "Import in progress"): an import of the project is detecting or in review.
   importing?: boolean;
+  // EZD-1422 (Q-0204): while the wizard's field measure request waits for rooms, who it was sent to and whether
+  // the viewer sent it (the sender or Edit model may Resend or Cancel); null or absent otherwise.
+  fieldMeasureWait?: { sentTo: string; mine: boolean } | null;
 };
 
 export function projectThumbnailSrc(projectId: string): string {

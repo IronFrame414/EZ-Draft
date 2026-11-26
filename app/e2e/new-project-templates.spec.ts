@@ -153,7 +153,6 @@ test.describe('EZD-221b New project wizard: template step', () => {
       'Submittal profile',
       'Property appraiser',
       'Polycam',
-      'Field measure',
     ]) {
       expect(text, word).not.toContain(word);
     }
@@ -420,7 +419,7 @@ test.describe('EZD-221b New project wizard: template step', () => {
   });
 
   test(
-    `EZD-221b B9 touch targets: the step 2 dialog's fourteen controls (thirteen plus EZD-129's Foreman picker) are at least 44 px on iPad (AC-EZD-221-2)`,
+    `EZD-221b B9 touch targets: the step 2 dialog's sixteen controls (thirteen plus EZD-129's Foreman picker and EZD-1422's Field measure and Blank source cards) are at least 44 px on iPad (AC-EZD-221-2)`,
     { tag: ['@ipad'] },
     async ({ page, signInAs }) => {
       const { email } = await creator();
@@ -429,7 +428,7 @@ test.describe('EZD-221b New project wizard: template step', () => {
       await step2(page);
       await tile(page, 'l_kitchen').click();
       await expect(tid(page, 'new-project-foreman')).toBeVisible();
-      expect(await expectTouchTargets(page, tid(page, 'new-project-dialog'))).toBe(14);
+      expect(await expectTouchTargets(page, tid(page, 'new-project-dialog'))).toBe(16);
     },
   );
 });

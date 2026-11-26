@@ -9,6 +9,9 @@
 // EZD-124 (S01 Card overflow menu; Q-0702): with a `menu` the card sits in a wrapper with the three-dot menu
 // beside the link (never inside it, so a menu click does not open the project); with a `nameEditor` (Rename
 // inline) the card is not a link while the name is edited.
+// EZD-1422 (Q-0204): while the wizard's field measure request waits, the card shows "Waiting for field measurements"
+// in place of the open-items line and who it was sent to under the place line; Resend, Copy link and Cancel are in
+// the three-dot menu (ProjectCardMenu).
 import Link from 'next/link';
 import type { ReactElement, ReactNode } from 'react';
 import { projectThumbnailSrc, type ProjectSummary } from '../../lib/projects/projects';
@@ -111,6 +114,13 @@ function CardInner({
                 address: project.address,
               })}
         </span>
+        {project.fieldMeasureWait ? (
+          <span className={styles.place} data-testid="project-card-field-measure-sent-to">
+            {t('office.projects.card.field_measure_sent_to', {
+              name: project.fieldMeasureWait.sentTo,
+            })}
+          </span>
+        ) : null}
         <div className={styles.bottom}>
           <span className={styles.version} data-testid="project-card-version">
             {/* EZD-121 (S01 Data shown; Q-0700 05): "Version N" after a send, "Working copy" before. */}
@@ -118,7 +128,16 @@ function CardInner({
               ? t('office.projects.card.working_copy')
               : t('office.projects.card.version', { n: project.versionNo })}
           </span>
-          {project.importing === true ? (
+          {project.fieldMeasureWait ? (
+            <span
+              className={styles.open}
+              data-testid="project-card-field-measure-waiting"
+              data-has-items="true"
+            >
+              <span className={styles.dot} />
+              {t('office.projects.card.field_measure_waiting')}
+            </span>
+          ) : project.importing === true ? (
             // EZD-314 (S01 States "Import in progress: card shows Importing in place of the open-items
             // indicator"; AC-EZD-314-5).
             <span
