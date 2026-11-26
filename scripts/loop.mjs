@@ -18,6 +18,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { summarize, reportMarkdown } from './usage-report.mjs';
+import { BUILDER_TEST_STEP, FIX_TEST_RULE, fixPromptBody as fixBody } from './loop/test-scope.mjs';
 import { RESUME_PROMPT, describeExit, died, readLastEntry, signalOfCode, startClaude } from './loop/claude-exit.mjs';
 import { noteSignal, pgidOf, senderOf } from './loop/signal-log.mjs';
 import { randomUUID } from 'node:crypto';
@@ -391,7 +392,7 @@ function builderPrompt(t, plan, reads) {
     '', 'Steps:',
     '1. Read only what you need, then plan.',
     '2. Write tests from the acceptance criteria, then the code. Expected values come from the spec, never from running the code.',
-    '3. Run `node scripts/check.mjs --fast` until it passes, then the full `node scripts/check.mjs` once. One passing full check is enough: do not rerun tests to prove stability or timing.',
+    BUILDER_TEST_STEP,
     `4. Commit everything on this branch: \`feat(${t.id}): ${t.title.replace(/[`"]/g, "'").slice(0, 70)}\`. Give a one-line reason in the body for every existing test you changed.`,
     '5. End with a summary of at most 10 lines: what you built, tests added, assumptions recorded.',
     '', 'Unsettled question: follow CLAUDE.md rule 1 (record it in vault/build/assumptions.md and keep going).',
@@ -403,11 +404,9 @@ function builderPrompt(t, plan, reads) {
 function fixPrompt(kind, detail) {
   return `${fixPromptBody(kind, detail)}\n\n${NO_PATTERN_KILL}`;
 }
+// EZD-1948: the text lives in scripts/loop/test-scope.mjs; the types file is the one the merge step regenerates.
 function fixPromptBody(kind, detail) {
-  if (kind === 'merge') return `develop moved while you worked (another lane merged). \`git merge develop\` stopped on conflicts in this folder; the conflicted files are below. Resolve every conflict keeping both changes' intent (${TYPES_FILE} is not in the list: the loop regenerates it after the merge, so leave it as it is), commit the merge, rerun the full check (node scripts/check.mjs) until it passes, and commit. The claim rules from the start still hold.\n\n${detail.slice(0, 6000)}`;
-  return kind === 'check'
-    ? `The full check (node scripts/check.mjs) failed after your work. The failing lines are below; the full output is in check.log in this folder. Fix the cause (do not weaken tests), rerun the full check until it passes, and commit.\n\n${detail.slice(0, 9000)}`
-    : `An independent reviewer found blocking problems. Fix each one, rerun the full check (node scripts/check.mjs) until it passes, and commit. If you believe a finding is wrong, say why in one line instead of changing code.\n\n${detail}`;
+  return fixBody(kind, detail, TYPES_FILE);
 }
 function reviewerPrompt(t, security, plan) {
   return [
@@ -789,7 +788,7 @@ async function guardDevelop(s) {
   if (ck.pass) { log('develop is green; the red tickets were their own problem'); return; }
   log('develop is red; running one repair build');
   const t = { id: `EZD-REPAIR-${Date.now().toString(36)}`, title: 'Repair: develop fails the check', acs: [], prompt:
-    `develop fails the full check (node scripts/check.mjs). Read CLAUDE.md, find the cause, fix it without weakening any test, run the full check until it passes, and commit with message "fix(develop): <what>".\n\n${ck.detail.slice(-8000)}` };
+    `develop fails the full check (node scripts/check.mjs). Read CLAUDE.md, find the cause, fix it without weakening any test, and commit with message "fix(develop): <what>". ${FIX_TEST_RULE}\n\n${ck.detail.slice(-8000)}` };
   beginRun(s, t, lane, []);
   const res = await doTicket(t, s, lane, 'repair');
   endRun(s, t.id); saveState(s);
