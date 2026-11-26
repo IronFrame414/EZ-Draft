@@ -2354,7 +2354,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2402,7 +2402,8 @@
     "EZD-1983": 1,
     "EZD-1991": 1,
     "EZD-1990": 1,
-    "EZD-1993": 1
+    "EZD-1993": 1,
+    "EZD-614": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2604,20 +2605,24 @@
     "EZD-1993": {
       "ts": "2026-11-25T22:59:11Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-614": {
+      "ts": "2026-11-26T13:46:42Z",
+      "reason": "review still failing after 2 fix rounds"
     }
   },
   "running": {
-    "EZD-614": {
-      "lane": 1,
-      "title": "Appliance rating defaults",
-      "started": "2026-11-26T12:00:25Z",
-      "develop": "9897b2fc"
-    },
     "EZD-707": {
       "lane": 2,
       "title": "Elevations sheet",
       "started": "2026-11-26T12:29:57Z",
       "develop": "be7d9cec"
+    },
+    "EZD-1994": {
+      "lane": 3,
+      "title": "Land the performance audit's five changes (zod off Projects; page reads start together)",
+      "started": "2026-11-26T13:21:14Z",
+      "develop": "5f9a9a90"
     }
   },
   "advisories_checked_at": "2026-11-26T10:20:19Z",
