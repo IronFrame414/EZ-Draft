@@ -553,7 +553,8 @@
     "EZD-715",
     "EZD-716",
     "EZD-1912",
-    "EZD-1994"
+    "EZD-1994",
+    "EZD-707"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2359,6 +2360,14 @@
       "ts": "2026-11-26T14:44:04Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-707",
+      "title": "Elevations sheet",
+      "commit": "568df6c6",
+      "ts": "2026-11-26T15:13:15Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2621,17 +2630,17 @@
     }
   },
   "running": {
-    "EZD-707": {
-      "lane": 2,
-      "title": "Elevations sheet",
-      "started": "2026-11-26T12:29:57Z",
-      "develop": "be7d9cec"
-    },
     "EZD-123": {
       "lane": 1,
       "title": "Version cleanup",
       "started": "2026-11-26T13:48:19Z",
       "develop": "8f5e88e8"
+    },
+    "EZD-1996": {
+      "lane": 3,
+      "title": "Styles split by page so sign-in and other pages stop loading every screen's CSS",
+      "started": "2026-11-26T14:45:56Z",
+      "develop": "6a2a063f"
     }
   },
   "advisories_checked_at": "2026-11-26T10:20:19Z",
