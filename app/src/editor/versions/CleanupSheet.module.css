@@ -1,0 +1,292 @@
+/* EZD-123 (board S20 cleanup sheet): the version cleanup sheet. Sizes from the board (930 wide, 18/20 header,
+   10/20 select bar, 14/20 footer); colors are tokens only. The overlay and shell copy SendDialog.module.css. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--ez-overlay);
+}
+
+.content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 101;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: min(930px, calc(100vw - 32px));
+  max-height: min(868px, calc(100vh - 32px));
+  overflow: hidden;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-14);
+  background: var(--ez-surface);
+  box-shadow: var(--ez-shadow-dialog);
+  color: var(--ez-ink);
+}
+
+.header {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--ez-border);
+}
+
+.headerIcon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-amber-tint);
+  color: var(--ez-amber-icon);
+}
+
+.headerText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--ez-text-18);
+  font-weight: 600;
+}
+
+.note {
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-500);
+}
+
+.close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--ez-touch-target);
+  min-height: var(--ez-touch-target);
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  cursor: pointer;
+}
+
+.selectBar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--ez-border);
+  background: var(--ez-surface-sunken);
+  font-size: var(--ez-text-13);
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-4);
+  background: var(--ez-surface);
+}
+
+.check[data-state='all'],
+.check[data-state='some'] {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+}
+
+.muted {
+  color: var(--ez-slate-500);
+}
+
+.link {
+  min-height: var(--ez-touch-target);
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--ez-cobalt-link);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.slash {
+  color: var(--ez-slate-300);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.counts {
+  font: 400 var(--ez-text-12) var(--ez-font-mono);
+  color: var(--ez-slate-500);
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto 132px minmax(0, 1fr) 260px;
+  gap: 14px;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--ez-divider-row);
+}
+
+.rowKept {
+  background: var(--ez-cobalt-tint);
+}
+
+.box {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--ez-cobalt);
+}
+
+.thumb,
+.placeholder {
+  box-sizing: border-box;
+  width: 132px;
+  height: 80px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-6);
+  background: var(--ez-surface);
+  object-fit: contain;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ez-surface-sunken);
+  font-size: var(--ez-text-11);
+  color: var(--ez-slate-400);
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.whenLine {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.when {
+  font: 500 var(--ez-text-13) var(--ez-font-mono);
+}
+
+.who {
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-450);
+}
+
+.summary {
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-700);
+}
+
+.age {
+  font: 400 var(--ez-text-11) var(--ez-font-mono);
+  color: var(--ez-slate-400);
+}
+
+.nameField {
+  display: block;
+}
+
+.nameLabel {
+  display: block;
+  margin-bottom: 4px;
+  font-size: var(--ez-text-11);
+  font-weight: 500;
+  color: var(--ez-slate-500);
+}
+
+.nameInput {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--ez-touch-target);
+  padding: 0 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: inherit;
+  font-size: var(--ez-text-13);
+}
+
+.deletes {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-self: start;
+  font-size: var(--ez-text-12);
+  color: var(--ez-red-text);
+}
+
+.footer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 20px;
+  border-top: 1px solid var(--ez-border);
+  background: var(--ez-surface);
+}
+
+.footerIcon {
+  display: flex;
+  color: var(--ez-amber-icon);
+}
+
+.footerText {
+  font-size: var(--ez-text-13);
+  line-height: 1.35;
+  color: var(--ez-slate-700);
+}
+
+.date {
+  font: 500 var(--ez-text-13) var(--ez-font-mono);
+}
+
+.footerNote {
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-450);
+}
+
+.error {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--ez-text-12);
+  color: var(--ez-red-text);
+}
+
+.save {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}

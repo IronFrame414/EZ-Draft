@@ -7,3 +7,5 @@ export type {
   VersionsPanelProps,
   VersionsStatusProps,
 } from '../../editor/versions/VersionsPanel';
+// EZD-123: the version cleanup sheet loads with the same module, when a project with due rows opens.
+export { CleanupSheet, type CleanupSheetProps } from '../../editor/versions/CleanupSheet';

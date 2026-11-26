@@ -7,6 +7,7 @@ import { reportError } from '../../../../server/errors/report';
 import { rewrapStaleAiKeys } from '../../../../server/jobs/ai-key-rewrap';
 import { runJobs } from '../../../../server/jobs/runner';
 import { sweepExpiredLocks } from '../../../../server/lock/sweep';
+import { sweepVersionCleanup } from '../../../../server/versions/cleanup-sweep';
 
 const order = vi.hoisted(() => ({ calls: [] as string[] }));
 
@@ -25,6 +26,10 @@ vi.mock('../../../../server/jobs/ai-key-rewrap', () => ({
 // EZD-125: the edit lock pass, mocked so these rows never reach a database.
 vi.mock('../../../../server/lock/sweep', () => ({
   sweepExpiredLocks: vi.fn(async () => 0),
+}));
+// EZD-123: the daily version cleanup pass, mocked so these rows never reach a database.
+vi.mock('../../../../server/versions/cleanup-sweep', () => ({
+  sweepVersionCleanup: vi.fn(async () => 0),
 }));
 vi.mock('../../../../server/errors/report', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../../server/errors/report')>();
@@ -111,5 +116,44 @@ describe('EZD-125 sweep edit lock pass', () => {
   it('AC-EZD-125-7 without the Bearer secret the pass does not run', async () => {
     expect((await call()).status).toBe(401);
     expect(sweepExpiredLocks).not.toHaveBeenCalled();
+  });
+});
+
+describe('EZD-123 sweep version cleanup pass', () => {
+  beforeEach(() => {
+    vi.stubEnv('CRON_SECRET', SECRET);
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.mocked(sweepVersionCleanup).mockClear();
+    vi.mocked(runJobs).mockClear();
+    vi.mocked(reportError).mockClear();
+  });
+
+  it("AC-EZD-123-3 every sweep queues the day's cleanup jobs before the job run and answers { ran }", async () => {
+    const res = await call(`Bearer ${SECRET}`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ran: 3 });
+    expect(sweepVersionCleanup).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sweepVersionCleanup).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(runJobs).mock.invocationCallOrder[0],
+    );
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it('AC-EZD-123-3 a failing pass is reported as version_cleanup_enqueue_failed and the sweep still answers 200', async () => {
+    vi.mocked(sweepVersionCleanup).mockRejectedValueOnce(new Error('secret detail'));
+    const res = await call(`Bearer ${SECRET}`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ran: 3 });
+    expect(reportError).toHaveBeenCalledTimes(1);
+    const [error, context] = vi.mocked(reportError).mock.calls[0];
+    expect((error as Error).message).toBe('version_cleanup_enqueue_failed');
+    expect(context).toEqual({ source: 'job', location: '/api/jobs/sweep' });
+  });
+
+  it('AC-EZD-123-3 without the Bearer secret the pass does not run', async () => {
+    expect((await call()).status).toBe(401);
+    expect(sweepVersionCleanup).not.toHaveBeenCalled();
   });
 });

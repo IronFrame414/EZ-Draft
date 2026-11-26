@@ -1620,6 +1620,9 @@ isOneToOne: false
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
                            },
+"enqueue_version_cleanup":
+{ Args: { "p_now"?: string }; Returns: number
+                           },
 "error_tunnel_take":
 { Args: { "p_events": number,"p_ip_key": string }; Returns: boolean
                            },
@@ -1874,6 +1877,12 @@ isOneToOne: false
                            },
 "rewrap_my_ai_key":
 { Args: { "p_ciphertext": string,"p_old_version": number,"p_secret_version": number }; Returns: boolean
+                           },
+"run_version_cleanup":
+{ Args: { "p_dry_run"?: boolean,"p_now": string,"p_tenant": string }; Returns: Json
+                           },
+"save_cleanup_choices":
+{ Args: { "p_delete": (string)[],"p_keep": Json,"p_lock_epoch": number,"p_project": string }; Returns: Json
                            },
 "save_edge_offer":
 { Args: { "p_choices": (string)[],"p_piece": string,"p_project": string,"p_rates"?: (number)[] }; Returns: Json

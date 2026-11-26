@@ -1764,6 +1764,32 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-122: Revert with no holder at generation 0 (as a save); 200 { version: { id } } (no money)',
   },
   {
+    file: `${API}projects/[id]/versions/cleanup/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/versions/cleanup/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/versions/cleanup`),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-123: the cleanup sheet rows; 200 { rows, graceDays, ageDays } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/versions/cleanup/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/versions/cleanup/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/versions/cleanup`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ lockEpoch: 0, keep: [], remove: [] }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-123: cleanup Save choices with nothing chosen; 200 { kept, deleted } (no money)',
+  },
+  {
     file: `${API}projects/[id]/plan-scale/route.ts`,
     method: 'PUT',
     load: () => import('../../src/app/api/projects/[id]/plan-scale/route'),

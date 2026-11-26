@@ -101,7 +101,8 @@ export const EVENT_LOG: EventLogRules = {
   'offline_change.synced': SINK,
   // EZD-1201: written by sweep_share_link_reminders in the reminder transaction.
   'share_link.expiring': TRANSACTION,
-  'cleanup.due': SINK,
+  // EZD-123: written by run_version_cleanup in the run transaction.
+  'cleanup.due': TRANSACTION,
   'code_check.completed': SINK,
   'code_warning.accepted': SINK,
   'design_option.created': SINK,
@@ -110,7 +111,8 @@ export const EVENT_LOG: EventLogRules = {
   'version.sent': TRANSACTION,
   'version.snapshot_named': SINK,
   'version.reverted': SINK,
-  'cleanup.deleted': SINK,
+  // EZD-123: written by run_version_cleanup and save_cleanup_choices in their own transactions.
+  'cleanup.deleted': TRANSACTION,
   'room.closure_overridden': {
     mode: 'sink',
     object: (e) => ({ type: 'model_object', id: e.payload.roomId }),

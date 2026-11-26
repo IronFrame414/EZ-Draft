@@ -157,6 +157,7 @@ import { createSurfaceSetting, type SurfaceSetting } from './ceiling/surface';
 import { rcpModule } from './ceiling/rcp-module';
 import { useCeilingKeys } from './ceiling/CeilingParts';
 import { versionTitle } from './versions/versions-list';
+import { fetchCleanup, postCleanup, type CleanupList } from './versions/cleanup-summary';
 import type { VersionViewState } from './versions/version-view';
 import { hubVersionEvents } from './versions/version-events';
 import { fetchVersions, postRevert, postSnapshot, type VersionRow } from '../lib/versions/versions';
@@ -331,7 +332,11 @@ export function ProjectEditor({
   const sync = session?.sync ?? null;
 
   // EZD-5605 D-Wire: Adjust is made by the Assistant session, which tells its listeners when Adjust starts or ends.
-  const adjusting = useStoreValue(assistant, (a) => a.getControls()?.adjust.getUi().adjusting ?? false, false);
+  const adjusting = useStoreValue(
+    assistant,
+    (a) => a.getControls()?.adjust.getUi().adjusting ?? false,
+    false,
+  );
 
   // EZD-404: the cabinet run screen is shown while the Cabinets tool is on.
   const cabinetsOn = useStoreValue(drawing, (d) => d.getUi().tool === 'cabinets', false);
@@ -653,6 +658,42 @@ export function ProjectEditor({
   // working copy shown (EZD-122).
   const holdsLock = (session?.model.viewer.canEdit ?? false) && !lockLost;
   const mayEdit = holdsLock && viewing === null;
+
+  // EZD-123 (Q-0700 05 "Cleanup sheet"; S20 Permissions): a project with due rows opens the cleanup sheet once for a
+  // user with Edit model; Save choices shows only to the lock holder, Later closes it.
+  const canEditModel = session?.lock.canEditModel ?? false;
+  const [cleanup, setCleanup] = useState<CleanupList | null>(null);
+  const [cleanupOpen, setCleanupOpen] = useState(false);
+  const [cleanupSaving, setCleanupSaving] = useState(false);
+  const [cleanupError, setCleanupError] = useState<MessageKey | null>(null);
+  const cleanupRead = useRef<string | null>(null);
+  useEffect(() => {
+    // The model load says whether any row is due, so a project with none asks for nothing more (EZD-120c B1).
+    if (session === null || !canEditModel || session.model.project.cleanupDue !== true) return;
+    if (cleanupRead.current === projectId) return;
+    cleanupRead.current = projectId;
+    void fetchCleanup(projectId).then((r) => {
+      if (!r.ok || r.list.rows.length === 0) return;
+      setCleanup(r.list);
+      setCleanupOpen(true);
+    });
+  }, [session, canEditModel, projectId]);
+  const saveCleanup = async (choices: {
+    keep: { id: string; name: string }[];
+    remove: string[];
+  }) => {
+    if (session === null || cleanupSaving) return;
+    setCleanupSaving(true);
+    setCleanupError(null);
+    const r = await postCleanup(projectId, { lockEpoch: session.model.lockEpoch, ...choices });
+    setCleanupSaving(false);
+    if (!r.ok) {
+      setCleanupError(versionErrorKey(r.code));
+      return;
+    }
+    setCleanupOpen(false);
+    refreshVersions();
+  };
   useEffect(() => {
     if (lockLost) drawing?.pause();
   }, [lockLost, drawing]);
@@ -967,6 +1008,18 @@ export function ProjectEditor({
             onSent={onSent}
             onOpenSettings={() => setSendSettingsOpen(true)}
             onCloseSettings={() => setSendSettingsOpen(false)}
+          />
+        ) : null}
+        {cleanupOpen && cleanup !== null ? (
+          <LazyCleanupSheet
+            rows={cleanup.rows}
+            graceDays={cleanup.graceDays}
+            ageDays={cleanup.ageDays}
+            canSave={holdsLock}
+            saving={cleanupSaving}
+            error={cleanupError === null ? null : t(cleanupError)}
+            onSave={(choices) => void saveCleanup(choices)}
+            onLater={() => setCleanupOpen(false)}
           />
         ) : null}
         {conflictCount > 0 ? (
@@ -1628,6 +1681,7 @@ function versionErrorKey(code: string): MessageKey {
 const LazyVersions = lazyPart(versionsModule, 'VersionsPanel');
 const LazyVersionInspector = lazyPart(versionsModule, 'VersionInspector');
 const LazyVersionsStatus = lazyPart(versionsModule, 'VersionsStatus');
+const LazyCleanupSheet = lazyPart(versionsModule, 'CleanupSheet');
 
 // EZD-1401 (11 Budgets; EZD-120c B11): the beam spacing pill loads when the Ceiling or Both view first shows.
 const beamSpacingModule = lazyModule(() => import('../lazy/beam-spacing'));
@@ -1677,7 +1731,9 @@ function usePreviewOpen(props: { store: PreviewStore }) {
   );
 }
 
-const LazyPreviewLayer = lazyPart(assistantPanelModule, 'PreviewLayer', { useWanted: usePreviewOpen });
+const LazyPreviewLayer = lazyPart(assistantPanelModule, 'PreviewLayer', {
+  useWanted: usePreviewOpen,
+});
 
 // EZD-214 (11 Budgets; EZD-120c B11): the inspector panel loads on the first press or key in the editor, or when
 // something is selected; until then the empty inspector is drawn from the entry.

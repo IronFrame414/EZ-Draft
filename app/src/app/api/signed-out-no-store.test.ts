@@ -202,6 +202,26 @@ const calls: Call[] = [
     },
   },
   {
+    route: 'GET /api/projects/<id>/versions/cleanup',
+    run: async () => {
+      const id = randomUUID();
+      return (await import('./projects/[id]/versions/cleanup/route')).GET(
+        get(`/api/projects/${id}/versions/cleanup`),
+        { params: Promise.resolve({ id }) },
+      );
+    },
+  },
+  {
+    route: 'POST /api/projects/<id>/versions/cleanup',
+    run: async () => {
+      const id = randomUUID();
+      return (await import('./projects/[id]/versions/cleanup/route')).POST(
+        post(`/api/projects/${id}/versions/cleanup`, { lockEpoch: 0, keep: [], remove: [] }),
+        { params: Promise.resolve({ id }) },
+      );
+    },
+  },
+  {
     route: 'POST /api/projects/<id>/versions/<versionId>/revert',
     run: async () => {
       const id = randomUUID();

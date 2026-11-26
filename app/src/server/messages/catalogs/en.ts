@@ -2587,6 +2587,34 @@ export const en = {
   'office.versions.revert_note':
     'Revert makes a new working version from {label}. Sent versions never change.',
   'error.version_not_working': 'Only a working version can be named.',
+  // EZD-123 (board S20 cleanup sheet; vault/build/assumptions/EZD-123.md wording): the version cleanup sheet.
+  'office.versions.cleanup.title': 'Clean up working versions',
+  'office.versions.cleanup.note': {
+    one: '{count} unsent working version reached {days} days. Tick the ones to keep; kept versions become named snapshots. Sent versions and snapshots are never deleted.',
+    other:
+      '{count} unsent working versions reached {days} days. Tick the ones to keep; kept versions become named snapshots. Sent versions and snapshots are never deleted.',
+  },
+  'office.versions.cleanup.close': 'Close',
+  'office.versions.cleanup.select': 'Select',
+  'office.versions.cleanup.all': 'All',
+  'office.versions.cleanup.none': 'None',
+  'office.versions.cleanup.counts': '{keep} keep · {remove} delete',
+  'office.versions.cleanup.summary': '{added} added · {changed} changed · {removed} removed',
+  'office.versions.cleanup.first_version': 'First version',
+  'office.versions.cleanup.age': { one: '{count} day old · unsent', other: '{count} days old · unsent' },
+  'office.versions.cleanup.preview_alt': 'Plan preview, {when}',
+  'office.versions.cleanup.no_preview': 'No preview',
+  'office.versions.cleanup.keep': 'Keep {when}',
+  'office.versions.cleanup.deletes': 'Deletes',
+  'office.versions.cleanup.footer_lead': 'If you do nothing, unticked versions delete on',
+  'office.versions.cleanup.footer_tail': {
+    one: ', {count} day after this sheet first appeared.',
+    other: ', {count} days after this sheet first appeared.',
+  },
+  'office.versions.cleanup.footer_note':
+    'A deleted working version cannot be restored. Needs Edit model and the edit lock.',
+  'office.versions.cleanup.later': 'Later',
+  'office.versions.cleanup.save': 'Keep {keep}, delete {remove} unticked',
   // EZD-409: the schedule view and its CSV (S04 "code, qty, finish, notes"; 08 Exports).
   'office.cabinets.schedule_code': 'Code',
   'office.cabinets.schedule_qty': 'Qty',
