@@ -537,7 +537,8 @@
     "EZD-228",
     "EZD-1948",
     "EZD-1422",
-    "EZD-216"
+    "EZD-216",
+    "EZD-607"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2215,6 +2216,14 @@
       "ts": "2026-11-26T03:55:09Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-607",
+      "title": "Load calc engine",
+      "commit": "a299a1b4",
+      "ts": "2026-11-26T04:36:49Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2471,9 +2480,22 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {},
-  "advisories_checked_at": "2026-11-25T22:19:22Z",
+  "running": {
+    "EZD-612": {
+      "lane": 3,
+      "title": "Check button and results",
+      "started": "2026-11-26T03:55:55Z",
+      "develop": "4d810f84"
+    },
+    "EZD-1953": {
+      "lane": 1,
+      "title": "Split assumptions.md per ticket and build Josh's per-screen wording checklist",
+      "started": "2026-11-26T03:56:50Z",
+      "develop": "4d810f84"
+    }
+  },
+  "advisories_checked_at": "2026-11-26T04:19:51Z",
   "hold": {},
-  "perf_trend_at": "2026-11-25T03:16:23Z",
+  "perf_trend_at": "2026-11-26T03:55:15Z",
   "set_aside_history": []
 }
