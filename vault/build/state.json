@@ -552,7 +552,8 @@
     "EZD-1911",
     "EZD-715",
     "EZD-716",
-    "EZD-1912"
+    "EZD-1912",
+    "EZD-1994"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2350,11 +2351,19 @@
       "ts": "2026-11-26T13:20:46Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1994",
+      "title": "Land the performance audit's five changes (zod off Projects; page reads start together)",
+      "commit": "dad354c5",
+      "ts": "2026-11-26T14:44:04Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2618,11 +2627,11 @@
       "started": "2026-11-26T12:29:57Z",
       "develop": "be7d9cec"
     },
-    "EZD-1994": {
-      "lane": 3,
-      "title": "Land the performance audit's five changes (zod off Projects; page reads start together)",
-      "started": "2026-11-26T13:21:14Z",
-      "develop": "5f9a9a90"
+    "EZD-123": {
+      "lane": 1,
+      "title": "Version cleanup",
+      "started": "2026-11-26T13:48:19Z",
+      "develop": "8f5e88e8"
     }
   },
   "advisories_checked_at": "2026-11-26T10:20:19Z",
