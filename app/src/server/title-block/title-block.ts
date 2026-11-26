@@ -6,8 +6,10 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { isCodeEdition } from '../../lib/code-edition/editions';
 import {
   titleBlockOf,
+  titleBlockSheetCount,
   type TitleBlockConfig,
   type TitleBlockSettings,
+  type TitleBlockUsage,
 } from '../../lib/title-block/title-block';
 import { toCompanyData } from '../company/company';
 import type { Database } from '../db/database.types';
@@ -53,4 +55,23 @@ export async function saveTitleBlock(
   const row = data?.[0];
   if (!row) throw new Error('update_tenant_title_block_no_row');
   return { ok: true, tenantId: row.tenant_id, config: titleBlockOf(row.title_block), changed: row.changed };
+}
+
+// EZD-1991 (Q-0813; AC-EZD-1991-1, -2): "Used on N sheets · Open Sheets". The member's projects are read under
+// their session, so project RLS keeps N to the signed-in company's projects (and the member's project scope).
+// Archived projects and the benchmark project are left out, as the Projects list leaves them out
+// (vault/build/assumptions.md EZD-1991). Open Sheets opens the most recently changed project.
+export async function loadTitleBlockUsage(client: Client): Promise<TitleBlockUsage> {
+  const { data, error } = await client
+    .from('project')
+    .select('id, scope_trades, updated_at')
+    .is('archived_at', null)
+    .eq('is_benchmark', false)
+    .order('updated_at', { ascending: false })
+    .order('id');
+  if (error) throw error;
+  return {
+    sheets: titleBlockSheetCount(data.map((p) => ({ scopeTrades: p.scope_trades }))),
+    projectId: data[0]?.id ?? null,
+  };
 }

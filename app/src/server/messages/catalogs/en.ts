@@ -682,6 +682,12 @@ export const en = {
   'office.title_block.status_fields': 'Company fields',
   'office.title_block.status_fields_complete': 'Complete',
   'office.title_block.status_fields_missing': 'Missing',
+  // EZD-1991 (Q-0813; board S15bTitleBlock head and preview head): "Used on N sheets · Open Sheets" and "Zoom to
+  // title block". "Used on 1 sheet" is wording for Josh to confirm (vault/build/assumptions.md EZD-1991).
+  'office.title_block.used_on': 'Used on {n} sheets',
+  'office.title_block.used_on_one': 'Used on 1 sheet',
+  'office.title_block.open_sheets': 'Open Sheets',
+  'office.title_block.zoom': 'Zoom to title block',
   // EZD-1102 (S15f; board S15fRender): Settings > Render models. Wording not on the board is listed in
   // vault/build/assumptions.md for Josh to confirm.
   'office.render_models.subtitle':

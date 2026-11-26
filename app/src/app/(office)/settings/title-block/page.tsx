@@ -9,10 +9,10 @@ import {
 } from '../../../../components/settings/title-block/TitleBlockForm';
 import { SettingsMain } from '../../../../components/settings/SettingsShell';
 import { NoAccess } from '../../../../components/states/NoAccess';
-import type { TitleBlockSettings } from '../../../../lib/title-block/title-block';
+import type { TitleBlockSettings, TitleBlockUsage } from '../../../../lib/title-block/title-block';
 import { requireSession } from '../../../../server/auth/session';
 import { createSessionClient } from '../../../../server/auth/supabase-server';
-import { loadTitleBlockSettings } from '../../../../server/title-block/title-block';
+import { loadTitleBlockSettings, loadTitleBlockUsage } from '../../../../server/title-block/title-block';
 import { reportError } from '../../../../server/errors/report';
 import { can } from '../../../../server/permissions';
 import { settingsPermissionContext } from '../../../../server/settings/shell-data';
@@ -44,5 +44,16 @@ export default async function Page() {
     });
     return <TitleBlockLoadError />;
   }
-  return <TitleBlockPage initial={settings} />;
+  // EZD-1991 (Q-0813): "Used on N sheets · Open Sheets". A failed count is reported and the line is left out; the
+  // rest of the page still shows.
+  let usage: TitleBlockUsage | null = null;
+  try {
+    usage = await loadTitleBlockUsage(createSessionClient());
+  } catch {
+    await reportError(new Error('title_block_usage_load_failed'), {
+      source: 'function',
+      location: 'settings.title_block',
+    });
+  }
+  return <TitleBlockPage initial={settings} {...(usage === null ? {} : { usage })} />;
 }

@@ -14,6 +14,7 @@ import {
   setPermissions,
   test,
 } from '../test-harness/e2e/test';
+import { seedFixtureS } from '../test-harness/projects-fixture';
 
 const NO_ACCESS = "You don't have access to this. Ask your supervisor.";
 const OFFLINE = "Offline. Title block settings can't be changed until you're back online.";
@@ -116,5 +117,84 @@ test.describe('EZD-709 Settings > Title block', () => {
     await expect(tid(page, 'title-block-show-company')).toBeDisabled();
     await expect(tid(page, 'title-block-save')).toBeDisabled();
     await network.set(page, 'on');
+  });
+});
+
+// EZD-1991 (Q-0813; AC-EZD-1991-1, AC-EZD-1991-2). Expected values: board S15bTitleBlock head ("Used on N sheets ·
+// Open Sheets") and preview head ("Zoom to title block"); the S13 permit set, 9 sheets a project, 10 with the
+// "Reflected ceiling plan" box (lib/sheets/sheet-set.ts header). Fixture S has six live projects with no boxes ticked
+// and one archived (P7, left out); ticking RCP on P1 makes it 5 x 9 + 10 = 55 sheets and the most recently changed
+// project, the one Open Sheets opens. The permit set opens on A0.0 (sheets-screen.spec.ts).
+test.describe('EZD-1991 Settings > Title block usage line and zoom', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  test('AC-EZD-1991-2: N counts the company sheets; Open Sheets opens the Sheets screen', async ({
+    page,
+    signInAs,
+  }) => {
+    const tenant = await createTenant();
+    const ids = await seedFixtureS(tenant);
+    await harnessSql()`update public.project set scope_trades = '{rcp}' where id = ${ids.P1}::uuid`;
+    const member = await createMember({ tenantId: tenant, scope: 'all' });
+    await setPermissions(tenant, member.membershipId, ['view_projects', 'settings_title_block']);
+    await signInAs(member.email);
+    await page.goto('/settings/title-block');
+
+    await expect(tid(page, 'title-block-usage-count')).toHaveText('Used on 55 sheets');
+    const link = tid(page, 'title-block-open-sheets');
+    await expect(link).toHaveText('Open Sheets');
+    await expect(link).toHaveAttribute('href', `/projects/${ids.P1}?view=sheets`);
+    await link.click();
+    await expect(page).toHaveURL(new RegExp(`/projects/${ids.P1}\\?view=sheets$`));
+    await expect(tid(page, 'editor-state')).toHaveAttribute('data-editor-state', 'ready');
+    await expect(
+      page.getByRole('navigation', { name: 'Views' }).getByRole('button', { name: 'Sheets', exact: true }),
+    ).toHaveAttribute('aria-current', 'page');
+    await expect(tid(page, 'sheet-preview')).toHaveAttribute('data-sheet', 'A0.0');
+  });
+
+  test('AC-EZD-1991-1: no projects is 0 sheets with no link; Zoom to title block frames the title block', async ({
+    page,
+    signInAs,
+  }) => {
+    await open(signInAs, page, { permissions: ['view_projects', 'settings_title_block'] });
+    await expect(tid(page, 'title-block-usage-count')).toHaveText('Used on 0 sheets');
+    await expect(tid(page, 'title-block-open-sheets')).toHaveCount(0);
+
+    const zoom = tid(page, 'title-block-zoom');
+    const viewport = tid(page, 'title-block-viewport');
+    const column = tid(page, 'title-block-preview-column');
+    await expect(zoom).toHaveText('Zoom to title block');
+    await expect(zoom).toHaveAttribute('aria-pressed', 'false');
+    await expect(column).toBeVisible();
+    const whole = { view: await viewport.boundingBox(), col: await column.boundingBox() };
+    // The whole sheet: the title block is a narrow column at the right.
+    expect(whole.col!.width).toBeLessThan(whole.view!.width / 3);
+
+    for (const size of ['24x36', '11x17'] as const) {
+      await tid(page, `title-block-size-${size}`).click();
+      await zoom.click();
+      await expect(zoom).toHaveAttribute('aria-pressed', 'true');
+      await expect(tid(page, 'title-block-preview')).toHaveAttribute('data-zoom', 'title_block');
+      await expect(column).toBeVisible();
+      const v = (await viewport.boundingBox())!;
+      const c = (await column.boundingBox())!;
+      // The view's width inside any scroll bar.
+      const vw = await viewport.evaluate((e) => e.clientWidth);
+      // Framed: the column spans the view's width, left edge to right edge (within 2%, the sheet's border scaled).
+      expect(Math.abs(c.x - v.x)).toBeLessThan(vw * 0.02);
+      expect(Math.abs(c.width - vw)).toBeLessThan(vw * 0.02);
+      await expect(tid(page, 'title-block-preview-company-block')).toBeInViewport();
+
+      await zoom.click();
+      await expect(zoom).toHaveAttribute('aria-pressed', 'false');
+      await expect(tid(page, 'title-block-preview')).toHaveAttribute('data-zoom', 'sheet');
+    }
   });
 });

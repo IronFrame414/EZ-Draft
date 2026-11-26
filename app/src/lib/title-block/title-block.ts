@@ -4,6 +4,8 @@
 // company and project data. The preview model is pure so the page re-renders it on every change.
 import type { CodeEdition } from '../code-edition/editions';
 import type { CompanyContact } from '../company/company';
+import { isScopeTrade } from '../projects/new-project';
+import { sheetsForSet } from '../sheets/sheet-set';
 import type { MessageKey } from '../../server/messages/catalog';
 
 export type TitleBlockConfig = { showCompany: boolean };
@@ -133,4 +135,42 @@ export function titleBlockPreview(
     sealBox: true,
     stampArea: true,
   };
+}
+
+// EZD-1991 (Q-0813; AC-EZD-1991-1; S15b head "Used on N sheets · Open Sheets"): the one company title block is on
+// every sheet of every permit set (S15b "One company title block on every sheet"), so N is the sum of the permit
+// set's sheets over the company's projects. Sheets are still worked out from each project's scope boxes
+// (lib/sheets/sheet-set, EZD-701); the client set's R1.0 is the permit set's R1.0 again and is not counted twice
+// (vault/build/assumptions.md EZD-1991).
+export type TitleBlockUsage = {
+  sheets: number;
+  // The project Open Sheets opens: the most recently changed one; null with no projects (no link).
+  projectId: string | null;
+};
+
+export function titleBlockSheetCount(
+  projects: readonly { scopeTrades: readonly string[] }[],
+): number {
+  return projects.reduce(
+    (n, p) => n + sheetsForSet('permit', p.scopeTrades.filter(isScopeTrade)).length,
+    0,
+  );
+}
+
+// The editor opened on its Sheets screen (`?view=sheets`, read by the editor page).
+export function sheetsScreenHref(projectId: string): string {
+  return `/projects/${encodeURIComponent(projectId)}?view=sheets`;
+}
+
+// EZD-1991 (S15b "Zoom to title block"): the preview's title block column, as a share of the sheet's width
+// (TitleBlockForm draws the column at this width), and the zoom that frames it: the sheet scaled so the column
+// fills the preview's width, shifted so the column's left edge sits at the preview's left edge. The rest of the
+// column is reached by scrolling the preview down.
+export const TITLE_BLOCK_COLUMN: Record<PreviewSize, number> = { '24x36': 0.22, '11x17': 0.3 };
+
+export function titleBlockZoom(size: PreviewSize): { scale: number; shift: number } {
+  const w = TITLE_BLOCK_COLUMN[size];
+  const scale = 1 / w;
+  // In units of the unscaled sheet width: the column starts at (1 - w) and lands at (1 - w) * scale once scaled.
+  return { scale, shift: -(1 - w) * scale };
 }

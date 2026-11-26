@@ -240,6 +240,8 @@ export type ProjectEditorProps = {
   // EZD-503 (S05 Read heights from scan "Only when a GLB mesh exists for the project"): the project's Polycam GLB
   // link the page signed; absent without one.
   meshUrl?: string | null;
+  // EZD-1991 (Q-0813; Settings > Title block "Open Sheets"): `?view=sheets` opens the editor on its Sheets screen.
+  initialView?: 'sheets';
 };
 
 export type EditorTestHook = {
@@ -317,6 +319,7 @@ export function ProjectEditor({
   railOrder: initialRailOrder,
   canManageDefaults = false,
   meshUrl = null,
+  initialView,
 }: ProjectEditorProps): ReactElement {
   const t = useT();
   // EZD-111: the Send dialog, and Project settings opened from its no-client message.
@@ -898,14 +901,14 @@ export function ProjectEditor({
 
   // EZD-1001a: the 3D view. The scene is made on the first press of 3D and kept while the session lasts, so a
   // later switch back to 3D draws it at once; it is dropped with the session.
-  const [editorView, setEditorView] = useState<EditorView>('plan');
+  const [editorView, setEditorView] = useState<EditorView>(initialView ?? 'plan');
   const [opened3d, setOpened3d] = useState(false);
   const [scene3d, setScene3d] = useState<Scene3d | null>(null);
   const show3d = plan !== null && !canvasFailed && editorView === '3d';
   // EZD-702a (S13 Entry points "Header tab Sheets"): the Sheets screen covers the plan like 3D. Its module and store
   // are made on the first press of Sheets and kept while the editor is open, so the open sheet stays on a return.
   const showSheets = session !== null && editorView === 'sheets';
-  const [openedSheets, setOpenedSheets] = useState(false);
+  const [openedSheets, setOpenedSheets] = useState(initialView === 'sheets');
   const sheetsMod = useLazy(sheetsScreenModule, openedSheets);
   const sheetsScreen = useMemo(
     () => (sheetsMod === undefined ? null : sheetsMod.createSheetsScreen(projectId)),

@@ -20,6 +20,7 @@ import { settingsPermissionContext } from '../../../../server/settings/shell-dat
 import { catalogFor } from '../../../../server/messages/catalog';
 
 // EZD-299 Build step 10 (vault/plans/EZD-299.md Decided D-Page; C14): `?conflicts=open` opens the conflict list.
+// EZD-1991: `?view=sheets` opens the Sheets screen.
 export default async function EditorPage({
   params,
   searchParams,
@@ -58,6 +59,8 @@ export default async function EditorPage({
   const bench = query?.benchmark === 'run' ? { benchmark: true } : {};
   // EZD-313 (S02 Decisions): `?imported=walls.windows.doors.rooms` shows the Finish import notice once.
   const imported = parseImported(query?.imported);
+  // EZD-1991 (Q-0813): `?view=sheets` opens the Sheets screen (Settings > Title block "Open Sheets").
+  const view = query?.view === 'sheets' ? { initialView: 'sheets' as const } : {};
   const ctx = await settingsPermissionContext();
   if (ctx === 'failed') {
     await reportError(new Error('editor_permissions_load_failed'), {
@@ -85,6 +88,7 @@ export default async function EditorPage({
           {...bench}
           {...send}
           {...defaultsLink}
+          {...view}
         />
       </StateHost>
     </MessagesProvider>
