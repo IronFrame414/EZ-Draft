@@ -546,7 +546,8 @@
     "EZD-1409",
     "EZD-703",
     "EZD-1958",
-    "EZD-705"
+    "EZD-705",
+    "EZD-1910"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2296,6 +2297,14 @@
       "ts": "2026-11-26T09:40:14Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1910",
+      "title": "Editor feature registry, lazy-part helper and Defaults hook",
+      "commit": "9bd5d825",
+      "ts": "2026-11-26T09:58:43Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2552,14 +2561,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-1910": {
-      "lane": 3,
-      "title": "Editor feature registry, lazy-part helper and Defaults hook",
-      "started": "2026-11-26T08:25:40Z",
-      "develop": "6e6791a8"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-26T04:19:51Z",
   "hold": {},
   "perf_trend_at": "2026-11-26T03:55:15Z",
