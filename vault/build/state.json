@@ -563,7 +563,8 @@
     "EZD-1611a",
     "EZD-1998",
     "EZD-719",
-    "EZD-1501"
+    "EZD-1501",
+    "EZD-708a"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2449,6 +2450,14 @@
       "ts": "2026-11-26T20:15:15Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-708a",
+      "title": "A6.0 RCP sheet",
+      "commit": "e78c3326",
+      "ts": "2026-11-26T20:46:31Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2717,11 +2726,11 @@
       "started": "2026-11-26T19:34:37Z",
       "develop": "e89f5fb1"
     },
-    "EZD-708a": {
-      "lane": 2,
-      "title": "A6.0 RCP sheet",
-      "started": "2026-11-26T19:34:38Z",
-      "develop": "e89f5fb1"
+    "EZD-1611b": {
+      "lane": 3,
+      "title": "Takeoff: cabinets, tops, fixtures and electrical",
+      "started": "2026-11-26T20:15:21Z",
+      "develop": "a36deacf"
     }
   },
   "advisories_checked_at": "2026-11-26T16:20:56Z",
