@@ -37,6 +37,8 @@ import { TYPES_FILE, orderMigrations, regenerateTypes, settleGeneratedConflicts,
 import { PERF_TREND_ID, perfDue, runPerfTrend } from './loop/perf-trend.mjs';
 import { retryCli, setAsideMarkdown, takeInRetries } from './loop/retry.mjs';
 import { createWorktreeGuard } from './loop/worktree-config.mjs';
+import { acReviewLines, traceTicket } from './loop/ac-review.mjs';
+import { traceDone } from './conventions/ac-trace.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const B = path.join(ROOT, 'vault/build');
@@ -412,7 +414,8 @@ function fixPrompt(kind, detail) {
 function fixPromptBody(kind, detail) {
   return fixBody(kind, detail, TYPES_FILE);
 }
-function reviewerPrompt(t, security, plan) {
+// EZD-1955: trace = { missing, error, alreadyDone } from scripts/loop/ac-review.mjs (the ticket's ACs not named in a test).
+function reviewerPrompt(t, security, plan, trace = {}) {
   return [
     `You are the independent reviewer for ticket ${t.id}: ${t.title}. You did not write this code.`,
     'Review the change on this branch: run `git diff --stat develop...HEAD` and `git diff develop...HEAD`.',
@@ -420,6 +423,7 @@ function reviewerPrompt(t, security, plan) {
     'Report ONLY blocking problems: an acceptance criterion not met; wrong behaviour or a bug; a security or data-isolation hole (missing RLS, a policy that lets one company see or change another company\'s rows, an auth or permission bypass, a secret in code); a test deleted or weakened without a good reason; text that contradicts a mockup.',
     'Do not report style, naming, refactors, extra tests for impossible cases, or nice-to-haves. The automatic checks (typecheck, lint, tests, build, e2e) already passed; do not rerun them.',
     security ? `This change touches security-sensitive paths (${security}). Check RLS, permissions and tenant isolation carefully.` : '',
+    ...acReviewLines(t, trace.missing, trace),
     '', 'Ticket record:', JSON.stringify(t, null, 1),
     '', 'Your last line must be exactly one JSON object and nothing after it:',
     '{"verdict":"pass" or "fail","findings":[{"file":"path","line":0,"problem":"what is wrong","fix":"what to do"}],"blocked_by":[],"notes":"one line"}',
@@ -523,13 +527,15 @@ async function review(t, wt, s, round, lane) {
   const files = git(['diff', '--name-only', 'develop...HEAD'], wt).out.split('\n').filter(Boolean);
   const sec = files.filter((f) => SECURITY_PATHS.test(f)).slice(0, 8).join(', ');
   const plan = existsSync(path.join(ROOT, 'vault/plans', `${t.id}.md`));
+  const trace = { ...traceTicket(wt, t.id), alreadyDone: (s.done || []).includes(t.id) };
+  if (trace.missing.length) log(`${t.id} AC trace: not named in a test: ${trace.missing.join(', ')}${trace.alreadyDone ? ' (merged before; reported only)' : ''}`);
   let model = c.reviewer_model;
-  let r = await runClaude({ cwd: wt, prompt: reviewerPrompt(t, sec, plan), model, effort: c.reviewer_effort, name: `${t.id} review ${round}`, timeoutMin: c.reviewer_timeout_min, readOnly: true, lane, ticket: t.id });
+  let r = await runClaude({ cwd: wt, prompt: reviewerPrompt(t, sec, plan, trace), model, effort: c.reviewer_effort, name: `${t.id} review ${round}`, timeoutMin: c.reviewer_timeout_min, readOnly: true, lane, ticket: t.id });
   recordUsage(t.id, 'reviewer', model, r);
   if ((r.limited || r.code !== 0 || !r.res) && model !== c.reviewer_fallback) {
     log(`reviewer ${model} unavailable for ${t.id} (${r.limited ? 'limit' : 'error'}); using ${c.reviewer_fallback}`);
     model = c.reviewer_fallback;
-    r = await runClaude({ cwd: wt, prompt: reviewerPrompt(t, sec, plan), model, effort: c.reviewer_effort, name: `${t.id} review ${round} fallback`, timeoutMin: c.reviewer_timeout_min, readOnly: true, lane, ticket: t.id });
+    r = await runClaude({ cwd: wt, prompt: reviewerPrompt(t, sec, plan, trace), model, effort: c.reviewer_effort, name: `${t.id} review ${round} fallback`, timeoutMin: c.reviewer_timeout_min, readOnly: true, lane, ticket: t.id });
     recordUsage(t.id, 'reviewer', model, r);
   }
   if (r.limited) return { limited: true, r };
@@ -899,6 +905,8 @@ async function main() {
     } catch (e) { log(`could not reset heavy_slots: ${e?.message || e}`); }
   }
   log(`loop start at ${git(['rev-parse', '--short', 'HEAD']).out || 'unknown'} (pid ${process.pid}; lanes ${laneList().join(', ')})`);
+  // EZD-1955: tickets merged before the traceability rule are reported here, never failed.
+  try { const tr = traceDone(ROOT); log(`AC trace: ${tr.missing} of ${tr.total} acceptance criteria of done tickets are not named in a test (report only; node scripts/conventions/ac-trace.mjs lists them)`); } catch (e) { log(`AC trace report failed: ${String(e?.message || e).slice(0, 160)}`); }
   const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock'); // slot 1; heartbeat reads every slot
   const beat = () => { try { writeBeat(P.heartbeat, sample({ running: Object.keys(s.running), heavyLock })); } catch (e) { console.log(`heartbeat: ${e?.message || e}`); } };
   writeBeat(P.heartbeat, { ...first, running: [] });
