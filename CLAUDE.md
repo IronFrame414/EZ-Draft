@@ -31,3 +31,4 @@ Next.js + React + TypeScript (app in `app/`), geometry in `packages/geometry`, T
 8. No secrets. Never read `.env` files.
 9. Never push to main, force push, or run `supabase db push` or `supabase link`.
 10. Report only what a command output in this session shows. Never weaken a check or a test to make it pass.
+11. Keep pages small and fast (Josh, Q-0814): every route has a download budget measured at its real page; heavy libraries (full zod, three, realtime, image encoder, PDF) stay out of first loads; a server page starts independent reads together, not one after another; a page sends only its own messages; images and fonts are compressed. Never raise a budget to pass. The gate checks these (EZD-2000).

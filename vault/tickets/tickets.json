@@ -27270,6 +27270,177 @@
     "AC-EZD-1993-3"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-1994",
+   "phase": 10,
+   "title": "Land the performance audit's five changes (zod off Projects; page reads start together)",
+   "depends_raw": "",
+   "spec_ref": "Performance audit 2026-11-26 (Fable agent, branch audit/perf-2026-11-26 in the local repo, commits 395f570d 3d1e67cd d823fc66 4bcb601c 7280c745; findings F1-F10 summarised in vault/plans/perf-audit-2026-11-26.md). Josh 2026-11-26, chat: \"Make all fixes found in the audit and add rules to be sure the system is built accordingly moving forward\" (decision Q-0814).",
+   "spec_files": [
+    "vault/spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [
+    "Q-0814"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1994-1",
+    "AC-EZD-1994-2",
+    "AC-EZD-1994-3"
+   ],
+   "acs_source": "josh-2026-11-26"
+  },
+  {
+   "id": "EZD-1995",
+   "phase": 10,
+   "title": "Each page sends only the screen messages it uses, not the whole office catalog",
+   "depends_raw": "",
+   "spec_ref": "Performance audit 2026-11-26 (Fable agent, branch audit/perf-2026-11-26 in the local repo, commits 395f570d 3d1e67cd d823fc66 4bcb601c 7280c745; findings F1-F10 summarised in vault/plans/perf-audit-2026-11-26.md). Josh 2026-11-26, chat: \"Make all fixes found in the audit and add rules to be sure the system is built accordingly moving forward\" (decision Q-0814).",
+   "spec_files": [
+    "vault/spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [
+    "Q-0814"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1994"
+   ],
+   "acs": [
+    "AC-EZD-1995-1",
+    "AC-EZD-1995-2",
+    "AC-EZD-1995-3"
+   ],
+   "acs_source": "josh-2026-11-26"
+  },
+  {
+   "id": "EZD-1996",
+   "phase": 10,
+   "title": "Styles split by page so sign-in and other pages stop loading every screen's CSS",
+   "depends_raw": "",
+   "spec_ref": "Performance audit 2026-11-26 (Fable agent, branch audit/perf-2026-11-26 in the local repo, commits 395f570d 3d1e67cd d823fc66 4bcb601c 7280c745; findings F1-F10 summarised in vault/plans/perf-audit-2026-11-26.md). Josh 2026-11-26, chat: \"Make all fixes found in the audit and add rules to be sure the system is built accordingly moving forward\" (decision Q-0814).",
+   "spec_files": [
+    "vault/spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [
+    "Q-0814"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1994"
+   ],
+   "acs": [
+    "AC-EZD-1996-1",
+    "AC-EZD-1996-2",
+    "AC-EZD-1996-3"
+   ],
+   "acs_source": "josh-2026-11-26"
+  },
+  {
+   "id": "EZD-1997",
+   "phase": 10,
+   "title": "The notification bell loads realtime after the page is usable",
+   "depends_raw": "",
+   "spec_ref": "Performance audit 2026-11-26 (Fable agent, branch audit/perf-2026-11-26 in the local repo, commits 395f570d 3d1e67cd d823fc66 4bcb601c 7280c745; findings F1-F10 summarised in vault/plans/perf-audit-2026-11-26.md). Josh 2026-11-26, chat: \"Make all fixes found in the audit and add rules to be sure the system is built accordingly moving forward\" (decision Q-0814).",
+   "spec_files": [
+    "vault/spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [
+    "Q-0814"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1994"
+   ],
+   "acs": [
+    "AC-EZD-1997-1",
+    "AC-EZD-1997-2"
+   ],
+   "acs_source": "josh-2026-11-26"
+  },
+  {
+   "id": "EZD-1998",
+   "phase": 10,
+   "title": "Field measure under its 200 KB budget, and the perf gate measures the real field pages",
+   "depends_raw": "",
+   "spec_ref": "Performance audit 2026-11-26 (Fable agent, branch audit/perf-2026-11-26 in the local repo, commits 395f570d 3d1e67cd d823fc66 4bcb601c 7280c745; findings F1-F10 summarised in vault/plans/perf-audit-2026-11-26.md). Josh 2026-11-26, chat: \"Make all fixes found in the audit and add rules to be sure the system is built accordingly moving forward\" (decision Q-0814).",
+   "spec_files": [
+    "vault/spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [
+    "Q-0814"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1994"
+   ],
+   "acs": [
+    "AC-EZD-1998-1",
+    "AC-EZD-1998-2"
+   ],
+   "acs_source": "josh-2026-11-26"
+  },
+  {
+   "id": "EZD-1999",
+   "phase": 10,
+   "title": "New project wizard loads when it is opened, not with the Projects page",
+   "depends_raw": "",
+   "spec_ref": "Performance audit 2026-11-26 (Fable agent, branch audit/perf-2026-11-26 in the local repo, commits 395f570d 3d1e67cd d823fc66 4bcb601c 7280c745; findings F1-F10 summarised in vault/plans/perf-audit-2026-11-26.md). Josh 2026-11-26, chat: \"Make all fixes found in the audit and add rules to be sure the system is built accordingly moving forward\" (decision Q-0814).",
+   "spec_files": [
+    "vault/spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [
+    "Q-0814"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1994"
+   ],
+   "acs": [
+    "AC-EZD-1999-1",
+    "AC-EZD-1999-2"
+   ],
+   "acs_source": "josh-2026-11-26"
+  },
+  {
+   "id": "EZD-2000",
+   "phase": 10,
+   "title": "Gate rules that keep pages small and fast as the app grows",
+   "depends_raw": "",
+   "spec_ref": "Performance audit 2026-11-26 (Fable agent, branch audit/perf-2026-11-26 in the local repo, commits 395f570d 3d1e67cd d823fc66 4bcb601c 7280c745; findings F1-F10 summarised in vault/plans/perf-audit-2026-11-26.md). Josh 2026-11-26, chat: \"Make all fixes found in the audit and add rules to be sure the system is built accordingly moving forward\" (decision Q-0814).",
+   "spec_files": [
+    "vault/spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [
+    "Q-0814"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1994",
+    "EZD-1995",
+    "EZD-1998"
+   ],
+   "acs": [
+    "AC-EZD-2000-1",
+    "AC-EZD-2000-2"
+   ],
+   "acs_source": "josh-2026-11-26"
   }
  ],
  "recut_applied": "2026-10-20"
