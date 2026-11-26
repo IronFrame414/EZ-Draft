@@ -4,6 +4,11 @@ name: CI
 #  - on the phase PR (develop -> main), which branch protection requires ("gate")
 #  - by hand from the Actions tab (Run workflow)
 # Build v3 (2026-11-13): the gate is `node scripts/check.mjs` (app checks only), the same script the build loop runs locally.
+# EZD-1993 (2026-11-25): one job ran the whole check in 43 min, then hit the 45-minute limit. The check now runs in
+# parallel jobs, each one part of it (scripts/loop/check-steps.mjs): `checks` (typecheck, lint, unit and database
+# tests, scripts tests) and `e2e`, whose browser tests run as four device shards plus the perf project alone
+# (app/test-harness/e2e/e2e-part.ts). Every step and test still runs. The job named gate is the required check:
+# it always runs and fails unless every part succeeded.
 # A newer push cancels an older run.
 on:
   push:
@@ -17,9 +22,9 @@ concurrency:
 permissions:
   contents: read
 jobs:
-  gate:
+  checks:
     runs-on: ubuntu-latest
-    # EZD-336: 45, not 30. Runs take 17-19 minutes; on 2026-11-05 a stalled Ubuntu package mirror in the browser install held
+    # EZD-336: 45, not 30. On 2026-11-05 a stalled Ubuntu package mirror in the browser install held
     # push run 42049298178 past 30 minutes, and its cancelled gate check blocked PR 5 for 3.5 hours.
     timeout-minutes: 45
     steps:
@@ -37,13 +42,50 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm@12.14.0
       - name: Install dependencies and browsers
+        # Browsers here too: some scripts tests drive Playwright.
         run: pnpm install --frozen-lockfile && pnpm --filter app exec playwright install --with-deps chromium webkit
-      - name: Gate
+      - name: Gate part checks
         env:
           EZD_LANE: '0'
-        run: node scripts/check.mjs .
+        run: node scripts/check.mjs . --part=checks
+      - name: Upload gate logs
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gate-logs-checks
+          path: |
+            check-failures.log
+            check.log
+          if-no-files-found: ignore
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      # Every shard runs to the end, so one run shows every failing browser test.
+      fail-fast: false
+      matrix:
+        part: [devices:1/4, devices:2/4, devices:3/4, devices:4/4, perf]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Keep the local Supabase ports out of the ephemeral range
+        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Install pnpm
+        run: npm install -g pnpm@12.14.0
+      - name: Install dependencies and browsers
+        run: pnpm install --frozen-lockfile && pnpm --filter app exec playwright install --with-deps chromium webkit
+      - name: Gate part e2e
+        env:
+          EZD_LANE: '0'
+          EZD_E2E_PART: ${{ matrix.part }}
+        run: node scripts/check.mjs . --part=e2e
       - name: Performance results
-        if: always()
+        if: always() && matrix.part == 'perf'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: perf-results
@@ -53,8 +95,24 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: gate-logs
+          name: gate-logs-e2e-${{ strategy.job-index }}
           path: |
             check-failures.log
             check.log
+            app/playwright-report/
           if-no-files-found: ignore
+  gate:
+    # The required status check. A skipped required check counts as passed, so this job always runs, and it
+    # fails unless every part succeeded (a failed, cancelled or skipped part fails it).
+    needs: [checks, e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Every part passed
+        env:
+          CHECKS: ${{ needs.checks.result }}
+          E2E: ${{ needs.e2e.result }}
+        run: |
+          echo "checks: $CHECKS; e2e: $E2E"
+          if [ "$CHECKS" != success ] || [ "$E2E" != success ]; then exit 1; fi

@@ -1,8 +1,10 @@
 #!/usr/bin/env node
-// Build v3 gate (2026-11-13). Usage: node scripts/check.mjs [dir] [--fast]
+// Build v3 gate (2026-11-13). Usage: node scripts/check.mjs [dir] [--fast | --part=checks|e2e]
 // Runs: install, Docker check (EZD-1966), database up, typecheck, lint, unit and database tests, live scripts tests, then (heavy lock) build, database again,
 // freeing the lane web port (EZD-1970), e2e.
 // --fast skips build and e2e (for the builder's inner loop; the loop always runs the full check).
+// --part=checks|e2e runs one part of the full check (EZD-1993: GitHub CI runs the parts in parallel jobs; the step
+// list is in scripts/loop/check-steps.mjs).
 // Full output: <dir>/check.log. On failure the failing step's last lines go to <dir>/check-failures.log.
 // Exit 0 = CHECK PASS.
 import { spawn, spawnSync } from 'node:child_process';
@@ -13,6 +15,7 @@ import { release, slotsFrom, tryTake } from './loop/heavy-lock.mjs';
 import { waitForDocker } from './loop/docker-wait.mjs';
 import { freePort, listenerGroups, portConfig } from './loop/free-port.mjs';
 import { sendSignal, signalLogPath } from './loop/signal-log.mjs';
+import { partArg, selectPart } from './loop/check-steps.mjs';
 
 const args = process.argv.slice(2);
 const fast = args.includes('--fast');
@@ -48,7 +51,7 @@ function liveScriptTests() {
   return out.sort();
 }
 
-const steps = [
+const allSteps = [
   ['install', 'pnpm', ['install', '--frozen-lockfile']],
   ['database', 'pnpm', ['run', 'db:up']],
   ['typecheck', 'pnpm', ['run', 'typecheck']],
@@ -65,6 +68,14 @@ const steps = [
     ['e2e', 'pnpm', [...pkg, 'test:e2e']],
   ]),
 ];
+const part = partArg(args);
+let steps;
+try {
+  steps = selectPart(allSteps, { part, fast });
+} catch (e) {
+  console.log(`CHECK FAIL: ${e.message}`);
+  process.exit(1);
+}
 
 function run(name, cmd, argv) {
   return new Promise((resolve) => {
@@ -216,4 +227,4 @@ for (const [name, cmd, argv] of steps) {
 }
 log.end();
 try { if (existsSync(failPath)) writeFileSync(failPath, ''); } catch {}
-console.log(`CHECK PASS${fast ? ' (fast)' : ''} in ${Math.round((Date.now() - t0) / 1000)}s`);
+console.log(`CHECK PASS${fast ? ' (fast)' : ''}${part ? ` (part ${part})` : ''} in ${Math.round((Date.now() - t0) / 1000)}s`);

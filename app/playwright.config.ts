@@ -14,6 +14,7 @@ import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { defineConfig } from '@playwright/test';
 import { DEVICE_PROJECTS, PERF_SPECS, projectGrep } from './test-harness/e2e/devices';
+import { applyE2ePart, parseE2ePart } from './test-harness/e2e/e2e-part';
 import { installNetGuard } from './test-harness/net-guard/net-guard.mjs';
 
 const NAMES = [
@@ -97,6 +98,25 @@ process.env.EZD_NET_GUARD_LOG = guardLog;
 const preloadUrl = pathToFileURL(path.join(app, 'test-harness', 'net-guard', 'preload.mjs')).href;
 installNetGuard();
 
+// EZD-1993: a GitHub CI job runs one part of the browser tests (EZD_E2E_PART); unset runs them all.
+const part = applyE2ePart(parseE2ePart(process.env.EZD_E2E_PART), [
+  ...DEVICE_PROJECTS.map(({ name, use }) => ({
+    name,
+    use,
+    grep: projectGrep(name, process.env.EZD_TEST_GREP),
+    testIgnore: PERF_SPECS,
+  })),
+  // EZD-207c D-Isolate: the perf specs run alone, after every device project.
+  {
+    name: 'perf',
+    use: DEVICE_PROJECTS.find((p) => p.name === 'desktop')!.use,
+    grep: projectGrep('desktop', process.env.EZD_TEST_GREP),
+    testMatch: PERF_SPECS,
+    workers: 1,
+    dependencies: DEVICE_PROJECTS.map((p) => p.name),
+  },
+]);
+
 export default defineConfig({
   testDir: path.join(app, 'e2e'),
   outputDir: path.join(app, 'test-results'),
@@ -115,23 +135,8 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: [
-    ...DEVICE_PROJECTS.map(({ name, use }) => ({
-      name,
-      use,
-      grep: projectGrep(name, process.env.EZD_TEST_GREP),
-      testIgnore: PERF_SPECS,
-    })),
-    // EZD-207c D-Isolate: the perf specs run alone, after every device project.
-    {
-      name: 'perf',
-      use: DEVICE_PROJECTS.find((p) => p.name === 'desktop')!.use,
-      grep: projectGrep('desktop', process.env.EZD_TEST_GREP),
-      testMatch: PERF_SPECS,
-      workers: 1,
-      dependencies: DEVICE_PROJECTS.map((p) => p.name),
-    },
-  ],
+  projects: part.projects,
+  ...(part.shard ? { shard: part.shard } : {}),
   webServer: {
     // EZD-380: idle connections stay open for an hour, longer than any run (CI job cap 45 min), so the server never closes one that route.fetch or the browser is about to reuse (Node's 6 s close reset W1 with ECONNRESET).
     command: `pnpm start -p ${web} -H 127.0.0.1 --keepAliveTimeout 3600000`,
