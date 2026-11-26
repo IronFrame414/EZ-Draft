@@ -19,8 +19,13 @@
 // import() the first time an RCP viewport is drawn (EZD-020 import boundaries; 11 rule 7): `runSheetJob` sends an
 // `rcp` input there and every other input to `sheetJob`. Its fixture schedule is a table job of its own (`fixtures`,
 // lib/sheets/fixture-schedule-table.ts).
+// EZD-708b (Q-0763 "E1.0 is the layout with devices and symbols"; AC-EZD-708b-1): a plan viewport on an electrical
+// sheet (`electrical` set) draws the electrical plan with the circuit tags and home runs (lazy/electrical-sheet, loaded
+// by import() from `runSheetJob` as the RCP is), and the sheet's EC verification note is a job of its own (`ecNote`,
+// lib/sheets/electrical-kinds.ts).
 import { viewDrawsAs, viewShows } from '../lib/sheets/viewport';
 import { fixtureTableFor } from '../lib/sheets/fixture-schedule-table';
+import { ecNoteFor } from '../lib/sheets/electrical-kinds';
 import type { FixtureScheduleRow } from '../lib/sheets/fixture-schedule-rows';
 import { elevationCells } from '../lib/sheets/elevation-sheet';
 import { scheduleTableFor } from '../lib/sheets/cabinet-schedule-table';
@@ -63,6 +68,13 @@ export type SheetJobInput = {
   elevation?: { walls: string[] };
   // EZD-708a: a plan viewport on the RCP sheet draws the reflected ceiling plan.
   rcp?: boolean;
+  // EZD-708b: a plan viewport on an electrical sheet draws the electrical plan.
+  electrical?: boolean;
+};
+
+// EZD-708b: the EC verification note of an electrical sheet.
+export type SheetEcNoteJobInput = {
+  ecNote: { sheet: string; size: SheetSize };
 };
 
 // EZD-708a: the fixture schedule table of an RCP sheet (A6.0 or a floor copy), from its floor's schedule rows.
@@ -90,6 +102,7 @@ export function readInput(input: unknown): SheetJobInput {
     !(i.scale === null || (finite(i.scale) && i.scale > 0)) ||
     (i.view !== undefined && !(SHEET_VIEWS as readonly unknown[]).includes(i.view)) ||
     (i.rcp !== undefined && typeof i.rcp !== 'boolean') ||
+    (i.electrical !== undefined && typeof i.electrical !== 'boolean') ||
     (i.elevation !== undefined &&
       (typeof i.elevation !== 'object' ||
         i.elevation === null ||
@@ -168,6 +181,12 @@ function fixturesJob(input: SheetFixturesJobInput['fixtures']): SheetSvg {
   return { markup: sheetSvg(t.list, { scale: 1, area: t.area }).markup, shown: [] };
 }
 
+function ecNoteJob(input: SheetEcNoteJobInput['ecNote']): SheetSvg {
+  if (typeof input.sheet !== 'string' || !SHEET_SIZES.includes(input.size)) throw new Error('sheet_input');
+  const lines = ecNoteFor(input.sheet, input.size) ?? [];
+  return { markup: lines.map((l) => sheetSvg(l.list, { scale: 1, area: l.area }).markup).join(''), shown: [] };
+}
+
 function tableJob(input: SheetTableJobInput['table']): SheetSvg {
   if (typeof input.sheet !== 'string' || !Array.isArray(input.rows) || !SHEET_SIZES.includes(input.size))
     throw new Error('sheet_input');
@@ -188,9 +207,16 @@ export function sheetJob(input: unknown): SheetSvg {
     if (typeof fixtures !== 'object' || fixtures === null) throw new Error('sheet_input');
     return fixturesJob(fixtures);
   }
-  const { objects, level, scale, area, view, elevation, rcp } = readInput(input);
+  if (typeof input === 'object' && input !== null && 'ecNote' in input) {
+    const ecNote = (input as Partial<SheetEcNoteJobInput>).ecNote;
+    if (typeof ecNote !== 'object' || ecNote === null) throw new Error('sheet_input');
+    return ecNoteJob(ecNote);
+  }
+  const { objects, level, scale, area, view, elevation, rcp, electrical } = readInput(input);
   // EZD-708a: an RCP viewport is drawn by the lazy RCP module (runSheetJob).
   if (rcp === true) throw new Error('sheet_rcp_lazy');
+  // EZD-708b: an electrical viewport is drawn by the lazy electrical module (runSheetJob).
+  if (electrical === true) throw new Error('sheet_electrical_lazy');
   if (elevation === undefined) return drawInArea(viewportDrawingList(objects, level, view), scale, area);
   const svgs = elevationViewportLists(objects, level, view, elevation.walls, area).map((c) =>
     drawInArea(c.list, scale, c.area),
@@ -199,10 +225,15 @@ export function sheetJob(input: unknown): SheetSvg {
 }
 
 // EZD-708a: the worker's job: an RCP viewport through the lazy RCP module, anything else through sheetJob.
+// EZD-708b: an electrical viewport through the lazy electrical module.
 export async function runSheetJob(input: unknown): Promise<SheetSvg> {
   if (typeof input === 'object' && input !== null && (input as { rcp?: unknown }).rcp === true) {
     const { rcpSheetJob } = await import('../lazy/rcp-sheet');
     return rcpSheetJob(input);
+  }
+  if (typeof input === 'object' && input !== null && (input as { electrical?: unknown }).electrical === true) {
+    const { electricalSheetJob } = await import('../lazy/electrical-sheet');
+    return electricalSheetJob(input);
   }
   return sheetJob(input);
 }

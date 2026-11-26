@@ -10,6 +10,9 @@
 // EZD-708a (AC-EZD-708a-1, -3): on the RCP sheet (A6.0 and its floor copies) each plan viewport draws the reflected
 // ceiling plan (`rcp`), and the sheet's floor's fixture schedule is one more job, a table at the bottom of the drawing
 // area with the viewports above it (lib/sheets/fixture-schedule-table.ts).
+// EZD-708b (AC-EZD-708b-1): on an electrical sheet (E1.0, E2.0 ...) each plan viewport draws the electrical plan
+// (`electrical`), and the EC verification note is one more job, the sheet's general notes block at the bottom of the
+// notes column (lib/sheets/electrical-kinds.ts).
 import type { SheetSize, SheetSvg, StoredObject } from '@ezdraft/geometry';
 import { createWorkerPool, type WorkerPool } from '../../editor/workers/worker-pool';
 import { resolveOpenFloor } from '../../editor/floors/floors';
@@ -19,11 +22,13 @@ import { viewportAreas, viewportScaleFactor, type SheetViewport } from '../../li
 import { schedulePage, schedulePlan, scheduleRowsOf } from '../../lib/sheets/cabinet-schedule-table';
 import {
   SHEET_JOB,
+  type SheetEcNoteJobInput,
   type SheetFixturesJobInput,
   type SheetJobInput,
   type SheetTableJobInput,
 } from '../../workers/sheet-job';
 import { fixtureRowsOf, fixtureTablePlan, isRcpSheet } from '../../lib/sheets/fixture-schedule-table';
+import { isElectricalSheet } from '../../lib/sheets/electrical-kinds';
 
 export type SheetRenderRequest = {
   objects: Objects;
@@ -40,9 +45,14 @@ export type SheetRenderer = {
   dispose(): void;
 };
 
-export type RunSheetJob = (
-  input: SheetJobInput | SheetTableJobInput | SheetFixturesJobInput,
-) => Promise<SheetSvg>;
+type AnyJobInput = SheetJobInput | SheetTableJobInput | SheetFixturesJobInput | SheetEcNoteJobInput;
+export type RunSheetJob = (input: AnyJobInput) => Promise<SheetSvg>;
+
+// EZD-708b: the EC verification note job of an electrical sheet, or null on any other sheet.
+export function sheetEcNoteJobInput(request: SheetRenderRequest): SheetEcNoteJobInput | null {
+  if (request.sheet === undefined || !isElectricalSheet(request.sheet)) return null;
+  return { ecNote: { sheet: request.sheet, size: request.size } };
+}
 
 // EZD-708a: the floor an RCP sheet's schedule lists: its first plan viewport's floor (the lowest when that names none
 // or a deleted floor); null when the sheet is not an RCP sheet, has no plan viewport, or the model has no floor.
@@ -89,6 +99,7 @@ export function sheetJobInputs(request: SheetRenderRequest): SheetJobInput[] {
   // EZD-708a: on an RCP sheet the viewports stand above the fixture schedule.
   const fixtures = sheetFixturesJobInput(request);
   const rcp = isRcpSheet(request.sheet);
+  const electrical = isElectricalSheet(request.sheet);
   const area =
     table !== null && request.sheet !== undefined && schedulePage(request.sheet) === 0
       ? schedulePlan(request.size, table.table.rows.length).elevations
@@ -104,6 +115,7 @@ export function sheetJobInputs(request: SheetRenderRequest): SheetJobInput[] {
     const input: SheetJobInput = { objects, level, scale: viewportScaleFactor(vp.scale), area: areas[i]!, view: vp.view };
     if (vp.kind === 'elevation') input.elevation = { walls: [...(vp.walls ?? [])] };
     else if (rcp) input.rcp = true;
+    else if (electrical) input.electrical = true;
     out.push(input);
   });
   return out;
@@ -124,10 +136,12 @@ export function createSheetRenderer(run?: RunSheetJob): SheetRenderer {
   return {
     async render(request) {
       const table = sheetTableJobInput(request);
-      const inputs: (SheetJobInput | SheetTableJobInput | SheetFixturesJobInput)[] = sheetJobInputs(request);
+      const inputs: AnyJobInput[] = sheetJobInputs(request);
       if (table !== null) inputs.push(table);
       const fixtures = sheetFixturesJobInput(request);
       if (fixtures !== null) inputs.push(fixtures);
+      const ecNote = sheetEcNoteJobInput(request);
+      if (ecNote !== null) inputs.push(ecNote);
       if (inputs.length === 0) return null;
       made ??= poolRun();
       const run = made.run;

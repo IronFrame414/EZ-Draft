@@ -22,6 +22,27 @@ export type Sheet = {
 
 type SheetDef = Omit<Sheet, 'viewports'> & { needs?: ScopeTrade };
 
+// EZD-708b (Q-0763): the electrical layout sheet of the lowest floor and its title, and the panel sheet's title.
+export const ELECTRICAL_PLAN_SHEET = 'E1.0';
+export const ELECTRICAL_PLAN_TITLE = 'Electrical';
+export const PANEL_SHEET_TITLE = 'Panel + load calc';
+
+/** EZD-708b (Q-0763): the panel sheet's number, after the last electrical layout sheet (E2.0 with one floor). */
+export function panelSheetNumber(floorCount: number): string {
+  return `E${Math.max(1, floorCount) + 1}.0`;
+}
+
+/**
+ * EZD-708b (Q-0763): the floor (0 for the lowest) an electrical layout sheet draws, or null when the number is not one
+ * of the layout sheets of a model with this many floors (E1.0, then E2.0 ... one per further floor).
+ */
+export function electricalLayoutFloor(number: string, floorCount: number): number | null {
+  const m = /^E([1-9]\d*)\.0$/.exec(number);
+  if (m === null) return null;
+  const k = Number(m[1]);
+  return k <= Math.max(1, floorCount) ? k - 1 : null;
+}
+
 const DEFAULT_SET: readonly SheetDef[] = [
   { number: 'A0.0', title: 'Cover', group: 'architectural' },
   { number: 'A1.0', title: 'Existing', group: 'architectural' },
@@ -46,8 +67,13 @@ export function defaultSheetSet(scopeTrades: readonly ScopeTrade[]): Sheet[] {
 // decimals (A1.1 for a second floor)"; vault/build/assumptions/EZD-701.md row "Plan sheets on a project with more than
 // one floor"): each floor after the lowest adds its own copy of the architectural plan sheets (A1.0, A2.0, A3.0 and
 // A6.0 when in the set), numbered with the floor's place (A1.1 for the second floor), right after the sheet it copies
-// and titled with the floor's name. The electrical sheets' per-floor numbering (Q-0763: E2.0 for the next floor, the
-// panel sheet after the last layout) is left to the E1.0 sheet (EZD-708b) (vault/build/assumptions/EZD-703.md).
+// and titled with the floor's name.
+// EZD-708b (Q-0763 "Each trade numbers its sheets in whole steps: E1.0 is the layout with devices and symbols for the
+// first floor or area; E2.0, E3.0 and on are added for each further floor ... the panel schedule and load calc go on
+// the sheet after the last layout sheet. A one-floor project keeps the Round 24 default (E1.0 Electrical, E2.0 Panel +
+// load calc)"): each floor after the lowest adds an electrical layout sheet after E1.0 (E2.0 for the second floor),
+// titled "Electrical · <floor name>", and the panel sheet moves to the number after the last layout sheet. The panel
+// sheet is known by its title, so applying this again (with the same or other floors) renumbers it from scratch.
 export const FLOOR_PLAN_SHEETS: readonly string[] = ['A1.0', 'A2.0', 'A3.0', 'A6.0'];
 export type SheetFloor = { id: string; name: string };
 
@@ -66,6 +92,17 @@ export function floorCopyOf(number: string): { base: string; floor: number } | n
 export function withFloorSheets(sheets: readonly Sheet[], floors: readonly SheetFloor[]): Sheet[] {
   const out: Sheet[] = [];
   for (const s of sheets) {
+    // EZD-708b: the electrical layouts per floor and the panel sheet after them.
+    if (s.group === 'electrical') {
+      if (s.number === ELECTRICAL_PLAN_SHEET) {
+        out.push(s);
+        floors.slice(1).forEach((f, i) =>
+          out.push({ ...s, number: `E${i + 2}.0`, title: `${s.title} · ${f.name}` }),
+        );
+      } else if (s.title === PANEL_SHEET_TITLE) out.push({ ...s, number: panelSheetNumber(floors.length) });
+      else if (!s.title.startsWith(`${ELECTRICAL_PLAN_TITLE} · `)) out.push(s);
+      continue;
+    }
     const copy = floorCopyOf(s.number);
     if (copy !== null && copy.floor > 0) continue;
     out.push(s);

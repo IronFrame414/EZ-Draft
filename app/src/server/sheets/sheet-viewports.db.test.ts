@@ -120,7 +120,7 @@ describe('EZD-703 stored viewports', () => {
     expect(saved.error).toBeNull();
     const sets = await loadProjectSheetSets(editor.serverDb, project);
     expect(sets?.[0]?.sheets.map((s) => s.number)).toEqual([
-      'A0.0', 'A1.0', 'A1.1', 'A2.0', 'A2.1', 'A3.0', 'A3.1', 'A4.0', 'A5.0', 'E1.0', 'E2.0', 'R1.0',
+      'A0.0', 'A1.0', 'A1.1', 'A2.0', 'A2.1', 'A3.0', 'A3.1', 'A4.0', 'A5.0', 'E1.0', 'E2.0', 'E3.0', 'R1.0',
     ]);
     expect(sets?.[0]?.sheets.find((s) => s.number === 'A1.1')?.title).toBe('Existing · Second floor');
     expect(sets?.[1]?.sheets.map((s) => s.number)).toEqual(['R1.0']);

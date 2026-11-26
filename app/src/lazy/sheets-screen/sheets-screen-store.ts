@@ -43,6 +43,7 @@ import {
 } from '../../lib/sheets/viewport';
 import { addableWalls, type AddableWall } from '../../lib/sheets/elevation-sheet';
 import { schedulePage, scheduleRowsOf, withScheduleSheets } from '../../lib/sheets/cabinet-schedule-table';
+import { isElectricalSheet } from '../../lib/sheets/electrical-kinds';
 import { openSheetViewports, viewportEditChange } from './viewport-edit';
 import { parseSetNotes } from './cover-sheet';
 import { sameDrawing } from './same-drawing';
@@ -482,7 +483,8 @@ export function createSheetsScreen(
     const set = setOf(state.kind);
     const sheet = set?.sheets.find((s) => s.number === state.open) ?? null;
     if (set === null || sheet === null) return;
-    if (!sheetDrawsModel(state.viewports) && schedulePage(sheet.number) === null) {
+    // EZD-708b: an electrical sheet always draws, for its EC note, as the PDF prints it (R7).
+    if (!sheetDrawsModel(state.viewports) && schedulePage(sheet.number) === null && !isElectricalSheet(sheet.number)) {
       // No plan or elevation viewport left on the open sheet: its old drawing goes.
       drawn = null;
       same = null;

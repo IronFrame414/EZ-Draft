@@ -18,7 +18,7 @@ describe('EZD-703 floor-plan sheets', () => {
     const floors = [F('a', 'Floor 1'), F('b', 'Second floor')];
     const numbers = withFloorSheets(defaultSheetSet(['rcp']), floors).map((s) => s.number);
     expect(numbers).toEqual([
-      'A0.0', 'A1.0', 'A1.1', 'A2.0', 'A2.1', 'A3.0', 'A3.1', 'A4.0', 'A5.0', 'A6.0', 'A6.1', 'E1.0', 'E2.0', 'R1.0',
+      'A0.0', 'A1.0', 'A1.1', 'A2.0', 'A2.1', 'A3.0', 'A3.1', 'A4.0', 'A5.0', 'A6.0', 'A6.1', 'E1.0', 'E2.0', 'E3.0', 'R1.0',
     ]);
     const a11 = withFloorSheets(defaultSheetSet([]), floors).find((s) => s.number === 'A1.1');
     expect(a11).toMatchObject({ title: 'Existing · Second floor', group: 'architectural' });

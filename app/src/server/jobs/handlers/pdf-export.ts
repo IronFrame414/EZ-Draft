@@ -49,6 +49,7 @@ import type { PlanProfile } from '../../../lib/submittal-profiles/file-plan';
 import { AS_NOTED } from '../../../lib/title-block/sheet-title-block';
 import { elevationViewportLists, viewportDrawingList } from '../../../workers/sheet-job';
 import { fixtureRowsOf, fixtureTableFor, fixtureTablePlan, isRcpSheet } from '../../../lib/sheets/fixture-schedule-table';
+import { ecNoteFor, isElectricalSheet } from '../../../lib/sheets/electrical-kinds';
 import {
   SCHEDULE_SHEET,
   schedulePlan,
@@ -237,6 +238,10 @@ export const pdfExportHandler: JobHandler<PdfExportPayload, never, PdfExportResu
     const floorIds = new Set(floors.map((f) => f.id));
     // EZD-708a: the RCP drawing is a lazy module (editor code), loaded only when the set has an RCP sheet.
     const rcpSheet = sheets.some((s) => isRcpSheet(s.number)) ? await import('../../../lazy/rcp-sheet') : null;
+    // EZD-708b: the electrical plan drawing is a lazy module too, loaded only when the set has an electrical sheet.
+    const electricalSheet = sheets.some((s) => isElectricalSheet(s.number))
+      ? await import('../../../lazy/electrical-sheet')
+      : null;
     const pages = new Map<string, PdfSheet>();
     for (const sheet of sheets) {
       const vps = sheetViewports(data, sheet.number, floors);
@@ -251,6 +256,8 @@ export const pdfExportHandler: JobHandler<PdfExportPayload, never, PdfExportResu
           ? firstPlan.level
           : floors[0]?.id;
       const fixtureRows = rcpFloor === undefined ? [] : fixtureRowsOf(objects, rcpFloor);
+      // EZD-708b: an electrical sheet prints its plans as the electrical plan, and the EC verification note.
+      const electrical = isElectricalSheet(sheet.number);
       const areas = viewportAreas(
         sheet.number === SCHEDULE_SHEET
           ? schedulePlan(data.size, scheduleRows.length).elevations
@@ -275,7 +282,9 @@ export const pdfExportHandler: JobHandler<PdfExportPayload, never, PdfExportResu
           list:
             rcp && rcpSheet !== null
               ? rcpSheet.rcpViewportDrawingList(objects, level, vp.view)
-              : viewportDrawingList(objects, level, vp.view),
+              : electrical && electricalSheet !== null
+                ? electricalSheet.electricalViewportDrawingList(objects, level, vp.view)
+                : viewportDrawingList(objects, level, vp.view),
           scale: viewportScaleFactor(vp.scale),
           area: areas[i]!,
         });
@@ -285,6 +294,8 @@ export const pdfExportHandler: JobHandler<PdfExportPayload, never, PdfExportResu
       const fixtureTable = fixtureTableFor(sheet.number, data.size, fixtureRows);
       if (fixtureTable !== null)
         viewports.push({ list: fixtureTable.list, scale: 1, area: fixtureTable.area, marks: false });
+      for (const line of ecNoteFor(sheet.number, data.size) ?? [])
+        viewports.push({ list: line.list, scale: 1, area: line.area, marks: false });
       pages.set(sheet.number, {
         number: sheet.number,
         title: sheet.title,
