@@ -544,7 +544,8 @@
     "EZD-916",
     "EZD-1955",
     "EZD-1409",
-    "EZD-703"
+    "EZD-703",
+    "EZD-1958"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2278,6 +2279,14 @@
       "ts": "2026-11-26T08:24:28Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1958",
+      "title": "Backups: the loop flags a backup check that has not passed in 8 days",
+      "commit": "30600c5a",
+      "ts": "2026-11-26T08:55:39Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2534,7 +2543,20 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {},
+  "running": {
+    "EZD-705": {
+      "lane": 1,
+      "title": "Print rules",
+      "started": "2026-11-26T08:25:40Z",
+      "develop": "6e6791a8"
+    },
+    "EZD-1910": {
+      "lane": 3,
+      "title": "Editor feature registry, lazy-part helper and Defaults hook",
+      "started": "2026-11-26T08:25:40Z",
+      "develop": "6e6791a8"
+    }
+  },
   "advisories_checked_at": "2026-11-26T04:19:51Z",
   "hold": {},
   "perf_trend_at": "2026-11-26T03:55:15Z",
