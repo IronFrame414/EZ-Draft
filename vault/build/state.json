@@ -535,7 +535,8 @@
     "EZD-1993",
     "EZD-1991",
     "EZD-228",
-    "EZD-1948"
+    "EZD-1948",
+    "EZD-1422"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2197,6 +2198,14 @@
       "ts": "2026-11-26T02:08:19Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1422",
+      "title": "Field measure as wizard input",
+      "commit": "bbee5e8d",
+      "ts": "2026-11-26T03:16:52Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2458,12 +2467,6 @@
       "lane": 1,
       "title": "Dimensions and text",
       "started": "2026-11-26T01:31:09Z",
-      "develop": "fb24dd6b"
-    },
-    "EZD-1422": {
-      "lane": 3,
-      "title": "Field measure as wizard input",
-      "started": "2026-11-26T01:31:10Z",
       "develop": "fb24dd6b"
     }
   },
