@@ -49,6 +49,8 @@
 // (lazy, same module), which reads the box selected on the drawing through one small selection store per session.
 // EZD-111 (vault/plans/EZD-111.md D-Entry, C2; Q-0700; Q-0701): with Send to client, the header Share button opens
 // the Send dialog (lazy). Its no-client link opens Project settings for the session, after the Send dialog closes.
+// EZD-719 (S13 Controls "Send to client | Header Share"; assumptions EZD-719): on the Sheets screen Share sends the
+// chosen set; a send numbered Rev N after Rev 0 moves the header to "Rev N issued" and reloads the revision log.
 // EZD-304 (S01 PDF: scale calibration; Q-0203): the project's newest calibrated PDF lies under the plan for tracing;
 // for an editor, a PDF with no scale shows a banner with Set scale. An upload from the header reads it again.
 // EZD-122 (S20 Entry points, Controls; Q-0700 05, 03 "Revert", 10; AC-EZD-122-2 to -10): the Versions tab in the left
@@ -117,6 +119,7 @@ import {
 import { hubResync } from './project-defaults';
 import { newerVersionNo, versionLabel } from './version-label';
 import { hubVersionSent } from './version-sent';
+import type { SendSet } from '../lib/sends/sends';
 import { InspectorMore, InspectorStack } from './edit/InspectorMore';
 import type { EditMenuRequest } from '../lazy/edit-menu';
 import { expandGroups } from './selection/groups';
@@ -236,9 +239,13 @@ export function ProjectEditor({
   // EZD-121 (Q-0700 05): the newest sent version number from a send or a version.sent broadcast; the load's
   // number until one arrives.
   const [sentNo, setSentNo] = useState<number | null>(null);
-  const onSent = useCallback((n: number) => {
+  // EZD-719: a send that took Rev N after Rev 0 tells the Sheets screen (set further down) through this ref.
+  const onRevSent = useRef<((rev: number) => void) | null>(null);
+  const onSent = useCallback((n: number, rev?: number | null) => {
     if (Number.isInteger(n) && n >= 1) setSentNo((cur) => newerVersionNo(cur, n));
+    if (typeof rev === 'number' && Number.isInteger(rev) && rev >= 0) onRevSent.current?.(rev);
   }, []);
+  const [sendSet, setSendSet] = useState<SendSet | null>(null);
   useEffect(() => hubVersionSent(projectId, onSent), [projectId, onSent]);
   // EZD-301 (S02 Entry): the Upload files dialog, loaded with the edit menus' lazy module.
   const [uploading, setUploading] = useState(false);
@@ -746,6 +753,16 @@ export function ProjectEditor({
     read();
     return sheetsScreen.subscribe(read);
   }, [sheetsScreen]);
+  // EZD-719: a client send numbered Rev N shows at once in the header and the Sheets screen's revision log.
+  useEffect(() => {
+    onRevSent.current = (rev) => {
+      setIssuedNo((cur) => newerVersionNo(cur, rev));
+      if (sheetsScreen !== null) void sheetsScreen.reloadIssue();
+    };
+    return () => {
+      onRevSent.current = null;
+    };
+  }, [sheetsScreen]);
   useEffect(
     () => (sheetsScreen === null ? undefined : () => sheetsScreen.dispose()),
     [sheetsScreen],
@@ -993,7 +1010,14 @@ export function ProjectEditor({
               <HeaderButton
                 icon="share"
                 data-testid="header-share"
-                onClick={() => setSendOpen(true)}
+                onClick={() => {
+                  // EZD-719: the Sheets screen's chosen set goes with the send (its id once the sets have loaded).
+                  if (showSheets && sheetsScreen !== null) {
+                    const kind = sheetsScreen.get().kind;
+                    setSendSet({ kind, id: sheetsScreen.set()?.id ?? null });
+                  } else setSendSet(null);
+                  setSendOpen(true);
+                }}
               >
                 {t('office.header.share')}
               </HeaderButton>
@@ -1028,6 +1052,7 @@ export function ProjectEditor({
             projectId={projectId}
             sync={sync}
             sendOpen={sendOpen}
+            set={sendSet}
             settings={sendSettingsOpen && lock ? lock.ui.switcher : null}
             onCloseSend={() => setSendOpen(false)}
             onSent={onSent}
@@ -1633,9 +1658,10 @@ const LazySend = lazyPart(
       projectId: string;
       sync: EditorSession['sync'];
       sendOpen: boolean;
+      set: SendSet | null;
       settings: LockUi['switcher'] | null;
       onCloseSend: () => void;
-      onSent: (versionNo: number) => void;
+      onSent: (versionNo: number, revNo: number | null) => void;
       onOpenSettings: () => void;
       onCloseSettings: () => void;
     },
@@ -1649,6 +1675,7 @@ const LazySend = lazyPart(
             sync={props.sync}
             onClose={props.onCloseSend}
             onSent={props.onSent}
+            set={props.set}
             onOpenProjectSettings={props.onOpenSettings}
           />
         ) : null}

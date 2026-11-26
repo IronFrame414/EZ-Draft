@@ -2396,6 +2396,8 @@ export const en = {
   'office.send.email_body':
     '{company} sent you the design for {project}. Open it with the link below.',
   'office.send.email_link': 'Open the design',
+  // EZD-719 (S13 Controls "Version N before Rev 0, Rev N after"; assumptions EZD-719): the set and its label.
+  'office.send.set_label': '{set} · {label}',
   // EZD-1201: the Share panel's links in the Send dialog (Q-0213).
   'office.share.links': 'Links sent',
   'office.share.row': 'Version {n} · {name}',

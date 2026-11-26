@@ -6,7 +6,7 @@
 // the result and the email; nothing in this file logs.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { effectiveValue } from '../../lib/defaults/values';
-import type { ClientSend, SendHolder, SendRecipient } from '../../lib/sends/sends';
+import type { ClientSend, SendHolder, SendRecipient, SendSet } from '../../lib/sends/sends';
 import { loadTenantDefaults } from '../defaults/defaults';
 import { requestIp } from '../events/event-log';
 import type { Database } from '../db/database.types';
@@ -56,6 +56,8 @@ type SendRow = {
   sent_package_id: string;
   model_version_id: string;
   version_no: number;
+  // EZD-719: the Rev the send was numbered after Rev 0, null before.
+  rev_no: number | null;
   expires_at: string;
   project_name: string;
   recipient: SendRecipient;
@@ -66,7 +68,8 @@ type SendRow = {
 
 export async function sendToClient(
   client: SupabaseClient<Database>,
-  input: { projectId: string; note: string | null },
+  // EZD-719: set is the Sheets screen's chosen set (sent_package.sheet_set_kind, sheet_set_id); null elsewhere.
+  input: { projectId: string; note: string | null; set?: SendSet | null },
   deps: {
     send?: (input: SendEmailInput) => Promise<SendEmailResult>;
     env?: Record<string, string | undefined>;
@@ -88,6 +91,7 @@ export async function sendToClient(
     p_expiry_days: days,
     // EZD-121: the event_log version.sent row's address; null outside a request (the argument types say inet).
     p_ip: (await (deps.requestIp ?? requestIp)()) as string,
+    ...(input.set ? { p_sheet_set_kind: input.set.kind, p_sheet_set_id: input.set.id ?? undefined } : {}),
   });
   if (error) {
     if (error.code === '42501') return { ok: false, code: 'permission_denied' };
@@ -145,6 +149,7 @@ export async function sendToClient(
       id: row.sent_package_id,
       modelVersionId: row.model_version_id,
       versionNo: row.version_no,
+      revNo: row.rev_no ?? null,
       link,
       emailSent,
       recipient: row.recipient,

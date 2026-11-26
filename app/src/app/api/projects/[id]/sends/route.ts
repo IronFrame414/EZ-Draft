@@ -1,7 +1,7 @@
 // EZD-111 (vault/plans/EZD-111.md P111 RT2, D-Route order, D-Note, D-Recipient; Q-0700; AC-EZD-111-2 to -6):
 // send the project to its client. Order: 401, 403 (no Send to client), 404 (a malformed id or a project out of
 // scope), 400 (body), then sendToClient under the member's session (send_to_client checks the switch and scope
-// again). The body has only `note`; any other key, a recipient included, is ignored. 201 `{ send }`, whose link
+// again). The body has `note` and (EZD-719) the optional `set`; any other key, a recipient included, is ignored. 201 `{ send }`, whose link
 // is the Copy link and is in no log.
 import { z } from 'zod';
 import { endedSessionResponse } from '../../../../../server/auth/ended-session';
@@ -19,7 +19,11 @@ const ROUTE = '/api/projects/[id]/sends';
 const fail = (status: number, code: string, messageKey = `error.${code}`) =>
   Response.json({ error: { code, message_key: messageKey } }, { status, headers });
 
-const bodySchema = z.object({ note: z.string().max(SEND_NOTE_MAX).nullable().optional() });
+// EZD-719: `set` is the Sheets screen's chosen set (kind, and the sheet_set object id or null for the default).
+const bodySchema = z.object({
+  note: z.string().max(SEND_NOTE_MAX).nullable().optional(),
+  set: z.object({ kind: z.enum(['permit', 'client']), id: z.uuid().nullable() }).nullable().optional(),
+});
 
 export async function POST(
   request: Request,
@@ -45,6 +49,7 @@ export async function POST(
     const result = await sendToClient(createSessionClient(), {
       projectId: id,
       note: parsed.data.note ?? null,
+      set: parsed.data.set ?? null,
     });
     if (!result.ok) {
       if (result.code === 'permission_denied')

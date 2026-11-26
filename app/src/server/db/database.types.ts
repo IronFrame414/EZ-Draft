@@ -1333,14 +1333,14 @@ isOneToOne: false
                   ]
                 },"sent_package": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"email_sent_at": string | null,"expires_at": string,"id": string,"kind": string,"model_version_id": string,"note": string | null,"project_id": string,"recipients": NonNullable<Json>,"reminder_sent_at": string | null,"renewed_at": string | null,"revoked_at": string | null,"tenant_id": string,"token_hash": string
+                    "created_at": string,"created_by": string | null,"email_sent_at": string | null,"expires_at": string,"id": string,"kind": string,"model_version_id": string,"note": string | null,"project_id": string,"recipients": NonNullable<Json>,"reminder_sent_at": string | null,"renewed_at": string | null,"revoked_at": string | null,"sheet_set_id": string | null,"sheet_set_kind": string | null,"tenant_id": string,"token_hash": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"email_sent_at"?: string | null,"expires_at": string,"id"?: string,"kind": string,"model_version_id": string,"note"?: string | null,"project_id": string,"recipients": NonNullable<Json>,"reminder_sent_at"?: string | null,"renewed_at"?: string | null,"revoked_at"?: string | null,"tenant_id": string,"token_hash": string
+                    "created_at"?: string,"created_by"?: string | null,"email_sent_at"?: string | null,"expires_at": string,"id"?: string,"kind": string,"model_version_id": string,"note"?: string | null,"project_id": string,"recipients": NonNullable<Json>,"reminder_sent_at"?: string | null,"renewed_at"?: string | null,"revoked_at"?: string | null,"sheet_set_id"?: string | null,"sheet_set_kind"?: string | null,"tenant_id": string,"token_hash": string
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"email_sent_at"?: string | null,"expires_at"?: string,"id"?: string,"kind"?: string,"model_version_id"?: string,"note"?: string | null,"project_id"?: string,"recipients"?: NonNullable<Json>,"reminder_sent_at"?: string | null,"renewed_at"?: string | null,"revoked_at"?: string | null,"tenant_id"?: string,"token_hash"?: string
+                    "created_at"?: string,"created_by"?: string | null,"email_sent_at"?: string | null,"expires_at"?: string,"id"?: string,"kind"?: string,"model_version_id"?: string,"note"?: string | null,"project_id"?: string,"recipients"?: NonNullable<Json>,"reminder_sent_at"?: string | null,"renewed_at"?: string | null,"revoked_at"?: string | null,"sheet_set_id"?: string | null,"sheet_set_kind"?: string | null,"tenant_id"?: string,"token_hash"?: string
                   }
                   Relationships: [
                     {
@@ -1996,7 +1996,7 @@ isOneToOne: false
 { Args: { "p_kind": string,"p_membership_id": string,"p_payload": Json,"p_project_id": string }; Returns: string
                            },
 "send_to_client":
-{ Args: { "p_expiry_days": number,"p_ip"?: unknown,"p_note": string,"p_project": string,"p_token_hash": string }; Returns: Json
+{ Args: { "p_expiry_days": number,"p_ip"?: unknown,"p_note": string,"p_project": string,"p_sheet_set_id"?: string,"p_sheet_set_kind"?: string,"p_token_hash": string }; Returns: Json
                            },
 "set_checkpoint_thumbnail":
 { Args: { "p_project": string,"p_version": string }; Returns: string
