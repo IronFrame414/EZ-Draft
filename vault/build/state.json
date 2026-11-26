@@ -534,7 +534,8 @@
     "EZD-1990",
     "EZD-1993",
     "EZD-1991",
-    "EZD-228"
+    "EZD-228",
+    "EZD-1948"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2188,6 +2189,14 @@
       "ts": "2026-11-26T01:29:58Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1948",
+      "title": "Builders run targeted tests and leave the full gate to the loop",
+      "commit": "bbae72cf",
+      "ts": "2026-11-26T02:08:19Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2444,7 +2453,20 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {},
+  "running": {
+    "EZD-216": {
+      "lane": 1,
+      "title": "Dimensions and text",
+      "started": "2026-11-26T01:31:09Z",
+      "develop": "fb24dd6b"
+    },
+    "EZD-1422": {
+      "lane": 3,
+      "title": "Field measure as wizard input",
+      "started": "2026-11-26T01:31:10Z",
+      "develop": "fb24dd6b"
+    }
+  },
   "advisories_checked_at": "2026-11-25T22:19:22Z",
   "hold": {},
   "perf_trend_at": "2026-11-25T03:16:23Z",
