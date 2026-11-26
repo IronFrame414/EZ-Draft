@@ -556,7 +556,8 @@
     "EZD-1994",
     "EZD-707",
     "EZD-123",
-    "EZD-1996"
+    "EZD-1996",
+    "EZD-1997"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2386,6 +2387,14 @@
       "ts": "2026-11-26T16:25:22Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1997",
+      "title": "The notification bell loads realtime after the page is usable",
+      "commit": "148f8395",
+      "ts": "2026-11-26T16:57:39Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2648,17 +2657,17 @@
     }
   },
   "running": {
-    "EZD-1997": {
-      "lane": 2,
-      "title": "The notification bell loads realtime after the page is usable",
-      "started": "2026-11-26T15:13:26Z",
-      "develop": "41d1c34c"
-    },
     "EZD-717": {
       "lane": 1,
       "title": "Issue Rev 0 and Rev N",
       "started": "2026-11-26T15:50:55Z",
       "develop": "5129e352"
+    },
+    "EZD-1611a": {
+      "lane": 3,
+      "title": "Takeoff framework and room finishes",
+      "started": "2026-11-26T16:25:29Z",
+      "develop": "273fad5d"
     }
   },
   "advisories_checked_at": "2026-11-26T16:20:56Z",
