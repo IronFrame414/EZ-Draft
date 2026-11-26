@@ -560,7 +560,8 @@
     "EZD-1997",
     "EZD-717",
     "EZD-1999",
-    "EZD-1611a"
+    "EZD-1611a",
+    "EZD-1998"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2422,6 +2423,14 @@
       "ts": "2026-11-26T18:39:05Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1998",
+      "title": "Field measure under its 200 KB budget, and the perf gate measures the real field pages",
+      "commit": "66a5f12b",
+      "ts": "2026-11-26T19:13:15Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2684,12 +2693,6 @@
     }
   },
   "running": {
-    "EZD-1998": {
-      "lane": 2,
-      "title": "Field measure under its 200 KB budget, and the perf gate measures the real field pages",
-      "started": "2026-11-26T16:57:46Z",
-      "develop": "613c0b9c"
-    },
     "EZD-719": {
       "lane": 1,
       "title": "Send set to client",
