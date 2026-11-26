@@ -533,7 +533,8 @@
     "EZD-514",
     "EZD-1990",
     "EZD-1993",
-    "EZD-1991"
+    "EZD-1991",
+    "EZD-228"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2179,6 +2180,14 @@
       "ts": "2026-11-26T00:49:01Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-228",
+      "title": "Bath clearance check",
+      "commit": "f423d91b",
+      "ts": "2026-11-26T01:29:58Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2435,14 +2444,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-228": {
-      "lane": 2,
-      "title": "Bath clearance check",
-      "started": "2026-11-25T23:34:40Z",
-      "develop": "7ccab08b"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-25T22:19:22Z",
   "hold": {},
   "perf_trend_at": "2026-11-25T03:16:23Z",
