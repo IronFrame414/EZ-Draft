@@ -57,6 +57,7 @@ const FINISHED = {
   status: 'finished' as const,
   tenantId: T,
   modelVersionId: V,
+  orderLines: 0,
   objectIds: ['a', ROOM],
   sourceFileIds: ['f1'],
   counts: { accepted: 2, deleted: 1 },
@@ -122,6 +123,7 @@ describe('EZD-313 POST /api/projects/[id]/imports/[jobId]/finish', () => {
       modelVersionId: V,
       counts: { accepted: 2, deleted: 1 },
       imported: { walls: 1, windows: 0, doors: 0, rooms: 1 },
+      orderLines: 0,
     });
     expect(finishImport).toHaveBeenCalledWith({}, P, J, U);
     const ctx = { tenantId: T, projectId: P, actorId: U };
@@ -139,6 +141,30 @@ describe('EZD-313 POST /api/projects/[id]/imports/[jobId]/finish', () => {
       ['model.saved', { objectIds: ['a', ROOM] }, ctx],
       ['room.closure_overridden', { roomId: ROOM, gapIn: 2, userId: U }, ctx],
     ]);
+  });
+
+  // EZD-916 (vault/build/assumptions.md EZD-916): order reports alone write order lines and no model version.
+  it('an import of order reports alone answers its lines and emits no model events', async () => {
+    permitted();
+    vi.mocked(finishImport).mockResolvedValueOnce({
+      ...FINISHED,
+      modelVersionId: null,
+      orderLines: 22,
+      objectIds: [],
+      counts: { accepted: 22, deleted: 0 },
+      imported: { walls: 0, windows: 0, doors: 0, rooms: 0 },
+      overridden: [],
+    });
+    const res = await call();
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      status: 'finished',
+      modelVersionId: null,
+      counts: { accepted: 22, deleted: 0 },
+      imported: { walls: 0, windows: 0, doors: 0, rooms: 0 },
+      orderLines: 22,
+    });
+    expect(emit).not.toHaveBeenCalled();
   });
 
   it('a failed emit is reported and the Finish still answers 200', async () => {

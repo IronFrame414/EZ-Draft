@@ -8,7 +8,12 @@ import { pickSupplierFiles } from '../../lib/imports/supplier-upload';
 import { MessagesProvider } from '../../lib/messages';
 import { catalogFor } from '../../server/messages/catalog';
 import { elements, textOf } from '../../../test-harness/projects-markup';
-import { receivedDate, SupplierFilesPanel, SupplierRefusals } from './SupplierFilesPanel';
+import {
+  receivedDate,
+  SupplierFileSummary,
+  SupplierFilesPanel,
+  SupplierRefusals,
+} from './SupplierFilesPanel';
 
 const render = (ui: ReactElement) =>
   renderToStaticMarkup(
@@ -75,5 +80,16 @@ describe('EZD-914 Supplier files panel', () => {
 
   it('EZD-914 C4 the received date reads as on the board (10/08/26)', () => {
     expect(receivedDate('2026-10-08T12:00:00')).toBe('10/08/26');
+  });
+
+  // EZD-916 (S12 File row "22 lines read"; vault/build/assumptions.md EZD-916 AC-1 numbers).
+  it('EZD-916 an order report row reads its confirmed lines once read, else its type and size', () => {
+    const summary = (f: Parameters<typeof SupplierFileSummary>[0]['file']) =>
+      textOf(elements(render(<SupplierFileSummary file={f} />), 'supplier-file-summary')[0].inner);
+    expect(summary({ kind: 'order_report', sizeBytes: 2_097_152, linesRead: 22 })).toBe(
+      'Order report · 22 lines read',
+    );
+    expect(summary({ kind: 'order_report', sizeBytes: 2_097_152, linesRead: 0 })).toBe('Order report · 2.0 MB');
+    expect(summary({ kind: 'supplier_pdf', sizeBytes: 1_048_576, linesRead: null })).toBe('Supplier PDF · 1.0 MB');
   });
 });

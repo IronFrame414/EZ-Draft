@@ -977,6 +977,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"order_line": {
+                  Row: {
+                    "code": string,"created_at": string,"face": string | null,"finish": string | null,"id": string,"line_no": number,"project_id": string,"source_file_id": string,"tenant_id": string,"width": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"created_at"?: string,"face"?: string | null,"finish"?: string | null,"id"?: string,"line_no": number,"project_id": string,"source_file_id": string,"tenant_id": string,"width"?: number | null
+                  }
+                  Update: {
+                    "code"?: string,"created_at"?: string,"face"?: string | null,"finish"?: string | null,"id"?: string,"line_no"?: number,"project_id"?: string,"source_file_id"?: string,"tenant_id"?: string,"width"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "order_line_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "order_line_source_file_id_fkey"
+      columns: ["source_file_id"]
+isOneToOne: false
+      referencedRelation: "source_file"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "order_line_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"project": {
                   Row: {
                     "address": string,"archived_at": string | null,"client_name": string | null,"code_edition": string | null,"code_edition_auto": boolean,"completed_at": string | null,"completed_from": string | null,"created_at": string,"customer_id": string | null,"ezbinder_job_id": string | null,"ezbinder_job_no": string | null,"id": string,"is_benchmark": boolean,"name": string,"open_items_count": number,"permit_application_date": string | null,"phase_default": string,"property_record_id": string | null,"scope_of_work": string | null,"scope_trades": (string)[],"settings": NonNullable<Json>,"status": string,"submittal_profile_id": string | null,"tenant_id": string,"thumbnail_path": string | null,"type": string,"updated_at": string

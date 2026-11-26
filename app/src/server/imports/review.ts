@@ -130,6 +130,18 @@ const itemSchema = z.discriminatedUnion('type', [
       elevationSize: z.object({ width: z.number(), height: z.number() }).nullable(),
     }),
   }),
+  // EZD-916: a line read from a supplier order report (lib/imports/review.ts ReviewOrderLine).
+  z.object({
+    id: z.string(),
+    type: z.literal('order_line'),
+    number: z.number().int(),
+    confidence,
+    lineNo: z.number().int().positive(),
+    code: z.string().min(1),
+    width: z.number().positive().nullable(),
+    face: z.string().nullable(),
+    finish: z.string().nullable(),
+  }),
 ]);
 
 const payloadSchema = z.object({
@@ -141,6 +153,31 @@ const payloadSchema = z.object({
 
 /** EZD-1418: the one "file" of a field measure import, the rooms sent from the phone (it has no source file). */
 export const FIELD_MEASURE_FILE: ReviewFile = { name: 'Field measure', kind: 'field_measure' };
+
+/**
+ * EZD-916 (Q-0323 "EZD-132 keeps See company costs on supplier files and order reports"): whether the import read an
+ * order report (a source file of kind order_report named in the job), through the caller's client. Its review items
+ * are the cost file's own content, so the review read and save need See company costs then. False when the job is
+ * not an import of this project or RLS hides it.
+ */
+export async function importReadsOrderReport(
+  client: DbClient,
+  projectId: string,
+  jobId: string,
+): Promise<boolean> {
+  const job = await client
+    .from('job')
+    .select('payload')
+    .eq('id', jobId)
+    .eq('project_id', projectId)
+    .eq('kind', 'import')
+    .maybeSingle();
+  if (job.error) throw job.error;
+  const payload = payloadSchema.safeParse(job.data?.payload);
+  if (!payload.success || payload.data.sourceFileIds.length === 0) return false;
+  const files = await readReviewSourceFiles(client, projectId, payload.data.sourceFileIds);
+  return [...files.values()].some((f) => f.kind === 'order_report');
+}
 
 /** Null when the job is not an import of this project or RLS hides it. */
 export async function readImportReview(

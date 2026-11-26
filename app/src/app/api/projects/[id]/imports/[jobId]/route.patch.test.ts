@@ -19,7 +19,13 @@ vi.mock('../../../../../../server/imports/review', () => {
       super(code);
     }
   }
-  return { readImportReview: vi.fn(), saveImportReview: vi.fn(), ReviewSaveError };
+  // EZD-916: the import read no order report here.
+  return {
+    importReadsOrderReport: vi.fn(async () => false),
+    readImportReview: vi.fn(),
+    saveImportReview: vi.fn(),
+    ReviewSaveError,
+  };
 });
 
 import { ReviewSaveError, saveImportReview } from '../../../../../../server/imports/review';

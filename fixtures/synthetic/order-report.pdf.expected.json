@@ -1,0 +1,37 @@
+{
+  "fixture": "order-report.pdf",
+  "generatedBy": "scripts/fixtures/generate-order-report.mjs",
+  "sources": [
+    "phase-09 EZD-916: a synthetic order report committed with the ticket, re-checked with Josh's real sample",
+    "S12 Data shown: order report lines are line no, code, width, face, finish",
+    "board S12RenderMarkup sample lines: #7 SB36 36\" FD + 2 doors Shaker, White; #9 B18; #10 F3; #14 W1530",
+    "vault/build/assumptions.md EZD-916: 22 lines; confidence 95 when the code and width are on one text row"
+  ],
+  "pageCount": 1,
+  "supplier": "Cabinet Co",
+  "confidence": 95,
+  "lines": [
+    { "lineNo": 1, "code": "B15", "width": 15, "face": "1 door + 1 drawer", "finish": "Shaker, White" },
+    { "lineNo": 2, "code": "B24", "width": 24, "face": "2 doors + 1 drawer", "finish": "Shaker, White" },
+    { "lineNo": 3, "code": "DB18", "width": 18, "face": "3 drawers", "finish": "Shaker, White" },
+    { "lineNo": 4, "code": "B21", "width": 21, "face": "1 door + 1 drawer", "finish": "Shaker, White" },
+    { "lineNo": 5, "code": "B30", "width": 30, "face": "2 doors + 1 drawer", "finish": "Shaker, White" },
+    { "lineNo": 6, "code": "B12", "width": 12, "face": "1 door + 1 drawer", "finish": "Shaker, White" },
+    { "lineNo": 7, "code": "SB36", "width": 36, "face": "FD + 2 doors", "finish": "Shaker, White" },
+    { "lineNo": 8, "code": "B27", "width": 27, "face": "2 doors + 1 drawer", "finish": "Shaker, White" },
+    { "lineNo": 9, "code": "B18", "width": 18, "face": "1 door + 1 drawer", "finish": "Shaker, White" },
+    { "lineNo": 10, "code": "F3", "width": 3, "face": null, "finish": "Shaker, White" },
+    { "lineNo": 11, "code": "W3030", "width": 30, "face": "2 doors", "finish": "Shaker, White" },
+    { "lineNo": 12, "code": "W1830", "width": 18, "face": "1 door", "finish": "Shaker, White" },
+    { "lineNo": 13, "code": "W2430", "width": 24, "face": "2 doors", "finish": "Shaker, White" },
+    { "lineNo": 14, "code": "W1530", "width": 15, "face": "1 door", "finish": "Shaker, White" },
+    { "lineNo": 15, "code": "W3630", "width": 36, "face": "2 doors", "finish": "Shaker, White" },
+    { "lineNo": 16, "code": "W3012", "width": 30, "face": "2 doors", "finish": "Shaker, White" },
+    { "lineNo": 17, "code": "W2130", "width": 21, "face": "1 door", "finish": "Shaker, White" },
+    { "lineNo": 18, "code": "W2730", "width": 27, "face": "2 doors", "finish": "Shaker, White" },
+    { "lineNo": 19, "code": "F3", "width": 3, "face": null, "finish": "Shaker, White" },
+    { "lineNo": 20, "code": "BEP24", "width": 24, "face": null, "finish": "Shaker, White" },
+    { "lineNo": 21, "code": "TK96", "width": 96, "face": null, "finish": "Shaker, White" },
+    { "lineNo": 22, "code": "CM96", "width": 96, "face": null, "finish": "Shaker, White" }
+  ]
+}

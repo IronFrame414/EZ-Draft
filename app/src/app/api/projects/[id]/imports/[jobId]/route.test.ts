@@ -64,7 +64,7 @@ describe('EZD-307 GET /api/projects/[id]/imports/[jobId]', () => {
     expect(missing.status).toBe(404);
     expect(await missing.json()).toEqual(NOT_FOUND);
     permitted();
-    const review = { jobId: J, projectId: P, status: 'detecting' };
+    const review = { jobId: J, projectId: P, status: 'detecting', files: [] };
     vi.mocked(readImportReview).mockResolvedValueOnce(review as never);
     const ok = await call();
     expect(ok.status).toBe(200);
@@ -79,7 +79,7 @@ describe('EZD-307 GET /api/projects/[id]/imports/[jobId]', () => {
       session: { appUserId: 'u1' },
       ctx: {},
     } as never);
-    const review = { jobId: J, projectId: P, status: 'ready' };
+    const review = { jobId: J, projectId: P, status: 'ready', files: [] };
     vi.mocked(readImportReview).mockResolvedValueOnce(review as never);
     // The View projects target check passes; the Edit model check refuses.
     vi.mocked(requirePermission)

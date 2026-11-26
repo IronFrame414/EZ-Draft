@@ -9,11 +9,15 @@
 // without Edit model, 404 for a malformed id, 403 for a project outside the member's list, 400 for a body outside
 // the rules, then save_import_review: 403 refused, 404 not this project's import, 400 an unknown item, 409
 // lock_held when another user holds the edit lock, 409 import_closed after Finish or Cancel, else 200.
+// EZD-916 (Q-0323 "EZD-132 keeps See company costs on supplier files and order reports"): the review of an import
+// that read an order report shows the report's own lines, so GET and PATCH also need See company costs on the
+// project then (403 permission_denied), checked after the import is found (GET) and before any save (PATCH).
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../../server/auth/supabase-server';
 import { endedSessionResponse } from '../../../../../../server/auth/ended-session';
 import { reportRouteFailure } from '../../../../../../server/errors/route-failure';
 import {
+  importReadsOrderReport,
   readImportReview,
   ReviewSaveError,
   saveImportReview,
@@ -50,6 +54,10 @@ export async function GET(
     if (denied) return denied;
     const review = await readImportReview(createSessionClient(), id, jobId);
     if (!review) return notFound();
+    if (review.files.some((f) => f.kind === 'order_report')) {
+      const noCosts = requirePermission(p.ctx, 'see_company_costs', { projectId: id });
+      if (noCosts) return noCosts;
+    }
     // EZD-314 (S02 States Locked / view-only, Permission-denied): whether the viewer may change the import (Edit
     // model on this project) and who the viewer is, so the page can tell a lock another user holds.
     const viewer = {
@@ -145,6 +153,10 @@ export async function PATCH(
     }
     const body = bodySchema.safeParse(raw);
     if (!body.success) return fail(400, 'invalid_input', 'error.invalid_input');
+    if (await importReadsOrderReport(createSessionClient(), id, jobId)) {
+      const noCosts = requirePermission(p.ctx, 'see_company_costs', { projectId: id });
+      if (noCosts) return noCosts;
+    }
     let status;
     try {
       status = await saveImportReview(createSessionClient(), id, jobId, {

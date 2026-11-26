@@ -478,6 +478,8 @@ export type SupplierFileView = {
   supplierName: string | null;
   supplierContactEmail: string | null;
   uploadedAt: string;
+  /** EZD-916 (S12 File row "22 lines read"): an order report's confirmed lines (order_line); null for other kinds. */
+  linesRead: number | null;
 };
 
 export const SUPPLIER_FILE_LIST_LIMIT = 100;
@@ -499,6 +501,17 @@ export async function listSupplierFiles(
     .order('id', { ascending: true })
     .limit(SUPPLIER_FILE_LIST_LIMIT);
   if (error) throw new StorageError('storage_unavailable', { cause: error });
+  const reports = data.filter((row) => row.kind === 'order_report').map((row) => row.id);
+  const lines = new Map<string, number>(reports.map((id) => [id, 0]));
+  if (reports.length > 0) {
+    const read = await client
+      .from('order_line')
+      .select('source_file_id')
+      .eq('project_id', projectId)
+      .in('source_file_id', reports);
+    if (read.error) throw new StorageError('storage_unavailable', { cause: read.error });
+    for (const r of read.data) lines.set(r.source_file_id, (lines.get(r.source_file_id) ?? 0) + 1);
+  }
   return data.map((row) => ({
     id: row.id,
     kind: row.kind as SourceFileKind,
@@ -507,6 +520,7 @@ export async function listSupplierFiles(
     supplierName: row.supplier_name,
     supplierContactEmail: row.supplier_contact_email,
     uploadedAt: row.uploaded_at as string,
+    linesRead: lines.get(row.id) ?? null,
   }));
 }
 

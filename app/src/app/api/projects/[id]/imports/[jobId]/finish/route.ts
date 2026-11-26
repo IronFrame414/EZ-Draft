@@ -8,6 +8,9 @@
 // an item that cannot become a valid object, else 200 with the model version and the counts imported. After the
 // write commits: import.completed, model.saved with the new object ids, then one room.closure_overridden per room
 // kept out of square; a failed emit is reported and does not fail the Finish.
+// EZD-916 (vault/build/assumptions.md EZD-916): an import of order reports alone writes order lines and no model
+// version (modelVersionId null), so it emits neither import.completed (whose payload names the version) nor
+// model.saved; the answer also gives the number of order lines written.
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../../../server/auth/supabase-server';
 import { endedSessionResponse } from '../../../../../../../server/auth/ended-session';
@@ -79,19 +82,22 @@ export async function POST(
         return fail(400, 'invalid_input', 'error.invalid_input');
     }
     const ctx = { tenantId: result.tenantId, projectId: id, actorId: p.session.appUserId };
-    await emitted(() =>
-      emit(
-        'import.completed',
-        {
-          projectId: id,
-          sourceFileIds: result.sourceFileIds,
-          counts: result.counts,
-          modelVersionId: result.modelVersionId,
-        },
-        ctx,
-      ),
-    );
-    await emitted(() => emit('model.saved', { objectIds: result.objectIds }, ctx));
+    const modelVersionId = result.modelVersionId;
+    if (modelVersionId !== null) {
+      await emitted(() =>
+        emit(
+          'import.completed',
+          {
+            projectId: id,
+            sourceFileIds: result.sourceFileIds,
+            counts: result.counts,
+            modelVersionId,
+          },
+          ctx,
+        ),
+      );
+      await emitted(() => emit('model.saved', { objectIds: result.objectIds }, ctx));
+    }
     for (const o of result.overridden) {
       await emitted(() =>
         emit(
@@ -107,6 +113,7 @@ export async function POST(
         modelVersionId: result.modelVersionId,
         counts: result.counts,
         imported: result.imported,
+        orderLines: result.orderLines,
       },
       { status: 200, headers },
     );

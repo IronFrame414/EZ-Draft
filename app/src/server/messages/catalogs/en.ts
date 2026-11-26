@@ -1640,6 +1640,8 @@ export const en = {
   'office.supplier.kind_order_report': 'Order report',
   'office.supplier.kind_dxf': 'DXF drawing',
   'office.supplier.row_summary': '{type} · {size} MB',
+  // EZD-916: an order report row once its lines are confirmed (board S12 "22 lines read").
+  'office.supplier.row_lines': '{type} · {n} lines read',
   'office.supplier.source_note':
     '{supplier} · received {date}. Codes read from the order report, positions from the rendering.',
   'office.supplier.canvas_hint': 'Pick a supplier file to open it.',
@@ -1732,6 +1734,13 @@ export const en = {
   'office.review.cabinet_check_agrees': '{view} agrees with {code}',
   'office.review.cabinet_check_differs': '{view} reads {size}',
   'office.review.cabinet_check_missing': '{view} not found',
+  // EZD-916: an order report line in Import review (Code, Width, Face, Finish are board S12 headings).
+  'office.review.order_line_code': 'Code',
+  'office.review.order_line_width': 'Width',
+  'office.review.order_line_face': 'Face',
+  'office.review.order_line_finish': 'Finish',
+  'office.review.order_line_none': 'Not on the report',
+  'office.review.item_meta_line': '{type} · {confidence}% confidence',
   'office.review.open_plan_editor': 'Open the Plan editor',
   'office.review.modes': 'Review mode',
   'office.review.mode_one_by_one': 'One by one',

@@ -2,6 +2,7 @@
 // EZD-1408 adds the field task draft (server/jobs/handlers/field-task-draft-recording.ts).
 // EZD-711 adds the property appraiser reads (server/jobs/ai-purposes/property-appraiser-recording.ts).
 // EZD-606 adds the panel label and directory reads (server/jobs/ai-purposes/panel-read-recording.ts).
+// EZD-916 adds the order report read (order-report.ts).
 import { panelRecordings } from '../../../jobs/ai-purposes/panel-read-recording';
 import { appraiserRecordings } from '../../../jobs/ai-purposes/property-appraiser-recording';
 import { fieldTaskRecordings } from '../../../jobs/handlers/field-task-draft-recording';
@@ -10,6 +11,7 @@ import { anthropicRecordings } from './anthropic';
 import { bflRecordings } from './bfl';
 import { geminiRecordings } from './gemini';
 import { openaiRecordings } from './openai';
+import { orderReportRecordings } from './order-report';
 
 export const BUILT_IN_RECORDINGS: Record<string, Recording> = {
   ...anthropicRecordings,
@@ -19,4 +21,5 @@ export const BUILT_IN_RECORDINGS: Record<string, Recording> = {
   ...fieldTaskRecordings,
   ...appraiserRecordings,
   ...panelRecordings,
+  ...orderReportRecordings,
 };

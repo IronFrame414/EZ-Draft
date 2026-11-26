@@ -398,7 +398,14 @@ export function ReviewCanvas({
             })}
             {items.map((item) => {
               // EZD-312: a ceiling slope has no plan line; it is chosen from the list and fixed in the inspector.
-              if (item.type === 'room' || item.type === 'ceiling_slope' || item.type === 'cabinet') return null;
+              // EZD-916: an order line is not on the plan; it is chosen from the list.
+              if (
+                item.type === 'room' ||
+                item.type === 'ceiling_slope' ||
+                item.type === 'cabinet' ||
+                item.type === 'order_line'
+              )
+                return null;
               const state = itemState(item, selectedId, cutoff, decisions);
               let a = { x: 0, y: 0 };
               let b = { x: 0, y: 0 };

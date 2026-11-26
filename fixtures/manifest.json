@@ -84,6 +84,18 @@
     "source": "EZD-915 (phase-09 EZD-915 row): plan + one elevation, labels W3030 and B24, written by scripts/fixtures/generate-supplier.mjs; stand-in for supplier-pdf"
   },
   {
+    "id": "synthetic-order-report",
+    "origin": "generated",
+    "kind": "order_report",
+    "status": "present",
+    "path": "fixtures/synthetic/order-report.pdf",
+    "expected": "fixtures/synthetic/order-report.pdf.expected.json",
+    "neededBy": ["EZD-916"],
+    "withoutIt": null,
+    "standIn": null,
+    "source": "EZD-916 (phase-09 EZD-916 row): a 22-line order report table, written by scripts/fixtures/generate-order-report.mjs; stand-in for order-report"
+  },
+  {
     "id": "synthetic-room-glb",
     "origin": "generated",
     "kind": "polycam_glb",
