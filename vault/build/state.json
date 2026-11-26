@@ -548,7 +548,8 @@
     "EZD-1958",
     "EZD-705",
     "EZD-1910",
-    "EZD-509"
+    "EZD-509",
+    "EZD-1911"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2312,6 +2313,14 @@
       "title": "Auto-layout cans",
       "commit": "8e9000f6",
       "ts": "2026-11-26T10:44:52Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1911",
+      "title": "Move the editor's dev and test hooks to one file",
+      "commit": "0a3fba88",
+      "ts": "2026-11-26T11:32:15Z",
       "kind": "ticket",
       "lane": 3
     }
