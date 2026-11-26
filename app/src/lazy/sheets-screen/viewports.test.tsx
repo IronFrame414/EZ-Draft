@@ -79,7 +79,7 @@ describe('EZD-703 viewports on the Sheets screen', () => {
     ]);
   });
 
-  it('a sheet with no plan viewport is not drawn; A4.0 holds an elevation at 1/2"', async () => {
+  it('a sheet with no viewport is not drawn; A4.0 holds an elevation at 1/2", drawn since EZD-707', async () => {
     const { store, screen, asked } = setup();
     await screen.load();
     screen.setModel(store);
@@ -90,7 +90,7 @@ describe('EZD-703 viewports on the Sheets screen', () => {
     screen.open('A5.0');
     await flush();
     expect(screen.get().viewports).toEqual([]);
-    expect(asked).toHaveLength(0);
+    expect(asked.map((r) => r.viewports.map((v) => v.kind))).toEqual([['elevation']]);
   });
 
   it('setting a scale writes the permit set as one sheet_set object holding that sheet, and draws again', async () => {
@@ -212,8 +212,8 @@ describe('EZD-703 viewports on the Sheets screen', () => {
     expect(screen.get().open).toBe('A0.0');
   });
 
-  it('removing the only viewport of A1.0, or making it an elevation, clears its drawing', async () => {
-    const { store, screen } = setup();
+  it('removing the only viewport of A1.0 clears its drawing; making it an elevation draws the elevation', async () => {
+    const { store, screen, asked } = setup();
     await screen.load();
     screen.setModel(store);
     screen.setShown(true);
@@ -222,7 +222,7 @@ describe('EZD-703 viewports on the Sheets screen', () => {
     expect(screen.get().drawing?.sheet).toBe('A1.0');
     screen.editViewport({ kind: 'update', index: 0, patch: { kind: 'elevation' } });
     await flush();
-    expect(screen.get().drawing).toBeNull();
+    expect(asked.at(-1)?.viewports.map((v) => [v.kind, v.scale])).toEqual([['elevation', '1/2']]);
     store.undo();
     await flush();
     expect(screen.get().drawing?.sheet).toBe('A1.0');
@@ -230,5 +230,125 @@ describe('EZD-703 viewports on the Sheets screen', () => {
     await flush();
     expect(screen.get().viewports).toEqual([]);
     expect(screen.get().drawing).toBeNull();
+  });
+});
+
+// EZD-707 (R24 "any other wall is added with Add elevation"; AC-EZD-707-3 "Add elevation adds a wall that has no
+// cabinets"): on A4.0 the Add elevation picker lists the floor's walls not drawn yet, by their project number, and
+// picking one stores it on the sheet's elevation viewport and draws the sheet again with it.
+describe('EZD-707 Add elevation on the Sheets screen', () => {
+  const WALL_A = '44444444-4444-4444-8444-444444444441';
+  const WALL_B = '44444444-4444-4444-8444-444444444442';
+  const wallValue = (x0: number, x1: number, number: number): ObjectValue => ({
+    type: 'wall',
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: {
+      geometry: { start: { x: x0, y: 0 }, end: { x: x1, y: 0 } },
+      status: 'existing',
+      level: FLOOR,
+      attributes: {
+        thickness: 4.5,
+        thicknessSide: 'right',
+        height: 96,
+        topCutToCeiling: false,
+        bearing: false,
+        number,
+        layers: [
+          { material: 'drywall', thickness: 0.5 },
+          { material: 'stud', thickness: 3.5 },
+          { material: 'drywall', thickness: 0.5 },
+        ],
+      },
+    },
+  });
+
+  it('AC-EZD-707-3: picking a wall with no cabinets adds its elevation to A4.0', async () => {
+    const { store, screen, asked } = setup(set(), [
+      [WALL_A, wallValue(0, 120, 1)],
+      [WALL_B, wallValue(0, 120, 2)],
+    ]);
+    await screen.load();
+    screen.setModel(store);
+    screen.setShown(true);
+    screen.open('A4.0');
+    await flush();
+    expect(screen.get().elevationWalls).toEqual([
+      { id: WALL_A, number: 1 },
+      { id: WALL_B, number: 2 },
+    ]);
+    const edit = html(<ViewportTool screen={screen} canEdit />);
+    expect(edit).toContain('data-testid="sheet-elevation-add"');
+    expect(edit).toContain('Add elevation');
+    expect(edit).toContain('Wall 2');
+    // Read only: no picker.
+    expect(html(<ViewportTool screen={screen} canEdit={false} />)).not.toContain('sheet-elevation-add');
+
+    expect(screen.addElevation(WALL_B)).toBe(true);
+    await flush();
+    const sets = [...store.getState().objects].filter(([, v]) => v.type === 'sheet_set');
+    expect(sets).toHaveLength(1);
+    const [id, value] = sets[0]!;
+    const parsed = parseStoredObject({ id, type: value.type, schema_version: value.schemaVersion, data: value.data });
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok || parsed.object.type !== 'sheet_set') return;
+    expect(parsed.object.data.viewports?.map((v) => [v.sheet, v.kind, v.scale, v.walls])).toEqual([
+      ['A4.0', 'elevation', '1/2', [WALL_B]],
+    ]);
+    expect(asked.at(-1)?.viewports.map((v) => v.walls)).toEqual([[WALL_B]]);
+    expect(screen.get().elevationWalls.map((w) => w.id)).toEqual([WALL_A]);
+    // The same wall again changes nothing.
+    expect(screen.addElevation(WALL_B)).toBe(false);
+  });
+
+  // 40 codes overflow A4.0's table (36 codes on a 24x36 sheet), so the set gains A4.1, drawn with its sheet number.
+  it('a cabinet schedule too long for A4.0 adds A4.1 to the set; opening it asks for its table', async () => {
+    const RUN = '55555555-5555-4555-8555-555555555500';
+    const boxId = (i: number) => `55555555-5555-4555-8555-${String(i + 1).padStart(12, '0')}`;
+    const boxes: [string, ObjectValue][] = Array.from({ length: 40 }, (_, i) => [
+      boxId(i),
+      {
+        type: 'cabinet_box',
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        data: {
+          status: 'new',
+          level: FLOOR,
+          attributes: {
+            code: `X${i + 1}`,
+            boxType: 'base',
+            width: 15,
+            depth: 24,
+            height: 34.5,
+            faceLayout: 'door_1',
+            hingeSide: 'left',
+            finishedEnds: 'none',
+            catalogItemId: null,
+            finish: null,
+          },
+        },
+      },
+    ]);
+    const run: [string, ObjectValue] = [
+      RUN,
+      {
+        type: 'cabinet_run',
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        data: {
+          geometry: { hostWallId: null, start: { x: 0, y: 0 }, axis: { x: 1, y: 0 } },
+          level: FLOOR,
+          attributes: { name: 'Island', base: boxes.map(([id]) => id), upper: [] },
+        },
+      },
+    ];
+    const { store, screen, asked } = setup(set(), [run, ...boxes]);
+    await screen.load();
+    screen.setModel(store);
+    screen.setShown(true);
+    await flush();
+    const numbers = screen.set()!.sheets.map((x) => x.number);
+    expect(numbers.slice(numbers.indexOf('A4.0'), numbers.indexOf('A4.0') + 3)).toEqual(['A4.0', 'A4.1', 'A5.0']);
+    screen.open('A4.1');
+    await flush();
+    expect(asked.at(-1)?.sheet).toBe('A4.1');
+    expect(asked.at(-1)?.viewports).toEqual([]);
   });
 });

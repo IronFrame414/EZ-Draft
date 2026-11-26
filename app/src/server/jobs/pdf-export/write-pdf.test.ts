@@ -156,3 +156,48 @@ describe('EZD-715 PDF writer', () => {
     expect(segs.some((s) => s.tags.includes('EZ_check_dimension'))).toBe(false);
   });
 });
+
+// EZD-707 (phase-07 EZD-707 "the cabinet schedule PDF page"): a table viewport (`marks: false`) prints in its exact
+// rectangle at scale 1 with no scale bar or check dimension. An 8" x 0.6" table: its frame's top is 8 x 72 = 576 pt.
+describe('EZD-707 cabinet schedule table in the PDF', () => {
+  it('prints the table text and frame, with no print marks', async () => {
+    const mono = { font: 'dm-mono-400', rotationDeg: 0, align: 'center', layer: 'rooms', objectId: 'cabinet-schedule' } as const;
+    const table: DrawingList = {
+      level: '',
+      omitted: [],
+      items: [
+        { kind: 'line', layer: 'rooms', objectId: 'cabinet-schedule', role: 'dimension', from: { x: 0, y: 0 }, to: { x: 8, y: 0 } },
+        { kind: 'line', layer: 'rooms', objectId: 'cabinet-schedule', role: 'dimension', from: { x: 8, y: -0.6 }, to: { x: 0, y: -0.6 } },
+        { ...mono, kind: 'text', text: 'CABINET SCHEDULE', sizePt: 9, widthPt: 86.4, at: { x: 0.66, y: -0.1 } },
+        { ...mono, kind: 'text', text: 'B15', sizePt: 6.75, widthPt: 12.15, at: { x: 0.15, y: -0.5 } },
+      ],
+    };
+    const bytes = await writePdf({
+      size: '24x36',
+      title: 'Set',
+      bookmarks: true,
+      sheets: [
+        {
+          number: 'A4.0',
+          title: 'Elevations',
+          scaleLabel: '1/2" = 1\'-0"',
+          stampAreas: true,
+          viewports: [{ list: table, scale: 1, area: { x: 0.5, y: 22.5, width: 8, height: 0.6 }, marks: false }],
+        },
+      ],
+    });
+    const page = await (await load(bytes)).getPage(1);
+    const content = await page.getTextContent({ includeMarkedContent: true });
+    const text = textByTag(content.items as never).get('EZ_rooms') ?? '';
+    expect(text).toContain('CABINET SCHEDULE');
+    expect(text).toContain('B15');
+    const segs = strokedSegments((await page.getOperatorList()) as never);
+    expect(segs.some((s) => s.tags.some((t) => t !== null && (t.startsWith('EZ_check_dimension') || t.startsWith('EZ_scale_bar'))))).toBe(false);
+    const frame = segs.filter((s) => s.tags.includes('EZ_rooms'));
+    expect(frame).toHaveLength(2);
+    for (const s of frame) expect(Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1])).toBeCloseTo(576, 3);
+    // The frame's top is 22.5" down a 24" page: 1.5 x 72 = 108 pt up from the bottom, starting 36 pt in.
+    expect(frame[0]!.a[0]).toBeCloseTo(36, 3);
+    expect(frame[0]!.a[1]).toBeCloseTo(108, 3);
+  });
+});

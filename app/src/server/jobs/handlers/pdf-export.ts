@@ -44,7 +44,14 @@ import {
 import { profileOf } from '../../../lib/submittal-profiles/profiles';
 import type { PlanProfile } from '../../../lib/submittal-profiles/file-plan';
 import { AS_NOTED } from '../../../lib/title-block/sheet-title-block';
-import { viewportDrawingList } from '../../../workers/sheet-job';
+import { elevationViewportLists, viewportDrawingList } from '../../../workers/sheet-job';
+import {
+  SCHEDULE_SHEET,
+  schedulePlan,
+  scheduleRowsOf,
+  scheduleTableFor,
+  withScheduleSheets,
+} from '../../../lib/sheets/cabinet-schedule-table';
 import type { Database } from '../../db/database.types';
 import { createJobsDbClient } from '../db';
 import { JobError } from '../errors';
@@ -176,24 +183,38 @@ export const pdfExportHandler: JobHandler<PdfExportPayload, never, PdfExportResu
       .map(({ id, name }) => ({ id, name }));
     const data = setData ?? defaultSheetSetData(ctx.payload.set);
     const trades = project.data.scope_trades.filter(isScopeTrade);
-    const sheets = withFloorSheets(sheetsForSet(data.kind, trades), floors);
+    // EZD-707: the cabinet schedule prints on A4.0 under the elevations and continues on A4.1, as the preview.
+    const scheduleRows = scheduleRowsOf(objects);
+    const sheets = withScheduleSheets(withFloorSheets(sheetsForSet(data.kind, trades), floors), data.size, scheduleRows.length);
 
     const floorIds = new Set(floors.map((f) => f.id));
     const pages = new Map<string, PdfSheet>();
     for (const sheet of sheets) {
       const vps = sheetViewports(data, sheet.number, floors);
-      const areas = viewportAreas(sheetDrawingArea(data.size), vps.length);
+      const areas = viewportAreas(
+        sheet.number === SCHEDULE_SHEET ? schedulePlan(data.size, scheduleRows.length).elevations : sheetDrawingArea(data.size),
+        vps.length,
+      );
       const viewports: PdfViewport[] = [];
       vps.forEach((vp, i) => {
-        if (vp.kind !== 'plan') return;
+        if (vp.kind !== 'plan' && vp.kind !== 'elevation') return;
         const level = vp.level !== null && floorIds.has(vp.level) ? vp.level : floors[0]?.id;
         if (level === undefined) return;
+        // EZD-707: an elevation viewport prints each of its elevations in its own cell, as the preview draws them.
+        if (vp.kind === 'elevation') {
+          const scale = viewportScaleFactor(vp.scale);
+          for (const cell of elevationViewportLists(objects, level, vp.view, vp.walls ?? [], areas[i]!))
+            viewports.push({ list: cell.list, scale, area: cell.area });
+          return;
+        }
         viewports.push({
           list: viewportDrawingList(objects, level, vp.view),
           scale: viewportScaleFactor(vp.scale),
           area: areas[i]!,
         });
       });
+      const table = scheduleTableFor(sheet.number, data.size, scheduleRows);
+      if (table !== null) viewports.push({ list: table.list, scale: 1, area: table.area, marks: false });
       pages.set(sheet.number, {
         number: sheet.number,
         title: sheet.title,

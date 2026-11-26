@@ -23,12 +23,22 @@
 // made on the Plan tab and saved shows here. reloadChecklist() reads it again (after a warning is accepted). The
 // "Load calc complete" row is worked out here from the live model's main panel (editor/electrical, as the electrical
 // status bar), with the project's edition from the answer, and again when the model changes.
-import type { SheetSetKind, SheetSize } from '@ezdraft/geometry';
-import { listFloors } from '../../editor/floors/floors';
+// EZD-707 (R24; AC-EZD-707-1, -3): a sheet with an elevation viewport is drawn too (its floor's elevations), and the
+// walls Add elevation offers for the open sheet's first elevation viewport are worked out on the same watch;
+// addElevation() adds one (lib/sheets/viewport.ts addElevationChange) through editViewport.
+import { parseStoredObject, type ModelObject, type SheetSetKind, type SheetSize } from '@ezdraft/geometry';
+import { listFloors, resolveOpenFloor } from '../../editor/floors/floors';
 import type { Change, Objects } from '../../editor/model/patches';
 import { lazyModule } from '../../lib/lazy/lazy-module';
 import { withFloorSheets, type SetNotes, type SheetFloor, type SheetSetSummary } from '../../lib/sheets/sheet-set';
-import { sheetDrawsPlan, type SheetViewport, type ViewportChange } from '../../lib/sheets/viewport';
+import {
+  addElevationChange,
+  sheetDrawsModel,
+  type SheetViewport,
+  type ViewportChange,
+} from '../../lib/sheets/viewport';
+import { addableWalls, type AddableWall } from '../../lib/sheets/elevation-sheet';
+import { schedulePage, scheduleRowsOf, withScheduleSheets } from '../../lib/sheets/cabinet-schedule-table';
 import { openSheetViewports, viewportEditChange } from './viewport-edit';
 import { parseSetNotes } from './cover-sheet';
 import { sameDrawing } from './same-drawing';
@@ -66,6 +76,9 @@ export type SheetsScreenState = {
   // for the viewport tool's floor choice.
   viewports: SheetViewport[];
   floors: { id: string; name: string }[];
+  // EZD-707: the walls Add elevation offers on the open sheet (those its first elevation viewport does not draw yet);
+  // empty when the sheet has no elevation viewport or there is no model.
+  elevationWalls: AddableWall[];
   // EZD-716: the issue checklist; null until read. `checklistLoad` is 'failed' when the last read failed.
   checklist: IssueChecklist | null;
   checklistLoad: 'loading' | 'ready' | 'failed';
@@ -107,6 +120,8 @@ export type SheetsScreen = {
   setShown(shown: boolean): void;
   // EZD-703: one change to the open sheet's viewports; false when nothing was changed.
   editViewport(change: ViewportChange): boolean;
+  // EZD-707: Add elevation: the wall joins the open sheet's elevations; false when nothing was changed.
+  addElevation(wallId: string): boolean;
   // EZD-716: reads the issue checklist again.
   reloadChecklist(): Promise<void>;
   dispose(): void;
@@ -132,6 +147,7 @@ export function createSheetsScreen(
     key: null,
     viewports: [],
     floors: [],
+    elevationWalls: [],
     checklist: null,
     checklistLoad: 'loading',
   };
@@ -146,13 +162,30 @@ export function createSheetsScreen(
   let floorsKey = '';
   const floorsOf = (): SheetFloor[] =>
     source === null ? [] : listFloors(source.getState().objects).map(({ id, name }) => ({ id, name }));
-  const withFloors = (sets: SheetSetSummary[], floors: SheetFloor[]) =>
-    sets.map((s) => ({ ...s, sheets: withFloorSheets(s.sheets, floors) }));
+  // EZD-707: the model's cabinet schedule row count (for A4.0's continuation sheets); null with no model, when the
+  // sets keep the server's sheets. Counted once per model.
+  let counted: { objects: Objects; rows: number } | null = null;
+  const scheduleRows = (): number | null => {
+    if (source === null) return null;
+    const objects = source.getState().objects;
+    if (counted === null || counted.objects !== objects) {
+      const stored = [...objects].map(([id, v]) => ({ id, type: v.type, schema_version: v.schemaVersion, data: v.data }));
+      counted = { objects, rows: scheduleRowsOf(stored).length };
+    }
+    return counted.rows;
+  };
+  const withFloors = (sets: SheetSetSummary[], floors: SheetFloor[]) => {
+    const rows = scheduleRows();
+    return sets.map((s) => {
+      const sheets = withFloorSheets(s.sheets, floors);
+      return { ...s, sheets: rows === null ? sheets : withScheduleSheets(sheets, s.size, rows) };
+    });
+  };
   // The sets with the model's floors; the open sheet stays when it is still in the set.
   const refreshFloors = () => {
     if (state.load !== 'ready' || source === null) return;
     const floors = floorsOf();
-    const key = JSON.stringify(floors);
+    const key = JSON.stringify([floors, scheduleRows()]);
     if (key === floorsKey) return;
     floorsKey = key;
     const sets = withFloors(loaded, floors);
@@ -203,9 +236,34 @@ export function createSheetsScreen(
         ? []
         : openSheetViewports(source === null ? null : source.getState().objects, set, sheet, state.floors);
     const key = JSON.stringify(vps);
+    refreshElevationWalls(vps);
     if (key === vpKey) return;
     vpKey = key;
     update({ viewports: vps });
+  };
+
+  // EZD-707: worked out again only when the model or the open sheet's first elevation viewport changed.
+  let wallsFor: { objects: Objects; vp: string } | null = null;
+  const refreshElevationWalls = (vps: readonly SheetViewport[]) => {
+    const vp = vps.find((v) => v.kind === 'elevation');
+    if (source === null || vp === undefined) {
+      wallsFor = null;
+      if (state.elevationWalls.length > 0) update({ elevationWalls: [] });
+      return;
+    }
+    const objects = source.getState().objects;
+    const vpKeyNow = JSON.stringify([vp.level, vp.view, vp.walls ?? []]);
+    if (wallsFor !== null && wallsFor.objects === objects && wallsFor.vp === vpKeyNow) return;
+    wallsFor = { objects, vp: vpKeyNow };
+    const level = resolveOpenFloor(objects, vp.level);
+    const parsed: ModelObject[] = [];
+    if (level !== null)
+      for (const [id, v] of objects) {
+        const r = parseStoredObject({ id, type: v.type, schema_version: v.schemaVersion, data: v.data });
+        if (r.ok) parsed.push(r.object);
+      }
+    const next = level === null ? [] : addableWalls(parsed, level, vp.walls ?? []);
+    if (JSON.stringify(next) !== JSON.stringify(state.elevationWalls)) update({ elevationWalls: next });
   };
 
   // EZD-716: the latest read wins; an older answer landing after it is dropped. The facts read, and the model the
@@ -254,8 +312,8 @@ export function createSheetsScreen(
     const set = setOf(state.kind);
     const sheet = set?.sheets.find((s) => s.number === state.open) ?? null;
     if (set === null || sheet === null) return;
-    if (!sheetDrawsPlan(state.viewports)) {
-      // No plan viewport left on the open sheet: its old drawing goes.
+    if (!sheetDrawsModel(state.viewports) && schedulePage(sheet.number) === null) {
+      // No plan or elevation viewport left on the open sheet: its old drawing goes.
       drawn = null;
       same = null;
       if (state.drawing !== null && state.drawing.sheet === sheet.number) update({ drawing: null });
@@ -276,7 +334,7 @@ export function createSheetsScreen(
     update({ renders: state.renders + 1 });
     renderer ??= loadRenderer();
     renderer
-      .then((r) => r.render({ objects: asked.objects, size: asked.size, viewports }))
+      .then((r) => r.render({ objects: asked.objects, size: asked.size, viewports, sheet: asked.sheet }))
       .then(
         (svg) => {
           busy = false;
@@ -295,7 +353,7 @@ export function createSheetsScreen(
       );
   };
 
-  return {
+  const screen: SheetsScreen = {
     projectId,
     get: () => state,
     subscribe(listener) {
@@ -372,6 +430,13 @@ export function createSheetsScreen(
       refresh();
       return true;
     },
+    addElevation(wallId) {
+      const sheet = state.open;
+      if (sheet === null) return false;
+      const lowest = state.floors[0]?.id ?? null;
+      const change = addElevationChange(state.viewports, sheet, wallId, lowest);
+      return change === null ? false : screen.editViewport(change);
+    },
     reloadChecklist,
     dispose() {
       unwatch?.();
@@ -382,4 +447,5 @@ export function createSheetsScreen(
       void r?.then((x) => x.dispose(), () => {});
     },
   };
+  return screen;
 }

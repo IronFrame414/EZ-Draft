@@ -87,7 +87,7 @@ export function viewShows(view: SheetView, status: unknown): boolean {
 
 // The default set's viewports (EZD-701 sheets): the plan sheets draw the lowest floor at 1/4"; A6.0 (RCP) and E1.0
 // draw the proposed plan until their own tickets (EZD-708a, EZD-708b) give them content; A4.0 holds one elevation
-// viewport at 1/2" that draws nothing until EZD-707.
+// viewport at 1/2" that draws the floor's elevations (EZD-707, lib/sheets/elevation-sheet.ts).
 const DEFAULTS: Readonly<Record<string, readonly { kind: ViewportKind; view: SheetView }[]>> = {
   'A1.0': [{ kind: 'plan', view: 'existing' }],
   'A2.0': [{ kind: 'plan', view: 'demo' }],
@@ -143,6 +143,31 @@ export function sheetDrawsPlan(viewports: readonly Pick<SheetViewport, 'kind'>[]
   return viewports.some((v) => v.kind === 'plan');
 }
 
+// EZD-707: whether a sheet draws any of the model (a plan or an elevation viewport).
+export function sheetDrawsModel(viewports: readonly Pick<SheetViewport, 'kind'>[]): boolean {
+  return viewports.some((v) => v.kind === 'plan' || v.kind === 'elevation');
+}
+
+// EZD-707 (R24 "any other wall is added with Add elevation"; AC-EZD-707-3): the change Add elevation makes on a
+// sheet: the wall joins the sheet's first elevation viewport, or a new elevation viewport (Proposed, 1/2") on the
+// floor when the sheet has none. Null when that viewport already holds the wall.
+export function addElevationChange(
+  viewports: readonly Pick<SheetViewport, 'kind' | 'walls'>[],
+  sheet: string,
+  wallId: string,
+  level: string | null = null,
+): ViewportChange | null {
+  const index = viewports.findIndex((v) => v.kind === 'elevation');
+  if (index < 0)
+    return {
+      kind: 'add',
+      viewport: { sheet, kind: 'elevation', level, view: 'proposed', scale: DEFAULT_SCALE.elevation, walls: [wallId] },
+    };
+  const walls = viewports[index]!.walls ?? [];
+  if (walls.some((w) => w.toLowerCase() === wallId.toLowerCase())) return null;
+  return { kind: 'update', index, patch: { walls: [...walls, wallId] } };
+}
+
 // A sheet's viewports share its drawing area in equal columns, left to right in list order.
 export function viewportAreas(area: SheetArea, count: number): SheetArea[] {
   if (count <= 0) return [];
@@ -157,7 +182,7 @@ export function newViewport(sheet: string): Omit<Viewport, 'id'> {
 
 export type ViewportChange =
   | { kind: 'add'; viewport: Omit<Viewport, 'id'> }
-  | { kind: 'update'; index: number; patch: Partial<Pick<Viewport, 'kind' | 'level' | 'view' | 'scale'>> }
+  | { kind: 'update'; index: number; patch: Partial<Pick<Viewport, 'kind' | 'level' | 'view' | 'scale' | 'walls'>> }
   | { kind: 'remove'; index: number };
 
 // The set's stored viewport fields after one change to `sheet`'s viewports (index is within that sheet's list). The

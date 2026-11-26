@@ -53,6 +53,8 @@ export type PdfViewport = {
   scale: number | null;
   // The viewport's whole area in paper inches (y down), the print mark strip included.
   area: SheetArea;
+  // EZD-707: false for a table (the cabinet schedule): drawn in its whole area with no scale bar or check dimension.
+  marks?: false;
 };
 
 export type PdfSheet = {
@@ -329,6 +331,10 @@ export function writePdf(input: PdfInput): Promise<Uint8Array> {
     drawFrame(doc, input.size, sheet);
     for (const vp of sheet.viewports) {
       if (vp.list.items.length === 0) continue;
+      if (vp.marks === false) {
+        drawList(doc, vp.list, vp.scale ?? 1, vp.area);
+        continue;
+      }
       const { drawing } = splitPrintMarkBand(vp.area);
       drawList(doc, vp.list, vp.scale ?? ntsScale(vp.list, drawing), drawing);
       drawPrintMarks(doc, printMarks(vp.scale, vp.area));

@@ -3246,6 +3246,9 @@ export const en = {
   'office.sheets.viewport.scale': 'Scale',
   'office.sheets.viewport.add': 'Add viewport',
   'office.sheets.viewport.remove': 'Remove viewport',
+  'office.sheets.viewport.add_elevation': 'Add elevation',
+  'office.sheets.viewport.wall': 'Wall {number}',
+  'office.sheets.viewport.wall_unnumbered': 'Wall (not saved yet)',
   // EZD-1404 (S17 Field pack phone shell; wording in vault/build/assumptions.md EZD-1404 unless on the S17 mockup).
   'field.offline_icon.cached': 'Saved on this phone for offline use',
   'field.offline_icon.caching': 'Saving for offline use…',

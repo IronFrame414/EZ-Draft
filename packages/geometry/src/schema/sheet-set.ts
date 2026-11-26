@@ -37,6 +37,10 @@ export const viewportSchema = z.strictObject({
   level: z.nullable(z.uuid()),
   view: z.enum(SHEET_VIEWS),
   scale: z.enum(VIEWPORT_SCALES),
+  // EZD-707 (R24 "any other wall is added with Add elevation"): the walls an elevation viewport draws after the walls
+  // its floor generates (the elevations sheet, packages/geometry elevations/wall-elevation.ts), in the order added.
+  // Optional, so every stored viewport stays valid and the schema version stays.
+  walls: z.optional(z.array(z.uuid()).check(z.maxLength(SHEET_SET_VIEWPORTS_MAX))),
 });
 export type Viewport = z.infer<typeof viewportSchema>;
 
