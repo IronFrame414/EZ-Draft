@@ -542,7 +542,8 @@
     "EZD-1953",
     "EZD-612",
     "EZD-916",
-    "EZD-1955"
+    "EZD-1955",
+    "EZD-1409"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2260,6 +2261,14 @@
       "ts": "2026-11-26T06:48:18Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1409",
+      "title": "Tasks tab",
+      "commit": "af37d06a",
+      "ts": "2026-11-26T07:53:49Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2521,12 +2530,6 @@
       "lane": 1,
       "title": "Viewports and scales",
       "started": "2026-11-26T06:16:38Z",
-      "develop": "a70425b1"
-    },
-    "EZD-1409": {
-      "lane": 3,
-      "title": "Tasks tab",
-      "started": "2026-11-26T06:16:39Z",
       "develop": "a70425b1"
     }
   },
