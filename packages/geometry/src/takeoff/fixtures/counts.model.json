@@ -1,0 +1,1095 @@
+{
+ "objects": [
+  {
+   "id": "00000000-0000-4000-8000-000000000001",
+   "type": "floor",
+   "schema_version": 7,
+   "data": {
+    "name": "First floor",
+    "order": 1
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000011",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": -2.25,
+      "y": -2.25
+     },
+     "end": {
+      "x": 242.25,
+      "y": -2.25
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000012",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": 242.25,
+      "y": -2.25
+     },
+     "end": {
+      "x": 242.25,
+      "y": 146.25
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000013",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": 242.25,
+      "y": 146.25
+     },
+     "end": {
+      "x": -2.25,
+      "y": 146.25
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000014",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": -2.25,
+      "y": 146.25
+     },
+     "end": {
+      "x": -2.25,
+      "y": -2.25
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000015",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": 120,
+      "y": 60
+     },
+     "end": {
+      "x": 120,
+      "y": 100
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000031",
+   "type": "room",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "boundary": [
+      {
+       "x": 0,
+       "y": 0
+      },
+      {
+       "x": 240,
+       "y": 0
+      },
+      {
+       "x": 240,
+       "y": 144
+      },
+      {
+       "x": 0,
+       "y": 144
+      }
+     ]
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "name": "Kitchen",
+     "floorLevel": 0,
+     "photos": [],
+     "roomType": "kitchen",
+     "floorFinish": "",
+     "ceilingType": null,
+     "ceiling": null
+    },
+    "closureOverride": null
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000041",
+   "type": "cabinet_box",
+   "schema_version": 7,
+   "data": {
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "code": "B36",
+     "boxType": "base",
+     "width": 36,
+     "depth": 24,
+     "height": 34.5,
+     "faceLayout": "doors_2",
+     "hingeSide": "pair",
+     "finishedEnds": "none",
+     "catalogItemId": null,
+     "finish": null
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000042",
+   "type": "cabinet_box",
+   "schema_version": 7,
+   "data": {
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "code": "B36",
+     "boxType": "base",
+     "width": 36,
+     "depth": 24,
+     "height": 34.5,
+     "faceLayout": "doors_2",
+     "hingeSide": "pair",
+     "finishedEnds": "none",
+     "catalogItemId": null,
+     "finish": null
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000043",
+   "type": "cabinet_box",
+   "schema_version": 7,
+   "data": {
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "code": "SB36",
+     "boxType": "sink_base",
+     "width": 36,
+     "depth": 24,
+     "height": 34.5,
+     "faceLayout": "doors_2",
+     "hingeSide": "pair",
+     "finishedEnds": "none",
+     "catalogItemId": null,
+     "finish": null
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000044",
+   "type": "cabinet_filler",
+   "schema_version": 7,
+   "data": {
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "code": "F3",
+     "width": 3,
+     "depth": 24,
+     "height": 34.5,
+     "scribe": 1,
+     "catalogItemId": null,
+     "finish": null
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000045",
+   "type": "cabinet_box",
+   "schema_version": 7,
+   "data": {
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "code": " b36",
+     "boxType": "base",
+     "width": 36,
+     "depth": 24,
+     "height": 34.5,
+     "faceLayout": "doors_2",
+     "hingeSide": "pair",
+     "finishedEnds": "none",
+     "catalogItemId": null,
+     "finish": null
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000046",
+   "type": "cabinet_box",
+   "schema_version": 7,
+   "data": {
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "code": "B15",
+     "boxType": "base",
+     "width": 15,
+     "depth": 24,
+     "height": 34.5,
+     "faceLayout": "doors_2",
+     "hingeSide": "pair",
+     "finishedEnds": "none",
+     "catalogItemId": null,
+     "finish": null
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000047",
+   "type": "cabinet_box",
+   "schema_version": 7,
+   "data": {
+    "status": "demo",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "code": "B18",
+     "boxType": "base",
+     "width": 18,
+     "depth": 24,
+     "height": 34.5,
+     "faceLayout": "doors_2",
+     "hingeSide": "pair",
+     "finishedEnds": "none",
+     "catalogItemId": null,
+     "finish": null
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000048",
+   "type": "cabinet_panel",
+   "schema_version": 7,
+   "data": {
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "end",
+     "code": "EP24",
+     "width": 0.75,
+     "depth": 24,
+     "height": 34.5,
+     "catalogItemId": null,
+     "finish": null
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000049",
+   "type": "cabinet_box",
+   "schema_version": 7,
+   "data": {
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "code": "W3030",
+     "boxType": "wall",
+     "width": 30,
+     "depth": 12,
+     "height": 30,
+     "faceLayout": "doors_2",
+     "hingeSide": "pair",
+     "finishedEnds": "none",
+     "catalogItemId": null,
+     "finish": null
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-00000000004a",
+   "type": "cabinet_box",
+   "schema_version": 7,
+   "data": {
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "code": "W3030",
+     "boxType": "wall",
+     "width": 30,
+     "depth": 12,
+     "height": 30,
+     "faceLayout": "doors_2",
+     "hingeSide": "pair",
+     "finishedEnds": "none",
+     "catalogItemId": null,
+     "finish": null
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000051",
+   "type": "cabinet_run",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "hostWallId": "00000000-0000-4000-8000-000000000013",
+     "start": {
+      "x": 0,
+      "y": 144
+     },
+     "axis": {
+      "x": 1,
+      "y": 0
+     }
+    },
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "name": "Kitchen run",
+     "base": [
+      "00000000-0000-4000-8000-000000000041",
+      "00000000-0000-4000-8000-000000000042",
+      "00000000-0000-4000-8000-000000000043",
+      "00000000-0000-4000-8000-000000000044",
+      "00000000-0000-4000-8000-000000000045",
+      "00000000-0000-4000-8000-000000000046",
+      "00000000-0000-4000-8000-000000000047",
+      "00000000-0000-4000-8000-000000000048"
+     ],
+     "upper": [
+      "00000000-0000-4000-8000-000000000049",
+      "00000000-0000-4000-8000-00000000004a"
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000061",
+   "type": "countertop_piece",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "outline": [
+      {
+       "x": 0,
+       "y": 144
+      },
+      {
+       "x": 96,
+       "y": 144
+      },
+      {
+       "x": 96,
+       "y": 118.5
+      },
+      {
+       "x": 0,
+       "y": 118.5
+      }
+     ]
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "label": "A",
+     "name": "Back wall",
+     "materialItemId": null,
+     "thickness": 1.25,
+     "edges": [
+      {
+       "kind": "wall",
+       "overhang": 0,
+       "backsplashHeight": 4,
+       "profileId": null
+      },
+      {
+       "kind": "exposed",
+       "overhang": 1.5,
+       "backsplashHeight": null,
+       "profileId": null
+      },
+      {
+       "kind": "exposed",
+       "overhang": 1.5,
+       "backsplashHeight": null,
+       "profileId": null
+      },
+      {
+       "kind": "wall",
+       "overhang": 0,
+       "backsplashHeight": 4,
+       "profileId": null
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000062",
+   "type": "countertop_piece",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "outline": [
+      {
+       "x": 150,
+       "y": 40
+      },
+      {
+       "x": 222,
+       "y": 40
+      },
+      {
+       "x": 222,
+       "y": 76
+      },
+      {
+       "x": 150,
+       "y": 76
+      }
+     ]
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "label": "B",
+     "name": "Island",
+     "materialItemId": null,
+     "thickness": 1.25,
+     "edges": [
+      {
+       "kind": "exposed",
+       "overhang": 1.5,
+       "backsplashHeight": null,
+       "profileId": null
+      },
+      {
+       "kind": "exposed",
+       "overhang": 1.5,
+       "backsplashHeight": null,
+       "profileId": null
+      },
+      {
+       "kind": "seating",
+       "overhang": 1.5,
+       "backsplashHeight": null,
+       "profileId": null
+      },
+      {
+       "kind": "exposed",
+       "overhang": 1.5,
+       "backsplashHeight": null,
+       "profileId": null
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000063",
+   "type": "countertop_piece",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "outline": [
+      {
+       "x": 200,
+       "y": 144
+      },
+      {
+       "x": 240,
+       "y": 144
+      },
+      {
+       "x": 240,
+       "y": 120
+      },
+      {
+       "x": 200,
+       "y": 120
+      }
+     ]
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "label": "C",
+     "name": "Old desk",
+     "materialItemId": null,
+     "thickness": 1.25,
+     "edges": [
+      {
+       "kind": "wall",
+       "overhang": 0,
+       "backsplashHeight": 4,
+       "profileId": null
+      },
+      {
+       "kind": "wall",
+       "overhang": 0,
+       "backsplashHeight": 4,
+       "profileId": null
+      },
+      {
+       "kind": "exposed",
+       "overhang": 1.5,
+       "backsplashHeight": null,
+       "profileId": null
+      },
+      {
+       "kind": "exposed",
+       "overhang": 1.5,
+       "backsplashHeight": null,
+       "profileId": null
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000071",
+   "type": "fixture",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "center": {
+      "x": 90,
+      "y": 132
+     },
+     "axis": {
+      "x": 1,
+      "y": 0
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "sink",
+     "width": 33,
+     "depth": 22
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000072",
+   "type": "fixture",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "center": {
+      "x": 186,
+      "y": 58
+     },
+     "axis": {
+      "x": 1,
+      "y": 0
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "sink",
+     "width": 15,
+     "depth": 15
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000073",
+   "type": "fixture",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "center": {
+      "x": 129,
+      "y": 132
+     },
+     "axis": {
+      "x": 1,
+      "y": 0
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "dishwasher",
+     "width": 24,
+     "depth": 24
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000074",
+   "type": "fixture",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "center": {
+      "x": 210,
+      "y": 128
+     },
+     "axis": {
+      "x": 1,
+      "y": 0
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "refrigerator",
+     "width": 36,
+     "depth": 30
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000075",
+   "type": "fixture",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "center": {
+      "x": 160,
+      "y": 132
+     },
+     "axis": {
+      "x": 1,
+      "y": 0
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "range",
+     "width": 30,
+     "depth": 26
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000076",
+   "type": "fixture",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "center": {
+      "x": 300,
+      "y": 50
+     },
+     "axis": {
+      "x": 1,
+      "y": 0
+     }
+    },
+    "status": "demo",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "toilet",
+     "width": 20,
+     "depth": 28
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000081",
+   "type": "device",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "point": {
+      "x": 132,
+      "y": 1
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "receptacle_duplex",
+     "circuit": "00000000-0000-4000-8000-0000000000a1",
+     "height": 16
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000082",
+   "type": "device",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "point": {
+      "x": 180,
+      "y": 1
+     }
+    },
+    "status": "demo",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "receptacle_duplex",
+     "circuit": "00000000-0000-4000-8000-0000000000a1"
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000083",
+   "type": "device",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "point": {
+      "x": 228,
+      "y": 1
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "receptacle_duplex",
+     "circuit": "00000000-0000-4000-8000-0000000000a1"
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000085",
+   "type": "device",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "point": {
+      "x": 122.5,
+      "y": 72
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "receptacle_duplex",
+     "circuit": "00000000-0000-4000-8000-0000000000a2",
+     "height": 16
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000084",
+   "type": "device",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "point": {
+      "x": 239,
+      "y": 72
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "switch_single",
+     "circuit": "00000000-0000-4000-8000-0000000000a2",
+     "height": 48
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000086",
+   "type": "device",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "point": {
+      "x": 60,
+      "y": 72
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "recessed_light"
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000087",
+   "type": "device",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "point": {
+      "x": 180,
+      "y": 72
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "recessed_light"
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000088",
+   "type": "device",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "point": {
+      "x": 120,
+      "y": 120
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "smoke_detector"
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000089",
+   "type": "device",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "point": {
+      "x": 6,
+      "y": 100
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "receptacle_duplex",
+     "circuit": "00000000-0000-4000-8000-0000000000a3",
+     "height": 16
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-00000000008a",
+   "type": "device",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "point": {
+      "x": 300,
+      "y": 50
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "receptacle_duplex"
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000091",
+   "type": "panel",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "point": {
+      "x": 12,
+      "y": 1
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "name": "Panel A",
+     "parentPanel": null,
+     "serviceSize": 200,
+     "mainBreaker": 200,
+     "spaces": 40
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-0000000000a2",
+   "type": "circuit",
+   "schema_version": 7,
+   "data": {
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "panel": "00000000-0000-4000-8000-000000000091",
+     "space": 3,
+     "poles": 1,
+     "name": "Island",
+     "breaker": 20,
+     "protection": null,
+     "dedicated": false,
+     "load": 0,
+     "wire": "12",
+     "order": [
+      "00000000-0000-4000-8000-000000000084",
+      "00000000-0000-4000-8000-000000000085"
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-0000000000a1",
+   "type": "circuit",
+   "schema_version": 7,
+   "data": {
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "panel": "00000000-0000-4000-8000-000000000091",
+     "space": 1,
+     "poles": 1,
+     "name": "Kitchen counter",
+     "breaker": 20,
+     "protection": "gfci",
+     "dedicated": false,
+     "load": 0,
+     "wire": "12"
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-0000000000a3",
+   "type": "circuit",
+   "schema_version": 7,
+   "data": {
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "panel": "00000000-0000-4000-8000-000000000091",
+     "space": 5,
+     "poles": 1,
+     "name": "Old receptacles",
+     "breaker": 20,
+     "protection": null,
+     "dedicated": false,
+     "load": 0,
+     "wire": "12"
+    }
+   }
+  }
+ ]
+}

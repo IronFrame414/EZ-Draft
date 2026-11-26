@@ -3526,6 +3526,8 @@ export const en = {
   'office.defaults.error.paint_coats': 'Enter a whole number from 1 to 5',
   'office.defaults.error.paint_coverage': 'Enter a whole number from 100 to 1,000',
   'office.defaults.error.tile_box_coverage': 'Enter a whole number from 1 to 100',
+  // EZD-1611b: the takeoff's wire slack row under Electrical.
+  'office.defaults.row.wire_slack': 'Wire slack',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;
