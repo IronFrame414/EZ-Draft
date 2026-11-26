@@ -98,7 +98,8 @@ test.describe('EZD-1402 offline change queue', () => {
 
     await network.set(page, 'off');
     const walls = [await addWall(page, 24), await addWall(page, 48), await addWall(page, 72)];
-    await expect(page.getByTestId('save-state')).toHaveText('Offline, 3 changes queued');
+    // EZD-216 (Q-0686 case 1 (a)): the first wall adds the floor's overall pair: 3 walls and 2 dimensions.
+    await expect(page.getByTestId('save-state')).toHaveText('Offline, 5 changes queued');
     expect(await savedWalls(ids.P1, walls)).toBe(0);
 
     await network.set(page, 'on');

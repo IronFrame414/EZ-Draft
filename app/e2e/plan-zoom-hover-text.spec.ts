@@ -430,7 +430,8 @@ test.describe('EZD-207b plan canvas', () => {
 
     const before = await frames(page);
     await addR1(page);
-    await expect.poll(() => stat(page, 'glyphs')).toBe(13);
+    // EZD-216: the label's 13 glyphs and the room's auto dimensions, 11' 9 1/2" (8) and 14' 0" (5), spaces aside (Q-0664).
+    await expect.poll(() => stat(page, 'glyphs')).toBe(26);
     await waitForFrameAbove(page, before);
     const shot = await page.screenshot();
     expect(await countNear(page, shot, rect, '#9aa3af')).toBeGreaterThanOrEqual(20);

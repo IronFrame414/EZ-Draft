@@ -23,6 +23,7 @@ const UNLOCKED: LayerLocks = {
   rooms: false,
   plumbing: false,
   mechanical: false,
+  dimensions: false, // EZD-216: the Dimensions layer
 };
 
 function fakePhase(): LayerPhase & { calls: Array<[ObjectStatus, boolean]> } {
@@ -81,6 +82,7 @@ describe('EZD-218 layer store', () => {
       roomsEye: true,
       plumbingEye: true,
       mechanicalEye: true,
+      dimensionsEye: true, // EZD-216: the Dimensions eye starts on
       locks: UNLOCKED,
     });
     expect(layers.eyes()).toEqual({ existing: true, demo: true, new: false });

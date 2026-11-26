@@ -4,11 +4,15 @@
 // cut, side or host on an update. Values are checked by the hand-drawing setters, not here. Browser and server.
 // EZD-214 (05 Q-0664 "AI commands"; Q-0638; Q-0474): set_status {ref, status} sets one wall, door or window's
 // status, previewed as an update; status stays refused on an update, and remove stays the Delete key.
+// EZD-216 (AC-EZD-216-7; S03 rail Dimension, Text): add_text {ref, floor?, position, text, leader?, paperSize?} places
+// a note, add_dimension {ref, floor?, from and to, or wall and face, offset?, override?} a linear dimension. Their text
+// is checked by the Text tool's commit, not here.
 import {
   DOOR_HANDS,
   DOOR_SWINGS,
   IMPACT_RATINGS,
   OBJECT_STATUSES,
+  PAPER_SIZES,
   SHUTTER_TYPES,
   THICKNESS_SIDES,
   WALL_MATERIALS,
@@ -104,6 +108,35 @@ const setStatus = z.strictObject({
   status: z.enum(OBJECT_STATUSES),
 });
 
+const addText = z.strictObject({
+  op: z.literal('add_text'),
+  ref,
+  floor: z.optional(ref),
+  position: point,
+  text: z.string(),
+  leader: z.optional(point),
+  paperSize: z.optional(z.enum(PAPER_SIZES)),
+});
+
+// Two points, or a wall's face; not both.
+const onePlace = (c: { from?: unknown; to?: unknown; wall?: unknown; face?: unknown }) =>
+  (c.from !== undefined && c.to !== undefined && c.wall === undefined && c.face === undefined) ||
+  (c.from === undefined && c.to === undefined && c.wall !== undefined && c.face !== undefined);
+
+const addDimension = z
+  .strictObject({
+    op: z.literal('add_dimension'),
+    ref,
+    floor: z.optional(ref),
+    from: z.optional(point),
+    to: z.optional(point),
+    wall: z.optional(ref),
+    face: z.optional(z.enum(['left', 'right'])),
+    offset: z.optional(z.number()),
+    override: z.optional(z.string()),
+  })
+  .check(z.refine(onePlace));
+
 export const assistantChangeSchema = z.union([
   wallAdd,
   openingAdd,
@@ -111,6 +144,8 @@ export const assistantChangeSchema = z.union([
   openingUpdate,
   remove,
   setStatus,
+  addText,
+  addDimension,
 ]);
 
 export type AssistantChange = z.infer<typeof assistantChangeSchema>;

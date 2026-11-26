@@ -149,7 +149,13 @@ export function FloorSwitcher({
     const first = deleteFloorChanges(store.getState().objects, open.id);
     if (first === null) return;
     closeToTrigger();
-    const count = first.length - 1;
+    // EZD-216: the auto dimensions go with the floor but are not counted; the user did not place them.
+    const objects = store.getState().objects;
+    const count =
+      first.filter((c) => {
+        const v = objects.get(c.id);
+        return !(v?.type === 'dimension' && (v.data.attributes as { auto?: unknown })?.auto != null);
+      }).length - 1;
     if (count > 0) {
       const choice = await confirm({
         title: 'office.floors.delete_title',

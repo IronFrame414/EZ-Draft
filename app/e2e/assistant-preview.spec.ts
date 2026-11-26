@@ -158,14 +158,15 @@ test.describe('EZD-5604b assistant preview', () => {
     await expect(id(page, 'assistant-reject')).toBeEnabled();
     await expect(id(page, 'assistant-prompt')).toBeDisabled();
     let objs = await objects(page);
-    expect(objs).toHaveLength(3);
+    // EZD-216 (Q-0686 case 1 (a)): the floor, the 2 walls and the overall pair the first wall edit added.
+    expect(objs).toHaveLength(5);
     expect(objs.some((o) => o.type === 'opening')).toBe(false);
 
     await id(page, 'assistant-reject').click();
     await expect(id(page, 'preview-layer')).toHaveCount(0);
     await expect(id(page, 'assistant-prompt')).toBeEnabled();
     objs = await objects(page);
-    expect(objs).toHaveLength(3);
+    expect(objs).toHaveLength(5);
   });
 
   test('EZD-5604b B2 an edit to a touched wall makes the preview stale; its button puts the prompt back unsent', async ({

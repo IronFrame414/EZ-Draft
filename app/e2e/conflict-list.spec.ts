@@ -144,7 +144,8 @@ test.describe('EZD-299 conflict list', () => {
     await openBench(page, ids);
     const result = await makeConflict(page);
     await expect(result).toHaveAttribute('data-rows', '1');
-    await expect(result).toHaveAttribute('data-objects', '11');
+    // EZD-216 (Q-0686 case 1 (a)): the first wall edit adds the floor's overall pair: 11 objects and 2 dimensions.
+    await expect(result).toHaveAttribute('data-objects', '13');
     await expect(result).toHaveAttribute('data-checkpoints', '0');
     const target = (await result.getAttribute('data-target')) as string;
     expect(target).not.toBe('');

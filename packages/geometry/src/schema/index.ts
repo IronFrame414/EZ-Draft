@@ -17,6 +17,7 @@
 // EZD-726: the `sheet_set` type (03b rule 3); a new type, so the version stays. Like a floor it names no level.
 // EZD-1009: the `design_option` type (03b rules 3 and 4); a new type, so the version stays. It names no level; each
 // add or replace object in its delta is checked against its own type's schema and holds that object's file ids.
+// EZD-216: the `dimension` and `text` types (03 Q-0667; dimension.ts, text.ts); new types, so the version stays.
 import * as z from 'zod/mini';
 import { actGridDataSchema, type ActGridData } from './act-grid';
 import { beamDataSchema, type BeamData } from './beam';
@@ -40,6 +41,7 @@ import {
 import { circuitDataSchema, panelDataSchema, type CircuitData, type PanelData } from './electrical';
 import { countertopPieceDataSchema, type CountertopPieceData } from './countertop';
 import { designOptionDataSchema, type DesignOptionData } from './design-option';
+import { dimensionDataSchema, type DimensionData } from './dimension';
 import { engineerNoteDataSchema, type EngineerNoteData } from './engineer-note';
 import {
   accessDataSchema,
@@ -72,6 +74,7 @@ import { migrateStoredObject } from './migrate';
 import { openingDataSchema, type OpeningData } from './opening';
 import { roomDataSchema, type RoomData } from './room';
 import { sheetSetDataSchema, type SheetSetData } from './sheet-set';
+import { textDataSchema, type TextData } from './text';
 import { wallDataSchema, type WallData } from './wall';
 
 export * from './act-grid';
@@ -82,6 +85,7 @@ export * from './ceiling-shapes';
 export * from './common';
 export * from './countertop';
 export * from './design-option';
+export * from './dimension';
 export * from './electrical';
 export * from './engineer-note';
 export * from './existing-details';
@@ -96,6 +100,7 @@ export * from './migrate';
 export * from './opening';
 export * from './room';
 export * from './sheet-set';
+export * from './text';
 export * from './wall';
 
 export const OBJECT_TYPES = [
@@ -133,6 +138,8 @@ export const OBJECT_TYPES = [
   'ceiling_shape',
   'ceiling_tag',
   'act_grid',
+  'dimension',
+  'text',
 ] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
@@ -173,6 +180,8 @@ type DataByType = {
   ceiling_shape: CeilingShapeData;
   ceiling_tag: CeilingTagData;
   act_grid: ActGridData;
+  dimension: DimensionData;
+  text: TextData;
 };
 export type ModelObject = {
   [T in ObjectType]: { id: string; type: T; data: DataByType[T] };
@@ -246,6 +255,8 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodMiniType<DataByType[T]> } = {
   ceiling_shape: ceilingShapeDataSchema,
   ceiling_tag: ceilingTagDataSchema,
   act_grid: actGridDataSchema,
+  dimension: dimensionDataSchema,
+  text: textDataSchema,
 };
 
 // A source_file id held in an object, with the source_file kinds that field accepts. An empty `kinds` refuses
@@ -304,6 +315,8 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   ceiling_shape: none,
   ceiling_tag: none,
   act_grid: none,
+  dimension: none,
+  text: none,
 };
 
 export function fileRefs(object: ModelObject): FileRef[] {

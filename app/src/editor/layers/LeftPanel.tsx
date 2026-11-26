@@ -7,6 +7,8 @@
 // EZD-729 (AC-EZD-729-1; S03 "Layers tab sections: Phase, Overlays, Rooms"; board S03Plan Overlays rows): the
 // Overlays section with the Plumbing row, its icon left of the name as the board's overlay rows. The room fields
 // load lazily (`roomFieldsModule`, 11 Budgets) when the Rooms tab is opened (a failed download is tried again on the next open); none show while it downloads.
+// EZD-216 (S03 Controls — left panel "Overlay: Dimensions (eye)"; board S03Plan Overlays row "Dimensions" with the
+// straighten icon; AC-EZD-216-6): the Dimensions row, after Mechanical; its eye hides and shows every dimension.
 // EZD-122 (Q-0673 (c) "Layers and Rooms only until EZD-122"; S03 "tabs Layers, Rooms, Versions"; board S20; S20 Entry
 // points; AC-EZD-122-2, -8): the Versions tab, shown when the editor passes its content. The editor may hold the
 // tab (`tab`, `onTab`), so the header's version text can open Versions.
@@ -352,6 +354,20 @@ export function LeftPanel({
                 on={layerState.mechanicalEye}
                 layers={layers}
                 onEye={() => layers.setMechanicalEye(!layerState.mechanicalEye)}
+              />
+            </div>
+            <div
+              className={`${styles.row} ${layerState.dimensionsEye ? '' : styles.off}`}
+              data-testid="layer-row-dimensions"
+            >
+              <Icon name="straighten" size={18} />
+              <span className={styles.name}>{t('office.left_panel.layer.dimensions')}</span>
+              <LayerControls
+                layer="dimensions"
+                name={t('office.left_panel.layer.dimensions')}
+                on={layerState.dimensionsEye}
+                layers={layers}
+                onEye={() => layers.setDimensionsEye(!layerState.dimensionsEye)}
               />
             </div>
           </div>

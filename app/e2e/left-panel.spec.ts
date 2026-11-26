@@ -219,7 +219,12 @@ test.describe('EZD-218 left panel: Layers and Rooms', () => {
     await expect.poll(() => selected(page)).toEqual([]);
 
     await page.keyboard.press('ControlOrMeta+a');
-    await expect.poll(async () => [...(await selected(page))].sort()).toEqual([...walls].sort());
+    // EZD-216: Select all also takes the auto dimensions (S03 "visible, selectable layers"); the room is skipped.
+    const dims = (await objects(page)).filter((o) => o.type === 'dimension').map((o) => o.id);
+    await expect
+      .poll(async () => [...(await selected(page))].filter((i) => !dims.includes(i)).sort())
+      .toEqual([...walls].sort());
+    expect(await selected(page)).not.toContain(room);
 
     // Unlocked, the same box takes the room (Q-0677 (a): a press inside a room starts a box).
     await id(page, 'layer-lock-rooms').click();

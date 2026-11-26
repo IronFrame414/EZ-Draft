@@ -49,6 +49,8 @@ const sameUi = (a: DrawingUi, b: DrawingUi) =>
   a.entry === b.entry &&
   a.fixtureChoice === b.fixtureChoice &&
   a.utilities === b.utilities &&
+  (a.dimensionMode ?? null) === (b.dimensionMode ?? null) &&
+  (a.textBox ?? null) === (b.textBox ?? null) &&
   sameBoxes(a.boxes, b.boxes);
 
 // A copy of a key event's fields: a DOM KeyboardEvent keeps them on its prototype, so a spread would lose them.
@@ -299,6 +301,13 @@ export function createDrawingShell(deps: DrawingDeps, opts: ShellOptions): Drawi
     setFixtureChoice: (choice) => later((e) => e.setFixtureChoice(choice)),
     dismissUtilities() {
       if (engine !== null) engine.dismissUtilities();
+    },
+    // EZD-216: the switch waits for the engine; a box is only ever opened by the engine.
+    setDimensionMode: (mode) => later((e) => e.setDimensionMode(mode)),
+    openTextEdit: (id, initial) => engine?.openTextEdit(id, initial) ?? false,
+    commitText: (value) => engine?.commitText(value) ?? false,
+    cancelText() {
+      if (engine !== null) engine.cancelText();
     },
     pause() {
       if (disposed) return;

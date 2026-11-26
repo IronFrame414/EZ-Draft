@@ -135,7 +135,8 @@ test.describe('EZD-376 plan text failed message', () => {
     await signInAs(user.email);
     await openReady(page, ids.P1);
     await addR1(page);
-    await expect.poll(() => stat(page, 'glyphs')).toBe(13);
+    // EZD-216: the label's 13 glyphs and the room's auto dimensions, 11' 9 1/2" (8) and 14' 0" (5), spaces aside (Q-0664).
+    await expect.poll(() => stat(page, 'glyphs')).toBe(26);
     await expect(page.getByTestId('plan-text-failed-banner')).toHaveCount(0);
   });
 });

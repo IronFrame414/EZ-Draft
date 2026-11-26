@@ -144,12 +144,13 @@ describe('EZD-207a controller', () => {
     expect(controller.stats().bufferUploads).toBe(uploads0);
     expect(fake.invalidate.mock.calls.length).toBe(invalidates0 + 13);
 
+    // EZD-216: the wall edit also places the floor's overall dimensions, their batch the third upload.
     store.applyEdit([{ id: W1, value: wall({ x: 144, y: 0 }) }]);
-    expect(controller.stats().bufferUploads).toBe(uploads0 + 2);
+    expect(controller.stats().bufferUploads).toBe(uploads0 + 3);
     expect(fake.invalidate.mock.calls.length).toBe(invalidates0 + 14);
 
     store.applyEdit([{ id: F1, value: floor('Floor A') }]);
-    expect(controller.stats().bufferUploads).toBe(uploads0 + 2);
+    expect(controller.stats().bufferUploads).toBe(uploads0 + 3);
     expect(fake.invalidate.mock.calls.length).toBe(invalidates0 + 14);
   });
 
@@ -805,18 +806,26 @@ describe('EZD-235 controller derived values', () => {
       hits: {},
       entries: 2,
     });
+    // EZD-216: the move also places the auto dimensions, read through their own derived values; the room areas are
+    // as before.
+    const area = () => {
+      const st = controller.derivedStats();
+      return { computes: st.computes['room-area'], hits: st.hits['room-area'] };
+    };
     store.applyEdit(moveChanges(store.getState().objects, EAST_WALL, { x: 6, y: 0 }));
-    expect(controller.derivedStats()).toEqual({
-      computes: { 'room-area': 3 },
-      hits: { 'room-area': 1 },
-      entries: 2,
-    });
+    expect(area()).toEqual({ computes: 3, hits: 1 });
     store.applyEdit([{ id: EAST_ROOM, value: null }]);
-    expect(controller.derivedStats()).toEqual({
-      computes: { 'room-area': 3 },
-      hits: { 'room-area': 2 },
-      entries: 1,
-    });
+    expect(area()).toEqual({ computes: 3, hits: 2 });
+  });
+
+  test('EZD-216 a second move of the east wall recomputes its room box and the floor box, not the west room', () => {
+    const { store, controller } = mk();
+    store.applyEdit(moveChanges(store.getState().objects, EAST_WALL, { x: 6, y: 0 }));
+    const before = controller.derivedStats().computes;
+    store.applyEdit(moveChanges(store.getState().objects, EAST_WALL, { x: 6, y: 0 }));
+    const after = controller.derivedStats().computes;
+    expect((after['room-inside-box'] ?? 0) - (before['room-inside-box'] ?? 0)).toBe(1);
+    expect((after['floor-wall-box'] ?? 0) - (before['floor-wall-box'] ?? 0)).toBe(1);
   });
 
   test('EZD-235 C2 a given ModelDerived is used, and after dispose an edit computes nothing', () => {

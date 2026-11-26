@@ -42,6 +42,7 @@ const UNLOCKED: LayerLocks = {
   rooms: false,
   plumbing: false,
   mechanical: false,
+  dimensions: false, // EZD-216: the Dimensions layer
 };
 
 function phase(): LayerPhase {

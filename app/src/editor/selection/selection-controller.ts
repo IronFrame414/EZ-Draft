@@ -22,7 +22,7 @@ import type { RailTool } from '../../components/shell/rail-types';
 import type { ModelStore } from '../model/model-store';
 import { chosenFloor, type FloorChoice } from '../floors/floors';
 import type { Objects } from '../model/patches';
-import { openFloorId } from '../plan/batches';
+import { openFloorId, planAnnotation } from '../plan/batches';
 import type { PlanCanvasHandle } from '../plan/controller';
 import {
   HOVER_CAPTURE_PX,
@@ -44,6 +44,7 @@ import { isTypingTarget } from '../typed-entry/typed-entry';
 import { expandGroups } from './groups';
 import type { PhaseFilter } from '../../lib/plan/phase-view';
 import { createPickIndex } from './pick-index';
+import { DEFAULT_PLAN_SCALE } from '../../lib/plan/plan-scale';
 import { sameIds } from '../shared/ids';
 import { createListeners } from '../shared/value-store';
 
@@ -70,7 +71,7 @@ export type SelectionHandle = Pick<
   | 'setBodyLookup'
   | 'setSelectedIds'
 > &
-  Partial<Pick<PlanCanvasHandle, 'setOutlineLookup'>>;
+  Partial<Pick<PlanCanvasHandle, 'setOutlineLookup' | 'getScale'>>;
 
 export type SelectionDeps = {
   handle: SelectionHandle;
@@ -137,7 +138,10 @@ const noop = () => {};
 export function createSelectionController(deps: SelectionDeps): SelectionController {
   const { handle, store, drawing, setReceiver } = deps;
   const phase = deps.phase ?? null;
-  const index = createPickIndex();
+  // EZD-216: notes and dimension text pick at the size they are drawn at the plan scale.
+  const index = createPickIndex({
+    annotation: () => planAnnotation(handle.getScale?.() ?? DEFAULT_PLAN_SCALE),
+  });
   let ui: SelectionUi = { ids: [], selectMore: false };
   let cycle: { at: Point; i: number } | null = null;
   let press: Press | null = null;

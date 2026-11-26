@@ -407,6 +407,8 @@ describe('EZD-208a selection controller', () => {
       'countertops', // EZD-412
       'electrical',
       'fixtures',
+      'dimension', // EZD-216
+      'text',
       'sketch',
       'measure',
     ]);

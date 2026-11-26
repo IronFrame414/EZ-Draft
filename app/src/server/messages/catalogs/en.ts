@@ -267,6 +267,7 @@ export const en = {
   'office.left_panel.section.overlays': 'Overlays',
   'office.left_panel.layer.plumbing': 'Plumbing',
   'office.left_panel.layer.mechanical': 'Mechanical',
+  'office.left_panel.layer.dimensions': 'Dimensions',
   'office.left_panel.show': 'Show {layer}',
   'office.left_panel.hide': 'Hide {layer}',
   'office.left_panel.lock': 'Lock {layer}',
@@ -3277,6 +3278,14 @@ export const en = {
   'office.ceiling.status.joists_entered': 'entered · beam clash checks on',
   'office.device.keep_clear.joist': 'Can is on a joist. Move it clear.',
   'office.device.keep_clear.beam': 'Can is on a beam. Move it clear.',
+  // EZD-216 (S03 Dimension, Text): the Dimension tool's switch and the in-place text box.
+  'office.tools.dimension.linear': 'Linear',
+  'office.tools.dimension.angular': 'Angular',
+  'office.tools.dimension.mode': 'Dimension type',
+  'office.tools.text.box': 'Note text',
+  'office.tools.text.override_box': 'Dimension text',
+  'office.tools.text.unsupported': 'A character in this text cannot print. Use letters, numbers and common symbols.',
+  'office.tools.text.too_long': 'Text is too long. A note has at most 500 characters, a dimension 100.',
   // EZD-1422 (S01 Input source; board S01b Field measure card and hint; Q-0204): Field measure as wizard input.
   'office.new_project.source_field_measure': 'Field measure',
   'office.new_project.source_field_measure_sub':

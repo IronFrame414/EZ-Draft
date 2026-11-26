@@ -19,6 +19,8 @@ import type { AdjustController } from './adjust';
 import type { PreviewStore } from './preview-store';
 import { createListeners } from '../shared/value-store';
 import { idKey } from '../shared/ids';
+import { withAutoDimensions } from '../edit/auto-dimensions';
+import { newObjectId } from '../tools/model-changes';
 
 export type AcceptResult =
   | { kind: 'saved'; ids: string[] }
@@ -160,7 +162,13 @@ export function createAcceptController(deps: AcceptDeps): AcceptController {
     if (p.changes.length > MAX_CHANGES_PER_SAVE) {
       return { kind: 'too_many', count: p.changes.length };
     }
-    const sent = renumberAdded(p.changes, p.added, model.getState().numberHighs);
+    // EZD-216: the auto dimensions of the floors the reply changes go in the same save, as the model store adds them
+    // to every hand edit (edit/auto-dimensions.ts).
+    const sent = withAutoDimensions(
+      model.getState().objects,
+      renumberAdded(p.changes, p.added, model.getState().numberHighs),
+      newObjectId,
+    );
     let r: SendNowOutcome;
     try {
       r = await sync.sendNow(deps.projectId, deps.lockEpoch, sent, {

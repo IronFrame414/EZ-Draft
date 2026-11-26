@@ -8,6 +8,12 @@
 // own frame, so they move with it.
 // EZD-227 Build (AC-EZD-227-1): blocking moves as an opening does: with its selected wall by the delta, alone along
 // its wall, or by the delta when it is on no wall.
+// EZD-216 (S03 rail Dimension "then adjustable"; 09-calculations Q-0664 "a user offset kept after a move"; AC-EZD-216-4):
+// a selected dimension's drag changes its offset only (the move's part along its outward normal; an angular one moves
+// the point its arc passes through), and a selected note moves its position while its leader's arrow end stays.
+import { roomInsideBox, wallsOuterBox } from '../dimensions/auto';
+import { measureDimension, type DimensionObject } from '../dimensions/measure';
+import type { TextObject } from '../dimensions/items';
 import { placeBlockingOnWall, type BlockingObject } from '../fixtures/blocking';
 import type { FixtureObject, UtilityPointObject } from '../fixtures/fixtures';
 import { moveTileShower, type TileShowerObject } from '../fixtures/tile-shower';
@@ -64,6 +70,42 @@ function moveLoose(o: Loose, d: Point): ModelObject {
   } as ModelObject;
 }
 
+const isAnnotation = (o: ModelObject): o is DimensionObject | TextObject =>
+  o.type === 'dimension' || o.type === 'text';
+
+function moveAnnotation(
+  o: DimensionObject | TextObject,
+  d: Point,
+  objects: readonly ModelObject[],
+): ModelObject | null {
+  if (o.type === 'text')
+    return {
+      ...o,
+      data: { ...o.data, geometry: { ...o.data.geometry, position: shift(o.data.geometry.position, d) } },
+    };
+  const g = o.data.geometry;
+  if (g.kind === 'walls')
+    return { ...o, data: { ...o.data, geometry: { ...g, at: shift(g.at, d) } } };
+  const level = lower(o.data.level);
+  const on = (x: ModelObject) => 'level' in x.data && lower((x.data as { level: string }).level) === level;
+  const walls = objects.filter((x): x is WallObject => isWall(x) && on(x));
+  const m = measureDimension(o.data, {
+    wall: (id) => walls.find((w) => lower(w.id) === lower(id)) ?? null,
+    roomBox: (id) => {
+      const r = objects.find((x) => x.type === 'room' && lower(x.id) === lower(id));
+      return r === undefined || r.type !== 'room' ? null : roomInsideBox(r);
+    },
+    floorBox: () => wallsOuterBox(walls),
+  });
+  if (m === null || m.kind !== 'linear') return null;
+  const along = d.x * m.normal.x + d.y * m.normal.y;
+  if (Math.abs(along) <= COMPARISON_TOLERANCE_IN) return null;
+  return {
+    ...o,
+    data: { ...o.data, attributes: { ...o.data.attributes, offset: o.data.attributes.offset + along } },
+  };
+}
+
 export function typedMoveDelta(distance: number, direction: Point): Point | null {
   if (!Number.isFinite(distance) || !Number.isFinite(direction.x) || !Number.isFinite(direction.y))
     return null;
@@ -86,13 +128,16 @@ export function moveSelection(
   const openingIds = new Set<string>();
   const looseIds = new Set<string>();
   const blockingIds = new Set<string>();
+  const annotationIds = new Set<string>();
   for (const id of ids) {
     const o = objects.find(
       (x) =>
-        (isWall(x) || isOpening(x) || isLoose(x) || isBlocking(x)) && lower(x.id) === lower(id),
+        (isWall(x) || isOpening(x) || isLoose(x) || isBlocking(x) || isAnnotation(x)) &&
+        lower(x.id) === lower(id),
     );
     if (o === undefined) return { ok: false, reason: 'not_found', id };
-    if (isWall(o)) wallIds.push(o.id);
+    if (isAnnotation(o)) annotationIds.add(lower(o.id));
+    else if (isWall(o)) wallIds.push(o.id);
     else if (isLoose(o)) looseIds.add(lower(o.id));
     else if (isBlocking(o)) blockingIds.add(lower(o.id));
     else openingIds.add(lower(o.id));
@@ -157,8 +202,21 @@ export function moveSelection(
   }
   // (7) Walls first, then openings, then blocking, then fixtures and utility points, each in model order.
   const loose = objects.filter((o) => isLoose(o) && looseIds.has(lower(o.id))) as Loose[];
+  // (8) EZD-216: then the selected dimensions and notes, against the walls before the move.
+  const annotations = objects
+    .filter((o): o is DimensionObject | TextObject => isAnnotation(o) && annotationIds.has(lower(o.id)))
+    .flatMap((o) => {
+      const m = moveAnnotation(o, delta, objects);
+      return m === null ? [] : [m];
+    });
   return {
     ok: true,
-    changed: [...walls, ...openings, ...blockings, ...loose.map((o) => moveLoose(o, delta))],
+    changed: [
+      ...walls,
+      ...openings,
+      ...blockings,
+      ...loose.map((o) => moveLoose(o, delta)),
+      ...annotations,
+    ],
   };
 }

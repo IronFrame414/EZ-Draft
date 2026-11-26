@@ -4,6 +4,9 @@
 // Q-0642 row 4; AC-EZD-5604-1, -2, -6, -8, -9, -10): an Assistant reply applied in order to a scratch copy of the
 // drawing through the same functions as drawing by hand. One refusal refuses the whole reply; the full save set is
 // at most MAX_CHANGES_PER_SAVE. Pure: it saves nothing and never mutates its input; it never throws.
+// EZD-216 (AC-EZD-216-7): add_text and add_dimension place a note and a linear dimension as the Text and Dimension
+// tools do: the same text checks (`noteText`, `overrideText`), two points within 1/64" refused, the phase view's
+// status, on the open floor; a wall face names a wall sent or added by this reply.
 import {
   coordsEqual,
   createWallData,
@@ -35,6 +38,9 @@ import {
   setWallThickness,
   withOpeningSize,
   COMPARISON_TOLERANCE_IN,
+  NOTE_PAPER_SIZE,
+  linearMeasure,
+  wallFaceLine,
   type ModelObject,
   type NumberHighs,
   type ObjectStatus,
@@ -50,7 +56,16 @@ import { withBearingNotes } from '../edit/bearing-rule';
 import { deleteChanges } from '../edit/edit-changes';
 import { levelModelObjects } from '../inspector/inspector-edits';
 import { applyEditTo, makeEdit, type Change, type Objects } from '../model/patches';
-import { openingChange, openingsOn, wallChange, wallEditChanges } from '../tools/model-changes';
+import {
+  dimensionChange,
+  openingChange,
+  openingsOn,
+  textChange,
+  wallChange,
+  wallEditChanges,
+} from '../tools/model-changes';
+import { noteText, overrideText } from '../tools/text-tool';
+import { dimensionData } from '../tools/dimension-tool';
 import { idKey, sameId } from '../shared/ids';
 
 export type AssistantRefusal =
@@ -378,7 +393,7 @@ class Pass {
   run(c: AssistantChange) {
     if (!assistantChangeSchema.safeParse(c).success) refuse('invalid_value');
     if (this.used.has(c.ref)) refuse('duplicate_ref');
-    if (c.op === 'add') {
+    if (c.op === 'add' || c.op === 'add_text' || c.op === 'add_dimension') {
       if (Object.hasOwn(this.input.refs, c.ref)) refuse('duplicate_ref');
       if (c.floor !== undefined) {
         const refs = this.input.refs;
@@ -388,6 +403,8 @@ class Pass {
     } else if (this.temp.has(c.ref)) refuse('duplicate_ref');
 
     if (c.op === 'set_status') this.setStatus(c);
+    else if (c.op === 'add_text') this.textAdd(c);
+    else if (c.op === 'add_dimension') this.dimensionAdd(c);
     else if (c.op === 'add' && c.type === 'wall') this.wallAdd(c);
     else if (c.op === 'add') this.openingAdd(c);
     else if (c.op === 'update' && c.type === 'wall') this.wallUpdate(c);
@@ -404,6 +421,59 @@ class Pass {
   private current<T extends ModelObject>(key: string, is: (o: ModelObject) => o is T): T {
     const o = this.level().find((x): x is T => is(x) && sameId(x.id, key));
     return o ?? refuse('invalid_result');
+  }
+
+  private textAdd(c: Extract<AssistantChange, { op: 'add_text' }>) {
+    const t = noteText(c.text);
+    if (!t.ok || t.value === null) return refuse('invalid_value');
+    const id = this.input.newId();
+    this.used.add(c.ref);
+    this.temp.set(c.ref, id);
+    this.apply([
+      textChange({
+        id,
+        type: 'text',
+        data: {
+          geometry: { position: c.position, leader: c.leader ?? null },
+          status: this.status,
+          level: this.floor,
+          attributes: { text: t.value, paperSize: c.paperSize ?? NOTE_PAPER_SIZE },
+        },
+      }),
+    ]);
+  }
+
+  private dimensionAdd(c: Extract<AssistantChange, { op: 'add_dimension' }>) {
+    let override: string | null = null;
+    if (c.override !== undefined) {
+      const o = overrideText(c.override);
+      if (!o.ok) return refuse('invalid_value');
+      override = o.value;
+    }
+    const offset = c.offset ?? 0;
+    if (!Number.isFinite(offset)) refuse('invalid_value');
+    let geometry: Parameters<typeof dimensionData>[0];
+    if (c.wall !== undefined && c.face !== undefined) {
+      const key = this.lookup(c.wall, 'wall', true);
+      const wall = this.current(key, isWall);
+      const line = wallFaceLine(wall, c.face);
+      if (line === null || linearMeasure(line.from, line.to) === null) refuse('invalid_value');
+      geometry = { kind: 'wall_face', wallId: key, face: c.face };
+    } else {
+      // 03g: two points within 1/64" place nothing.
+      if (linearMeasure(c.from!, c.to!) === null) refuse('invalid_value');
+      geometry = { kind: 'points', from: c.from!, to: c.to! };
+    }
+    const id = this.input.newId();
+    this.used.add(c.ref);
+    this.temp.set(c.ref, id);
+    const data = dimensionData(
+      geometry,
+      offset,
+      { level: this.floor, walls: [], status: this.status },
+      override,
+    );
+    this.apply([dimensionChange({ id, type: 'dimension', data })]);
   }
 
   private wallAdd(c: Extract<AssistantChange, { op: 'add'; type: 'wall' }>) {

@@ -35,6 +35,10 @@ function wall(x: number): ObjectValue {
 }
 const wallChange = (id: string, x: number): Change => ({ id, value: wall(x) });
 
+// The floor and walls in a render request, without the auto dimensions (EZD-216).
+const modelCount = (objects: ReadonlyMap<string, { type: string }>) =>
+  [...objects.values()].filter((v) => v.type !== 'dimension').length;
+
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
 // A renderer whose jobs end only when the test says so, to stand for a slow machine.
@@ -46,7 +50,8 @@ function setup(o: { held?: boolean } = {}) {
     render: vi.fn(async (req: SheetRenderRequest) => {
       asked.push(req);
       if (o.held) await new Promise<void>((r) => waiting.push(r));
-      return { markup: `<line data-object-id="n${req.objects.size}"/>`, shown: [] };
+      // EZD-216: the auto dimensions a wall edit adds (Q-0686) are not counted.
+      return { markup: `<line data-object-id="n${modelCount(req.objects)}"/>`, shown: [] };
     }),
     dispose: vi.fn(),
   };
@@ -90,7 +95,7 @@ describe('EZD-1975 the sheet is drawn once on return from Plan edits', () => {
     await flush();
     expect(s.asked).toHaveLength(2);
     expect(s.screen.get().renders).toBe(2);
-    expect(s.asked[1]!.objects.size).toBe(4);
+    expect(modelCount(s.asked[1]!.objects)).toBe(4);
     expect(s.screen.get().drawing?.markup).toBe('<line data-object-id="n4"/>');
   });
 

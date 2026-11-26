@@ -1362,6 +1362,50 @@
       }
     },
     {
+      "id": "8c1f4e2a-5b7d-4a3e-9f60-1d2c3b4a5e61",
+      "type": "dimension",
+      "schema_version": 7,
+      "data": {
+        "geometry": {
+          "kind": "wall_face",
+          "wallId": "aaf876ba-3f51-4bdc-a79b-74af4fe95f45",
+          "face": "left"
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "kind": "linear",
+          "offset": 12,
+          "override": null,
+          "auto": null,
+          "room": null
+        }
+      }
+    },
+    {
+      "id": "9d2a5f3b-6c8e-4b4f-a071-2e3d4c5b6f72",
+      "type": "text",
+      "schema_version": 7,
+      "data": {
+        "geometry": {
+          "position": {
+            "x": 60,
+            "y": 48
+          },
+          "leader": {
+            "x": 30,
+            "y": 24
+          }
+        },
+        "status": "new",
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "text": "VERIFY IN FIELD\nVerificar en obra",
+          "paperSize": "3/32"
+        }
+      }
+    },
+    {
       "id": "b7e2c4a1-5d3f-4e8a-9c61-2f0a7d5e9b13",
       "type": "room",
       "schema_version": 7,

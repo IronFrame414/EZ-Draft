@@ -39,7 +39,8 @@ test.describe('EZD-120d save test page', () => {
     await page.getByTestId('bench-fifty').click();
     await expect(result).toHaveAttribute('data-phase', 'done', { timeout: 60_000 });
     await expect(result).toHaveAttribute('data-rows', '5');
-    await expect(result).toHaveAttribute('data-objects', '11');
+    // EZD-216 (Q-0686 case 1 (a)): the first wall edit adds the floor's overall pair: 11 objects and 2 dimensions.
+    await expect(result).toHaveAttribute('data-objects', '13');
     await expect(result).toHaveAttribute('data-checkpoints', '0');
   });
 

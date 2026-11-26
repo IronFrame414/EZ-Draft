@@ -22,7 +22,22 @@
 // picks the room; like a beam set it is held by its room.
 // EZD-513 (S05 Controls "Select"; AC-EZD-513-1, -2): a tray, coffer or crown picks by its outline as a soffit does,
 // and a ceiling tag at its point as a utility point does.
+// EZD-216 (S03 canvas "Double-click | Edits the object in place (e.g. dimension text, text ...)"; S03 rail Dimension
+// "then adjustable"; AC-EZD-216-3, -4): a dimension picks by the band along its line (its text's height each side), or
+// for an angular one the box around its arc and text; a note by the box its lines take. Their sizes are the plan's
+// paper-size text at the plan scale (`annotation`). A dimension reads the walls and rooms it measures, so a wall or
+// room change places every dimension again.
 import {
+  dimensionLine,
+  measureDimension,
+  roomInsideBox,
+  textBlock,
+  wallsOuterBox,
+  DIMENSION_PAPER_SIZE,
+  PAPER_SIZE_IN,
+  type AnnotationScale,
+  type DimensionObject,
+  type TextObject,
   beamSetPickShape,
   blockingPickShape,
   type BlockingObject,
@@ -183,7 +198,70 @@ function parseOnFloor(
   return r.object.data.level.toLowerCase() === floorId.toLowerCase() ? r.object : null;
 }
 
-export function createPickIndex(): PickIndex {
+type AnnotationObject = DimensionObject | TextObject;
+
+function annotationPickShape(
+  o: AnnotationObject,
+  scale: AnnotationScale,
+  walls: ReadonlyMap<string, WallObject>,
+  rooms: ReadonlyMap<string, RoomObject>,
+): PickShape | null {
+  const quad = (a: Point, b: Point, c: Point, d: Point, area: number): PickShape => ({
+    kind: 'quad',
+    points: [a, b, c, d],
+    area,
+  });
+  if (o.type === 'text') {
+    const { box } = textBlock(o.data, scale);
+    const w = box.maxX - box.minX;
+    const h = box.maxY - box.minY;
+    return quad(
+      { x: box.minX, y: box.minY },
+      { x: box.maxX, y: box.minY },
+      { x: box.maxX, y: box.maxY },
+      { x: box.minX, y: box.maxY },
+      w * h,
+    );
+  }
+  const m = measureDimension(o.data, {
+    wall: (id) => walls.get(id.toLowerCase()) ?? null,
+    roomBox: (id) => {
+      const r = rooms.get(id.toLowerCase());
+      return r === undefined ? null : roomInsideBox(r);
+    },
+    floorBox: () => wallsOuterBox([...walls.values()]),
+  });
+  if (m === null) return null;
+  const em = PAPER_SIZE_IN[DIMENSION_PAPER_SIZE] * scale.paperPtPerIn * scale.modelInPerPt;
+  if (m.kind === 'angular') {
+    const r = m.radius + 2 * em;
+    const { x, y } = m.vertex;
+    const minX = x - r;
+    const minY = y - r;
+    return quad(
+      { x: minX, y: minY },
+      { x: x + r, y: minY },
+      { x: x + r, y: y + r },
+      { x: minX, y: y + r },
+      4 * r * r,
+    );
+  }
+  const ends = dimensionLine(m, o.data.attributes.offset);
+  const n = m.normal;
+  const at = (p: Point, k: number): Point => ({ x: p.x + n.x * k, y: p.y + n.y * k });
+  return quad(
+    at(ends.from, -em),
+    at(ends.to, -em),
+    at(ends.to, em),
+    at(ends.from, em),
+    m.length * 2 * em,
+  );
+}
+
+// EZD-216: `annotation`, when given, is the plan's text size now (the plan scale); a sheet's otherwise.
+export function createPickIndex(opts: { annotation?: () => AnnotationScale } = {}): PickIndex {
+  const annotation = opts.annotation ?? (() => ({ paperPtPerIn: 72, modelInPerPt: 12 / 18 }));
+  let annotations = new Map<string, AnnotationObject>();
   let spatial: SpatialIndex = createSpatialIndex();
   let floor: string | null = null;
   let version: number | null = null;
@@ -230,9 +308,12 @@ export function createPickIndex(): PickIndex {
   const record = (key: string, object: ModelObject | null) => {
     walls.delete(key);
     loose.delete(key);
+    annotations.delete(key);
     rooms.delete(key);
     dropOpening(key);
-    if (object !== null && object.type === 'room') {
+    if (object !== null && (object.type === 'dimension' || object.type === 'text')) {
+      annotations.set(key, object as AnnotationObject);
+    } else if (object !== null && object.type === 'room') {
       rooms.set(key, object);
     } else if (object !== null && isLoose(object)) {
       loose.set(key, object);
@@ -253,6 +334,11 @@ export function createPickIndex(): PickIndex {
   const shapeOf = (
     key: string,
   ): { id: string; shape: PickShape; hosted: boolean; room?: boolean } | null => {
+    const note = annotations.get(key);
+    if (note !== undefined) {
+      const shape = annotationPickShape(note, annotation(), walls, rooms);
+      return shape === null ? null : { id: note.id, shape, hosted: false };
+    }
     const room = rooms.get(key);
     if (room !== undefined) {
       const shape = roomPickShape(room);
@@ -355,6 +441,7 @@ export function createPickIndex(): PickIndex {
         loose = new Map();
         rooms = new Map();
         beams = new Map();
+        annotations = new Map();
         hostOf = new Map();
         byHost = new Map();
         for (const id of objects.keys())
@@ -366,10 +453,16 @@ export function createPickIndex(): PickIndex {
           ...loose.keys(),
           ...rooms.keys(),
           ...beams.keys(),
+          ...annotations.keys(),
         ])
           if (place(key)) count += 1;
         return count;
       }
+      // EZD-216: a wall or room changed (or gone) places every dimension again, as each may measure it.
+      const measured = changedIds.some((id) => {
+        const k = id.toLowerCase();
+        return walls.has(k) || rooms.has(k) || objects.get(id)?.type === 'wall' || objects.get(id)?.type === 'room';
+      });
       const affected = new Set<string>();
       for (const id of changedIds) {
         const key = id.toLowerCase();
@@ -380,6 +473,9 @@ export function createPickIndex(): PickIndex {
         record(id.toLowerCase(), parseOnFloor(id, objects, floorId, phase));
       for (const id of changedIds)
         for (const o of byHost.get(id.toLowerCase()) ?? []) affected.add(o);
+      const gone = changedIds.some((id) => !objects.has(id));
+      if (measured || gone)
+        for (const [k, o] of annotations) if (o.type === 'dimension') affected.add(k);
       let count = 0;
       for (const key of affected) if (place(key)) count += 1;
       return count;

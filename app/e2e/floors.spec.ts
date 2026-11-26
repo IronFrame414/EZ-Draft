@@ -185,7 +185,8 @@ test.describe('EZD-6001 floors', () => {
     await dialog.getByRole('button', { name: 'Cancel' }).click();
     await expect(dialog).toHaveCount(0);
     expect((await objects(page)).filter((o) => o.type === 'floor')).toHaveLength(2);
-    expect((await objects(page)).filter((o) => o.data.level === f2)).toHaveLength(2);
+    // EZD-216 (Q-0686 case 1 (a)): the 2 walls and the overall pair their edit added; the dialog counts the 2 walls.
+    expect((await objects(page)).filter((o) => o.data.level === f2)).toHaveLength(4);
 
     await trigger(page).click();
     await id(page, 'floor-delete').click();
