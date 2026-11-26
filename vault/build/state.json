@@ -547,7 +547,8 @@
     "EZD-703",
     "EZD-1958",
     "EZD-705",
-    "EZD-1910"
+    "EZD-1910",
+    "EZD-509"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2305,6 +2306,14 @@
       "ts": "2026-11-26T09:58:43Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-509",
+      "title": "Auto-layout cans",
+      "commit": "8e9000f6",
+      "ts": "2026-11-26T10:44:52Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2561,9 +2570,23 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {},
-  "advisories_checked_at": "2026-11-26T04:19:51Z",
+  "running": {
+    "EZD-715": {
+      "lane": 1,
+      "title": "PDF export job",
+      "started": "2026-11-26T09:59:48Z",
+      "develop": "4c0eb454"
+    },
+    "EZD-716": {
+      "lane": 2,
+      "title": "Issue checklist",
+      "started": "2026-11-26T09:59:48Z",
+      "develop": "4c0eb454"
+    }
+  },
+  "advisories_checked_at": "2026-11-26T10:20:19Z",
   "hold": {},
   "perf_trend_at": "2026-11-26T03:55:15Z",
-  "set_aside_history": []
+  "set_aside_history": [],
+  "backups_checked_at": "2026-11-26T09:58:49Z"
 }
