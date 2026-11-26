@@ -142,3 +142,12 @@ test('a new file under a <new> placeholder is still a clash when another lane na
   assert.deepEqual(d.placed, ['app/e2e/foo.spec.ts', 'app/e2e/bar.spec.ts']);
   assert.deepEqual(d.clashes, [{ file: 'app/e2e/foo.spec.ts', holder: 'B' }]);
 });
+
+// EZD-1953 (AC-EZD-1953-3): a builder records its assumptions in vault/build/assumptions/<its ticket>.md, never a
+// shared file; that file is its own without a claim, and another ticket's file is still drift.
+test('EZD-1953 a ticket\'s own assumptions file is never drift; another ticket\'s is (AC-EZD-1953-3)', () => {
+  const claims = { A: { files: ['a.ts'] }, B: { files: ['b.ts'] } };
+  const d = drift(['a.ts', 'vault/build/assumptions/A.md', 'vault/build/assumptions/B.md'], claims, 'A', undefined, ['vault/build/assumptions/A.md', 'vault/build/assumptions/B.md']);
+  assert.deepEqual(d.unclaimed, ['vault/build/assumptions/B.md']);
+  assert.deepEqual(d.clashes, []);
+});

@@ -31,7 +31,8 @@ import { createEvents, failureSummary, msToSecondEnd, oneLine, sameSecondEvents,
 import { withImportingTests } from './loop/import-graph.mjs';
 import { changedFiles, createSelfRestart, runDryRun } from './loop/self-restart.mjs';
 import { buildOrder, phaseRank } from './loop/order.mjs';
-import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
+import { rebuild as rebuildAssumptions } from '../vault/tools/assumptions-index.mjs';
+import { drift, impliedFiles, overlaps, ownAssumptions, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 import { TYPES_FILE, orderMigrations, regenerateTypes, settleGeneratedConflicts, touchesSchema } from './loop/merge-files.mjs';
 import { PERF_TREND_ID, perfDue, runPerfTrend } from './loop/perf-trend.mjs';
 import { retryCli, setAsideMarkdown, takeInRetries } from './loop/retry.mjs';
@@ -362,11 +363,12 @@ function lanesNote(t) {
   const others = Object.entries(claims).filter(([id]) => id !== t.id);
   return [
     '', 'Parallel builds: other tickets are being built at the same time in other folders, each on its own database lane (EZD_LANE is set for you; the scripts pick it up).',
-    `Files reserved for you: ${mine.length ? mine.join(', ') : '(none predicted)'}.`,
+    `Files reserved for you: ${mine.length ? mine.join(', ') : '(none predicted)'}, and your assumptions file ${ownAssumptions(t.id)} (no claim needed).`,
     others.length ? `Files other tickets hold now (never edit these): ${others.map(([id, c]) => `${id}: ${(c.files || []).join(', ') || '(none)'}`).join('; ')}.` : 'No other ticket holds files right now, but one may start while you work.',
     NO_PATTERN_KILL,
     'Before you edit or create ANY file that is not in your reserved list, run `node scripts/loop/claim.mjs <file> [<file> ...]` (paths from the repo root). Exit 0 means it is yours. If it prints NOT CLAIMED, do not edit that file: find a way that stays inside your files, or commit what works and end with the BLOCKED line it prints.',
-    `Shared files (${[...sharedSet(ROOT)].join(', ')}): any lane may edit these. Keep your change to them small and additive (add your own lines; never reorder, reformat or rewrite what is there), so a parallel change merges cleanly.`,
+    // EZD-1953: assumptions.md stays in the shared set for old branches' merges, but builders no longer write it.
+    `Shared files (${[...sharedSet(ROOT)].filter((f) => f !== 'vault/build/assumptions.md').join(', ')}): any lane may edit these. Keep your change to them small and additive (add your own lines; never reorder, reformat or rewrite what is there), so a parallel change merges cleanly.`,
   ].join('\n');
 }
 function footprintPrompt(t, plan, reads) {
@@ -395,7 +397,9 @@ function builderPrompt(t, plan, reads) {
     BUILDER_TEST_STEP,
     `4. Commit everything on this branch: \`feat(${t.id}): ${t.title.replace(/[`"]/g, "'").slice(0, 70)}\`. Give a one-line reason in the body for every existing test you changed.`,
     '5. End with a summary of at most 10 lines: what you built, tests added, assumptions recorded.',
-    '', 'Unsettled question: follow CLAUDE.md rule 1 (record it in vault/build/assumptions.md and keep going).',
+    // EZD-1953 (audit 2026-11-23 B6): one assumptions file per ticket, so lanes never share it. CLAUDE.md rules 1 and 6
+    // still name vault/build/assumptions.md until Josh approves their new pointer; that file is now the generated index.
+    '', `Unsettled question: follow CLAUDE.md rule 1, and record it (and any wording for Josh, rule 6) in your own ticket file ${ownAssumptions(t.id)}, not in vault/build/assumptions.md, which is now a generated index. Add rows at the end of its "## Open" table (\`| Ticket | Question or text | Choice made | Source |\`); create the file with that heading and table header if it does not exist. Keep going.`,
     'If the existing code already satisfies the ticket, add tests that prove the acceptance criteria and commit them.',
     'If you truly cannot finish, commit what works and make the last line of your answer start with "BLOCKED:" and the reason.',
     lanesNote(t),
@@ -842,7 +846,21 @@ function afterTicket(t, res) {
   const handled = mergedTickets + Object.keys(s.set_aside).length;
   if (!s.trial_report_written && handled >= cfg().trial_size) writeTrialReport(s);
   commitBuildFiles(`${t.id} ${res}`);
+  if (res === 'merged') commitAssumptionsIndex(t.id);
   push(s);
+}
+// EZD-1953: after a merge, rebuild the assumptions index and Josh's wording checklist on develop (and move any row an
+// older branch still wrote in assumptions.md into its ticket file). The merge already set push_pending, so the push
+// right after takes this commit too. A failure is logged and tried after the next merge.
+function commitAssumptionsIndex(id) {
+  try {
+    const r = rebuildAssumptions(ROOT);
+    if (!r.changed.length) return;
+    git(['add', '--', ...r.changed]);
+    const cm = git(['commit', '-q', '-m', `docs(build): assumptions index after ${id}`, '--', ...r.changed]);
+    if (!cm.ok) { git(['reset', '-q', '--', ...r.changed]); log(`assumptions index not committed (${cm.err.slice(0, 160)}); next merge`); return; }
+    log(`assumptions index rebuilt after ${id}: ${r.moved} rows moved in, ${r.confirmed} confirmed`);
+  } catch (e) { log(`assumptions index rebuild failed (${String(e.message).slice(0, 160)}); next merge`); }
 }
 
 // Footprints for the first few eligible tickets, one call at a time. Returns 'limit' when a call hit the usage limit.
