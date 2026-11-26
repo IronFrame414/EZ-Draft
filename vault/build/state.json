@@ -561,7 +561,8 @@
     "EZD-717",
     "EZD-1999",
     "EZD-1611a",
-    "EZD-1998"
+    "EZD-1998",
+    "EZD-719"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2431,6 +2432,14 @@
       "ts": "2026-11-26T19:13:15Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-719",
+      "title": "Send set to client",
+      "commit": "78753860",
+      "ts": "2026-11-26T19:33:35Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2692,14 +2701,7 @@
       "reason": "review still failing after 2 fix rounds"
     }
   },
-  "running": {
-    "EZD-719": {
-      "lane": 1,
-      "title": "Send set to client",
-      "started": "2026-11-26T18:14:39Z",
-      "develop": "5ed655bf"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-26T16:20:56Z",
   "hold": {},
   "perf_trend_at": "2026-11-26T03:55:15Z",
