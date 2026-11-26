@@ -564,7 +564,8 @@
     "EZD-1998",
     "EZD-719",
     "EZD-1501",
-    "EZD-708a"
+    "EZD-708a",
+    "EZD-1611b"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2458,11 +2459,19 @@
       "ts": "2026-11-26T20:46:31Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1611b",
+      "title": "Takeoff: cabinets, tops, fixtures and electrical",
+      "commit": "13d6ebc8",
+      "ts": "2026-11-26T21:53:54Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2725,17 +2734,17 @@
     }
   },
   "running": {
-    "EZD-1611b": {
-      "lane": 3,
-      "title": "Takeoff: cabinets, tops, fixtures and electrical",
-      "started": "2026-11-26T20:15:21Z",
-      "develop": "a36deacf"
-    },
     "EZD-708b": {
       "lane": 2,
       "title": "E1.0 electrical plan",
       "started": "2026-11-26T20:47:14Z",
       "develop": "4aaf41da"
+    },
+    "EZD-1995": {
+      "lane": 1,
+      "title": "Each page sends only the screen messages it uses, not the whole office catalog",
+      "started": "2026-11-26T20:58:59Z",
+      "develop": "2a85c872"
     }
   },
   "advisories_checked_at": "2026-11-26T16:20:56Z",
