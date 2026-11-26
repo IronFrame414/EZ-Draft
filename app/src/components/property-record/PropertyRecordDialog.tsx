@@ -8,11 +8,8 @@ import { Dialog } from 'radix-ui';
 import { useEffect, useState, type ReactElement } from 'react';
 import { useT } from '../../lib/messages';
 import { useOnline } from '../../lib/network';
-import {
-  EMPTY_PROPERTY_FIELDS,
-  type ConfirmedRecord,
-  type ProjectPropertyRecord,
-} from '../../lib/property-record/property-record';
+import { EMPTY_PROPERTY_FIELDS, type ProjectPropertyRecord } from '../../lib/property-record/fields';
+import type { ConfirmedRecord } from '../../lib/property-record/property-record';
 import type { MessageKey } from '../../server/messages/catalog';
 import { Icon } from '../icon/Icon';
 import { StateButton } from '../states/StateButton';
