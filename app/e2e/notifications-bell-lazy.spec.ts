@@ -54,6 +54,8 @@ test.describe('EZD-332 notification bell loads its list on first open', () => {
     await page.goto('/dev/notifications');
     await expect.poll(gets).toBe(2);
     await expect(page.getByTestId('notification-bell')).toBeVisible();
+    // EZD-1997 (AC-EZD-1997-2): wait for the bell's ready state; no assertion changed.
+    await expect(page.getByTestId('notification-bell')).toHaveAttribute('data-realtime', 'ready');
 
     const state = await page.context().storageState();
     const contents = await signedInJsContents(browser, state, '/dev/notifications');
@@ -81,6 +83,8 @@ test.describe('EZD-332 notification bell loads its list on first open', () => {
     await page.goto('/dev/notifications');
     await expect.poll(gets).toBe(2);
     await expect(page.getByTestId('notification-bell')).toBeVisible();
+    // EZD-1997 (AC-EZD-1997-2): wait for the bell's ready state; no assertion changed.
+    await expect(page.getByTestId('notification-bell')).toHaveAttribute('data-realtime', 'ready');
 
     // A window marker: it survives only while the page is not reloaded.
     await page.evaluate(() => {
@@ -126,6 +130,8 @@ test.describe('EZD-332 notification bell loads its list on first open', () => {
     await page.goto('/dev/notifications');
     await expect.poll(gets).toBe(2);
     await expect(page.getByTestId('notification-bell')).toBeVisible();
+    // EZD-1997 (AC-EZD-1997-2): wait for the bell's ready state; no assertion changed.
+    await expect(page.getByTestId('notification-bell')).toHaveAttribute('data-realtime', 'ready');
 
     const block = (route: { abort: () => Promise<void> }) => route.abort();
     await page.route('**/_next/static/**', block);
@@ -141,5 +147,39 @@ test.describe('EZD-332 notification bell loads its list on first open', () => {
     await error.getByRole('button', { name: 'Retry' }).click();
     await expect(page.getByTestId('notification-empty')).toHaveText(/No notifications yet/);
     await expect(page.getByTestId('notification-error')).toHaveCount(0);
+  });
+
+  // EZD-1997 (AC-EZD-1997-1; audit F6): the Projects page downloads the Realtime library only after its load
+  // event; the bell then joins its channel (live lighting: N2 and notifications-bell.spec.ts T17). 'phx_join' is the
+  // Realtime protocol's join event name, a string only the library's code holds.
+  test('EZD-1997 R1 Projects loads Realtime after the page has loaded, and the bell then joins its channel', async ({
+    page,
+    signInAs,
+  }) => {
+    const { member } = await newMember();
+    const landing = countNotificationGets(page);
+    await signInAs(member.email);
+    await expect.poll(landing).toBe(2);
+
+    let loaded = false;
+    const scripts: Array<{ beforeLoad: boolean; body: Promise<string> }> = [];
+    page.on('response', (r) => {
+      const path = new URL(r.url()).pathname;
+      if (path.startsWith('/_next/static/') && path.endsWith('.js')) {
+        scripts.push({ beforeLoad: !loaded, body: r.text().catch(() => '') });
+      }
+    });
+    page.on('load', () => {
+      loaded = true;
+    });
+    const gets = countNotificationGets(page);
+    await page.goto('/');
+    await expect.poll(gets).toBe(2);
+    await expect(page.getByTestId('notification-bell')).toHaveAttribute('data-realtime', 'ready');
+
+    const bodies = await Promise.all(scripts.map(async (s) => ({ ...s, text: await s.body })));
+    expect(bodies.filter((b) => b.beforeLoad).length).toBeGreaterThan(0);
+    expect(bodies.filter((b) => b.beforeLoad && b.text.includes('phx_join'))).toEqual([]);
+    expect(bodies.filter((b) => !b.beforeLoad && b.text.includes('phx_join')).length).toBe(1);
   });
 });

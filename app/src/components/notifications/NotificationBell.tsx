@@ -5,7 +5,7 @@
 // Needs MessagesProvider (office) and StateHost above it.
 import { Popover } from 'radix-ui';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { lazyModule } from '../../lib/lazy/lazy-module';
 import { useT } from '../../lib/messages';
 import type { MessageParams } from '../../lib/messages';
@@ -14,8 +14,8 @@ import {
   notificationHttpApi,
   type NotificationStore,
 } from '../../lib/notifications/store';
-import { getRealtimeHub } from '../../lib/realtime';
-import type { UserHandle } from '../../lib/realtime';
+import { afterPageReady, loadRealtimeHub } from '../../lib/realtime/deferred';
+import type { RealtimeHub, UserHandle } from '../../lib/realtime/hub';
 import type { MessageKey } from '../../server/messages/catalog';
 import { Icon } from '../icon/Icon';
 import { InlineError } from '../states/InlineError';
@@ -92,6 +92,10 @@ function NotificationPanelLoader(props: NotificationPanelViewProps) {
 // subscribed, the first join included (EZD-318), so it covers the gap between the mount fetch and the first join.
 export function connectNotificationBell(store: NotificationStore, h: UserHandle): () => void {
   void store.refresh();
+  return attachNotificationEvents(store, h);
+}
+
+function attachNotificationEvents(store: NotificationStore, h: UserHandle): () => void {
   const off1 = h.on('notification.created', () => void store.refresh());
   const off2 = h.on('notification.read', (p) => {
     store.applyRead(p.notificationId);
@@ -106,6 +110,55 @@ export function connectNotificationBell(store: NotificationStore, h: UserHandle)
   };
 }
 
+export type DeferredBellDeps = {
+  loadHub: () => Promise<Pick<RealtimeHub, 'user'>>;
+  schedule: (run: () => void) => () => void;
+  onReady: () => void;
+};
+
+// EZD-1997 (AC-EZD-1997-1; audit F6): the bell without Realtime in the page's first load. The count is fetched at
+// mount as before; the Realtime library is downloaded once the page has loaded and is idle (deps.schedule), then
+// the user channel is wired as connectNotificationBell does. Its first-join resync is the second fetch, so the
+// bell still makes the same two requests. onReady runs when the channel has joined. A failed download leaves the
+// count from the mount fetch; retry() (the panel opens) tries again.
+export function startNotificationBell(
+  store: NotificationStore,
+  deps: DeferredBellDeps,
+): { stop(): void; retry(): void } {
+  let live = true;
+  let loading = false;
+  let detach: (() => void) | null = null;
+  void store.refresh();
+  const connect = () => {
+    if (!live || loading || detach) return;
+    loading = true;
+    deps.loadHub().then(
+      (hub) => {
+        loading = false;
+        if (!live) return;
+        const h = hub.user();
+        detach = attachNotificationEvents(store, h);
+        void h.ready.then((s) => {
+          if (live && s === 'subscribed') deps.onReady();
+        });
+      },
+      () => {
+        loading = false;
+      },
+    );
+  };
+  const cancel = deps.schedule(connect);
+  return {
+    stop() {
+      live = false;
+      cancel();
+      detach?.();
+      detach = null;
+    },
+    retry: connect,
+  };
+}
+
 export function NotificationBell() {
   const t = useT();
   const router = useRouter();
@@ -113,11 +166,22 @@ export function NotificationBell() {
   const [store] = useState(() => createNotificationStore(notificationHttpApi));
   const [open, setOpen] = useState(false);
   const state = useSyncExternalStore(store.subscribe, store.get, store.get);
+  const [realtimeReady, setRealtimeReady] = useState(false);
+  const retryRealtime = useRef<() => void>(() => {});
 
-  useEffect(() => connectNotificationBell(store, getRealtimeHub().user()), [store]);
+  useEffect(() => {
+    const bell = startNotificationBell(store, {
+      loadHub: loadRealtimeHub,
+      schedule: (run) => afterPageReady(run),
+      onReady: () => setRealtimeReady(true),
+    });
+    retryRealtime.current = bell.retry;
+    return bell.stop;
+  }, [store]);
 
   function onOpenChange(next: boolean) {
     setOpen(next);
+    if (next) retryRealtime.current();
     if (next && (state.status === 'idle' || state.status === 'error')) void store.refresh();
   }
 
@@ -143,6 +207,7 @@ export function NotificationBell() {
           type="button"
           className={`${styles.bell} ${touch.target}`}
           data-testid="notification-bell"
+          data-realtime={realtimeReady ? 'ready' : 'waiting'}
           aria-label={t(label.key, label.params)}
         >
           <Icon name="notifications" size={20} />

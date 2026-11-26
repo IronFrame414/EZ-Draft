@@ -64,6 +64,8 @@ test.describe('EZD-110b notifications bell', () => {
     await signInAs(member.email);
 
     await page.goto('/dev/notifications');
+    // EZD-1997 (AC-EZD-1997-2): wait for the bell's ready state; no assertion changed.
+    await expect(page.getByTestId('notification-bell')).toHaveAttribute('data-realtime', 'ready');
     await page.getByTestId('dev-notify-render_finished').click();
 
     await expect(page.getByTestId('notification-bell-dot')).toBeVisible();
@@ -108,6 +110,8 @@ test.describe('EZD-110b notifications bell', () => {
     const gets = countNotificationGets(page);
     await page.goto('/dev/notifications');
     await expect.poll(() => gets()).toBe(2);
+    // EZD-1997 (AC-EZD-1997-2): wait for the bell's ready state; no assertion changed.
+    await expect(page.getByTestId('notification-bell')).toHaveAttribute('data-realtime', 'ready');
     await page.getByTestId('notification-bell').click();
     const items = page.getByTestId('notification-item');
     await expect(items).toHaveCount(20);
@@ -152,6 +156,8 @@ test.describe('EZD-110b notifications bell', () => {
     const gets = countNotificationGets(page);
     await page.goto('/dev/notifications');
     await expect.poll(() => gets()).toBe(2);
+    // EZD-1997 (AC-EZD-1997-2): wait for the bell's ready state; no assertion changed.
+    await expect(page.getByTestId('notification-bell')).toHaveAttribute('data-realtime', 'ready');
     const startUrl = page.url();
     await page.getByTestId('notification-bell').click();
     await expect(page.getByTestId('notification-item')).toHaveCount(2);
