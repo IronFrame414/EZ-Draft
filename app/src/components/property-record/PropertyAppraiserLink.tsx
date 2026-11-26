@@ -15,10 +15,10 @@ import {
   SCREENSHOT_TYPES,
   confirmedFields,
   isPre1978,
-  type ConfirmedRecord,
   type PropertyField,
   type PropertyFields,
-} from '../../lib/property-record/property-record';
+} from '../../lib/property-record/fields';
+import type { ConfirmedRecord } from '../../lib/property-record/property-record';
 import { getRealtimeHub } from '../../lib/realtime';
 import type { UserHandle } from '../../lib/realtime/hub';
 import type { MessageKey } from '../../server/messages/catalog';
