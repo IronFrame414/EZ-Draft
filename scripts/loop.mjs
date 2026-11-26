@@ -38,6 +38,7 @@ import { PERF_TREND_ID, perfDue, runPerfTrend } from './loop/perf-trend.mjs';
 import { retryCli, setAsideMarkdown, takeInRetries } from './loop/retry.mjs';
 import { createWorktreeGuard } from './loop/worktree-config.mjs';
 import { acReviewLines, traceTicket } from './loop/ac-review.mjs';
+import { checkBackups } from './loop/backup-status.mjs';
 import { traceDone } from './conventions/ac-trace.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -951,6 +952,8 @@ async function main() {
     }
     if (s.sleep_until) { delete s.sleep_until; delete s.next_probe; saveState(s); }
     try { checkAdvisories(s, c); } catch (e) { log(`advisory check error: ${e?.message || e}`); }
+    // EZD-1958: once a day, 'BACKUP STALE <workflow>' for a backup workflow with no success in 8 days or a failed newest run.
+    try { checkBackups(s, { cwd: ROOT, save: saveState, log }); } catch (e) { log(`backup status check error: ${e?.message || e}`); }
     if (!active.size) push(s);
     if (s.red_streak >= c.red_streak_guard) {
       if (active.size) { note(`red streak of ${s.red_streak}: no new starts until the ${active.size} running ticket(s) finish`); await idle(60000); continue; }
