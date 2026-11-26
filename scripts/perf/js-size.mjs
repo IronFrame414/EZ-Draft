@@ -1,5 +1,6 @@
 // EZD-017 Step 6 (vault/plans/EZD-017.md S1-S5, G7): compressed JavaScript a page downloads with no user action
 // (11 rule 7). One new browser context per measurement, so the HTTP cache starts empty (S4).
+// EZD-1996 (AC-EZD-1996-3): a page's download size counts its CSS too; measureCssSize is the CSS alone.
 import path from 'node:path';
 import { compressedSize } from './budgets.mjs';
 
@@ -50,6 +51,12 @@ function isJavaScript(response) {
   return type.startsWith('text/javascript') || type.startsWith('application/javascript');
 }
 
+/** EZD-1996: a CSS file by resource type or content type. */
+function isStylesheet(response) {
+  if (response.request().resourceType() === 'stylesheet') return true;
+  return (response.headers()['content-type'] ?? '').toLowerCase().startsWith('text/css');
+}
+
 /** S3: pathname + search when same origin as the base URL, else the full URL. */
 function displayUrl(url, baseOrigin) {
   const u = new URL(url);
@@ -58,11 +65,12 @@ function displayUrl(url, baseOrigin) {
 
 /**
  * The scripts a page downloads with no user action (S1-S4), shared by the size and contents collectors (EZD-020
- * Step 5). `ctx` = { browser, profile, baseUrl }.
+ * Step 5). `ctx` = { browser, profile, baseUrl }. With `styles: true` the page's CSS files are collected too
+ * (EZD-1996), each marked `kind: 'css'`; scripts are `kind: 'js'`.
  * @returns {Promise<{ error?: string; details: object; scripts: { url: string; displayUrl: string; body: Buffer;
- *   serviceWorker: boolean }[] }>} details = { url, status, idleTimeout }
+ *   serviceWorker: boolean; kind: 'js' | 'css' }[] }>} details = { url, status, idleTimeout }
  */
-export async function collectScripts(ctx, url) {
+export async function collectScripts(ctx, url, { styles = false } = {}) {
   const { browser, profile, baseUrl } = ctx;
   const baseOrigin = new URL(baseUrl).origin;
   const details = { url, status: null, idleTimeout: false };
@@ -79,12 +87,13 @@ export async function collectScripts(ctx, url) {
       const rUrl = response.url();
       if (seen.has(rUrl)) return;
       const fromWorker = response.request().serviceWorker() !== null;
-      if (!fromWorker && !isJavaScript(response)) return;
+      const css = styles && !fromWorker && isStylesheet(response);
+      if (!fromWorker && !css && !isJavaScript(response)) return;
       seen.add(rUrl);
       const body = response.body();
       // A body that cannot be read rejects when awaited below (E1), never as an unhandled rejection.
       body.catch(() => {});
-      collected.push({ url: rUrl, fromWorker, body });
+      collected.push({ url: rUrl, fromWorker, body, kind: css ? 'css' : 'js' });
     });
 
     const page = await context.newPage();
@@ -110,6 +119,7 @@ export async function collectScripts(ctx, url) {
         body,
         // S2 (a): service worker scripts and what they fetch are not page JavaScript.
         serviceWorker: c.fromWorker || swUrls.has(c.url),
+        kind: c.kind,
       });
     }
     return { details, scripts };
@@ -119,14 +129,17 @@ export async function collectScripts(ctx, url) {
 }
 
 /**
- * @returns {Promise<{ value: number; details: object } | { error: string; details: object }>} details = SizeDetails
+ * Compressed bytes of the page's files of the kinds in `kinds` (S1-S5; EZD-1996 adds CSS). details = SizeDetails
+ * plus jsBytes and cssBytes; each file names its kind.
  */
-export async function measureJsSize(browser, profile, baseUrl, url) {
-  const collected = await collectScripts({ browser, profile, baseUrl }, url);
+async function measureSize(browser, profile, baseUrl, url, kinds) {
+  const collected = await collectScripts({ browser, profile, baseUrl }, url, { styles: true });
   const details = {
     url,
     status: collected.details.status,
     files: [],
+    jsBytes: 0,
+    cssBytes: 0,
     excludedServiceWorkerBytes: 0,
     idleTimeout: collected.details.idleTimeout,
   };
@@ -138,8 +151,24 @@ export async function measureJsSize(browser, profile, baseUrl, url) {
       details.excludedServiceWorkerBytes += compressedBytes;
       continue;
     }
+    if (!kinds.includes(s.kind)) continue;
     value += compressedBytes;
-    details.files.push({ url: s.displayUrl, rawBytes: s.body.length, compressedBytes });
+    if (s.kind === 'css') details.cssBytes += compressedBytes;
+    else details.jsBytes += compressedBytes;
+    details.files.push({ url: s.displayUrl, kind: s.kind, rawBytes: s.body.length, compressedBytes });
   }
   return { value, details };
+}
+
+/**
+ * The page's download size: its JavaScript and, since EZD-1996, its CSS.
+ * @returns {Promise<{ value: number; details: object } | { error: string; details: object }>} details = SizeDetails
+ */
+export function measureJsSize(browser, profile, baseUrl, url) {
+  return measureSize(browser, profile, baseUrl, url, ['js', 'css']);
+}
+
+/** EZD-1996 (AC-EZD-1996-3): the page's CSS alone. */
+export function measureCssSize(browser, profile, baseUrl, url) {
+  return measureSize(browser, profile, baseUrl, url, ['css']);
 }

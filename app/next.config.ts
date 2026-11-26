@@ -28,6 +28,11 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: process.env.VERCEL !== '1',
   // EZD-202 Build step 13 (vault/plans/EZD-202.md): the geometry package ships TypeScript source.
   transpilePackages: ['@ezdraft/geometry'],
+  // EZD-1996 (AC-EZD-1996-1; audit 2026-11-26 F2; Q-0814): CSS is split along each page's imports, so a page
+  // downloads only the styles its screens use instead of one merged file for the whole app.
+  experimental: {
+    cssChunking: 'graph',
+  },
   // EZD-305: the import job reads PDFs with pdf.js's Node build on the server (job run on enqueue); it loads its own
   // worker module at run time, so it is required from node_modules, not bundled.
   // EZD-715: the PDF export job writes with PDFKit, which reads its own data files at run time, so it is required from

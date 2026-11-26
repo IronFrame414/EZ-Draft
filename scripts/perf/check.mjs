@@ -13,7 +13,7 @@ import { chromium } from '@playwright/test';
 import { BUDGETS } from './budgets.mjs';
 import { bundleReport, writeBundleReport } from './bundle-report.mjs';
 import { measureJsContents } from './js-contents.mjs';
-import { measureJsSize } from './js-size.mjs';
+import { measureCssSize, measureJsSize } from './js-size.mjs';
 import { frameStats, runPan } from './pan-script.mjs';
 import { runWorkerJob, workerJobInput } from './worker-job.mjs';
 import { laneAppPorts, readLane } from '../db/lane.mjs';
@@ -130,8 +130,13 @@ function planRows(cfg, only) {
       budget: entry.budget,
       status: 'active',
       owner: 'config',
-      // EZD-020 Step 5: entry-contents rows go to js-contents.mjs; any other config-only row is a size row.
-      collector: entry.id.startsWith('entry-contents:') ? 'js-contents' : 'js-size',
+      // EZD-020 Step 5: entry-contents rows go to js-contents.mjs; EZD-1996: css-size rows measure CSS alone; any
+      // other config-only row is a size row.
+      collector: entry.id.startsWith('entry-contents:')
+        ? 'js-contents'
+        : entry.id.startsWith('css-size:')
+          ? 'css-size'
+          : 'js-size',
       url: entry.url,
     };
     rows.push(row);
@@ -233,13 +238,14 @@ async function collect(browser, profile, baseUrl, panUrl, plan) {
       inputs.push({ ...base, pending: true });
     } else if (r.collector === 'pan') {
       inputs.push({ ...base, ...panInput(r.id, pans.get(r.profile), r.profile) });
-    } else if (r.collector === 'js-size') {
+    } else if (r.collector === 'js-size' || r.collector === 'css-size') {
       if (!r.url) {
         inputs.push({ ...base, error: 'no_url' });
         continue;
       }
+      const measure = r.collector === 'css-size' ? measureCssSize : measureJsSize;
       try {
-        inputs.push({ ...base, ...(await measureJsSize(browser, profile, baseUrl, r.url)) });
+        inputs.push({ ...base, ...(await measure(browser, profile, baseUrl, r.url)) });
       } catch (e) {
         logStack(e);
         inputs.push({ ...base, error: 'unexpected_error' });

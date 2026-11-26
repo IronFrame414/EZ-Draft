@@ -70,6 +70,8 @@ export const MEASUREMENTS = Object.freeze([
   ),
   row('js-size:field-pack', 'download.field-pack', 'active', 'js-size', 'EZD-020; EZD-1404 repoints'),
   row('js-size:client-link', 'download.client-link', 'active', 'js-size', 'EZD-020; EZD-1202 repoints'),
+  // EZD-1996 (AC-EZD-1996-3): the sign-in page's CSS on its own gate row.
+  row('css-size:sign-in', 'download.sign-in-css', 'active', 'css-size', 'EZD-1996 (AC-EZD-1996-3)'),
   row('entry-contents:office', 'contents.office', 'active', 'js-contents', 'EZD-020; EZD-117a, EZD-103 repoint'),
   row('entry-contents:editor', 'contents.editor', 'active', 'js-contents', 'EZD-020; EZD-120b repoints'),
   row('entry-contents:field-pack', 'contents.field-pack', 'active', 'js-contents', 'EZD-020; EZD-1404 repoints'),

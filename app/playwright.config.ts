@@ -120,6 +120,8 @@ const part = applyE2ePart(parseE2ePart(process.env.EZD_E2E_PART), [
 export default defineConfig({
   testDir: path.join(app, 'e2e'),
   outputDir: path.join(app, 'test-results'),
+  // EZD-1996: screenshot baselines (toHaveScreenshot) live under e2e/__screenshots__, named by device and platform.
+  snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}-{projectName}-{platform}{ext}',
   globalSetup: path.join(app, 'test-harness', 'e2e', 'global-setup.ts'),
   globalTeardown: path.join(app, 'test-harness', 'e2e', 'global-teardown.ts'),
   workers: 4,

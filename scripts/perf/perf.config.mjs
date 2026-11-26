@@ -49,6 +49,8 @@ export default {
     { id: 'js-size:editor', url: '/dev/benchmark-plan' },
     { id: 'js-size:sign-in', url: '/sign-in' },
     { id: 'js-size:auth-confirm', url: '/auth/confirm' },
+    // EZD-1996 (AC-EZD-1996-3): the sign-in page's CSS alone.
+    { id: 'css-size:sign-in', url: '/sign-in' },
     // EZD-020 Step 6: placeholder entry pages until the owner tickets repoint them.
     { id: 'js-size:projects-settings', url: '/dev/entry/office' },
     { id: 'js-size:field-pack', url: '/dev/entry/field' },

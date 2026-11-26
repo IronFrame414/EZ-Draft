@@ -56,7 +56,7 @@ describe('EZD-207c perf profiles and gesture', () => {
     assert.equal(cfg.panUrl, '/dev/benchmark-plan');
     assert.equal(cfg.measurements.find((m) => m.id === 'js-size:editor').url, '/dev/benchmark-plan');
     // EZD-235b E1: the two worker rows are configured (13 entries, was 11).
-    assert.equal(cfg.measurements.length, 13);
+    assert.equal(cfg.measurements.length, 14); // EZD-1996: plus css-size:sign-in
     for (const id of ['long-tasks-worker-job', 'long-tasks-worker-job:ipad']) {
       assert.equal(cfg.measurements.find((m) => m.id === id)?.url, '/dev/perf-probe?inject=worker-job', id);
     }
@@ -65,7 +65,7 @@ describe('EZD-207c perf profiles and gesture', () => {
   test('EZD-207c N2 registry rows', async () => {
     const { MEASUREMENTS } = await registry();
     const { BUDGETS } = await budgets();
-    assert.equal(MEASUREMENTS.length, 29);
+    assert.equal(MEASUREMENTS.length, 30); // EZD-1996: plus css-size:sign-in
     const panRows = MEASUREMENTS.filter((m) => m.id.includes('-during-'));
     assert.deepEqual(
       panRows.map((m) => m.id),

@@ -132,7 +132,10 @@ test.describe('EZD-020 entry points and lazy chunks', () => {
       const row = rowOf(r.res, id);
       expect(row.status, id).toBe('pass');
       expect(row.value as number, id).toBeGreaterThan(0);
-      expect(row.value as number, id).toBeLessThanOrEqual(200 * K);
+      // EZD-1996: the row's value now counts CSS too (AC-EZD-1996-3); the 200,000 here is the JavaScript, and the
+      // whole download is held to the row's budget.
+      expect((row.details as { jsBytes: number }).jsBytes, id).toBeLessThanOrEqual(200 * K);
+      expect(row.value as number, id).toBeLessThanOrEqual((row as unknown as Record<string, number>).budget);
       expect(row.details.url, id).toBe(url);
       const files = row.details.files as unknown[];
       expect(files.length, id).toBeGreaterThan(0);
@@ -270,7 +273,9 @@ test.describe('EZD-341 office entry size and Sentry start', () => {
       }
       const office = rowOf(r.res, 'js-size:projects-settings');
       expect(office.details.url).toBe('/dev/entry/office');
-      expect(office.value as number).toBeLessThanOrEqual(200 * K);
+      // EZD-1996: the row's value now counts CSS too (AC-EZD-1996-3); AC-EZD-341-1's 200,000 is the JavaScript.
+      expect((office.details as { jsBytes: number }).jsBytes).toBeLessThanOrEqual(200 * K);
+      expect(office.value as number).toBeLessThanOrEqual((office as unknown as Record<string, number>).budget);
     } finally {
       rmSync(r.out, { recursive: true, force: true });
     }

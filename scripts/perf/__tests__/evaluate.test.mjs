@@ -17,6 +17,9 @@ const TABLE_B = {
   'download.client-link': { kind: 'gate', unit: 'bytes', value: 200000 },
   'download.field-pack': { kind: 'gate', unit: 'bytes', value: 200000 },
   'download.sign-in': { kind: 'gate', unit: 'bytes', value: 200000 },
+  // EZD-1996 (AC-EZD-1996-3): sign-in CSS measured at 4,163 bytes gzip after the per-page split, plus 10% = 4,579.3,
+  // rounded up to 4,580.
+  'download.sign-in-css': { kind: 'gate', unit: 'bytes', value: 4580 },
   'react-commits.pan': { kind: 'gate', unit: 'count', value: 0 },
   'long-tasks.pan': { kind: 'gate', unit: 'count', value: 0 },
   'long-tasks.load': { kind: 'trend', unit: 'count', value: null },
@@ -50,7 +53,7 @@ describe('EZD-017 budgets, frame statistics and evaluate', () => {
     assert.equal(buf.length, 10000);
     assert.equal(compressedSize(buf), zlib.gzipSync(buf, { level: 6 }).length);
 
-    assert.equal(Object.keys(BUDGETS).length, 27);
+    assert.equal(Object.keys(BUDGETS).length, 28);
     assert.deepEqual(Object.keys(BUDGETS).sort(), Object.keys(TABLE_B).sort());
     for (const [id, want] of Object.entries(TABLE_B)) {
       const b = BUDGETS[id];

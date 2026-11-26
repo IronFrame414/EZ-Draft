@@ -6,10 +6,11 @@
 // Projects, and the disclaimer in the sticky footer. Signed out, or when who is signed in cannot be read, the
 // page is as before. It never fails: a failed header load is reported and shows the bare page. The header
 // loads as its own chunk (not-found-header.tsx) so the other entries' downloads stay as they were.
+// EZD-1996: the frame and footer styles are this page's own (home.module.css), not the Projects page's CSS module,
+// which this file's place in every route's tree put on every page.
 import type { JSX } from 'react';
 import { Disclaimer } from '../components/disclaimer/Disclaimer';
 import type { ProjectsAccount } from '../components/projects/ProjectsHeader';
-import projects from '../components/projects/Projects.module.css';
 import { MessagesProvider } from '../lib/messages';
 import type { Language } from '../lib/messages/types';
 import { mayOpenSettings } from '../lib/settings/sections';
@@ -67,7 +68,7 @@ export default async function NotFound(): Promise<JSX.Element> {
   const messages = catalogFor('sign_in', language);
   return (
     <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
-      <div className={projects.page}>
+      <div className={styles.signedInPage}>
         <NotFoundHeader account={account} />
         <main className={styles.centred}>
           <MessagesProvider language={language} messages={messages}>
@@ -79,7 +80,7 @@ export default async function NotFound(): Promise<JSX.Element> {
             </div>
           </MessagesProvider>
         </main>
-        <div className={projects.footer} data-testid="not-found-footer">
+        <div className={styles.signedInFooter} data-testid="not-found-footer">
           <MessagesProvider language={language} messages={messages}>
             <Disclaimer placement="page" />
           </MessagesProvider>
