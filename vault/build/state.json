@@ -558,7 +558,8 @@
     "EZD-123",
     "EZD-1996",
     "EZD-1997",
-    "EZD-717"
+    "EZD-717",
+    "EZD-1999"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2402,6 +2403,14 @@
       "title": "Issue Rev 0 and Rev N",
       "commit": "87464d79",
       "ts": "2026-11-26T17:36:24Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1999",
+      "title": "New project wizard loads when it is opened, not with the Projects page",
+      "commit": "f020130f",
+      "ts": "2026-11-26T18:14:33Z",
       "kind": "ticket",
       "lane": 1
     }
