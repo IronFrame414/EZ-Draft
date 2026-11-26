@@ -3,7 +3,10 @@
 // Every change is written here first, so measuring goes on offline and a reload keeps it; `synced` turns true when
 // the server has the same rooms. A copy that does not read as rooms is ignored. Storage errors are swallowed: the
 // screen keeps working from memory.
-import { roomsSchema, type FieldRoom } from './rooms';
+// EZD-1998 (AC-EZD-1998-2): the copy is checked by hand with roomsSchema's rules (room-check.ts), so the screen's
+// first load carries no zod.
+import { checkRooms } from './room-check';
+import type { FieldRoom } from './room-model';
 
 export type DeviceCopy = { rooms: FieldRoom[]; synced: boolean };
 
@@ -31,9 +34,9 @@ export function readDeviceCopy(
     const raw = s?.getItem(deviceCopyKey(who, projectId));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { rooms?: unknown; synced?: unknown };
-    const rooms = roomsSchema.safeParse(parsed.rooms);
-    if (!rooms.success) return null;
-    return { rooms: rooms.data, synced: parsed.synced === true };
+    const rooms = checkRooms(parsed.rooms);
+    if (rooms === null) return null;
+    return { rooms, synced: parsed.synced === true };
   } catch {
     return null;
   }

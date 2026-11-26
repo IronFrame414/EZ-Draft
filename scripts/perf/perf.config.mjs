@@ -53,11 +53,15 @@ export default {
     { id: 'css-size:sign-in', url: '/sign-in' },
     // EZD-020 Step 6: placeholder entry pages until the owner tickets repoint them.
     { id: 'js-size:projects-settings', url: '/dev/entry/office' },
-    { id: 'js-size:field-pack', url: '/dev/entry/field' },
+    // EZD-1998 (AC-EZD-1998-1): the real field pages of the seeded project the run is given (--project, signed in
+    // with --storage-state), not the /dev/entry/field placeholder.
+    { id: 'js-size:field-pack', url: '/projects/{project}/field' },
+    { id: 'js-size:field-measure', url: '/projects/{project}/field-measure' },
     { id: 'js-size:client-link', url: '/dev/entry/client' },
     { id: 'entry-contents:office', url: '/dev/entry/office' },
     { id: 'entry-contents:editor', url: '/dev/entry/editor' },
-    { id: 'entry-contents:field-pack', url: '/dev/entry/field' },
+    { id: 'entry-contents:field-pack', url: '/projects/{project}/field' },
+    { id: 'entry-contents:field-measure', url: '/projects/{project}/field-measure' },
     { id: 'entry-contents:client-link', url: '/dev/entry/client' },
     { id: 'entry-contents:sign-in', url: '/sign-in' },
     // EZD-235b Build step 10: the worker check runs on the perf probe page (no new page).

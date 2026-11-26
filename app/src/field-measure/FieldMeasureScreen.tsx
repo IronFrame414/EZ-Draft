@@ -22,7 +22,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import { useOutboxActor } from '../components/outbox/OutboxDrain';
 import { useConfirm } from '../components/states/ConfirmProvider';
 import { formatLength } from '@ezdraft/geometry';
-import { DEFAULT_MEASUREMENT_TOLERANCE_IN } from '../lib/imports/review-conflicts';
+import { DEFAULT_MEASUREMENT_TOLERANCE_IN } from '../lib/imports/measurement-tolerance';
 import { Icon } from '../components/icon/Icon';
 import { useT } from '../lib/messages';
 import { CeilingField } from './CeilingField';
@@ -34,7 +34,14 @@ import { ShapePicker } from './ShapePicker';
 import { clearDeviceCopy, readDeviceCopy, writeDeviceCopy } from './device-copy';
 import { readFieldLength } from './entry';
 import { useMeasureSend } from './send';
-import { emptyRoom, isMeasured, uniqueName, withOutline, withShape, type FieldRoom } from './rooms';
+import {
+  emptyRoom,
+  isMeasured,
+  uniqueName,
+  withOutline,
+  withShape,
+  type FieldRoom,
+} from './room-model';
 import { addCorner, cornersOf, wallLetter, wallsOf, type Pt, type ShapeKind } from './shapes';
 import styles from './FieldMeasure.module.css';
 

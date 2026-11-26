@@ -35,12 +35,14 @@ export function settlePage(page) {
   });
 }
 
-function contextOptions(profile) {
+// EZD-1998: `storageState` (a Playwright storage state file) opens the page signed in.
+function contextOptions(profile, storageState) {
   return {
     viewport: profile.viewport,
     deviceScaleFactor: profile.deviceScaleFactor,
     hasTouch: profile.hasTouch,
     isMobile: profile.isMobile,
+    ...(storageState ? { storageState } : {}),
   };
 }
 
@@ -65,17 +67,17 @@ function displayUrl(url, baseOrigin) {
 
 /**
  * The scripts a page downloads with no user action (S1-S4), shared by the size and contents collectors (EZD-020
- * Step 5). `ctx` = { browser, profile, baseUrl }. With `styles: true` the page's CSS files are collected too
+ * Step 5). `ctx` = { browser, profile, baseUrl, storageState? }. With `styles: true` the page's CSS files are collected too
  * (EZD-1996), each marked `kind: 'css'`; scripts are `kind: 'js'`.
  * @returns {Promise<{ error?: string; details: object; scripts: { url: string; displayUrl: string; body: Buffer;
  *   serviceWorker: boolean; kind: 'js' | 'css' }[] }>} details = { url, status, idleTimeout }
  */
 export async function collectScripts(ctx, url, { styles = false } = {}) {
-  const { browser, profile, baseUrl } = ctx;
+  const { browser, profile, baseUrl, storageState } = ctx;
   const baseOrigin = new URL(baseUrl).origin;
   const details = { url, status: null, idleTimeout: false };
   const scripts = [];
-  const context = await browser.newContext(contextOptions(profile));
+  const context = await browser.newContext(contextOptions(profile, storageState));
   try {
     await context.addInitScript({ path: HOOKS_PATH });
     const seen = new Set();
@@ -106,6 +108,14 @@ export async function collectScripts(ctx, url, { styles = false } = {}) {
     if (!response) return { error: 'navigation_failed', details, scripts };
     details.status = response.status();
     if (details.status !== 200) return { error: `http_${details.status}`, details, scripts };
+    // EZD-1998: a page that sent the browser elsewhere (a signed-out field page goes to /sign-in) is not the page
+    // asked for, so its size would be the wrong page's.
+    const landed = new URL(page.url());
+    const asked = new URL(baseUrl + url);
+    if (landed.pathname !== asked.pathname) {
+      details.landedUrl = landed.pathname + landed.search;
+      return { error: 'redirected', details, scripts };
+    }
 
     const { idleTimeout } = await settlePage(page);
     details.idleTimeout = idleTimeout;
@@ -132,8 +142,8 @@ export async function collectScripts(ctx, url, { styles = false } = {}) {
  * Compressed bytes of the page's files of the kinds in `kinds` (S1-S5; EZD-1996 adds CSS). details = SizeDetails
  * plus jsBytes and cssBytes; each file names its kind.
  */
-async function measureSize(browser, profile, baseUrl, url, kinds) {
-  const collected = await collectScripts({ browser, profile, baseUrl }, url, { styles: true });
+async function measureSize(browser, profile, baseUrl, url, kinds, storageState) {
+  const collected = await collectScripts({ browser, profile, baseUrl, storageState }, url, { styles: true });
   const details = {
     url,
     status: collected.details.status,
@@ -143,6 +153,7 @@ async function measureSize(browser, profile, baseUrl, url, kinds) {
     excludedServiceWorkerBytes: 0,
     idleTimeout: collected.details.idleTimeout,
   };
+  if (collected.details.landedUrl !== undefined) details.landedUrl = collected.details.landedUrl;
   if (collected.error !== undefined) return { error: collected.error, details };
   let value = 0;
   for (const s of collected.scripts) {
@@ -164,11 +175,11 @@ async function measureSize(browser, profile, baseUrl, url, kinds) {
  * The page's download size: its JavaScript and, since EZD-1996, its CSS.
  * @returns {Promise<{ value: number; details: object } | { error: string; details: object }>} details = SizeDetails
  */
-export function measureJsSize(browser, profile, baseUrl, url) {
-  return measureSize(browser, profile, baseUrl, url, ['js', 'css']);
+export function measureJsSize(browser, profile, baseUrl, url, { storageState } = {}) {
+  return measureSize(browser, profile, baseUrl, url, ['js', 'css'], storageState);
 }
 
 /** EZD-1996 (AC-EZD-1996-3): the page's CSS alone. */
-export function measureCssSize(browser, profile, baseUrl, url) {
-  return measureSize(browser, profile, baseUrl, url, ['css']);
+export function measureCssSize(browser, profile, baseUrl, url, { storageState } = {}) {
+  return measureSize(browser, profile, baseUrl, url, ['css'], storageState);
 }

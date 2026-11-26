@@ -17,11 +17,10 @@ import { ROOM_EDGE_REACH_IN } from './review';
 import type { Decisions } from './review';
 import type { Fixes, ItemFix, RoomFix, WallFix } from './review-fix';
 
-/**
- * The tolerance (in) used while the company's Defaults value is Not set: S02 Data shown "Tolerance from company
- * settings under Defaults ... (mockup: 1/2")" (vault/build/assumptions.md EZD-310).
- */
-export const DEFAULT_MEASUREMENT_TOLERANCE_IN = 0.5;
+// EZD-1998: the Not set tolerance lives in measurement-tolerance.ts, so the field measure screen can read it without
+// loading the review code.
+import { DEFAULT_MEASUREMENT_TOLERANCE_IN } from './measurement-tolerance';
+export { DEFAULT_MEASUREMENT_TOLERANCE_IN };
 
 /** The tolerance a review uses: the effective Defaults value of measurement_tolerance when it is a length, else 1/2". */
 export function reviewTolerance(effective: unknown): number {

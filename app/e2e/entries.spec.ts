@@ -4,7 +4,8 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { expect, test } from '../test-harness/e2e/test';
+import { cleanup, closeHarness, expect, test } from '../test-harness/e2e/test';
+import { fieldPerfSession } from './perf-field-session';
 
 type Row = {
   id: string;
@@ -33,7 +34,11 @@ function findRepoRoot(): string {
 
 const K = 1000;
 
-function runPerf(only: string): {
+// EZD-1998: `extra` carries --project and --storage-state for the rows that measure the real field pages.
+function runPerf(
+  only: string,
+  extra: string[] = [],
+): {
   status: number | null;
   stdout: string;
   out: string;
@@ -51,6 +56,7 @@ function runPerf(only: string): {
       only,
       '--out',
       out,
+      ...extra,
     ],
     { cwd: root, encoding: 'utf8', timeout: 170000 },
   );
@@ -67,16 +73,28 @@ function rowOf(res: Results, id: string): Row {
   return row as Row;
 }
 
+// EZD-1998 (AC-EZD-1998-1): the field pack rows measure the seeded project's real page, not /dev/entry/field.
+const baseURL = () => String(test.info().project.use.baseURL);
+const fieldPage = (projectId: string) => `/projects/${projectId}/field`;
+
+test.afterAll(async () => {
+  await cleanup();
+  await closeHarness();
+});
+
 const WATCH = ['@sentry/', '@supabase/realtime-js', '@radix-ui/', 'radix-ui'];
 const MARKER = 'ezd-lazy-sample-7f3a';
 
 test.describe('EZD-020 entry points and lazy chunks', () => {
-  test('EZD-020 done when: the client link and field pack bundles contain no editor or 3D code @smoke', async () => {
-    test.setTimeout(180000);
-    const r = runPerf('entry-contents:field-pack,entry-contents:client-link');
+  test('EZD-020 done when: the client link and field pack bundles contain no editor or 3D code @smoke', async ({
+    browser,
+  }) => {
+    test.setTimeout(240000);
+    const field = await fieldPerfSession(browser, baseURL());
+    const r = runPerf('entry-contents:field-pack,entry-contents:client-link', field.args);
     expect(r.status, r.stdout).toBe(0);
     const urls: Record<string, string> = {
-      'entry-contents:field-pack': '/dev/entry/field',
+      'entry-contents:field-pack': fieldPage(field.projectId),
       'entry-contents:client-link': '/dev/entry/client',
     };
     for (const id of Object.keys(urls)) {
@@ -119,13 +137,14 @@ test.describe('EZD-020 entry points and lazy chunks', () => {
     }
   });
 
-  test('EZD-020 E4 size budgets now active', async () => {
-    test.setTimeout(180000);
-    const r = runPerf('js-size:projects-settings,js-size:field-pack,js-size:client-link');
+  test('EZD-020 E4 size budgets now active', async ({ browser }) => {
+    test.setTimeout(240000);
+    const field = await fieldPerfSession(browser, baseURL());
+    const r = runPerf('js-size:projects-settings,js-size:field-pack,js-size:client-link', field.args);
     expect(r.status, r.stdout).toBe(0);
     const urls: Record<string, string> = {
       'js-size:projects-settings': '/dev/entry/office',
-      'js-size:field-pack': '/dev/entry/field',
+      'js-size:field-pack': fieldPage(field.projectId),
       'js-size:client-link': '/dev/entry/client',
     };
     for (const [id, url] of Object.entries(urls)) {
@@ -205,9 +224,10 @@ test.describe('EZD-020 entry points and lazy chunks', () => {
     }
   });
 
-  test('EZD-020 E7 bundle report from the real build', async () => {
-    test.setTimeout(180000);
-    const r = runPerf('entry-contents:field-pack,entry-contents:editor,js-size:field-pack');
+  test('EZD-020 E7 bundle report from the real build', async ({ browser }) => {
+    test.setTimeout(240000);
+    const field = await fieldPerfSession(browser, baseURL());
+    const r = runPerf('entry-contents:field-pack,entry-contents:editor,js-size:field-pack', field.args);
     expect(r.status, r.stdout).toBe(0);
     expect(r.stdout).toContain('BUNDLE REPORT');
     const md = readFileSync(path.join(r.out, 'bundle-report.md'), 'utf8');
@@ -242,6 +262,7 @@ test.describe('EZD-341 office entry size and Sentry start', () => {
     'js-size:auth-confirm',
     'js-size:projects-settings',
     'js-size:field-pack',
+    'js-size:field-measure',
     'js-size:client-link',
   ];
   const DEFAULTS = [
@@ -259,9 +280,12 @@ test.describe('EZD-341 office entry size and Sentry start', () => {
   const quoted = (name: string, body: string) =>
     ['"', "'", BACKTICK].some((q) => body.includes(q + name + q));
 
-  test('EZD-341 B1 office entry at or under 200,000 bytes and every size row within its budget', async () => {
-    test.setTimeout(180000);
-    const r = runPerf(SIZE_IDS.join(','));
+  test('EZD-341 B1 office entry at or under 200,000 bytes and every size row within its budget', async ({
+    browser,
+  }) => {
+    test.setTimeout(240000);
+    const field = await fieldPerfSession(browser, baseURL());
+    const r = runPerf(SIZE_IDS.join(','), field.args);
     try {
       expect(r.status, r.stdout).toBe(0);
       for (const id of SIZE_IDS) {

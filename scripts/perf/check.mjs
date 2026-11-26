@@ -109,6 +109,16 @@ async function loadConfig(abs) {
   return cfg;
 }
 
+// EZD-1998: a config URL may name the seeded project as `{project}` (the real field pages need one).
+export const PROJECT_TOKEN = '{project}';
+const PROJECT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** EZD-1998: the URL with `{project}` filled, or null when it needs a project and none was given. */
+export function fillUrl(url, project) {
+  if (url === undefined || !url.includes(PROJECT_TOKEN)) return url;
+  return project ? url.split(PROJECT_TOKEN).join(project) : null;
+}
+
 /** R1: the registry plus the config's measurements, then --only. */
 function planRows(cfg, only) {
   const rows = MEASUREMENTS.map((m) => ({ ...m, url: undefined }));
@@ -211,7 +221,7 @@ function panInput(id, pan, name) {
 
 const logStack = (e) => process.stderr.write(`${e?.stack ?? e}\n`);
 
-async function collect(browser, profile, baseUrl, panUrl, plan) {
+async function collect(browser, profile, baseUrl, panUrl, plan, storageState) {
   const pans = new Map();
   const panProfiles = [
     ...new Set(
@@ -238,6 +248,9 @@ async function collect(browser, profile, baseUrl, panUrl, plan) {
       inputs.push({ ...base, pending: true });
     } else if (r.collector === 'pan') {
       inputs.push({ ...base, ...panInput(r.id, pans.get(r.profile), r.profile) });
+    } else if (r.url === null) {
+      // EZD-1998: the row measures a seeded project's page and the run was given no --project.
+      inputs.push({ ...base, error: 'no_project' });
     } else if (r.collector === 'js-size' || r.collector === 'css-size') {
       if (!r.url) {
         inputs.push({ ...base, error: 'no_url' });
@@ -245,7 +258,8 @@ async function collect(browser, profile, baseUrl, panUrl, plan) {
       }
       const measure = r.collector === 'css-size' ? measureCssSize : measureJsSize;
       try {
-        inputs.push({ ...base, ...(await measure(browser, profile, baseUrl, r.url)) });
+        const opts = { storageState: r.signedIn ? storageState : undefined };
+        inputs.push({ ...base, ...(await measure(browser, profile, baseUrl, r.url, opts)) });
       } catch (e) {
         logStack(e);
         inputs.push({ ...base, error: 'unexpected_error' });
@@ -257,7 +271,7 @@ async function collect(browser, profile, baseUrl, panUrl, plan) {
       }
       try {
         const entry = r.budget.slice('contents.'.length);
-        const ctx = { browser, profile, baseUrl };
+        const ctx = { browser, profile, baseUrl, storageState: r.signedIn ? storageState : undefined };
         inputs.push({ ...base, ...(await measureJsContents(ctx, r.url, entry)) });
       } catch (e) {
         logStack(e);
@@ -395,6 +409,20 @@ export async function runCheck(options) {
     : path.join(repoRoot, 'scripts', 'perf', 'perf.config.mjs');
   const cfg = await loadConfig(configPath);
   const plan = planRows(cfg, options.only);
+  // EZD-1998: the seeded project and the signed-in session for the real field pages.
+  if (options.project !== undefined && !PROJECT_ID.test(options.project)) {
+    throw new UsageError(`--project ${options.project} is not a project id`);
+  }
+  for (const r of plan) {
+    // Only the project's pages open signed in; the other pages (sign-in among them) are measured signed out.
+    r.signedIn = typeof r.url === 'string' && r.url.includes(PROJECT_TOKEN);
+    r.url = fillUrl(r.url, options.project);
+  }
+  let storageState;
+  if (options.storageState !== undefined) {
+    storageState = path.resolve(cwd, options.storageState);
+    if (!existsSync(storageState)) throw new UsageError(`--storage-state ${storageState} does not exist`);
+  }
   const panUrl = options.panUrl ?? cfg.panUrl;
   const outDir = options.outDir ? path.resolve(cwd, options.outDir) : path.join(cwd, 'perf-results');
   const profile = PROFILES[cfg.profile];
@@ -432,7 +460,7 @@ export async function runCheck(options) {
     browser = await chromium.launch({ headless: true });
     results.browser = { name: 'chromium', version: browser.version(), webglRenderer: null };
     results.browser.webglRenderer = await readWebglRenderer(browser);
-    const inputs = await collect(browser, profile, baseUrl, panUrl, plan);
+    const inputs = await collect(browser, profile, baseUrl, panUrl, plan, storageState);
     const { rows, pass } = evaluate(inputs, BUDGETS, cfg.profile);
     results.measurements = rows;
     results.pass = pass;
