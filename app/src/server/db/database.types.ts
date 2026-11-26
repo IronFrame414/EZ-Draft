@@ -1481,6 +1481,26 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"translation": {
+                  Row: {
+                    "created_at": string,"drafted_at": string | null,"id": string,"phrase_en": string,"tenant_id": string,"text_es": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"drafted_at"?: string | null,"id"?: string,"phrase_en": string,"tenant_id": string,"text_es"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"drafted_at"?: string | null,"id"?: string,"phrase_en"?: string,"tenant_id"?: string,"text_es"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "translation_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"user_ai_key": {
                   Row: {
                     "app_user_id": string,"ciphertext": string,"created_at": string,"last4": string,"secret_version": number,"tenant_id": string,"updated_at": string
