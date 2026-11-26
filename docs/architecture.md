@@ -690,6 +690,7 @@ EZD-020 (vault/plans/EZD-020.md Steps 1-4); 11 Performance (Budgets Download siz
 | `catalog-drawer/` | catalog drawer | EZD-1601 |
 | `reference/` | reference drawing in Plan | EZD-901b |
 | `my-profile/` | My profile dialog | EZD-108 |
+| `new-project/` | New project wizard, through `newProjectModule` (`components/projects/NewProjectLoader.tsx`) when New project is opened | EZD-1999 |
 | `notification-panel/` | the bell's notification list | EZD-332 |
 | `template-picker/` | Template picker in New project step 2 | EZD-221b |
 

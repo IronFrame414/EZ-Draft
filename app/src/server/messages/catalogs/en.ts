@@ -1797,6 +1797,8 @@ export const en = {
   'office.new_project.template_accepts':
     'Accepts 12\'6", 12\' 6 1/2", 150" or 12.5\'. Fractions to 1/16".',
   'office.new_project.template_load_failed': "Couldn't load the templates.",
+  // EZD-1999: the New project wizard's code did not download (wording for Josh, assumptions EZD-1999).
+  'office.new_project.load_failed': "Couldn't open New project. Try again.",
   'office.new_project.settings_title': 'Project settings',
   'office.new_project.units': 'Units',
   'office.new_project.units_value': 'Imperial',
