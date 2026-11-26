@@ -5,6 +5,7 @@
 // numbers are sample data, never defaults. Answers to open questions are in vault/build/assumptions.md
 // (EZD-116). Lengths are stored in inches; percents, minutes, days and counts as numbers.
 import { BATH_CLEARANCE_CODE_MINIMUMS } from '@ezdraft/geometry/checks';
+import { ROOM_TYPES } from '@ezdraft/geometry/schema';
 import type { MessageKey } from '../../server/messages/catalog';
 import {
   DEVICE_CACHE_BUDGET_DEFAULT_MB,
@@ -54,7 +55,8 @@ export type DefaultType =
   | 'switch' // on or off
   | 'scales' // a set of the detail scales
   | 'shortcuts' // EZD-222: the key map changes, { <command>: <key> } (lib/defaults/shortcuts.ts)
-  | 'values'; // a set of named values edited in a popover (Q-0710); fields still owed by Josh
+  | 'factor' // EZD-509: a number above 0 and at most 1 (the lumen method's CU and LLF)
+  | 'values'; // a set of named values edited in a popover (Q-0710); stored only once its fields are named
 
 export type LengthRange = { min: number; max: number };
 export type ShortcutMap = Readonly<Record<string, string>>;
@@ -81,6 +83,8 @@ export type DefaultRow = {
   refusal?: MessageKey;
   // EZD-415: a length that cannot be 0 outside the always-positive groups (values.ts lengthKind).
   positive?: boolean;
+  // EZD-509 (Q-0710): a 'values' row's named fields, each a number above 0; a 'values' row without them is not stored.
+  fields?: readonly string[];
 };
 
 // Q-0207: dimension rounding choices (assumption Q-0713 (a)).
@@ -330,12 +334,29 @@ export const DEFAULTS_REGISTRY: readonly DefaultRow[] = [
     unit: 'in',
     default: null,
   }),
+  // EZD-509 (S05 Decision 6; Q-0710; Q-0762): the foot-candle target per room type, one field per room type, empty
+  // until the owner enters it; and the lumen method's CU and LLF (assumption EZD-509), owner-entered.
   row({
     key: 'light_targets',
     group: 'ceilings',
     label: L('light_targets'),
     hint: H('light_targets'),
     type: 'values',
+    default: null,
+    fields: ROOM_TYPES,
+  }),
+  row({
+    key: 'light_cu',
+    group: 'ceilings',
+    label: L('light_cu'),
+    type: 'factor',
+    default: null,
+  }),
+  row({
+    key: 'light_llf',
+    group: 'ceilings',
+    label: L('light_llf'),
+    type: 'factor',
     default: null,
   }),
   // Electrical
@@ -509,8 +530,9 @@ export function defaultRow(key: string): DefaultRow | undefined {
 
 // Keys that can be stored in tenant.defaults (every row except fixed and the popover rows whose fields are
 // still owed). The migration holds the same list (registry-sql.test.ts).
+// EZD-509: a 'values' row is stored once its fields are named (Light target per room type; Bath clearances not yet).
 export const STORABLE_KEYS: readonly string[] = DEFAULTS_REGISTRY.filter(
-  (r) => r.type !== 'fixed' && r.type !== 'values',
+  (r) => r.type !== 'fixed' && (r.type !== 'values' || r.fields !== undefined),
 ).map((r) => r.key);
 
 export const PER_PROJECT_KEYS: readonly string[] = DEFAULTS_REGISTRY.filter((r) => r.perProject).map(

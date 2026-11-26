@@ -39,6 +39,9 @@ const jsonType = (type: string) =>
     scales: 'array',
     length_range: 'object',
     shortcuts: 'object',
+    // EZD-509: CU and LLF; the light target per room type.
+    factor: 'number',
+    values: 'object',
   })[type];
 
 describe('EZD-116 registry and migration key lists', () => {

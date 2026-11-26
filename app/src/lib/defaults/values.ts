@@ -59,6 +59,11 @@ export function refusalKey(row: DefaultRow): MessageKey {
       return 'office.defaults.error.count';
     case 'shortcuts':
       return 'office.defaults.error.shortcuts';
+    // EZD-509: CU and LLF; each foot-candle target.
+    case 'factor':
+      return 'office.defaults.error.factor';
+    case 'values':
+      return 'office.defaults.error.above_zero';
     default:
       return 'office.defaults.error.choice';
   }
@@ -102,6 +107,19 @@ export function checkValue(row: DefaultRow, v: unknown): CheckResult {
     // EZD-222: known commands, key text or '' (cleared), no browser key, no key shared in a view.
     case 'shortcuts':
       return checkOverrides(v) === null ? OK : no;
+    // EZD-509: above 0, at most 1.
+    case 'factor':
+      return typeof v === 'number' && Number.isFinite(v) && v > 0 && v <= 1 ? OK : no;
+    // EZD-509 (Q-0710): only the row's named fields, each a number above 0; a row without fields is never stored.
+    case 'values': {
+      const fields = row.fields;
+      if (fields === undefined || !isObject(v)) return no;
+      return Object.entries(v).every(
+        ([k, n]) => fields.includes(k) && typeof n === 'number' && Number.isFinite(n) && n > 0,
+      )
+        ? OK
+        : no;
+    }
     default:
       return no;
   }
@@ -201,6 +219,13 @@ export function formValueOf(row: DefaultRow, v: DefaultValue | null): FormValue 
     // EZD-222: the changes, in command order.
     case 'shortcuts':
       return overridesOf(effectiveBindings(v));
+    // EZD-509: one text per field, '' while not set.
+    case 'values': {
+      const named: Record<string, unknown> = isObject(v) ? v : {};
+      return Object.fromEntries(
+        (row.fields ?? []).map((k) => [k, typeof named[k] === 'number' ? String(named[k]) : '']),
+      );
+    }
     default:
       return v === null || v === undefined ? '' : String(v);
   }
@@ -211,6 +236,12 @@ export type ParseResult = { ok: true; value: DefaultValue | null } | { ok: false
 function parseWhole(text: string): number | null {
   const s = text.trim().replace(/,/g, '');
   return /^\d+$/.test(s) ? Number(s) : null;
+}
+
+// EZD-509: a plain decimal (12, 0.6, .8), or null.
+function parseDecimal(text: string): number | null {
+  const s = text.trim();
+  return /^(?:\d+(?:\.\d*)?|\.\d+)$/.test(s) ? Number(s) : null;
 }
 
 function parseLen(row: DefaultRow, text: string): number | null {
@@ -237,6 +268,18 @@ export function parseFormValue(row: DefaultRow, f: FormValue): ParseResult {
     const map = f as ShortcutMap;
     return Object.keys(map).length === 0 ? { ok: true, value: null } : done(map);
   }
+  // EZD-509: the fields with a value; none is null (the key is removed).
+  if (row.type === 'values') {
+    if (typeof f !== 'object' || f === null || Array.isArray(f)) return no;
+    const out: Record<string, number> = {};
+    for (const [k, text] of Object.entries(f as Readonly<Record<string, string>>)) {
+      if (typeof text !== 'string' || text.trim() === '') continue;
+      const n = parseDecimal(text);
+      if (n === null) return no;
+      out[k] = n;
+    }
+    return Object.keys(out).length === 0 ? { ok: true, value: null } : done(out);
+  }
   if (typeof f !== 'string') return no;
   if (f.trim() === '') return { ok: true, value: null };
   switch (row.type) {
@@ -259,6 +302,11 @@ export function parseFormValue(row: DefaultRow, f: FormValue): ParseResult {
     }
     case 'choice':
       return done(f);
+    // EZD-509: CU and LLF as typed decimals (0.6, .8).
+    case 'factor': {
+      const n = parseDecimal(f);
+      return n === null ? no : done(n);
+    }
     default:
       return no;
   }

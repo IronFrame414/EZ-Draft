@@ -678,6 +678,8 @@ export function ProjectEditor({
   // as a share of the tile, for the RCP, the inspector, the legend and the tools; half a tile while not read.
   const actMinShare = useDefault(sessionDefaults, editorDefaults.actMinShare);
   const actMinShareRef = useRef(actMinShare);
+  // EZD-509: the light target per room type, CU and LLF for Auto-layout cans.
+  const autoLayoutDefaults = useDefault(sessionDefaults, editorDefaults.autoLayout);
   useEffect(() => {
     actMinShareRef.current = actMinShare;
   }, [actMinShare]);
@@ -1595,7 +1597,26 @@ export function ProjectEditor({
               canEdit={canEdit}
               {...(readScan === undefined ? {} : { readScan })}
             />
-            <rcp.Lighting surface={surface} canEdit={mayEdit} />
+            <rcp.Lighting
+              surface={surface}
+              canEdit={mayEdit}
+              // EZD-509: Auto-layout cans, above Switching zones; it places through the routed store like the tools.
+              autoLayout={
+                routedStore === null || phase === null ? undefined : (
+                  <rcp.AutoLayout
+                    store={routedStore}
+                    selection={selection}
+                    floors={floors ?? undefined}
+                    surface={surface}
+                    canEdit={mayEdit}
+                    defaults={autoLayoutDefaults}
+                    newId={newObjectId}
+                    newStatus={() => phase.newObjectStatus()}
+                    actMinShare={actMinShare}
+                  />
+                )
+              }
+            />
             <rcp.FixtureSchedule
               store={session.store}
               floors={floors ?? undefined}

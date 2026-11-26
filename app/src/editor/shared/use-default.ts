@@ -34,7 +34,7 @@ const COUNTERTOP_KEYS = [
   'countertop_seat_width',
 ];
 
-/** The six Defaults the editor page reads. */
+/** The Defaults the editor page reads. */
 export const editorDefaults = {
   // EZD-407: the "Cabinet fit" tolerance for the fit chip; null while not set.
   fitTolerance: (d) => numberOrNull(d['cabinet_fit_tolerance']),
@@ -51,6 +51,18 @@ export const editorDefaults = {
   actMinShare: (d) => {
     const v = d['act_min_border'];
     return v === '1/4' ? 1 / 4 : v === '1/3' ? 1 / 3 : 1 / 2;
+  },
+  // EZD-509 (S05 Decision 6): the light target per room type, CU and LLF auto-layout reads; null while Not set.
+  autoLayout: (d) => {
+    const targets = d['light_targets'];
+    return {
+      lightTargets:
+        typeof targets === 'object' && targets !== null && !Array.isArray(targets)
+          ? (targets as Record<string, number>)
+          : null,
+      cu: numberOrNull(d['light_cu']),
+      llf: numberOrNull(d['light_llf']),
+    };
   },
   // One reader for all eight countertop Defaults (one hook instead of eight keeps the editor route in its budget).
   countertopDefaults: (d): Record<string, number | null> =>

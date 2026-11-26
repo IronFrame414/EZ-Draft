@@ -65,6 +65,7 @@ import {
   framingLineReceiver,
   type FramingToolDeps,
 } from '../tools/framing-tool';
+import { autoLayoutDraftFor } from './auto-layout-draft';
 import { ceilingShapeItems, ceilingTagItems, shapeDraftItems } from './ceiling-shapes';
 import {
   shapeDrawingFor,
@@ -87,6 +88,8 @@ export { switchZoneReceiver, zoneDrawingFor } from '../tools/switch-zone-tool';
 export { ActGridInspector, ActLegend } from '../tools/ActGridPanel';
 // EZD-514: the framing line tool's page drawing (the inspector's Framing known section sets its room).
 export { framingDrawingFor } from '../tools/framing-tool';
+// EZD-509: the Auto-layout cans panel (in the Lighting section).
+export { AutoLayout } from './AutoLayout';
 // EZD-513: the Soffit, tray, coffer card and the two tools' receivers.
 export { ShapeChooser } from './ShapeChooser';
 export { tagReceiver } from './shape-tool';
@@ -301,6 +304,25 @@ export function zoneItems(
       items.push(...dimmerMark(zoneLabelPoint(data.geometry.boundary), o.id));
   }
   return items;
+}
+
+/** EZD-509: the auto-layout preview's object id (a ghost, never a model object, so a click never selects it). */
+export const AUTO_LAYOUT_DRAFT_ID = 'auto-layout-draft';
+/** EZD-509: a ghost can's radius in model inches (a 6" can). */
+export const AUTO_LAYOUT_GHOST_RADIUS_IN = 3;
+
+/** EZD-509: the cans auto-layout is showing: a dashed circle at each, not yet placed. */
+export function autoLayoutDraftItems(points: readonly Point[]): DrawingItem[] {
+  return points.map((center) => ({
+    kind: 'arc' as const,
+    role: 'hidden' as const,
+    layer: ZONE_LAYER,
+    objectId: AUTO_LAYOUT_DRAFT_ID,
+    center,
+    radius: AUTO_LAYOUT_GHOST_RADIUS_IN,
+    startAngle: 0,
+    endAngle: 360,
+  }));
 }
 
 /** A half-drawn zone: an open dashed line through its corners. */
@@ -541,6 +563,8 @@ export function rcpList(
   zoneDraft: readonly Point[] = [],
   // EZD-513: the corners of the soffit, tray, coffer or crown being drawn.
   shapeDraft: readonly Point[] = [],
+  // EZD-509: the cans auto-layout is showing.
+  cansDraft: readonly Point[] = [],
 ): DrawingList | null {
   if (floor === null) return null;
   const flagged = flaggedCeilingIds(objects, floor.level, checks);
@@ -586,6 +610,7 @@ export function rcpList(
   // EZD-513: added after the floor list's dimensions are left out, so the edge dimensions stay.
   items.push(...ceilingShapeItems(objects, floor.level, rooms), ...shapeDraftItems(shapeDraft));
   items.push(...ceilingTagItems(objects, floor.level));
+  items.push(...autoLayoutDraftItems(cansDraft));
   return { level: floor.level, items, omitted: [] };
 }
 
@@ -610,8 +635,9 @@ export function rcpView(
   checks: RcpChecks = NO_CHECKS,
   zoneDraft: readonly Point[] = [],
   shapeDraft: readonly Point[] = [],
+  cansDraft: readonly Point[] = [],
 ): SurfaceView {
-  const list = rcpList(floor, objects, checks, zoneDraft, shapeDraft);
+  const list = rcpList(floor, objects, checks, zoneDraft, shapeDraft, cansDraft);
   const rcp = buildPlanBatches(list);
   return { list, batches: surface === 'both' ? [...greyedBatches(floor), ...rcp] : rcp };
 }
@@ -629,16 +655,20 @@ export function showRcp(
   const zones = zoneDrawingFor(surface);
   // EZD-513: and again whenever the outline being drawn changes.
   const shapes = shapeDrawingFor(surface);
+  // EZD-509: and again whenever the auto-layout preview changes.
+  const cans = autoLayoutDraftFor(surface);
   const show = () =>
     plan.setSurface(shown, (floor, objects, sf) =>
-      rcpView(floor, objects, sf, checks, zones.get().points, shapes.get().points),
+      rcpView(floor, objects, sf, checks, zones.get().points, shapes.get().points, cans.get()),
     );
   show();
   const offZones = zones.subscribe(show);
   const offShapes = shapes.subscribe(show);
+  const offCans = cans.subscribe(show);
   return () => {
     offZones();
     offShapes();
+    offCans();
   };
 }
 

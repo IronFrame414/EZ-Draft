@@ -241,3 +241,13 @@
     min-height: var(--ez-touch-target);
   }
 }
+
+/* EZD-509 (Q-0710): the popover under a 'values' row, one field per value. */
+.valuesPopover {
+  margin: 4px 0 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  box-shadow: var(--ez-shadow-floating);
+}
