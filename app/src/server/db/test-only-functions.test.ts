@@ -228,6 +228,8 @@ describe('EZD-323 test-only database functions', () => {
       // EZD-302: the import job reads the project's source files and writes import_session rows (service_role writes only).
       'app/src/server/jobs/handlers/import.ts',
       'app/src/server/jobs/handlers/notification-email.ts',
+      // EZD-715: the PDF export reads the project's model and submittal profile and writes the set PDFs to the exports bucket (no member write policy; 08 Exports).
+      'app/src/server/jobs/handlers/pdf-export.ts',
       // EZD-124: the project purge lists a deleted project's files (list_project_purge_files, service_role only) and removes them, sent files included (Q-0700 decisions 03).
       'app/src/server/jobs/handlers/project-purge.ts',
       // EZD-901a: the reference conversion reads the project's DXF from the sources bucket, writes its layer buffers to the jobs bucket and writes reference_drawing rows (no member write policy; S11).

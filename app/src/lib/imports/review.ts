@@ -107,7 +107,31 @@ export type ReviewCabinet = {
   };
 };
 
-export type ReviewItem = ReviewWall | ReviewOpening | ReviewRoom | ReviewCeilingSlope | ReviewCabinet;
+/**
+ * EZD-916 (S12 Order report import "Reads codes, sizes, finishes and order line numbers; lines become the reference
+ * for tags"; Data shown "Order report lines: line no, code, width, face, finish"; Decisions 2 "shown in Import review
+ * for the user to confirm"): one line of a supplier's 2020 order report. Width in inches; face, finish and width are
+ * null when the report does not give them. It has no plan position.
+ */
+export type ReviewOrderLine = {
+  id: string;
+  type: 'order_line';
+  number: number;
+  confidence: number;
+  lineNo: number;
+  code: string;
+  width: number | null;
+  face: string | null;
+  finish: string | null;
+};
+
+export type ReviewItem =
+  | ReviewWall
+  | ReviewOpening
+  | ReviewRoom
+  | ReviewCeilingSlope
+  | ReviewCabinet
+  | ReviewOrderLine;
 
 /**
  * The high-confidence cutoff (%) used while the company's Defaults value is Not set. S15d makes the cutoff a
@@ -178,6 +202,8 @@ export function reviewSummary(
     else if (item.type === 'ceiling_slope') continue;
     // EZD-915: a cabinet counts with "fixtures + cabinets" (S02 Controls Accepted summary).
     else if (item.type === 'cabinet') accepted.fixtures += 1;
+    // EZD-916: an order line is not model data, so it counts in no plan total.
+    else if (item.type === 'order_line') continue;
     else if (item.kind === 'door') accepted.doors += 1;
     else accepted.windows += 1;
   }
@@ -315,6 +341,8 @@ export function roomGroups(items: readonly ReviewItem[]): RoomGroup[] {
       roomId = item.roomId !== null && groups.has(item.roomId) ? item.roomId : null;
     // EZD-915: a cabinet goes with the room its centre is in or on.
     else if (item.type === 'cabinet') roomId = rooms.find((rm) => inRoom(item.center, rm))?.id ?? null;
+    // EZD-916: an order line has no plan position, so it is in no room.
+    else if (item.type === 'order_line') roomId = null;
     else if (item.hostWallId !== null && wallRoom.has(item.hostWallId)) roomId = wallRoom.get(item.hostWallId) ?? null;
     else roomId = rooms.find((rm) => on(item.center, rm, ROOM_EDGE_REACH_IN))?.id ?? null;
     groups.get(roomId)?.push(item);
@@ -346,16 +374,19 @@ export function itemLabel(item: ReviewItem, items: readonly ReviewItem[]): strin
   if (item.type === 'ceiling_slope') return `Ceiling slope, ${item.highSide}`;
   // EZD-915: a cabinet by its label (S02 States "cabinet labels read (W3030, B24)").
   if (item.type === 'cabinet') return `Cabinet ${item.code}`;
+  // EZD-916: "Line #7 · SB36" (wording for Josh to confirm, assumptions EZD-916).
+  if (item.type === 'order_line') return `Line #${item.lineNo} · ${item.code}`;
   return item.kind === 'door' ? `Door D${item.number}` : `Window W${item.number}`;
 }
 
-export type ItemTypeWord = 'Wall' | 'Door' | 'Window' | 'Room' | 'Ceiling' | 'Cabinet';
+export type ItemTypeWord = 'Wall' | 'Door' | 'Window' | 'Room' | 'Ceiling' | 'Cabinet' | 'Order line';
 
 export function itemTypeWord(item: ReviewItem): ItemTypeWord {
   if (item.type === 'wall') return 'Wall';
   if (item.type === 'room') return 'Room';
   if (item.type === 'ceiling_slope') return 'Ceiling';
   if (item.type === 'cabinet') return 'Cabinet';
+  if (item.type === 'order_line') return 'Order line';
   return item.kind === 'door' ? 'Door' : 'Window';
 }
 
@@ -368,6 +399,7 @@ export function scanReads(item: ReviewItem): string {
   if (item.type === 'opening') return formatLength(item.width, PLAN_DISPLAY_DENOMINATOR);
   if (item.type === 'ceiling_slope') return slopeText(item);
   if (item.type === 'cabinet') return cabinetSizeText(item);
+  if (item.type === 'order_line') return orderLineText(item);
   return `${Math.round(item.areaSqIn / 144)} SF`;
 }
 
@@ -383,6 +415,17 @@ export function slopeText(s: { lowHeight: number; highHeight: number; pitchPer12
  */
 export function cabinetSizeText(c: { width: number; depth: number; height: number }): string {
   return [c.width, c.depth, c.height].map(formatInches).join(' × ');
+}
+
+/**
+ * EZD-916 (S12 Data shown "Order report lines: line no, code, width, face, finish"): what the report reads for a
+ * line, width (inches, as the catalog writes sizes, with the inch mark), face and finish, the ones it gives, e.g.
+ * '36" · FD + 2 doors · Shaker, White'.
+ */
+export function orderLineText(l: Pick<ReviewOrderLine, 'width' | 'face' | 'finish'>): string {
+  return [l.width === null ? null : `${formatInches(l.width)}"`, l.face, l.finish]
+    .filter((v): v is string => v !== null && v !== '')
+    .join(' · ');
 }
 
 export type CabinetCheckLine = {
@@ -421,6 +464,8 @@ export function sourceLine(files: readonly ReviewFile[]): string {
   if (!scan && files.length > 0 && files.every((f) => f.kind === 'pdf')) return 'PDF';
   // EZD-915: an import from supplier PDFs alone (wording for Josh to confirm, assumptions EZD-915).
   if (!scan && files.length > 0 && files.every((f) => f.kind === 'supplier_pdf')) return 'Supplier PDF';
+  // EZD-916: an import from order reports alone (wording for Josh to confirm, assumptions EZD-916).
+  if (!scan && files.length > 0 && files.every((f) => f.kind === 'order_report')) return 'Order report';
   // EZD-1418: rooms sent from the phone (S02 Entry points "source kind field_measure"; assumptions EZD-1418).
   if (!scan && files.length > 0 && files.every((f) => f.kind === 'field_measure')) return 'Field measure';
   const hasMesh = files.some((f) => f.kind === 'polycam_glb');

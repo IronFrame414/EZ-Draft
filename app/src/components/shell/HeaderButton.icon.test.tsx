@@ -110,6 +110,7 @@ const EXPECTED_ICONS = [
   'report',
   'roofing',
   'rotate_right',
+  'rule',
   'search',
   'select_all',
   'sell',

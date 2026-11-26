@@ -52,6 +52,8 @@ export function parseFix(item: ReviewItem, raw: unknown): ItemFix | null {
   if (item.type === 'ceiling_slope') return parseSlopeFix(r);
   // EZD-915: a supplier cabinet's size comes from its label; it is accepted or deleted, not fixed (assumptions).
   if (item.type === 'cabinet') return null;
+  // EZD-916: an order line is read from the report; it is accepted or deleted, not fixed (assumptions EZD-916).
+  if (item.type === 'order_line') return null;
   if (
     !Array.isArray(r.boundary) ||
     r.boundary.length !== item.boundary.length ||
@@ -89,7 +91,7 @@ export function applyFix(item: ReviewItem, fix: ItemFix | undefined): ReviewItem
     const c = f as CeilingSlopeFix;
     return { ...item, lowHeight: c.lowHeight, highHeight: c.highHeight, pitchPer12: c.pitchPer12 };
   }
-  if (item.type === 'cabinet') return item;
+  if (item.type === 'cabinet' || item.type === 'order_line') return item;
   const { boundary, keep } = f as RoomFix;
   const room = { ...item, boundary, areaSqIn: item.closed ? polygonArea(boundary) : item.areaSqIn };
   // EZD-311: a room kept out of square carries the gap it accepted to Finish import (closureOverride, EZD-313).
@@ -154,7 +156,8 @@ export function itemHandles(item: ReviewItem, items: readonly ReviewItem[]): Han
     ];
   }
   // EZD-312: a ceiling slope has no plan handle; it is fixed in the inspector.
-  if (item.type === 'ceiling_slope' || item.type === 'cabinet') return [];
+  // EZD-916: an order line is not on the plan.
+  if (item.type === 'ceiling_slope' || item.type === 'cabinet' || item.type === 'order_line') return [];
   return item.boundary.map((p, i) => ({ key: `corner${i}`, point: p }));
 }
 
@@ -197,6 +200,8 @@ export function dragHandle(
   }
   // EZD-915: a cabinet has no handles (handlesOf), so it is never dragged; its centre stands for an empty move.
   if (item.type === 'cabinet') return { center: copy(item.center), width: item.width };
+  // EZD-916: an order line has no handles either, and no position to stand for a move.
+  if (item.type === 'order_line') throw new Error('dragHandle: an order line has no handles');
   const i = Number(key.replace('corner', ''));
   const boundary = item.boundary.map((p, n) => (n === i ? copy(to) : copy(p)));
   // EZD-311: moving a corner keeps Keep the room out of square.

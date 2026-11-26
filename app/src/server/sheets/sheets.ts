@@ -12,7 +12,9 @@ import {
   defaultSheetSet,
   defaultSheetSetData,
   sheetsForSet,
+  withFloorSheets,
   type Sheet,
+  type SheetFloor,
   type SheetSetSummary,
 } from '../../lib/sheets/sheet-set';
 import type { Database } from '../db/database.types';
@@ -36,6 +38,8 @@ export async function loadProjectSheets(
 // (the lowest id if a save ever left two); a kind with none stored, or whose object does not parse, is the default
 // set. Read through the member's session so project and model_object RLS apply: another company's project, or one
 // outside the member's scope, reads as null.
+// EZD-703 (Q-0509): each floor after the lowest adds its copies of the floor-plan sheets (withFloorSheets), and a set
+// returns its stored viewports and changed-viewport sheets (null while it has none).
 export async function loadProjectSheetSets(
   client: SupabaseClient<Database>,
   projectId: string,
@@ -52,10 +56,12 @@ export async function loadProjectSheetSets(
     .from('model_object')
     .select('object_id, type, schema_version, data')
     .eq('project_id', projectId)
-    .eq('type', 'sheet_set')
+    .in('type', ['sheet_set', 'floor'])
     .eq('deleted', false)
     .order('object_id');
   if (rows.error) throw rows.error;
+  // EZD-703 (Q-0509): the project's floors, by order then id (as the editor lists them), for the floor-plan copies.
+  const floorRows: (SheetFloor & { order: number })[] = [];
   const stored = new Map<SheetSetKind, { id: string; data: SheetSetData }>();
   for (const row of rows.data) {
     const parsed = parseStoredObject({
@@ -64,10 +70,17 @@ export async function loadProjectSheetSets(
       schema_version: row.schema_version,
       data: row.data,
     });
+    if (parsed.ok && parsed.object.type === 'floor') {
+      floorRows.push({ id: parsed.object.id, name: parsed.object.data.name, order: parsed.object.data.order });
+      continue;
+    }
     if (!parsed.ok || parsed.object.type !== 'sheet_set') continue;
     const { id, data } = parsed.object;
     if (!stored.has(data.kind)) stored.set(data.kind, { id, data });
   }
+  const floors: SheetFloor[] = floorRows
+    .sort((a, b) => a.order - b.order || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+    .map(({ id, name }) => ({ id, name }));
   return SHEET_SET_KINDS.map((kind) => {
     const set = stored.get(kind);
     const d = set?.data ?? defaultSheetSetData(kind);
@@ -77,7 +90,9 @@ export async function loadProjectSheetSets(
       size: d.size,
       keyPlacement: d.keyPlacement,
       lastIssuedVersionId: d.lastIssuedVersionId,
-      sheets: sheetsForSet(kind, trades),
+      sheets: withFloorSheets(sheetsForSet(kind, trades), floors),
+      viewports: d.viewports ?? null,
+      viewportSheets: d.viewportSheets ?? null,
     };
   });
 }

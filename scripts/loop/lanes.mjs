@@ -18,7 +18,12 @@ export function impliedFiles(files, shared = SHARED_OK) {
 }
 
 // Files every builder appends to; git merges them with the union driver (.gitattributes), so they never clash.
+// EZD-1953: assumptions.md is now a generated index (vault/tools/assumptions-index.mjs) and builders record in their
+// own ticket file instead; it stays here, with its union merge, so a branch cut before the split still merges.
 export const SHARED_OK = new Set(['vault/build/assumptions.md']);
+// EZD-1953 (audit 2026-11-23 B6): each ticket records its assumptions in its own file, which no other lane writes, so
+// it needs no claim and is never drift.
+export const ownAssumptions = (id) => `vault/build/assumptions/${id}.md`;
 // Plus the files Josh allows two lanes to edit at once (config `shared_files`: the message catalogs, and since EZD-1941
 // docs/architecture.md and the generated database types, which the loop regenerates after the merge, never hand-merged). Two lanes may change such a file; the
 // second to finish takes in develop, resolves any conflict and passes the full check again before it merges.
@@ -94,7 +99,7 @@ export function placeholderCovers(placeholder, f) {
 // does not have unless it named the same new path, which is still a clash (EZD-1942).
 export function drift(changed, claims, self, shared = SHARED_OK, added = []) {
   const files = claims?.[self]?.files || [];
-  const mine = new Set(files);
+  const mine = new Set([...files, ownAssumptions(self)]);
   const placeholders = files.filter((f) => f.includes('<new>'));
   const isNew = new Set(added.map(normalize));
   const covered = (f) => isNew.has(f) && placeholders.some((p) => placeholderCovers(p, f));

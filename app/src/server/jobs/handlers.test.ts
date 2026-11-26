@@ -38,6 +38,7 @@ describe('EZD-009 job handlers', () => {
     const kinds = Object.keys(getHandlers()).sort();
     expect(kinds).toEqual([
       'ai_read',
+      'export',
       'field_task_draft',
       'import',
       'notification_email',

@@ -35,6 +35,8 @@ export type SupplierFile = {
   supplierName: string | null;
   supplierContactEmail: string | null;
   uploadedAt: string;
+  // EZD-916: an order report's confirmed lines; null for other kinds (0 before the report is read).
+  linesRead?: number | null;
 };
 
 export type SupplierFilesPanelProps = {
@@ -372,12 +374,7 @@ export function SupplierFilesPanel({
                   <span className={styles.rowName} title={file.originalName}>
                     {file.originalName}
                   </span>
-                  <span className={styles.rowSummary} data-testid="supplier-file-summary">
-                    {t('office.supplier.row_summary', {
-                      type: t(KIND_KEYS[file.kind] ?? 'office.supplier.kind_supplier_pdf'),
-                      size: sizeInMb(file.sizeBytes),
-                    })}
-                  </span>
+                  <SupplierFileSummary file={file} />
                 </span>
               </button>
             </li>
@@ -397,6 +394,29 @@ export function SupplierFilesPanel({
         </p>
       ) : null}
     </div>
+  );
+}
+
+// A file row's summary: type and size; EZD-916: an order report with confirmed lines reads "{n} lines read" (S12 File
+// row, board "22 lines read").
+export function SupplierFileSummary({
+  file,
+}: {
+  file: Pick<SupplierFile, 'kind' | 'sizeBytes' | 'linesRead'>;
+}): ReactElement {
+  const t = useT();
+  return (
+    <span className={styles.rowSummary} data-testid="supplier-file-summary">
+      {file.kind === 'order_report' && (file.linesRead ?? 0) > 0
+        ? t('office.supplier.row_lines', {
+            type: t('office.supplier.kind_order_report'),
+            n: file.linesRead ?? 0,
+          })
+        : t('office.supplier.row_summary', {
+            type: t(KIND_KEYS[file.kind] ?? 'office.supplier.kind_supplier_pdf'),
+            size: sizeInMb(file.sizeBytes),
+          })}
+    </span>
   );
 }
 

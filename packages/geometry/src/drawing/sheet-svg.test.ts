@@ -118,3 +118,70 @@ describe('EZD-702b sheetSvg', () => {
     expect(sheetSvg(list([]), { scale: 1, area: AREA })).toEqual({ markup: '', shown: [] });
   });
 });
+
+// EZD-703 (A2.0 Demo, phase-07 EZD-703 "Existing, Demo and Proposed views driven by object status"): what is removed is
+// dashed with no poché; what stays keeps its solid line and poché.
+describe('EZD-703 sheetSvg demo items', () => {
+  it('draws demo lines dashed and leaves out demo poché', () => {
+    const square = [
+      { x: 0, y: 0 },
+      { x: 4, y: 0 },
+      { x: 4, y: 4 },
+    ];
+    const svg = sheetSvg(
+      list([
+        { kind: 'fill', layer: 'existing', objectId: 'E', points: square },
+        { kind: 'line', layer: 'existing', objectId: 'E', role: 'cut', from: { x: 0, y: 0 }, to: { x: 4, y: 0 } },
+        { kind: 'fill', layer: 'demo', objectId: 'D', points: square },
+        { kind: 'line', layer: 'demo', objectId: 'D', role: 'cut', from: { x: 0, y: 4 }, to: { x: 4, y: 4 } },
+      ]),
+      { scale: 1, area: AREA },
+    );
+    const parts = svg.markup.split('/>');
+    const of = (id: string, tag: string) => parts.filter((p) => p.includes(`<${tag}`) && p.includes(`data-object-id="${id}"`));
+    expect(of('E', 'polygon')).toHaveLength(1);
+    expect(of('E', 'line')[0]).not.toContain('stroke-dasharray');
+    expect(of('D', 'polygon')).toHaveLength(0);
+    expect(of('D', 'line')[0]).toContain('stroke-dasharray');
+    expect(svg.shown).toEqual(['D', 'E']);
+  });
+});
+
+// EZD-705 (vault/build/assumptions/EZD-705.md settled "Line weights by role": cut 0.50 mm, beyond 0.18 mm, hidden
+// 0.25 mm dashed, dimensions and leaders 0.13 mm; 09h "minimum 3/32\" on 24×36").
+describe('EZD-705 sheetSvg print rules', () => {
+  it('pens are the settled widths at every scale', () => {
+    expect(SHEET_PEN_IN.cut * 25.4).toBeCloseTo(0.5, 9);
+    expect(SHEET_PEN_IN.beyond * 25.4).toBeCloseTo(0.18, 9);
+    expect(SHEET_PEN_IN.hidden * 25.4).toBeCloseTo(0.25, 9);
+    expect(SHEET_PEN_IN.dimension * 25.4).toBeCloseTo(0.13, 9);
+    for (const scale of [QUARTER_INCH_SCALE, 0.5 / 12]) {
+      const svg = sheetSvg(
+        list([{ kind: 'line', layer: 'existing', objectId: 'A', role: 'cut', from: { x: 0, y: 0 }, to: { x: 96, y: 0 } }]),
+        { scale, area: AREA },
+      );
+      expect(Number(attr(svg.markup, 'stroke-width')[0])).toBeCloseTo(0.5 / 25.4, 5);
+    }
+  });
+
+  it('no text prints smaller than 3/32"', () => {
+    const svg = sheetSvg(
+      list([
+        {
+          kind: 'text',
+          layer: 'rooms',
+          objectId: 'T',
+          text: 'tiny',
+          font: 'dm-mono-400',
+          sizePt: 4,
+          widthPt: 10,
+          at: { x: 0, y: 0 },
+          rotationDeg: 0,
+          align: 'center',
+        },
+      ]),
+      { scale: QUARTER_INCH_SCALE, area: AREA },
+    );
+    expect(Number(attr(svg.markup, 'font-size')[0])).toBeCloseTo(3 / 32, 6);
+  });
+});

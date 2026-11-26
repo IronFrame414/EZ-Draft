@@ -74,7 +74,9 @@ describe('EZD-116 Defaults page markup', () => {
     expect(attr(openTag(html, 'defaults-input-countertop_increment'), 'value')).toBe('1/2&quot;');
     expect(attr(openTag(html, 'defaults-input-cabinet_autofill_increment'), 'value')).toBe('4&quot;');
     expect(attr(openTag(html, 'defaults-input-waste_tile'), 'value')).toBe('10');
-    expect(html).toContain('data-testid="defaults-not-set-light_targets"');
+    // EZD-509: the light target row reads its room count with Edit (Q-0710 popover), no longer Not set.
+    expect(html).toContain('data-testid="defaults-value-light_targets"');
+    expect(html).toContain('data-testid="defaults-edit-light_targets"');
   });
 
   it('AC-5: only the edited keys go to Save; a refused row has an error and nothing to send', () => {
@@ -115,5 +117,23 @@ describe('EZD-116 Defaults page markup', () => {
     expect(html).toContain('data-testid="defaults-load-error"');
     expect(html).toContain("Couldn&#x27;t load defaults.");
     expect(html).toContain('Retry');
+  });
+
+  // EZD-509 (Q-0710 popover; vault/build/assumptions/EZD-509.md): the light target fields and CU go to Save as numbers;
+  // empty fields are left out; a 0 is refused on the row.
+  it('EZD-509: the light target popover and CU save as numbers; a 0 target is refused', () => {
+    const saved = {};
+    const savedForm = formOf(saved);
+    const targets = savedForm.light_targets as Readonly<Record<string, string>>;
+    const ok = checkForm(saved, savedForm, {
+      ...savedForm,
+      light_targets: { ...targets, kitchen: '50', other: '30' },
+      light_cu: '0.6',
+    });
+    expect(ok.errors).toEqual({});
+    expect(ok.changes).toEqual({ light_targets: { kitchen: 50, other: 30 }, light_cu: 0.6 });
+    const bad = checkForm(saved, savedForm, { ...savedForm, light_targets: { ...targets, bath: '0' } });
+    expect(bad.errors).toEqual({ light_targets: 'office.defaults.error.above_zero' });
+    expect(bad.changes).toEqual({});
   });
 });

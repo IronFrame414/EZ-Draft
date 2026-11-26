@@ -58,3 +58,54 @@ describe('EZD-726 sheet_set schema', () => {
     expect(parseModelDocument(doc).ok).toBe(true);
   });
 });
+
+// EZD-703 (03b rule 3 "viewports ... are model objects"; 03c sheet "viewports, scale"; S13 Rail: Viewport; 09h
+// "Scales per viewport"): a set holds its viewports, each on a sheet number with its kind, floor, view and scale.
+describe('EZD-703 sheet_set viewports', () => {
+  const VP = '55555555-5555-4555-8555-555555555555';
+  const VP2 = '66666666-6666-4666-8666-666666666666';
+  const vp = (over: Record<string, unknown> = {}) => ({
+    id: VP,
+    sheet: 'A1.0',
+    kind: 'plan',
+    level: FLOOR,
+    view: 'existing',
+    scale: '1/4',
+    ...over,
+  });
+
+  it('a set without viewports is still valid', () => {
+    expect(ok(permit())).toBe(true);
+  });
+
+  it('holds plan and elevation viewports in the Existing, Demo and Proposed views', () => {
+    expect(ok({ ...permit(), viewports: [] })).toBe(true);
+    expect(ok({ ...permit(), viewports: [vp(), vp({ id: VP2, sheet: 'A4.0', kind: 'elevation', scale: '1/2' })] })).toBe(true);
+    expect(ok({ ...permit(), viewports: [vp({ view: 'demo' })] })).toBe(true);
+    expect(ok({ ...permit(), viewports: [vp({ view: 'proposed', level: null })] })).toBe(true);
+    expect(ok({ ...permit(), viewports: [vp({ view: 'new' })] })).toBe(false);
+    expect(ok({ ...permit(), viewports: [vp({ kind: 'section' })] })).toBe(false);
+  });
+
+  it('takes the architectural scales and NTS only', () => {
+    for (const scale of ['1/8', '3/16', '1/4', '3/8', '1/2', '3/4', '1', '1-1/2', '3', 'nts'])
+      expect(ok({ ...permit(), viewports: [vp({ scale })] })).toBe(true);
+    expect(ok({ ...permit(), viewports: [vp({ scale: '1/5' })] })).toBe(false);
+    expect(ok({ ...permit(), viewports: [vp({ scale: 0.25 })] })).toBe(false);
+  });
+
+  it('refuses a repeated viewport id, a bad floor id, an empty sheet and extra fields', () => {
+    expect(ok({ ...permit(), viewports: [vp(), vp({ id: VP.toUpperCase(), sheet: 'A2.0' })] })).toBe(false);
+    expect(ok({ ...permit(), viewports: [vp({ level: 'Floor 1' })] })).toBe(false);
+    expect(ok({ ...permit(), viewports: [vp({ sheet: '' })] })).toBe(false);
+    expect(ok({ ...permit(), viewports: [{ ...vp(), x: 1 }] })).toBe(false);
+  });
+});
+
+describe('EZD-703 sheet_set changed-viewport sheets', () => {
+  it('lists each changed sheet once', () => {
+    expect(ok({ ...permit(), viewports: [], viewportSheets: ['A1.0', 'A2.0'] })).toBe(true);
+    expect(ok({ ...permit(), viewportSheets: ['A1.0', 'A1.0'] })).toBe(false);
+    expect(ok({ ...permit(), viewportSheets: [''] })).toBe(false);
+  });
+});

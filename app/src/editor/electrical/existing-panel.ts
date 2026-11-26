@@ -10,9 +10,18 @@ import {
   CURRENT_SCHEMA_VERSION,
   EXISTING_APPLIANCE_KINDS,
   parseStoredObject,
+  roomAreaSqFt,
   type ExistingAppliance,
   type ObjectStatus,
+  type PanelLoadCalc,
+  type Point,
 } from '@ezdraft/geometry';
+import {
+  standardLoadCalc,
+  type LoadCalcKind,
+  type LoadCalcLoad,
+  type LoadCalcResult,
+} from '@ezdraft/geometry/electrical';
 import type { DirectoryCircuit, PanelLabel } from '../../lib/electrical/panel-read';
 import type { Change, Objects } from '../model/patches';
 import { assignChanges } from './circuits';
@@ -316,4 +325,115 @@ export function existingPanelChanges(
     for (const id of removed) changes.push({ id, value: null });
   }
   return { changes, panelId: key };
+}
+
+// EZD-607 (09a Inputs "square footage (from rooms) ... fixed appliances from catalog ratings (fallback to editable
+// standard defaults), existing panel data and circuits, existing large appliances"; vault/build/assumptions.md EZD-607):
+// the panel's load calc read from the model. The floor area is the typed one, else the sum of the rooms (demolished
+// rooms left out). The loads are the drawn fixtures, the panel's existing large appliances and the typed loads; a
+// load the AI read counts only once confirmed (EZD-606). Null when the panel has no load calc.
+
+/** The sum of the drawn rooms' areas, sq ft; null with no rooms. */
+export function roomsAreaSqFt(objects: Objects): number | null {
+  let sum = 0;
+  let any = false;
+  for (const v of objects.values()) {
+    if (v.type !== 'room') continue;
+    const d = v.data as { status?: ObjectStatus; geometry?: { boundary?: Point[] } };
+    if (d.status === 'demo' || d.geometry?.boundary === undefined) continue;
+    sum += roomAreaSqFt(d.geometry.boundary);
+    any = true;
+  }
+  return any ? sum : null;
+}
+
+// Fixture kinds that make load calc lines (assumptions EZD-607 "Which fixtures make which lines"); refrigerator and
+// washer are left out (09a). Panel appliances (EZD-606) map the same way; `ac` is cooling and a motor.
+const FIXTURE_LOAD: Readonly<Record<string, { kind: LoadCalcKind; motor?: boolean }>> = {
+  dishwasher: { kind: 'fixed_appliance' },
+  disposal: { kind: 'fixed_appliance', motor: true },
+  water_heater: { kind: 'fixed_appliance' },
+  dryer: { kind: 'dryer' },
+  range: { kind: 'range' },
+  cooktop: { kind: 'range' },
+};
+const APPLIANCE_LOAD: Readonly<Record<string, { kind: LoadCalcKind; motor?: boolean }>> = {
+  range: { kind: 'range' },
+  dryer: { kind: 'dryer' },
+  ac: { kind: 'cooling', motor: true },
+  water_heater: { kind: 'fixed_appliance' },
+};
+/** The fixture kinds that stand for a panel appliance kind: a drawn one replaces the panel entry. */
+const APPLIANCE_FIXTURES: Readonly<Record<string, readonly string[]>> = {
+  range: ['range', 'cooktop'],
+  dryer: ['dryer'],
+  ac: [],
+  water_heater: ['water_heater'],
+};
+
+/**
+ * The loads of the dwelling: the drawn fixtures (not demolished) that make lines, rated from the catalog or the
+ * default; the panel's existing large appliances whose kind has no drawn fixture; and the `loadCalc.loads[]`
+ * entries. An entry whose `sourceObjectId` is a fixture replaces that fixture's load. AI-read entries
+ * (`confirmed: false`) are left out.
+ */
+function dwellingLoads(objects: Objects, panelId: string, calc: PanelLoadCalc): LoadCalcLoad[] {
+  const entries = calc.loads.filter((l) => l.confirmed !== false);
+  const replaced = new Set(
+    entries.flatMap((l) => (l.sourceObjectId === undefined ? [] : [idKey(l.sourceObjectId)])),
+  );
+  const out: LoadCalcLoad[] = [];
+  const drawn = new Set<string>();
+  for (const [id, v] of objects) {
+    if (v.type !== 'fixture') continue;
+    const d = v.data as { status?: ObjectStatus; attributes?: { kind?: string } };
+    const kind = d.attributes?.kind;
+    if (d.status === 'demo' || kind === undefined) continue;
+    const map = FIXTURE_LOAD[kind];
+    if (map === undefined) continue;
+    drawn.add(kind);
+    if (replaced.has(idKey(id))) continue;
+    out.push({
+      id,
+      name: kind,
+      kind: map.kind,
+      applianceType: kind,
+      va: null,
+      ...(map.motor ? { motor: true } : {}),
+    });
+  }
+  for (const a of existingPanelInputs(objects, panelId).appliances) {
+    const map = APPLIANCE_LOAD[a.kind];
+    if (map === undefined || (APPLIANCE_FIXTURES[a.kind] ?? []).some((k) => drawn.has(k))) continue;
+    out.push({
+      id: `panel:${a.kind}`,
+      name: a.kind,
+      kind: map.kind,
+      applianceType: a.kind,
+      va: a.va,
+      ...(map.motor ? { motor: true } : {}),
+    });
+  }
+  return [...out, ...entries];
+}
+
+export function panelLoadCalc(
+  objects: Objects,
+  panelId: string | null,
+  defaults?: Readonly<Record<string, number>>,
+): LoadCalcResult | null {
+  const found = findPanel(objects, panelId);
+  if (found === null || panelId === null) return null;
+  const calc = (found[1] as PanelAttrs & { loadCalc?: PanelLoadCalc }).loadCalc;
+  if (calc === undefined) return null;
+  return standardLoadCalc({
+    floorAreaSqFt: calc.floorAreaSqFt ?? roomsAreaSqFt(objects),
+    smallApplianceCircuits: calc.smallApplianceCircuits,
+    laundryCircuits: calc.laundryCircuits,
+    loads: dwellingLoads(objects, panelId, calc),
+    overrides: calc.overrides,
+    ...(defaults === undefined ? {} : { defaults }),
+    ...(calc.largestMotorId === undefined ? {} : { largestMotorId: calc.largestMotorId }),
+    serviceAmps: existingPanelInputs(objects, panelId).serviceSize,
+  });
 }

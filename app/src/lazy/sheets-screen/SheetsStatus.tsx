@@ -1,11 +1,13 @@
 'use client';
 // EZD-702a (S13 Layout "status bar has no Existing/Proposed toggle and shows Sheet, Size, Scale, Revision, zoom";
 // board S13Sheets footer "Sheet A3.0 · 4 of 10", "Size 24 × 36", "Scale 3/4" = 1'-0"", "Revision Rev 1 draft", zoom on
-// the right). Scale is a viewport's (EZD-703); a sheet with no viewports shows a dash.
+// the right). Scale is a viewport's (EZD-703); a sheet with no viewports shows a dash, one whose viewports differ
+// AS NOTED.
 import type { ReactElement } from 'react';
 import { StatusItem } from '../../components/shell/StatusBar';
 import { useT } from '../../lib/messages';
 import { sheetPosition } from '../../lib/sheets/sheet-set';
+import { sheetScaleLabel } from '../../lib/sheets/viewport';
 import { sizeLabel, useRevisionLabel } from './sheet-labels';
 import { zoomPercent } from './SheetsCanvas';
 import type { SheetsScreen } from './sheets-screen-store';
@@ -33,7 +35,7 @@ export function SheetsStatusStart({ screen }: SheetsStatusProps): ReactElement |
         <span data-testid="status-sheet-size">{sizeLabel(set.size)}</span>
       </StatusItem>
       <StatusItem label="office.sheets.status.scale">
-        <span data-testid="status-sheet-scale">{t('office.sheets.scale_none')}</span>
+        <span data-testid="status-sheet-scale">{sheetScaleLabel(state.viewports) ?? t('office.sheets.scale_none')}</span>
       </StatusItem>
       <StatusItem label="office.sheets.status.revision">
         <span data-testid="status-sheet-revision">{rev}</span>

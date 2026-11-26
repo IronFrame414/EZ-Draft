@@ -23,10 +23,12 @@ export type SheetTitleBlockProps = {
   sheet: Pick<Sheet, 'number' | 'title'>;
   size: SheetSize;
   today: Date;
+  // EZD-703: the sheet's viewport scale; null with no viewport (AS NOTED).
+  scale?: string | null;
 };
 
-export function sheetTitleBlockMarkup({ titleBlock, set, sheet, size, today }: SheetTitleBlockProps): string {
-  return titleBlockSvg(sheetTitleBlockValues(titleBlock, set, sheet, today), titleBlockColumn(size));
+export function sheetTitleBlockMarkup({ titleBlock, set, sheet, size, today, scale }: SheetTitleBlockProps): string {
+  return titleBlockSvg(sheetTitleBlockValues(titleBlock, set, sheet, today, scale), titleBlockColumn(size));
 }
 
 export function SheetTitleBlock(props: SheetTitleBlockProps): ReactElement {

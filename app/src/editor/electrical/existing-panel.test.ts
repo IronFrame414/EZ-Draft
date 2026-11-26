@@ -4,17 +4,23 @@
 // from directory photo; user confirms), existing large appliances (range, dryer, AC, water heater)"; S06 Data shown
 // 2-pole "1-3"; vault/build/assumptions.md EZD-606). The read values are the stub recording's (Square D, 200 A,
 // 40 spaces); the board circuits are test-fixture.ts's (Range on 1-3, the rest on 12 to 24).
-import { parseStoredObject } from '@ezdraft/geometry';
+import { parseStoredObject, type Point } from '@ezdraft/geometry';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import type { Change } from '../model/patches';
-import { baseObjects, F1, uid } from '../tools/test-utils/fixtures';
+import { baseObjects, F1, roomValue, uid } from '../tools/test-utils/fixtures';
+import { MessagesProvider } from '../../lib/messages';
+import { catalogFor } from '../../server/messages/catalog';
+import { ElectricalStatus } from './ElectricalStatus';
 import {
   confirmDirectory,
   confirmLabel,
   existingPanelChanges,
   existingPanelForm,
   existingPanelInputs,
+  panelLoadCalc,
   toggleAppliance,
   type ExistingPanelCtx,
 } from './existing-panel';
@@ -298,5 +304,237 @@ describe('EZD-606 existing panel values', () => {
     });
     expect(existingPanelForm(objects, PANEL_A).circuits).toEqual([]);
     expect(existingPanelForm(objects, uid(101)).circuits.map((c) => c.name)).toEqual(['Shed']);
+  });
+});
+
+// EZD-607 (09a Inputs; worked example; board S06Electrical status "Service 200A · 149.5A calc"; assumptions EZD-607):
+// the panel's load calc read from the model. The loads and the 2,450 sq ft are the 09a worked example's.
+describe('EZD-607 panel load calc', () => {
+  const LOADS = [
+    { id: 'dw', name: 'Dishwasher', kind: 'fixed_appliance' as const, va: 1200 },
+    { id: 'disp', name: 'Disposal', kind: 'fixed_appliance' as const, va: 960, motor: true },
+    { id: 'mw', name: 'Microwave', kind: 'fixed_appliance' as const, va: 1500 },
+    { id: 'wh', name: 'Water heater', kind: 'fixed_appliance' as const, va: 4500 },
+    { id: 'dry', name: 'Dryer', kind: 'dryer' as const, va: null, applianceType: 'dryer' },
+    {
+      id: 'rng',
+      name: 'Range',
+      kind: 'range' as const,
+      va: 12000,
+      existing: true,
+      confirmed: true,
+    },
+    { id: 'heat', name: 'Heat strips', kind: 'heating' as const, va: 9600 },
+    { id: 'ac', name: 'A/C', kind: 'cooling' as const, va: 4200, motor: true },
+  ];
+  const calc = (over: Record<string, unknown> = {}) => ({
+    method: 'standard',
+    floorAreaSqFt: 2450,
+    smallApplianceCircuits: 2,
+    laundryCircuits: 1,
+    loads: LOADS,
+    overrides: {},
+    ...over,
+  });
+  const withCalc = (c: Record<string, unknown> | undefined, rooms: Point[][] = []) => {
+    const objects = new Map<string, ObjectValue>(
+      [...electricalObjects()].filter(([, v]) => v.type !== 'room'),
+    );
+    const panel = structuredClone(objects.get(PANEL_A)!);
+    if (c !== undefined)
+      (panel.data as { attributes: Record<string, unknown> }).attributes.loadCalc = c;
+    objects.set(PANEL_A, panel);
+    rooms.forEach((b, i) => objects.set(uid(950 + i), roomValue(b, `Room ${i}`, null)));
+    return objects;
+  };
+  const rect = (x: number, w: number, h: number): Point[] => [
+    { x, y: 0 },
+    { x: x + w, y: 0 },
+    { x: x + w, y: h },
+    { x, y: h },
+  ];
+  const DEFAULTS = { dryer: 5000 };
+
+  it('the stored inputs parse on the panel', () => {
+    const p = withCalc(calc()).get(PANEL_A)!;
+    expect(
+      parseStoredObject({
+        id: PANEL_A,
+        type: p.type,
+        schema_version: p.schemaVersion,
+        data: p.data,
+      }).ok,
+    ).toBe(true);
+  });
+
+  it('no load calc on the panel gives null', () => {
+    expect(panelLoadCalc(withCalc(undefined), PANEL_A)).toBeNull();
+  });
+
+  it('reproduces 35,868 VA and 149.5 A on the 200 A service, the dryer at the default rating', () => {
+    const r = panelLoadCalc(withCalc(calc()), PANEL_A, DEFAULTS);
+    expect(r).toMatchObject({
+      ok: true,
+      totalVa: 35868,
+      amps: 149.5,
+      service: { amps: 200, pass: true },
+    });
+  });
+
+  it('a load with no rating and no default is the calc error naming it', () => {
+    expect(panelLoadCalc(withCalc(calc()), PANEL_A)).toEqual({
+      ok: false,
+      errors: [{ code: 'missing_rating', loadId: 'dry', name: 'Dryer' }],
+    });
+  });
+
+  it('square footage comes from the rooms when none is typed; the typed value wins', () => {
+    // 2,450 sq ft as two rooms: 30 x 45 ft (1,350) and 22 x 50 ft (1,100), in inches.
+    const rooms = [rect(0, 360, 540), rect(400, 264, 600)];
+    const fromRooms = panelLoadCalc(
+      withCalc(calc({ floorAreaSqFt: null }), rooms),
+      PANEL_A,
+      DEFAULTS,
+    );
+    expect(fromRooms).toMatchObject({ ok: true, totalVa: 35868 });
+    const typed = panelLoadCalc(
+      withCalc(calc({ floorAreaSqFt: 2450 }), [rect(0, 120, 120)]),
+      PANEL_A,
+      DEFAULTS,
+    );
+    expect(typed).toMatchObject({ ok: true, totalVa: 35868 });
+    expect(panelLoadCalc(withCalc(calc({ floorAreaSqFt: null })), PANEL_A, DEFAULTS)).toEqual({
+      ok: false,
+      errors: [{ code: 'missing_floor_area' }],
+    });
+  });
+
+  it('a load the AI read counts only once confirmed (EZD-606)', () => {
+    const ev = {
+      id: 'ev',
+      name: 'EV charger',
+      kind: 'ev_charger',
+      va: 9600,
+      existing: true,
+      confirmed: false,
+    };
+    const unconfirmed = panelLoadCalc(withCalc(calc({ loads: [...LOADS, ev] })), PANEL_A, DEFAULTS);
+    expect(unconfirmed).toMatchObject({ ok: true, totalVa: 35868 });
+    const confirmed = panelLoadCalc(
+      withCalc(calc({ loads: [...LOADS, { ...ev, confirmed: true }] })),
+      PANEL_A,
+      DEFAULTS,
+    );
+    expect(confirmed).toMatchObject({ ok: true, totalVa: 35868 + 9600 });
+  });
+
+  const status = (objects: Map<string, ObjectValue>) =>
+    renderToStaticMarkup(
+      createElement(
+        MessagesProvider,
+        { language: 'en', messages: catalogFor('office', 'en') },
+        createElement(ElectricalStatus, {
+          store: { getState: () => ({ objects }), subscribe: () => () => {} } as never,
+        }),
+      ),
+    );
+
+  it('the status bar shows the service and the calculated amps', () => {
+    const dryerRated = calc({ loads: LOADS.map((l) => (l.id === 'dry' ? { ...l, va: 5000 } : l)) });
+    expect(status(withCalc(dryerRated))).toContain('200A · 149.5A calc');
+  });
+
+  it('with no load calc, or a calc error, the status bar shows the service alone', () => {
+    expect(status(withCalc(undefined))).toContain('>200A<');
+    expect(status(withCalc(calc()))).toContain('>200A<');
+  });
+
+  // EZD-607 (assumptions EZD-607 "Which fixtures make which lines", "Rating order"): the 09a appliances drawn as
+  // fixtures, rated by the default, plus a refrigerator and a washer that make no line; microwave, heat strips and the
+  // A/C have no fixture kind and are typed loads.
+  const fixture = (kind: string, status = 'new'): ObjectValue => ({
+    type: 'fixture',
+    schemaVersion: 7,
+    data: {
+      geometry: { center: { x: 10, y: 10 }, axis: { x: 1, y: 0 } },
+      status,
+      level: F1,
+      attributes: { kind, width: 24, depth: 24 },
+    },
+  });
+  const FIXTURE_DEFAULTS = {
+    dishwasher: 1200,
+    disposal: 960,
+    water_heater: 4500,
+    dryer: 5000,
+    range: 12000,
+  };
+  const TYPED = LOADS.filter((l) => ['mw', 'heat', 'ac'].includes(l.id));
+  const drawnHouse = (extra: [string, ObjectValue][] = [], over: Record<string, unknown> = {}) => {
+    const objects = withCalc(calc({ loads: TYPED, ...over }));
+    const kinds = [
+      'dishwasher',
+      'disposal',
+      'water_heater',
+      'dryer',
+      'range',
+      'refrigerator',
+      'washer',
+    ];
+    kinds.forEach((k, i) => objects.set(uid(960 + i), fixture(k)));
+    for (const [id, v] of extra) objects.set(id, v);
+    return objects;
+  };
+
+  it('drawn fixtures make the 09a lines; refrigerator and washer make none', () => {
+    const r = panelLoadCalc(drawnHouse(), PANEL_A, FIXTURE_DEFAULTS);
+    expect(r).toMatchObject({ ok: true, totalVa: 35868, amps: 149.5 });
+    if (r === null || !r.ok) throw new Error('no calc');
+    expect(r.lines.find((l) => l.key === 'fixed_appliances')).toMatchObject({
+      va: 6120,
+      detail: { sum: 8160, count: 4, percent: 75 },
+    });
+  });
+
+  it('a demolished fixture makes no line; a typed load with its sourceObjectId replaces the fixture', () => {
+    const demo = panelLoadCalc(
+      drawnHouse([[uid(970), fixture('dishwasher', 'demo')]]),
+      PANEL_A,
+      FIXTURE_DEFAULTS,
+    );
+    expect(demo).toMatchObject({ ok: true, totalVa: 35868 });
+    const typedDw = {
+      id: 'dw2',
+      name: 'Dishwasher',
+      kind: 'fixed_appliance',
+      va: 2000,
+      sourceObjectId: uid(960),
+    };
+    const replaced = panelLoadCalc(
+      drawnHouse([], { loads: [...TYPED, typedDw] }),
+      PANEL_A,
+      FIXTURE_DEFAULTS,
+    );
+    // 2,000 + 960 + 1,500 + 4,500 = 8,960 x 75% = 6,720, 600 more than 6,120.
+    expect(replaced).toMatchObject({ ok: true, totalVa: 35868 + 600 });
+  });
+
+  it("the panel's existing appliances count when no fixture of their kind is drawn", () => {
+    const objects = withCalc(calc({ loads: LOADS.filter((l) => !['dry', 'ac'].includes(l.id)) }));
+    const panel = structuredClone(objects.get(PANEL_A)!);
+    (panel.data as { attributes: Record<string, unknown> }).attributes.appliances = [
+      { kind: 'dryer', va: null },
+      { kind: 'ac', va: 4200 },
+    ];
+    objects.set(PANEL_A, panel);
+    expect(panelLoadCalc(objects, PANEL_A, DEFAULTS)).toMatchObject({ ok: true, totalVa: 35868 });
+    // A drawn dryer stands for the panel's dryer: counted once.
+    objects.set(uid(980), fixture('dryer'));
+    expect(panelLoadCalc(objects, PANEL_A, DEFAULTS)).toMatchObject({ ok: true, totalVa: 35868 });
+  });
+
+  it('the largest-motor line can be left out (09a: read two ways)', () => {
+    const r = panelLoadCalc(withCalc(calc({ largestMotorId: null })), PANEL_A, DEFAULTS);
+    expect(r).toMatchObject({ ok: true, totalVa: 35868 - 1050 });
   });
 });

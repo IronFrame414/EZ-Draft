@@ -8,6 +8,8 @@ export const FIELD_ACTION_KINDS = [
   'task_check',
   'photo_pin',
   'field_measure_send',
+  // EZD-1409 (S17 Task row "add photo: Attaches a photo to the task. Photo notes"): ops { taskId } with one photo.
+  'task_photo',
 ] as const;
 export type FieldActionKind = (typeof FIELD_ACTION_KINDS)[number];
 
@@ -25,6 +27,7 @@ export const FIELD_PHOTO_MAX_BYTES = 5_000_000;
 export const FIELD_ACTION_PERMISSION: Readonly<Record<FieldActionKind, PermissionKey>> = {
   task_check: 'check_off_tasks',
   photo_pin: 'photo_notes',
+  task_photo: 'photo_notes',
   measurement: 'send_field_measurement',
   field_measure_send: 'send_field_measurement',
 };

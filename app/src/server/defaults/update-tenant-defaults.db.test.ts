@@ -144,4 +144,24 @@ describe('EZD-116 update_tenant_defaults', () => {
     expect((await stored(tenantA)).keyboard_shortcuts).toEqual({ wall: 'B' });
     expect((await stored(tenantB)).keyboard_shortcuts).toEqual({ wall: 'J' });
   });
+
+  // EZD-509 (migration 20261126180000): light_cu and light_llf are numbers, light_targets an object; another company
+  // cannot change them (CLAUDE.md rule 4, through the same function).
+  it('EZD-509 light_cu and light_llf are stored as numbers and light_targets as an object, each refused as anything else', async () => {
+    const r = await call(owner, { light_cu: 0.6, light_llf: 0.8, light_targets: { kitchen: 50, other: 30 } });
+    expect(r.error).toBeNull();
+    expect((r.data as Row[])[0].changed).toEqual(['light_cu', 'light_llf', 'light_targets']);
+    const a = await stored(tenantA);
+    expect([a.light_cu, a.light_llf, a.light_targets]).toEqual([0.6, 0.8, { kitchen: 50, other: 30 }]);
+    expect((await call(owner, { light_cu: '0.6' })).error?.code).toBe('22023');
+    expect((await call(owner, { light_llf: { v: 0.8 } })).error?.code).toBe('22023');
+    expect((await call(owner, { light_targets: 30 })).error?.code).toBe('22023');
+    expect((await call(owner, { light_targets: [30] })).error?.code).toBe('22023');
+    expect((await call(plain, { light_cu: 0.5 })).error?.code).toBe('42501');
+    expect((await call(ownerB, { light_cu: 0.7, light_targets: { bath: 40 } })).error).toBeNull();
+    const after = await stored(tenantA);
+    expect([after.light_cu, after.light_targets]).toEqual([0.6, { kitchen: 50, other: 30 }]);
+    const b = await stored(tenantB);
+    expect([b.light_cu, b.light_targets]).toEqual([0.7, { bath: 40 }]);
+  });
 });

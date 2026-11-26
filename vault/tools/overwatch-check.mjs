@@ -69,7 +69,7 @@ if (!open.length) {
   const ahead = sh('git', ['log', '--format=%s', 'origin/main..origin/develop']).split('\n').filter((s) => /^feat\(EZD/.test(s)).length;
   const last = sh('gh', ['pr', 'list', '--repo', REPO, '--base', 'main', '--state', 'all', '--limit', '1', '--json', 'number,createdAt,mergedAt,state']);
   let lp = {}; try { lp = JSON.parse(last)[0] || {}; } catch {}
-  const ref = lp.mergedAt || lp.createdAt;
+  const ref = lp.createdAt;
   if (ahead && ref && hrs(ref) >= 6) {
     const mig = sh('gh', ['run', 'list', '--repo', REPO, '--workflow', 'Supabase dev migrations', '--limit', '1', '--json', 'conclusion,headSha']);
     let m = {}; try { m = JSON.parse(mig)[0] || {}; } catch {}

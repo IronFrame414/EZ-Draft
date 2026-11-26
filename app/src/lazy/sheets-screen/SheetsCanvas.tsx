@@ -12,6 +12,7 @@
 // when the set's placement gives this sheet one and it uses any symbol.
 // EZD-728 (AC-EZD-728-1): the cover (A0.0) draws its project block, scope of work, sheet index from the set and notes
 // (CoverSheet); the notes start under the key when the cover carries it.
+// EZD-703: the drawing is the open sheet's viewports (sheets-screen-store); the title block prints their scale.
 import { useEffect, useRef, type ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
 import { SheetTitleBlock } from '../../components/sheets/SheetTitleBlock';
@@ -35,6 +36,7 @@ import { coverLayout } from './cover-sheet';
 import { symbolKeyHeight } from './SymbolKey';
 import type { SetNotes } from '../../lib/sheets/sheet-set';
 import { sheetMarks } from './sheet-labels';
+import { sheetScaleLabel } from '../../lib/sheets/viewport';
 import { SymbolKey } from './SymbolKey';
 import type { SheetsScreen } from './sheets-screen-store';
 import { useSheetsScreen } from './use-sheets-screen';
@@ -58,6 +60,7 @@ function SheetPage({
   titleBlock,
   symbolKey,
   setNotes,
+  scale,
 }: {
   sheet: Sheet;
   set: SheetSetSummary;
@@ -67,6 +70,7 @@ function SheetPage({
   titleBlock: ProjectTitleBlock | null;
   symbolKey: SheetKey | null;
   setNotes: SetNotes | null;
+  scale: string | null;
 }): ReactElement {
   const { width: w, height: h } = paperInches(size);
   const notes = sheetNotesColumn(size);
@@ -106,7 +110,7 @@ function SheetPage({
         </text>
       ) : null}
       {titleBlock !== null ? (
-        <SheetTitleBlock titleBlock={titleBlock} set={set} sheet={sheet} size={size} today={new Date()} />
+        <SheetTitleBlock titleBlock={titleBlock} set={set} sheet={sheet} size={size} today={new Date()} scale={scale} />
       ) : (
         <>
           <text
@@ -209,6 +213,7 @@ export function SheetsCanvas({ screen }: SheetsCanvasProps): ReactElement {
             titleBlock={state.titleBlock}
             watermark={watermark}
             setNotes={state.notes}
+            scale={sheetScaleLabel(state.viewports)}
             symbolKey={
               state.key !== null && state.key.kind === set.kind && state.key.sheet === sheet.number
                 ? state.key.key

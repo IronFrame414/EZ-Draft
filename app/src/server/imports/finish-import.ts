@@ -13,6 +13,10 @@
 // ceiling type to single slope (Q-0664 room ceiling type); its heights and pitch wait for the room's ceiling data
 // (EZD-501, phase 5; vault/build/assumptions.md EZD-312).
 // EZD-915: an accepted supplier cabinet resolves its item but is not written (finishObjects).
+// EZD-916 (S12 Order report import "lines become the reference for tags"; vault/build/assumptions.md EZD-916 "Review
+// and finish for an order report"): an accepted order line is not a model object; finish_import itself writes the
+// accepted lines of each order report to order_line from the saved import. An import of order reports alone makes
+// no model version, so modelVersionId is null; orderLines is the number of lines written.
 import {
   autoRoughOpening,
   createWallData,
@@ -43,7 +47,8 @@ export type FinishImportResult =
   | {
       status: 'finished';
       tenantId: string;
-      modelVersionId: string;
+      modelVersionId: string | null;
+      orderLines: number;
       objectIds: string[];
       sourceFileIds: string[];
       /** Accepted and deleted (rejected) items (S02 Events import.completed). */
@@ -115,8 +120,8 @@ export function importObjects(
   // EZD-915: an accepted supplier cabinet is not written yet: finish_import takes walls, openings and rooms only and
   // new migrations are held by another ticket (vault/build/assumptions.md EZD-915), so it is left out here.
   const built = items.filter(
-    (i): i is Exclude<ReviewItem, { type: 'ceiling_slope' | 'cabinet' }> =>
-      i.type !== 'ceiling_slope' && i.type !== 'cabinet',
+    (i): i is Exclude<ReviewItem, { type: 'ceiling_slope' | 'cabinet' | 'order_line' }> =>
+      i.type !== 'ceiling_slope' && i.type !== 'cabinet' && i.type !== 'order_line',
   );
   const ids = new Map(built.map((i) => [i.id, ctx.newId()] as const));
   const objects: Stored[] = [];
@@ -210,7 +215,7 @@ export function importedCounts(items: readonly ReviewItem[]): ImportedCounts {
   for (const i of items) {
     if (i.type === 'wall') c.walls += 1;
     else if (i.type === 'room') c.rooms += 1;
-    else if (i.type === 'ceiling_slope' || i.type === 'cabinet') continue;
+    else if (i.type === 'ceiling_slope' || i.type === 'cabinet' || i.type === 'order_line') continue;
     else if (i.kind === 'door') c.doors += 1;
     else c.windows += 1;
   }
@@ -291,6 +296,7 @@ export async function finishImport(
     status?: unknown;
     tenant_id?: unknown;
     model_version_id?: unknown;
+    order_lines?: unknown;
   } | null;
   const status = answer?.status;
   if (status === 'closed' || status === 'locked' || status === 'unresolved') return { status };
@@ -298,7 +304,8 @@ export async function finishImport(
   if (
     status !== 'finished' ||
     typeof answer?.tenant_id !== 'string' ||
-    typeof answer.model_version_id !== 'string'
+    (typeof answer.model_version_id !== 'string' && answer.model_version_id !== null) ||
+    typeof answer.order_lines !== 'number'
   ) {
     throw new Error('finish_import: unexpected answer');
   }
@@ -306,6 +313,7 @@ export async function finishImport(
     status: 'finished',
     tenantId: answer.tenant_id,
     modelVersionId: answer.model_version_id,
+    orderLines: answer.order_lines,
     objectIds: built.objects.map((o) => o.id),
     sourceFileIds,
     counts: {

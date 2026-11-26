@@ -133,3 +133,191 @@
   line-height: 16px;
   text-align: center;
 }
+
+/* EZD-1409: the Tasks tab (S17 Tab: Tasks; Q-0781 style of board S17Field). */
+.tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 16px 16px;
+}
+
+.tasksEmpty {
+  margin: 0;
+  padding: 24px 16px;
+  text-align: center;
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-500);
+}
+
+.phase {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.phaseName {
+  margin: 0;
+  font-size: var(--ez-text-12);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ez-slate-500);
+}
+
+.taskList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+}
+
+.task {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+}
+
+.task + .task {
+  border-top: 1px solid var(--ez-border);
+}
+
+.taskMain {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* A 22 px box drawn inside a 44 px touch target (11 Accessibility and input). */
+.taskCheck {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: var(--ez-touch-target);
+  height: var(--ez-touch-target);
+  margin: -11px -6px -11px -11px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.taskCheck::before {
+  content: '';
+  position: absolute;
+  inset: 11px;
+  border: 2px solid var(--ez-slate-400);
+  border-radius: var(--ez-radius-4);
+  background: var(--ez-surface);
+}
+
+.taskCheck:checked::before {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt);
+}
+
+.taskCheck:checked::after {
+  content: '';
+  position: absolute;
+  left: 19px;
+  top: 14px;
+  width: 5px;
+  height: 11px;
+  border: solid var(--ez-surface);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.taskCheck:disabled {
+  cursor: default;
+}
+
+.taskCheck:focus-visible {
+  outline: none;
+}
+
+.taskCheck:focus-visible::before {
+  outline: 2px solid var(--ez-cobalt);
+  outline-offset: 2px;
+}
+
+.taskDoneIcon {
+  flex: none;
+  display: inline-flex;
+  color: var(--ez-green);
+}
+
+.taskBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.taskText {
+  margin: 0;
+  font-size: var(--ez-text-14);
+  color: var(--ez-ink);
+  overflow-wrap: anywhere;
+}
+
+.taskTextDone {
+  color: var(--ez-slate-500);
+  text-decoration: line-through;
+}
+
+.taskMeta,
+.taskMessage {
+  margin: 2px 0 0;
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}
+
+.taskMessage {
+  color: var(--ez-slate-700);
+}
+
+.taskActions,
+.taskEditActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.taskEdit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.taskEditBox {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  font: inherit;
+  font-size: var(--ez-text-14);
+  resize: vertical;
+}
+
+.taskButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--ez-touch-target);
+  padding: 0 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-slate-700);
+  font: inherit;
+  font-size: var(--ez-text-13);
+  cursor: pointer;
+}
+
+.taskButtonPrimary {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+}

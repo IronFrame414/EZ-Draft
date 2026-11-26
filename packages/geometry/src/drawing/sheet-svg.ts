@@ -9,13 +9,18 @@ import type { DrawingItem, DrawingLayer, DrawingList, LineWeightRole } from './t
 // 1/4" = 1'-0": a quarter paper inch per 12 model inches.
 export const QUARTER_INCH_SCALE = 0.25 / 12;
 
-// Pen widths in paper inches (0.50, 0.25, 0.25 and 0.18 mm).
+// Pen widths in paper inches. EZD-705 (vault/build/assumptions/EZD-705.md, settled "Line weights by role"; board
+// S10Detail line roles): cut 0.50 mm, beyond 0.18 mm, hidden 0.25 mm dashed, dimensions and leaders 0.13 mm, at every
+// scale.
 export const SHEET_PEN_IN: Readonly<Record<LineWeightRole, number>> = {
   cut: 0.5 / 25.4,
-  beyond: 0.25 / 25.4,
+  beyond: 0.18 / 25.4,
   hidden: 0.25 / 25.4,
-  dimension: 0.18 / 25.4,
+  dimension: 0.13 / 25.4,
 };
+// EZD-705 (09h "Text prints at fixed paper sizes at any scale: minimum 3/32\" on 24×36"): no sheet text prints
+// smaller than 3/32" (6.75 pt).
+export const SHEET_TEXT_MIN_PT = (3 / 32) * 72;
 // The hidden role's dash and gap in paper inches.
 export const SHEET_HIDDEN_DASH_IN: readonly [number, number] = [1 / 16, 1 / 32];
 
@@ -25,7 +30,9 @@ const FONT_FAMILY: Record<string, string> = {
   'dm-mono-400': "'DM Mono', monospace",
   'instrument-sans-600': "'Instrument Sans', sans-serif",
 };
-const FILLED: ReadonlySet<DrawingLayer> = new Set(['existing', 'demo', 'new']);
+// EZD-703 (A2.0 Demo; vault/build/assumptions/EZD-703.md): what is removed is drawn dashed with no poché, so the
+// demo plan tells it from what stays.
+const FILLED: ReadonlySet<DrawingLayer> = new Set(['existing', 'new']);
 
 // The paper rectangle the drawing is centred in, paper inches from the top-left corner.
 export type SheetArea = { x: number; y: number; width: number; height: number };
@@ -95,9 +102,9 @@ export function drawingListBounds(
   return Number.isFinite(minX) ? { minX, minY, maxX, maxY } : null;
 }
 
-function stroke(role: LineWeightRole): string {
+function stroke(role: LineWeightRole, layer?: DrawingLayer): string {
   const dash =
-    role === 'hidden'
+    role === 'hidden' || layer === 'demo'
       ? ` stroke-dasharray="${num(SHEET_HIDDEN_DASH_IN[0])} ${num(SHEET_HIDDEN_DASH_IN[1])}"`
       : '';
   return `fill="none" stroke="${INK}" stroke-width="${num(SHEET_PEN_IN[role])}" stroke-linecap="round"${dash}`;
@@ -125,7 +132,7 @@ export function sheetSvg(list: DrawingList, options: SheetSvgOptions): SheetSvg 
   for (const item of list.items) {
     if (item.kind === 'line') {
       out.push(
-        `<line x1="${X(item.from)}" y1="${Y(item.from)}" x2="${X(item.to)}" y2="${Y(item.to)}" ${stroke(item.role)}${tags(item, item.role)}/>`,
+        `<line x1="${X(item.from)}" y1="${Y(item.from)}" x2="${X(item.to)}" y2="${Y(item.to)}" ${stroke(item.role, item.layer)}${tags(item, item.role)}/>`,
       );
     } else if (item.kind === 'arc') {
       let sweep = item.endAngle - item.startAngle;
@@ -144,7 +151,7 @@ export function sheetSvg(list: DrawingList, options: SheetSvgOptions): SheetSvg 
         d += ` A ${rr} ${rr} 0 ${to - from > 180 ? 1 : 0} 0 ${xy(pointAt(to))}`;
         from = to;
       }
-      out.push(`<path d="${d}" ${stroke(item.role)}${tags(item, item.role)}/>`);
+      out.push(`<path d="${d}" ${stroke(item.role, item.layer)}${tags(item, item.role)}/>`);
     } else if (item.kind === 'fill') {
       if (!FILLED.has(item.layer) || item.points.length < 3) continue;
       out.push(
@@ -153,10 +160,10 @@ export function sheetSvg(list: DrawingList, options: SheetSvgOptions): SheetSvg 
     } else if (item.kind === 'hatch') {
       if (item.segments.length === 0) continue;
       const d = item.segments.map((s) => `M ${xy(s.from)} L ${xy(s.to)}`).join(' ');
-      out.push(`<path d="${d}" ${stroke(item.role)}${tags(item, item.role)}/>`);
+      out.push(`<path d="${d}" ${stroke(item.role, item.layer)}${tags(item, item.role)}/>`);
     } else {
       // Text keeps its printed size at any scale; a model angle counter-clockwise is a negative SVG rotation.
-      const size = num(item.sizePt / 72);
+      const size = num(Math.max(item.sizePt, SHEET_TEXT_MIN_PT) / 72);
       const spacing =
         item.font === 'instrument-sans-600' ? ` letter-spacing="${num(item.letterSpacingPt / 72)}"` : '';
       const rotate =

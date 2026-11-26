@@ -18,7 +18,8 @@
     "icons:build": "node scripts/icons-build.mjs",
     "icons:convert-legacy": "node scripts/icons-convert-legacy.mjs",
     "icons:fetch": "node scripts/icons-fetch.mjs",
-    "icons:verify": "node scripts/icons-verify.mjs"
+    "icons:verify": "node scripts/icons-verify.mjs",
+    "gen:registry": "node tools/gen-registry.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.1.0",
@@ -35,6 +36,7 @@
     "idb": "8.0.4",
     "next": "16.4.6",
     "pdfjs-dist": "6.4.299",
+    "pdfkit": "0.20.2",
     "radix-ui": "1.8.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",

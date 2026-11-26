@@ -105,6 +105,8 @@ export type DrawingRailProps = {
   surface?: SurfaceSetting | null;
   // EZD-222: the Help button and its key; without it there is no Help button.
   help?: { shortcut: string | undefined; onOpen: () => void } | null;
+  // EZD-612: the code Check button (Run code check) and its key; without it there is no Check button.
+  check?: { shortcut: string | undefined; onRun: () => void } | null;
   // EZD-230: the company key map (the Ceiling tool's key and tooltip), and the user's tool order with its change.
   bindings?: ShortcutBindings;
   order?: readonly string[];
@@ -117,6 +119,12 @@ export function helpRailTool(shortcut: string | undefined): RailTool {
   return { kind: 'tool', id: 'help', icon: 'help', label: 'office.tool.help', shortcut };
 }
 
+// EZD-612 (04 Tool rail "Check | Shift+C | Every editor tab", "on the rail of every editor tab, above Help"; board
+// S03Plan "Check code (run)", icon `rule`): runs the code check and opens the list.
+export function checkRailTool(shortcut: string | undefined): RailTool {
+  return { kind: 'tool', id: 'check', icon: 'rule', label: 'office.tool.check', shortcut };
+}
+
 export function DrawingRail({
   drawing,
   selection,
@@ -124,6 +132,7 @@ export function DrawingRail({
   assistant,
   surface,
   help,
+  check,
   bindings,
   order,
   onReorder,
@@ -132,6 +141,7 @@ export function DrawingRail({
   const shown = useStoreValue(surface, (s) => s.get(), null);
   const bottom = [
     ...(assistant ? [ASSISTANT_RAIL_TOOL] : []),
+    ...(check ? [checkRailTool(check.shortcut)] : []),
     ...(help ? [helpRailTool(help.shortcut)] : []),
   ];
   const pressedIds = assistant ? (assistant.open ? ['assistant'] : []) : undefined;
@@ -171,6 +181,7 @@ export function DrawingRail({
         onSelect={(id) => {
           if (assistant && id === 'assistant') assistant.onToggle();
           else if (help && id === 'help') help.onOpen();
+          else if (check && id === 'check') check.onRun();
           else if (id === 'select') {
             surface.setTool(null);
             selection?.selectTool();
@@ -192,6 +203,7 @@ export function DrawingRail({
       onSelect={(id) => {
         if (assistant && id === 'assistant') assistant.onToggle();
         else if (help && id === 'help') help.onOpen();
+        else if (check && id === 'check') check.onRun();
         else if (surface && id === CEILING_RAIL_TOOL.id) {
           selection?.selectTool();
           surface.setSurface('ceiling');

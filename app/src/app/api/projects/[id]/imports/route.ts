@@ -17,6 +17,7 @@
 // were queued), since Continue to review opens Import review for that job.
 // EZD-915 (S12 Supplier PDF import; Q-0323 "EZD-132 keeps See company costs on supplier files"): a supplier PDF
 // (kind supplier_pdf) is detected too, and starting an import from one also needs See company costs (403).
+// EZD-916 (S12 Order report import; Q-0323): an order report (kind order_report) is read too, with the same check.
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { endedSessionResponse } from '../../../../../server/auth/ended-session';
@@ -78,7 +79,8 @@ export async function POST(
         : fail(400, checked.code, 'error.invalid_input');
     }
     const supplierPdfIds = checked.supplierPdfIds ?? [];
-    if (supplierPdfIds.length > 0) {
+    const orderReportIds = checked.orderReportIds ?? [];
+    if (supplierPdfIds.length > 0 || orderReportIds.length > 0) {
       const noCosts = requirePermission(p.ctx, 'see_company_costs', { projectId: id });
       if (noCosts) return noCosts;
     }
@@ -92,6 +94,7 @@ export async function POST(
       ...dxfLayers.map((d) => d.sourceFileId),
       ...(checked.pdfIds ?? []),
       ...supplierPdfIds,
+      ...orderReportIds,
     ];
     const meshIds = checked.meshIds ?? [];
     const payload: ImportPayload = { sourceFileIds: detectIds };

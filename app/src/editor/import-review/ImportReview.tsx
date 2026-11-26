@@ -57,6 +57,7 @@ import {
   acceptHighConfidence,
   cabinetCheckLines,
   cabinetSizeText,
+  orderLineText,
   decide,
   DEFAULT_REVIEW_MODE,
   firstUnresolved,
@@ -75,6 +76,7 @@ import {
   type Decisions,
   type Pt,
   type ReviewCabinet,
+  type ReviewOrderLine,
   type ReviewFile,
   type ReviewItem,
   type ReviewMode,
@@ -329,9 +331,14 @@ export function ImportReview({
         setCloseError(await refusalOf(res));
         return;
       }
-      const body = (await res.json()) as { imported: Imported };
+      const body = (await res.json()) as { imported: Imported; modelVersionId?: string | null };
       control.current?.dispose();
-      navigate(planAfterFinish(projectId, body.imported));
+      // EZD-916: order reports alone change no plan, so Finish opens the Supplier markup screen their lines serve.
+      navigate(
+        body.modelVersionId === null
+          ? `/projects/${projectId}/supplier`
+          : planAfterFinish(projectId, body.imported),
+      );
     } catch {
       setCloseError('office.review.close_failed');
     } finally {
@@ -562,6 +569,30 @@ function CabinetFields({ item }: { item: ReviewCabinet }): ReactElement {
           </span>
         ))}
       </div>
+    </>
+  );
+}
+
+// EZD-916 (S12 Data shown "Order report lines: line no, code, width, face, finish"; Decisions 2 "shown in Import
+// review for the user to confirm"): what the report reads for a line. A value the report does not give says so.
+function OrderLineFields({ item }: { item: ReviewOrderLine }): ReactElement {
+  const t = useT();
+  const fields: Array<[MessageKey, string | null, string]> = [
+    ['office.review.order_line_code', item.code, 'code'],
+    ['office.review.order_line_width', item.width === null ? null : orderLineText({ width: item.width, face: null, finish: null }), 'width'],
+    ['office.review.order_line_face', item.face, 'face'],
+    ['office.review.order_line_finish', item.finish, 'finish'],
+  ];
+  return (
+    <>
+      {fields.map(([label, value, name]) => (
+        <div key={name} className={styles.field}>
+          <span className={styles.fieldLabel}>{t(label)}</span>
+          <span className={styles.scanValue} data-testid="import-review-order-line" data-field={name}>
+            {value ?? t('office.review.order_line_none')}
+          </span>
+        </div>
+      ))}
     </>
   );
 }
@@ -1124,7 +1155,8 @@ export function ReadyBody({
                 ) : null}
               </div>
               <p className={styles.muted}>
-                {t('office.review.item_meta', {
+                {/* EZD-916: an order line is not a plan object, so it has no existing/new status. */}
+                {t(selected.type === 'order_line' ? 'office.review.item_meta_line' : 'office.review.item_meta', {
                   type: itemTypeWord(selected),
                   confidence: selected.confidence,
                 })}
@@ -1158,6 +1190,8 @@ export function ReadyBody({
                 />
               ) : selected.type === 'cabinet' ? (
                 <CabinetFields item={selected} />
+              ) : selected.type === 'order_line' ? (
+                <OrderLineFields item={selected} />
               ) : selected.type === 'room' ? (
                 <div className={styles.field}>
                   <span className={styles.fieldLabel}>{t('office.review.scan_reads')}</span>

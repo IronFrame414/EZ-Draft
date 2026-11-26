@@ -137,6 +137,37 @@ const calls: Call[] = [
       );
     },
   },
+  // EZD-612: the code check routes.
+  {
+    route: 'GET /api/projects/<id>/code-check',
+    run: async () => {
+      const id = randomUUID();
+      return (await import('./projects/[id]/code-check/route')).GET(
+        get(`/api/projects/${id}/code-check`),
+        withParams(id),
+      );
+    },
+  },
+  {
+    route: 'POST /api/projects/<id>/code-check',
+    run: async () => {
+      const id = randomUUID();
+      return (await import('./projects/[id]/code-check/route')).POST(
+        post(`/api/projects/${id}/code-check`, {}),
+        withParams(id),
+      );
+    },
+  },
+  {
+    route: 'PATCH /api/projects/<id>/code-check',
+    run: async () => {
+      const id = randomUUID();
+      return (await import('./projects/[id]/code-check/route')).PATCH(
+        new Request(`${ORIGIN}/api/projects/${id}/code-check`, { method: 'PATCH', body: '{}' }),
+        withParams(id),
+      );
+    },
+  },
   // EZD-122: the Versions panel routes.
   {
     route: 'GET /api/projects/<id>/versions',

@@ -5,12 +5,15 @@
 // EZD-601): the status items electrical mode adds. Service is the main panel's service size; the calculated amps
 // join it with the load calc (EZD-607). Code is the v1 edition, the only one the app has (EZD-613, Q-0220); the
 // "View only" indicator is the edit lock's own status item (EZD-126).
+// EZD-607: the calculated amps follow the service ("200A · 149.5A calc") once the main panel has a load calc that
+// computes; with no load calc, or one that stops on a calc error, the service shows alone.
 import { DEFAULT_CODE_EDITION } from '../../lib/code-edition/editions';
 import { useMemo, useSyncExternalStore, type ReactElement } from 'react';
 import { StatusItem } from '../../components/shell/StatusBar';
 import { useT } from '../../lib/messages';
 import type { ModelStore } from '../model/model-store';
 import { panelRows } from './electrical';
+import { panelLoadCalc } from './existing-panel';
 
 export function ElectricalStatus({
   store,
@@ -23,7 +26,12 @@ export function ElectricalStatus({
     () => store.getState().objects,
     () => store.getState().objects,
   );
-  const service = useMemo(() => panelRows(objects)[0]?.serviceSize ?? null, [objects]);
+  const { service, calc } = useMemo(() => {
+    const main = panelRows(objects)[0];
+    if (main === undefined) return { service: null, calc: null };
+    const r = panelLoadCalc(objects, main.id);
+    return { service: main.serviceSize, calc: r !== null && r.ok ? r.amps : null };
+  }, [objects]);
   // EZD-1981 (audit F5): the two long cells may be cut with an ellipsis; the full text is their tooltip.
   const layer = t('office.electrical.status.layer_power');
   const code = t(`office.electrical.status.code.${DEFAULT_CODE_EDITION}`);
@@ -35,7 +43,12 @@ export function ElectricalStatus({
       {service === null ? null : (
         <StatusItem label="office.electrical.status.service">
           <span data-testid="status-electrical-service">
-            {t('office.electrical.status.service_amps', { amps: service })}
+            {calc === null
+              ? t('office.electrical.status.service_amps', { amps: service })
+              : t('office.electrical.status.service_calc', {
+                  amps: service,
+                  calc: calc.toFixed(1),
+                })}
           </span>
         </StatusItem>
       )}

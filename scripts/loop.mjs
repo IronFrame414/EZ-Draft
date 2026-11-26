@@ -31,11 +31,15 @@ import { createEvents, failureSummary, msToSecondEnd, oneLine, sameSecondEvents,
 import { withImportingTests } from './loop/import-graph.mjs';
 import { changedFiles, createSelfRestart, runDryRun } from './loop/self-restart.mjs';
 import { buildOrder, phaseRank } from './loop/order.mjs';
-import { drift, impliedFiles, overlaps, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
+import { rebuild as rebuildAssumptions } from '../vault/tools/assumptions-index.mjs';
+import { drift, impliedFiles, overlaps, ownAssumptions, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 import { TYPES_FILE, orderMigrations, regenerateTypes, settleGeneratedConflicts, touchesSchema } from './loop/merge-files.mjs';
 import { PERF_TREND_ID, perfDue, runPerfTrend } from './loop/perf-trend.mjs';
 import { retryCli, setAsideMarkdown, takeInRetries } from './loop/retry.mjs';
 import { createWorktreeGuard } from './loop/worktree-config.mjs';
+import { acReviewLines, traceTicket } from './loop/ac-review.mjs';
+import { checkBackups } from './loop/backup-status.mjs';
+import { traceDone } from './conventions/ac-trace.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const B = path.join(ROOT, 'vault/build');
@@ -362,11 +366,12 @@ function lanesNote(t) {
   const others = Object.entries(claims).filter(([id]) => id !== t.id);
   return [
     '', 'Parallel builds: other tickets are being built at the same time in other folders, each on its own database lane (EZD_LANE is set for you; the scripts pick it up).',
-    `Files reserved for you: ${mine.length ? mine.join(', ') : '(none predicted)'}.`,
+    `Files reserved for you: ${mine.length ? mine.join(', ') : '(none predicted)'}, and your assumptions file ${ownAssumptions(t.id)} (no claim needed).`,
     others.length ? `Files other tickets hold now (never edit these): ${others.map(([id, c]) => `${id}: ${(c.files || []).join(', ') || '(none)'}`).join('; ')}.` : 'No other ticket holds files right now, but one may start while you work.',
     NO_PATTERN_KILL,
     'Before you edit or create ANY file that is not in your reserved list, run `node scripts/loop/claim.mjs <file> [<file> ...]` (paths from the repo root). Exit 0 means it is yours. If it prints NOT CLAIMED, do not edit that file: find a way that stays inside your files, or commit what works and end with the BLOCKED line it prints.',
-    `Shared files (${[...sharedSet(ROOT)].join(', ')}): any lane may edit these. Keep your change to them small and additive (add your own lines; never reorder, reformat or rewrite what is there), so a parallel change merges cleanly.`,
+    // EZD-1953: assumptions.md stays in the shared set for old branches' merges, but builders no longer write it.
+    `Shared files (${[...sharedSet(ROOT)].filter((f) => f !== 'vault/build/assumptions.md').join(', ')}): any lane may edit these. Keep your change to them small and additive (add your own lines; never reorder, reformat or rewrite what is there), so a parallel change merges cleanly.`,
   ].join('\n');
 }
 function footprintPrompt(t, plan, reads) {
@@ -395,7 +400,9 @@ function builderPrompt(t, plan, reads) {
     BUILDER_TEST_STEP,
     `4. Commit everything on this branch: \`feat(${t.id}): ${t.title.replace(/[`"]/g, "'").slice(0, 70)}\`. Give a one-line reason in the body for every existing test you changed.`,
     '5. End with a summary of at most 10 lines: what you built, tests added, assumptions recorded.',
-    '', 'Unsettled question: follow CLAUDE.md rule 1 (record it in vault/build/assumptions.md and keep going).',
+    // EZD-1953 (audit 2026-11-23 B6): one assumptions file per ticket, so lanes never share it. CLAUDE.md rules 1 and 6
+    // still name vault/build/assumptions.md until Josh approves their new pointer; that file is now the generated index.
+    '', `Unsettled question: follow CLAUDE.md rule 1, and record it (and any wording for Josh, rule 6) in your own ticket file ${ownAssumptions(t.id)}, not in vault/build/assumptions.md, which is now a generated index. Add rows at the end of its "## Open" table (\`| Ticket | Question or text | Choice made | Source |\`); create the file with that heading and table header if it does not exist. Keep going.`,
     'If the existing code already satisfies the ticket, add tests that prove the acceptance criteria and commit them.',
     'If you truly cannot finish, commit what works and make the last line of your answer start with "BLOCKED:" and the reason.',
     lanesNote(t),
@@ -408,7 +415,8 @@ function fixPrompt(kind, detail) {
 function fixPromptBody(kind, detail) {
   return fixBody(kind, detail, TYPES_FILE);
 }
-function reviewerPrompt(t, security, plan) {
+// EZD-1955: trace = { missing, error, alreadyDone } from scripts/loop/ac-review.mjs (the ticket's ACs not named in a test).
+function reviewerPrompt(t, security, plan, trace = {}) {
   return [
     `You are the independent reviewer for ticket ${t.id}: ${t.title}. You did not write this code.`,
     'Review the change on this branch: run `git diff --stat develop...HEAD` and `git diff develop...HEAD`.',
@@ -416,6 +424,7 @@ function reviewerPrompt(t, security, plan) {
     'Report ONLY blocking problems: an acceptance criterion not met; wrong behaviour or a bug; a security or data-isolation hole (missing RLS, a policy that lets one company see or change another company\'s rows, an auth or permission bypass, a secret in code); a test deleted or weakened without a good reason; text that contradicts a mockup.',
     'Do not report style, naming, refactors, extra tests for impossible cases, or nice-to-haves. The automatic checks (typecheck, lint, tests, build, e2e) already passed; do not rerun them.',
     security ? `This change touches security-sensitive paths (${security}). Check RLS, permissions and tenant isolation carefully.` : '',
+    ...acReviewLines(t, trace.missing, trace),
     '', 'Ticket record:', JSON.stringify(t, null, 1),
     '', 'Your last line must be exactly one JSON object and nothing after it:',
     '{"verdict":"pass" or "fail","findings":[{"file":"path","line":0,"problem":"what is wrong","fix":"what to do"}],"blocked_by":[],"notes":"one line"}',
@@ -519,13 +528,15 @@ async function review(t, wt, s, round, lane) {
   const files = git(['diff', '--name-only', 'develop...HEAD'], wt).out.split('\n').filter(Boolean);
   const sec = files.filter((f) => SECURITY_PATHS.test(f)).slice(0, 8).join(', ');
   const plan = existsSync(path.join(ROOT, 'vault/plans', `${t.id}.md`));
+  const trace = { ...traceTicket(wt, t.id), alreadyDone: (s.done || []).includes(t.id) };
+  if (trace.missing.length) log(`${t.id} AC trace: not named in a test: ${trace.missing.join(', ')}${trace.alreadyDone ? ' (merged before; reported only)' : ''}`);
   let model = c.reviewer_model;
-  let r = await runClaude({ cwd: wt, prompt: reviewerPrompt(t, sec, plan), model, effort: c.reviewer_effort, name: `${t.id} review ${round}`, timeoutMin: c.reviewer_timeout_min, readOnly: true, lane, ticket: t.id });
+  let r = await runClaude({ cwd: wt, prompt: reviewerPrompt(t, sec, plan, trace), model, effort: c.reviewer_effort, name: `${t.id} review ${round}`, timeoutMin: c.reviewer_timeout_min, readOnly: true, lane, ticket: t.id });
   recordUsage(t.id, 'reviewer', model, r);
   if ((r.limited || r.code !== 0 || !r.res) && model !== c.reviewer_fallback) {
     log(`reviewer ${model} unavailable for ${t.id} (${r.limited ? 'limit' : 'error'}); using ${c.reviewer_fallback}`);
     model = c.reviewer_fallback;
-    r = await runClaude({ cwd: wt, prompt: reviewerPrompt(t, sec, plan), model, effort: c.reviewer_effort, name: `${t.id} review ${round} fallback`, timeoutMin: c.reviewer_timeout_min, readOnly: true, lane, ticket: t.id });
+    r = await runClaude({ cwd: wt, prompt: reviewerPrompt(t, sec, plan, trace), model, effort: c.reviewer_effort, name: `${t.id} review ${round} fallback`, timeoutMin: c.reviewer_timeout_min, readOnly: true, lane, ticket: t.id });
     recordUsage(t.id, 'reviewer', model, r);
   }
   if (r.limited) return { limited: true, r };
@@ -842,7 +853,21 @@ function afterTicket(t, res) {
   const handled = mergedTickets + Object.keys(s.set_aside).length;
   if (!s.trial_report_written && handled >= cfg().trial_size) writeTrialReport(s);
   commitBuildFiles(`${t.id} ${res}`);
+  if (res === 'merged') commitAssumptionsIndex(t.id);
   push(s);
+}
+// EZD-1953: after a merge, rebuild the assumptions index and Josh's wording checklist on develop (and move any row an
+// older branch still wrote in assumptions.md into its ticket file). The merge already set push_pending, so the push
+// right after takes this commit too. A failure is logged and tried after the next merge.
+function commitAssumptionsIndex(id) {
+  try {
+    const r = rebuildAssumptions(ROOT);
+    if (!r.changed.length) return;
+    git(['add', '--', ...r.changed]);
+    const cm = git(['commit', '-q', '-m', `docs(build): assumptions index after ${id}`, '--', ...r.changed]);
+    if (!cm.ok) { git(['reset', '-q', '--', ...r.changed]); log(`assumptions index not committed (${cm.err.slice(0, 160)}); next merge`); return; }
+    log(`assumptions index rebuilt after ${id}: ${r.moved} rows moved in, ${r.confirmed} confirmed`);
+  } catch (e) { log(`assumptions index rebuild failed (${String(e.message).slice(0, 160)}); next merge`); }
 }
 
 // Footprints for the first few eligible tickets, one call at a time. Returns 'limit' when a call hit the usage limit.
@@ -881,6 +906,8 @@ async function main() {
     } catch (e) { log(`could not reset heavy_slots: ${e?.message || e}`); }
   }
   log(`loop start at ${git(['rev-parse', '--short', 'HEAD']).out || 'unknown'} (pid ${process.pid}; lanes ${laneList().join(', ')})`);
+  // EZD-1955: tickets merged before the traceability rule are reported here, never failed.
+  try { const tr = traceDone(ROOT); log(`AC trace: ${tr.missing} of ${tr.total} acceptance criteria of done tickets are not named in a test (report only; node scripts/conventions/ac-trace.mjs lists them)`); } catch (e) { log(`AC trace report failed: ${String(e?.message || e).slice(0, 160)}`); }
   const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock'); // slot 1; heartbeat reads every slot
   const beat = () => { try { writeBeat(P.heartbeat, sample({ running: Object.keys(s.running), heavyLock })); } catch (e) { console.log(`heartbeat: ${e?.message || e}`); } };
   writeBeat(P.heartbeat, { ...first, running: [] });
@@ -925,6 +952,8 @@ async function main() {
     }
     if (s.sleep_until) { delete s.sleep_until; delete s.next_probe; saveState(s); }
     try { checkAdvisories(s, c); } catch (e) { log(`advisory check error: ${e?.message || e}`); }
+    // EZD-1958: once a day, 'BACKUP STALE <workflow>' for a backup workflow with no success in 8 days or a failed newest run.
+    try { checkBackups(s, { cwd: ROOT, save: saveState, log }); } catch (e) { log(`backup status check error: ${e?.message || e}`); }
     if (!active.size) push(s);
     if (s.red_streak >= c.red_streak_guard) {
       if (active.size) { note(`red streak of ${s.red_streak}: no new starts until the ${active.size} running ticket(s) finish`); await idle(60000); continue; }

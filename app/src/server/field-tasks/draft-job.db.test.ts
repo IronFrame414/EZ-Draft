@@ -102,7 +102,9 @@ describe('EZD-1408 field_task_draft job', () => {
       .eq('project_id', projectId)
       .order('room')
       .order('phase_position')
-      .order('position');
+      .order('position')
+      // EZD-1409: a published task and a later draft can share a position; oldest first, so the order is fixed.
+      .order('created_at');
     expect(error).toBeNull();
     return data as TaskRow[];
   };

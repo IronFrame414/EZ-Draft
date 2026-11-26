@@ -1,0 +1,107 @@
+/* EZD-509: the Auto-layout cans panel under its Lighting button, in the left panel's field style (RoomCeiling.module.css
+   .field, .input, .segment, .actions; Q-0769 the board's style). */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.segment {
+  display: flex;
+  gap: 4px;
+}
+
+.segment button {
+  flex: 1;
+  padding: 6px 4px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-slate-500);
+  font: 500 var(--ez-text-12) var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.segment button[aria-pressed='true'] {
+  border-color: var(--ez-cobalt);
+  color: var(--ez-cobalt);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.label {
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.input {
+  font: 400 var(--ez-text-14) var(--ez-font-mono);
+  color: var(--ez-ink);
+  padding: 8px 10px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--ez-surface);
+}
+
+.unit {
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}
+
+.count {
+  margin: 0;
+  font: 400 var(--ez-text-12) var(--ez-font-mono);
+  color: var(--ez-slate-700);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.primary,
+.secondary {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font: 500 var(--ez-text-14) var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.secondary:hover {
+  background: var(--ez-hover);
+}
+
+.primary {
+  border-color: var(--ez-cobalt);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+}
+
+.primary:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+@media (any-pointer: coarse) {
+  .segment button,
+  .primary,
+  .secondary {
+    min-height: var(--ez-touch-target);
+  }
+}

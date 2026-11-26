@@ -1,0 +1,43 @@
+/* EZD-612: the check status pill (board S06Electrical, the amber "Last check" pill). It sits on the canvas's right
+   edge below the zoom stack (ZoomStack.module.css: top 16, three 40 px buttons; top 92 under a coarse pointer), so it
+   covers neither the stack, the banners left of it, nor the bottom-right "Available to edit" toast. */
+.pill {
+  position: absolute;
+  top: 156px;
+  right: 16px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--ez-radius-999);
+  border: 1px solid var(--ez-border);
+  font: inherit;
+  font-size: var(--ez-text-12);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--ez-shadow-card);
+}
+
+.not_run {
+  background: var(--ez-surface);
+  color: var(--ez-slate-500);
+}
+
+.pass {
+  background: var(--ez-green-tint);
+  border-color: var(--ez-green-border);
+  color: var(--ez-green);
+}
+
+.warnings {
+  background: var(--ez-amber-alert);
+  border-color: var(--ez-amber-alert-border);
+  color: var(--ez-amber-strong);
+}
+
+@media (any-pointer: coarse) {
+  .pill {
+    top: 248px;
+  }
+}

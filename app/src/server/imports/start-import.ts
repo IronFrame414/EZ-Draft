@@ -7,6 +7,7 @@
 // EZD-306: dxfIds are the other DXF drawings (kind dxf) among them, the ones a conversion choice applies to.
 // EZD-305: pdfIds are the PDF drawings (kind pdf) among them, the ones the import job reads for walls.
 // EZD-915: supplierPdfIds are the supplier PDFs (kind supplier_pdf) among them, read for walls and cabinets.
+// EZD-916: orderReportIds are the order reports (kind order_report) among them, read for their lines.
 import type { DbClient } from '../storage';
 import { readSourceFileRefs } from '../storage/source-files';
 
@@ -19,6 +20,7 @@ export type StartImportResult =
       dxfIds?: string[];
       pdfIds?: string[];
       supplierPdfIds?: string[];
+      orderReportIds?: string[];
     }
   | { ok: false; code: 'project_not_found' | 'source_file_not_found' | 'upload_missing' };
 
@@ -40,6 +42,7 @@ export async function checkImportFiles(
   const dxfIds: string[] = [];
   const pdfIds: string[] = [];
   const supplierPdfIds: string[] = [];
+  const orderReportIds: string[] = [];
   for (const id of sourceFileIds) {
     const ref = refs.get(id.toLowerCase());
     if (ref === undefined || ref.projectId !== projectId) {
@@ -51,6 +54,7 @@ export async function checkImportFiles(
     if (ref.kind === 'dxf') dxfIds.push(id);
     if (ref.kind === 'pdf') pdfIds.push(id);
     if (ref.kind === 'supplier_pdf') supplierPdfIds.push(id);
+    if (ref.kind === 'order_report') orderReportIds.push(id);
   }
   return {
     ok: true,
@@ -60,5 +64,6 @@ export async function checkImportFiles(
     ...(dxfIds.length > 0 ? { dxfIds } : {}),
     ...(pdfIds.length > 0 ? { pdfIds } : {}),
     ...(supplierPdfIds.length > 0 ? { supplierPdfIds } : {}),
+    ...(orderReportIds.length > 0 ? { orderReportIds } : {}),
   };
 }

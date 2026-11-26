@@ -3,6 +3,7 @@
 // Increments, Snap increment default 1/2", cleanup age 30 and grace 7 as two keys, no Keyboard shortcuts);
 // Q-0558 (2x4, 1/2" drywall, 4 1/2" thick, 8' 0" high); Q-0706 (days 1 to 365, 0 for cleanup, reminder lead
 // below expiry); Q-0561 (lengths); 09o Value checks, Effective value, Copy at creation.
+import { ROOM_TYPES } from '@ezdraft/geometry';
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULTS_REGISTRY,
@@ -17,6 +18,7 @@ import {
   crossCheck,
   effectiveDefaults,
   effectiveValue,
+  formValueOf,
   parseFormValue,
   projectDefaultsCopy,
 } from './values';
@@ -334,6 +336,67 @@ describe('EZD-228 Bath clearances default', () => {
   });
 
   it('is still not stored (the Q-0710 editor waits for Josh)', () => {
+    expect(STORABLE_KEYS).not.toContain('bath_clearances');
+  });
+});
+
+// EZD-509 (S05 Decision 6; Q-0710; Q-0762; vault/build/assumptions/EZD-509.md "Where CU and LLF are kept", "Light target
+// row"): CU and LLF are owner-entered Ceilings values above 0 and at most 1; the light target per room type is stored,
+// one foot-candle value above 0 per room type, empty until the owner enters it. None is copied per project.
+describe('EZD-509 CU, LLF and the light target per room type', () => {
+  it('are Ceilings rows after the fan clearance, Not set by default, stored and not per project', () => {
+    const keys = DEFAULTS_REGISTRY.filter((r) => r.group === 'ceilings').map((r) => r.key);
+    expect(keys).toEqual(['act_min_border', 'fan_blade_clearance', 'light_targets', 'light_cu', 'light_llf']);
+    for (const k of ['light_targets', 'light_cu', 'light_llf']) {
+      expect(effectiveValue(k, {}), k).toBeNull();
+      expect(STORABLE_KEYS, k).toContain(k);
+      expect(PER_PROJECT_KEYS, k).not.toContain(k);
+    }
+    // Q-0762: a field per room type (EZD-620 adds the five new types to ROOM_TYPES).
+    expect(row('light_targets').fields).toEqual(ROOM_TYPES);
+  });
+
+  it('CU and LLF take a number above 0 and at most 1', () => {
+    for (const k of ['light_cu', 'light_llf']) {
+      expect(checkValue(row(k), 0.6).ok, k).toBe(true);
+      expect(checkValue(row(k), 1).ok, k).toBe(true);
+      expect(checkValue(row(k), 0).ok, k).toBe(false);
+      expect(checkValue(row(k), 1.2).ok, k).toBe(false);
+      expect(checkValue(row(k), '0.6').ok, k).toBe(false);
+      expect(effectiveValue(k, { [k]: 0.8 }), k).toBe(0.8);
+      expect(effectiveValue(k, { [k]: 2 }), k).toBeNull();
+    }
+    expect(parse('light_cu', '0.6')).toEqual({ ok: true, value: 0.6 });
+    expect(parse('light_llf', '.8')).toEqual({ ok: true, value: 0.8 });
+    expect(parse('light_cu', '')).toEqual({ ok: true, value: null });
+    expect(parse('light_cu', '1.5')).toEqual({ ok: false, messageKey: 'office.defaults.error.factor' });
+    expect(parse('light_cu', 'abc')).toEqual({ ok: false, messageKey: 'office.defaults.error.factor' });
+  });
+
+  it('the light targets take only room types, each above 0', () => {
+    const r = row('light_targets');
+    expect(checkValue(r, { kitchen: 50, other: 30 }).ok).toBe(true);
+    expect(checkValue(r, { kitchen: 0 }).ok).toBe(false);
+    expect(checkValue(r, { patio: 20 }).ok).toBe(false);
+    expect(checkValue(r, { kitchen: '50' }).ok).toBe(false);
+    expect(checkValue(r, 30).ok).toBe(false);
+    expect(effectiveValue('light_targets', { light_targets: { bath: 40 } })).toEqual({ bath: 40 });
+    expect(effectiveValue('light_targets', { light_targets: { bath: -1 } })).toBeNull();
+    // The popover: one text per room type; empty fields are left out; none set is null (the key is removed).
+    expect(formValueOf(r, { bath: 40 })).toEqual(
+      Object.fromEntries(ROOM_TYPES.map((k) => [k, k === 'bath' ? '40' : ''])),
+    );
+    expect(parseFormValue(r, { kitchen: '50', bath: '', laundry: ' ', other: '30' })).toEqual({
+      ok: true,
+      value: { kitchen: 50, other: 30 },
+    });
+    expect(parseFormValue(r, { kitchen: '', bath: '', laundry: '', other: '' })).toEqual({ ok: true, value: null });
+    expect(parseFormValue(r, { kitchen: 'x' })).toEqual({ ok: false, messageKey: 'office.defaults.error.above_zero' });
+    expect(parseFormValue(r, { kitchen: '0' })).toEqual({ ok: false, messageKey: 'office.defaults.error.above_zero' });
+  });
+
+  it('Bath clearances (no fields named yet) is still not stored', () => {
+    expect(row('bath_clearances').fields).toBeUndefined();
     expect(STORABLE_KEYS).not.toContain('bath_clearances');
   });
 });

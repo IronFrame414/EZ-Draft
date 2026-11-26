@@ -10,3 +10,5 @@ export { SheetsStatusStart, SheetsStatusEnd } from './SheetsStatus';
 export type { SheetsStatusProps } from './SheetsStatus';
 export { SheetsPart } from './SheetsPart';
 export type { SheetsPartProps } from './SheetsPart';
+export { SheetsInspector } from './SheetsInspector';
+export type { SheetsInspectorProps } from './SheetsInspector';

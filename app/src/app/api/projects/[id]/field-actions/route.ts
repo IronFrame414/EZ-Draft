@@ -4,8 +4,12 @@
 // duplicate resend does not); a failed emit is reported and the action stands. EZD-1417: a recorded Send to office
 // (field_measure_send) also emits field.measure_sent once; the office notification is written by the database in
 // the same transaction as the record (supabase/migrations/20261121230000_field_measure_send.sql).
+// EZD-1409 (07 field_task.completed "task, room, photos, by, at"): a recorded task check that completed its task
+// (the database applies it in the same transaction, 20261126120000_field_task_actions.sql) emits
+// field_task.completed once; a check of a task already done, or of no task, emits nothing.
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
+import { completedTask } from '../../../../../server/field-tasks/completed';
 import { errorType } from '../../../../../server/errors/fingerprint';
 import { reportError } from '../../../../../server/errors/report';
 import { emit } from '../../../../../server/events';
@@ -65,11 +69,18 @@ export async function POST(
     if (denied) return denied;
     if (!fieldActionOpsValid(body)) return fieldFail(400, 'invalid_input');
 
-    const r = await syncFieldAction(createSessionClient() as unknown as DbClient, id, body);
+    const client = createSessionClient();
+    const r = await syncFieldAction(client as unknown as DbClient, id, body);
     if (!r.ok) return fieldRefused(r.code);
     if (r.status === 'synced') {
       const ctx = { tenantId: r.tenantId, projectId: id, actorId: p.session.appUserId };
       await reported(() => emit('offline_change.synced', { id: body.id, kind: body.kind }, ctx));
+      if (body.kind === 'task_check') {
+        await reported(async () => {
+          const done = await completedTask(client, id, body.id);
+          if (done !== null) await emit('field_task.completed', done, ctx);
+        });
+      }
       const sent =
         body.kind === 'field_measure_send' ? fieldMeasureSendOpsSchema.safeParse(body.ops) : null;
       if (sent?.success) {

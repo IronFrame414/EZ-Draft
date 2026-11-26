@@ -43,12 +43,25 @@ export type DefaultsForm = Record<string, FormValue>;
 // A choice value as a message key part (KEY_PATTERN: lower case, digits and _).
 const keyPart = (v: string) => v.replace(/[^a-z0-9]+/g, '_');
 
-const EDITABLE = DEFAULTS_REGISTRY.filter((r) => r.type !== 'fixed' && r.type !== 'values');
+// EZD-509: a 'values' row is edited once its fields are named (Light target per room type, Q-0710).
+const EDITABLE = DEFAULTS_REGISTRY.filter(
+  (r) => r.type !== 'fixed' && (r.type !== 'values' || r.fields !== undefined),
+);
 const ROWS_BY_GROUP = new Map<DefaultGroup, DefaultRow[]>();
 for (const r of DEFAULTS_REGISTRY) {
   ROWS_BY_GROUP.set(r.group, [...(ROWS_BY_GROUP.get(r.group) ?? []), r]);
 }
-const TEXT_TYPES = new Set(['length', 'length_choice', 'percent', 'minutes', 'days', 'count']);
+const TEXT_TYPES = new Set(['length', 'length_choice', 'percent', 'minutes', 'days', 'count', 'factor']);
+// EZD-509 (Q-0710; Q-0762): a 'values' row's popover: each field's label, the row's text and the fields' unit.
+const VALUES_POPOVER: Partial<
+  Record<string, { field: (k: string) => MessageKey; summary: MessageKey; unit: MessageKey }>
+> = {
+  light_targets: {
+    field: (k) => `office.left_panel.room_type.${k}` as MessageKey,
+    summary: 'office.defaults.light_targets_value',
+    unit: 'office.defaults.unit.fc',
+  },
+};
 const UNIT_KEY: Partial<Record<string, MessageKey>> = {
   days: 'office.defaults.unit.days',
   min: 'office.defaults.unit.min',
@@ -123,6 +136,8 @@ export function DefaultsPage({ initial }: { initial: StoredDefaults }) {
   const [saveFailed, setSaveFailed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState('');
+  // EZD-509: the 'values' row whose popover is open.
+  const [openValues, setOpenValues] = useState<string | null>(null);
 
   const { changes, errors: localErrors } = useMemo(
     () => checkForm(saved, savedForm, form),
@@ -246,6 +261,25 @@ export function DefaultsPage({ initial }: { initial: StoredDefaults }) {
         </span>
       );
     }
+    const popover = VALUES_POPOVER[r.key];
+    if (r.type === 'values' && popover !== undefined && r.fields !== undefined) {
+      return (
+        <>
+          <span data-testid={`defaults-value-${r.key}`} className={styles.mono}>
+            {t(popover.summary, { count: r.fields.length })}
+          </span>
+          <button
+            type="button"
+            className={styles.chip}
+            data-testid={`defaults-edit-${r.key}`}
+            aria-expanded={openValues === r.key}
+            onClick={() => setOpenValues(openValues === r.key ? null : r.key)}
+          >
+            {t('office.defaults.values_edit')}
+          </button>
+        </>
+      );
+    }
     if (r.type === 'values') {
       return (
         <span data-testid={`defaults-not-set-${r.key}`} className={styles.notSet}>
@@ -335,6 +369,34 @@ export function DefaultsPage({ initial }: { initial: StoredDefaults }) {
     );
   };
 
+  // EZD-509 (Q-0710): the popover under a 'values' row, one field per value; an empty field is Not set.
+  const valuesPopover = (r: DefaultRow) => {
+    const popover = VALUES_POPOVER[r.key];
+    if (popover === undefined) return null;
+    const v = (form[r.key] ?? {}) as Readonly<Record<string, string>>;
+    return (
+      <div className={styles.valuesPopover} data-testid={`defaults-popover-${r.key}`}>
+        {(r.fields ?? []).map((k) => (
+          <div key={k} className={styles.row}>
+            <div className={styles.rowText}>
+              <span>{t(popover.field(k))}</span>
+            </div>
+            <div className={styles.control}>
+              {textInput(
+                r.key,
+                v[k] ?? '',
+                (text) => set(r.key, { ...v, [k]: text }),
+                `defaults-input-${r.key}-${k}`,
+                t(popover.field(k)),
+              )}
+              <span className={styles.unit}>{t(popover.unit)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const groupView = (g: DefaultGroup) => {
     const rows = (ROWS_BY_GROUP.get(g) ?? []).filter(shown);
     if (rows.length === 0) return null;
@@ -354,6 +416,7 @@ export function DefaultsPage({ initial }: { initial: StoredDefaults }) {
               </div>
               <div className={styles.control}>{control(r)}</div>
             </div>
+            {openValues === r.key ? valuesPopover(r) : null}
             {errors[r.key] ? (
               <div data-testid="defaults-row-error" data-key={r.key} role="alert" className={styles.rowError}>
                 {t(errors[r.key])}

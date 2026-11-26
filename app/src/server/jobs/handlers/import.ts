@@ -16,6 +16,10 @@
 // EZD-915 (S12 Supplier PDF import; S02 States "Supplier kitchen PDF"): a supplier PDF (kind supplier_pdf) is read on
 // every page (page 1 the plan, later pages elevations) for walls and labelled cabinets (supplier-pdf/detect); its
 // session's source_kind is supplier and import.ready counts its cabinets. A scanned supplier PDF gives no items.
+// EZD-916 (S12 Order report import; Decisions 2; vault/build/assumptions.md EZD-916): an order report (kind
+// order_report) is read for its lines with pdf.js text and one Claude call (order-report/read); its session's
+// source_kind is supplier (the import_session check has no other fitting kind), its items are order lines and its
+// summary counts them as lines. import.ready's counts stay walls, openings and rooms (an order line is none of them).
 import { z } from 'zod';
 import {
   DXF_LAYER_NAME_MAX,
@@ -29,6 +33,7 @@ import { layerMapFromChoice } from '../polycam-dxf/layer-choice';
 import { DxfReadError, readDxf } from '../polycam-dxf/read-dxf';
 import { detectPdfWalls } from '../pdf-walls/detect';
 import { PdfReadError, readPdfPage, readPdfPages } from '../pdf-walls/read-pdf';
+import { readOrderReport } from '../order-report/read';
 import { detectSupplierPdf, type SupplierDetection } from '../supplier-pdf/detect';
 import { readObject } from '../../storage/objects';
 import { readJobPdfCalibration, readJobSourceFiles } from '../../storage/source-files';
@@ -106,6 +111,7 @@ export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
       file: (typeof files)[number];
       sourceKind: 'scan' | 'dxf' | 'pdf' | 'supplier';
       layerMap?: LayerMap;
+      orderReport?: true;
     }> = [];
     for (const id of ctx.payload.sourceFileIds) {
       const file = byId.get(id.toLowerCase());
@@ -113,6 +119,7 @@ export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
       if (file.kind === 'polycam_dxf') scans.push({ file, sourceKind: 'scan' });
       if (file.kind === 'pdf') scans.push({ file, sourceKind: 'pdf' });
       if (file.kind === 'supplier_pdf') scans.push({ file, sourceKind: 'supplier' });
+      if (file.kind === 'order_report') scans.push({ file, sourceKind: 'supplier', orderReport: true });
       const chosen = choices.get(id.toLowerCase());
       if (file.kind === 'dxf' && chosen) {
         scans.push({ file, sourceKind: 'dxf', layerMap: layerMapFromChoice(chosen) });
@@ -122,7 +129,7 @@ export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
     const ids: string[] = [];
     const written: string[] = [];
     const counts: ImportCounts = { walls: 0, openings: 0, rooms: 0 };
-    for (const { file, sourceKind, layerMap } of scans) {
+    for (const { file, sourceKind, layerMap, orderReport } of scans) {
       const { data: existing, error: existingError } = await db
         .from('import_session')
         .select('id, status')
@@ -145,6 +152,14 @@ export const importHandler: JobHandler<ImportPayload, never, ImportResult> = {
       };
       if (!bytes) {
         row = { status: 'failed', items: [], summary: {}, error: 'source_missing' };
+      } else if (orderReport) {
+        try {
+          const lines = await readOrderReport(ctx, await readPdfPages(bytes));
+          row = { status: 'ready', items: lines, summary: { lines: lines.length }, error: null };
+        } catch (e) {
+          if (!(e instanceof PdfReadError)) throw e;
+          row = { status: 'failed', items: [], summary: {}, error: e.code };
+        }
       } else {
         try {
           const detection =

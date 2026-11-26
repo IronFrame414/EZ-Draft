@@ -1,11 +1,28 @@
 // EZD-702b (11 rule 3 "sheet SVG building ... run in Web Workers"; R7 one drawing list feeds the sheet): the sheet
 // worker's job. The open sheet's floor, from the stored objects, as SVG in paper inches (`sheetSvg`).
+// EZD-703 (phase-07 EZD-703 "Existing, Demo and Proposed views driven by object status"; S13 Rail: Viewport; 09h
+// "details true scale or NTS"; AC-EZD-703-1): one job is one viewport. `view` keeps only the objects of the statuses
+// it shows (lib/sheets/viewport.ts; the Existing view takes Demo objects and draws them as existing, 09m row 4), before the drawing list is built, so rooms, dimensions and flagged items follow
+// their own object's status; no view draws every status. A null scale is not to scale: the drawing is fitted to the
+// area.
+// EZD-705 (S13 Validation "Every sheet gets a scale bar and a printed check dimension"; 09h "NTS details stamped
+// \"NTS\""; AC-EZD-705-1): a viewport that draws anything keeps a strip at the bottom of its area for its print marks
+// (packages/geometry drawing/print-marks.ts): a scale bar and a check dimension at its scale, or NTS. The drawing is
+// centred in the area above the strip.
+import { viewDrawsAs, viewShows } from '../lib/sheets/viewport';
 import {
+  SHEET_VIEWS,
   buildDrawingList,
+  drawingListBounds,
   parseStoredObject,
+  printMarks,
+  printMarksSvg,
   sheetSvg,
+  splitPrintMarkBand,
+  type DrawingList,
   type ModelObject,
   type SheetArea,
+  type SheetView,
   type SheetSvg,
   type StoredObject,
 } from '@ezdraft/geometry';
@@ -19,9 +36,15 @@ export const SHEET_LABEL_PT = 9;
 export type SheetJobInput = {
   objects: StoredObject[];
   level: string;
-  scale: number;
+  // Paper inches per model inch; null fits the drawing to the area (NTS).
+  scale: number | null;
   area: SheetArea;
+  // The statuses shown; absent draws every status.
+  view?: SheetView;
 };
+
+// An NTS drawing fills this share of its area, so it never touches the area's edge.
+export const NTS_FILL = 0.9;
 
 const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);
 
@@ -32,8 +55,8 @@ function readInput(input: unknown): SheetJobInput {
   if (
     !Array.isArray(i.objects) ||
     typeof i.level !== 'string' ||
-    !finite(i.scale) ||
-    i.scale <= 0 ||
+    !(i.scale === null || (finite(i.scale) && i.scale > 0)) ||
+    (i.view !== undefined && !(SHEET_VIEWS as readonly unknown[]).includes(i.view)) ||
     a === undefined ||
     !finite(a.x) ||
     !finite(a.y) ||
@@ -44,16 +67,44 @@ function readInput(input: unknown): SheetJobInput {
   return i as SheetJobInput;
 }
 
-export function sheetJob(input: unknown): SheetSvg {
-  const { objects, level, scale, area } = readInput(input);
+// EZD-715: the drawing list of one viewport (its floor, its view), shared with the PDF export job so the PDF draws
+// exactly what the sheet preview draws (R7).
+export function viewportDrawingList(
+  objects: readonly StoredObject[],
+  level: string,
+  view?: SheetView,
+): DrawingList {
   const parsed: ModelObject[] = [];
   for (const stored of objects) {
     const r = parseStoredObject(stored);
-    if (r.ok) parsed.push(r.object);
+    if (!r.ok) continue;
+    const status = (r.object.data as { status?: unknown }).status;
+    if (view !== undefined && !viewShows(view, status)) continue;
+    // 09m row 4: the Existing view shows what is marked Demo as it stands today, drawn as existing.
+    if (view === 'existing' && status === 'demo')
+      parsed.push({ ...r.object, data: { ...r.object.data, status: viewDrawsAs(view, status) } } as ModelObject);
+    else parsed.push(r.object);
   }
-  const list = buildDrawingList(
+  return buildDrawingList(
     { objects: parsed },
     { level, dimensionTextPt: SHEET_LABEL_PT, roomHatch: null, roomLabelPt: SHEET_LABEL_PT },
   );
-  return sheetSvg(list, { scale, area });
+}
+
+export function sheetJob(input: unknown): SheetSvg {
+  const { objects, level, scale, area, view } = readInput(input);
+  const list = viewportDrawingList(objects, level, view);
+  const { drawing } = splitPrintMarkBand(area);
+  const svg = sheetSvg(list, { scale: scale ?? ntsScale(list, drawing), area: drawing });
+  if (svg.markup === '') return svg;
+  return { ...svg, markup: svg.markup + printMarksSvg(printMarks(scale, area)) };
+}
+
+// The scale that fits the drawing to the area, at NTS_FILL.
+export function ntsScale(list: DrawingList, area: SheetArea): number {
+  const b = drawingListBounds(list);
+  const w = b === null ? 0 : b.maxX - b.minX;
+  const h = b === null ? 0 : b.maxY - b.minY;
+  const fit = Math.min(w > 0 ? area.width / w : Infinity, h > 0 ? area.height / h : Infinity);
+  return Number.isFinite(fit) ? fit * NTS_FILL : 1;
 }

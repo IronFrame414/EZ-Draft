@@ -90,3 +90,98 @@ export async function checkProject(
   });
   return { runId, edition, results };
 }
+
+// EZD-612 (AC-EZD-612-3; 20261125200000_code_check_accept.sql): a warning accepted with a note.
+export type AcceptedWarning = {
+  ruleId: string;
+  objectId: string;
+  edition: string;
+  note: string;
+  by: string | null;
+  byName: string | null;
+  at: string;
+  objectSeq: number | null;
+};
+
+export type StoredCodeCheckRun = {
+  runId: string;
+  edition: string;
+  createdAt: string;
+  results: CheckResult[];
+  accepted: AcceptedWarning[];
+};
+
+// A Warnings-group result (09c; assumptions EZD-611a Severity): a failing rule on new or altered work.
+export function isOpenableWarning(r: Pick<CheckResult, 'status' | 'severity'>): boolean {
+  return r.status === 'fail' && r.severity === 'warning';
+}
+
+// The open warnings: Warnings-group results not accepted with a note.
+export function openWarningCount(results: readonly CheckResult[], accepted: readonly AcceptedWarning[]): number {
+  const keys = new Set(accepted.map((a) => `${a.ruleId}|${a.objectId}`));
+  return results.filter((r) => isOpenableWarning(r) && !keys.has(`${r.ruleId}|${r.objectId}`)).length;
+}
+
+// The project's latest run, or null when none was run (or the project is hidden).
+export async function latestCodeCheckRun(client: Client, projectId: string): Promise<StoredCodeCheckRun | null> {
+  const { data, error } = await client
+    .from('code_check_run')
+    .select('id, edition, created_at, warnings, accepted_notes')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (data === null) return null;
+  return {
+    runId: data.id,
+    edition: data.edition,
+    createdAt: data.created_at,
+    results: data.warnings as unknown as CheckResult[],
+    accepted: data.accepted_notes as unknown as AcceptedWarning[],
+  };
+}
+
+// Copies the previous run's acceptances that still apply onto a run just recorded; returns how many.
+export async function carryAcceptances(client: Client, runId: string): Promise<number> {
+  const { data, error } = await client.rpc('carry_code_check_acceptances', { p_run: runId });
+  if (error) throw error;
+  return data;
+}
+
+export type AcceptOutcome =
+  | { ok: true; entry: AcceptedWarning }
+  | { ok: false; code: 'permission_denied' | 'run_not_latest' | 'invalid_input' };
+
+export async function acceptCodeWarning(
+  client: Client,
+  input: { runId: string; ruleId: string; objectId: string; note: string },
+): Promise<AcceptOutcome> {
+  const { data, error } = await client.rpc('accept_code_warning', {
+    p_run: input.runId,
+    p_rule: input.ruleId,
+    p_object: input.objectId,
+    p_note: input.note,
+  });
+  if (error) {
+    if (error.code === '42501') return { ok: false, code: 'permission_denied' };
+    if (error.code === '40001') return { ok: false, code: 'run_not_latest' };
+    if (error.code === '22023') return { ok: false, code: 'invalid_input' };
+    throw error;
+  }
+  return { ok: true, entry: data as unknown as AcceptedWarning };
+}
+
+// S06 "Check not run since last change": true when any object of the project (a removed one too) was saved after
+// the run, so a reopened editor's pill reads "Check not run".
+export async function modelChangedSince(client: Client, projectId: string, iso: string): Promise<boolean> {
+  const { data, error } = await client
+    .from('model_object')
+    .select('object_id')
+    .eq('project_id', projectId)
+    .gt('updated_at', iso)
+    .limit(1);
+  if (error) throw error;
+  return data.length > 0;
+}

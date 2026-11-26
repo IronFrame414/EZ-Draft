@@ -7,10 +7,12 @@
 // EZD-124 adds project_purge (a deleted project's files), production included.
 // EZD-1408 adds field_task_draft (AI field task drafts), production included.
 // EZD-901a adds reference_convert (architect DXF reference buffers), production included.
+// EZD-715 adds export (the permit and client set PDFs), production included.
 import { aiReadHandler } from './handlers/ai-read';
 import { fieldTaskDraftHandler } from './handlers/field-task-draft';
 import { importHandler } from './handlers/import';
 import { notificationEmailHandler } from './handlers/notification-email';
+import { pdfExportHandler } from './handlers/pdf-export';
 import { projectPurgeHandler } from './handlers/project-purge';
 import { referenceConvertHandler } from './handlers/reference-convert';
 import { testJobHandler } from './handlers/test-job';
@@ -20,6 +22,7 @@ export function getHandlers(): JobHandlers {
   if (process.env.VERCEL_ENV === 'production')
     return {
       ai_read: aiReadHandler,
+      export: pdfExportHandler,
       field_task_draft: fieldTaskDraftHandler,
       import: importHandler,
       notification_email: notificationEmailHandler,
@@ -28,6 +31,7 @@ export function getHandlers(): JobHandlers {
     };
   return {
     ai_read: aiReadHandler,
+    export: pdfExportHandler,
     field_task_draft: fieldTaskDraftHandler,
     import: importHandler,
     notification_email: notificationEmailHandler,

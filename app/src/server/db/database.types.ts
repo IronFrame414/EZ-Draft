@@ -557,14 +557,14 @@ isOneToOne: false
                   ]
                 },"field_task": {
                   Row: {
-                    "created_at": string,"done_at": string | null,"done_by": string | null,"id": string,"job_id": string | null,"linked_objects": NonNullable<Json>,"phase": string,"phase_position": number,"photos": NonNullable<Json>,"position": number,"project_id": string,"room": string,"room_id": string | null,"status": string,"tenant_id": string,"text_en": string,"text_es": string | null,"updated_at": string
+                    "created_at": string,"done_at": string | null,"done_by": string | null,"done_change_id": string | null,"edited_on_phone_at": string | null,"id": string,"job_id": string | null,"linked_objects": NonNullable<Json>,"phase": string,"phase_position": number,"photos": NonNullable<Json>,"position": number,"project_id": string,"room": string,"room_id": string | null,"status": string,"tenant_id": string,"text_en": string,"text_es": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"done_at"?: string | null,"done_by"?: string | null,"id"?: string,"job_id"?: string | null,"linked_objects"?: NonNullable<Json>,"phase": string,"phase_position": number,"photos"?: NonNullable<Json>,"position": number,"project_id": string,"room"?: string,"room_id"?: string | null,"status"?: string,"tenant_id": string,"text_en": string,"text_es"?: string | null,"updated_at"?: string
+                    "created_at"?: string,"done_at"?: string | null,"done_by"?: string | null,"done_change_id"?: string | null,"edited_on_phone_at"?: string | null,"id"?: string,"job_id"?: string | null,"linked_objects"?: NonNullable<Json>,"phase": string,"phase_position": number,"photos"?: NonNullable<Json>,"position": number,"project_id": string,"room"?: string,"room_id"?: string | null,"status"?: string,"tenant_id": string,"text_en": string,"text_es"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"done_at"?: string | null,"done_by"?: string | null,"id"?: string,"job_id"?: string | null,"linked_objects"?: NonNullable<Json>,"phase"?: string,"phase_position"?: number,"photos"?: NonNullable<Json>,"position"?: number,"project_id"?: string,"room"?: string,"room_id"?: string | null,"status"?: string,"tenant_id"?: string,"text_en"?: string,"text_es"?: string | null,"updated_at"?: string
+                    "created_at"?: string,"done_at"?: string | null,"done_by"?: string | null,"done_change_id"?: string | null,"edited_on_phone_at"?: string | null,"id"?: string,"job_id"?: string | null,"linked_objects"?: NonNullable<Json>,"phase"?: string,"phase_position"?: number,"photos"?: NonNullable<Json>,"position"?: number,"project_id"?: string,"room"?: string,"room_id"?: string | null,"status"?: string,"tenant_id"?: string,"text_en"?: string,"text_es"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -572,6 +572,12 @@ isOneToOne: false
       columns: ["done_by"]
 isOneToOne: false
       referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "field_task_done_change_id_fkey"
+      columns: ["done_change_id"]
+isOneToOne: false
+      referencedRelation: "offline_change"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "field_task_job_id_fkey"
@@ -971,6 +977,38 @@ isOneToOne: false
       referencedColumns: ["id","tenant_id"]
     },{
       foreignKeyName: "offline_change_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"order_line": {
+                  Row: {
+                    "code": string,"created_at": string,"face": string | null,"finish": string | null,"id": string,"line_no": number,"project_id": string,"source_file_id": string,"tenant_id": string,"width": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"created_at"?: string,"face"?: string | null,"finish"?: string | null,"id"?: string,"line_no": number,"project_id": string,"source_file_id": string,"tenant_id": string,"width"?: number | null
+                  }
+                  Update: {
+                    "code"?: string,"created_at"?: string,"face"?: string | null,"finish"?: string | null,"id"?: string,"line_no"?: number,"project_id"?: string,"source_file_id"?: string,"tenant_id"?: string,"width"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "order_line_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "order_line_source_file_id_fkey"
+      columns: ["source_file_id"]
+isOneToOne: false
+      referencedRelation: "source_file"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "order_line_tenant_id_fkey"
       columns: ["tenant_id"]
 isOneToOne: false
       referencedRelation: "tenant"
@@ -1431,7 +1469,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "accept_invite":
+            "accept_code_warning":
+{ Args: { "p_note": string,"p_object": string,"p_rule": string,"p_run": string }; Returns: Json
+                           },
+"accept_invite":
 { Args: { "p_ip"?: unknown,"p_token_sha256": string }; Returns: Json
                            },
 "acquire_edit_lock":
@@ -1454,6 +1495,9 @@ isOneToOne: false
                            },
 "cancel_invite":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json
+                           },
+"carry_code_check_acceptances":
+{ Args: { "p_run": string }; Returns: number
                            },
 "complete_project":
 { Args: { "p_project": string }; Returns: Json
@@ -1570,6 +1614,9 @@ isOneToOne: false
         isOneToOne: false
         isSetofReturn: true
       } },
+"edit_field_task":
+{ Args: { "p_project": string,"p_task": string,"p_text": string }; Returns: Json
+                           },
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
                            },

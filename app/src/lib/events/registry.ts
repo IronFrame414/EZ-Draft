@@ -26,7 +26,8 @@ export const EVENTS = {
   'change_order.sent': { kind: 'webhook', notInV1: 'Q-0190' },
   'takeoff.updated': { kind: 'webhook', later: 'EZD-1611c' },
   'model.exported': { kind: 'webhook', later: 'EZD-1014' },
-  'field_task.completed': { kind: 'webhook', later: 'EZD-1409' },
+  // EZD-1409 (07 field_task.completed "task, room, photos, by, at"): a task checked off on a phone, once synced.
+  'field_task.completed': { kind: 'webhook' },
   'field.conflict_flagged': { kind: 'webhook', later: 'EZD-1407' },
   'client.commented': { kind: 'webhook', later: 'EZD-1204' },
   'customer.synced': { kind: 'webhook', notInV1: 'Q-0190' },
@@ -63,7 +64,10 @@ export const EVENTS = {
   // EZD-1201 (07 share_link.expiring): written as the event_log row by sweep_share_link_reminders.
   'share_link.expiring': { kind: 'internal' },
   'cleanup.due': { kind: 'internal', later: 'EZD-123' },
-  'code_check.completed': { kind: 'internal', later: 'EZD-612' },
+  // EZD-612 (07 code_check.completed "with warning count"; assumptions EZD-611a, EZD-612 events row): a Check run,
+  // and one warning accepted with a note (ids only, never the note).
+  'code_check.completed': { kind: 'internal' },
+  'code_warning.accepted': { kind: 'internal' },
   'design_option.created': { kind: 'internal' },
   'design_option.updated': { kind: 'internal' },
   'version.sent': { kind: 'internal' },
@@ -167,7 +171,14 @@ export interface EventPayloads {
   'change_order.sent': Record<string, unknown>;
   'takeoff.updated': Record<string, unknown>;
   'model.exported': Record<string, unknown>;
-  'field_task.completed': Record<string, unknown>;
+  'field_task.completed': {
+    projectId: string;
+    taskId: string;
+    room: string;
+    photos: number;
+    by: string;
+    at: string;
+  };
   'field.conflict_flagged': Record<string, unknown>;
   'client.commented': Record<string, unknown>;
   'customer.synced': Record<string, unknown>;
@@ -228,13 +239,19 @@ export interface EventPayloads {
   };
   'offline_change.synced': {
     id: string;
-    kind: 'measurement' | 'task_check' | 'photo_pin' | 'field_measure_send';
+    kind: 'measurement' | 'task_check' | 'photo_pin' | 'field_measure_send' | 'task_photo';
   };
   'field_pack.issued': Record<string, unknown>;
   'share_link.expiring': { projectId: string; expiresAt: string };
   'edge_profile.offered': { projectId: string; pieceId: string; choices: string[] };
   'cleanup.due': Record<string, unknown>;
-  'code_check.completed': Record<string, unknown>;
+  'code_check.completed': {
+    runId: string;
+    edition: string;
+    warningCount: number;
+    resultCount: number;
+  };
+  'code_warning.accepted': { runId: string; ruleId: string; objectId: string };
   // EZD-1009: the saved option, its group and label, and its status after the save.
   'design_option.created': DesignOptionEvent;
   'design_option.updated': DesignOptionEvent;

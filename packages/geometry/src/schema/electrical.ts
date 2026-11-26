@@ -21,7 +21,13 @@
 // its label photo (a panel_photo source_file, checked on save) and the existing large appliances, each with its
 // rating in VA when known (null: the calc's default, EZD-614). The existing circuit list is the panel's circuits of
 // status existing. All three optional, so every stored object stays valid and the version stays.
+// EZD-607 (09a Inputs; vault/build/assumptions.md EZD-607 "Where the working copy keeps the calc inputs"): the panel
+// gains `loadCalc`, the load calc's inputs on the working copy (the electrical_calc row is written only at issue):
+// floor area typed over the rooms' sum, small-appliance and laundry circuit counts, the loads with their kind and
+// rating, per-project rating overrides and the chosen largest motor. Optional, so every stored object stays valid and
+// the version stays.
 import * as z from 'zod/mini';
+import { LOAD_CALC_KINDS } from '../electrical/load-calc';
 import { levelSchema, objectStatusSchema, pointSchema } from './common';
 
 export const CIRCUIT_PROTECTIONS = ['gfci', 'afci', 'dual'] as const;
@@ -41,6 +47,33 @@ export const existingApplianceSchema = z.strictObject({
 });
 export type ExistingAppliance = z.infer<typeof existingApplianceSchema>;
 
+const loadCalcId = z.string().check(z.minLength(1), z.maxLength(64));
+export const LOAD_CALC_NAME_MAX = 80;
+export const loadCalcLoadSchema = z.strictObject({
+  id: loadCalcId,
+  name: z.string().check(z.minLength(1), z.maxLength(LOAD_CALC_NAME_MAX)),
+  kind: z.enum(LOAD_CALC_KINDS),
+  applianceType: z.optional(z.string().check(z.minLength(1), z.maxLength(LOAD_CALC_NAME_MAX))),
+  va: z.nullable(z.number().check(z.positive())),
+  motor: z.optional(z.boolean()),
+  existing: z.optional(z.boolean()),
+  confirmed: z.optional(z.boolean()),
+  sourceObjectId: z.optional(z.uuid()),
+});
+export type LoadCalcLoadData = z.infer<typeof loadCalcLoadSchema>;
+
+export const LOAD_CALC_LOADS_MAX = 200;
+export const panelLoadCalcSchema = z.strictObject({
+  method: z.enum(['standard', 'optional']),
+  floorAreaSqFt: z.nullable(z.number().check(z.positive())),
+  smallApplianceCircuits: z.int().check(z.nonnegative()),
+  laundryCircuits: z.int().check(z.nonnegative()),
+  loads: z.array(loadCalcLoadSchema).check(z.maxLength(LOAD_CALC_LOADS_MAX)),
+  overrides: z.record(loadCalcId, z.number().check(z.positive())),
+  largestMotorId: z.optional(z.nullable(loadCalcId)),
+});
+export type PanelLoadCalc = z.infer<typeof panelLoadCalcSchema>;
+
 export const panelDataSchema = z.strictObject({
   geometry: z.strictObject({ point: pointSchema }),
   status: objectStatusSchema,
@@ -56,6 +89,7 @@ export const panelDataSchema = z.strictObject({
     appliances: z.optional(
       z.array(existingApplianceSchema).check(z.maxLength(EXISTING_APPLIANCE_KINDS.length)),
     ),
+    loadCalc: z.optional(panelLoadCalcSchema),
   }),
 });
 export type PanelData = z.infer<typeof panelDataSchema>;

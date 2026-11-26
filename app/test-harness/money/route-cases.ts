@@ -331,6 +331,19 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 202,
     note: 'EZD-301: project id and source file ids (no money)',
   },
+  // EZD-715: start a PDF export of the permit set; the answer is the job id only (no money).
+  {
+    file: `${API}projects/[id]/exports/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/exports/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/exports`, { set: 'permit' })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 202,
+    expectStatusWithout: { permission: 'export', status: 403 },
+    note: 'EZD-715: the export job id (no money)',
+  },
   // EZD-304: the scale of the PDF uploaded above (kind pdf, finished): the project's PDFs, then set and read its
   // scale. Answers are source_file ids, names, the calibration and a signed link (no money).
   {
@@ -801,6 +814,49 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-1404: the field pack; 200 { projectName, clientName, pack } (no money)',
   },
+  // EZD-612: the code check; GET reads the latest run, POST runs Check, PATCH accepts a warning (an unknown rule is 400).
+  {
+    file: `${API}projects/[id]/code-check/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/code-check/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/code-check`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-612: the latest code check run; 200 { run, canRun, canAccept } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/code-check/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/code-check/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/code-check`, {})()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    after: (body, env) => {
+      const run = (body as { run?: { runId?: string } | null }).run;
+      if (run?.runId) env.created.set('codeCheckRunId', run.runId);
+    },
+    note: 'EZD-612: runs Check; 200 { run, canRun, canAccept } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/code-check/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/projects/[id]/code-check/route'),
+    request: async (env) => ({
+      ...(await sendJson('PATCH', `/api/projects/${env.projectId}/code-check`, {
+        runId: made(env, 'codeCheckRunId'),
+        ruleId: 'ZZ-999',
+        objectId: '00000000-0000-4000-8000-000000000001',
+        note: 'Accepted',
+      })()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 400,
+    note: 'EZD-612: accepts a warning with a note; 200 { run, canRun, canAccept } (no money)',
+  },
   // EZD-1415: Field measure rooms; GET reads them (a new project: the Building alone), PUT saves an L-shaped room.
   {
     file: `${API}projects/[id]/field-measure/route.ts`,
@@ -910,6 +966,23 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     }),
     expectStatus: 200,
     note: 'EZD-1402: records a queued field action; 200 { status, syncedAt } (no money)',
+  },
+  // EZD-1409: the phone's Edit text of a field task; a task id the project does not have answers 404.
+  {
+    file: `${API}projects/[id]/field-tasks/[taskId]/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/projects/[id]/field-tasks/[taskId]/route'),
+    request: async (env) => {
+      const taskId = randomUUID();
+      return {
+        ...(await sendJson('PATCH', `/api/projects/${env.projectId}/field-tasks/${taskId}`, {
+          text: 'Remove upper cabinets',
+        })()),
+        params: { id: env.projectId, taskId },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-1409: edits a field task text; 200 { textEn, textEs, editedAt } (no money)',
   },
   // EZD-233: the Plan editor's saved groups; POST saves one lavatory as a group.
   {

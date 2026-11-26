@@ -4,6 +4,8 @@
 // View projects for this project; a project that is missing or out of scope is not found. Text is the field surface
 // in the user's language, with the disclaimer line last (EZD-136). The pack itself loads in the browser
 // (FieldPackScreen) so the phone keeps a copy for offline use; the service worker keeps this page.
+// EZD-1409 (S17 Task row: checkbox "Hidden without Check off tasks", edit text "Edit field tasks"): the task controls
+// follow the person's switches for this project, and their name shows on the tasks they check.
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import type { ReactElement } from 'react';
@@ -37,7 +39,7 @@ export default async function FieldPackPage({
   if (project.data === null) notFound();
   const user = await client
     .from('app_user')
-    .select('language')
+    .select('language, name')
     .eq('id', session.appUserId)
     .maybeSingle();
   const language: Language = user.data?.language === 'es' ? 'es' : 'en';
@@ -50,6 +52,9 @@ export default async function FieldPackPage({
             projectId={id}
             language={language}
             canPhoto={can(ctx, 'photo_notes', { projectId: id })}
+            canCheck={can(ctx, 'check_off_tasks', { projectId: id })}
+            canEdit={can(ctx, 'edit_field_tasks', { projectId: id })}
+            userName={user.data?.name?.trim() ? user.data.name.trim() : null}
           />
         </OutboxDrain>
       </StateHost>

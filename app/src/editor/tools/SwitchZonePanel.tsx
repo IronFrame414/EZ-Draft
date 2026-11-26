@@ -6,7 +6,7 @@
 // button turns the Switching zones tool on and off, with the Dimmer choice for the next zone and the drawing hint
 // while it is on; and the inspector of one selected zone, whose Dimmer box turns its dimmer mark on or off. Without
 // Edit model and the lock the button and the boxes are disabled. Each change is one edit (one undo step).
-import { useSyncExternalStore, type ReactElement } from 'react';
+import { useSyncExternalStore, type ReactElement, type ReactNode } from 'react';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import type { SurfaceSetting } from '../ceiling/surface';
@@ -20,10 +20,13 @@ export function LightingSection({
   surface,
   drawing,
   canEdit,
+  autoLayout,
 }: {
   surface: Pick<SurfaceSetting, 'get' | 'setTool' | 'subscribe'>;
   drawing: Pick<ZoneDrawing, 'get' | 'setDimmer' | 'subscribe'>;
   canEdit: boolean;
+  /** EZD-509: the Auto-layout cans button and panel, above Switching zones (board S05Ceiling). */
+  autoLayout?: ReactNode;
 }): ReactElement {
   const t = useT();
   const tool = useSyncExternalStore(
@@ -40,6 +43,7 @@ export function LightingSection({
   return (
     <section className={styles.lighting} data-testid="ceiling-lighting">
       <span className={styles.lbl}>{t('office.ceiling.lighting.heading')}</span>
+      {autoLayout}
       <button
         type="button"
         className={`${styles.lightingButton} ${on ? styles.lightingOn : ''}`}
@@ -75,11 +79,20 @@ export function LightingSection({
 export function Lighting({
   surface,
   canEdit,
+  autoLayout,
 }: {
   surface: SurfaceSetting;
   canEdit: boolean;
+  autoLayout?: ReactNode;
 }): ReactElement {
-  return <LightingSection surface={surface} drawing={zoneDrawingFor(surface)} canEdit={canEdit} />;
+  return (
+    <LightingSection
+      surface={surface}
+      drawing={zoneDrawingFor(surface)}
+      canEdit={canEdit}
+      autoLayout={autoLayout}
+    />
+  );
 }
 
 export function SwitchZoneInspector({
