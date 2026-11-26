@@ -562,7 +562,8 @@
     "EZD-1999",
     "EZD-1611a",
     "EZD-1998",
-    "EZD-719"
+    "EZD-719",
+    "EZD-1501"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2440,6 +2441,14 @@
       "ts": "2026-11-26T19:33:35Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1501",
+      "title": "Translation store",
+      "commit": "0abe1460",
+      "ts": "2026-11-26T20:15:15Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2701,7 +2710,20 @@
       "reason": "review still failing after 2 fix rounds"
     }
   },
-  "running": {},
+  "running": {
+    "EZD-1995": {
+      "lane": 1,
+      "title": "Each page sends only the screen messages it uses, not the whole office catalog",
+      "started": "2026-11-26T19:34:37Z",
+      "develop": "e89f5fb1"
+    },
+    "EZD-708a": {
+      "lane": 2,
+      "title": "A6.0 RCP sheet",
+      "started": "2026-11-26T19:34:38Z",
+      "develop": "e89f5fb1"
+    }
+  },
   "advisories_checked_at": "2026-11-26T16:20:56Z",
   "hold": {},
   "perf_trend_at": "2026-11-26T03:55:15Z",
