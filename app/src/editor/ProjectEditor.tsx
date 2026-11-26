@@ -96,7 +96,6 @@ import { useToast } from '../components/states/ToastProvider';
 import { countForProject } from '../lib/conflicts/conflict-groups';
 import { useCoarsePointer } from '../lib/device/useDeviceLayout';
 import { useT } from '../lib/messages';
-import type { ObjectValue } from '../lib/outbox/model-api';
 import { DEFAULT_PLAN_SCALE, isPlanScale, savePlanScale } from '../lib/plan/plan-scale';
 import type { MessageKey } from '../server/messages/catalog';
 import { createAssistantLoader, type AssistantLoader } from './assistant/assistant-loader';
@@ -131,12 +130,9 @@ import { createCountertopSelectionStore } from './countertops/selection-store';
 import { createCabinetSelectionStore } from './cabinets/cabinet-selection-store';
 import { InspectorEmpty } from './inspector/InspectorEmpty';
 import type { InspectorPanelProps } from '../lazy/inspector-panel';
-import type { Change } from './model/patches';
 import {
   createPlanController,
-  type PlanCanvasHandle,
   type PlanController,
-  type PlanStats,
 } from './plan/controller';
 import { openFloorId } from './plan/batches';
 import { chosenFloor, createFloorView, type FloorView } from './floors/floors';
@@ -145,15 +141,14 @@ import { createGlyphAtlas } from './plan/glyph-atlas-canvas';
 import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
 import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
 import { usePdfUnderlay } from './plan/PdfUnderlay';
-import { createPlanRoot, webglContextsCreated } from './plan/render-root';
+import { createPlanRoot } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
-import type { CheckpointOutcome } from './thumbnail/checkpoint';
 import type { ConflictBannerProps } from './conflicts/ConflictBanner';
 import { lazyModule } from '../lib/lazy/lazy-module';
 import { lazyPart, useLazy } from './shared/lazy-part';
 import { useStoreValue } from './shared/use-store-value';
 import { editorDefaults, useDefault } from './shared/use-default';
-import type { Scene3d, Scene3dStats } from '../lazy/scene-3d';
+import type { Scene3d } from '../lazy/scene-3d';
 import { useConflictInputs } from './conflicts/use-conflicts';
 import { SelectionLayer } from './selection/SelectionLayer';
 import type { LockPartName, LockUi } from '../lazy/lock-ui';
@@ -198,7 +193,11 @@ import { createDrawingShell } from './tools/drawing-shell';
 import { DrawingLayer, DrawingRail } from './tools/DrawingTools';
 import { CheckPill } from './check/CheckPill';
 import { useCodeCheck } from './check/use-code-check';
+import { useDevHooks } from './dev-hooks';
 import styles from './ProjectEditor.module.css';
+
+// EZD-1911: kept here for the code that reads it from ProjectEditor.
+export type { EditorTestHook } from './dev-hooks';
 
 // EZD-120d: `openDeps` is passed to openEditorSession (the test page injects a fault into the save); `onSession`
 // is told when the session is ready, then null when it is disposed.
@@ -221,30 +220,6 @@ export type ProjectEditorProps = {
   meshUrl?: string | null;
   // EZD-1991 (Q-0813; Settings > Title block "Open Sheets"): `?view=sheets` opens the editor on its Sheets screen.
   initialView?: 'sheets';
-};
-
-export type EditorTestHook = {
-  objects(): Array<{ id: string } & ObjectValue>;
-  edit(changes: Change[]): string[];
-  checkpoint(): Promise<CheckpointOutcome>;
-};
-
-type PlanTestHook = {
-  handle: PlanCanvasHandle;
-  stats(): PlanStats & { contexts: number };
-  // EZD-214: the phase view and the Phase eyes (EZD-218 drives setEye from Layers).
-  phase: PhaseSetting;
-  // EZD-304: the plan positions of the PDF underlay's corners, or null.
-  underlay(): ReturnType<PlanController['underlay']>;
-  // EZD-502: the surface drawn and its batches.
-  drawn(): ReturnType<PlanController['drawn']>;
-  // EZD-513: the text items drawn, with their object ids.
-  drawnTexts(): ReturnType<PlanController['drawnTexts']>;
-};
-
-type SelectionTestHook = {
-  ids(): string[];
-  hoveredId(): string | null;
 };
 
 type CanvasState =
@@ -273,8 +248,6 @@ type CanvasState =
 const PLAN_VIEWS: EditorView[] = ['plan', 'sheets'];
 // EZD-1001a: 3D ships, so its tab shows once the plan canvas is up (Q-0500).
 const PLAN_3D_VIEWS: EditorView[] = ['plan', '3d', 'sheets'];
-
-type Scene3dTestHook = { stats(): Scene3dStats & { contexts: number; shown: boolean } };
 
 const noop = () => {};
 const NOT_VIEWING: VersionViewState = {
@@ -917,17 +890,6 @@ export function ProjectEditor({
     plan.showScene(show3d ? scene3d : null);
   }, [plan, show3d, scene3d]);
   useEffect(() => {
-    if (plan === null || scene3d === null || !devHooks) return;
-    const hook: Scene3dTestHook = {
-      stats: () => ({ ...scene3d.stats(), contexts: webglContextsCreated(), shown: show3d }),
-    };
-    const w = window as unknown as { __ezdraft3d?: Scene3dTestHook };
-    w.__ezdraft3d = hook;
-    return () => {
-      delete w.__ezdraft3d;
-    };
-  }, [plan, scene3d, show3d, devHooks]);
-  useEffect(() => {
     if (toolRoute === null || routedStore === null || selection === null || phase === null) return;
     // EZD-222 (11 Budgets; EZD-1401 precedent): the placement code comes with the Ceiling view's lazy module, which
     // loads when that view first shows; a click before it arrives is placed once it has.
@@ -1015,41 +977,8 @@ export function ProjectEditor({
     if (listOpen && session !== null) void session.conflicts.refresh();
   }, [listOpen, session]);
 
-  useEffect(() => {
-    if (session === null || sync === null || plan === null || !devHooks) return;
-    const store = session.store;
-    const hook: EditorTestHook = {
-      objects: () => [...store.getState().objects].map(([id, value]) => ({ id, ...value })),
-      edit: (changes) => store.applyEdit(changes),
-      checkpoint: async () => {
-        await sync.flush();
-        const { makeCheckpoint } = await import('./thumbnail/checkpoint');
-        return makeCheckpoint({ projectId, capture: () => plan.captureThumbnail() });
-      },
-    };
-    const w = window as unknown as { __ezdraftEditor?: EditorTestHook };
-    w.__ezdraftEditor = hook;
-    return () => {
-      delete w.__ezdraftEditor;
-    };
-  }, [session, sync, plan, devHooks, projectId]);
-
-  useEffect(() => {
-    if (plan === null || phase === null || !devHooks) return;
-    const hook: PlanTestHook = {
-      handle: plan.handle,
-      stats: () => ({ ...plan.stats(), contexts: webglContextsCreated() }),
-      phase,
-      underlay: () => plan.underlay(),
-      drawn: () => plan.drawn(),
-      drawnTexts: () => plan.drawnTexts(),
-    };
-    const w = window as unknown as { __ezdraftPlan?: PlanTestHook };
-    w.__ezdraftPlan = hook;
-    return () => {
-      delete w.__ezdraftPlan;
-    };
-  }, [plan, phase, devHooks]);
+  // EZD-1911: the dev and test hooks (`__ezdraftEditor`, `__ezdraftPlan`, `__ezdraftSelection`, `__ezdraft3d`).
+  useDevHooks({ devHooks, projectId, session, sync, plan, phase, selection, scene3d, show3d });
 
   const menuCanEdit = mayEdit;
   useEffect(() => {
@@ -1069,19 +998,6 @@ export function ProjectEditor({
       return true;
     });
   }, [plan, selection, drawing, session, menuCanEdit, adjusting]);
-
-  useEffect(() => {
-    if (selection === null || plan === null || !devHooks) return;
-    const hook: SelectionTestHook = {
-      ids: () => [...selection.getUi().ids],
-      hoveredId: () => plan.handle.getHoveredId(),
-    };
-    const w = window as unknown as { __ezdraftSelection?: SelectionTestHook };
-    w.__ezdraftSelection = hook;
-    return () => {
-      delete w.__ezdraftSelection;
-    };
-  }, [selection, plan, devHooks]);
 
   const versionNo = newerVersionNo(session?.model.project.versionNo ?? null, sentNo);
   const label = versionLabel({
