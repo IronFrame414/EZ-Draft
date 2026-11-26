@@ -551,7 +551,8 @@
     "EZD-509",
     "EZD-1911",
     "EZD-715",
-    "EZD-716"
+    "EZD-716",
+    "EZD-1912"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2341,6 +2342,14 @@
       "ts": "2026-11-26T12:29:07Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1912",
+      "title": "Move controller construction out of ProjectEditor",
+      "commit": "bae4c7b3",
+      "ts": "2026-11-26T13:20:46Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2598,17 +2607,17 @@
     }
   },
   "running": {
-    "EZD-1912": {
-      "lane": 3,
-      "title": "Move controller construction out of ProjectEditor",
-      "started": "2026-11-26T11:32:42Z",
-      "develop": "6f2333e4"
-    },
     "EZD-614": {
       "lane": 1,
       "title": "Appliance rating defaults",
       "started": "2026-11-26T12:00:25Z",
       "develop": "9897b2fc"
+    },
+    "EZD-707": {
+      "lane": 2,
+      "title": "Elevations sheet",
+      "started": "2026-11-26T12:29:57Z",
+      "develop": "be7d9cec"
     }
   },
   "advisories_checked_at": "2026-11-26T10:20:19Z",
