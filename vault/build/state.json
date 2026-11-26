@@ -557,7 +557,8 @@
     "EZD-707",
     "EZD-123",
     "EZD-1996",
-    "EZD-1997"
+    "EZD-1997",
+    "EZD-717"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2395,6 +2396,14 @@
       "ts": "2026-11-26T16:57:39Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-717",
+      "title": "Issue Rev 0 and Rev N",
+      "commit": "87464d79",
+      "ts": "2026-11-26T17:36:24Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2657,17 +2666,17 @@
     }
   },
   "running": {
-    "EZD-717": {
-      "lane": 1,
-      "title": "Issue Rev 0 and Rev N",
-      "started": "2026-11-26T15:50:55Z",
-      "develop": "5129e352"
-    },
     "EZD-1611a": {
       "lane": 3,
       "title": "Takeoff framework and room finishes",
       "started": "2026-11-26T16:25:29Z",
       "develop": "273fad5d"
+    },
+    "EZD-1998": {
+      "lane": 2,
+      "title": "Field measure under its 200 KB budget, and the perf gate measures the real field pages",
+      "started": "2026-11-26T16:57:46Z",
+      "develop": "613c0b9c"
     }
   },
   "advisories_checked_at": "2026-11-26T16:20:56Z",
