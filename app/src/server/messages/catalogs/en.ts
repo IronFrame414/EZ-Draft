@@ -3513,6 +3513,17 @@ export const en = {
   'office.ceiling.auto.set_in_defaults': 'Set CU and LLF in Defaults.',
   'office.ceiling.auto.no_type': 'Give a can a type tag and lumens first.',
   'office.ceiling.auto.no_room': 'Draw a room first.',
+  // EZD-1611a: the takeoff's Defaults rows under Waste factors.
+  'office.defaults.row.drywall_sheet': 'Drywall sheet',
+  'office.defaults.row.paint_coats': 'Paint coats',
+  'office.defaults.row.paint_coverage': 'Paint coverage',
+  'office.defaults.row.tile_box_coverage': 'Tile box coverage',
+  'office.defaults.choice.4x8': '4 x 8',
+  'office.defaults.choice.4x10': '4 x 10',
+  'office.defaults.choice.4x12': '4 x 12',
+  'office.defaults.error.paint_coats': 'Enter a whole number from 1 to 5',
+  'office.defaults.error.paint_coverage': 'Enter a whole number from 100 to 1,000',
+  'office.defaults.error.tile_box_coverage': 'Enter a whole number from 1 to 100',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

@@ -1,0 +1,329 @@
+{
+ "settings": {
+  "waste": {
+   "tile": 10,
+   "drywall": 10,
+   "paint": 5,
+   "trim": 10
+  },
+  "pattern": {
+   "straight": 0,
+   "diagonal": 2,
+   "herringbone": 5
+  },
+  "tileBoxSqFt": 10,
+  "drywallSheetSqFt": 32,
+  "paintCoats": 2,
+  "paintSqFtPerGallon": 350
+ },
+ "lines": [
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "tile",
+   "item": "floor_tile",
+   "unit": "SF",
+   "qty": 108,
+   "waste": {
+    "material": "tile",
+    "pct": 10
+   },
+   "total": 118.8,
+   "count": {
+    "unit": "boxes",
+    "value": 12
+   },
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000061",
+    "00000000-0000-4000-8000-000000000031",
+    "00000000-0000-4000-8000-000000000041",
+    "00000000-0000-4000-8000-000000000042"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "drywall",
+   "item": "drywall",
+   "unit": "SF",
+   "qty": 160,
+   "waste": {
+    "material": "drywall",
+    "pct": 10
+   },
+   "total": 176,
+   "count": {
+    "unit": "sheets",
+    "value": 6
+   },
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000012"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "paint",
+   "item": "paint_walls",
+   "unit": "SF",
+   "qty": 331,
+   "waste": {
+    "material": "paint",
+    "pct": 5
+   },
+   "total": 347.6,
+   "count": {
+    "unit": "gallons",
+    "value": 2
+   },
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000031",
+    "00000000-0000-4000-8000-000000000011",
+    "00000000-0000-4000-8000-000000000012",
+    "00000000-0000-4000-8000-000000000013",
+    "00000000-0000-4000-8000-000000000014",
+    "00000000-0000-4000-8000-000000000022"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "paint",
+   "item": "paint_ceiling",
+   "unit": "SF",
+   "qty": 120,
+   "waste": {
+    "material": "paint",
+    "pct": 5
+   },
+   "total": 126,
+   "count": {
+    "unit": "gallons",
+    "value": 1
+   },
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000031"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "trim",
+   "item": "base_trim",
+   "unit": "LF",
+   "qty": 41,
+   "waste": {
+    "material": "trim",
+    "pct": 10
+   },
+   "total": 45.1,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000031",
+    "00000000-0000-4000-8000-000000000022"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000032",
+   "roomName": "Bath",
+   "trade": "tile",
+   "item": "floor_tile",
+   "unit": "SF",
+   "qty": 35.7,
+   "waste": {
+    "material": "tile",
+    "pct": 15
+   },
+   "total": 41,
+   "count": {
+    "unit": "boxes",
+    "value": 5
+   },
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000062",
+    "00000000-0000-4000-8000-000000000032",
+    "00000000-0000-4000-8000-000000000044"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000032",
+   "roomName": "Bath",
+   "trade": "tile",
+   "item": "wall_tile",
+   "unit": "SF",
+   "qty": 8,
+   "waste": {
+    "material": "tile",
+    "pct": 10
+   },
+   "total": 8.8,
+   "count": {
+    "unit": "boxes",
+    "value": 1
+   },
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000063",
+    "00000000-0000-4000-8000-000000000015",
+    "00000000-0000-4000-8000-000000000023"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000032",
+   "roomName": "Bath",
+   "trade": "tile",
+   "item": "wall_tile",
+   "unit": "SF",
+   "qty": 94.8,
+   "waste": {
+    "material": "tile",
+    "pct": 10
+   },
+   "total": 104.3,
+   "count": {
+    "unit": "boxes",
+    "value": 11
+   },
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000071"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000032",
+   "roomName": "Bath",
+   "trade": "paint",
+   "item": "paint_walls",
+   "unit": "SF",
+   "qty": 208,
+   "waste": {
+    "material": "paint",
+    "pct": 5
+   },
+   "total": 218.4,
+   "count": {
+    "unit": "gallons",
+    "value": 2
+   },
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000032",
+    "00000000-0000-4000-8000-000000000015",
+    "00000000-0000-4000-8000-000000000016",
+    "00000000-0000-4000-8000-000000000017",
+    "00000000-0000-4000-8000-000000000012"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000032",
+   "roomName": "Bath",
+   "trade": "paint",
+   "item": "paint_ceiling",
+   "unit": "SF",
+   "qty": 40,
+   "waste": {
+    "material": "paint",
+    "pct": 5
+   },
+   "total": 42,
+   "count": {
+    "unit": "gallons",
+    "value": 1
+   },
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000032"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000032",
+   "roomName": "Bath",
+   "trade": "trim",
+   "item": "base_trim",
+   "unit": "LF",
+   "qty": 23,
+   "waste": {
+    "material": "trim",
+    "pct": 10
+   },
+   "total": 25.3,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000032",
+    "00000000-0000-4000-8000-000000000023"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000032",
+   "roomName": "Bath",
+   "trade": "trim",
+   "item": "casing",
+   "unit": "LF",
+   "qty": 32.7,
+   "waste": null,
+   "total": 32.7,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000023"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000033",
+   "roomName": "Hall",
+   "trade": "paint",
+   "item": "paint_walls",
+   "unit": "SF",
+   "qty": 128,
+   "waste": {
+    "material": "paint",
+    "pct": 5
+   },
+   "total": 134.4,
+   "count": {
+    "unit": "gallons",
+    "value": 1
+   },
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000033",
+    "00000000-0000-4000-8000-000000000019",
+    "00000000-0000-4000-8000-000000000018",
+    "00000000-0000-4000-8000-000000000015",
+    "00000000-0000-4000-8000-00000000001a"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000033",
+   "roomName": "Hall",
+   "trade": "paint",
+   "item": "paint_ceiling",
+   "unit": "SF",
+   "qty": 15,
+   "waste": {
+    "material": "paint",
+    "pct": 5
+   },
+   "total": 15.8,
+   "count": {
+    "unit": "gallons",
+    "value": 1
+   },
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000033"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000033",
+   "roomName": "Hall",
+   "trade": "trim",
+   "item": "base_trim",
+   "unit": "LF",
+   "qty": 13,
+   "waste": {
+    "material": "trim",
+    "pct": 10
+   },
+   "total": 14.3,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000033",
+    "00000000-0000-4000-8000-000000000023"
+   ]
+  }
+ ]
+}
