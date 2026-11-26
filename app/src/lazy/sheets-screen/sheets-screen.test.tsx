@@ -118,7 +118,7 @@ describe('EZD-702a Sheets screen', () => {
     const screen = await loaded();
     const panel = html(<SheetsPanel screen={screen} canEdit={false} />);
     const groups = [...panel.matchAll(/<h3[^>]*>([^<]*)<\/h3>/g)].map((m) => m[1]);
-    expect(groups).toEqual(['Architectural', 'Electrical', 'Renderings']);
+    expect(groups).toEqual(['Architectural', 'Electrical', 'Renderings', 'Viewports']);
     expect(text(panel, 'sheets-set-summary')).toBe('10 sheets · 24 × 36 · Rev 0 draft');
     expect(panel).toContain('Ready to issue');
     expect(panel).toContain('Needs approval');

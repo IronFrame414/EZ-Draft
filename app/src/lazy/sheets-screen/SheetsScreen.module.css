@@ -455,3 +455,56 @@
     height: var(--ez-touch-target);
   }
 }
+
+/* EZD-703: the open sheet's viewport tool under the sheet list. */
+.viewports {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.viewport {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+}
+
+.viewportField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--ez-text-13);
+  color: var(--ez-slate-500);
+}
+
+.viewportField select {
+  min-height: 32px;
+  min-width: 0;
+  flex: 1;
+  max-width: 60%;
+  font: 500 var(--ez-text-13) var(--ez-font-sans);
+}
+
+.viewportRemove {
+  align-self: flex-end;
+  min-height: 32px;
+  border: none;
+  background: none;
+  font: 500 var(--ez-text-13) var(--ez-font-sans);
+  color: var(--ez-slate-500);
+  cursor: pointer;
+}
+
+/* EZD-703 (EZD-1980 "44 px minimum on touch"): the viewport pickers and Remove viewport on a touch device. */
+@media (any-pointer: coarse) {
+  .viewportField select,
+  .viewportRemove {
+    min-height: var(--ez-touch-target);
+    min-width: var(--ez-touch-target);
+  }
+}

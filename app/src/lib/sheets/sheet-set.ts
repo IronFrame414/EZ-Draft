@@ -4,7 +4,7 @@
 // boxes do not change the set (Q-0764: they feed the scope-match check). Titles are the S13 mockup's sheet list.
 // The set is derived from the project for now; sheets become stored model objects (03b rule 3) when a later
 // ticket makes them adjustable (vault/build/assumptions.md EZD-701). The fields follow the 03c `sheet` row.
-import type { KeyPlacement, SheetSetData, SheetSetKind, SheetSize } from '@ezdraft/geometry';
+import type { KeyPlacement, SheetSetData, SheetSetKind, SheetSize, Viewport } from '@ezdraft/geometry';
 import type { ScopeTrade } from '../projects/new-project';
 
 // The sheet list's groups (S13 Layout: Architectural / Electrical / Renderings).
@@ -15,7 +15,7 @@ export type Sheet = {
   number: string;
   title: string;
   group: SheetGroup;
-  // Filled by the viewports ticket (EZD-703); a default sheet has none yet (S13 States: Empty).
+  // Always empty: EZD-703 keeps a sheet's viewports on its set (SheetSetSummary.viewports, lib/sheets/viewport.ts).
   viewports: readonly string[];
 };
 
@@ -41,6 +41,41 @@ export function defaultSheetSet(scopeTrades: readonly ScopeTrade[]): Sheet[] {
   );
 }
 
+// EZD-703 (Q-0509 "the sheets phases (25 and 26) give each plan sheet its floor"; Q-0763 "architectural sheets keep
+// decimals (A1.1 for a second floor)"; vault/build/assumptions/EZD-701.md row "Plan sheets on a project with more than
+// one floor"): each floor after the lowest adds its own copy of the architectural plan sheets (A1.0, A2.0, A3.0 and
+// A6.0 when in the set), numbered with the floor's place (A1.1 for the second floor), right after the sheet it copies
+// and titled with the floor's name. The electrical sheets' per-floor numbering (Q-0763: E2.0 for the next floor, the
+// panel sheet after the last layout) is left to the E1.0 sheet (EZD-708b) (vault/build/assumptions/EZD-703.md).
+export const FLOOR_PLAN_SHEETS: readonly string[] = ['A1.0', 'A2.0', 'A3.0', 'A6.0'];
+export type SheetFloor = { id: string; name: string };
+
+const FLOOR_COPY = /^(A[1-9])\.([1-9]\d*)$/;
+
+// The plan sheet a floor copy repeats and the floor's place (0 for the lowest), or null for any other sheet.
+export function floorCopyOf(number: string): { base: string; floor: number } | null {
+  if (FLOOR_PLAN_SHEETS.includes(number)) return { base: number, floor: 0 };
+  const m = FLOOR_COPY.exec(number);
+  if (m === null || !FLOOR_PLAN_SHEETS.includes(`${m[1]}.0`)) return null;
+  return { base: `${m[1]}.0`, floor: Number(m[2]) };
+}
+
+// The set's sheets with one copy of each floor-plan sheet per further floor, floors lowest first. Copies already in
+// `sheets` are dropped first, so the result is the same however often it is applied.
+export function withFloorSheets(sheets: readonly Sheet[], floors: readonly SheetFloor[]): Sheet[] {
+  const out: Sheet[] = [];
+  for (const s of sheets) {
+    const copy = floorCopyOf(s.number);
+    if (copy !== null && copy.floor > 0) continue;
+    out.push(s);
+    if (copy === null) continue;
+    floors.slice(1).forEach((f, i) =>
+      out.push({ ...s, number: `${s.number.slice(0, -2)}.${i + 1}`, title: `${s.title} · ${f.name}` }),
+    );
+  }
+  return out;
+}
+
 // EZD-726 (03b rule 3; 03d sheet_set; S13 Set selector, Decision 10; AC-EZD-726-1): each project has one permit
 // set and one client set. A set is a sheet_set model object (packages/geometry schema/sheet-set.ts); a set that has
 // never been changed is not stored and reads as the default below. The client set holds the renders and finish
@@ -57,6 +92,10 @@ export type SheetSetSummary = {
   // Null until the set is first issued (EZD-717).
   lastIssuedVersionId: string | null;
   sheets: Sheet[];
+  // EZD-703: the stored set's viewports; null (or absent from an older answer) while the set shows the defaults.
+  viewports?: Viewport[] | null;
+  // EZD-703: the sheets whose viewports were changed; null (or absent) when none were.
+  viewportSheets?: string[] | null;
 };
 
 // The set of a kind before anyone changes it: permit 24x36, client 11x17 (S13 size toggle: "11x17 is for client and

@@ -8,6 +8,8 @@
 // sheet rail or issue checklist built yet, the panel carries a Property appraiser import button under Add sheet (Edit
 // model and the edit lock, as Add sheet); saving reloads the sets, so the title block shows the confirmed owner and PCN
 // (vault/build/assumptions.md EZD-711).
+// EZD-703: the open sheet's viewport tool (ViewportTool) at the end of the sheet list, inside its scroll, so it never
+// covers a sheet row on a short screen (EZD-1980).
 import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
 import type { SheetSetKind } from '@ezdraft/geometry';
 import { Icon } from '../../components/icon/Icon';
@@ -25,6 +27,7 @@ import type { MessageKey } from '../../server/messages/catalog';
 import { sheetMarks, sizeLabel, useRevisionLabel } from './sheet-labels';
 import type { SheetsScreen } from './sheets-screen-store';
 import { useSheetsScreen } from './use-sheets-screen';
+import { ViewportTool } from './ViewportTool';
 import styles from './SheetsScreen.module.css';
 
 export type SheetsPanelProps = { screen: SheetsScreen; canEdit: boolean };
@@ -253,6 +256,7 @@ export function SheetsPanel({ screen, canEdit }: SheetsPanelProps): ReactElement
         })}
         {canEdit ? <AddSheet /> : null}
         {canEdit ? <PropertyImport screen={screen} /> : null}
+        <ViewportTool screen={screen} canEdit={canEdit} />
       </nav>
       <ul className={styles.legend} aria-label={t('office.sheets.legend')}>
         <li>

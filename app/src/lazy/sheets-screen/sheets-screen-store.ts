@@ -13,10 +13,18 @@
 // numbers in the model, which can land after a return to Sheets) is not drawn again (same-drawing.ts).
 // EZD-728 (AC-EZD-728-1): load() also reads the notes the set prints on its cover (GET /api/projects/[id]/notes,
 // EZD-714). A failed notes answer leaves the cover without notes; it never fails the screen.
+// EZD-703 (S13 Rail: Viewport; AC-EZD-703-1): the open sheet's viewports are read from the model's live sheet_set
+// object (viewport-edit.ts) on the same watch; the sheet is drawn when it has a plan viewport, each viewport in its
+// view and scale. editViewport() writes one viewport change to the model through the editor's store (Edit model, plus
+// the edit lock, is the caller's check, as for the plan's tools). Each set's sheets follow the model's floors
+// (withFloorSheets, Q-0509): a floor added or removed in the editor adds or removes its plan sheets at once.
 import type { SheetSetKind, SheetSize } from '@ezdraft/geometry';
-import type { Objects } from '../../editor/model/patches';
+import { listFloors } from '../../editor/floors/floors';
+import type { Change, Objects } from '../../editor/model/patches';
 import { lazyModule } from '../../lib/lazy/lazy-module';
-import { sheetShowsPlan, type SetNotes, type SheetSetSummary } from '../../lib/sheets/sheet-set';
+import { withFloorSheets, type SetNotes, type SheetFloor, type SheetSetSummary } from '../../lib/sheets/sheet-set';
+import { sheetDrawsPlan, type SheetViewport, type ViewportChange } from '../../lib/sheets/viewport';
+import { openSheetViewports, viewportEditChange } from './viewport-edit';
 import { parseSetNotes } from './cover-sheet';
 import { sameDrawing } from './same-drawing';
 import { sheetSymbolKey, type SheetKey } from './sheet-key';
@@ -41,15 +49,21 @@ export type SheetsScreenState = {
   renders: number;
   // EZD-706: the open sheet's symbol key, for the set kind and sheet it was worked out for; null when it has none.
   key: { kind: SheetSetKind; sheet: string; key: SheetKey } | null;
+  // EZD-703: the open sheet's viewports, in order; empty while no sheet is open. The model's floors, lowest first,
+  // for the viewport tool's floor choice.
+  viewports: SheetViewport[];
+  floors: { id: string; name: string }[];
 };
 
 // The model the sheets draw (the editor's routed store).
 export type SheetsModelSource = {
   getState(): { objects: Objects };
   subscribe(listener: () => void): () => void;
+  // EZD-703: one undoable model edit (ModelStore.applyEdit); a source without it is read-only.
+  applyEdit?(changes: Change[]): string[];
 };
 
-export type SheetsScreenDeps = { loadRenderer?: () => Promise<SheetRenderer> };
+export type SheetsScreenDeps = { loadRenderer?: () => Promise<SheetRenderer>; newId?: () => string };
 
 const sheetsRenderer = lazyModule(() => import('../sheets'));
 
@@ -65,6 +79,8 @@ export type SheetsScreen = {
   set(): SheetSetSummary | null;
   setModel(source: SheetsModelSource | null): void;
   setShown(shown: boolean): void;
+  // EZD-703: one change to the open sheet's viewports; false when nothing was changed.
+  editViewport(change: ViewportChange): boolean;
   dispose(): void;
 };
 
@@ -86,6 +102,8 @@ export function createSheetsScreen(
     drawing: null,
     renders: 0,
     key: null,
+    viewports: [],
+    floors: [],
   };
   const listeners = new Set<() => void>();
   const update = (next: Partial<SheetsScreenState>) => {
@@ -93,6 +111,25 @@ export function createSheetsScreen(
     for (const l of listeners) l();
   };
   const setOf = (kind: SheetSetKind) => state.sets.find((s) => s.kind === kind) ?? null;
+  // EZD-703: the sets as loaded, before the live floors are applied; and the floors last applied.
+  let loaded: SheetSetSummary[] = [];
+  let floorsKey = '';
+  const floorsOf = (): SheetFloor[] =>
+    source === null ? [] : listFloors(source.getState().objects).map(({ id, name }) => ({ id, name }));
+  const withFloors = (sets: SheetSetSummary[], floors: SheetFloor[]) =>
+    sets.map((s) => ({ ...s, sheets: withFloorSheets(s.sheets, floors) }));
+  // The sets with the model's floors; the open sheet stays when it is still in the set.
+  const refreshFloors = () => {
+    if (state.load !== 'ready' || source === null) return;
+    const floors = floorsOf();
+    const key = JSON.stringify(floors);
+    if (key === floorsKey) return;
+    floorsKey = key;
+    const sets = withFloors(loaded, floors);
+    const set = sets.find((x) => x.kind === state.kind);
+    const keep = set?.sheets.some((x) => x.number === state.open) ?? false;
+    update({ sets, floors, open: keep ? state.open : (set?.sheets[0]?.number ?? null) });
+  };
   const firstOf = (kind: SheetSetKind) => setOf(kind)?.sheets[0]?.number ?? null;
 
   const loadRenderer =
@@ -101,8 +138,9 @@ export function createSheetsScreen(
   let source: SheetsModelSource | null = null;
   let shown = false;
   let unwatch: (() => void) | null = null;
-  // What the last render asked for; the same model, sheet and size are not drawn again.
-  let drawn: { objects: Objects; sheet: string; size: SheetSize } | null = null;
+  const newId = deps.newId ?? (() => crypto.randomUUID());
+  // What the last render asked for; the same model, sheet, size and viewports are not drawn again.
+  let drawn: { objects: Objects; sheet: string; size: SheetSize; vps: string } | null = null;
   // EZD-1975: the latest model found to draw the same as `drawn.objects`, so it is compared once.
   let same: Objects | null = null;
 
@@ -124,16 +162,42 @@ export function createSheetsScreen(
     update({ key: key === null ? null : { kind: set.kind, sheet, key } });
   };
 
+  // EZD-703: the open sheet's viewports from the model (or the loaded set while there is no model).
+  let vpKey = '[]';
+  const refreshViewports = () => {
+    if (state.load !== 'ready') return;
+    const set = setOf(state.kind);
+    const sheet = state.open;
+    const vps =
+      set === null || sheet === null
+        ? []
+        : openSheetViewports(source === null ? null : source.getState().objects, set, sheet, state.floors);
+    const key = JSON.stringify(vps);
+    if (key === vpKey) return;
+    vpKey = key;
+    update({ viewports: vps });
+  };
+
   // One render at a time: a change while one is drawing is drawn when it ends.
   let busy = false;
   const refresh = () => {
+    refreshFloors();
     refreshKey();
+    if (shown) refreshViewports();
     if (busy || !shown || source === null || state.load !== 'ready') return;
     const set = setOf(state.kind);
     const sheet = set?.sheets.find((s) => s.number === state.open) ?? null;
-    if (set === null || sheet === null || !sheetShowsPlan(sheet)) return;
-    const asked = { objects: source.getState().objects, sheet: sheet.number, size: set.size };
-    if (drawn !== null && drawn.sheet === asked.sheet && drawn.size === asked.size) {
+    if (set === null || sheet === null) return;
+    if (!sheetDrawsPlan(state.viewports)) {
+      // No plan viewport left on the open sheet: its old drawing goes.
+      drawn = null;
+      same = null;
+      if (state.drawing !== null && state.drawing.sheet === sheet.number) update({ drawing: null });
+      return;
+    }
+    const viewports = state.viewports;
+    const asked = { objects: source.getState().objects, sheet: sheet.number, size: set.size, vps: vpKey };
+    if (drawn !== null && drawn.sheet === asked.sheet && drawn.size === asked.size && drawn.vps === asked.vps) {
       if (drawn.objects === asked.objects || same === asked.objects) return;
       if (sameDrawing(drawn.objects, asked.objects)) {
         same = asked.objects;
@@ -146,7 +210,7 @@ export function createSheetsScreen(
     update({ renders: state.renders + 1 });
     renderer ??= loadRenderer();
     renderer
-      .then((r) => r.render({ objects: asked.objects, size: asked.size }))
+      .then((r) => r.render({ objects: asked.objects, size: asked.size, viewports }))
       .then(
         (svg) => {
           busy = false;
@@ -181,7 +245,16 @@ export function createSheetsScreen(
         const res = await fetchFn(`/api/projects/${projectId}/sheet-sets`, { cache: 'no-store' });
         if (!res.ok) throw new Error(String(res.status));
         const body = (await res.json()) as { sets: SheetSetSummary[]; titleBlock?: ProjectTitleBlock };
-        state = { ...state, sets: body.sets, titleBlock: body.titleBlock ?? null, notes: await notes };
+        loaded = body.sets;
+        floorsKey = '';
+        const floors = source === null ? state.floors : floorsOf();
+        state = {
+          ...state,
+          sets: withFloors(loaded, floors),
+          floors,
+          titleBlock: body.titleBlock ?? null,
+          notes: await notes,
+        };
         const keep = setOf(state.kind)?.sheets.some((s) => s.number === state.open);
         update({ load: 'ready', open: keep ? state.open : firstOf(state.kind) });
         refresh();
@@ -220,6 +293,16 @@ export function createSheetsScreen(
       unwatch = null;
       if (shown && source !== null) unwatch = source.subscribe(refresh);
       refresh();
+    },
+    editViewport(change) {
+      const set = setOf(state.kind);
+      const sheet = state.open;
+      if (source?.applyEdit === undefined || set === null || sheet === null || state.load !== 'ready') return false;
+      const c = viewportEditChange(source.getState().objects, set, sheet, change, newId, state.floors);
+      if (c === null) return false;
+      source.applyEdit([c]);
+      refresh();
+      return true;
     },
     dispose() {
       unwatch?.();

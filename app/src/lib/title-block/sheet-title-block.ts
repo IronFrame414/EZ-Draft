@@ -53,8 +53,9 @@ export function sheetDate(d: Date): string {
   return `${two(d.getMonth() + 1)}/${two(d.getDate())}/${two(d.getFullYear() % 100)}`;
 }
 
-// The plan sheets draw at 1/4" = 1'-0" (EZD-702b); other sheets read "AS NOTED" (board S13Sheets) until viewports
-// carry their own scales (EZD-703).
+// The plan sheets draw at 1/4" = 1'-0" (EZD-702b); other sheets read "AS NOTED" (board S13Sheets).
+// EZD-703: given the sheet's viewport scale (lib/sheets/viewport.ts sheetScaleLabel), the block prints it; a sheet with
+// no viewport (null) reads AS NOTED.
 export const PLAN_SCALE_TEXT = '1/4" = 1\'-0"';
 export const AS_NOTED = 'AS NOTED';
 
@@ -65,6 +66,7 @@ export function sheetTitleBlockValues(
   set: Pick<SheetSetSummary, 'kind' | 'sheets' | 'lastIssuedVersionId'>,
   sheet: Pick<Sheet, 'number' | 'title'>,
   today: Date,
+  scale?: string | null,
 ): TitleBlockValues {
   const pos = sheetPosition(set.sheets, sheet.number);
   const rev = draftRevision(set);
@@ -91,7 +93,7 @@ export function sheetTitleBlockValues(
     drawn: tb.drawn,
     checked: '',
     date: sheetDate(today),
-    scale: sheetShowsPlan(sheet) ? PLAN_SCALE_TEXT : AS_NOTED,
+    scale: scale !== undefined ? (scale ?? AS_NOTED) : sheetShowsPlan(sheet) ? PLAN_SCALE_TEXT : AS_NOTED,
     sheetTitle: sheet.title,
     sheetNumber: sheet.number,
     revision: rev === null ? '' : `REV ${rev}`,

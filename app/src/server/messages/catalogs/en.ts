@@ -3234,6 +3234,18 @@ export const en = {
   'office.sheets.status.scale': 'Scale',
   'office.sheets.status.revision': 'Revision',
   'office.sheets.scale_none': '—',
+  // EZD-703: the viewport tool (wording for Josh, vault/build/assumptions/EZD-703.md).
+  'office.sheets.viewports': 'Viewports',
+  'office.sheets.viewport.none': 'No viewports on this sheet.',
+  'office.sheets.viewport.kind': 'Type',
+  'office.sheets.viewport.view': 'View',
+  'office.sheets.viewport.view.existing': 'Existing',
+  'office.sheets.viewport.view.demo': 'Demo',
+  'office.sheets.viewport.view.proposed': 'Proposed',
+  'office.sheets.viewport.floor': 'Floor',
+  'office.sheets.viewport.scale': 'Scale',
+  'office.sheets.viewport.add': 'Add viewport',
+  'office.sheets.viewport.remove': 'Remove viewport',
   // EZD-1404 (S17 Field pack phone shell; wording in vault/build/assumptions.md EZD-1404 unless on the S17 mockup).
   'field.offline_icon.cached': 'Saved on this phone for offline use',
   'field.offline_icon.caching': 'Saving for offline use…',

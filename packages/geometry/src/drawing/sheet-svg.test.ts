@@ -118,3 +118,31 @@ describe('EZD-702b sheetSvg', () => {
     expect(sheetSvg(list([]), { scale: 1, area: AREA })).toEqual({ markup: '', shown: [] });
   });
 });
+
+// EZD-703 (A2.0 Demo, phase-07 EZD-703 "Existing, Demo and Proposed views driven by object status"): what is removed is
+// dashed with no poché; what stays keeps its solid line and poché.
+describe('EZD-703 sheetSvg demo items', () => {
+  it('draws demo lines dashed and leaves out demo poché', () => {
+    const square = [
+      { x: 0, y: 0 },
+      { x: 4, y: 0 },
+      { x: 4, y: 4 },
+    ];
+    const svg = sheetSvg(
+      list([
+        { kind: 'fill', layer: 'existing', objectId: 'E', points: square },
+        { kind: 'line', layer: 'existing', objectId: 'E', role: 'cut', from: { x: 0, y: 0 }, to: { x: 4, y: 0 } },
+        { kind: 'fill', layer: 'demo', objectId: 'D', points: square },
+        { kind: 'line', layer: 'demo', objectId: 'D', role: 'cut', from: { x: 0, y: 4 }, to: { x: 4, y: 4 } },
+      ]),
+      { scale: 1, area: AREA },
+    );
+    const parts = svg.markup.split('/>');
+    const of = (id: string, tag: string) => parts.filter((p) => p.includes(`<${tag}`) && p.includes(`data-object-id="${id}"`));
+    expect(of('E', 'polygon')).toHaveLength(1);
+    expect(of('E', 'line')[0]).not.toContain('stroke-dasharray');
+    expect(of('D', 'polygon')).toHaveLength(0);
+    expect(of('D', 'line')[0]).toContain('stroke-dasharray');
+    expect(svg.shown).toEqual(['D', 'E']);
+  });
+});
