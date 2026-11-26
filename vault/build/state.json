@@ -539,7 +539,8 @@
     "EZD-1422",
     "EZD-216",
     "EZD-607",
-    "EZD-1953"
+    "EZD-1953",
+    "EZD-612"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2233,6 +2234,14 @@
       "ts": "2026-11-26T05:09:17Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-612",
+      "title": "Check button and results",
+      "commit": "73fe1604",
+      "ts": "2026-11-26T05:43:08Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2490,12 +2499,6 @@
     }
   },
   "running": {
-    "EZD-612": {
-      "lane": 3,
-      "title": "Check button and results",
-      "started": "2026-11-26T03:55:55Z",
-      "develop": "4d810f84"
-    },
     "EZD-916": {
       "lane": 2,
       "title": "2020 order report import",
