@@ -565,7 +565,8 @@
     "EZD-719",
     "EZD-1501",
     "EZD-708a",
-    "EZD-1611b"
+    "EZD-1611b",
+    "EZD-708b"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2467,6 +2468,14 @@
       "ts": "2026-11-26T21:53:54Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-708b",
+      "title": "E1.0 electrical plan",
+      "commit": "57191756",
+      "ts": "2026-11-26T22:24:00Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2734,12 +2743,6 @@
     }
   },
   "running": {
-    "EZD-708b": {
-      "lane": 2,
-      "title": "E1.0 electrical plan",
-      "started": "2026-11-26T20:47:14Z",
-      "develop": "4aaf41da"
-    },
     "EZD-1995": {
       "lane": 1,
       "title": "Each page sends only the screen messages it uses, not the whole office catalog",
@@ -2747,7 +2750,7 @@
       "develop": "2a85c872"
     }
   },
-  "advisories_checked_at": "2026-11-26T16:20:56Z",
+  "advisories_checked_at": "2026-11-26T22:21:01Z",
   "hold": {},
   "perf_trend_at": "2026-11-26T03:55:15Z",
   "set_aside_history": [],
