@@ -540,7 +540,8 @@
     "EZD-216",
     "EZD-607",
     "EZD-1953",
-    "EZD-612"
+    "EZD-612",
+    "EZD-916"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2242,6 +2243,14 @@
       "ts": "2026-11-26T05:43:08Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-916",
+      "title": "2020 order report import",
+      "commit": "d65d8a25",
+      "ts": "2026-11-26T06:15:48Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2498,14 +2507,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-916": {
-      "lane": 2,
-      "title": "2020 order report import",
-      "started": "2026-11-26T04:37:52Z",
-      "develop": "d27481a0"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-26T04:19:51Z",
   "hold": {},
   "perf_trend_at": "2026-11-26T03:55:15Z",
