@@ -26,7 +26,8 @@ export const EVENTS = {
   'change_order.sent': { kind: 'webhook', notInV1: 'Q-0190' },
   'takeoff.updated': { kind: 'webhook', later: 'EZD-1611c' },
   'model.exported': { kind: 'webhook', later: 'EZD-1014' },
-  'field_task.completed': { kind: 'webhook', later: 'EZD-1409' },
+  // EZD-1409 (07 field_task.completed "task, room, photos, by, at"): a task checked off on a phone, once synced.
+  'field_task.completed': { kind: 'webhook' },
   'field.conflict_flagged': { kind: 'webhook', later: 'EZD-1407' },
   'client.commented': { kind: 'webhook', later: 'EZD-1204' },
   'customer.synced': { kind: 'webhook', notInV1: 'Q-0190' },
@@ -170,7 +171,14 @@ export interface EventPayloads {
   'change_order.sent': Record<string, unknown>;
   'takeoff.updated': Record<string, unknown>;
   'model.exported': Record<string, unknown>;
-  'field_task.completed': Record<string, unknown>;
+  'field_task.completed': {
+    projectId: string;
+    taskId: string;
+    room: string;
+    photos: number;
+    by: string;
+    at: string;
+  };
   'field.conflict_flagged': Record<string, unknown>;
   'client.commented': Record<string, unknown>;
   'customer.synced': Record<string, unknown>;
@@ -231,7 +239,7 @@ export interface EventPayloads {
   };
   'offline_change.synced': {
     id: string;
-    kind: 'measurement' | 'task_check' | 'photo_pin' | 'field_measure_send';
+    kind: 'measurement' | 'task_check' | 'photo_pin' | 'field_measure_send' | 'task_photo';
   };
   'field_pack.issued': Record<string, unknown>;
   'share_link.expiring': { projectId: string; expiresAt: string };

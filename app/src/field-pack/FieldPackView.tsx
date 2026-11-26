@@ -5,6 +5,8 @@
 // subtitle "Field pack · issued <date> · A3.0 Proposed plan" (S17 Decision 9), room chips with All; tab bar Plan,
 // 3D, Measure, Tasks (open count), Photo (hidden without Photo notes). No Back to EZ Binder in v1 (Q-0190, Q-0401).
 // The tab contents are EZD-1405 (Plan, 3D), EZD-1406 (Measure), EZD-1409 (Tasks) and EZD-1410 (Photo).
+// EZD-1409: the Tasks tab (TasksPanel) shows the pack's tasks with this phone's checks, photos and edits laid over
+// them (tasks-view.ts); the tab badge counts the open ones.
 import { useState, type ReactNode } from 'react';
 import { Disclaimer } from '../components/disclaimer/Disclaimer';
 import { Icon } from '../components/icon/Icon';
@@ -14,6 +16,8 @@ import { useT } from '../lib/messages';
 import type { Language } from '../lib/messages/types';
 import type { FieldPackView as PackData } from './types';
 import { ALL_ROOMS, packDate, packTitle, packTabs, type FieldPackTab } from './pack-view';
+import { NO_OVERLAY, openCount, overlayTasks, type TaskOverlay } from './tasks-view';
+import { TasksPanel, type TaskActions } from './TasksPanel';
 import styles from './FieldPack.module.css';
 
 const TAB_ICON: Record<FieldPackTab, Parameters<typeof Icon>[0]['name']> = {
@@ -31,6 +35,8 @@ export function FieldPackView({
   icon,
   initialTab = 'plan',
   initialRoom = ALL_ROOMS,
+  overlay = NO_OVERLAY,
+  taskActions = null,
 }: {
   data: PackData;
   language: Language;
@@ -39,6 +45,9 @@ export function FieldPackView({
   icon?: ReactNode;
   initialTab?: FieldPackTab;
   initialRoom?: string;
+  overlay?: TaskOverlay;
+  // The task row controls; null shows the tasks with no controls.
+  taskActions?: TaskActions | null;
 }) {
   const t = useT();
   const [tab, setTab] = useState<FieldPackTab>(initialTab);
@@ -71,6 +80,8 @@ export function FieldPackView({
         {t(revision.kind === 'rev' ? 'field.pack.rev' : 'field.pack.version', { n: revision.no })}
       </button>
     );
+  const tasks = overlayTasks(pack.tasks ?? [], overlay);
+  const open = pack.tasks === undefined ? pack.openTasks : openCount(tasks);
   const tabs = packTabs({ canPhoto });
   const current = tabs.includes(tab) ? tab : 'plan';
 
@@ -134,13 +145,13 @@ export function FieldPackView({
             >
               <span className={styles.tabIcon}>
                 <Icon name={TAB_ICON[k]} size={22} />
-                {k === 'tasks' && pack.openTasks > 0 ? (
+                {k === 'tasks' && open > 0 ? (
                   <span
                     className={styles.count}
                     data-testid="open-tasks"
-                    aria-label={t('field.pack.open_tasks', { count: pack.openTasks })}
+                    aria-label={t('field.pack.open_tasks', { count: open })}
                   >
-                    {pack.openTasks}
+                    {open}
                   </span>
                 ) : null}
               </span>
@@ -158,7 +169,17 @@ export function FieldPackView({
         data-state="ready"
         data-tab={current}
         data-room={room}
-      ></section>
+      >
+        {current === 'tasks' ? (
+          <TasksPanel
+            tasks={tasks}
+            room={room}
+            language={language}
+            canPhoto={canPhoto}
+            actions={taskActions}
+          />
+        ) : null}
+      </section>
       <Disclaimer placement="page" />
     </PhoneFrame>
   );

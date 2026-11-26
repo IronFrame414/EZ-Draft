@@ -557,14 +557,14 @@ isOneToOne: false
                   ]
                 },"field_task": {
                   Row: {
-                    "created_at": string,"done_at": string | null,"done_by": string | null,"id": string,"job_id": string | null,"linked_objects": NonNullable<Json>,"phase": string,"phase_position": number,"photos": NonNullable<Json>,"position": number,"project_id": string,"room": string,"room_id": string | null,"status": string,"tenant_id": string,"text_en": string,"text_es": string | null,"updated_at": string
+                    "created_at": string,"done_at": string | null,"done_by": string | null,"done_change_id": string | null,"edited_on_phone_at": string | null,"id": string,"job_id": string | null,"linked_objects": NonNullable<Json>,"phase": string,"phase_position": number,"photos": NonNullable<Json>,"position": number,"project_id": string,"room": string,"room_id": string | null,"status": string,"tenant_id": string,"text_en": string,"text_es": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"done_at"?: string | null,"done_by"?: string | null,"id"?: string,"job_id"?: string | null,"linked_objects"?: NonNullable<Json>,"phase": string,"phase_position": number,"photos"?: NonNullable<Json>,"position": number,"project_id": string,"room"?: string,"room_id"?: string | null,"status"?: string,"tenant_id": string,"text_en": string,"text_es"?: string | null,"updated_at"?: string
+                    "created_at"?: string,"done_at"?: string | null,"done_by"?: string | null,"done_change_id"?: string | null,"edited_on_phone_at"?: string | null,"id"?: string,"job_id"?: string | null,"linked_objects"?: NonNullable<Json>,"phase": string,"phase_position": number,"photos"?: NonNullable<Json>,"position": number,"project_id": string,"room"?: string,"room_id"?: string | null,"status"?: string,"tenant_id": string,"text_en": string,"text_es"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"done_at"?: string | null,"done_by"?: string | null,"id"?: string,"job_id"?: string | null,"linked_objects"?: NonNullable<Json>,"phase"?: string,"phase_position"?: number,"photos"?: NonNullable<Json>,"position"?: number,"project_id"?: string,"room"?: string,"room_id"?: string | null,"status"?: string,"tenant_id"?: string,"text_en"?: string,"text_es"?: string | null,"updated_at"?: string
+                    "created_at"?: string,"done_at"?: string | null,"done_by"?: string | null,"done_change_id"?: string | null,"edited_on_phone_at"?: string | null,"id"?: string,"job_id"?: string | null,"linked_objects"?: NonNullable<Json>,"phase"?: string,"phase_position"?: number,"photos"?: NonNullable<Json>,"position"?: number,"project_id"?: string,"room"?: string,"room_id"?: string | null,"status"?: string,"tenant_id"?: string,"text_en"?: string,"text_es"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -572,6 +572,12 @@ isOneToOne: false
       columns: ["done_by"]
 isOneToOne: false
       referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "field_task_done_change_id_fkey"
+      columns: ["done_change_id"]
+isOneToOne: false
+      referencedRelation: "offline_change"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "field_task_job_id_fkey"
@@ -1608,6 +1614,9 @@ isOneToOne: false
         isOneToOne: false
         isSetofReturn: true
       } },
+"edit_field_task":
+{ Args: { "p_project": string,"p_task": string,"p_text": string }; Returns: Json
+                           },
 "enqueue_job":
 { Args: { "p_kind": string,"p_max_attempts": number,"p_payload": Json,"p_project_id": string,"p_run_after"?: string }; Returns: string
                            },

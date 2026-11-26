@@ -954,6 +954,23 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-1402: records a queued field action; 200 { status, syncedAt } (no money)',
   },
+  // EZD-1409: the phone's Edit text of a field task; a task id the project does not have answers 404.
+  {
+    file: `${API}projects/[id]/field-tasks/[taskId]/route.ts`,
+    method: 'PATCH',
+    load: () => import('../../src/app/api/projects/[id]/field-tasks/[taskId]/route'),
+    request: async (env) => {
+      const taskId = randomUUID();
+      return {
+        ...(await sendJson('PATCH', `/api/projects/${env.projectId}/field-tasks/${taskId}`, {
+          text: 'Remove upper cabinets',
+        })()),
+        params: { id: env.projectId, taskId },
+      };
+    },
+    expectStatus: 404,
+    note: 'EZD-1409: edits a field task text; 200 { textEn, textEs, editedAt } (no money)',
+  },
   // EZD-233: the Plan editor's saved groups; POST saves one lavatory as a group.
   {
     file: `${API}saved-groups/route.ts`,

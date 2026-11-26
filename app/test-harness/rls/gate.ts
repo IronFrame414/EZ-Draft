@@ -387,4 +387,6 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   },
   // EZD-1418: the import of a recorded field measure send, authenticated only.
   { fn: 'create_field_measure_import', args: { p_project: null, p_change: null, p_items: null } },
+  // EZD-1409: the phone's Edit text of a field task, authenticated only.
+  { fn: 'edit_field_task', args: { p_project: null, p_task: null, p_text: null } },
 ];
