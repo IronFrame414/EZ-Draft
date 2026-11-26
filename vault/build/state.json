@@ -554,7 +554,8 @@
     "EZD-716",
     "EZD-1912",
     "EZD-1994",
-    "EZD-707"
+    "EZD-707",
+    "EZD-123"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2368,6 +2369,14 @@
       "ts": "2026-11-26T15:13:15Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-123",
+      "title": "Version cleanup",
+      "commit": "5bbbd624",
+      "ts": "2026-11-26T15:50:48Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2630,17 +2639,17 @@
     }
   },
   "running": {
-    "EZD-123": {
-      "lane": 1,
-      "title": "Version cleanup",
-      "started": "2026-11-26T13:48:19Z",
-      "develop": "8f5e88e8"
-    },
     "EZD-1996": {
       "lane": 3,
       "title": "Styles split by page so sign-in and other pages stop loading every screen's CSS",
       "started": "2026-11-26T14:45:56Z",
       "develop": "6a2a063f"
+    },
+    "EZD-1997": {
+      "lane": 2,
+      "title": "The notification bell loads realtime after the page is usable",
+      "started": "2026-11-26T15:13:26Z",
+      "develop": "41d1c34c"
     }
   },
   "advisories_checked_at": "2026-11-26T10:20:19Z",
