@@ -2462,7 +2462,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2511,7 +2511,8 @@
     "EZD-1991": 1,
     "EZD-1990": 1,
     "EZD-1993": 1,
-    "EZD-614": 1
+    "EZD-614": 1,
+    "EZD-1995": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2717,20 +2718,24 @@
     "EZD-614": {
       "ts": "2026-11-26T13:46:42Z",
       "reason": "review still failing after 2 fix rounds"
+    },
+    "EZD-1995": {
+      "ts": "2026-11-26T20:58:01Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-1995": {
-      "lane": 1,
-      "title": "Each page sends only the screen messages it uses, not the whole office catalog",
-      "started": "2026-11-26T19:34:37Z",
-      "develop": "e89f5fb1"
-    },
     "EZD-1611b": {
       "lane": 3,
       "title": "Takeoff: cabinets, tops, fixtures and electrical",
       "started": "2026-11-26T20:15:21Z",
       "develop": "a36deacf"
+    },
+    "EZD-708b": {
+      "lane": 2,
+      "title": "E1.0 electrical plan",
+      "started": "2026-11-26T20:47:14Z",
+      "develop": "4aaf41da"
     }
   },
   "advisories_checked_at": "2026-11-26T16:20:56Z",
