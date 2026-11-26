@@ -538,7 +538,8 @@
     "EZD-1948",
     "EZD-1422",
     "EZD-216",
-    "EZD-607"
+    "EZD-607",
+    "EZD-1953"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2224,6 +2225,14 @@
       "ts": "2026-11-26T04:36:49Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1953",
+      "title": "Split assumptions.md per ticket and build Josh's per-screen wording checklist",
+      "commit": "1096dec9",
+      "ts": "2026-11-26T05:09:17Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2487,11 +2496,11 @@
       "started": "2026-11-26T03:55:55Z",
       "develop": "4d810f84"
     },
-    "EZD-1953": {
-      "lane": 1,
-      "title": "Split assumptions.md per ticket and build Josh's per-screen wording checklist",
-      "started": "2026-11-26T03:56:50Z",
-      "develop": "4d810f84"
+    "EZD-916": {
+      "lane": 2,
+      "title": "2020 order report import",
+      "started": "2026-11-26T04:37:52Z",
+      "develop": "d27481a0"
     }
   },
   "advisories_checked_at": "2026-11-26T04:19:51Z",
