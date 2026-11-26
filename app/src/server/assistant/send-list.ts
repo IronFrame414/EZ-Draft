@@ -105,6 +105,14 @@ export const SEND_CLASSIFICATION: Readonly<Record<string, 'send' | 'never'>> = {
   'room.attributes.ceiling.ridge.end.x': 'never',
   'room.attributes.ceiling.ridge.end.y': 'never',
   'room.attributes.ceiling.ridge.height': 'never',
+  // EZD-514: not on the Q-0637 send list (vault/build/assumptions.md EZD-514).
+  'room.attributes.framing.known': 'never',
+  'room.attributes.framing.lines[].kind': 'never',
+  'room.attributes.framing.lines[].start.x': 'never',
+  'room.attributes.framing.lines[].start.y': 'never',
+  'room.attributes.framing.lines[].end.x': 'never',
+  'room.attributes.framing.lines[].end.y': 'never',
+  'room.attributes.framing.lines[].spacing': 'never',
   'room.closureOverride.who': 'never',
   'room.closureOverride.when': 'never',
   'room.closureOverride.gap.x': 'never',
@@ -273,6 +281,9 @@ export const PROJECTORS: {
   ceiling_tag: notSent,
   // EZD-511: ACT grids are not sent until a ticket decides what of them the assistant reads.
   act_grid: notSent,
+  // EZD-216: dimensions and notes are not sent; the assistant adds them (add_dimension, add_text) but does not read them.
+  dimension: notSent,
+  text: notSent,
 };
 
 const LABEL_WORDS = new Set(ROOM_LABEL_WORDS.map((w) => w.toLowerCase()));

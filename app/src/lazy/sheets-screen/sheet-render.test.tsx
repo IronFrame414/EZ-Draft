@@ -35,6 +35,10 @@ function wallChange(id: string, x: number): Change {
   return { id, value: { type: 'wall', schemaVersion: CURRENT_SCHEMA_VERSION, data: made.data } };
 }
 
+// The floor and walls in a render request, without the auto dimensions (EZD-216).
+const modelCount = (objects: ReadonlyMap<string, { type: string }>) =>
+  [...objects.values()].filter((v) => v.type !== 'dimension').length;
+
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
 function setup() {
@@ -43,7 +47,8 @@ function setup() {
   const renderer: SheetRenderer = {
     render: vi.fn(async (req: SheetRenderRequest) => {
       asked.push(req);
-      return { markup: `<line data-object-id="n${req.objects.size}"/>`, shown: [] };
+      // EZD-216: the auto dimensions a wall edit adds (Q-0686) are not counted.
+      return { markup: `<line data-object-id="n${modelCount(req.objects)}"/>`, shown: [] };
     }),
     dispose: vi.fn(),
   };
@@ -84,7 +89,7 @@ describe('EZD-702b sheet renders', () => {
     screen.setShown(true);
     await flush();
     expect(asked).toHaveLength(2);
-    expect(asked[1]!.objects.size).toBe(5);
+    expect(modelCount(asked[1]!.objects)).toBe(5);
     // Showing again with no change draws nothing more.
     screen.setShown(false);
     screen.setShown(true);

@@ -7,7 +7,11 @@
 // the drawing list; a hidden opening then cuts nothing, so its wall is drawn whole.
 // EZD-729 (AC-EZD-729-1): a shown sink's supply and drain locations join the list while the Plumbing layer is
 // shown (PLUMBING_LOCATION_TYPE in the layer filter).
+// EZD-216 (09-calculations Q-0664 "Text paper sizes", "Plan display scale"): `planAnnotation` sizes stored dimension
+// and note text at its paper size on the plan, at the plan scale: model inches = paper × 12 ÷ scale, so it shows at
+// paper × 96 px × zoom (glyph quads are PT_TO_MODEL_IN model inches per point).
 import {
+  type AnnotationScale,
   PLUMBING_LOCATION_TYPE,
   buildDrawingList,
   plumbingLocationItems,
@@ -26,6 +30,7 @@ import { pinItems, type PinObject } from './pins';
 import type { Objects } from '../model/patches';
 import { resolveOpenFloor } from '../floors/floors';
 import { tokenRgb, type Rgb } from './color';
+import { PT_TO_MODEL_IN } from './glyph-atlas';
 import type { Bounds } from './view';
 
 export type PlanBatch = {
@@ -41,6 +46,11 @@ export type PlanBatch = {
 export const ARC_SEGMENT_DEG = 5;
 export const PLAN_DIMENSION_TEXT_PT = 10.5;
 export const PLAN_ROOM_LABEL_PT = 11.25;
+
+/** The plan's text sizes at a plan scale (plan inches per foot). */
+export function planAnnotation(scale: number): AnnotationScale {
+  return { paperPtPerIn: 12 / (scale * PT_TO_MODEL_IN), modelInPerPt: PT_TO_MODEL_IN };
+}
 
 const LAYER_TOKEN: Record<DrawingLayer, `--ez-${string}`> = {
   existing: '--ez-slate-400',
@@ -199,6 +209,8 @@ export function drawingBounds(list: DrawingList | null): Bounds | null {
     maxY = Math.max(maxY, p.y);
   };
   for (const item of list.items) {
+    // EZD-216 (S03 "Fit to screen | fit model to view"): dimensions are not the model; Fit leaves them out.
+    if (item.layer === 'dimensions') continue;
     if (item.kind === 'line') {
       add(item.from);
       add(item.to);

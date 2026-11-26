@@ -6,7 +6,7 @@
 // text scan (dev hooks, which only ProjectEditor installs) reads the whole of app/src.
 //
 // Rail order is not pinned here (section 2.2 lists the tools, not their order; the order is per user, EZD-230);
-// e2e/plan-canvas.spec.ts B7 pins the counts 13 top and Assistant, Help bottom. vault/build/assumptions.md EZD-1901.
+// e2e/plan-canvas.spec.ts B7 pins the counts 15 top (13, plus EZD-216 Dimension and Text) and Assistant, Help bottom. vault/build/assumptions.md EZD-1901.
 //
 // AC-EZD-1901-2: the 7 built tickets that no test names (section 2.7) are each covered by these existing tests,
 // which the gate already runs; no characterization test is needed:
@@ -82,7 +82,7 @@ const wrap = (ui: ReactElement) =>
 
 // ---- Section 2.2 rail tools and 2.3 default keys --------------------------------------------------------------------
 
-// Section 2.2 floor rail table: tool id and its default key, 13 top tools.
+// Section 2.2 floor rail table: tool id and its default key, 13 top tools, plus EZD-216 Dimension (L) and Text (T).
 const FLOOR_RAIL: Readonly<Record<string, string>> = {
   select: 'V',
   move: 'M',
@@ -97,6 +97,8 @@ const FLOOR_RAIL: Readonly<Record<string, string>> = {
   countertops: 'K',
   electrical: 'E',
   ceiling: 'G',
+  dimension: 'L',
+  text: 'T',
 };
 // Section 2.2 bottom: Assistant (no key, editors only), then Help (?).
 const BOTTOM_RAIL = ['assistant', 'help'];
@@ -153,13 +155,13 @@ describe('EZD-1901 contract: rail tools and keys (section 2.2, 2.3)', () => {
     controllerEnabled: true,
   });
 
-  it('AC-EZD-1901-1 the floor rail has the 13 top tools of section 2.2, each with its default key', () => {
+  it('AC-EZD-1901-1 the floor rail has the 13 top tools of section 2.2 and Dimension and Text, each with its default key', () => {
     expect(ready).not.toBeNull();
     // DrawingRail puts the Ceiling tool after the editor's tools when the plan has a surface.
     const top = railToolsWithKeys([...ready!.tools, CEILING_RAIL_TOOL], DEFAULT_BINDINGS);
     const got = Object.fromEntries(top.map((t) => [t.id, t.shortcut]));
     for (const [id, key] of Object.entries(FLOOR_RAIL)) expect(got[id], id).toBe(key);
-    expect(top).toHaveLength(13);
+    expect(top).toHaveLength(15);
     expect(top[0]!.id).toBe('select');
   });
 

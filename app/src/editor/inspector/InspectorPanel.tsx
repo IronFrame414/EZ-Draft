@@ -75,6 +75,9 @@ import { CeilingFlags, DevicePanel } from '../tools/DevicePanel';
 import { SwitchZoneInspector } from '../tools/SwitchZonePanel';
 import { ActGridInspector } from '../tools/ActGridPanel';
 import { EngineerNoteForm } from './EngineerNoteForm';
+import { FramingKnownSection } from './FramingKnown';
+import type { SurfaceSetting } from '../ceiling/surface';
+import type { FramingDrawing } from '../tools/framing-tool';
 import styles from './InspectorPanel.module.css';
 import { idKey, sameId } from '../shared/ids';
 import { useStoreValue } from '../shared/use-store-value';
@@ -116,6 +119,11 @@ export type InspectorPanelProps = {
   fanClearance?: number | null;
   // EZD-511: the Defaults "ACT minimum border" as a share of the tile; absent is half a tile.
   actMinShare?: number;
+  // EZD-514: the page's surface; on Ceiling or Both a room selected alone shows its Framing known section.
+  surface?: SurfaceSetting;
+  // EZD-514: the page's framing drawing, from the RCP module (rcp.framingDrawingFor), so the section and the framing
+  // line tool share one instance across the two lazy parts; absent until the RCP module is in.
+  framingDrawing?: FramingDrawing;
 };
 
 export type InspectorContentProps = {
@@ -142,6 +150,8 @@ export function InspectorPanel({
   projectId,
   fanClearance = null,
   actMinShare = 0.5,
+  surface,
+  framingDrawing,
 }: InspectorPanelProps): ReactElement {
   const chosen = useChosenFloor(floors);
   const objects = useSyncExternalStore(
@@ -155,6 +165,7 @@ export function InspectorPanel({
   const ids = useMemo(() => withoutRooms(objects, selected.ids), [objects, selected.ids]);
   const ui = useMemo(() => ({ ...selected, ids }), [selected, ids]);
   const coarse = useCoarsePointer();
+  const shownSurface = useStoreValue(surface, (x) => x.get().surface, 'floor');
   const level = openFloorId(objects, chosen);
   const view = useMemo<InspectorView>(
     () =>
@@ -246,7 +257,24 @@ export function InspectorPanel({
     }
   }, [focus, view]);
 
-  if (roomAlone !== null) return <RoomNote name={roomAlone} canEdit={canEdit} />;
+  if (roomAlone !== null)
+    return (
+      <RoomNote name={roomAlone} canEdit={canEdit}>
+        {/* EZD-514: on Ceiling or Both the selected room is its ceiling, with its Framing known section. */}
+        {surface === undefined ||
+        framingDrawing === undefined ||
+        shownSurface === 'floor' ? null : (
+          <FramingKnownSection
+            key={selected.ids[0]!}
+            store={store}
+            roomId={selected.ids[0]!}
+            canEdit={canEdit}
+            surface={surface}
+            drawing={framingDrawing}
+          />
+        )}
+      </RoomNote>
+    );
   // EZD-220: one pin alone shows the pin inspector.
   if (pinAlone !== null)
     return (
@@ -343,11 +371,21 @@ export function InspectorContent(props: InspectorContentProps): ReactElement {
 }
 
 // EZD-218 (Q-0679 (b)): the room's name as the title, and one line pointing to the Rooms tab.
-function RoomNote({ name, canEdit }: { name: string; canEdit: boolean }) {
+// EZD-514: `children` is the room's Framing known section on Ceiling or Both.
+function RoomNote({
+  name,
+  canEdit,
+  children,
+}: {
+  name: string;
+  canEdit: boolean;
+  children?: ReactNode;
+}) {
   const t = useT();
   return (
     <div className={styles.panel} data-testid="inspector" data-inspector-kind="room">
       <Header title={name} subtitle={t('office.inspector.room_in_rooms_tab')} canEdit={canEdit} />
+      {children}
     </div>
   );
 }

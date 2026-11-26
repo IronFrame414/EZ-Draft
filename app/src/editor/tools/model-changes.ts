@@ -8,7 +8,10 @@
 // EZD-227 Build (AC-EZD-227-1; S03:152): every wall edit also appends the blocking host updates of its level, and a
 // moved blocking is written with its re-hosting, in the same edit.
 // EZD-505 (S05 "Beams in a set move as a set"): a moved beam set is written in the same edit.
+// EZD-216: the dimension and note changes (dimensionChange, textChange) and a level's dimensions and notes.
 import {
+  type DimensionObject,
+  type TextObject,
   blockingHostUpdates,
   CURRENT_SCHEMA_VERSION,
   numberNewObjects,
@@ -182,6 +185,43 @@ export const openingChange = (o: OpeningObject): Change => ({
   },
 });
 
+// EZD-216: the dimensions and notes of a level.
+export function annotationsOn(objects: Objects, level: string): (DimensionObject | TextObject)[] {
+  const lvl = level.toLowerCase();
+  const out: (DimensionObject | TextObject)[] = [];
+  for (const [id, v] of objects) {
+    if (v.type !== 'dimension' && v.type !== 'text') continue;
+    if (typeof v.data.level !== 'string' || v.data.level.toLowerCase() !== lvl) continue;
+    const r = parseStoredObject({
+      id,
+      type: v.type,
+      schema_version: v.schemaVersion,
+      data: v.data,
+    });
+    if (r.ok && (r.object.type === 'dimension' || r.object.type === 'text'))
+      out.push(r.object as DimensionObject | TextObject);
+  }
+  return out;
+}
+
+export const dimensionChange = (o: DimensionObject): Change => ({
+  id: o.id,
+  value: {
+    type: 'dimension',
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: o.data as unknown as Record<string, unknown>,
+  },
+});
+
+export const textChange = (o: TextObject): Change => ({
+  id: o.id,
+  value: {
+    type: 'text',
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: o.data as unknown as Record<string, unknown>,
+  },
+});
+
 export function roomChanges(rec: RoomReconcile): Change[] {
   return [
     ...rec.create.map(roomChange),
@@ -258,7 +298,8 @@ export function moveEditChanges(
   if (changed.length === 0) return [];
   const loose = changed.filter(isLooseObject).map(looseChange);
   const beams: Change[] = changed.flatMap((o) =>
-    o.type === 'beam' || o.type === 'device'
+    // EZD-216: moved dimensions (their offset) and notes (their position) are written as they are.
+    o.type === 'beam' || o.type === 'device' || o.type === 'dimension' || o.type === 'text'
       ? [
           {
             id: o.id,

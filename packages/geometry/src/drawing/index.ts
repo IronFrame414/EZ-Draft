@@ -8,3 +8,5 @@ export * from './types';
 export * from './sheet-svg';
 // EZD-710: the sheet title block.
 export * from './title-block';
+// EZD-216: dimension and note values, auto dimensions and paper sizes, exported with the drawing list that draws them.
+export * from '../dimensions';

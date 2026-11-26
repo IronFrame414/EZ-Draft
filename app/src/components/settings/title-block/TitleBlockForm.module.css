@@ -229,6 +229,18 @@
   background: var(--ez-surface);
   box-shadow: var(--ez-shadow-card);
 }
+/* EZD-1991: the preview's window. It keeps the whole sheet's shape; zoomed, it scrolls down the title block. */
+.viewport {
+  width: 100%;
+}
+.viewportZoomed {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+/* Board S15b: the zoom button ends the preview head, at the right. */
+.zoomButton {
+  margin-left: auto;
+}
 .sheet {
   display: flex;
   width: 100%;
@@ -248,15 +260,14 @@
   color: var(--ez-slate-400);
 }
 .tb {
+  /* The width is TITLE_BLOCK_COLUMN (lib/title-block), set inline: the zoom (EZD-1991) frames that column. */
   flex: none;
-  width: 22%;
   display: flex;
   flex-direction: column;
   border-left: 1.5px solid var(--ez-ink);
   font-size: var(--ez-text-9);
 }
 .tbSmall {
-  width: 30%;
   font-size: var(--ez-text-7);
 }
 .tbCell {
@@ -384,4 +395,13 @@
   .segmentButton {
     height: var(--ez-touch-target);
   }
+}
+
+/* EZD-1991 (S15b head): "Used on N sheets · Open Sheets". */
+.usage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
 }

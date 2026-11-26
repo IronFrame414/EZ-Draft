@@ -90,6 +90,7 @@ export const ICON_NAMES = [
   'speaker',
   'straighten',
   'sync_problem',
+  'title',
   'tune',
   'undo',
   'update',

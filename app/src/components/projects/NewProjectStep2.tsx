@@ -10,6 +10,9 @@
 // EZD-301 (board S01b column 2; S01 Start from a file flow; Q-0189; Q-0398): entered through Start from a file, the
 // built file sources (Polycam scan, PDF, DXF, Supplier kitchen PDF) replace Blank and the Upload step replaces the
 // template block, and Create will lists the upload; Standalone keeps Blank only (vault/build/assumptions.md).
+// EZD-1422 (S01 Input source; board S01b "Field measure" card and "Field measure asks which Foreman gets the link"
+// hint; Q-0398): Standalone offers Field measure beside Blank to a user who may import; with it the template block
+// goes, the Foreman picker is required, and Create will emails the Foreman the S17b link.
 import { useEffect, useState, type ReactElement } from 'react';
 import { FILE_SOURCES, type FileSource, type UploadList } from '../../lib/imports/upload-files';
 import type { IconName } from '../icon/icon-names.generated';
@@ -45,9 +48,12 @@ export type NewProjectStep2Props = {
   uploadStatus?: string | null;
   uploadError?: string | null;
   locked?: boolean;
+  // EZD-1422: Standalone's choice of Blank or Field measure; shown when given.
+  onStandaloneSourceChange?: (s: StandaloneSource) => void;
 };
 
-export type InputSource = 'blank' | FileSource;
+export type StandaloneSource = 'blank' | 'field_measure';
+export type InputSource = StandaloneSource | FileSource;
 
 const SOURCE_ICONS: Record<FileSource, IconName> = {
   polycam: 'photo_camera',
@@ -72,6 +78,7 @@ export function NewProjectStep2({
   uploadStatus = null,
   uploadError = null,
   locked = false,
+  onStandaloneSourceChange,
 }: NewProjectStep2Props): ReactElement {
   const t = useT();
   const [mod, setMod] = useState(() => templateModule.peek());
@@ -99,6 +106,8 @@ export function NewProjectStep2({
   }, [mod, template, onTemplateChange]);
 
   const state = mod ? 'ready' : failed ? 'error' : 'loading';
+  const fieldMeasure = source === 'field_measure';
+  const fromFile = source !== 'blank' && !fieldMeasure;
   const customer = draft.customer;
   const templateKey = template?.key ?? null;
 
@@ -168,9 +177,11 @@ export function NewProjectStep2({
         </div>
         <div
           className={
-            onSourceChange === undefined
-              ? styles.sourceGrid
-              : `${styles.sourceGrid} ${styles.sourceGridFiles}`
+            onSourceChange !== undefined
+              ? `${styles.sourceGrid} ${styles.sourceGridFiles}`
+              : onStandaloneSourceChange !== undefined
+                ? `${styles.sourceGrid} ${styles.sourceGridTwo}`
+                : styles.sourceGrid
           }
           role="radiogroup"
           aria-label={t('office.new_project.source_title')}
@@ -189,7 +200,29 @@ export function NewProjectStep2({
                 />
               ))
             : null}
-          {onSourceChange === undefined ? (
+          {onSourceChange === undefined && onStandaloneSourceChange !== undefined ? (
+            <>
+              <SourceCard
+                testId="new-project-source-field_measure"
+                icon="straighten"
+                name={t('office.new_project.source_field_measure')}
+                sub={t('office.new_project.source_field_measure_sub')}
+                on={source === 'field_measure'}
+                disabled={busy || locked}
+                onPick={() => onStandaloneSourceChange('field_measure')}
+              />
+              <SourceCard
+                testId="new-project-source-blank"
+                icon="dashboard"
+                name={t('office.new_project.source_blank')}
+                sub={t('office.new_project.source_blank_sub')}
+                on={source === 'blank'}
+                disabled={busy || locked}
+                onPick={() => onStandaloneSourceChange('blank')}
+              />
+            </>
+          ) : null}
+          {onSourceChange === undefined && onStandaloneSourceChange === undefined ? (
             <div data-testid="new-project-source-blank" className={styles.source}>
               <span className={styles.sourceTop}>
                 <span className={styles.sourceIcon}>
@@ -204,7 +237,13 @@ export function NewProjectStep2({
             </div>
           ) : null}
         </div>
-        {source !== 'blank' && uploads !== undefined && onUploadsChange !== undefined ? (
+        {fieldMeasure ? (
+          <div data-testid="new-project-field-measure-hint" className={styles.sourceHint}>
+            <Icon name="person" size={16} />
+            {t('office.new_project.source_field_measure_hint')}
+          </div>
+        ) : null}
+        {fromFile && uploads !== undefined && onUploadsChange !== undefined ? (
           <div data-testid="new-project-upload-block" className={styles.block}>
             <div className={styles.blockHead}>
               <span className={styles.blockTitle}>{t('office.upload.files_title')}</span>
@@ -261,7 +300,12 @@ export function NewProjectStep2({
           <span className={styles.hint}>{t('office.new_project.units_hint')}</span>
         </div>
         {onForemanChange !== undefined ? (
-          <ForemanPicker value={foreman} onChange={onForemanChange} disabled={busy} />
+          <ForemanPicker value={foreman} onChange={onForemanChange} disabled={busy || locked} />
+        ) : null}
+        {fieldMeasure && foreman === null ? (
+          <p data-testid="new-project-field-measure-foreman" className={styles.hint}>
+            {t('office.new_project.field_measure_pick_foreman')}
+          </p>
         ) : null}
         {error !== null ? (
           <p data-testid="new-project-error" role="alert" className={styles.error}>
@@ -281,7 +325,25 @@ export function NewProjectStep2({
               {t('office.new_project.create_will_foreman', { name: foremanName(foreman) })}
             </span>
           ) : null}
-          {source !== 'blank' ? (
+          {fieldMeasure ? (
+            <>
+              {foreman !== null ? (
+                <span
+                  data-testid="new-project-create-will-email-foreman"
+                  className={styles.createWillRow}
+                >
+                  <Icon name="check" size={16} />
+                  {t('office.new_project.create_will_email_foreman', {
+                    name: foremanName(foreman),
+                  })}
+                </span>
+              ) : null}
+              <span className={styles.createWillRow}>
+                <Icon name="check" size={16} />
+                {t('office.new_project.create_will_open_review')}
+              </span>
+            </>
+          ) : fromFile ? (
             <>
               <span data-testid="new-project-create-will-upload" className={styles.createWillRow}>
                 <Icon name="check" size={16} />

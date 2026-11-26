@@ -240,6 +240,8 @@ export type ProjectEditorProps = {
   // EZD-503 (S05 Read heights from scan "Only when a GLB mesh exists for the project"): the project's Polycam GLB
   // link the page signed; absent without one.
   meshUrl?: string | null;
+  // EZD-1991 (Q-0813; Settings > Title block "Open Sheets"): `?view=sheets` opens the editor on its Sheets screen.
+  initialView?: 'sheets';
 };
 
 export type EditorTestHook = {
@@ -317,6 +319,7 @@ export function ProjectEditor({
   railOrder: initialRailOrder,
   canManageDefaults = false,
   meshUrl = null,
+  initialView,
 }: ProjectEditorProps): ReactElement {
   const t = useT();
   // EZD-111: the Send dialog, and Project settings opened from its no-client message.
@@ -898,14 +901,14 @@ export function ProjectEditor({
 
   // EZD-1001a: the 3D view. The scene is made on the first press of 3D and kept while the session lasts, so a
   // later switch back to 3D draws it at once; it is dropped with the session.
-  const [editorView, setEditorView] = useState<EditorView>('plan');
+  const [editorView, setEditorView] = useState<EditorView>(initialView ?? 'plan');
   const [opened3d, setOpened3d] = useState(false);
   const [scene3d, setScene3d] = useState<Scene3d | null>(null);
   const show3d = plan !== null && !canvasFailed && editorView === '3d';
   // EZD-702a (S13 Entry points "Header tab Sheets"): the Sheets screen covers the plan like 3D. Its module and store
   // are made on the first press of Sheets and kept while the editor is open, so the open sheet stays on a return.
   const showSheets = session !== null && editorView === 'sheets';
-  const [openedSheets, setOpenedSheets] = useState(false);
+  const [openedSheets, setOpenedSheets] = useState(initialView === 'sheets');
   const sheetsMod = useLazy(sheetsScreenModule, openedSheets);
   const sheetsScreen = useMemo(
     () => (sheetsMod === undefined ? null : sheetsMod.createSheetsScreen(projectId)),
@@ -1017,6 +1020,8 @@ export function ProjectEditor({
     // EZD-510: the Switching zones tool, turned on from the left panel's Lighting section (shown once the RCP
     // module is in); the tool and its placement come with that module.
     if (rcp) receivers['switch-zone'] = rcp.zoneReceiver(surface, base);
+    // EZD-514: the framing line tool, turned on from the inspector's Framing known section.
+    if (rcp) receivers['framing-line'] = rcp.framingReceiver(surface, base);
     // EZD-513: the Soffit, tray, coffer and Height and material tag tools, from the same module.
     if (rcp) {
       receivers.soffit = rcp.shapeReceiver(surface, base);
@@ -1576,6 +1581,10 @@ export function ProjectEditor({
           projectId={projectId}
           fanClearance={fanClearance}
           actMinShare={actMinShare}
+          surface={surface}
+          framingDrawing={
+            shownSurface === 'floor' || !rcp ? undefined : rcp.framingDrawingFor(surface)
+          }
         />
         <InspectorMore
           selection={selection}
@@ -1703,7 +1712,20 @@ export function ProjectEditor({
               ) : null}
             </>
           }
-          rail={show3d || showSheets ? null : rail}
+          rail={
+            show3d || showSheets || rail === null ? null : (
+              // EZD-1986 (audit F9): while the cabinet library is open the pressed Cabinets tool shows no tooltip,
+              // which would sit over the library's rows. The wrapper is always there, so the rail is not remounted
+              // (and keeps its focus) when the tool turns on or off; only its class changes.
+              <div
+                className={
+                  cabinetsOn ? `${styles.railWrap} ${styles.cabinetsRail}` : styles.railWrap
+                }
+              >
+                {rail}
+              </div>
+            )
+          }
           leftPanel={leftPanel ?? undefined}
           leftPanelLabel={leftPanel === null ? undefined : 'office.shell.left_panel'}
           canvas={canvas}
@@ -1752,7 +1774,14 @@ export function ProjectEditor({
                       <LazyElectricalStatus store={session.store} />
                     ) : null}
                     <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
-                    {shownSurface === 'floor' || rcp === undefined ? null : <rcp.JoistsStatus />}
+                    {shownSurface === 'floor' || rcp === undefined ? null : (
+                      // EZD-514: the text follows the active room's Framing known choice.
+                      <rcp.JoistsStatus
+                        store={session?.store}
+                        selection={selection ?? undefined}
+                        floors={floors ?? undefined}
+                      />
+                    )}
                     {part('status')}
                     {leftTab === 'versions' || viewing !== null ? (
                       <LazyVersionsStatus

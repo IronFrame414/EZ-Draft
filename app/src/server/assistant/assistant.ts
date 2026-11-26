@@ -34,13 +34,14 @@ export const ASSISTANT_HISTORY_MAX_TURNS = 20;
 export const ASSISTANT_TURN_MAX_CHARS = 2_000;
 export const ASSISTANT_SELECTED_MAX = 1_000;
 
+// EZD-216 (AC-EZD-216-7): the change format gains add_text and add_dimension.
 export const ASSISTANT_SYSTEM_PROMPT =
   "You help edit a remodel floor plan in EZ Draft. The user's last message starts with the drawing as JSON. " +
   'Lengths and coordinates are in inches and +y is north. Each object is named by a ref: w for a wall, o for a ' +
   'door or window, r for a room, f for a floor. Refs are good for this message only. selected lists the refs ' +
   'the user has selected. Answer with one JSON object and nothing else: {"message": plain text for the user, ' +
-  '"changes": a list of at most 100 changes}. A change adds, updates or removes a wall, door or window on the ' +
-  'sent floor and uses only refs from the drawing. Leave changes empty when no change is asked for. Never use ' +
+  '"changes": a list of at most 100 changes}. A change adds, updates or removes a wall, door or window, or adds a note or a ' +
+  'dimension, on the sent floor and uses only refs from the drawing. Leave changes empty when no change is asked for. Never use ' +
   'Markdown, links or images. ' +
   'Each change is one JSON object. Add a wall: {"op":"add","type":"wall","ref":"n1","start":{"x":0,"y":0},' +
   '"end":{"x":120,"y":0}} with optional thicknessSide (left, right or center), thickness, height, bearing and ' +
@@ -53,7 +54,12 @@ export const ASSISTANT_SYSTEM_PROMPT =
   'length), thickness, height, bearing, layers (keep the number of layers); for a door or window center (along ' +
   'its own wall), width, height, roughOpening, sillHeight, swing, hand, impactRating, shutterType. Remove: ' +
   '{"op":"remove","type":"window","ref":"o1"}. Set the status of a wall, door or window (existing, demo or ' +
-  'new): {"op":"set_status","ref":"w1","status":"demo"}. Name each ref in at most one change. Never write ' +
+  'new): {"op":"set_status","ref":"w1","status":"demo"}. Add a note: {"op":"add_text","ref":"n3",' +
+  '"position":{"x":60,"y":40},"text":"VERIFY IN FIELD"} with optional leader (the point its arrow points at) and ' +
+  'paperSize (3/32, 1/8, 3/16 or 1/4); text has at most 500 characters and may have several lines. Add a ' +
+  'dimension: {"op":"add_dimension","ref":"n4","from":{"x":0,"y":0},"to":{"x":120,"y":0}} or ' +
+  '{"op":"add_dimension","ref":"n4","wall":"w1","face":"left"}, with optional offset (inches from the measured ' +
+  'line) and override (text shown instead of the length). Name each ref in at most one change. Never write ' +
   'status in an add or update, number or any other field.';
 
 type Env = Record<string, string | undefined>;

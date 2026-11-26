@@ -61,7 +61,7 @@ for (const p of open) {
   const g = gate ? (gate.conclusion || gate.status) : 'none';
   if (g === 'SUCCESS' && p.mergeStateStatus !== 'BEHIND') needs.push(`release PR #${p.number} green: merge it (run gh pr merge in the background)`);
   else if (p.mergeStateStatus === 'BEHIND') needs.push(`release PR #${p.number} BEHIND: gh pr update-branch`);
-  else if (g === 'FAILURE') needs.push(`release PR #${p.number} gate FAILED on ${p.headRefOid.slice(0, 8)}: read check-failures.log, rerun or fix ticket`);
+  else if (g === 'FAILURE' || g === 'CANCELLED' || g === 'TIMED_OUT') needs.push(`release PR #${p.number} gate ${g} on ${p.headRefOid.slice(0, 8)}: read check-failures.log, rerun or fix ticket`);
   else info.push(`release PR #${p.number} gate ${g}`);
 }
 if (!open.length) {

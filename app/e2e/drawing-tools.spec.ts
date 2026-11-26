@@ -252,7 +252,7 @@ test.describe('EZD-210b drawing tools', () => {
     await expect(rail(page)).toHaveCount(1);
     const tools = rail(page).locator('[data-rail="top"] [data-rail-tool]');
     const bottom = rail(page).locator('[data-rail="bottom"] [data-rail-tool]');
-    await expect(tools).toHaveCount(13); // EZD-601: plus Electrical, after Cabinets; EZD-412: plus Countertops
+    await expect(tools).toHaveCount(15); // EZD-601: plus Electrical, after Cabinets; EZD-412: plus Countertops; EZD-216: plus Dimension, Text
     await expect(bottom).toHaveCount(2); // EZD-222: Assistant, then Help
     await expect(bottom.nth(0)).toHaveAttribute('data-rail-tool', 'assistant');
     await expect(bottom.nth(1)).toHaveAttribute('data-rail-tool', 'help');
@@ -374,6 +374,8 @@ test.describe('EZD-210b drawing tools', () => {
     expect(rooms).toHaveLength(1);
     expect((rooms[0]!.data.attributes as { name: string }).name).toBe('Room 1');
     expect(label(rooms[0]!)).toBe('ROOM 1 · 125 SF');
+    // EZD-216: the room's auto dimensions are drawn too; with the Dimensions eye off the label's glyphs are counted.
+    await id(page, 'layer-eye-dimensions').click();
     await expect.poll(() => glyphs(page)).toBe(11);
     await expect(id(page, 'gap-box')).toHaveCount(0);
     await expect(tool(page, 'room-rect')).toHaveAttribute('aria-pressed', 'true');
@@ -394,6 +396,8 @@ test.describe('EZD-210b drawing tools', () => {
     const rooms = roomsIn(list);
     expect(rooms).toHaveLength(1);
     expect(label(rooms[0]!)).toBe('ROOM 1 · 120 SF');
+    // EZD-216: the room's auto dimensions are drawn too; with the Dimensions eye off the label's glyphs are counted.
+    await id(page, 'layer-eye-dimensions').click();
     await expect.poll(() => glyphs(page)).toBe(11);
     await expect(id(page, 'gap-box')).toHaveCount(0);
     await expect(id(page, 'typed-bar-value')).toHaveText('10\' 0"');
@@ -495,6 +499,8 @@ test.describe('EZD-210b drawing tools', () => {
     await expect.poll(async () => roomsIn(await objects(page)).length).toBe(1);
     expect(label(roomsIn(await objects(page))[0]!)).toBe('ROOM 1 · 120 SF');
     await expect(id(page, 'gap-box')).toHaveCount(0);
+    // EZD-216: the room's auto dimensions are drawn too; with the Dimensions eye off the label's glyphs are counted.
+    await id(page, 'layer-eye-dimensions').click();
     await expect.poll(() => glyphs(page)).toBe(11);
   });
 
@@ -641,7 +647,7 @@ test.describe('EZD-210b drawing tools', () => {
       await openReady(page, ids.P1);
       await addGap(page);
       await view(page);
-      expect(await expectTouchTargets(page, rail(page).locator('[data-rail="top"]'))).toBe(13); // EZD-601: plus Electrical; EZD-412: plus Countertops
+      expect(await expectTouchTargets(page, rail(page).locator('[data-rail="top"]'))).toBe(15); // EZD-601: plus Electrical; EZD-412: plus Countertops; EZD-216: plus Dimension, Text
       expect(await expectTouchTargets(page, rail(page).locator('[data-rail="bottom"]'))).toBe(2); // EZD-222: Assistant and Help
       expect(await expectTouchTargets(page, id(page, 'gap-box'))).toBe(1);
     },

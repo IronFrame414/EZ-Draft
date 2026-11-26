@@ -29,6 +29,11 @@
 // EZD-6001 (vault/plans/EZD-6001.md D-Wire, D-Draw-switch): new objects go on the chosen floor; a switch ends what is half
 // drawn as Escape does and keeps the tool.
 // EZD-505 (S05 "Beams in a set move as a set"): the level's beam sets move with Move and Select drags.
+// EZD-216 (S03 rail Dimension (L), Text (T); Q-0682; Q-0683 (a); AC-EZD-216-1, -2, -3, -5): the Dimension tool places
+// linear and angular dimensions (`reduceDimension`), the Text tool opens the in-place text box (`reduceText`), and a
+// double-click on a dimension or note opens the box on it (`openTextEdit`). The box's text is committed here; while a
+// dimension's line is being placed, a typed character opens the box for its override. Dimensions and notes move with
+// Move and Select drags.
 import {
   DEFAULT_SNAP_SETTINGS,
   DOOR_TARGET_PX,
@@ -61,6 +66,15 @@ import {
   type UtilityToMove,
   type SketchShape,
   type ObjectStatus,
+  angularMeasure,
+  dimensionLine,
+  formatAngle,
+  formatDimensionLength,
+  linearMeasure,
+  wallFaceLine,
+  type DimensionData,
+  type DimensionObject,
+  type TextObject,
 } from '@ezdraft/geometry';
 import { objectShownBy, shownBy, type PhaseSource } from '../../lib/plan/phase-view';
 import type { IpadDrawing } from '../../lib/profile/profile';
@@ -155,6 +169,28 @@ import {
   type MeasureInput,
   type MeasureState,
 } from './measure-tool';
+import {
+  initialDimensionState,
+  pendingDimension,
+  reduceDimension,
+  type DimensionContext,
+  type DimensionInput,
+  type DimensionMode,
+  type DimensionToolState,
+} from './dimension-tool';
+import {
+  initialTextState,
+  newNoteData,
+  noteText,
+  overrideText,
+  reduceText,
+  withNoteText,
+  withOverride,
+  type NoteBox,
+  type TextInput,
+  type TextToolState,
+} from './text-tool';
+import { annotationsOn, dimensionChange, textChange } from './model-changes';
 import { idKey, sameIds } from '../shared/ids';
 import { createListeners } from '../shared/value-store';
 
@@ -191,7 +227,7 @@ export type OpeningFrame = {
 };
 
 export type SelectionLink = Pick<SelectionController, 'getUi' | 'select' | 'subscribe'> &
-  Partial<Pick<SelectionController, 'pickAt'>>;
+  Partial<Pick<SelectionController, 'pickAt' | 'onDoubleClick'>>;
 
 export type DrawingUi = {
   readonly enabled: boolean;
@@ -205,6 +241,18 @@ export type DrawingUi = {
   readonly entry: SelectionEntry | null;
   readonly fixtureChoice: FixtureChoice | null;
   readonly utilities: readonly UtilitiesMoved[] | null;
+  // EZD-216: the Dimension tool's Linear / Angular switch while it is on, and the in-place text box when open.
+  readonly dimensionMode?: DimensionMode | null;
+  readonly textBox?: TextBoxUi | null;
+};
+
+// EZD-216 (Q-0683 (a); Q-0687 (b)): the in-place box, at a model point. A note's box takes several lines; a
+// dimension's override one. `seq` changes on each open, so the box mounts fresh.
+export type TextBoxUi = {
+  readonly at: Point;
+  readonly initial: string;
+  readonly multiline: boolean;
+  readonly seq: number;
 };
 
 export type UtilitiesMoved = {
@@ -273,6 +321,12 @@ export type DrawingController = {
   cancelEntry(): void;
   setFixtureChoice(choice: FixtureChoice): void;
   dismissUtilities(): void;
+  // EZD-216: the Linear / Angular switch; the box on a dimension or note (false when there is none to edit); the
+  // box's commit (false when the text is refused and the box stays open) and cancel.
+  setDimensionMode(mode: DimensionMode): void;
+  openTextEdit(id: string, initial?: string): boolean;
+  commitText(value: string): boolean;
+  cancelText(): void;
   // EZD-225 (S03:143; S06:78): the lock went to someone else. What is half drawn or dragged ends as Escape ends
   // it, nothing is committed, the tool becomes Select and every edit stays off for this controller's life.
   pause(): void;
@@ -289,6 +343,8 @@ type ToolState =
   | { id: 'move'; state: MoveToolState }
   | { id: 'fixtures'; state: null }
   | { id: 'sketch'; state: SketchState }
+  | { id: 'dimension'; state: DimensionToolState }
+  | { id: 'text'; state: TextToolState }
   | { id: 'measure'; state: MeasureState }
   | { id: 'cabinets'; state: null }
   | { id: 'countertops'; state: null }
@@ -300,6 +356,12 @@ const isOpeningTool = (t: ToolState | null): t is OpeningTool =>
   t !== null && (t.id === 'door' || t.id === 'window');
 
 type SnapContext = { anchor: Point | null; referenceDirection: Point | null };
+
+// EZD-216: what the open text box commits to: a new note, a stored note or dimension, or the dimension being placed.
+type TextTarget =
+  | { kind: 'note'; box: NoteBox }
+  | { kind: 'edit'; id: string }
+  | { kind: 'pending'; data: DimensionData };
 
 const NO_CONTEXT: SnapContext = { anchor: null, referenceDirection: null };
 
@@ -337,6 +399,11 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   let beams: ModelObject[] = level === null ? [] : beamsOn(objects, level);
   // EZD-602: the electrical devices, which a drag in electrical mode moves.
   let devices: ModelObject[] = level === null ? [] : devicesOn(objects, level);
+  // EZD-216: the level's dimensions and notes, which move with Move and Select drags.
+  let annotations: (DimensionObject | TextObject)[] =
+    level === null ? [] : annotationsOn(objects, level);
+  let textTarget: TextTarget | null = null;
+  let textSeq = 0;
   // EZD-225: `let`, so `pause` can turn editing off when the lock is lost.
   let enabled = viewer.canEdit && level !== null;
 
@@ -399,6 +466,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     entry: null,
     fixtureChoice: null,
     utilities: null,
+    dimensionMode: null,
+    textBox: null,
   };
 
   const setUi = (patch: Partial<DrawingUi>) => {
@@ -417,6 +486,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       next.entry !== ui.entry ||
       next.fixtureChoice !== ui.fixtureChoice ||
       next.utilities !== ui.utilities ||
+      next.dimensionMode !== ui.dimensionMode ||
+      next.textBox !== ui.textBox ||
       !sameBoxes(next.boxes, ui.boxes);
     if (!changed) return;
     if (sameBoxes(next.boxes, ui.boxes)) next = { ...next, boxes: ui.boxes };
@@ -489,6 +560,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
           blockings = level === null ? [] : blockingsOn(objects, level);
           beams = level === null ? [] : beamsOn(objects, level);
           devices = level === null ? [] : devicesOn(objects, level);
+          annotations = level === null ? [] : annotationsOn(objects, level);
           moveCache = null;
           index = createWallSnapIndex(snapWalls(models));
           drawingIds = currentDrawingIds();
@@ -508,6 +580,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     blockings = level === null ? [] : blockingsOn(objects, level);
     beams = level === null ? [] : beamsOn(objects, level);
     devices = level === null ? [] : devicesOn(objects, level);
+    annotations = level === null ? [] : annotationsOn(objects, level);
     moveCache = null;
     if (level !== prevLevel || level === null) {
       index = createWallSnapIndex(snapWalls(models));
@@ -549,7 +622,15 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   // D7 (a): the walls and openings a move reads.
   function moveModels(): ModelObject[] {
     if (moveCache === null)
-      moveCache = [...models, ...openings, ...blockings, ...loose, ...beams, ...devices];
+      moveCache = [
+        ...models,
+        ...openings,
+        ...blockings,
+        ...loose,
+        ...beams,
+        ...devices,
+        ...annotations,
+      ];
     return moveCache;
   }
 
@@ -560,6 +641,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       tool.id === 'move' ||
       tool.id === 'fixtures' ||
       tool.id === 'sketch' ||
+      tool.id === 'dimension' ||
+      tool.id === 'text' ||
       tool.id === 'measure' ||
       tool.id === 'cabinets' ||
       tool.id === 'countertops' ||
@@ -810,11 +893,13 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     if (isOpeningTool(tool)) return { ...EMPTY_FRAME, opening: openingFrame(tool) };
     if (
       tool.id === 'sketch' ||
+      tool.id === 'text' ||
       tool.id === 'cabinets' ||
       tool.id === 'countertops' ||
       tool.id === 'electrical'
     )
       return null;
+    if (tool.id === 'dimension') return dimensionFrame(tool.state);
     if (tool.id === 'measure') {
       const { from, to } = tool.state;
       return {
@@ -846,6 +931,34 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       wallDirection: g ? { x: g.end.x - g.start.x, y: g.end.y - g.start.y } : null,
       opening: null,
     };
+  }
+
+  // EZD-216: the dimension being drawn: its line and length, or the arc's corner to the pointer and the angle.
+  function dimensionFrame(st: DimensionToolState): DrawingFrame {
+    const marker = lastSnap === null ? null : snapMarker(lastSnap, NO_CONTEXT);
+    const base = { ...EMPTY_FRAME, marker, opening: null };
+    if (st.placing !== null) {
+      const line = dimensionLine(st.placing.measure, st.placing.offset);
+      return { ...base, ...line, measure: formatDimensionLength(st.placing.measure.length) };
+    }
+    if (st.from !== null && st.to !== null) {
+      const m = linearMeasure(st.from, st.to);
+      return {
+        ...base,
+        from: st.from,
+        to: st.to,
+        measure: m === null ? undefined : formatDimensionLength(m.length),
+      };
+    }
+    if (st.walls.length === 2 && st.at !== null) {
+      const a = findWall(st.walls[0]!);
+      const b = findWall(st.walls[1]!);
+      const m =
+        a === null || b === null ? null : angularMeasure(a.data.geometry, b.data.geometry, st.at);
+      if (m !== null)
+        return { ...base, from: m.vertex, to: st.at, measure: formatAngle(m.degrees) };
+    }
+    return base;
   }
 
   let frame: DrawingFrame | null = null;
@@ -1010,6 +1123,14 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       onSketchPointer(event, tool.state);
       return;
     }
+    if (tool.id === 'dimension') {
+      onDimensionPointer(event);
+      return;
+    }
+    if (tool.id === 'text') {
+      onTextPointer(event);
+      return;
+    }
     if (isOpeningTool(tool)) {
       onOpeningPointer(event);
       return;
@@ -1065,6 +1186,197 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     }
     tool = { id: 'measure', state: step.state };
     emitFrame();
+  }
+
+  // EZD-216: a snapped point and the wall under the pointer; a touch presses on the lift (a tap), mouse and pen on
+  // the press, as Measure.
+  function onDimensionPointer(event: PlanPointerEvent): void {
+    if (textTarget !== null) return;
+    lastSnap = snap(index, {
+      cursor: event.model,
+      pixelsPerInch: handle.getPixelsPerInch(),
+      anchor: null,
+      referenceDirection: null,
+      settings: snapSettings(),
+    });
+    const at = lastSnap.point;
+    if (event.kind === 'move') dimensionInput({ type: 'move', at });
+    else if (event.kind === (event.pointerType === 'touch' ? 'up' : 'down'))
+      dimensionInput({
+        type: 'press',
+        at,
+        raw: event.model,
+        snapKind: lastSnap.kind,
+        wallId: lastSnap.wallId ?? handle.wallAt(event.screen),
+      });
+    else emitFrame();
+  }
+
+  function dimensionContext(): DimensionContext | null {
+    return level === null ? null : { level, walls, status: newStatus() };
+  }
+
+  function placeDimension(data: DimensionData): void {
+    const id = newId();
+    store.applyEdit([dimensionChange({ id, type: 'dimension', data })]);
+    link?.select([id]);
+  }
+
+  function dimensionInput(i: DimensionInput): void {
+    const ctx = dimensionContext();
+    if (tool === null || tool.id !== 'dimension' || ctx === null) return;
+    const step = reduceDimension(tool.state, i, ctx);
+    if (step.exit) {
+      selectTool(null);
+      return;
+    }
+    tool = { id: 'dimension', state: step.state };
+    if (step.place !== null) placeDimension(step.place);
+    if (ui.dimensionMode !== step.state.mode) setUi({ dimensionMode: step.state.mode });
+    emitFrame();
+  }
+
+  // EZD-216 Q-0683 (a): a press and its release; a drag past TEXT_DRAG_PX draws a leader.
+  function onTextPointer(event: PlanPointerEvent): void {
+    if (tool === null || tool.id !== 'text' || textTarget !== null) return;
+    const kind = event.kind;
+    const i: TextInput | null =
+      kind === 'down' || kind === 'up'
+        ? { type: kind, at: event.model, screen: event.screen }
+        : kind === 'cancel'
+          ? { type: 'cancel' }
+          : null;
+    if (i === null) return;
+    const step = reduceText(tool.state, i);
+    tool = { id: 'text', state: step.state };
+    if (step.open !== null) openBox({ kind: 'note', box: step.open }, step.open.at, '', true);
+  }
+
+  function openBox(target: TextTarget, at: Point, initial: string, multiline: boolean): void {
+    textTarget = target;
+    textSeq += 1;
+    setUi({ textBox: { at, initial, multiline, seq: textSeq } });
+  }
+
+  function closeBox(): void {
+    textTarget = null;
+    if ((ui.textBox ?? null) !== null) setUi({ textBox: null });
+  }
+
+  const findAnnotation = (id: string) => annotations.find((a) => idKey(a.id) === idKey(id)) ?? null;
+
+  function openTextEdit(id: string, initial?: string): boolean {
+    if (disposed || !enabled || level === null) return false;
+    const o = findAnnotation(id);
+    if (o === null) return false;
+    if (o.type === 'text') {
+      openBox(
+        { kind: 'edit', id: o.id },
+        o.data.geometry.position,
+        initial ?? o.data.attributes.text,
+        true,
+      );
+      return true;
+    }
+    // A dimension's box opens on its text: the middle of its line, or the arc's point.
+    const g = o.data.geometry;
+    const at = g.kind === 'walls' ? g.at : (dimensionTextAt(o) ?? lastPoint ?? { x: 0, y: 0 });
+    openBox({ kind: 'edit', id: o.id }, at, initial ?? o.data.attributes.override ?? '', false);
+    return true;
+  }
+
+  // The middle of a stored linear dimension's line, from its points or its wall face; null for an auto dimension
+  // (its box opens at the pointer).
+  function dimensionTextAt(o: DimensionObject): Point | null {
+    const g = o.data.geometry;
+    let from: Point | null = null;
+    let to: Point | null = null;
+    if (g.kind === 'points') {
+      from = g.from;
+      to = g.to;
+    } else if (g.kind === 'wall_face') {
+      const w = findWall(g.wallId);
+      const face = w === null ? null : wallFaceLine(w, g.face);
+      if (face !== null) {
+        from = face.from;
+        to = face.to;
+      }
+    }
+    if (from === null || to === null) return null;
+    const m = linearMeasure(from, to);
+    if (m === null) return null;
+    const line = dimensionLine(m, o.data.attributes.offset);
+    return { x: (line.from.x + line.to.x) / 2, y: (line.from.y + line.to.y) / 2 };
+  }
+
+  // Where the box opens on the dimension being placed: the middle of its line, or the arc's point.
+  function pendingTextAt(st: DimensionToolState): Point {
+    if (st.placing !== null) {
+      const line = dimensionLine(st.placing.measure, st.placing.offset);
+      return { x: (line.from.x + line.to.x) / 2, y: (line.from.y + line.to.y) / 2 };
+    }
+    return st.at ?? { x: 0, y: 0 };
+  }
+
+  function commitText(value: string): boolean {
+    const target = textTarget;
+    if (disposed || target === null) return false;
+    if (!enabled || level === null) {
+      closeBox();
+      return false;
+    }
+    const isNote =
+      target.kind === 'note' ||
+      (target.kind === 'edit' && findAnnotation(target.id)?.type === 'text');
+    const r = isNote ? noteText(value) : overrideText(value);
+    if (!r.ok) {
+      deps.onMessage(
+        r.reason === 'unsupported' ? 'office.tools.text.unsupported' : 'office.tools.text.too_long',
+      );
+      return false;
+    }
+    closeBox();
+    if (target.kind === 'note') {
+      if (r.value === null) return true;
+      const id = newId();
+      store.applyEdit([
+        textChange({
+          id,
+          type: 'text',
+          data: newNoteData(target.box, r.value, { level, status: newStatus() }),
+        }),
+      ]);
+      link?.select([id]);
+      return true;
+    }
+    if (target.kind === 'pending') {
+      placeDimension(withOverride(target.data, r.value));
+      if (tool !== null && tool.id === 'dimension')
+        tool = { id: 'dimension', state: initialDimensionState(tool.state.mode) };
+      emitFrame();
+      return true;
+    }
+    const o = findAnnotation(target.id);
+    if (o === null) return true;
+    if (o.type === 'text') {
+      // Q-0683 (a): emptying a note's text leaves it as it was.
+      if (r.value !== null && r.value !== o.data.attributes.text)
+        store.applyEdit([textChange({ ...o, data: withNoteText(o.data, r.value) })]);
+    } else if (r.value !== o.data.attributes.override) {
+      store.applyEdit([dimensionChange({ ...o, data: withOverride(o.data, r.value) })]);
+    }
+    return true;
+  }
+
+  function cancelText(): void {
+    if (disposed || textTarget === null) return;
+    closeBox();
+    emitFrame();
+  }
+
+  function setDimensionMode(mode: DimensionMode): void {
+    if (disposed || tool === null || tool.id !== 'dimension') return;
+    dimensionInput({ type: 'mode', mode });
   }
 
   // EZD-223: one pointer step of the stroke; a lift adds the cleaned (or held raw) shape to the page's strokes.
@@ -1334,6 +1646,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
   function selectTool(id: DrawingToolId | null): void {
     if (disposed || !(enabled || id === null || VIEW_TOOL_IDS.includes(id))) return;
     cancelEntry();
+    if (textTarget !== null && id !== (tool?.id ?? null)) closeBox();
     const hadDrag = drag !== null;
     drag = null;
     movePress = null;
@@ -1358,11 +1671,15 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
                 ? { id, state: null }
                 : id === 'sketch'
                   ? { id, state: initialSketchState() }
-                  : id === 'measure'
-                    ? { id, state: initialMeasureState() }
-                    : id === 'cabinets' || id === 'countertops' || id === 'electrical'
-                      ? { id, state: null }
-                      : { id, state: initialOpeningToolState(id) };
+                  : id === 'dimension'
+                    ? { id, state: initialDimensionState() }
+                    : id === 'text'
+                      ? { id, state: initialTextState() }
+                      : id === 'measure'
+                        ? { id, state: initialMeasureState() }
+                        : id === 'cabinets' || id === 'countertops' || id === 'electrical'
+                          ? { id, state: null }
+                          : { id, state: initialOpeningToolState(id) };
     if (id === 'fixtures') loadFixtures();
     if (id === 'sketch') sketchModule.preload();
     // EZD-404: the cabinet screen covers the plan, so no plan object stays selected under it.
@@ -1380,6 +1697,7 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       boxes: computeBoxes(),
       doorTarget: null,
       openingWidth: openingWidthNow(),
+      dimensionMode: tool !== null && tool.id === 'dimension' ? tool.state.mode : null,
     });
     syncHover();
     syncReceiver();
@@ -1452,8 +1770,12 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     if (ui.entry !== null || claim !== null) cancelEntry();
     if (ui.pick !== null)
       setUi({ pick: reducePick(ui.pick, { type: 'escape' }).state, gapMessage: null });
+    if (textTarget !== null) closeBox();
     if (tool === null) return;
-    if (isOpeningTool(tool)) openingInput({ type: 'escape' });
+    if (tool.id === 'dimension')
+      tool = { id: 'dimension', state: initialDimensionState(tool.state.mode) };
+    else if (tool.id === 'text') tool = { id: 'text', state: initialTextState() };
+    else if (isOpeningTool(tool)) openingInput({ type: 'escape' });
     else if (tool.id === 'move') moveInput({ type: 'escape' });
     else if (tool.id === 'sketch' && tool.state.stroke !== null)
       tool = { id: 'sketch', state: initialSketchState() };
@@ -1465,6 +1787,31 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     if (disposed || e.defaultPrevented || isTypingTarget(e.target)) return false;
     // EZD-222: the tool keys come from the company key map (S15d Keyboard shortcuts).
     const command = commandForKey(keys(), e);
+    // EZD-216: the text box takes its own keys; Tab flips the Dimension tool's switch; a character typed while a
+    // dimension's line is placed opens the box for its override ("type to override text").
+    if (textTarget !== null) return false;
+    if (enabled && tool !== null && tool.id === 'dimension') {
+      if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        setDimensionMode(tool.state.mode === 'linear' ? 'angular' : 'linear');
+        return true;
+      }
+      const ctx = dimensionContext();
+      const pending = ctx === null ? null : pendingDimension(tool.state, ctx);
+      const printable = [...e.key].length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
+      if (pending !== null && (printable || e.key === 'Enter')) {
+        openBox(
+          { kind: 'pending', data: pending },
+          pendingTextAt(tool.state),
+          printable ? e.key : '',
+          false,
+        );
+        return true;
+      }
+      if (e.key === 'Escape') {
+        dimensionInput({ type: 'escape' });
+        return true;
+      }
+    }
     // EZD-231 Measure, EZD-404 Cabinets, EZD-412 Countertops and EZD-601 Electrical keys work without Edit model, and
     // so does Esc while one of them is on.
     if (
@@ -1489,6 +1836,12 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       return true;
     }
     if (!enabled) return false;
+    if (tool !== null && tool.id === 'text' && e.key === 'Escape') {
+      const step = reduceText(tool.state, { type: 'escape' });
+      if (step.exit) selectTool(null);
+      else tool = { id: 'text', state: step.state };
+      return true;
+    }
     if (e.key === 'Escape' && (ui.entry !== null || claim !== null)) {
       cancelEntry();
       return true;
@@ -1532,6 +1885,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         tool.id === 'move' ||
         tool.id === 'fixtures' ||
         tool.id === 'sketch' ||
+        tool.id === 'dimension' ||
+        tool.id === 'text' ||
         tool.id === 'measure' ||
         tool.id === 'cabinets' ||
         tool.id === 'countertops' ||
@@ -1549,6 +1904,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       command === 'window' ||
       command === 'move' ||
       command === 'fixtures' ||
+      command === 'dimension' ||
+      command === 'text' ||
       command === 'sketch'
     ) {
       selectTool(command);
@@ -1581,7 +1938,12 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     unsubscribeLink = null;
     link = next;
     if (next === null || disposed) return;
-    unsubscribeLink = next.subscribe(() => {
+    // EZD-216 (S03 canvas "Double-click | Edits the object in place"; AC-EZD-216-3): a double-click on a dimension or
+    // a note opens the text box on it.
+    const offDouble = next.onDoubleClick?.((id) => {
+      if (tool === null) openTextEdit(id);
+    });
+    const offChange = next.subscribe(() => {
       if (disposed) return;
       claim = null;
       setUi({ doorTarget: null });
@@ -1594,6 +1956,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
       }
       if (isOpeningTool(tool) || tool === null) emitFrame();
     });
+    unsubscribeLink = () => {
+      offChange();
+      offDouble?.();
+    };
     // EZD-423: the editor attaches the selection when this engine loads, which may be after the first selection;
     // what is already selected draws its frame at once.
     if (next.getUi().ids.length > 0 && tool === null) emitFrame();
@@ -1757,6 +2123,10 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
     cancelEntry,
     setFixtureChoice,
     dismissUtilities,
+    setDimensionMode,
+    openTextEdit,
+    commitText,
+    cancelText,
     pause() {
       if (disposed || !enabled) return;
       // Measure is allowed in view only (S06 States), so it stays on; any other tool ends as Escape ends it.
@@ -1769,7 +2139,8 @@ export function createDrawingController(deps: DrawingDeps): DrawingController {
         cancelEntry();
       else selectTool(null);
       enabled = false;
-      setUi({ pick: null, gapMessage: null, boxes: computeBoxes() });
+      textTarget = null;
+      setUi({ pick: null, gapMessage: null, boxes: computeBoxes(), textBox: null });
       ui = { ...ui, enabled };
       syncReceiver();
       uiListeners.notify();

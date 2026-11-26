@@ -13,6 +13,9 @@
 // EZD-643 (Q-0765): step 1 also takes the optional Permit application date, which picks the code edition.
 // EZD-711 (S01 Step 1 "Property appraiser link"; board S01bWizard): the link box under Address, for a member who
 // may also Edit model (S13 Decision 9); the confirmed fields are sent with Create as `propertyRecord`.
+// EZD-1422 (S01 Input source; AC-EZD-1422-1): Standalone step 2 offers Field measure to a user who may import; Create
+// needs the Foreman, sends `source: 'field_measure'`, and the server emails the Foreman the S17b link. The dialog
+// then hands the result to onFieldMeasureSent (Projects shows who got the link) instead of opening the project.
 import { Dialog } from 'radix-ui';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import type { TemplateDraft } from '../../lazy/template-picker';
@@ -56,6 +59,7 @@ import type { ConfirmedRecord } from '../../lib/property-record/property-record'
 import { CustomerPicker } from './CustomerPicker';
 import styles from './NewProject.module.css';
 import { NewProjectStep2, type InputSource } from './NewProjectStep2';
+import type { FieldMeasureRequestSent } from '../../lib/projects/field-measure-request';
 import { ScopeTrades } from './ScopeTrades';
 import { templateModule } from './template-module';
 
@@ -68,6 +72,8 @@ export type NewProjectDialogProps = {
   files?: readonly File[];
   // EZD-301: the file sources show only to a user who may import (Create projects and Edit model).
   canImport?: boolean;
+  // EZD-1422: after Create with Field measure; `sent` is null when the request could not be recorded.
+  onFieldMeasureSent?: (projectId: string, sent: FieldMeasureRequestSent | null) => void;
 };
 
 function initialUploads(start: 'blank' | 'file', files: readonly File[]): UploadList {
@@ -91,6 +97,7 @@ export function NewProjectDialog({
   start = 'blank',
   files = [],
   canImport = false,
+  onFieldMeasureSent,
 }: NewProjectDialogProps): ReactElement {
   const t = useT();
   const online = useOnline();
@@ -122,14 +129,19 @@ export function NewProjectDialog({
   const scale = useScaleCalibration();
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const fromFile = source !== 'blank';
+  const fieldMeasure = source === 'field_measure';
+  const fromFile = source !== 'blank' && !fieldMeasure;
   const ready = canCreateProject(draft);
   const read = template !== null ? templateModule.peek()?.readTemplate(template) : undefined;
-  const canSubmit = fromFile ? uploads.items.length > 0 : read?.ok === true;
+  const canSubmit = fieldMeasure
+    ? foreman !== null
+    : fromFile
+      ? uploads.items.length > 0
+      : read?.ok === true;
 
   const changeSource = (next: InputSource) => {
     setInputSource(next);
-    if (next !== 'blank') setUploads((l) => setSource(l, next));
+    if (next !== 'blank' && next !== 'field_measure') setUploads((l) => setSource(l, next));
   };
 
   // After Next, focus Back; after Back or Edit, focus Project name (Decided "Steps").
@@ -214,15 +226,24 @@ export function NewProjectDialog({
         credentials: 'same-origin',
         body: JSON.stringify({
           ...toCreateBody(draft),
-          ...(fromFile
-            ? { source: 'file' }
-            : { template: read?.ok === true ? read.template : null }),
+          ...(fieldMeasure
+            ? { source: 'field_measure' }
+            : fromFile
+              ? { source: 'file' }
+              : { template: read?.ok === true ? read.template : null }),
           ...(foreman !== null ? { foremanId: foreman.membershipId } : {}),
           ...(canImport && propertyRecord !== null ? { propertyRecord } : {}),
         }),
       });
       if (res.status === 201) {
-        const body = (await res.json()) as { project: { id: string } };
+        const body = (await res.json()) as {
+          project: { id: string };
+          fieldMeasure?: FieldMeasureRequestSent | null;
+        };
+        if (fieldMeasure && onFieldMeasureSent !== undefined) {
+          onFieldMeasureSent(body.project.id, body.fieldMeasure ?? null);
+          return;
+        }
         if (fromFile) {
           setCreatedId(body.project.id);
           await sendFiles(body.project.id);
@@ -431,6 +452,9 @@ export function NewProjectDialog({
               onForemanChange={setForeman}
               source={source}
               onSourceChange={canImport && start === 'file' ? changeSource : undefined}
+              {...(canImport && start !== 'file' && onFieldMeasureSent !== undefined
+                ? { onStandaloneSourceChange: changeSource }
+                : {})}
               uploads={uploads}
               onUploadsChange={setUploads}
               uploadStatus={uploadStatus}

@@ -423,6 +423,50 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"field_measure_request": {
+                  Row: {
+                    "cancelled_at": string | null,"cancelled_by": string | null,"created_at": string,"id": string,"last_sent_at": string,"membership_id": string | null,"project_id": string,"requested_by": string | null,"sent_count": number,"sent_to_name": string,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cancelled_at"?: string | null,"cancelled_by"?: string | null,"created_at"?: string,"id"?: string,"last_sent_at"?: string,"membership_id"?: string | null,"project_id": string,"requested_by"?: string | null,"sent_count"?: number,"sent_to_name": string,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "cancelled_at"?: string | null,"cancelled_by"?: string | null,"created_at"?: string,"id"?: string,"last_sent_at"?: string,"membership_id"?: string | null,"project_id"?: string,"requested_by"?: string | null,"sent_count"?: number,"sent_to_name"?: string,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "field_measure_request_cancelled_by_fkey"
+      columns: ["cancelled_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "field_measure_request_membership_id_fkey"
+      columns: ["membership_id"]
+isOneToOne: false
+      referencedRelation: "membership"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "field_measure_request_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "field_measure_request_requested_by_fkey"
+      columns: ["requested_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "field_measure_request_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"field_measure_session": {
                   Row: {
                     "created_at": string,"created_by": string | null,"id": string,"project_id": string,"rooms": NonNullable<Json>,"sent_at": string | null,"sent_by": string | null,"sent_change_id": string | null,"tenant_id": string,"updated_at": string,"updated_by": string | null
@@ -1402,6 +1446,9 @@ isOneToOne: false
 "cancel_edit_request":
 { Args: { "p_ip"?: unknown,"p_project": string }; Returns: Json
                            },
+"cancel_field_measure_request":
+{ Args: { "p_project": string }; Returns: Json
+                           },
 "cancel_import":
 { Args: { "p_job": string,"p_project": string }; Returns: Json
                            },
@@ -1745,6 +1792,12 @@ isOneToOne: false
                            },
 "request_edit_lock":
 { Args: { "p_ip"?: unknown,"p_minutes": number,"p_project": string }; Returns: Json
+                           },
+"request_field_measure":
+{ Args: { "p_membership": string,"p_project": string }; Returns: Json
+                           },
+"resend_field_measure_request":
+{ Args: { "p_project": string }; Returns: Json
                            },
 "resend_invite":
 { Args: { "p_ip"?: unknown,"p_membership_id": string,"p_secret": string,"p_token_sha256": string }; Returns: Json

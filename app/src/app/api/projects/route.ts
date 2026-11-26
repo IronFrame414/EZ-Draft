@@ -10,6 +10,10 @@
 // the user confirmed) needs Edit model too (S13 Decision 9); it is saved with set_property_record right after the
 // create and emits property_record.imported. A failed record save keeps the project (201, `propertyRecordSaved:
 // false`); the record can be imported again from Sheets.
+// EZD-1422 (S01 Input source; AC-EZD-1422-1): `source: 'field_measure'` (with foremanId) records the field measure
+// request right after the create and emails the Foreman the S17b link; the answer carries `fieldMeasure: { sentTo,
+// link, emailSent }`. The project is committed first, so a failed request or email keeps it (201; `fieldMeasure`
+// null when the request was refused, emailSent false when only the email failed).
 import { createSessionClient } from '../../../server/auth/supabase-server';
 import { reportRouteFailure } from '../../../server/errors/route-failure';
 import { emit } from '../../../server/events';
@@ -25,7 +29,14 @@ import { loadTenantDefaults } from '../../../server/defaults/defaults';
 import { projectDefaultsCopy } from '../../../lib/defaults/values';
 import { endedSessionResponse } from '../../../server/auth/ended-session';
 import { saveProjectPropertyRecord } from '../../../server/property-record/record';
-import { confirmedRecordSchema, type ConfirmedRecord } from '../../../lib/property-record/property-record';
+import {
+  confirmedRecordSchema,
+  type ConfirmedRecord,
+} from '../../../lib/property-record/property-record';
+import {
+  requestFieldMeasure,
+  type FieldMeasureRequestSent,
+} from '../../../server/field-measure/request';
 
 export const dynamic = 'force-dynamic';
 
@@ -105,6 +116,20 @@ export async function POST(request: Request): Promise<Response> {
     } catch {
       // The project is committed; a failed emit does not fail the create (Decided "POST order").
     }
+    // EZD-1422: the Foreman's link, after the project exists.
+    let fieldMeasure: { fieldMeasure: FieldMeasureRequestSent | null } | Record<string, never> = {};
+    if (values.source === 'field_measure' && values.foremanId !== undefined) {
+      let sent: FieldMeasureRequestSent | null = null;
+      try {
+        const r = await requestFieldMeasure(client, { projectId, membershipId: values.foremanId });
+        if (r.ok) sent = r.request;
+      } catch (e) {
+        const ended = await endedSessionResponse(e);
+        if (ended) return ended;
+        await reportRouteFailure(e, ROUTE);
+      }
+      fieldMeasure = { fieldMeasure: sent };
+    }
     if (propertyRecord !== null) {
       let saved = false;
       try {
@@ -113,7 +138,12 @@ export async function POST(request: Request): Promise<Response> {
           saved = true;
           await emit(
             'property_record.imported',
-            { projectId, recordId: record.recordId, fields: record.fields, leadFlag: record.leadFlag },
+            {
+              projectId,
+              recordId: record.recordId,
+              fields: record.fields,
+              leadFlag: record.leadFlag,
+            },
             { tenantId, projectId, actorId: p.session.appUserId },
           ).catch(() => undefined);
         }
@@ -123,11 +153,11 @@ export async function POST(request: Request): Promise<Response> {
         await reportRouteFailure(e, ROUTE);
       }
       return Response.json(
-        { project: { id: projectId }, propertyRecordSaved: saved },
+        { project: { id: projectId }, propertyRecordSaved: saved, ...fieldMeasure },
         { status: 201, headers },
       );
     }
-    return Response.json({ project: { id: projectId } }, { status: 201, headers });
+    return Response.json({ project: { id: projectId }, ...fieldMeasure }, { status: 201, headers });
   } catch (e) {
     const ended = await endedSessionResponse(e);
     if (ended) return ended;

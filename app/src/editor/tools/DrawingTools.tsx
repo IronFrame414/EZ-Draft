@@ -17,6 +17,8 @@
 // (ProjectEditor), no longer over the plan.
 // EZD-223 (S03 Sketch): the sketch strokes path; the Sketch tool shows no typed bar.
 // EZD-231 (04 Tool rail Measure): the measure distance chip; the Measure tool shows no typed bar.
+// EZD-216 (S03 Dimension, Text; Q-0682; Q-0683 (a)): the Dimension tool's Linear / Angular bar in the typed bar's place,
+// and the in-place text box.
 // EZD-225 (S06:48; Q-0697 decisions 05): the rail's paused tools for a viewer with Edit model but not the lock.
 // EZD-502 (S05 Entry points; S05 Layout; AC-EZD-502-1): the Ceiling tool ends the standard rail's top group for every
 // viewer and switches to Ceiling; on Ceiling or Both the rail is the ceiling rail, whose tool is the surface's own.
@@ -53,6 +55,7 @@ import type { UtilitiesToMoveProps } from '../../lazy/fixtures-panel';
 import { fixturesModule } from './fixtures-module';
 import { lazyModule } from '../../lib/lazy/lazy-module';
 import { GapBoxes } from './GapBoxes';
+import { CanvasTextBox } from './text-box';
 import { entryTool } from './entry-tool';
 import { DRAWING_TOOLS, type DrawingToolId } from './tool-defs';
 import styles from './DrawingTools.module.css';
@@ -592,6 +595,36 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
           )}
         </div>
       ) : null}
+      {ui.dimensionMode != null && ui.enabled ? (
+        <div
+          role="group"
+          aria-label={t('office.tools.dimension.mode')}
+          className={styles.modeBar}
+          data-testid="dimension-mode"
+        >
+          {(['linear', 'angular'] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              className={`${styles.modeButton} ${touch.hitArea}`}
+              aria-pressed={ui.dimensionMode === mode}
+              data-mode={mode}
+              onClick={() => controller.setDimensionMode(mode)}
+            >
+              {t(`office.tools.dimension.${mode}`)}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {ui.textBox != null ? (
+        <CanvasTextBox
+          key={ui.textBox.seq}
+          box={ui.textBox}
+          handle={handle}
+          onCommit={controller.commitText}
+          onCancel={controller.cancelText}
+        />
+      ) : null}
       {ui.utilities !== null ? (
         <LazyUtilitiesToMove moved={ui.utilities} onClose={controller.dismissUtilities} />
       ) : null}
@@ -602,6 +635,8 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
             ui.tool !== null &&
             ui.tool !== 'fixtures' &&
             ui.tool !== 'sketch' &&
+            ui.tool !== 'dimension' &&
+            ui.tool !== 'text' &&
             ui.tool !== 'measure' &&
             ui.tool !== 'electrical'
               ? DRAWING_TOOLS[ui.tool]

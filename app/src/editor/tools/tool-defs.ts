@@ -5,6 +5,7 @@
 // typed bar.
 // EZD-223 (S03 Sketch; S15d Reset to default map "S Sketch"; board S03Plan rail `draw` "Sketch"): the Sketch tool (S),
 // with no typed bar.
+// EZD-216 (S03 rail Dimension, Text): the Dimension (L) and Text (T) tools, with no typed bar (their entry is text).
 import type { ModelObject, ObjectStatus, Point, WallObject } from '@ezdraft/geometry';
 import type { RailTool } from '../../components/shell/rail-types';
 import type { MessageKey } from '../../server/messages/catalog';
@@ -23,6 +24,8 @@ export type DrawingToolId =
   | 'window'
   | 'move'
   | 'fixtures'
+  | 'dimension'
+  | 'text'
   | 'sketch'
   | 'measure'
   | 'cabinets'
@@ -30,7 +33,14 @@ export type DrawingToolId =
   | 'electrical';
 export type TypedDrawingToolId = Exclude<
   DrawingToolId,
-  'fixtures' | 'sketch' | 'measure' | 'cabinets' | 'countertops' | 'electrical'
+  | 'fixtures'
+  | 'dimension'
+  | 'text'
+  | 'sketch'
+  | 'measure'
+  | 'cabinets'
+  | 'countertops'
+  | 'electrical'
 >;
 
 export const WIDTH_FIELD: TypedLengthField = {
@@ -132,6 +142,15 @@ export const DRAWING_RAIL_TOOLS: readonly RailTool[] = [
   { kind: 'tool', id: 'door', icon: 'door_front', label: 'office.tool.door', shortcut: 'D' },
   { kind: 'tool', id: 'window', icon: 'window', label: 'office.tool.window', shortcut: 'N' },
   { kind: 'tool', id: 'fixtures', icon: 'wash', label: 'office.tool.fixtures', shortcut: 'F' },
+  // EZD-216 (04 Tool rail; board S03Plan rail "Dimension (L)" straighten, "Text (T)" title, before Sketch).
+  {
+    kind: 'tool',
+    id: 'dimension',
+    icon: 'straighten',
+    label: 'office.tool.dimension',
+    shortcut: 'L',
+  },
+  { kind: 'tool', id: 'text', icon: 'title', label: 'office.tool.text', shortcut: 'T' },
   { kind: 'tool', id: 'sketch', icon: 'draw', label: 'office.tool.sketch', shortcut: 'S' },
 ];
 

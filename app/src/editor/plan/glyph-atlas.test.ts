@@ -68,7 +68,9 @@ describe('EZD-207b glyph atlas', () => {
     near(atlasCell('dm-mono-400', "'"), { u0: 0.4375, v0: 0, u1: 0.5, v1: 0.0625 });
     near(atlasCell('instrument-sans-600', 'R'), { u0: 0.125, v0: 0.5625, u1: 0.1875, v1: 0.625 });
     near(atlasCell('instrument-sans-600', '·'), { u0: 0.9375, v0: 0.6875, u1: 1, v1: 0.75 });
-    expect(atlasCell('dm-mono-400', 'é')).toBeNull();
+    // EZD-216 (Q-0687 (b)): é is a note character now, in a cell after both fonts' first 96.
+    expect(atlasCell('dm-mono-400', 'é')).not.toBeNull();
+    expect(atlasCell('dm-mono-400', '\u201c')).toBeNull();
     // Rejects two atlases: Instrument Sans cells do not start at row 0.
     expect(atlasCell('instrument-sans-600', ' ')!.v0).toBeGreaterThan(0);
   });
@@ -114,7 +116,7 @@ describe('EZD-207b glyph atlas', () => {
     expect(sp.glyphs).toBe(2);
     expect(bl(sp.positions, 1).x).toBeCloseTo(60, 5);
 
-    const miss = layoutText(list(mono('aéb')));
+    const miss = layoutText(list(mono('a\u201cb'))); // EZD-216: é is in the atlas now; a smart quote is not
     expect(miss.glyphs).toBe(2);
     expect(bl(miss.positions, 1).x).toBeCloseTo(60, 5);
   });

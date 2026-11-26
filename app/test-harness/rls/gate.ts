@@ -363,6 +363,10 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'save_field_measure_session', args: { p_project: null, p_rooms: null } },
   // EZD-1419: the office reopens sent field measure rooms, authenticated only.
   { fn: 'reopen_field_measure_session', args: { p_project: null } },
+  // EZD-1422: the wizard's field measure request, its Resend and Cancel, authenticated only.
+  { fn: 'request_field_measure', args: { p_project: null, p_membership: null } },
+  { fn: 'resend_field_measure_request', args: { p_project: null } },
+  { fn: 'cancel_field_measure_request', args: { p_project: null } },
   // EZD-1402: the field action photo start and record, authenticated only.
   { fn: 'start_field_photo', args: { p_project: null, p_action: null, p_kind: null, p_ext: null } },
   {

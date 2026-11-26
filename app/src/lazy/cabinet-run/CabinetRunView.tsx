@@ -602,10 +602,13 @@ export function CabinetRunScreen(props: CabinetRunScreenProps): ReactElement {
   const t = useT();
   const sectionRef = useRef<HTMLElement>(null);
   if (view === null) {
+    // EZD-1986 (audit F9; S04 "Empty wall: no boxes; prompt"): with no run on the floor the screen is see-through, so
+    // the room stays visible on the plan, and the prompt sits at the top of the canvas instead of over the room.
     return (
       <section
-        className={styles.screen}
+        className={`${styles.screen} ${styles.screenEmpty}`}
         data-testid="cabinet-run"
+        data-empty=""
         aria-label={t('office.cabinets.region')}
       >
         <p className={styles.empty} data-testid="cabinet-run-empty">

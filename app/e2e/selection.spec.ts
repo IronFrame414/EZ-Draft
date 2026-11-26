@@ -173,6 +173,25 @@ const hovered = (page: Page): Promise<string | null> =>
   page.evaluate(() => (window as unknown as Window2).__ezdraftSelection.hoveredId());
 const expectIds = (page: Page, want: string[]) =>
   expect.poll(() => ids(page), { timeout: 5000 }).toEqual(want);
+// EZD-216 (S03 "Ctrl/Cmd+A | Select all on visible, selectable layers"): Select all takes the floor's auto
+// dimensions too; the walls and openings keep their order and every dimension is also selected.
+const dimensionIds = (page: Page): Promise<string[]> =>
+  page.evaluate(() =>
+    (window as unknown as Window2).__ezdraftEditor
+      .objects()
+      .filter((o) => o.type === 'dimension')
+      .map((o) => o.id),
+  );
+async function expectAllIds(page: Page, want: string[]) {
+  const dims = await dimensionIds(page);
+  expect(dims.length).toBeGreaterThan(0);
+  await expect
+    .poll(async () => {
+      const got = await ids(page);
+      return { model: got.filter((i) => !dims.includes(i)), dims: dims.every((d) => got.includes(d)) };
+    })
+    .toEqual({ model: want, dims: true });
+}
 const commits = (page: Page) =>
   page.evaluate(() => (window as unknown as Window2).__EZD_PERF__.commits);
 const stat = (page: Page, name: 'frames' | 'selectionUploads') =>
@@ -335,7 +354,7 @@ test.describe('EZD-208b selection', () => {
     const bottomTools = page.locator(
       '[data-shell-region="rail"] [data-rail="bottom"] [data-rail-tool]',
     );
-    await expect(topTools).toHaveCount(13); // EZD-601: plus Electrical; EZD-412: plus Countertops
+    await expect(topTools).toHaveCount(15); // EZD-601: plus Electrical; EZD-412: plus Countertops; EZD-216: plus Dimension, Text
     await expect(bottomTools).toHaveCount(2); // EZD-222: Assistant, then Help
     await expect(bottomTools.nth(0)).toHaveAttribute('data-rail-tool', 'assistant');
     await expect(bottomTools.nth(1)).toHaveAttribute('data-rail-tool', 'help');
@@ -505,16 +524,16 @@ test.describe('EZD-208b selection', () => {
     const { w1, w2, d1 } = await addSel(page);
     await view(page);
     await page.keyboard.press('Control+a');
-    await expectIds(page, [d1, w2, w1]);
+    await expectAllIds(page, [d1, w2, w1]);
     await page.keyboard.press('Escape');
     await expectIds(page, []);
     await page.keyboard.press('Meta+a');
-    await expectIds(page, [d1, w2, w1]);
+    await expectAllIds(page, [d1, w2, w1]);
     await page.keyboard.press('Escape');
     await expectIds(page, []);
     await page.keyboard.press('w');
     await page.keyboard.press('Control+a');
-    await expectIds(page, [d1, w2, w1]);
+    await expectAllIds(page, [d1, w2, w1]);
     await expect(tool(page, 'wall')).toHaveAttribute('aria-pressed', 'true');
   });
 
@@ -679,7 +698,7 @@ test.describe('EZD-208b selection', () => {
       await tapAt(page, DOOR);
       await expectIds(page, [d1]);
       await id(page, 'select-all').tap();
-      await expectIds(page, [d1, w2, w1]);
+      await expectAllIds(page, [d1, w2, w1]);
     },
   );
 

@@ -41,6 +41,33 @@ export const roomCeilingSchema = z.strictObject({
 });
 export type RoomCeiling = z.infer<typeof roomCeilingSchema>;
 
+// EZD-514 (S05 Controls "Framing known | Inspector, when a ceiling is selected | Choose Unknown / New construction / Full
+// demo / Enter locations. Enter locations: draw joist or beam lines with direction and spacing. Turns keep-clear checks
+// on."; S05 Decision 5; S05 Validation "Keep-clear warning when a can lands on a joist or beam"; vault/build/
+// assumptions.md EZD-514): how the room's ceiling framing is known, and the joist or beam lines drawn on it. A line
+// runs start to end (its direction); with a spacing it repeats parallel across the room at that spacing on center.
+// Optional, so every stored room stays valid and the version stays; absent reads as Unknown with no lines.
+export const FRAMING_KNOWN = ['unknown', 'new_construction', 'full_demo', 'entered'] as const;
+export type FramingKnown = (typeof FRAMING_KNOWN)[number];
+export const FRAMING_MEMBER_KINDS = ['joist', 'beam'] as const;
+export type FramingMemberKind = (typeof FRAMING_MEMBER_KINDS)[number];
+
+export const framingLineSchema = z
+  .strictObject({
+    kind: z.enum(FRAMING_MEMBER_KINDS),
+    start: pointSchema,
+    end: pointSchema,
+    spacing: z.nullable(z.number().check(z.positive())),
+  })
+  .check(z.refine((l) => l.start.x !== l.end.x || l.start.y !== l.end.y));
+export type FramingLine = z.infer<typeof framingLineSchema>;
+
+export const roomFramingSchema = z.strictObject({
+  known: z.enum(FRAMING_KNOWN),
+  lines: z.array(framingLineSchema),
+});
+export type RoomFraming = z.infer<typeof roomFramingSchema>;
+
 export const closureOverrideSchema = z.strictObject({
   who: z.uuid(),
   when: z.iso.datetime(),
@@ -60,6 +87,8 @@ export const roomDataSchema = z.strictObject({
     floorFinish: z.string(),
     ceilingType: z.nullable(z.enum(CEILING_TYPES)),
     ceiling: z.nullable(roomCeilingSchema),
+    // EZD-514: absent is Unknown.
+    framing: z.optional(roomFramingSchema),
   }),
   closureOverride: z.nullable(closureOverrideSchema),
 });
@@ -84,4 +113,9 @@ export function roomCeilingType(
   attributes: Pick<RoomData['attributes'], 'ceilingType'>,
 ): CeilingType {
   return attributes.ceilingType ?? 'flat';
+}
+
+/** EZD-514: the room's framing; absent reads as Unknown with no lines. */
+export function roomFraming(attributes: Pick<RoomData['attributes'], 'framing'>): RoomFraming {
+  return attributes.framing ?? { known: 'unknown', lines: [] };
 }

@@ -6,6 +6,8 @@ import {
   ATLAS_BASELINE_PX,
   ATLAS_CELL_PX,
   ATLAS_CHARS,
+  ATLAS_EXTRA_CHARS,
+  atlasCellIndex,
   ATLAS_COLUMNS,
   ATLAS_FONTS,
   ATLAS_FONT_PX,
@@ -60,16 +62,19 @@ export async function drawGlyphAtlas<C extends AtlasCanvas>(deps: {
   ctx.fillStyle = '#ffffff';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  const chars = [...ATLAS_CHARS];
-  ATLAS_FONTS.forEach((f, fontIndex) => {
-    ctx.font = atlasFontString(f, deps.families[f]);
-    chars.forEach((ch, charIndex) => {
-      const i = fontIndex * chars.length + charIndex;
-      const col = i % ATLAS_COLUMNS;
-      const row = Math.floor(i / ATLAS_COLUMNS);
-      ctx.fillText(ch, col * ATLAS_CELL_PX + ATLAS_PAD_PX, row * ATLAS_CELL_PX + ATLAS_BASELINE_PX);
+  // The first 96 characters in each font, then (EZD-216) the note characters past them, in cell order (`atlasCellIndex`).
+  const passes = [[...ATLAS_CHARS], [...ATLAS_EXTRA_CHARS]];
+  for (const chars of passes) {
+    ATLAS_FONTS.forEach((f, fontIndex) => {
+      ctx.font = atlasFontString(f, deps.families[f]);
+      chars.forEach((ch) => {
+        const i = atlasCellIndex(fontIndex, ch)!;
+        const col = i % ATLAS_COLUMNS;
+        const row = Math.floor(i / ATLAS_COLUMNS);
+        ctx.fillText(ch, col * ATLAS_CELL_PX + ATLAS_PAD_PX, row * ATLAS_CELL_PX + ATLAS_BASELINE_PX);
+      });
     });
-  });
+  }
   return canvas;
 }
 

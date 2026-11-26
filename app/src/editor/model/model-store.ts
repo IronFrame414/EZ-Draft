@@ -18,6 +18,7 @@ import {
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import { withBearingNotes } from '../edit/bearing-rule';
+import { withAutoDimensions } from '../edit/auto-dimensions';
 import { applyEditTo, makeEdit, type Change, type Edit, type Objects } from './patches';
 
 export type ModelState = {
@@ -83,7 +84,11 @@ export function createModelStore(o: {
     applyEdit(changes) {
       if (changes.length === 0) return [];
       const { objects, past } = store.getState();
-      const edit = makeEdit(objects, withBearingNotes(objects, changes, newId));
+      // EZD-216: and the auto dimensions of the floors whose walls or rooms it changes (auto-dimensions.ts).
+      const edit = makeEdit(
+        objects,
+        withAutoDimensions(objects, withBearingNotes(objects, changes, newId), newId),
+      );
       return commit(edit, 'forward', [...past, edit], []);
     },
     undo() {

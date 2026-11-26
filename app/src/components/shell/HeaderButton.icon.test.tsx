@@ -119,6 +119,7 @@ const EXPECTED_ICONS = [
   'speaker',
   'straighten',
   'sync_problem',
+  'title',
   'tune',
   'undo',
   'update',

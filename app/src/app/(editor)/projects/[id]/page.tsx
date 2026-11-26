@@ -3,6 +3,7 @@
 // the project through the model route, which checks the permission. The test hook is off in production.
 // EZD-111 (vault/plans/EZD-111.md D-Can send; Q-0700): Share shows only with Send to client for this project; a
 // failed permission load hides it and is reported (the send route decides again).
+import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 import type { ReactElement } from 'react';
 import { StateHost } from '../../../../components/states/StateHost';
@@ -18,8 +19,10 @@ import { reportError } from '../../../../server/errors/report';
 import { can } from '../../../../server/permissions';
 import { settingsPermissionContext } from '../../../../server/settings/shell-data';
 import { catalogFor } from '../../../../server/messages/catalog';
+import { fieldMeasureReviewJob } from '../../../../server/field-measure/review-redirect';
 
 // EZD-299 Build step 10 (vault/plans/EZD-299.md Decided D-Page; C14): `?conflicts=open` opens the conflict list.
+// EZD-1991: `?view=sheets` opens the Sheets screen.
 export default async function EditorPage({
   params,
   searchParams,
@@ -31,6 +34,17 @@ export default async function EditorPage({
   await connection();
   const session = await requireSession();
   const { id } = await params;
+  // EZD-1422 (S01 Input source "the project opens on 02 Import review when the rooms arrive"): a project made with
+  // Field measure opens on the Import review of its sent rooms while that review is open.
+  // A failed read is reported and the plan opens.
+  const reviewJob = await fieldMeasureReviewJob(createSessionClient(), id).catch(async () => {
+    await reportError(new Error('editor_field_measure_review_failed'), {
+      source: 'function',
+      location: 'editor.field_measure_review',
+    });
+    return null;
+  });
+  if (reviewJob !== null) redirect(`/projects/${id}/import/${reviewJob}`);
   // EZD-230 (Q-0038, Q-0122): the user's own rail tool order, read with the page so the editor asks for nothing
   // more; a failed read is reported and the rail keeps its default order.
   let railOrder: string[] = [];
@@ -58,6 +72,8 @@ export default async function EditorPage({
   const bench = query?.benchmark === 'run' ? { benchmark: true } : {};
   // EZD-313 (S02 Decisions): `?imported=walls.windows.doors.rooms` shows the Finish import notice once.
   const imported = parseImported(query?.imported);
+  // EZD-1991 (Q-0813): `?view=sheets` opens the Sheets screen (Settings > Title block "Open Sheets").
+  const view = query?.view === 'sheets' ? { initialView: 'sheets' as const } : {};
   const ctx = await settingsPermissionContext();
   if (ctx === 'failed') {
     await reportError(new Error('editor_permissions_load_failed'), {
@@ -71,7 +87,9 @@ export default async function EditorPage({
       : {};
   // EZD-416: Settings → Defaults decides the countertop panel's "Change in company settings" link.
   const defaultsLink =
-    ctx !== null && ctx !== 'failed' && can(ctx, 'settings_defaults') ? { canManageDefaults: true } : {};
+    ctx !== null && ctx !== 'failed' && can(ctx, 'settings_defaults')
+      ? { canManageDefaults: true }
+      : {};
   return (
     <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
       <StateHost>
@@ -85,6 +103,7 @@ export default async function EditorPage({
           {...bench}
           {...send}
           {...defaultsLink}
+          {...view}
         />
       </StateHost>
     </MessagesProvider>

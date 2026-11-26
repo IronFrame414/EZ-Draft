@@ -5,3 +5,5 @@ export * from './fan-clearance';
 export * from './wall-top';
 // EZD-511: the ACT grid's balancing and layout.
 export * from './act-grid';
+// EZD-514: Framing known's keep-clear check.
+export * from './keep-clear';

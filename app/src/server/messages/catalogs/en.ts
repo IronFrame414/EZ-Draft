@@ -83,6 +83,8 @@ export const en = {
   'common.offline': 'Offline',
   'common.cancel': 'Cancel',
   'common.close': 'Close',
+  // EZD-1990 (Q-0808): the not-found page's button to Projects.
+  'common.back_to_projects': 'Back to Projects',
   'common.disclaimer':
     "For design and planning only. All calculations and codes must be verified by the user and a licensed professional in the project's jurisdiction.",
   'common.no_access': "You don't have access to this. Ask your supervisor.",
@@ -265,6 +267,7 @@ export const en = {
   'office.left_panel.section.overlays': 'Overlays',
   'office.left_panel.layer.plumbing': 'Plumbing',
   'office.left_panel.layer.mechanical': 'Mechanical',
+  'office.left_panel.layer.dimensions': 'Dimensions',
   'office.left_panel.show': 'Show {layer}',
   'office.left_panel.hide': 'Hide {layer}',
   'office.left_panel.lock': 'Lock {layer}',
@@ -522,6 +525,8 @@ export const en = {
   'office.defaults.search_clear': 'Clear search',
   'office.defaults.no_match': 'No defaults match',
   'office.defaults.not_set': 'Not set',
+  // EZD-228: the Bath clearances row while it reads the code minimums.
+  'office.defaults.bath_clearances_value': 'Code minimums',
   'office.defaults.set_in_defaults': 'Set in Defaults',
   'office.defaults.not_set_ask': 'Not set in Defaults. Ask your supervisor.',
   'office.defaults.fixed_note': 'Fixed in v1',
@@ -680,6 +685,12 @@ export const en = {
   'office.title_block.status_fields': 'Company fields',
   'office.title_block.status_fields_complete': 'Complete',
   'office.title_block.status_fields_missing': 'Missing',
+  // EZD-1991 (Q-0813; board S15bTitleBlock head and preview head): "Used on N sheets · Open Sheets" and "Zoom to
+  // title block". "Used on 1 sheet" is wording for Josh to confirm (vault/build/assumptions.md EZD-1991).
+  'office.title_block.used_on': 'Used on {n} sheets',
+  'office.title_block.used_on_one': 'Used on 1 sheet',
+  'office.title_block.open_sheets': 'Open Sheets',
+  'office.title_block.zoom': 'Zoom to title block',
   // EZD-1102 (S15f; board S15fRender): Settings > Render models. Wording not on the board is listed in
   // vault/build/assumptions.md for Josh to confirm.
   'office.render_models.subtitle':
@@ -3241,6 +3252,64 @@ export const en = {
   'office.electrical.leg.pick_switch': 'Click a switch, then the lights it controls',
   'office.electrical.leg.no_room': 'Click a light inside a room',
   'office.electrical.leg.failed': 'The switch leg could not be saved',
+  // EZD-514: Framing known and keep-clear (S05 Controls "Framing known ... Choose Unknown / New construction / Full demo
+  // / Enter locations"; board S05Ceiling footer "Joists unknown · beam clash checks off"; other wording listed in
+  // vault/build/assumptions.md).
+  'office.ceiling.framing.title': 'Framing known',
+  'office.ceiling.framing.known.unknown': 'Unknown',
+  'office.ceiling.framing.known.new_construction': 'New construction',
+  'office.ceiling.framing.known.full_demo': 'Full demo',
+  'office.ceiling.framing.known.entered': 'Enter locations',
+  'office.ceiling.framing.member': 'Member',
+  'office.ceiling.framing.member.joist': 'Joist',
+  'office.ceiling.framing.member.beam': 'Beam',
+  'office.ceiling.framing.spacing': 'Spacing',
+  'office.ceiling.framing.single': 'Single',
+  'office.ceiling.framing.draw': 'Draw line',
+  'office.ceiling.framing.drawing': 'Click two points inside the room. Esc to finish.',
+  'office.ceiling.framing.line': '{member} · {spacing}',
+  'office.ceiling.framing.spacing_oc': '{spacing} o.c.',
+  'office.ceiling.framing.remove': 'Remove line',
+  'office.ceiling.framing.none': 'No lines yet',
+  'office.ceiling.framing.click_room': 'Click inside the selected room to draw a line',
+  'office.ceiling.framing.place_failed': 'The line could not be saved',
+  'office.ceiling.status.joists_new_construction': 'new construction · beam clash checks on',
+  'office.ceiling.status.joists_full_demo': 'full demo · beam clash checks on',
+  'office.ceiling.status.joists_entered': 'entered · beam clash checks on',
+  'office.device.keep_clear.joist': 'Can is on a joist. Move it clear.',
+  'office.device.keep_clear.beam': 'Can is on a beam. Move it clear.',
+  // EZD-216 (S03 Dimension, Text): the Dimension tool's switch and the in-place text box.
+  'office.tools.dimension.linear': 'Linear',
+  'office.tools.dimension.angular': 'Angular',
+  'office.tools.dimension.mode': 'Dimension type',
+  'office.tools.text.box': 'Note text',
+  'office.tools.text.override_box': 'Dimension text',
+  'office.tools.text.unsupported': 'A character in this text cannot print. Use letters, numbers and common symbols.',
+  'office.tools.text.too_long': 'Text is too long. A note has at most 500 characters, a dimension 100.',
+  // EZD-1422 (S01 Input source; board S01b Field measure card and hint; Q-0204): Field measure as wizard input.
+  'office.new_project.source_field_measure': 'Field measure',
+  'office.new_project.source_field_measure_sub':
+    'Foreman measures rooms on the phone. Project opens on Import review when rooms arrive.',
+  'office.new_project.source_field_measure_hint':
+    'Field measure asks which Foreman gets the link (email + Copy link)',
+  'office.new_project.field_measure_pick_foreman': 'Pick the Foreman who gets the link.',
+  'office.new_project.create_will_email_foreman': "Email {name} the Field measure link",
+  'office.new_project.create_will_open_review': 'Open Import review when the rooms arrive',
+  'office.field_measure_request.sent': 'Field measure link sent to {name}',
+  'office.field_measure_request.email_failed':
+    "The project was created, but the email to {name} didn't go. Use Resend or Copy link on the project card.",
+  'office.field_measure_request.failed': "The project was created, but the Field measure link wasn't sent.",
+  'office.field_measure_request.email_subject': 'Measure {project} on your phone',
+  'office.field_measure_request.email_greeting': 'Hello {name},',
+  'office.field_measure_request.email_body':
+    '{company} asked you to measure the rooms for {project}. Open the link on your phone, measure each room and tap Send to office.',
+  'office.field_measure_request.email_link': 'Open Field measure',
+  'office.projects.card.field_measure_waiting': 'Waiting for field measurements',
+  'office.projects.card.field_measure_sent_to': 'Sent to {name}',
+  'office.projects.menu.field_measure_resend': 'Resend field measure link',
+  'office.projects.menu.field_measure_copy': 'Copy field measure link',
+  'office.projects.menu.field_measure_cancel': 'Cancel field measure request',
+  'office.projects.menu.field_measure_copied': 'Link copied',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

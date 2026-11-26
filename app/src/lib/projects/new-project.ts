@@ -52,8 +52,8 @@ export type NewProjectBody = {
   // EZD-643 (Q-0765): the optional permit application date, 'YYYY-MM-DD'; absent is none.
   permitApplicationDate?: string;
   template?: TemplateBody | null;
-  // EZD-301: present only for a project started from a file.
-  source?: 'file';
+  // EZD-301: present only for a project started from a file. EZD-1422: `field_measure` with a foremanId.
+  source?: 'file' | 'field_measure';
 };
 
 export type NewProjectDraft = {
@@ -79,7 +79,11 @@ export const EMPTY_NEW_PROJECT: NewProjectDraft = {
 };
 
 // The name follows the type ("<Type> remodel") until the user types in the name field.
-export function applyType(d: NewProjectDraft, type: ProjectType, defaultName: string): NewProjectDraft {
+export function applyType(
+  d: NewProjectDraft,
+  type: ProjectType,
+  defaultName: string,
+): NewProjectDraft {
   return d.nameEdited ? { ...d, type } : { ...d, type, name: defaultName };
 }
 

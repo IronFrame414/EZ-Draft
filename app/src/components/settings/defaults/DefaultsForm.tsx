@@ -238,6 +238,14 @@ export function DefaultsPage({ initial }: { initial: StoredDefaults }) {
     if (r.type === 'fixed') {
       return <span className={styles.mono}>{t('office.defaults.units_value')}</span>;
     }
+    // EZD-228: Bath clearances read the code minimums (09d:34) until the Q-0710 editor has Josh's values.
+    if (r.key === 'bath_clearances') {
+      return (
+        <span data-testid={`defaults-value-${r.key}`} className={styles.mono}>
+          {t('office.defaults.bath_clearances_value')}
+        </span>
+      );
+    }
     if (r.type === 'values') {
       return (
         <span data-testid={`defaults-not-set-${r.key}`} className={styles.notSet}>

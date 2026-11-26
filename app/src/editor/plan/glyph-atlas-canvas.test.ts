@@ -77,7 +77,7 @@ describe('EZD-207b glyph atlas drawing', () => {
     expect(f.calls[0].fill).toBe('#000000');
 
     const texts = f.calls.filter((c) => c.name === 'fillText');
-    expect(texts).toHaveLength(192);
+    expect(texts).toHaveLength(204); // EZD-216: plus á é ñ ü ° ½ in each font
     for (const t of texts) {
       expect(t.fill).toBe('#ffffff');
       expect(t.baseline).toBe('alphabetic');
@@ -164,9 +164,12 @@ describe('EZD-373 glyph atlas font loading', () => {
     expect(out).toBe(f.canvas);
     expect(load.mock.calls.map((c) => c[0])).toEqual([MONO, SANS]);
     const texts = f.calls.filter((c) => c.name === 'fillText');
-    expect(texts).toHaveLength(192);
+    expect(texts).toHaveLength(204); // EZD-216: plus á é ñ ü ° ½ in each font
     expect(texts.slice(0, 96).every((t) => t.font === MONO)).toBe(true);
-    expect(texts.slice(96).every((t) => t.font === SANS)).toBe(true);
+    expect(texts.slice(96, 192).every((t) => t.font === SANS)).toBe(true);
+    // EZD-216: then the six note letters in each font.
+    expect(texts.slice(192, 198).every((t) => t.font === MONO)).toBe(true);
+    expect(texts.slice(198).every((t) => t.font === SANS)).toBe(true);
     expect(createElement).toHaveBeenCalledTimes(1);
     expect(createElement).toHaveBeenCalledWith('canvas');
   });
@@ -178,7 +181,7 @@ describe('EZD-373 glyph atlas font loading', () => {
     }, DEFAULT_VARS);
     const out = await createGlyphAtlas();
     expect(out).toBe(f.canvas);
-    expect(f.calls.filter((c) => c.name === 'fillText')).toHaveLength(192);
+    expect(f.calls.filter((c) => c.name === 'fillText')).toHaveLength(204); // EZD-216
   });
 
   test('EZD-373 U4 a font variable with no first family rejects as missing', async () => {

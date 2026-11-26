@@ -2,8 +2,13 @@
 // rule set for its code and edition to CODE_RULE_SETS; the engine itself (packages/geometry/src/code-check) never
 // changes for a new code or edition. Browser and server.
 import { createRuleRegistry, type RuleRegistry, type RuleSet } from '@ezdraft/geometry';
+import { bathClearanceRuleSets } from '@ezdraft/geometry/checks';
+import { CODE_EDITIONS } from '../code-edition/editions';
 
-export const CODE_RULE_SETS: readonly RuleSet[] = [];
+export const CODE_RULE_SETS: readonly RuleSet[] = [
+  // EZD-228: the bath clearance check, company rules run on every edition (assumptions EZD-611a, EZD-228).
+  ...bathClearanceRuleSets(CODE_EDITIONS),
+];
 
 export function appRuleRegistry(sets: readonly RuleSet[] = CODE_RULE_SETS): RuleRegistry {
   return createRuleRegistry(sets);

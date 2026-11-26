@@ -528,7 +528,16 @@
     "EZD-1984",
     "EZD-1980",
     "EZD-1983",
-    "EZD-1985"
+    "EZD-1985",
+    "EZD-1986",
+    "EZD-514",
+    "EZD-1990",
+    "EZD-1993",
+    "EZD-1991",
+    "EZD-228",
+    "EZD-1948",
+    "EZD-1422",
+    "EZD-216"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2134,6 +2143,78 @@
       "ts": "2026-11-25T18:51:34Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-1986",
+      "title": "Cabinets tool on desktop keeps the room visible and its panel rows aligned",
+      "commit": "8e17d06c",
+      "ts": "2026-11-25T20:22:11Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-514",
+      "title": "Framing known and keep-clear",
+      "commit": "b356ae52",
+      "ts": "2026-11-25T22:33:03Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1990",
+      "title": "\"Page not found\" page with the app header and a Back to Projects button",
+      "commit": "aae5cbf3",
+      "ts": "2026-11-25T23:34:32Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1993",
+      "title": "CI: the gate finishes well inside its 45-minute limit on the GitHub runner",
+      "commit": "ef8bd211",
+      "ts": "2026-11-26T00:24:52Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1991",
+      "title": "Title block settings: \"Used on N sheets · Open Sheets\" line and \"Zoom to title block\" button",
+      "commit": "e84ecc7c",
+      "ts": "2026-11-26T00:49:01Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-228",
+      "title": "Bath clearance check",
+      "commit": "f423d91b",
+      "ts": "2026-11-26T01:29:58Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1948",
+      "title": "Builders run targeted tests and leave the full gate to the loop",
+      "commit": "bbae72cf",
+      "ts": "2026-11-26T02:08:19Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1422",
+      "title": "Field measure as wizard input",
+      "commit": "bbee5e8d",
+      "ts": "2026-11-26T03:16:52Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-216",
+      "title": "Dimensions and text",
+      "commit": "ed6e3f04",
+      "ts": "2026-11-26T03:55:09Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2183,7 +2264,10 @@
     "EZD-1988": 1,
     "EZD-1978": 1,
     "EZD-1992": 1,
-    "EZD-1983": 1
+    "EZD-1983": 1,
+    "EZD-1991": 1,
+    "EZD-1990": 1,
+    "EZD-1993": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2373,23 +2457,22 @@
     "EZD-1983": {
       "ts": "2026-11-25T18:07:45Z",
       "reason": "check red after merging newer develop"
-    }
-  },
-  "running": {
-    "EZD-1990": {
-      "lane": 2,
-      "title": "\"Page not found\" page with the app header and a Back to Projects button",
-      "started": "2026-11-25T17:56:41Z",
-      "develop": "3acf917f"
     },
     "EZD-1991": {
-      "lane": 1,
-      "title": "Title block settings: \"Used on N sheets · Open Sheets\" line and \"Zoom to title block\" button",
-      "started": "2026-11-25T18:32:04Z",
-      "develop": "81cebd6f"
+      "ts": "2026-11-25T21:02:42Z",
+      "reason": "check red after a review fix"
+    },
+    "EZD-1990": {
+      "ts": "2026-11-25T21:06:37Z",
+      "reason": "develop kept moving: 3 merge rounds"
+    },
+    "EZD-1993": {
+      "ts": "2026-11-25T22:59:11Z",
+      "reason": "check red after merging newer develop"
     }
   },
-  "advisories_checked_at": "2026-11-25T16:19:16Z",
+  "running": {},
+  "advisories_checked_at": "2026-11-25T22:19:22Z",
   "hold": {},
   "perf_trend_at": "2026-11-25T03:16:23Z",
   "set_aside_history": []

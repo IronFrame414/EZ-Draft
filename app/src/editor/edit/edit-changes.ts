@@ -5,6 +5,9 @@
 // and utility points; a deleted appliance's points stay as they are and read as unlinked. Copy stays walls and
 // openings.
 // EZD-227 Build (AC-EZD-227-1): Delete removes selected blocking too; deleting its wall leaves it flagged.
+// EZD-216 (S03 rail Dimension, Text; Q-0685 (a) "Delete skips auto dimensions"): Delete removes selected notes and
+// drawn dimensions; an auto dimension stays (it is moved, or hidden with the Dimensions eye). A wall's wall-face
+// dimensions go with it through the model store (auto-dimensions.ts, Q-0686 case 2 (a)).
 import {
   blockingHostUpdates,
   numberNewObjects,
@@ -56,7 +59,16 @@ const DELETE_TYPES: ReadonlySet<string> = new Set([
   'tile_shower', // EZD-226
   'blocking', // EZD-227
   'pin', // EZD-220: its source_file row is kept (03c:15)
+  'dimension', // EZD-216: drawn ones only (isAutoDimension)
+  'text', // EZD-216
 ]);
+
+// EZD-216 (Q-0685 (a)): an auto dimension is never deleted by Delete.
+const isAutoDimension = (v: ObjectValue): boolean =>
+  v.type === 'dimension' &&
+  typeof v.data.attributes === 'object' &&
+  v.data.attributes !== null &&
+  (v.data.attributes as { auto?: unknown }).auto != null;
 
 export function copyItems(objects: Objects, level: string, ids: readonly string[]): ClipItem[] {
   return itemsOf(objects, level, ids, COPY_TYPES);
@@ -120,7 +132,9 @@ export function deleteChanges(
   // EZD-214: rooms the delete makes take the phase view's status.
   roomStatus: ObjectStatus = 'existing',
 ): Change[] {
-  const targets = itemsOf(objects, level, ids, DELETE_TYPES).map((i) => i.id);
+  const targets = itemsOf(objects, level, ids, DELETE_TYPES)
+    .filter((i) => !isAutoDimension(i.value))
+    .map((i) => i.id);
   if (targets.length === 0) return [];
   const gone = new Set(targets.map((id) => id.toLowerCase()));
   const before = toModelObjects(objects, level);

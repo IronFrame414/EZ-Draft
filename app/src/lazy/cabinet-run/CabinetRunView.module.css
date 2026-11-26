@@ -107,6 +107,20 @@ button.fitChip {
   color: var(--ez-slate-500);
 }
 
+/* EZD-1986 (audit F9; board S04Cabinets): with no run the screen does not paint over the plan, so the room shows
+   through; it still takes the pointer, so the plan's own clicks, pan and zoom stay off as under a run. The prompt sits
+   at the top of the canvas, where the run header is on the board, on a surface chip so it reads over the grid. */
+.screenEmpty {
+  background: transparent;
+}
+
+.screenEmpty .empty {
+  margin: 0 auto;
+  padding: 6px 12px;
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+}
+
 .drawing {
   width: 100%;
   max-width: 960px;

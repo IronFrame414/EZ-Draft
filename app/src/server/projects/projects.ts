@@ -129,6 +129,8 @@ const pageSchema = z.object({
       archived: z.boolean(),
       // EZD-314: list_projects (…_add_project_importing.sql) reads an import in progress.
       importing: z.boolean().optional(),
+      // EZD-1422 (Q-0204): the waiting field measure request, …_field_measure_request.sql.
+      fieldMeasureWait: z.object({ sentTo: z.string(), mine: z.boolean() }).nullable().optional(),
     }),
   ),
   next: cursorSchema.nullable(),
@@ -190,7 +192,8 @@ export type NewProjectValues = {
   // EZD-129 (Q-0202; AC-EZD-129-3): the wizard's Foreman, a membership id; absent when none is picked.
   foremanId?: string;
   // EZD-301 (S01 Events emitted): `file` when the project starts from a file; absent for Standalone.
-  source?: 'file';
+  // EZD-1422 (S01 Input source): `field_measure` sends the Foreman (foremanId, then required) the S17b link.
+  source?: 'file' | 'field_measure';
 };
 
 const size = z.number().refine(isTemplateSize);
@@ -208,7 +211,7 @@ const newProjectSchema = z.strictObject({
     .nullable()
     .optional(),
   foremanId: z.uuid().nullable().optional(),
-  source: z.enum(['standalone', 'file']).optional(),
+  source: z.enum(['standalone', 'file', 'field_measure']).optional(),
 });
 
 export function parseNewProject(body: unknown): NewProjectValues | null {
@@ -220,6 +223,10 @@ export function parseNewProject(body: unknown): NewProjectValues | null {
   if (name === '' || address === '') return null;
   const trades = parsed.data.scopeTrades ?? [];
   if (new Set(trades).size !== trades.length) return null;
+  // EZD-1422: Field measure needs the Foreman who gets the link, and starts with no template.
+  if (parsed.data.source === 'field_measure' && (!parsed.data.foremanId || parsed.data.template)) {
+    return null;
+  }
   return {
     name,
     address,
@@ -233,6 +240,7 @@ export function parseNewProject(body: unknown): NewProjectValues | null {
     template: parsed.data.template ?? null,
     ...(parsed.data.foremanId ? { foremanId: parsed.data.foremanId } : {}),
     ...(parsed.data.source === 'file' ? { source: 'file' as const } : {}),
+    ...(parsed.data.source === 'field_measure' ? { source: 'field_measure' as const } : {}),
   };
 }
 

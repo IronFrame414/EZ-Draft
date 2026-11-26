@@ -1,7 +1,10 @@
 // EZD-207b Build step 2 (vault/plans/EZD-207b.md section 1 Decided "Atlas characters", "Atlas cells", "Text size",
 // "Text layout", "Quad vertices"; C3, C5; 11 rule 4; S03 Text): one glyph atlas for both drawing fonts, and the
 // drawing list's text laid out as model-space quads on it, so text scales with the zoom and needs no rebuild.
-import { DRAWING_FONTS, type DrawingList } from '@ezdraft/geometry';
+// EZD-216 (Q-0687 (b)): á, é, ñ, ü, ° and ½ join the atlas for notes, after both fonts' first cells, so every
+// earlier cell keeps its place; ATLAS_CHARS stays the reference DXF list (reference-dxf/format.ts).
+// Notes and dimension text are laid out from the sizes the drawing list gives (09-calculations Q-0664 paper sizes).
+import { DRAWING_FONTS, TEXT_CHARS, type DrawingList } from '@ezdraft/geometry';
 import { Color, SRGBColorSpace } from 'three';
 import { tokenRgb } from './color';
 
@@ -21,6 +24,8 @@ function atlasChars(): string {
   return s + '·';
 }
 export const ATLAS_CHARS: string = atlasChars();
+/** EZD-216: the note characters past ATLAS_CHARS (TEXT_CHARS, the geometry package's note characters). */
+export const ATLAS_EXTRA_CHARS: string = [...TEXT_CHARS].filter((ch) => !ATLAS_CHARS.includes(ch)).join('');
 
 export type AtlasFont = (typeof ATLAS_FONTS)[number];
 export type UvRect = { u0: number; v0: number; u1: number; v1: number };
@@ -32,13 +37,22 @@ export type PlanTextBatch = {
 };
 
 const CHAR_INDEX = new Map<string, number>([...ATLAS_CHARS].map((ch, i) => [ch, i]));
+const EXTRA_INDEX = new Map<string, number>([...ATLAS_EXTRA_CHARS].map((ch, i) => [ch, i]));
 const CELL_UV = ATLAS_CELL_PX / ATLAS_SIZE_PX;
 
+/** The atlas cell number of a character in a font, or null when the atlas does not hold it. */
+export function atlasCellIndex(fontIndex: number, ch: string): number | null {
+  if (fontIndex < 0 || fontIndex >= ATLAS_FONTS.length) return null;
+  const base = CHAR_INDEX.get(ch);
+  if (base !== undefined) return fontIndex * ATLAS_CHARS.length + base;
+  const extra = EXTRA_INDEX.get(ch);
+  if (extra === undefined) return null;
+  return ATLAS_FONTS.length * ATLAS_CHARS.length + fontIndex * ATLAS_EXTRA_CHARS.length + extra;
+}
+
 export function atlasCell(font: AtlasFont, ch: string): UvRect | null {
-  const charIndex = CHAR_INDEX.get(ch);
-  const fontIndex = ATLAS_FONTS.indexOf(font);
-  if (charIndex === undefined || fontIndex < 0) return null;
-  const i = fontIndex * ATLAS_CHARS.length + charIndex;
+  const i = atlasCellIndex(ATLAS_FONTS.indexOf(font), ch);
+  if (i === null) return null;
   const col = i % ATLAS_COLUMNS;
   const row = Math.floor(i / ATLAS_COLUMNS);
   const u0 = (col * ATLAS_CELL_PX) / ATLAS_SIZE_PX;

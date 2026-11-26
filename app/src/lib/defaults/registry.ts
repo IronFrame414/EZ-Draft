@@ -4,6 +4,7 @@
 // cleanup keys. A row whose source says "Owner enters" has no registry default (reads "Not set"); mockup
 // numbers are sample data, never defaults. Answers to open questions are in vault/build/assumptions.md
 // (EZD-116). Lengths are stored in inches; percents, minutes, days and counts as numbers.
+import { BATH_CLEARANCE_CODE_MINIMUMS } from '@ezdraft/geometry/checks';
 import type { MessageKey } from '../../server/messages/catalog';
 import {
   DEVICE_CACHE_BUDGET_DEFAULT_MB,
@@ -57,7 +58,9 @@ export type DefaultType =
 
 export type LengthRange = { min: number; max: number };
 export type ShortcutMap = Readonly<Record<string, string>>;
-export type DefaultValue = number | string | boolean | readonly string[] | LengthRange | ShortcutMap;
+// EZD-228: a 'values' row's named numbers (Bath clearances: inches, the shower area in square inches).
+export type NamedValues = Readonly<Record<string, number>>;
+export type DefaultValue = number | string | boolean | readonly string[] | LengthRange | ShortcutMap | NamedValues;
 
 export type DefaultRow = {
   key: string;
@@ -362,14 +365,16 @@ export const DEFAULTS_REGISTRY: readonly DefaultRow[] = [
     type: 'switch',
     default: false,
   }),
-  // Baths
+  // Baths. EZD-228 (09d:34 "The bath clearance values that Round 3 put in Defaults now start at these code
+  // minimums"; B-07 to B-09): the default is the code minimums; the tub front clearance has none (no code value).
+  // The Q-0710 editor waits for Josh's values, so the row is not stored yet.
   row({
     key: 'bath_clearances',
     group: 'baths',
     label: L('bath_clearances'),
     hint: H('bath_clearances'),
     type: 'values',
-    default: null,
+    default: { ...BATH_CLEARANCE_CODE_MINIMUMS },
   }),
   // Details
   row({

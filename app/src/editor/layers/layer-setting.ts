@@ -12,11 +12,23 @@
 // EZD-731 (AC-EZD-731-1; phase-07 EZD-731 "on a Mechanical layer"; vault/build/assumptions.md EZD-731): the Mechanical
 // layer. Every hvac object (air handler, condenser, supply and return registers, of any status) is in it, as well as
 // in its Phase layer; its eye starts on and resets on reload.
+// EZD-216 (S03 Controls — left panel "Overlay: Dimensions (eye) | Layers > Overlays | Show/hide dimensions"; board
+// S03Plan Overlays "Dimensions"; Q-0674 (b); AC-EZD-216-6): the Dimensions layer. Every dimension (auto ones included)
+// is in it, as well as in its Phase layer; its eye starts on and resets on reload, and its lock keeps dimensions from
+// being picked. Notes are in their Phase layer only.
 import { PLUMBING_LOCATION_TYPE, type ObjectStatus } from '@ezdraft/geometry';
 import type { PhaseEyes, PhaseFilter, PhaseView } from '../../lib/plan/phase-view';
 import { viewShowsType } from '../plan/phase-filter';
 
-export const LAYER_IDS = ['existing', 'demo', 'new', 'rooms', 'plumbing', 'mechanical'] as const;
+export const LAYER_IDS = [
+  'existing',
+  'demo',
+  'new',
+  'rooms',
+  'plumbing',
+  'mechanical',
+  'dimensions',
+] as const;
 
 export type LayerId = (typeof LAYER_IDS)[number];
 
@@ -26,6 +38,7 @@ export type LayerState = Readonly<{
   roomsEye: boolean;
   plumbingEye: boolean;
   mechanicalEye: boolean;
+  dimensionsEye: boolean;
   locks: LayerLocks;
 }>;
 
@@ -41,6 +54,7 @@ export function objectLayers(type: string, status: unknown, kind?: unknown): Lay
   if (type === 'room') out.push('rooms');
   if (inPlumbing(type, kind)) out.push('plumbing');
   if (type === 'hvac') out.push('mechanical');
+  if (type === 'dimension') out.push('dimensions');
   return out;
 }
 
@@ -52,6 +66,7 @@ export function objectVisible(
   kind?: unknown,
   plumbingEye = true,
   mechanicalEye = true,
+  dimensionsEye = true,
 ): boolean {
   return objectLayers(type, status, kind).every((l) =>
     l === 'rooms'
@@ -60,7 +75,9 @@ export function objectVisible(
         ? plumbingEye
         : l === 'mechanical'
           ? mechanicalEye
-          : eyes[l],
+          : l === 'dimensions'
+            ? dimensionsEye
+            : eyes[l],
   );
 }
 
@@ -90,6 +107,7 @@ export type LayerSetting = PhaseFilter &
     setRoomsEye(on: boolean): void;
     setPlumbingEye(on: boolean): void;
     setMechanicalEye(on: boolean): void;
+    setDimensionsEye(on: boolean): void;
     setLock(layer: LayerId, on: boolean): void;
     // What selection reads: shown and not locked.
     readonly selectable: PhaseFilter & Listenable;
@@ -102,6 +120,7 @@ const UNLOCKED: LayerLocks = Object.freeze({
   rooms: false,
   plumbing: false,
   mechanical: false,
+  dimensions: false,
 });
 
 export function createLayerSetting(phase: LayerPhase): LayerSetting {
@@ -109,6 +128,7 @@ export function createLayerSetting(phase: LayerPhase): LayerSetting {
     roomsEye: true,
     plumbingEye: true,
     mechanicalEye: true,
+    dimensionsEye: true,
     locks: UNLOCKED,
   });
   let own = 0;
@@ -141,6 +161,7 @@ export function createLayerSetting(phase: LayerPhase): LayerSetting {
       kind,
       state.plumbingEye,
       state.mechanicalEye,
+      state.dimensionsEye,
     );
   const shown = (status: unknown) => shownObject('', status);
 
@@ -163,6 +184,10 @@ export function createLayerSetting(phase: LayerPhase): LayerSetting {
     setMechanicalEye(on) {
       if (state.mechanicalEye === on) return;
       change({ ...state, mechanicalEye: on });
+    },
+    setDimensionsEye(on) {
+      if (state.dimensionsEye === on) return;
+      change({ ...state, dimensionsEye: on });
     },
     setLock(layer, on) {
       if (state.locks[layer] === undefined || state.locks[layer] === on) return;

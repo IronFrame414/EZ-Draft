@@ -59,7 +59,10 @@ describe('EZD-217 edit changes', () => {
     };
     expect(roomAreaSqFt(room.geometry.boundary)).toBe(120);
     expect(onCommit).toHaveBeenCalledTimes(2);
-    expect(onCommit.mock.calls[1]![0].map((c: { id: string }) => c.id)).toEqual([uid(1), uid(5)]);
+    // EZD-216 (Q-0686 case 1 (a)): the floor's first wall edit also added its two overall dimensions, undone with it.
+    const undone = onCommit.mock.calls[1]![0] as { id: string; value: { type: string } | null }[];
+    expect(undone.slice(0, 2).map((c) => c.id)).toEqual([uid(1), uid(5)]);
+    expect(undone.slice(2).map((c) => c.value)).toEqual([null, null]);
 
     store.redo();
     expect(store.getState().objects.has(uid(1))).toBe(false);

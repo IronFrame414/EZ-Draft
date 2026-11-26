@@ -849,6 +849,29 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-1419: reopens sent field measure rooms; 200 { status } (no money)',
   },
+  // EZD-1422: Resend and Cancel of the wizard's field measure request; a project with none answers 409 not_waiting.
+  {
+    file: `${API}projects/[id]/field-measure/request/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/field-measure/request/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/field-measure/request`, {})()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 409,
+    note: 'EZD-1422: Resend of a field measure request; 200 { sentTo, link, emailSent } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/field-measure/request/route.ts`,
+    method: 'DELETE',
+    load: () => import('../../src/app/api/projects/[id]/field-measure/request/route'),
+    request: async (env) => ({
+      ...(await sendJson('DELETE', `/api/projects/${env.projectId}/field-measure/request`, {})()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 409,
+    note: 'EZD-1422: Cancel of a field measure request; 200 { status } (no money)',
+  },
   // EZD-1402: the field action routes; the photo start signs an upload, the record takes a measurement.
   {
     file: `${API}projects/[id]/field-actions/photo/route.ts`,

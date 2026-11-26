@@ -201,6 +201,32 @@
   cursor: default;
 }
 
+/* EZD-1986 (audit F9; board S04Cabinets "TK / LR / CM"): on desktop the three trim codes are text-sized buttons that
+   run "TK / LR / CM" inside the 56 px code column, left-aligned with the codes above, and the row's name takes the
+   rest of the row like the other names. Before, each button kept a 28 px minimum width, so the three wrapped into a
+   centred stack. The touch sizes below (EZD-1980) still win on a coarse pointer. */
+.trims {
+  align-items: center;
+  column-gap: 4px;
+  row-gap: 0;
+}
+
+.trim {
+  min-width: 0;
+  min-height: 20px;
+  padding: 0;
+}
+
+.trimSep {
+  font-family: var(--ez-font-mono);
+  font-size: var(--ez-text-12);
+  color: var(--ez-slate-500);
+}
+
+.row:has(> .trims) .name {
+  grid-column: 2 / -1;
+}
+
 .empty {
   margin: 0;
   padding: 10px 14px;
@@ -278,5 +304,14 @@
 
   .trims {
     flex-wrap: nowrap;
+  }
+
+  /* EZD-1986: the desktop slashes and gap do not apply here; the iPad row stays as EZD-1980 made it. */
+  .trims {
+    gap: 2px;
+  }
+
+  .trimSep {
+    display: none;
   }
 }

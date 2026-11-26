@@ -12,14 +12,18 @@ import { useT } from '../../../lib/messages';
 import { useOnline } from '../../../lib/network';
 import {
   PREVIEW_SIZES,
+  TITLE_BLOCK_COLUMN,
   companyLine,
   fieldLabel,
   missingCompanyFields,
+  sheetsScreenHref,
   titleBlockPreview,
+  titleBlockZoom,
   type PreviewSize,
   type TitleBlockConfig,
   type TitleBlockPreview,
   type TitleBlockSettings,
+  type TitleBlockUsage,
 } from '../../../lib/title-block/title-block';
 import { Icon } from '../../icon/Icon';
 import { InlineError } from '../../states/InlineError';
@@ -73,26 +77,37 @@ function Marker({ n }: { n: number }) {
   );
 }
 
+// EZD-1991 (S15b "Zoom to title block"): zoomed, the sheet is scaled and shifted (titleBlockZoom) so the title
+// block column fills the preview's width; the page's viewport keeps the whole sheet's shape and scrolls down it.
 export function TitleBlockPreviewView({
   preview,
   companyName,
+  zoomed = false,
 }: {
   preview: TitleBlockPreview;
   companyName: string;
+  zoomed?: boolean;
 }) {
   const t = useT();
   const { sheet } = preview;
+  const zoom = titleBlockZoom(preview.size);
+  const zoomStyle = { transform: `translateX(${zoom.shift * 100}%) scale(${zoom.scale})`, transformOrigin: '0 0' };
   return (
     <div
       data-testid="title-block-preview"
       data-size={preview.size}
+      data-zoom={zoomed ? 'title_block' : 'sheet'}
       className={styles.sheet}
-      style={{ aspectRatio: `${sheet.width} / ${sheet.height}` }}
+      style={{ aspectRatio: `${sheet.width} / ${sheet.height}`, ...(zoomed ? zoomStyle : {}) }}
     >
       <div className={styles.drawing}>
         <span className={styles.drawingLabel}>{t('office.title_block.preview_sheet')}</span>
       </div>
-      <div className={`${styles.tb} ${preview.size === '11x17' ? styles.tbSmall : ''}`}>
+      <div
+        data-testid="title-block-preview-column"
+        className={`${styles.tb} ${preview.size === '11x17' ? styles.tbSmall : ''}`}
+        style={{ width: `${TITLE_BLOCK_COLUMN[preview.size] * 100}%` }}
+      >
         <section className={styles.tbCell} data-testid="title-block-preview-company">
           <Marker n={1} />
           {preview.company === null ? null : (
@@ -190,11 +205,41 @@ export function TitleBlockPreviewView({
   );
 }
 
+// EZD-1991 (Q-0813; S15b head): "Used on N sheets · Open Sheets", right of the title. Open Sheets opens the most
+// recently changed project on its Sheets screen; with no project there is nothing to open and no link.
+export function TitleBlockUsageLine({ usage }: { usage: TitleBlockUsage }) {
+  const t = useT();
+  return (
+    <span className={styles.usage} data-testid="title-block-usage">
+      <span data-testid="title-block-usage-count">
+        {usage.sheets === 1
+          ? t('office.title_block.used_on_one')
+          : t('office.title_block.used_on', { n: usage.sheets })}
+      </span>
+      {usage.projectId === null ? null : (
+        <>
+          <span aria-hidden="true">·</span>
+          <GuardedLink
+            href={sheetsScreenHref(usage.projectId)}
+            className={styles.link}
+            data-testid="title-block-open-sheets"
+          >
+            {t('office.title_block.open_sheets')}
+          </GuardedLink>
+        </>
+      )}
+    </span>
+  );
+}
+
 export function TitleBlockPage({
   initial,
+  usage,
   fetchImpl,
 }: {
   initial: TitleBlockSettings;
+  // Absent when the count could not be read: the line is left out.
+  usage?: TitleBlockUsage;
   fetchImpl?: typeof fetch;
 }) {
   const t = useT();
@@ -203,6 +248,7 @@ export function TitleBlockPage({
   const [saved, setSaved] = useState<TitleBlockConfig>(initial.config);
   const [form, setForm] = useState<TitleBlockConfig>(initial.config);
   const [size, setSize] = useState<PreviewSize>('24x36');
+  const [zoomed, setZoomed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
 
@@ -275,6 +321,7 @@ export function TitleBlockPage({
       title="office.settings.section.title_block"
       subtitle="office.title_block.subtitle"
       flush
+      {...(usage === undefined ? {} : { actions: <TitleBlockUsageLine usage={usage} /> })}
     >
       <div data-testid="title-block-form" className={styles.page}>
         <div className={styles.left}>
@@ -407,9 +454,27 @@ export function TitleBlockPage({
             </div>
             <span className={styles.sizeNote}>{t(`office.title_block.size_note.${size}`)}</span>
             <span className={styles.sampleNote}>{t('office.title_block.sample_caption')}</span>
+            <StateButton
+              compact
+              className={styles.zoomButton}
+              data-testid="title-block-zoom"
+              aria-pressed={zoomed}
+              onClick={() => setZoomed((z) => !z)}
+            >
+              <Icon name="search" size={16} />
+              {t('office.title_block.zoom')}
+            </StateButton>
           </div>
           <div className={styles.previewFrame}>
-            <TitleBlockPreviewView preview={preview} companyName={initial.company.name} />
+            {/* EZD-1991: the preview's window; zoomed, it keeps the whole sheet's shape and scrolls. */}
+            <div
+              data-testid="title-block-viewport"
+              data-zoom={zoomed ? 'title_block' : 'sheet'}
+              className={`${styles.viewport} ${zoomed ? styles.viewportZoomed : ''}`}
+              style={zoomed ? { aspectRatio: `${preview.sheet.width} / ${preview.sheet.height}` } : undefined}
+            >
+              <TitleBlockPreviewView preview={preview} companyName={initial.company.name} zoomed={zoomed} />
+            </div>
           </div>
           <div className={styles.legend}>
             <span className={styles.legendItem}>

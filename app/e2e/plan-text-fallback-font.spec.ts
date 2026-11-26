@@ -124,6 +124,7 @@ test.describe('EZD-373 plan text without the fallback fonts', () => {
 
     expect(await glyphs(page)).toBe(0);
     await addR1(page);
-    await expect.poll(() => glyphs(page)).toBe(13);
+    // EZD-216: the label's 13 glyphs and the room's auto dimensions, 11' 9 1/2" (8) and 14' 0" (5), spaces aside (Q-0664).
+    await expect.poll(() => glyphs(page)).toBe(26);
   });
 });

@@ -106,3 +106,18 @@ describe('EZD-403 cabinet library panel', () => {
     expect(s).toMatch(/data-fit="fits"[^>]*> · Fits</);
   });
 });
+
+// EZD-1986 (AC-EZD-1986-1; audit F9; board S04Cabinets trim row "TK / LR / CM" then "Toe kick, light rail, crown"):
+// the three trim codes read "TK / LR / CM" in the row's code place, the slashes hidden from screen readers, and each
+// code is still its own button; the row's name follows them.
+describe('EZD-1986 trim row', () => {
+  it('reads "TK / LR / CM" with three buttons and the name after them', () => {
+    const s = library(true);
+    const row = s.slice(s.indexOf('data-testid="cabinet-library-trim-row"'));
+    const li = row.slice(row.indexOf('>') + 1, row.indexOf('</li>'));
+    expect(li.replace(/<[^>]+>/g, '')).toBe('TK/LR/CMToe kick, light rail, crown');
+    expect(li.match(/<button/g)).toHaveLength(3);
+    expect(li.match(/<span[^>]*aria-hidden="true"[^>]*>\/<\/span>/g)).toHaveLength(2);
+    expect(li.indexOf('cabinet-library-trim-crown')).toBeLessThan(li.indexOf('Toe kick'));
+  });
+});

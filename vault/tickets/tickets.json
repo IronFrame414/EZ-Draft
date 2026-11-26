@@ -27251,6 +27251,25 @@
     "AC-EZD-1992-3"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-1993",
+   "phase": 10,
+   "title": "CI: the gate finishes well inside its 45-minute limit on the GitHub runner",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-25: the GitHub CI gate job hit its 45-minute timeout on release PR #15 (run 45685728818, head ead5091b) and was cancelled during e2e. Stage times on the runner: install 0 s, database 134 s, typecheck 143 s, lint 67 s, test 355 s, scripts tests 359 s, build 170 s, database again 33 s, then e2e from 19:52 until the 20:15 cutoff. Release PR #14 passed in 43 min earlier the same day, so the suite has grown to the limit and every release is now at risk.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-1993-1",
+    "AC-EZD-1993-2",
+    "AC-EZD-1993-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"

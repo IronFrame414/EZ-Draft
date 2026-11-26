@@ -21,6 +21,9 @@
 // EZD-733 (phase-07 EZD-733 "visible cuts on the plan"; AC-EZD-733-1; vault/build/assumptions.md EZD-733): a floor
 // tile layout draws one hatch over its room, the outline of every piece (cut pieces are the ones the room's edge
 // trims), 'beyond', in the layout's status layer; a layout whose room is gone is omitted as host_not_found.
+// EZD-216 (S03 rail Dimension, Text; 03 Q-0667; 09-calculations Q-0664): stored dimensions draw on `dimensions` from
+// what they measure now (dimensions/measure.ts), notes on their status layer, at the paper size `options.annotation`
+// gives; both after the flagged items.
 import { hasLevel } from '../schema';
 import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
 import { tileLayoutPieces, type TileLayoutObject } from '../tile/hosts';
@@ -46,6 +49,9 @@ import {
   type OmittedObject,
 } from './types';
 import { add } from '../vec';
+import { roomInsideBox, wallsOuterBox } from '../dimensions/auto';
+import { dimensionItems, SHEET_ANNOTATION_SCALE, textItems, type AnnotationScale, type TextObject } from '../dimensions/items';
+import { measureDimension, type Box, type DimensionObject } from '../dimensions/measure';
 
 type WallObject = Extract<ModelObject, { type: 'wall' }>;
 type OpeningObject = Extract<ModelObject, { type: 'opening' }>;
@@ -121,6 +127,11 @@ export type DrawingListOptions = {
   roomAreaSqFt?: (room: RoomObject) => number;
   // EZD-229: more items for the objects of the level (the level's objects, the level id, the dimension text size).
   extraItems?: (objects: readonly ModelObject[], level: string, textPt: number) => DrawingItem[];
+  // EZD-216: the paper-size text of stored dimensions and notes (dimensions/items.ts; a sheet's by default), and the
+  // auto dimensions' boxes, which the plan reads through its derived cache (09-calculations Q-0664).
+  annotation?: AnnotationScale;
+  roomBox?: (roomId: string) => Box | null;
+  floorBox?: (level: string) => Box | null;
 };
 
 export function buildDrawingList(
@@ -344,6 +355,30 @@ export function buildDrawingList(
       rotationDeg,
       align: 'center',
     });
+  }
+
+  // EZD-216: stored dimensions (on `dimensions`) and notes (on their status layer); a dimension that measures
+  // nothing (two equal points, a wall gone, parallel walls) is omitted as zero_length.
+  const annotation = options.annotation ?? SHEET_ANNOTATION_SCALE;
+  const wallById = new Map(walls.map((w) => [w.id.toLowerCase(), w]));
+  const roomById = new Map(rooms.map((r) => [r.id.toLowerCase(), r as RoomObject]));
+  const lookup = {
+    wall: (id: string) => wallById.get(id.toLowerCase()) ?? null,
+    roomBox: (id: string) => {
+      if (options.roomBox) return options.roomBox(id);
+      const r = roomById.get(id.toLowerCase());
+      return r === undefined ? null : roomInsideBox(r);
+    },
+    floorBox: (lvl: string) => (options.floorBox ? options.floorBox(lvl) : wallsOuterBox(walls)),
+  };
+  for (const o of onFloor) {
+    if (o.type === 'dimension') {
+      const m = measureDimension(o.data, lookup);
+      if (m === null) dimOmitted.push({ id: o.id, reason: 'zero_length' });
+      else dimItems.push(...dimensionItems(o as DimensionObject, m, annotation));
+    } else if (o.type === 'text') {
+      dimItems.push(...textItems(o as TextObject, annotation));
+    }
   }
 
   const labelItems: DrawingItem[] = [];

@@ -22,7 +22,16 @@
 // EZD-502 (S05 Controls "Floor / Ceiling / Both segment"; AC-EZD-502-1): `setSurface` draws the RCP, or the RCP over the
 // greyed floor plan, through the view the lazy RCP module builds from the floor list; a switch redraws as a View change
 // does. Bounds stay the floor plan's, so Fit is the same on every surface. `drawn()` reports the surface and batches.
-import type { DerivedStats, DrawingList, ObjectStatus, Point } from '@ezdraft/geometry';
+// EZD-216 (09-calculations Q-0664 "Text paper sizes"; 09m Text rows 1 to 5): dimension and note text at its paper size
+// for the plan scale, and the auto dimensions' boxes from the derived cache; a scale change redraws the text.
+import {
+  FLOOR_WALL_BOX,
+  ROOM_INSIDE_BOX,
+  type DerivedStats,
+  type DrawingList,
+  type ObjectStatus,
+  type Point,
+} from '@ezdraft/geometry';
 import type { Camera, Object3D } from 'three';
 import type { PlanSurface } from '../ceiling/surface';
 import type { PhaseFilter } from '../../lib/plan/phase-view';
@@ -39,6 +48,7 @@ import {
   buildPlanBatches,
   drawingBounds,
   openFloorId,
+  planAnnotation,
   planDrawingList,
   type PlanBatch,
 } from './batches';
@@ -295,6 +305,9 @@ export function createPlanController(
       objects,
       {
         roomAreaSqFt: derived.roomAreaSqFt,
+        annotation: planAnnotation(scale),
+        roomBox: (id) => derived.get(ROOM_INSIDE_BOX, id),
+        floorBox: (lvl) => derived.get(FLOOR_WALL_BOX, lvl),
         // EZD-603: the left panel's Height notes switch. EZD-604: the circuits, with the chosen circuit and the
         // Home runs chip.
         extraItems: details
@@ -587,6 +600,8 @@ export function createPlanController(
       const ppi = (view.ppi / zoom100()) * zoom100Ppi(next);
       scale = next;
       setView(aboutCentre(ppi) ?? { x: view.x, y: view.y, ppi });
+      // EZD-216: paper-size text is a new model size at the new scale.
+      refreshAll();
     },
     getZoomPercent: () => zoomPercent(view.ppi, zoom100()),
     setZoomPercent(percent) {

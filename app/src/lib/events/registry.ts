@@ -269,7 +269,8 @@ export interface EventPayloads {
   'customer.updated': { customerId: string; fields: CustomerEventField[] };
   // EZD-118 Build step 8: no `ezbinderJobId` (Q-0190); `source` only `standalone` (Q-0398).
   // EZD-301: `file` when the project starts from a file (S01 Events emitted).
-  'project.created': { projectId: string; source: 'standalone' | 'file' };
+  // EZD-1422: `field_measure` when the Foreman measures the rooms on the phone (S01 Input source).
+  'project.created': { projectId: string; source: 'standalone' | 'file' | 'field_measure' };
   // EZD-130: field names (name, address, scope_of_work, type, customer_id) and per-project default keys.
   // EZD-613 adds code_edition; EZD-739 adds scope_trades (the scope tick boxes).
   'project.updated': { projectId: string; keys: string[] };

@@ -91,7 +91,8 @@ test.describe('EZD-122 Versions panel', () => {
       value: { type: 'wall', schemaVersion: CURRENT_SCHEMA_VERSION, data: made.data },
     });
     await expect(id(page, 'save-state')).toHaveText('Saved just now', { timeout: 15_000 });
-    expect((await objects(page)).length).toBe(before + 1);
+    // EZD-216 (Q-0686 case 1 (a)): the first wall adds the floor's overall pair, so 1 wall and 2 dimensions.
+    expect((await objects(page)).length).toBe(before + 3);
 
     // AC-2: the list is read again when the tab opens.
     await id(page, 'left-panel-tab-layers').click();
