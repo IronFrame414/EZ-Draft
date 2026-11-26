@@ -9,6 +9,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { runCodeCheck, type CheckResult, type ModelDocument, type RuleRegistry } from '@ezdraft/geometry';
 import { projectEdition, type CodeEdition } from '../../lib/code-edition/editions';
 import { appRuleRegistry, verifiedRuleIdsOf } from '../../lib/code-check/registry';
+import { codeCheckDefaults } from '../../lib/defaults/check-values';
+import { loadTenantDefaults, projectCopyOf } from '../defaults/defaults';
 import type { Database, Json } from '../db/database.types';
 
 type Client = SupabaseClient<Database>;
@@ -59,7 +61,7 @@ export async function checkProject(
     project?: Readonly<Record<string, unknown>>;
   },
 ): Promise<ProjectCodeCheck | null> {
-  const project = await client.from('project').select('code_edition, permit_application_date, created_at').eq('id', input.projectId).maybeSingle();
+  const project = await client.from('project').select('code_edition, permit_application_date, created_at, settings').eq('id', input.projectId).maybeSingle();
   if (project.error) throw project.error;
   if (project.data === null) return null;
   const tenant = await client.from('tenant').select('code_edition').maybeSingle();
@@ -74,7 +76,11 @@ export async function checkProject(
     edition,
     registry: input.registry ?? appRuleRegistry(),
     verifiedRuleIds: await loadVerifiedRuleIds(client),
-    project: input.project,
+    // EZD-228: the Defaults values the rules read (bath clearances); values the caller gives win.
+    project: {
+      ...codeCheckDefaults(await loadTenantDefaults(client), projectCopyOf(project.data.settings)),
+      ...input.project,
+    },
   });
   const runId = await recordCodeCheckRun(client, {
     projectId: input.projectId,

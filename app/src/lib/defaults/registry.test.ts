@@ -315,3 +315,25 @@ describe('EZD-415 bracket spacing and seat width', () => {
     expect(checkValue(defaultRow('seating_support_limit')!, 10).ok).toBe(true);
   });
 });
+
+// EZD-228 (09d:34 "The bath clearance values that Round 3 put in Defaults now start at these code minimums"; B-07 to
+// B-09): the Bath clearances row's default is the code minimums; the tub front clearance has no code value, so none.
+describe('EZD-228 Bath clearances default', () => {
+  it('starts at the code minimums and is read as the effective value', () => {
+    const minimums = {
+      side: 15,
+      centerToCenter: 30,
+      front: 21,
+      showerFront: 24,
+      showerAccess: 22,
+      showerArea: 900,
+      showerLeast: 30,
+    };
+    expect(defaultRow('bath_clearances')?.default).toEqual(minimums);
+    expect(effectiveDefaults({}).bath_clearances).toEqual(minimums);
+  });
+
+  it('is still not stored (the Q-0710 editor waits for Josh)', () => {
+    expect(STORABLE_KEYS).not.toContain('bath_clearances');
+  });
+});

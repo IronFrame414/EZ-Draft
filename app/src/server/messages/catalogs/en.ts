@@ -524,6 +524,8 @@ export const en = {
   'office.defaults.search_clear': 'Clear search',
   'office.defaults.no_match': 'No defaults match',
   'office.defaults.not_set': 'Not set',
+  // EZD-228: the Bath clearances row while it reads the code minimums.
+  'office.defaults.bath_clearances_value': 'Code minimums',
   'office.defaults.set_in_defaults': 'Set in Defaults',
   'office.defaults.not_set_ask': 'Not set in Defaults. Ask your supervisor.',
   'office.defaults.fixed_note': 'Fixed in v1',
