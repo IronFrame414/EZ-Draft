@@ -28,7 +28,12 @@ export default async function ProjectsPage(): Promise<ReactElement> {
   // cookies, so Next.js would otherwise prerender a permanent redirect to /sign-in.
   await connection();
   const session = await requireSession();
-  const ctx = await settingsPermissionContext();
+  // Performance audit 2026-11-26: the permissions and the account do not depend on each other, so both reads start
+  // together and the page waits for the slower one, not for their sum.
+  const [ctx, accountData] = await Promise.all([
+    settingsPermissionContext(),
+    loadProjectsAccount(createSessionClient(), session),
+  ]);
   if (ctx === 'failed') {
     await reportError(new Error('home_permissions_load_failed'), {
       source: 'function',
@@ -50,10 +55,7 @@ export default async function ProjectsPage(): Promise<ReactElement> {
   const canMeasure =
     ctx !== 'failed' &&
     (can(ctx, 'send_field_measurement') || can(ctx, 'approve_field_measurements'));
-  const account = {
-    ...(await loadProjectsAccount(createSessionClient(), session)),
-    showSettings,
-  };
+  const account = { ...accountData, showSettings };
   return (
     <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
       <StateHost>
