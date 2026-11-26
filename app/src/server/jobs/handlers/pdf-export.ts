@@ -48,6 +48,7 @@ import { profileOf } from '../../../lib/submittal-profiles/profiles';
 import type { PlanProfile } from '../../../lib/submittal-profiles/file-plan';
 import { AS_NOTED } from '../../../lib/title-block/sheet-title-block';
 import { elevationViewportLists, viewportDrawingList } from '../../../workers/sheet-job';
+import { fixtureRowsOf, fixtureTableFor, fixtureTablePlan, isRcpSheet } from '../../../lib/sheets/fixture-schedule-table';
 import {
   SCHEDULE_SHEET,
   schedulePlan,
@@ -234,11 +235,28 @@ export const pdfExportHandler: JobHandler<PdfExportPayload, never, PdfExportResu
     const sheets = withScheduleSheets(withFloorSheets(sheetsForSet(data.kind, trades), floors), data.size, scheduleRows.length);
 
     const floorIds = new Set(floors.map((f) => f.id));
+    // EZD-708a: the RCP drawing is a lazy module (editor code), loaded only when the set has an RCP sheet.
+    const rcpSheet = sheets.some((s) => isRcpSheet(s.number)) ? await import('../../../lazy/rcp-sheet') : null;
     const pages = new Map<string, PdfSheet>();
     for (const sheet of sheets) {
       const vps = sheetViewports(data, sheet.number, floors);
+      // EZD-708a: an RCP sheet prints its floor's fixture schedule under its viewports, and its plans as the RCP, as
+      // the preview draws them (lazy/sheets/renderer.ts): the schedule of its first plan viewport's floor, none
+      // without a plan viewport.
+      const rcp = isRcpSheet(sheet.number);
+      const firstPlan = vps.find((v) => v.kind === 'plan');
+      const rcpFloor = !rcp || firstPlan === undefined
+        ? undefined
+        : firstPlan?.level != null && floorIds.has(firstPlan.level)
+          ? firstPlan.level
+          : floors[0]?.id;
+      const fixtureRows = rcpFloor === undefined ? [] : fixtureRowsOf(objects, rcpFloor);
       const areas = viewportAreas(
-        sheet.number === SCHEDULE_SHEET ? schedulePlan(data.size, scheduleRows.length).elevations : sheetDrawingArea(data.size),
+        sheet.number === SCHEDULE_SHEET
+          ? schedulePlan(data.size, scheduleRows.length).elevations
+          : fixtureRows.length > 0
+            ? fixtureTablePlan(data.size, fixtureRows.length).drawing
+            : sheetDrawingArea(data.size),
         vps.length,
       );
       const viewports: PdfViewport[] = [];
@@ -254,13 +272,19 @@ export const pdfExportHandler: JobHandler<PdfExportPayload, never, PdfExportResu
           return;
         }
         viewports.push({
-          list: viewportDrawingList(objects, level, vp.view),
+          list:
+            rcp && rcpSheet !== null
+              ? rcpSheet.rcpViewportDrawingList(objects, level, vp.view)
+              : viewportDrawingList(objects, level, vp.view),
           scale: viewportScaleFactor(vp.scale),
           area: areas[i]!,
         });
       });
       const table = scheduleTableFor(sheet.number, data.size, scheduleRows);
       if (table !== null) viewports.push({ list: table.list, scale: 1, area: table.area, marks: false });
+      const fixtureTable = fixtureTableFor(sheet.number, data.size, fixtureRows);
+      if (fixtureTable !== null)
+        viewports.push({ list: fixtureTable.list, scale: 1, area: fixtureTable.area, marks: false });
       pages.set(sheet.number, {
         number: sheet.number,
         title: sheet.title,

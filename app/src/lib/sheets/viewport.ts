@@ -85,8 +85,9 @@ export function viewShows(view: SheetView, status: unknown): boolean {
   return true;
 }
 
-// The default set's viewports (EZD-701 sheets): the plan sheets draw the lowest floor at 1/4"; A6.0 (RCP) and E1.0
-// draw the proposed plan until their own tickets (EZD-708a, EZD-708b) give them content; A4.0 holds one elevation
+// The default set's viewports (EZD-701 sheets): the plan sheets draw the lowest floor at 1/4"; A6.0's proposed plan
+// draws as the reflected ceiling plan (EZD-708a, lazy/sheets/renderer.ts); E1.0 draws the proposed plan until
+// EZD-708b gives it content; A4.0 holds one elevation
 // viewport at 1/2" that draws the floor's elevations (EZD-707, lib/sheets/elevation-sheet.ts).
 const DEFAULTS: Readonly<Record<string, readonly { kind: ViewportKind; view: SheetView }[]>> = {
   'A1.0': [{ kind: 'plan', view: 'existing' }],

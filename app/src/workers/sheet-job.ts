@@ -12,7 +12,16 @@
 // EZD-707 (R24; AC-EZD-707-1, -2, -3): an elevation viewport (`elevation` set) draws its floor's elevations
 // (packages/geometry elevations/wall-elevation.ts) and then its added walls, each in its own cell of the area
 // (lib/sheets/elevation-sheet.ts) with its own print marks, in the viewport's view.
+// EZD-708a (S05 Purpose "produce the reflected ceiling plan (RCP) for the permit set (sheet A6.0)"; Q-0780 "Supply
+// diffusers, returns and exhaust fans on the RCP ... print on A6.0 when placed, and nothing requires them";
+// AC-EZD-708a-1, -3): a plan viewport on the RCP sheet (`rcp` set) draws the RCP the Ceiling surface shows
+// (editor/ceiling/rcp-list.ts). That drawing code is editor code, so it is the lazy module lazy/rcp-sheet, loaded by
+// import() the first time an RCP viewport is drawn (EZD-020 import boundaries; 11 rule 7): `runSheetJob` sends an
+// `rcp` input there and every other input to `sheetJob`. Its fixture schedule is a table job of its own (`fixtures`,
+// lib/sheets/fixture-schedule-table.ts).
 import { viewDrawsAs, viewShows } from '../lib/sheets/viewport';
+import { fixtureTableFor } from '../lib/sheets/fixture-schedule-table';
+import type { FixtureScheduleRow } from '../lib/sheets/fixture-schedule-rows';
 import { elevationCells } from '../lib/sheets/elevation-sheet';
 import { scheduleTableFor } from '../lib/sheets/cabinet-schedule-table';
 import type { CabinetScheduleRow } from '../lib/cabinets/cabinet-schedule';
@@ -52,6 +61,13 @@ export type SheetJobInput = {
   view?: SheetView;
   // EZD-707: an elevation viewport, with the walls added to it; absent for a plan.
   elevation?: { walls: string[] };
+  // EZD-708a: a plan viewport on the RCP sheet draws the reflected ceiling plan.
+  rcp?: boolean;
+};
+
+// EZD-708a: the fixture schedule table of an RCP sheet (A6.0 or a floor copy), from its floor's schedule rows.
+export type SheetFixturesJobInput = {
+  fixtures: { sheet: string; size: SheetSize; rows: FixtureScheduleRow[] };
 };
 
 // EZD-707: the cabinet schedule table of one schedule sheet (A4.0 or a continuation), from the schedule rows.
@@ -64,7 +80,7 @@ export const NTS_FILL = 0.9;
 
 const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);
 
-function readInput(input: unknown): SheetJobInput {
+export function readInput(input: unknown): SheetJobInput {
   if (typeof input !== 'object' || input === null) throw new Error('sheet_input');
   const i = input as Partial<SheetJobInput>;
   const a = i.area as Partial<SheetArea> | undefined;
@@ -73,6 +89,7 @@ function readInput(input: unknown): SheetJobInput {
     typeof i.level !== 'string' ||
     !(i.scale === null || (finite(i.scale) && i.scale > 0)) ||
     (i.view !== undefined && !(SHEET_VIEWS as readonly unknown[]).includes(i.view)) ||
+    (i.rcp !== undefined && typeof i.rcp !== 'boolean') ||
     (i.elevation !== undefined &&
       (typeof i.elevation !== 'object' ||
         i.elevation === null ||
@@ -102,7 +119,7 @@ export function viewportDrawingList(
 }
 
 // The stored objects a view shows, parsed; what is marked Demo is drawn as existing in the Existing view.
-function viewObjects(objects: readonly StoredObject[], view?: SheetView): ModelObject[] {
+export function viewObjects(objects: readonly StoredObject[], view?: SheetView): ModelObject[] {
   const parsed: ModelObject[] = [];
   for (const stored of objects) {
     const r = parseStoredObject(stored);
@@ -136,11 +153,19 @@ export function elevationViewportLists(
 }
 
 // One drawing in its area, above its print marks.
-function drawInArea(list: DrawingList, scale: number | null, area: SheetArea): SheetSvg {
+export function drawInArea(list: DrawingList, scale: number | null, area: SheetArea): SheetSvg {
   const { drawing } = splitPrintMarkBand(area);
   const svg = sheetSvg(list, { scale: scale ?? ntsScale(list, drawing), area: drawing });
   if (svg.markup === '') return svg;
   return { ...svg, markup: svg.markup + printMarksSvg(printMarks(scale, area)) };
+}
+
+function fixturesJob(input: SheetFixturesJobInput['fixtures']): SheetSvg {
+  if (typeof input.sheet !== 'string' || !Array.isArray(input.rows) || !SHEET_SIZES.includes(input.size))
+    throw new Error('sheet_input');
+  const t = fixtureTableFor(input.sheet, input.size, input.rows);
+  if (t === null) return { markup: '', shown: [] };
+  return { markup: sheetSvg(t.list, { scale: 1, area: t.area }).markup, shown: [] };
 }
 
 function tableJob(input: SheetTableJobInput['table']): SheetSvg {
@@ -158,12 +183,28 @@ export function sheetJob(input: unknown): SheetSvg {
     if (typeof table !== 'object' || table === null) throw new Error('sheet_input');
     return tableJob(table);
   }
-  const { objects, level, scale, area, view, elevation } = readInput(input);
+  if (typeof input === 'object' && input !== null && 'fixtures' in input) {
+    const fixtures = (input as Partial<SheetFixturesJobInput>).fixtures;
+    if (typeof fixtures !== 'object' || fixtures === null) throw new Error('sheet_input');
+    return fixturesJob(fixtures);
+  }
+  const { objects, level, scale, area, view, elevation, rcp } = readInput(input);
+  // EZD-708a: an RCP viewport is drawn by the lazy RCP module (runSheetJob).
+  if (rcp === true) throw new Error('sheet_rcp_lazy');
   if (elevation === undefined) return drawInArea(viewportDrawingList(objects, level, view), scale, area);
   const svgs = elevationViewportLists(objects, level, view, elevation.walls, area).map((c) =>
     drawInArea(c.list, scale, c.area),
   );
   return { markup: svgs.map((s) => s.markup).join(''), shown: [...new Set(svgs.flatMap((s) => s.shown))].sort() };
+}
+
+// EZD-708a: the worker's job: an RCP viewport through the lazy RCP module, anything else through sheetJob.
+export async function runSheetJob(input: unknown): Promise<SheetSvg> {
+  if (typeof input === 'object' && input !== null && (input as { rcp?: unknown }).rcp === true) {
+    const { rcpSheetJob } = await import('../lazy/rcp-sheet');
+    return rcpSheetJob(input);
+  }
+  return sheetJob(input);
 }
 
 // The scale that fits the drawing to the area, at NTS_FILL.
