@@ -18,7 +18,8 @@
     "icons:build": "node scripts/icons-build.mjs",
     "icons:convert-legacy": "node scripts/icons-convert-legacy.mjs",
     "icons:fetch": "node scripts/icons-fetch.mjs",
-    "icons:verify": "node scripts/icons-verify.mjs"
+    "icons:verify": "node scripts/icons-verify.mjs",
+    "gen:registry": "node tools/gen-registry.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.1.0",

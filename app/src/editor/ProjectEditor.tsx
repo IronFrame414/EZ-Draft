@@ -76,7 +76,7 @@ import {
   type ReactNode,
 } from 'react';
 import { DeviceLayout } from '../components/device/DeviceLayout';
-import { bindingsOf, commandForKey, type ShortcutBindings } from '../lib/defaults/shortcut-keys';
+import { bindingsOf, commandForKey } from '../lib/defaults/shortcut-keys';
 import { railToolsWithKeys, shortcutText } from './help/rail-keys';
 import { nextRailOrder } from '../components/shell/rail-types';
 import { isTypingTarget } from './typed-entry/typed-entry';
@@ -99,7 +99,6 @@ import { useT } from '../lib/messages';
 import type { ObjectValue } from '../lib/outbox/model-api';
 import { DEFAULT_PLAN_SCALE, isPlanScale, savePlanScale } from '../lib/plan/plan-scale';
 import type { MessageKey } from '../server/messages/catalog';
-import type { AssistantSession } from './assistant/assistant-session';
 import { createAssistantLoader, type AssistantLoader } from './assistant/assistant-loader';
 import type { PreviewStore } from './assistant/preview-store';
 import { createRoutedStore } from './model/routed-store';
@@ -112,9 +111,7 @@ import {
   wireCeilingTools,
   type DeviceChoice,
 } from './tools/ceiling-device-tool';
-import type { DeviceChooserProps } from '../lazy/rcp/DeviceChooser';
 import type { PlanPointerReceiver } from './plan/input';
-import type { BeamSpacingPillProps } from './tools/BeamSpacingPill';
 import { assistantShown } from './assistant/assistant-ui';
 import {
   openEditorSession,
@@ -127,22 +124,9 @@ import { newerVersionNo, versionLabel } from './version-label';
 import { hubVersionSent } from './version-sent';
 import { createEditController, type EditController } from './edit/edit-controller';
 import { InspectorMore, InspectorStack } from './edit/InspectorMore';
-import type { EditMenuRequest, EditMenusProps } from '../lazy/edit-menu';
+import type { EditMenuRequest } from '../lazy/edit-menu';
 import { expandGroups } from './selection/groups';
 import { EmptyPlanHint } from './EmptyPlanHint';
-import type { BenchmarkRunnerProps } from '../lazy/benchmark-runner';
-import type {
-  CabinetInspectorProps,
-  CabinetLibraryProps,
-  CabinetRunViewProps,
-} from '../lazy/cabinet-run';
-import type {
-  CountertopsInspectorProps,
-  CountertopsPanelProps,
-  CountertopsStatusProps,
-  CountertopsViewProps,
-} from '../lazy/countertops';
-import type { SheetsPartProps } from '../lazy/sheets-screen';
 import { createCountertopSelectionStore } from './countertops/selection-store';
 import { createCabinetSelectionStore } from './cabinets/cabinet-selection-store';
 import { InspectorEmpty } from './inspector/InspectorEmpty';
@@ -164,13 +148,14 @@ import { usePdfUnderlay } from './plan/PdfUnderlay';
 import { createPlanRoot, webglContextsCreated } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
 import type { CheckpointOutcome } from './thumbnail/checkpoint';
-import type { ConflictPanelProps } from '../lazy/conflict-panel';
 import type { ConflictBannerProps } from './conflicts/ConflictBanner';
-import { lazyModule, type LazyModule } from '../lib/lazy/lazy-module';
+import { lazyModule } from '../lib/lazy/lazy-module';
+import { lazyPart, useLazy } from './shared/lazy-part';
+import { useStoreValue } from './shared/use-store-value';
+import { editorDefaults, useDefault } from './shared/use-default';
 import type { Scene3d, Scene3dStats } from '../lazy/scene-3d';
 import { useConflictInputs } from './conflicts/use-conflicts';
 import { SelectionLayer } from './selection/SelectionLayer';
-import type { EditBarProps } from '../lazy/edit-bar';
 import type { LockPartName, LockUi } from '../lazy/lock-ui';
 import {
   createSelectionController,
@@ -190,25 +175,18 @@ import {
 import { createPhaseSetting, type PhaseSetting } from './status/phase-setting';
 import { createLayerSetting, type LayerSetting } from './layers/layer-setting';
 import { LeftPanel, type Tab as LeftTab } from './layers/LeftPanel';
-import type { ElectricalPanelProps } from './electrical/ElectricalPanel';
-import type { DeviceToolsProps, ToolBase } from './electrical';
+import type { ToolBase } from './electrical';
 import { createReceiverSlot } from './electrical/receiver-slot';
 import { createSurfaceSetting, type SurfaceSetting } from './ceiling/surface';
 import { rcpModule } from './ceiling/rcp-module';
 import { useCeilingKeys } from './ceiling/CeilingParts';
 import type { RoutedStore } from './model/routed-store';
-import type {
-  VersionInspectorProps,
-  VersionsPanelProps,
-  VersionsStatusProps,
-} from './versions/VersionsPanel';
 import { versionTitle } from './versions/versions-list';
 import {
   createVersionView,
   type VersionView,
   type VersionViewState,
 } from './versions/version-view';
-import type { DiffLayerProps } from './versions/DiffLayer';
 import { hubVersionEvents } from './versions/version-events';
 import { fetchVersions, postRevert, postSnapshot, type VersionRow } from '../lib/versions/versions';
 import { createModelDerived, type ModelDerived } from './derived/model-derived';
@@ -216,11 +194,9 @@ import { phaseViewOf, savePhaseView } from '../lib/plan/phase-view';
 import { createScaleSetting, deviceSnapSettings, type ScaleSetting } from './status/view-settings';
 import type { DrawingController } from './tools/drawing-controller';
 import { fixturesModule } from './tools/fixtures-module';
-import type { FixturesPanelProps } from '../lazy/fixtures-panel';
 import { createDrawingShell } from './tools/drawing-shell';
 import { DrawingLayer, DrawingRail } from './tools/DrawingTools';
 import { CheckPill } from './check/CheckPill';
-import type { CheckResultsPanelProps } from './check/CheckResultsPanel';
 import { useCodeCheck } from './check/use-code-check';
 import styles from './ProjectEditor.module.css';
 
@@ -301,7 +277,6 @@ const PLAN_3D_VIEWS: EditorView[] = ['plan', '3d', 'sheets'];
 type Scene3dTestHook = { stats(): Scene3dStats & { contexts: number; shown: boolean } };
 
 const noop = () => {};
-const noSubscribe = () => noop;
 const NOT_VIEWING: VersionViewState = {
   viewing: null,
   opening: null,
@@ -543,67 +518,31 @@ export function ProjectEditor({
   const assistant = state.kind === 'ready' ? state.assistant : null;
   const floors = state.kind === 'ready' ? state.floors : null;
   // EZD-5604b: the session's preview store, made with the first reply that has changes.
-  const readPreview = () => assistant?.getPreview() ?? null;
-  const readSession = () => assistant?.getSession() ?? null;
-  const assistantSession = useSyncExternalStore(
-    assistant ? assistant.subscribe : noSubscribe,
-    readSession,
-    readSession,
-  );
-  const preview = useSyncExternalStore(
-    assistant ? assistant.subscribe : noSubscribe,
-    readPreview,
-    readPreview,
-  );
+  // EZD-1910 (editor plan R3): the store reads below go through useStoreValue (shared/use-store-value.ts).
+  const assistantSession = useStoreValue(assistant, (a) => a.getSession(), null);
+  const preview = useStoreValue(assistant, (a) => a.getPreview(), null);
   // Only `open` is read here, so typing in the panel does not render the whole editor again (11 Performance).
-  const readAssistantOpen = () => assistant?.isOpen() ?? false;
-  const assistantOpen = useSyncExternalStore(
-    assistant ? assistant.subscribe : noSubscribe,
-    readAssistantOpen,
-    readAssistantOpen,
-  );
+  const assistantOpen = useStoreValue(assistant, (a) => a.isOpen(), false);
   const sync = session?.sync ?? null;
 
   // EZD-5605 D-Wire: Adjust is made by the Assistant session, which tells its listeners when Adjust starts or ends.
-  const readAdjusting = () => assistant?.getControls()?.adjust.getUi().adjusting ?? false;
-  const adjusting = useSyncExternalStore(
-    assistant ? assistant.subscribe : noSubscribe,
-    readAdjusting,
-    readAdjusting,
-  );
+  const adjusting = useStoreValue(assistant, (a) => a.getControls()?.adjust.getUi().adjusting ?? false, false);
 
   // EZD-404: the cabinet run screen is shown while the Cabinets tool is on.
-  const readCabinets = () => drawing?.getUi().tool === 'cabinets';
-  const cabinetsOn = useSyncExternalStore(
-    drawing ? drawing.subscribe : noSubscribe,
-    readCabinets,
-    readCabinets,
-  );
+  const cabinetsOn = useStoreValue(drawing, (d) => d.getUi().tool === 'cabinets', false);
   // EZD-412 (S04b Entry points "Countertops (K) tool on the rail"): the countertop screen is shown while the
   // Countertops tool is on. Like the cabinet screen it covers the plan, so the plan's edit keys and zoom are off.
-  const readCountertops = () => drawing?.getUi().tool === 'countertops';
-  const countertopsOn = useSyncExternalStore(
-    drawing ? drawing.subscribe : noSubscribe,
-    readCountertops,
-    readCountertops,
-  );
+  const countertopsOn = useStoreValue(drawing, (d) => d.getUi().tool === 'countertops', false);
   const screenOn = cabinetsOn || countertopsOn;
   // EZD-601 (S06 Entry points "Plan tab, Electrical tool (E)"): electrical mode is on while the Electrical tool is.
-  const readElectrical = () => drawing?.getUi().tool === 'electrical';
-  const electricalOn = useSyncExternalStore(
-    drawing ? drawing.subscribe : noSubscribe,
-    readElectrical,
-    readElectrical,
-  );
+  const electricalOn = useStoreValue(drawing, (d) => d.getUi().tool === 'electrical', false);
   // EZD-1985 (Q-0809 (a)): while the Fixtures tool is on, its panel docks in the inspector place, like the
   // Countertops tool's inspector, instead of floating over the plan. The choice is the controller's own object, so the
   // snapshot is stable between renders.
-  const readFixtureChoice = () =>
-    drawing?.getUi().tool === 'fixtures' ? drawing.getUi().fixtureChoice : null;
-  const fixtureChoice = useSyncExternalStore(
-    drawing ? drawing.subscribe : noSubscribe,
-    readFixtureChoice,
-    readFixtureChoice,
+  const fixtureChoice = useStoreValue(
+    drawing,
+    (d) => (d.getUi().tool === 'fixtures' ? d.getUi().fixtureChoice : null),
+    null,
   );
   const sessionStore = session?.store ?? null;
   // A new model session starts with no cabinet selected.
@@ -613,42 +552,12 @@ export function ProjectEditor({
   );
   // EZD-407: the Defaults "Cabinet fit" tolerance for the fit chip, re-read on every defaults resync; null while not
   // set.
+  // EZD-1910 (editor plan R12): every Defaults reader below goes through useDefault (shared/use-default.ts).
   const sessionDefaults = session?.defaults ?? null;
-  // EZD-515: one reader of a number Default (null while not set), shared by every number Default below.
-  const readDefaultNumber = (key: string) => () => {
-    const v = sessionDefaults?.get()[key];
-    return typeof v === 'number' ? v : null;
-  };
-  const readCountertopDefaults = () =>
-    JSON.stringify(
-      Object.fromEntries(
-        [
-          'overhang_standard',
-          'overhang_against_wall',
-          'countertop_increment',
-          'overhang_seating_counter',
-          'overhang_seating_bar',
-          // EZD-415: the support check's limit, bracket spacing and seat width.
-          'seating_support_limit',
-          'countertop_bracket_spacing',
-          'countertop_seat_width',
-        ].map((k) => [k, readDefaultNumber(k)()]),
-      ),
-    );
-  const fitTolerance = useSyncExternalStore(
-    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
-    readDefaultNumber('cabinet_fit_tolerance'),
-    readDefaultNumber('cabinet_fit_tolerance'),
-  );
+  const fitTolerance = useDefault(sessionDefaults, editorDefaults.fitTolerance);
   // EZD-222 (S15d Keyboard shortcuts; phase-02.md EZD-222 "rail and tooltips read bindings"): the company key map,
   // re-read on every defaults resync; the rail's tooltips and the Help list show it.
-  const readShortcuts = () => JSON.stringify(sessionDefaults?.get()['keyboard_shortcuts'] ?? null);
-  const shortcutsText = useSyncExternalStore(
-    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
-    readShortcuts,
-    readShortcuts,
-  );
-  const bindings = useMemo(() => bindingsOf(JSON.parse(shortcutsText) as unknown), [shortcutsText]);
+  const bindings = useDefault(sessionDefaults, editorDefaults.keyboardShortcuts);
   // EZD-230 (Q-0038 "each user can set the order of the tools on the rail"; Q-0122): the user's own tool order, read
   // by the page. A move shows at once and is saved; a failed save shows a toast and the rail keeps the new order for
   // this page.
@@ -761,33 +670,13 @@ export function ProjectEditor({
       </>
     ) : null;
   // EZD-408: the Defaults "Cabinet auto-fill increment" (per project) for Auto-fill run; null while not read.
-  const readAutoFillIncrement = () => {
-    const v = sessionDefaults?.get()['cabinet_autofill_increment'];
-    return typeof v === 'number' && v > 0 ? v : null;
-  };
-  const autoFillIncrement = useSyncExternalStore(
-    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
-    readAutoFillIncrement,
-    readAutoFillIncrement,
-  );
+  const autoFillIncrement = useDefault(sessionDefaults, editorDefaults.autoFillIncrement);
   // EZD-515 (S05 Validation; S05 Decision 4): the Defaults "Fan blade clearance" for the RCP and the inspector, re-read
   // on every defaults resync; null while Not set (no fan check).
-  const fanClearance = useSyncExternalStore(
-    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
-    readDefaultNumber('fan_blade_clearance'),
-    readDefaultNumber('fan_blade_clearance'),
-  );
+  const fanClearance = useDefault(sessionDefaults, editorDefaults.fanClearance);
   // EZD-511 (S05 Validation "Minimum border is a company setting under Defaults"): the Defaults "ACT minimum border"
   // as a share of the tile, for the RCP, the inspector, the legend and the tools; half a tile while not read.
-  const readActMinShare = () => {
-    const v = sessionDefaults?.get()['act_min_border'];
-    return v === '1/4' ? 1 / 4 : v === '1/3' ? 1 / 3 : 1 / 2;
-  };
-  const actMinShare = useSyncExternalStore(
-    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
-    readActMinShare,
-    readActMinShare,
-  );
+  const actMinShare = useDefault(sessionDefaults, editorDefaults.actMinShare);
   const actMinShareRef = useRef(actMinShare);
   useEffect(() => {
     actMinShareRef.current = actMinShare;
@@ -796,15 +685,7 @@ export function ProjectEditor({
   // and the presets' overhangs, the countertop increment and the support check (EZD-415). One read of all eight, as
   // text so the snapshot stays the same between changes (one hook instead of eight keeps the editor route within its
   // budget).
-  const countertopDefaultsText = useSyncExternalStore(
-    sessionDefaults ? sessionDefaults.subscribe : noSubscribe,
-    readCountertopDefaults,
-    readCountertopDefaults,
-  );
-  const countertopDefaults = useMemo(
-    () => JSON.parse(countertopDefaultsText) as Record<string, number | null>,
-    [countertopDefaultsText],
-  );
+  const countertopDefaults = useDefault(sessionDefaults, editorDefaults.countertopDefaults);
   // EZD-416: the countertop selection the screen and its left panel share; a new model session starts with none,
   // and leaving the Countertops tool drops it.
   const countertopSelection = useMemo(
@@ -868,23 +749,17 @@ export function ProjectEditor({
   // EZD-225 (S03:17, 143; S06:78; vault/build/assumptions.md EZD-126): the lock UI saw the lock leave this viewer
   // (Release, auto release, their other device, or someone else took it). From then on this editor edits nothing:
   // the drawing controller pauses and every edit path below reads `mayEdit`. Start editing reopens the editor.
-  const readLockLost = () => {
-    const s = lock?.ui.store.getState();
-    return s !== undefined && s.loaded && !s.isHolder;
-  };
-  const lockLost = useSyncExternalStore(
-    lock ? lock.ui.store.subscribe : noSubscribe,
-    readLockLost,
-    readLockLost,
+  const lockLost = useStoreValue(
+    lock?.ui.store,
+    (l) => {
+      const s = l.getState();
+      return s.loaded && !s.isHolder;
+    },
+    false,
   );
   // EZD-122: the Versions tab, its rows and the version open read-only.
   const versionView = state.kind === 'ready' ? state.versions : null;
-  const readView = () => versionView?.getState() ?? NOT_VIEWING;
-  const view = useSyncExternalStore(
-    versionView ? versionView.subscribe : noSubscribe,
-    readView,
-    readView,
-  );
+  const view = useStoreValue(versionView, (v) => v.getState(), NOT_VIEWING);
   const viewing = view.viewing;
   const [leftTab, setLeftTab] = useState<LeftTab>('layers');
   // EZD-502: Ceiling and Both draw through the lazy RCP module, and a switch away from Floor ends any standard tool
@@ -1898,92 +1773,71 @@ const conflictPanelModule = lazyModule(() => import('../lazy/conflict-panel'));
 // EZD-423 (11 Budgets editor download size): the drawing engine behind the entry's drawing shell.
 const drawingEngine = lazyModule(() => import('../lazy/drawing-engine'));
 
+// EZD-1910 (editor plan R11, L4): every lazy part below is one `lazyPart` call (shared/lazy-part.tsx); nothing shows
+// for the moment a module downloads, and a failed download is tried again the next time the part is wanted.
+
 // EZD-111 (11 Budgets; EZD-120c B11): the Send dialog and the Project settings dialog it opens load when Share is
 // first pressed.
 const sendDialogModule = lazyModule(() => import('../lazy/send-dialog'));
 
-function LazySend(props: {
-  projectId: string;
-  sync: EditorSession['sync'];
-  sendOpen: boolean;
-  settings: LockUi['switcher'] | null;
-  onCloseSend: () => void;
-  onSent: (versionNo: number) => void;
-  onOpenSettings: () => void;
-  onCloseSettings: () => void;
-}) {
-  const mod = useLazy(sendDialogModule);
-  if (!mod) return null;
-  const { settings } = props;
-  return (
-    <>
-      {props.sendOpen ? (
-        <mod.SendDialog
-          projectId={props.projectId}
-          sync={props.sync}
-          onClose={props.onCloseSend}
-          onSent={props.onSent}
-          onOpenProjectSettings={props.onOpenSettings}
-        />
-      ) : null}
-      {settings ? (
-        <mod.ProjectSettingsDialog
-          {...settings.settings()}
-          onClose={props.onCloseSettings}
-          onSaved={(s) => {
-            props.onCloseSettings();
-            settings.saved(s);
-          }}
-        />
-      ) : null}
-    </>
-  );
-}
+const LazySend = lazyPart(
+  sendDialogModule,
+  (
+    mod,
+    props: {
+      projectId: string;
+      sync: EditorSession['sync'];
+      sendOpen: boolean;
+      settings: LockUi['switcher'] | null;
+      onCloseSend: () => void;
+      onSent: (versionNo: number) => void;
+      onOpenSettings: () => void;
+      onCloseSettings: () => void;
+    },
+  ) => {
+    const { settings } = props;
+    return (
+      <>
+        {props.sendOpen ? (
+          <mod.SendDialog
+            projectId={props.projectId}
+            sync={props.sync}
+            onClose={props.onCloseSend}
+            onSent={props.onSent}
+            onOpenProjectSettings={props.onOpenSettings}
+          />
+        ) : null}
+        {settings ? (
+          <mod.ProjectSettingsDialog
+            {...settings.settings()}
+            onClose={props.onCloseSettings}
+            onSaved={(s) => {
+              props.onCloseSettings();
+              settings.saved(s);
+            }}
+          />
+        ) : null}
+      </>
+    );
+  },
+);
 
 // EZD-126 (11 rule 7): the lock UI loads on the first pointer move or press, or the first edit (not on
 // pointerover, which a browser fires when the page changes under a resting mouse).
 const lockUiModule = lazyModule(() => import('../lazy/lock-ui'));
 
-// EZD-233: one hook for the lazy parts below. The module loads while `wanted`; nothing shows for the moment it
-// downloads, and a failed download is tried again the next time it is wanted.
-function useLazy<T>(module: LazyModule<T>, wanted = true): T | undefined {
-  const [mod, setMod] = useState(() => module.peek());
-  useEffect(() => {
-    if (mod || !wanted) return;
-    let live = true;
-    module.load().then(
-      (m) => {
-        if (live) setMod(m);
-      },
-      () => {},
-    );
-    return () => {
-      live = false;
-    };
-  }, [module, mod, wanted]);
-  return mod;
-}
-
 // EZD-122 (11 Budgets): the Versions tab, the version inspector and the status text load when the tab first opens.
-const versionsModule = lazyModule(() => import('./versions/VersionsPanel'));
+// EZD-1910: through the lazy facade, so the entry contents check (EZD-120c B11) covers them.
+const versionsModule = lazyModule(() => import('../lazy/versions'));
 
 // EZD-601 (11 Budgets editor download size): electrical mode's panel and status items load when it is first on.
-const electricalModule = lazyModule(() => import('./electrical'));
+// EZD-1910: through the lazy facade, as versions.
+const electricalModule = lazyModule(() => import('../lazy/electrical'));
 
-function LazyElectricalPanel(props: ElectricalPanelProps) {
-  const mod = useLazy(electricalModule);
-  return mod ? <mod.ElectricalPanel {...props} /> : null;
-}
+const LazyElectricalPanel = lazyPart(electricalModule, 'ElectricalPanel');
+const LazyDeviceTools = lazyPart(electricalModule, 'DeviceTools');
+const LazyElectricalStatus = lazyPart(electricalModule, 'ElectricalStatus');
 
-function LazyDeviceTools(props: DeviceToolsProps) {
-  const mod = useLazy(electricalModule);
-  return mod ? <mod.DeviceTools {...props} /> : null;
-}
-
-function LazyElectricalStatus(props: { store: EditorSession['store'] }) {
-  const mod = useLazy(electricalModule);
-  return mod ? <mod.ElectricalStatus {...props} /> : null;
-}
 const CLEANUP_AGE_DEFAULT = 30;
 
 function versionErrorKey(code: string): MessageKey {
@@ -2004,20 +1858,9 @@ function versionErrorKey(code: string): MessageKey {
   }
 }
 
-function LazyVersions(props: VersionsPanelProps) {
-  const mod = useLazy(versionsModule);
-  return mod ? <mod.VersionsPanel {...props} /> : null;
-}
-
-function LazyVersionInspector(props: VersionInspectorProps) {
-  const mod = useLazy(versionsModule);
-  return mod ? <mod.VersionInspector {...props} /> : null;
-}
-
-function LazyVersionsStatus(props: VersionsStatusProps) {
-  const mod = useLazy(versionsModule);
-  return mod ? <mod.VersionsStatus {...props} /> : null;
-}
+const LazyVersions = lazyPart(versionsModule, 'VersionsPanel');
+const LazyVersionInspector = lazyPart(versionsModule, 'VersionInspector');
+const LazyVersionsStatus = lazyPart(versionsModule, 'VersionsStatus');
 
 // EZD-1401 (11 Budgets; EZD-120c B11): the beam spacing pill loads when the Ceiling or Both view first shows.
 const beamSpacingModule = lazyModule(() => import('../lazy/beam-spacing'));
@@ -2026,10 +1869,7 @@ const beamSpacingModule = lazyModule(() => import('../lazy/beam-spacing'));
 // tool is first turned on.
 const ceilingDeviceModule = lazyModule(() => import('../lazy/rcp'));
 
-function LazyDeviceChooser(props: DeviceChooserProps) {
-  const mod = useLazy(ceilingDeviceModule);
-  return mod ? <mod.DeviceChooser {...props} /> : null;
-}
+const LazyDeviceChooser = lazyPart(ceilingDeviceModule, 'DeviceChooser');
 
 // EZD-507: the kind chooser of the ceiling device tool that is on.
 function CeilingDeviceChooser({
@@ -2053,88 +1893,61 @@ function CeilingDeviceChooser({
   return <LazyDeviceChooser tool={tool} kind={kind} onChoose={(k) => choice.set(tool, k)} />;
 }
 
-function LazyBeamSpacingPill(props: BeamSpacingPillProps) {
-  const mod = useLazy(beamSpacingModule);
-  return mod ? <mod.BeamSpacingPill {...props} /> : null;
-}
-
-function LazyDiffLayer(props: DiffLayerProps) {
-  const mod = useLazy(versionsModule);
-  return mod ? <mod.DiffLayer {...props} /> : null;
-}
-
-// EZD-5604b (11 Budgets; EZD-120c B11): the Assistant preview layer comes with the panel's lazy module, shown while
-// a preview is open.
-function LazyPreviewLayer(props: { store: PreviewStore; handle: PlanCanvasHandle }) {
-  const open = useSyncExternalStore(
-    props.store.subscribe,
-    () => props.store.getState().preview !== null,
-    () => props.store.getState().preview !== null,
-  );
-  const mod = useLazy(assistantPanelModule, open);
-  return mod ? <mod.PreviewLayer {...props} /> : null;
-}
-
-// EZD-214 (11 Budgets; EZD-120c B11): the inspector panel loads on the first press or key in the editor, or when
-// something is selected; until then the empty inspector is drawn from the entry.
-const inspectorModule = lazyModule(() => import('../lazy/inspector-panel'));
-
-function LazyInspectorPanel(props: InspectorPanelProps) {
-  const { selection } = props;
-  const selected = useSyncExternalStore(
-    selection.subscribe,
-    () => selection.getUi().ids.length > 0,
-    () => false,
-  );
-  // The first press or key fetches the module without a React commit (11 rule 4: a pan makes no commit).
-  useEffect(() => {
-    if (inspectorModule.peek() !== undefined) return;
-    const on = () => {
-      window.removeEventListener('pointerdown', on, true);
-      window.removeEventListener('keydown', on, true);
-      inspectorModule.load().catch(() => {});
-    };
-    window.addEventListener('pointerdown', on, true);
-    window.addEventListener('keydown', on, true);
-    return () => {
-      window.removeEventListener('pointerdown', on, true);
-      window.removeEventListener('keydown', on, true);
-    };
-  }, []);
-  const mod = useLazy(inspectorModule, selected) ?? inspectorModule.peek();
-  const coarse = useCoarsePointer();
-  return mod ? <mod.InspectorPanel {...props} /> : <InspectorEmpty coarse={coarse} />;
-}
-
-// EZD-233 (11 Budgets): the tablet edit bar loads on touch screens only.
-const editBarModule = lazyModule(() => import('../lazy/edit-bar'));
-
-function LazyEditBar(props: EditBarProps) {
-  const mod = useLazy(editBarModule);
-  return mod ? <mod.EditBar {...props} /> : null;
-}
-
-// EZD-233: the menus load when one first opens and then stay, so the Save as group dialog outlives its menu.
-const editMenuModule = lazyModule(() => import('../lazy/edit-menu'));
-
-function LazyUploadFiles(props: { projectId: string; onClose: () => void }) {
-  const mod = useLazy(editMenuModule);
-  return mod ? <mod.UploadFilesDialog {...props} /> : null;
-}
-
-function LazyEditMenus(props: EditMenusProps) {
-  const mod = useLazy(editMenuModule, props.request !== null);
-  return mod ? <mod.EditMenus {...props} /> : null;
-}
+const LazyBeamSpacingPill = lazyPart(beamSpacingModule, 'BeamSpacingPill');
+const LazyDiffLayer = lazyPart(versionsModule, 'DiffLayer');
 
 // EZD-227 Build (11 Budgets; vault/build/assumptions.md EZD-227): the assistant panel loads when first opened, as the
 // conflict list does; nothing shows for the moment it downloads, and a failed download is tried again on next open.
 const assistantPanelModule = lazyModule(() => import('../lazy/assistant-panel'));
 
-function LazyAssistantPanel(props: { session: AssistantSession; preview: PreviewStore | null }) {
-  const mod = useLazy(assistantPanelModule);
-  return mod ? <mod.AssistantPanel {...props} /> : null;
+// EZD-5604b (11 Budgets; EZD-120c B11): the Assistant preview layer comes with the panel's lazy module, shown while
+// a preview is open.
+function usePreviewOpen(props: { store: PreviewStore }) {
+  return useSyncExternalStore(
+    props.store.subscribe,
+    () => props.store.getState().preview !== null,
+    () => props.store.getState().preview !== null,
+  );
 }
+
+const LazyPreviewLayer = lazyPart(assistantPanelModule, 'PreviewLayer', { useWanted: usePreviewOpen });
+
+// EZD-214 (11 Budgets; EZD-120c B11): the inspector panel loads on the first press or key in the editor, or when
+// something is selected; until then the empty inspector is drawn from the entry.
+const inspectorModule = lazyModule(() => import('../lazy/inspector-panel'));
+
+function useSomethingSelected({ selection }: InspectorPanelProps) {
+  return useSyncExternalStore(
+    selection.subscribe,
+    () => selection.getUi().ids.length > 0,
+    () => false,
+  );
+}
+
+function InspectorPlaceholder() {
+  return <InspectorEmpty coarse={useCoarsePointer()} />;
+}
+
+const LazyInspectorPanel = lazyPart(inspectorModule, 'InspectorPanel', {
+  useWanted: useSomethingSelected,
+  fallback: InspectorPlaceholder,
+  preloadOnFirstInput: true,
+});
+
+// EZD-233 (11 Budgets): the tablet edit bar loads on touch screens only.
+const editBarModule = lazyModule(() => import('../lazy/edit-bar'));
+
+const LazyEditBar = lazyPart(editBarModule, 'EditBar');
+
+// EZD-233: the menus load when one first opens and then stay, so the Save as group dialog outlives its menu.
+const editMenuModule = lazyModule(() => import('../lazy/edit-menu'));
+
+const LazyUploadFiles = lazyPart(editMenuModule, 'UploadFilesDialog');
+const LazyEditMenus = lazyPart(editMenuModule, 'EditMenus', {
+  useWanted: (props) => props.request !== null,
+});
+
+const LazyAssistantPanel = lazyPart(assistantPanelModule, 'AssistantPanel');
 
 // EZD-237: the benchmark runner loads only with `?benchmark=run` (the Benchmark card's frame).
 const benchmarkRunnerModule = lazyModule(() => import('../lazy/benchmark-runner'));
@@ -2142,110 +1955,61 @@ const benchmarkRunnerModule = lazyModule(() => import('../lazy/benchmark-runner'
 // EZD-1001a (11 rule 7): the 3D scene loads on the first press of the 3D tab.
 const scene3dModule = lazyModule(() => import('../lazy/scene-3d'));
 
-function LazyScene3dOverlay({ scene }: { scene: Scene3d }) {
-  const mod = useLazy(scene3dModule);
-  return mod ? <mod.Scene3dOverlay scene={scene} /> : null;
-}
-
-function LazyBenchmarkRunner(props: BenchmarkRunnerProps) {
-  const mod = useLazy(benchmarkRunnerModule);
-  return mod ? <mod.BenchmarkRunner {...props} /> : null;
-}
+const LazyScene3dOverlay = lazyPart(scene3dModule, 'Scene3dOverlay');
+const LazyBenchmarkRunner = lazyPart(benchmarkRunnerModule, 'BenchmarkRunner');
 
 // EZD-404 (11 Budgets; 11 rule 7): the cabinet run screen loads when the Cabinets tool is first turned on.
 const cabinetRunModule = lazyModule(() => import('../lazy/cabinet-run'));
 
-function LazyCabinetRun(props: CabinetRunViewProps) {
-  const mod = useLazy(cabinetRunModule);
-  return mod ? <mod.CabinetRunView {...props} /> : null;
-}
-
-function LazyCabinetInspector(props: CabinetInspectorProps) {
-  const mod = useLazy(cabinetRunModule);
-  return mod ? <mod.CabinetInspector {...props} /> : null;
-}
-
-function LazyCabinetLibrary(props: CabinetLibraryProps) {
-  const mod = useLazy(cabinetRunModule);
-  return mod ? <mod.CabinetLibrary {...props} /> : null;
-}
-
-function LazyCabinetStatus(props: CabinetRunViewProps) {
-  const mod = useLazy(cabinetRunModule);
-  return mod ? <mod.CabinetRunStatus {...props} /> : null;
-}
+const LazyCabinetRun = lazyPart(cabinetRunModule, 'CabinetRunView');
+const LazyCabinetInspector = lazyPart(cabinetRunModule, 'CabinetInspector');
+const LazyCabinetLibrary = lazyPart(cabinetRunModule, 'CabinetLibrary');
+const LazyCabinetStatus = lazyPart(cabinetRunModule, 'CabinetRunStatus');
 
 // EZD-702a (11 Budgets; 11 rule 7): the Sheets screen loads when the Sheets tab is first pressed.
 const sheetsScreenModule = lazyModule(() => import('../lazy/sheets-screen'));
 
-// One wrapper for the panel, canvas and status parts (EZD-120c B11: the entry's size).
-function LazySheets(props: SheetsPartProps) {
-  const mod = useLazy(sheetsScreenModule);
-  return mod ? <mod.SheetsPart {...props} /> : null;
-}
+// One part for the panel, canvas and status (EZD-120c B11: the entry's size).
+const LazySheets = lazyPart(sheetsScreenModule, 'SheetsPart');
 
 // EZD-412 (11 Budgets; 11 rule 7): the countertop screen loads when the Countertops tool is first turned on.
 const countertopsModule = lazyModule(() => import('../lazy/countertops'));
 
-function LazyCountertops(props: CountertopsViewProps) {
-  const mod = useLazy(countertopsModule);
-  return mod ? <mod.CountertopsView {...props} /> : null;
-}
-
+const LazyCountertops = lazyPart(countertopsModule, 'CountertopsView');
 // EZD-416: the countertop left panel and status readouts, from the same module.
-function LazyCountertopsPanel(props: CountertopsPanelProps) {
-  const mod = useLazy(countertopsModule);
-  return mod ? <mod.CountertopsPanel {...props} /> : null;
-}
-
-function LazyCountertopsStatus(props: CountertopsStatusProps) {
-  const mod = useLazy(countertopsModule);
-  return mod ? <mod.CountertopsStatus {...props} /> : null;
-}
-
+const LazyCountertopsPanel = lazyPart(countertopsModule, 'CountertopsPanel');
+const LazyCountertopsStatus = lazyPart(countertopsModule, 'CountertopsStatus');
 // EZD-418: the countertop inspector place (footer Top schedule), from the same module.
-function LazyCountertopsInspector(props: CountertopsInspectorProps) {
-  const mod = useLazy(countertopsModule);
-  return mod ? <mod.CountertopsInspector {...props} /> : null;
-}
+const LazyCountertopsInspector = lazyPart(countertopsModule, 'CountertopsInspector');
 
 // EZD-1985 (Q-0809 (a)): the Fixtures panel in the inspector place, from the module the Fixtures tool loads.
-function LazyFixturesPanel(props: FixturesPanelProps) {
-  const mod = useLazy(fixturesModule);
-  return mod ? <mod.FixturesPanel {...props} /> : null;
-}
+const LazyFixturesPanel = lazyPart(fixturesModule, 'FixturesPanel');
 
 // EZD-126 (11 Budgets): the phone and no-access notices and the conflict banner load when shown; a ready desktop
 // editor with every change saved shows none of them.
 const noticesModule = lazyModule(() => import('../lazy/editor-notices'));
 
-function LazyNotice({
-  name,
-  ...props
-}: { name: 'NoAccess' | 'EditorPhoneNotice' | 'ConflictBanner' } & Partial<ConflictBannerProps>) {
-  const mod = useLazy(noticesModule);
-  const Notice = mod?.[name] as ((p: typeof props) => ReactNode) | undefined;
-  return Notice ? <Notice {...props} /> : null;
-}
+const LazyNotice = lazyPart(
+  noticesModule,
+  (
+    mod,
+    {
+      name,
+      ...props
+    }: { name: 'NoAccess' | 'EditorPhoneNotice' | 'ConflictBanner' } & Partial<ConflictBannerProps>,
+  ) => {
+    const Notice = mod[name] as (p: typeof props) => ReactNode;
+    return <Notice {...props} />;
+  },
+);
 
-// Shows nothing until the panel code is there; a failed download is tried again when the list is next opened.
 // EZD-222 (11 Budgets): the Help panel loads when Help is first opened.
 const helpPanelModule = lazyModule(() => import('../lazy/help-panel'));
 
-function LazyHelpPanel(props: { bindings: ShortcutBindings; onClose: () => void }) {
-  const mod = useLazy(helpPanelModule);
-  return mod ? <mod.HelpPanel {...props} /> : null;
-}
+const LazyHelpPanel = lazyPart(helpPanelModule, 'HelpPanel');
 
 // EZD-612 (11 Budgets): the code check list loads when it is first opened.
 const checkPanelModule = lazyModule(() => import('./check/CheckResultsPanel'));
 
-function LazyCheckPanel(props: CheckResultsPanelProps) {
-  const mod = useLazy(checkPanelModule);
-  return mod ? <mod.CheckResultsPanel {...props} /> : null;
-}
-
-function LazyConflictPanel(props: ConflictPanelProps) {
-  const mod = useLazy(conflictPanelModule);
-  return mod ? <mod.ConflictPanel {...props} /> : null;
-}
+const LazyCheckPanel = lazyPart(checkPanelModule, 'CheckResultsPanel');
+const LazyConflictPanel = lazyPart(conflictPanelModule, 'ConflictPanel');
