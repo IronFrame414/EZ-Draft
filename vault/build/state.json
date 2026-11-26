@@ -541,7 +541,8 @@
     "EZD-607",
     "EZD-1953",
     "EZD-612",
-    "EZD-916"
+    "EZD-916",
+    "EZD-1955"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2251,6 +2252,14 @@
       "ts": "2026-11-26T06:15:48Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1955",
+      "title": "Acceptance criteria are traceable to tests",
+      "commit": "d169c959",
+      "ts": "2026-11-26T06:48:18Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2507,7 +2516,20 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {},
+  "running": {
+    "EZD-703": {
+      "lane": 1,
+      "title": "Viewports and scales",
+      "started": "2026-11-26T06:16:38Z",
+      "develop": "a70425b1"
+    },
+    "EZD-1409": {
+      "lane": 3,
+      "title": "Tasks tab",
+      "started": "2026-11-26T06:16:39Z",
+      "develop": "a70425b1"
+    }
+  },
   "advisories_checked_at": "2026-11-26T04:19:51Z",
   "hold": {},
   "perf_trend_at": "2026-11-26T03:55:15Z",
