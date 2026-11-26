@@ -6,6 +6,7 @@
 // ticket makes them adjustable (vault/build/assumptions.md EZD-701). The fields follow the 03c `sheet` row.
 import type { KeyPlacement, SheetSetData, SheetSetKind, SheetSize, Viewport } from '@ezdraft/geometry';
 import type { ScopeTrade } from '../projects/new-project';
+import { nextRevision, type IssuedRevision } from './revisions';
 
 // The sheet list's groups (S13 Layout: Architectural / Electrical / Renderings).
 export const SHEET_GROUPS = ['architectural', 'electrical', 'renderings'] as const;
@@ -91,6 +92,9 @@ export type SheetSetSummary = {
   keyPlacement: KeyPlacement;
   // Null until the set is first issued (EZD-717).
   lastIssuedVersionId: string | null;
+  // EZD-717: the set's issued revisions (permit_revision rows), oldest first; null (or absent from an older answer)
+  // when the answer does not carry them. The client set is never issued, so it has none.
+  revisions?: IssuedRevision[] | null;
   sheets: Sheet[];
   // EZD-703: the stored set's viewports; null (or absent from an older answer) while the set shows the defaults.
   viewports?: Viewport[] | null;
@@ -155,8 +159,12 @@ export function neighbourSheet(
 }
 
 // The revision the set is drafting (S13 Validation "Numbering": Rev 0 at permit issue, then Rev 1, 2...). A set never
-// issued drafts Rev 0. Issued revision numbers come with EZD-717; until then an issued set's number is unknown (null).
-export function draftRevision(set: Pick<SheetSetSummary, 'lastIssuedVersionId'>): number | null {
+// issued drafts Rev 0. EZD-717: with its issued revisions known, the set drafts the next one (Rev 1 after Rev 0);
+// an issued set whose revisions are not known reads null.
+export function draftRevision(
+  set: Pick<SheetSetSummary, 'lastIssuedVersionId' | 'revisions'>,
+): number | null {
+  if (set.revisions !== undefined && set.revisions !== null) return nextRevision(set.revisions);
   return set.lastIssuedVersionId === null ? 0 : null;
 }
 

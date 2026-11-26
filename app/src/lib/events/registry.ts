@@ -20,7 +20,8 @@ export type EventEntry = { kind: EventKind; later?: `EZD-${string}`; notInV1?: `
 
 export const EVENTS = {
   // Outbound webhooks to EZ Binder, and Added in Round 24 under Delivery rules (07 Hooks)
-  'plan_set.issued': { kind: 'webhook', notInV1: 'Q-0190' },
+  // EZD-717: written to the event log by public.issue_permit_set; delivery to EZ Binder stays out of v1 (Q-0190).
+  'plan_set.issued': { kind: 'webhook' },
   'selection.approved': { kind: 'webhook', later: 'EZD-1211' },
   'revision.created': { kind: 'webhook', later: 'EZD-718' },
   'change_order.sent': { kind: 'webhook', notInV1: 'Q-0190' },

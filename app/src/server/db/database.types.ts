@@ -357,6 +357,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"electrical_calc": {
+                  Row: {
+                    "case": string,"created_at": string,"id": string,"inputs": NonNullable<Json>,"method": string,"model_version_id": string,"project_id": string,"results": NonNullable<Json>,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "case": string,"created_at"?: string,"id"?: string,"inputs"?: NonNullable<Json>,"method": string,"model_version_id": string,"project_id": string,"results"?: NonNullable<Json>,"tenant_id": string
+                  }
+                  Update: {
+                    "case"?: string,"created_at"?: string,"id"?: string,"inputs"?: NonNullable<Json>,"method"?: string,"model_version_id"?: string,"project_id"?: string,"results"?: NonNullable<Json>,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "electrical_calc_model_version_id_fkey"
+      columns: ["model_version_id"]
+isOneToOne: false
+      referencedRelation: "model_version"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "electrical_calc_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "electrical_calc_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"error_alert": {
                   Row: {
                     "email_claim": string | null,"emailed_at": string | null,"fingerprint": string,"first_seen_at": string,"id": string,"kind": string,"last_seen_at": string,"occurrences": number,"project_id": string | null,"ref": string | null,"source": string,"tenant_id": string | null,"title": string
@@ -1015,6 +1047,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"permit_revision": {
+                  Row: {
+                    "delta_object_ids": (string)[],"description": string | null,"export_job_id": string | null,"id": string,"issued_at": string,"issued_by": string | null,"model_version_id": string,"project_id": string,"rev_no": number,"sent_to": string,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "delta_object_ids"?: (string)[],"description"?: string | null,"export_job_id"?: string | null,"id"?: string,"issued_at"?: string,"issued_by"?: string | null,"model_version_id": string,"project_id": string,"rev_no": number,"sent_to"?: string,"tenant_id": string
+                  }
+                  Update: {
+                    "delta_object_ids"?: (string)[],"description"?: string | null,"export_job_id"?: string | null,"id"?: string,"issued_at"?: string,"issued_by"?: string | null,"model_version_id"?: string,"project_id"?: string,"rev_no"?: number,"sent_to"?: string,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "permit_revision_issued_by_fkey"
+      columns: ["issued_by"]
+isOneToOne: false
+      referencedRelation: "app_user"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "permit_revision_model_version_id_fkey"
+      columns: ["model_version_id"]
+isOneToOne: false
+      referencedRelation: "model_version"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "permit_revision_project_id_tenant_id_fkey"
+      columns: ["project_id","tenant_id"]
+isOneToOne: false
+      referencedRelation: "project"
+      referencedColumns: ["id","tenant_id"]
+    },{
+      foreignKeyName: "permit_revision_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"project": {
                   Row: {
                     "address": string,"archived_at": string | null,"client_name": string | null,"code_edition": string | null,"code_edition_auto": boolean,"completed_at": string | null,"completed_from": string | null,"created_at": string,"customer_id": string | null,"ezbinder_job_id": string | null,"ezbinder_job_no": string | null,"id": string,"is_benchmark": boolean,"name": string,"open_items_count": number,"permit_application_date": string | null,"phase_default": string,"property_record_id": string | null,"scope_of_work": string | null,"scope_trades": (string)[],"settings": NonNullable<Json>,"status": string,"submittal_profile_id": string | null,"tenant_id": string,"thumbnail_path": string | null,"type": string,"updated_at": string
@@ -1484,6 +1554,9 @@ isOneToOne: false
 "archive_submittal_profile":
 { Args: { "p_archived": boolean,"p_id": string }; Returns: boolean
                            },
+"attach_permit_revision_export":
+{ Args: { "p_job": string,"p_revision": string }; Returns: undefined
+                           },
 "cancel_edit_request":
 { Args: { "p_ip"?: unknown,"p_project": string }; Returns: Json
                            },
@@ -1650,6 +1723,9 @@ isOneToOne: false
                            },
 "invite_status":
 { Args: { "p_token_sha256": string }; Returns: Json
+                           },
+"issue_permit_set":
+{ Args: { "p_description"?: string,"p_electrical"?: Json,"p_ip"?: unknown,"p_project": string }; Returns: Json
                            },
 "job_claim":
 { Args: { "p_lease_seconds": number,"p_only_tenant"?: string,"p_run_id": string }; Returns: {

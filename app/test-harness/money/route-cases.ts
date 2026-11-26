@@ -344,6 +344,30 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatusWithout: { permission: 'export', status: 403 },
     note: 'EZD-715: the export job id (no money)',
   },
+  // EZD-717: the permit set's issued revisions, and Issue (the bare project's checklist blocks it: 409 with the gate
+  // ids). Revision numbers, times, version and job ids only (no money).
+  {
+    file: `${API}projects/[id]/issue/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/issue/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/issue`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-717: revisions, next number and canIssue (no money)',
+  },
+  {
+    file: `${API}projects/[id]/issue/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/issue/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/issue`, {})()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 409,
+    note: 'EZD-717: the checklist gate ids, or the revision number and ids (no money)',
+  },
   // EZD-304: the scale of the PDF uploaded above (kind pdf, finished): the project's PDFs, then set and read its
   // scale. Answers are source_file ids, names, the calibration and a signed link (no money).
   {

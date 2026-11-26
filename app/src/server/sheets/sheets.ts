@@ -19,6 +19,8 @@ import {
   type SheetSetSummary,
 } from '../../lib/sheets/sheet-set';
 import type { Database } from '../db/database.types';
+import { latestRevision } from '../../lib/sheets/revisions';
+import { loadPermitRevisions } from './issue-revision';
 
 export async function loadProjectSheets(
   client: SupabaseClient<Database>,
@@ -41,6 +43,7 @@ export async function loadProjectSheets(
 // outside the member's scope, reads as null.
 // EZD-703 (Q-0509): each floor after the lowest adds its copies of the floor-plan sheets (withFloorSheets), and a set
 // returns its stored viewports and changed-viewport sheets (null while it has none).
+// EZD-717: the permit set carries its issued revisions (permit_revision, oldest first) and its last issued version.
 export async function loadProjectSheetSets(
   client: SupabaseClient<Database>,
   projectId: string,
@@ -61,6 +64,7 @@ export async function loadProjectSheetSets(
     .eq('deleted', false)
     .order('object_id');
   if (rows.error) throw rows.error;
+  const revisions = await loadPermitRevisions(client, projectId);
   // EZD-703 (Q-0509): the project's floors, by order then id (as the editor lists them), for the floor-plan copies.
   const floorRows: (SheetFloor & { order: number })[] = [];
   const stored = new Map<SheetSetKind, { id: string; data: SheetSetData }>();
@@ -95,7 +99,10 @@ export async function loadProjectSheetSets(
       kind,
       size: d.size,
       keyPlacement: d.keyPlacement,
-      lastIssuedVersionId: d.lastIssuedVersionId,
+      // EZD-717: the permit set's last issue is its newest permit_revision; the client set is never issued.
+      lastIssuedVersionId:
+        kind === 'permit' ? (latestRevision(revisions)?.modelVersionId ?? d.lastIssuedVersionId) : d.lastIssuedVersionId,
+      revisions: kind === 'permit' ? revisions : [],
       sheets: withScheduleSheets(withFloorSheets(sheetsForSet(kind, trades), floors), d.size, scheduleRows),
       viewports: d.viewports ?? null,
       viewportSheets: d.viewportSheets ?? null,

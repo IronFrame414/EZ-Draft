@@ -26,6 +26,10 @@
 // EZD-707 (R24; AC-EZD-707-1, -3): a sheet with an elevation viewport is drawn too (its floor's elevations), and the
 // walls Add elevation offers for the open sheet's first elevation viewport are worked out on the same watch;
 // addElevation() adds one (lib/sheets/viewport.ts addElevationChange) through editViewport.
+// EZD-717 (S13 Controls "Issue Rev n"; AC-EZD-717-1): load() also reads the permit set's issued revisions, the next
+// number and whether the member may issue it (GET /api/projects/[id]/issue). issue() drains the outbox (setSync), posts
+// the issue with the live load calc, then follows the issue's PDF job until its link is ready, and reads the sets
+// again so the sheets show the new draft revision and the title block's revisions table.
 import { parseStoredObject, type ModelObject, type SheetSetKind, type SheetSize } from '@ezdraft/geometry';
 import { listFloors, resolveOpenFloor } from '../../editor/floors/floors';
 import type { Change, Objects } from '../../editor/model/patches';
@@ -53,6 +57,31 @@ import {
 import { panelRows } from '../../editor/electrical/electrical';
 import { panelLoadCalc } from '../../editor/electrical/existing-panel';
 import type { SheetRenderer } from '../sheets';
+import type { IssuedRevision } from '../../lib/sheets/revisions';
+
+// EZD-717: where the Issue button is. `blocked` carries the checklist gates the server named.
+export type IssueRun =
+  | { kind: 'idle' }
+  | { kind: 'issuing'; rev: number }
+  | { kind: 'generating'; rev: number; percent: number }
+  | { kind: 'done'; rev: number; file: { name: string; link: string } | null }
+  | { kind: 'pdf_failed'; rev: number }
+  | { kind: 'blocked'; gates: string[] }
+  | { kind: 'unsaved' }
+  | { kind: 'failed' };
+
+export type IssueState = {
+  load: 'loading' | 'ready' | 'failed';
+  revisions: IssuedRevision[];
+  // The number the next issue gives (0 before Rev 0).
+  nextRev: number;
+  // Whether the member holds Issue permit sets (Rev 0) or Issue revisions (Rev 1+); the button is hidden otherwise.
+  canIssue: boolean;
+  run: IssueRun;
+};
+
+// EZD-717: the editor's outbox, drained before an issue (as the send dialog does).
+export type SheetsSync = { flush(): Promise<void>; getState(): { status: string } };
 
 export type SheetsScreenState = {
   load: 'loading' | 'ready' | 'failed';
@@ -82,6 +111,8 @@ export type SheetsScreenState = {
   // EZD-716: the issue checklist; null until read. `checklistLoad` is 'failed' when the last read failed.
   checklist: IssueChecklist | null;
   checklistLoad: 'loading' | 'ready' | 'failed';
+  // EZD-717: the Issue button and the revision log.
+  issue: IssueState;
 };
 
 // The model the sheets draw (the editor's routed store).
@@ -102,7 +133,31 @@ export function liveLoadCalc(objects: Objects, edition: string): LoadCalcFacts {
   return { state: 'done', edition, serviceAmps: r.service?.amps ?? null, pass: r.service?.pass ?? null };
 }
 
-export type SheetsScreenDeps = { loadRenderer?: () => Promise<SheetRenderer>; newId?: () => string };
+// EZD-717: the issue's stored load calc (03c electrical_calc), from the live model's main panel; null without one.
+export function liveElectricalCalc(
+  objects: Objects,
+  edition: string,
+): { case: 'proposed'; method: 'standard'; inputs: Record<string, unknown>; results: Record<string, unknown> } | null {
+  const main = panelRows(objects)[0];
+  if (main === undefined) return null;
+  const r = panelLoadCalc(objects, main.id);
+  if (r === null || !r.ok) return null;
+  return {
+    case: 'proposed',
+    method: 'standard',
+    inputs: { panelId: main.id, edition },
+    results: JSON.parse(JSON.stringify(r)) as Record<string, unknown>,
+  };
+}
+
+export type SheetsScreenDeps = {
+  loadRenderer?: () => Promise<SheetRenderer>;
+  newId?: () => string;
+  // EZD-717: the pause between reads of the issue's PDF job.
+  wait?: (ms: number) => Promise<void>;
+  // EZD-717: the page's origin, for the PDF link Copy link copies.
+  origin?: () => string;
+};
 
 const sheetsRenderer = lazyModule(() => import('../sheets'));
 
@@ -124,6 +179,12 @@ export type SheetsScreen = {
   addElevation(wallId: string): boolean;
   // EZD-716: reads the issue checklist again.
   reloadChecklist(): Promise<void>;
+  // EZD-717: the outbox the issue drains first; null when there is none (a read-only screen).
+  setSync(sync: SheetsSync | null): void;
+  // EZD-717: issues the permit set as the next revision (Issue Rev n).
+  issue(): Promise<void>;
+  // EZD-717: reads the issued revisions again.
+  reloadIssue(): Promise<void>;
   dispose(): void;
 };
 
@@ -150,6 +211,7 @@ export function createSheetsScreen(
     elevationWalls: [],
     checklist: null,
     checklistLoad: 'loading',
+    issue: { load: 'loading', revisions: [], nextRev: 0, canIssue: false, run: { kind: 'idle' } },
   };
   const listeners = new Set<() => void>();
   const update = (next: Partial<SheetsScreenState>) => {
@@ -302,6 +364,114 @@ export function createSheetsScreen(
   };
 
   // One render at a time: a change while one is drawing is drawn when it ends.
+  // EZD-717: the issued revisions and the Issue button.
+  let issueRead = 0;
+  let sync: SheetsSync | null = null;
+  const wait = deps.wait ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const origin = deps.origin ?? (() => (typeof location === 'undefined' ? '' : location.origin));
+  const setIssue = (next: Partial<IssueState>) => update({ issue: { ...state.issue, ...next } });
+  const setRun = (run: IssueRun) => setIssue({ run });
+  const reloadIssue = async () => {
+    const n = ++issueRead;
+    try {
+      const res = await fetchFn(`/api/projects/${projectId}/issue`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(String(res.status));
+      const body = (await res.json()) as Partial<{ revisions: IssuedRevision[]; nextRev: number; canIssue: boolean }>;
+      if (!Array.isArray(body.revisions) || typeof body.nextRev !== 'number') throw new Error('bad_answer');
+      if (n !== issueRead) return;
+      setIssue({ load: 'ready', revisions: body.revisions, nextRev: body.nextRev, canIssue: body.canIssue === true });
+    } catch {
+      if (n === issueRead) setIssue({ load: 'failed' });
+    }
+  };
+  const pdfLink = (rev: number) => `${origin()}/api/projects/${projectId}/issue?rev=${rev}&download=1`;
+  type PdfAnswer = { status?: string; progress?: number; file?: { name: string } | null };
+  const readPdf = async (rev: number): Promise<PdfAnswer | null> => {
+    try {
+      const res = await fetchFn(`/api/projects/${projectId}/issue?rev=${rev}`, { cache: 'no-store' });
+      if (!res.ok) return null;
+      return ((await res.json()) as { pdf?: PdfAnswer }).pdf ?? null;
+    } catch {
+      return null;
+    }
+  };
+  const followPdf = async (rev: number) => {
+    for (;;) {
+      const pdf = await readPdf(rev);
+      const run = state.issue.run;
+      if (disposed || (run.kind !== 'generating' && run.kind !== 'issuing') || ('rev' in run && run.rev !== rev)) return;
+      if (pdf?.status === 'done') {
+        setRun({ kind: 'done', rev, file: pdf.file ? { name: pdf.file.name, link: pdfLink(rev) } : null });
+        return;
+      }
+      if (pdf === null || pdf.status === 'failed' || pdf.status === 'none') {
+        setRun({ kind: 'pdf_failed', rev });
+        return;
+      }
+      setRun({ kind: 'generating', rev, percent: Math.max(0, Math.min(100, Math.round(pdf.progress ?? 0))) });
+      await wait(2000);
+    }
+  };
+  let issuing = false;
+  let disposed = false;
+  const issue = async () => {
+    if (issuing) return;
+    const run = state.issue.run;
+    if (run.kind === 'issuing' || run.kind === 'generating') return;
+    issuing = true;
+    const rev = state.issue.nextRev;
+    try {
+      setRun({ kind: 'issuing', rev });
+      if (sync !== null) {
+        await sync.flush();
+        const status = sync.getState().status;
+        if (status !== 'idle' && status !== 'saved') {
+          setRun({ kind: 'unsaved' });
+          return;
+        }
+      }
+      const permit = setOf('permit');
+      const objects = source?.getState().objects ?? null;
+      const edition = facts?.facts.edition ?? null;
+      const electrical =
+        objects !== null && edition !== null && permit?.sheets.some((x) => x.number === 'E2.0')
+          ? liveElectricalCalc(objects, edition)
+          : null;
+      let res: Response;
+      try {
+        res = await fetchFn(`/api/projects/${projectId}/issue`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(electrical === null ? {} : { electrical }),
+        });
+      } catch {
+        setRun({ kind: 'failed' });
+        return;
+      }
+      const body = (await res.json().catch(() => null)) as {
+        revNo?: number;
+        jobId?: string | null;
+        gates?: string[];
+      } | null;
+      if (res.status === 409 && Array.isArray(body?.gates)) {
+        setRun({ kind: 'blocked', gates: body.gates });
+        void reloadChecklist();
+        return;
+      }
+      if (res.status !== 201 || typeof body?.revNo !== 'number') {
+        setRun({ kind: 'failed' });
+        return;
+      }
+      const issued = body.revNo;
+      setRun(body.jobId ? { kind: 'generating', rev: issued, percent: 0 } : { kind: 'pdf_failed', rev: issued });
+      void reloadIssue();
+      void screen.load();
+      if (body.jobId) await followPdf(issued);
+    } finally {
+      issuing = false;
+    }
+  };
+
   let busy = false;
   const refresh = () => {
     refreshFloors();
@@ -363,6 +533,7 @@ export function createSheetsScreen(
     async load() {
       update({ load: 'loading' });
       void reloadChecklist();
+      void reloadIssue();
       const notes = fetchFn(`/api/projects/${projectId}/notes`, { cache: 'no-store' })
         .then((r) => (r.ok ? r.json() : null))
         .then(parseSetNotes, () => null);
@@ -438,7 +609,13 @@ export function createSheetsScreen(
       return change === null ? false : screen.editViewport(change);
     },
     reloadChecklist,
+    setSync(next) {
+      sync = next;
+    },
+    issue,
+    reloadIssue,
     dispose() {
+      disposed = true;
       unwatch?.();
       unwatch = null;
       shown = false;

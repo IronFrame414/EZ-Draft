@@ -391,4 +391,7 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'create_field_measure_import', args: { p_project: null, p_change: null, p_items: null } },
   // EZD-1409: the phone's Edit text of a field task, authenticated only.
   { fn: 'edit_field_task', args: { p_project: null, p_task: null, p_text: null } },
+  // EZD-717: Issue Rev 0 and Rev N, and the issue's export job record, authenticated only.
+  { fn: 'issue_permit_set', args: { p_project: null, p_description: null, p_electrical: null, p_ip: null } },
+  { fn: 'attach_permit_revision_export', args: { p_revision: null, p_job: null } },
 ];

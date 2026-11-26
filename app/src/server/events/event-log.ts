@@ -53,7 +53,8 @@ const TRANSACTION = { mode: 'transaction' } as const;
 // One entry per EVENTS key, in EVENTS order. A new event fails typecheck until it has one; the ticket that
 // narrows an event's payload sets its object.
 export const EVENT_LOG: EventLogRules = {
-  'plan_set.issued': SINK,
+  // EZD-717: public.issue_permit_set writes the row in the issue's own transaction.
+  'plan_set.issued': TRANSACTION,
   'selection.approved': SINK,
   'revision.created': SINK,
   'change_order.sent': SINK,

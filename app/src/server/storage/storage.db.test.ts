@@ -56,6 +56,7 @@ const STORAGE_POLICIES = [
   'storage_media_delete',
   'storage_media_thumb_insert',
   'storage_media_field_photo_insert',
+  'storage_exports_issued_select',
 ];
 
 const sha = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
@@ -160,7 +161,7 @@ describe('EZD-132 file storage', () => {
     }
   });
 
-  it('EZD-132 T8 five private buckets; policies only on sources and media, none for update or anon', async () => {
+  it('EZD-132 T8 five private buckets; policies on sources and media and issued exports only, none for update or anon', async () => {
     const buckets = await harnessSql()<{ id: string; public: boolean }[]>`
       select id, public from storage.buckets where id = any(${FIVE_BUCKETS}::text[])`;
     expect(buckets.map((r) => r.id).sort()).toEqual([...FIVE_BUCKETS].sort());
@@ -179,15 +180,20 @@ describe('EZD-132 file storage', () => {
       from pg_policies where schemaname = 'storage' and tablename = 'objects'`;
     // EZD-224 (vault/plans/EZD-224.md section 3 Shared lists; L-024, dated 2026-11-11, newest migration
     // 20261110130000): six policies, storage_media_thumb_insert added. EZD-1402 (20261121210000): seven,
-    // storage_media_field_photo_insert added.
+    // storage_media_field_photo_insert added. EZD-717 (20261126230000): eight, storage_exports_issued_select added, the
+    // one exports policy: a select of an issued revision's export job folder only.
     const names = policies.map((p) => p.policyname);
     for (const name of STORAGE_POLICIES) expect(names).toContain(name);
-    expect(names).toHaveLength(7);
+    expect(names).toHaveLength(8);
     for (const p of policies) {
       expect(['UPDATE', 'ALL'], p.policyname).not.toContain(p.cmd);
       const text = `${p.qual ?? ''} ${p.with_check ?? ''}`;
-      for (const closed of ['renders', 'exports', 'jobs'])
-        expect(text, p.policyname).not.toContain(closed);
+      const closed = p.policyname === 'storage_exports_issued_select' ? ['renders', 'jobs'] : ['renders', 'exports', 'jobs'];
+      if (p.policyname === 'storage_exports_issued_select') {
+        expect(p.cmd).toBe('SELECT');
+        expect(text).toContain('permit_revision');
+      }
+      for (const word of closed) expect(text, p.policyname).not.toContain(word);
       expect(p.roles, p.policyname).not.toContain('anon');
       expect(p.roles, p.policyname).not.toContain('public');
     }

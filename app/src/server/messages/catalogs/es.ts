@@ -98,6 +98,10 @@ export const es = {
   'error.share_link_not_found': 'Ese enlace no está disponible.',
   'error.share_link_revoked': 'Ese enlace se desactivó y no se puede renovar.',
   'error.version_not_found': 'Esa versión no está disponible.',
+  // EZD-717: agent-written Spanish, checked at the field check (Q-0030 (a)).
+  'error.issue_blocked': 'Corrija los puntos en rojo de la lista antes de emitir.',
+  'error.revision_not_found': 'Esa revisión no está disponible.',
+  'error.pdf_not_ready': 'Ese PDF aún no está listo.',
   'error.thumbnail_invalid': 'No se pudo guardar esa imagen del plano.',
   'error.thumbnail_not_found': 'Esa imagen del plano no está disponible.',
   'error.stale_lock_epoch':

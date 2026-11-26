@@ -17,6 +17,9 @@
 //    result).
 // Progress is the share of sheets written. Safe to run twice: paths are fixed by job id and key, written with upsert,
 // and the result holds no time or size. Supporting documents are separate files of their own tickets.
+// EZD-717 (AC-EZD-717-1): an issue's job names the frozen version (modelVersionId) and its revision: the objects are
+// read from that version's model_json, so an edit made after the issue never reaches the issued PDF. Without a
+// revision the permit set's files are named with its draft revision (one more than the newest issued).
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import {
@@ -53,6 +56,7 @@ import {
   withScheduleSheets,
 } from '../../../lib/sheets/cabinet-schedule-table';
 import type { Database } from '../../db/database.types';
+import { nextRevision } from '../../../lib/sheets/revisions';
 import { createJobsDbClient } from '../db';
 import { JobError } from '../errors';
 import {
@@ -72,9 +76,11 @@ export type PdfExportPayload = {
   set: SheetSetKind;
   // One PDF per set or one per sheet; absent, the submittal profile's file split.
   split?: ExportSplit;
-  // The revision the files are named with; absent, the set's draft revision (Rev 0 until first issued). The issue
-  // (EZD-717) passes the number it gives.
+  // The revision the files are named with; absent, the set's draft revision (Rev 0 until first issued, then one more
+  // than the newest issued). The issue (EZD-717) passes the number it gives.
   revision?: number;
+  // EZD-717: the frozen version to print (the issue's checkpoint); absent, the live working copy.
+  modelVersionId?: string;
 };
 
 export type PdfExportFile = {
@@ -116,6 +122,42 @@ async function readObjects(db: Db, tenantId: string, projectId: string): Promise
   }
 }
 
+// EZD-717: the objects of one frozen version of the project (its model_json, written by make_checkpoint).
+export async function readVersionObjects(
+  db: Db,
+  tenantId: string,
+  projectId: string,
+  versionId: string,
+): Promise<StoredObject[]> {
+  const { data, error } = await db
+    .from('model_version')
+    .select('model_json')
+    .eq('tenant_id', tenantId)
+    .eq('project_id', projectId)
+    .eq('id', versionId)
+    .maybeSingle();
+  if (error) throw error;
+  if (data === null) throw new JobError('version_not_found', { retry: false });
+  const doc = data.model_json as { objects?: unknown } | null;
+  const list = Array.isArray(doc?.objects) ? (doc.objects as StoredObject[]) : [];
+  return list.filter(
+    (o) => typeof o === 'object' && o !== null && typeof o.id === 'string' && typeof o.type === 'string',
+  );
+}
+
+// EZD-717: the permit set's draft revision: one more than its newest issued revision, 0 before any.
+async function nextPermitRevision(db: Db, tenantId: string, projectId: string): Promise<number> {
+  const { data, error } = await db
+    .from('permit_revision')
+    .select('rev_no')
+    .eq('tenant_id', tenantId)
+    .eq('project_id', projectId)
+    .order('rev_no', { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  return nextRevision(data.map((r) => ({ revNo: r.rev_no })));
+}
+
 async function readProfile(
   db: Db,
   tenantId: string,
@@ -135,6 +177,7 @@ export const pdfExportHandler: JobHandler<PdfExportPayload, never, PdfExportResu
     set: z.enum(SHEET_SET_KINDS),
     split: z.enum(EXPORT_SPLITS).optional(),
     revision: z.number().int().min(0).max(999).optional(),
+    modelVersionId: z.uuid().optional(),
   }),
   result: z.object({
     files: z.array(
@@ -163,7 +206,10 @@ export const pdfExportHandler: JobHandler<PdfExportPayload, never, PdfExportResu
     if (project.error) throw project.error;
     if (project.data === null) throw new JobError('project_not_found', { retry: false });
     const profile = await readProfile(db, tenantId, project.data.submittal_profile_id);
-    const objects = await readObjects(db, tenantId, projectId);
+    const objects =
+      ctx.payload.modelVersionId === undefined
+        ? await readObjects(db, tenantId, projectId)
+        : await readVersionObjects(db, tenantId, projectId, ctx.payload.modelVersionId);
 
     // The set and the floors, as the Sheets screen reads them (server/sheets/sheets.ts): the lowest-id live set
     // object of the kind, else the default set; floors by order, then id.
@@ -224,7 +270,9 @@ export const pdfExportHandler: JobHandler<PdfExportPayload, never, PdfExportResu
       });
     }
 
-    const rev = ctx.payload.revision ?? draftRevision(data) ?? 0;
+    const rev =
+      ctx.payload.revision ??
+      (data.kind === 'permit' ? await nextPermitRevision(db, tenantId, projectId) : (draftRevision(data) ?? 0));
     const created = typeof ctx.job.created_at === 'string' ? ctx.job.created_at : new Date().toISOString();
     const files = exportFiles(
       profile,

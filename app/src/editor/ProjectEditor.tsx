@@ -728,6 +728,24 @@ export function ProjectEditor({
   useEffect(() => {
     sheetsScreen?.setShown(showSheets);
   }, [sheetsScreen, showSheets]);
+  // EZD-717: Issue drains the outbox first, so the issued checkpoint holds the latest edits (as Send does).
+  useEffect(() => {
+    if (sheetsScreen === null) return;
+    sheetsScreen.setSync(sync);
+    return () => sheetsScreen.setSync(null);
+  }, [sheetsScreen, sync]);
+  // EZD-717: a set issued on the Sheets screen moves the header to "Rev N issued" at once.
+  const [issuedNo, setIssuedNo] = useState<number | null>(null);
+  useEffect(() => {
+    if (sheetsScreen === null) return;
+    const read = () => {
+      let max: number | null = null;
+      for (const r of sheetsScreen.get().issue.revisions) if (max === null || r.revNo > max) max = r.revNo;
+      setIssuedNo((cur) => newerVersionNo(cur, max));
+    };
+    read();
+    return sheetsScreen.subscribe(read);
+  }, [sheetsScreen]);
   useEffect(
     () => (sheetsScreen === null ? undefined : () => sheetsScreen.dispose()),
     [sheetsScreen],
@@ -873,8 +891,15 @@ export function ProjectEditor({
   }, [plan, selection, drawing, session, menuCanEdit, adjusting]);
 
   const versionNo = newerVersionNo(session?.model.project.versionNo ?? null, sentNo);
+  // EZD-717 (board S13Sheets header "Working copy · Rev 0 issued"): after Rev 0 the header names the newest issue.
+  const revNo = newerVersionNo(session?.model.project.revNo ?? null, issuedNo);
   const label = versionLabel({
-    lastSent: versionNo === null ? null : { kind: 'version', no: versionNo },
+    lastSent:
+      revNo !== null
+        ? { kind: 'rev', no: revNo }
+        : versionNo === null
+          ? null
+          : { kind: 'version', no: versionNo },
     // EZD-121 text: "Version N" while that sent version is open read-only.
     viewing:
       viewing !== null && viewing.isSent && viewing.versionNo !== null

@@ -493,7 +493,7 @@ export async function loadModel(
   };
 
   // EZD-223: the viewer's own iPad drawing setting rides with the load for the Sketch tool.
-  const [project, lock, firstPage, firstDeleted, me, companyDefaults, lastSent, cleanupDue] =
+  const [project, lock, firstPage, firstDeleted, me, companyDefaults, lastSent, cleanupDue, lastIssued] =
     await Promise.all([
       client
         .from('project')
@@ -527,10 +527,19 @@ export async function loadModel(
         .eq('is_snapshot', false)
         .not('cleanup_shown_at', 'is', null)
         .limit(1),
+      // EZD-717 (board S13Sheets header "Working copy · Rev 0 issued"): the newest issued revision's number.
+      client
+        .from('permit_revision')
+        .select('rev_no')
+        .eq('project_id', projectId)
+        .order('rev_no', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
   if (project.error) throw project.error;
   if (cleanupDue.error) throw cleanupDue.error;
   if (lastSent.error) throw lastSent.error;
+  if (lastIssued.error) throw lastIssued.error;
   if (lock.error && lock.error.code !== 'P0002') throw lock.error;
   if (me.error) throw me.error;
   if (project.data === null) return null;
@@ -588,6 +597,8 @@ export async function loadModel(
       phaseDefault: phaseViewOf(project.data.phase_default),
       // Absent before any send (the header reads "Working copy").
       ...(lastSent.data?.version_no == null ? {} : { versionNo: lastSent.data.version_no }),
+      // EZD-717: absent before Rev 0.
+      ...(lastIssued.data == null ? {} : { revNo: lastIssued.data.rev_no }),
       // EZD-123: present only when a working row is up for cleanup.
       ...(cleanupDue.data.length > 0 ? { cleanupDue: true } : {}),
     },
