@@ -545,7 +545,8 @@
     "EZD-1955",
     "EZD-1409",
     "EZD-703",
-    "EZD-1958"
+    "EZD-1958",
+    "EZD-705"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2287,6 +2288,14 @@
       "ts": "2026-11-26T08:55:39Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-705",
+      "title": "Print rules",
+      "commit": "e9ac73d8",
+      "ts": "2026-11-26T09:40:14Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2544,12 +2553,6 @@
     }
   },
   "running": {
-    "EZD-705": {
-      "lane": 1,
-      "title": "Print rules",
-      "started": "2026-11-26T08:25:40Z",
-      "develop": "6e6791a8"
-    },
     "EZD-1910": {
       "lane": 3,
       "title": "Editor feature registry, lazy-part helper and Defaults hook",
