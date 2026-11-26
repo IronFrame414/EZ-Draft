@@ -630,3 +630,64 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* EZD-717 (board S13Sheets inspector): the revision log rows and the Issue button footer (primary, full width; the
+   PDF's file name and Copy link under it). */
+.revisionRow {
+  display: grid;
+  grid-template-columns: 52px 72px 1fr auto;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.revisionStatus {
+  font-size: var(--ez-text-13);
+  color: var(--ez-green);
+}
+
+.issue {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px;
+}
+
+.issueButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--ez-radius-12);
+  background: var(--ez-cobalt);
+  color: var(--ez-surface);
+  font: 600 var(--ez-text-15) var(--ez-font-sans);
+  cursor: pointer;
+}
+
+.issueButton:disabled {
+  background: var(--ez-border);
+  color: var(--ez-slate-500);
+  cursor: not-allowed;
+}
+
+.issueProgress {
+  width: 100%;
+  height: 6px;
+  accent-color: var(--ez-cobalt);
+}
+
+.issueResult {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--ez-text-13);
+}
+
+.issueFile {
+  color: var(--ez-cobalt-text);
+  overflow-wrap: anywhere;
+}

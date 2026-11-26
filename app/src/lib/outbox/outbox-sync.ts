@@ -41,9 +41,9 @@ import {
   type SaveOutcome,
 } from './outbox';
 
-export type TabLock = {
-  tryRun<T>(name: string, fn: () => Promise<T>): Promise<{ ran: true; value: T } | { ran: false }>;
-};
+// EZD-1998: the tab lock lives in tab-lock.ts (re-exported here), so the field sender loads without this module.
+import { webTabLock, type TabLock } from './tab-lock';
+export { webTabLock, type TabLock };
 
 export type SyncState = {
   status: 'idle' | 'pending' | 'saving' | 'saved' | 'offline' | 'error';
@@ -101,19 +101,6 @@ const RETRY_DELAYS_MS = [2000, 4000, 8000, 16000, 30000];
 const LOCK_BUSY_RETRY_MS = 2000;
 const DEFAULT_DEBOUNCE_MS = 2000;
 export const UNSAVED: { readonly kind: 'unsaved' } = { kind: 'unsaved' };
-
-// Decided "webTabLock": the Web Locks API with ifAvailable; without it (an old browser) the drain just runs.
-export function webTabLock(): TabLock {
-  return {
-    async tryRun<T>(name: string, fn: () => Promise<T>) {
-      const locks = (globalThis.navigator as { locks?: LockManager } | undefined)?.locks;
-      if (!locks) return { ran: true as const, value: await fn() };
-      return locks.request(name, { ifAvailable: true }, async (lock) =>
-        lock === null ? { ran: false as const } : { ran: true as const, value: await fn() },
-      );
-    },
-  };
-}
 
 // Decided "Request": exactly the keys parseSaveRequest accepts.
 function toRequestChange(e: OutboxEntry) {

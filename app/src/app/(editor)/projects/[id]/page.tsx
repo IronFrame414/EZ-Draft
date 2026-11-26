@@ -34,38 +34,50 @@ export default async function EditorPage({
   await connection();
   const session = await requireSession();
   const { id } = await params;
+  // Performance audit 2026-11-26: the Import review check, the rail order, the mesh link and the permissions do not
+  // depend on each other, so the four reads start together and the page waits for the slowest one, not for their sum.
   // EZD-1422 (S01 Input source "the project opens on 02 Import review when the rooms arrive"): a project made with
   // Field measure opens on the Import review of its sent rooms while that review is open.
   // A failed read is reported and the plan opens.
-  const reviewJob = await fieldMeasureReviewJob(createSessionClient(), id).catch(async () => {
+  const reviewJobRead = fieldMeasureReviewJob(createSessionClient(), id).catch(async () => {
     await reportError(new Error('editor_field_measure_review_failed'), {
       source: 'function',
       location: 'editor.field_measure_review',
     });
     return null;
   });
-  if (reviewJob !== null) redirect(`/projects/${id}/import/${reviewJob}`);
   // EZD-230 (Q-0038, Q-0122): the user's own rail tool order, read with the page so the editor asks for nothing
   // more; a failed read is reported and the rail keeps its default order.
-  let railOrder: string[] = [];
-  try {
-    railOrder = await loadRailOrder(createSessionClient(), session);
-  } catch {
-    await reportError(new Error('editor_rail_order_load_failed'), {
-      source: 'function',
-      location: 'editor.rail_order',
-    });
-  }
+  const railOrderRead = (async (): Promise<string[]> => {
+    try {
+      return await loadRailOrder(createSessionClient(), session);
+    } catch {
+      await reportError(new Error('editor_rail_order_load_failed'), {
+        source: 'function',
+        location: 'editor.rail_order',
+      });
+      return [];
+    }
+  })();
   // EZD-503: the project's Polycam GLB link for Read heights from scan; a failed read is reported and hides it.
-  let meshUrl: string | null = null;
-  try {
-    meshUrl = await projectMeshUrl(createSessionClient(), id);
-  } catch {
-    await reportError(new Error('editor_mesh_link_failed'), {
-      source: 'function',
-      location: 'editor.mesh_link',
-    });
-  }
+  const meshUrlRead = (async (): Promise<string | null> => {
+    try {
+      return await projectMeshUrl(createSessionClient(), id);
+    } catch {
+      await reportError(new Error('editor_mesh_link_failed'), {
+        source: 'function',
+        location: 'editor.mesh_link',
+      });
+      return null;
+    }
+  })();
+  const [reviewJob, railOrder, meshUrl, ctx] = await Promise.all([
+    reviewJobRead,
+    railOrderRead,
+    meshUrlRead,
+    settingsPermissionContext(),
+  ]);
+  if (reviewJob !== null) redirect(`/projects/${id}/import/${reviewJob}`);
   const query = searchParams === undefined ? undefined : await searchParams;
   const open = query?.conflicts === 'open' ? { conflictsOpen: true } : {};
   // EZD-237 (vault/plans/EZD-237.md D-Editor): `?benchmark=run` plays the benchmark (the Benchmark card's frame).
@@ -74,7 +86,6 @@ export default async function EditorPage({
   const imported = parseImported(query?.imported);
   // EZD-1991 (Q-0813): `?view=sheets` opens the Sheets screen (Settings > Title block "Open Sheets").
   const view = query?.view === 'sheets' ? { initialView: 'sheets' as const } : {};
-  const ctx = await settingsPermissionContext();
   if (ctx === 'failed') {
     await reportError(new Error('editor_permissions_load_failed'), {
       source: 'function',

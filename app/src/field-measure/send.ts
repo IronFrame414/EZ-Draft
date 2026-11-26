@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFieldSync, useOutboxActor } from '../components/outbox/OutboxDrain';
 import { createFieldQueue } from '../lib/outbox/field-queue';
-import type { FieldRoom } from './rooms';
+import type { FieldRoom } from './room-model';
 
 export type SendStatus = 'idle' | 'queued' | 'sent' | 'refused';
 

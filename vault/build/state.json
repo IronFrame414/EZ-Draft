@@ -551,7 +551,17 @@
     "EZD-509",
     "EZD-1911",
     "EZD-715",
-    "EZD-716"
+    "EZD-716",
+    "EZD-1912",
+    "EZD-1994",
+    "EZD-707",
+    "EZD-123",
+    "EZD-1996",
+    "EZD-1997",
+    "EZD-717",
+    "EZD-1999",
+    "EZD-1611a",
+    "EZD-1998"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2341,6 +2351,86 @@
       "ts": "2026-11-26T12:29:07Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1912",
+      "title": "Move controller construction out of ProjectEditor",
+      "commit": "bae4c7b3",
+      "ts": "2026-11-26T13:20:46Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1994",
+      "title": "Land the performance audit's five changes (zod off Projects; page reads start together)",
+      "commit": "dad354c5",
+      "ts": "2026-11-26T14:44:04Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-707",
+      "title": "Elevations sheet",
+      "commit": "568df6c6",
+      "ts": "2026-11-26T15:13:15Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-123",
+      "title": "Version cleanup",
+      "commit": "5bbbd624",
+      "ts": "2026-11-26T15:50:48Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1996",
+      "title": "Styles split by page so sign-in and other pages stop loading every screen's CSS",
+      "commit": "e2135f59",
+      "ts": "2026-11-26T16:25:22Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1997",
+      "title": "The notification bell loads realtime after the page is usable",
+      "commit": "148f8395",
+      "ts": "2026-11-26T16:57:39Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-717",
+      "title": "Issue Rev 0 and Rev N",
+      "commit": "87464d79",
+      "ts": "2026-11-26T17:36:24Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1999",
+      "title": "New project wizard loads when it is opened, not with the Projects page",
+      "commit": "f020130f",
+      "ts": "2026-11-26T18:14:33Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1611a",
+      "title": "Takeoff framework and room finishes",
+      "commit": "fbb54703",
+      "ts": "2026-11-26T18:39:05Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-1998",
+      "title": "Field measure under its 200 KB budget, and the perf gate measures the real field pages",
+      "commit": "66a5f12b",
+      "ts": "2026-11-26T19:13:15Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2393,7 +2483,8 @@
     "EZD-1983": 1,
     "EZD-1991": 1,
     "EZD-1990": 1,
-    "EZD-1993": 1
+    "EZD-1993": 1,
+    "EZD-614": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2595,23 +2686,21 @@
     "EZD-1993": {
       "ts": "2026-11-25T22:59:11Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-614": {
+      "ts": "2026-11-26T13:46:42Z",
+      "reason": "review still failing after 2 fix rounds"
     }
   },
   "running": {
-    "EZD-1912": {
-      "lane": 3,
-      "title": "Move controller construction out of ProjectEditor",
-      "started": "2026-11-26T11:32:42Z",
-      "develop": "6f2333e4"
-    },
-    "EZD-614": {
+    "EZD-719": {
       "lane": 1,
-      "title": "Appliance rating defaults",
-      "started": "2026-11-26T12:00:25Z",
-      "develop": "9897b2fc"
+      "title": "Send set to client",
+      "started": "2026-11-26T18:14:39Z",
+      "develop": "5ed655bf"
     }
   },
-  "advisories_checked_at": "2026-11-26T10:20:19Z",
+  "advisories_checked_at": "2026-11-26T16:20:56Z",
   "hold": {},
   "perf_trend_at": "2026-11-26T03:55:15Z",
   "set_aside_history": [],

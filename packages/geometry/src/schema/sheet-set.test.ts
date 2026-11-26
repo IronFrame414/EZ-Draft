@@ -109,3 +109,25 @@ describe('EZD-703 sheet_set changed-viewport sheets', () => {
     expect(ok({ ...permit(), viewportSheets: [''] })).toBe(false);
   });
 });
+
+// EZD-707 (R24 "any other wall is added with Add elevation"; AC-EZD-707-3): an elevation viewport holds the walls
+// added to it, by id.
+describe('EZD-707 sheet_set elevation walls', () => {
+  const WALL = '77777777-7777-4777-8777-777777777777';
+  const vp = (over: Record<string, unknown> = {}) => ({
+    id: '55555555-5555-4555-8555-555555555555',
+    sheet: 'A4.0',
+    kind: 'elevation',
+    level: null,
+    view: 'proposed',
+    scale: '1/2',
+    ...over,
+  });
+
+  it('holds added wall ids; a viewport without them is still valid; a bad id is refused', () => {
+    expect(ok({ ...permit(), viewports: [vp()] })).toBe(true);
+    expect(ok({ ...permit(), viewports: [vp({ walls: [] })] })).toBe(true);
+    expect(ok({ ...permit(), viewports: [vp({ walls: [WALL] })] })).toBe(true);
+    expect(ok({ ...permit(), viewports: [vp({ walls: ['Wall 4'] })] })).toBe(false);
+  });
+});

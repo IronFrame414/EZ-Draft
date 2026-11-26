@@ -68,11 +68,23 @@ export const MEASUREMENTS = Object.freeze([
     'js-size',
     'EZD-020; EZD-117a repoints to /; EZD-103 adds a Settings URL on the same budget',
   ),
-  row('js-size:field-pack', 'download.field-pack', 'active', 'js-size', 'EZD-020; EZD-1404 repoints'),
+  // EZD-1998 (AC-EZD-1998-1): the field rows measure the real field pack and field measure pages of a seeded
+  // project (perf.config.mjs `{project}` URLs; the run is given --project and a signed-in --storage-state).
+  row('js-size:field-pack', 'download.field-pack', 'active', 'js-size', 'EZD-020; EZD-1998 measures the real page'),
+  row('js-size:field-measure', 'download.field-pack', 'active', 'js-size', 'EZD-1998 (AC-EZD-1998-1, AC-EZD-1998-2)'),
   row('js-size:client-link', 'download.client-link', 'active', 'js-size', 'EZD-020; EZD-1202 repoints'),
+  // EZD-1996 (AC-EZD-1996-3): the sign-in page's CSS on its own gate row.
+  row('css-size:sign-in', 'download.sign-in-css', 'active', 'css-size', 'EZD-1996 (AC-EZD-1996-3)'),
   row('entry-contents:office', 'contents.office', 'active', 'js-contents', 'EZD-020; EZD-117a, EZD-103 repoint'),
   row('entry-contents:editor', 'contents.editor', 'active', 'js-contents', 'EZD-020; EZD-120b repoints'),
-  row('entry-contents:field-pack', 'contents.field-pack', 'active', 'js-contents', 'EZD-020; EZD-1404 repoints'),
+  row(
+    'entry-contents:field-pack',
+    'contents.field-pack',
+    'active',
+    'js-contents',
+    'EZD-020; EZD-1998 measures the real page',
+  ),
+  row('entry-contents:field-measure', 'contents.field-pack', 'active', 'js-contents', 'EZD-1998 (AC-EZD-1998-1)'),
   row('entry-contents:client-link', 'contents.client-link', 'active', 'js-contents', 'EZD-020; EZD-1202 repoints'),
   row('entry-contents:sign-in', 'contents.sign-in', 'active', 'js-contents', "EZD-020; EZD-007's page, no repoint"),
   row('draw-calls-per-frame', 'draw-calls.frame', 'pending', null, 'EZD-1701 (no source gives a number; EZD-207c)'),

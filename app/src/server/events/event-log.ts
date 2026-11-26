@@ -53,7 +53,8 @@ const TRANSACTION = { mode: 'transaction' } as const;
 // One entry per EVENTS key, in EVENTS order. A new event fails typecheck until it has one; the ticket that
 // narrows an event's payload sets its object.
 export const EVENT_LOG: EventLogRules = {
-  'plan_set.issued': SINK,
+  // EZD-717: public.issue_permit_set writes the row in the issue's own transaction.
+  'plan_set.issued': TRANSACTION,
   'selection.approved': SINK,
   'revision.created': SINK,
   'change_order.sent': SINK,
@@ -101,7 +102,8 @@ export const EVENT_LOG: EventLogRules = {
   'offline_change.synced': SINK,
   // EZD-1201: written by sweep_share_link_reminders in the reminder transaction.
   'share_link.expiring': TRANSACTION,
-  'cleanup.due': SINK,
+  // EZD-123: written by run_version_cleanup in the run transaction.
+  'cleanup.due': TRANSACTION,
   'code_check.completed': SINK,
   'code_warning.accepted': SINK,
   'design_option.created': SINK,
@@ -110,7 +112,8 @@ export const EVENT_LOG: EventLogRules = {
   'version.sent': TRANSACTION,
   'version.snapshot_named': SINK,
   'version.reverted': SINK,
-  'cleanup.deleted': SINK,
+  // EZD-123: written by run_version_cleanup and save_cleanup_choices in their own transactions.
+  'cleanup.deleted': TRANSACTION,
   'room.closure_overridden': {
     mode: 'sink',
     object: (e) => ({ type: 'model_object', id: e.payload.roomId }),

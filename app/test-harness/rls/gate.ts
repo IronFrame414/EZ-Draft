@@ -68,6 +68,8 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
     fn: 'revert_to_version',
     args: { p_project: null, p_version: null, p_lock_epoch: null, p_objects: null, p_label: null },
   },
+  // EZD-123: the cleanup sheet's Save choices (authenticated only).
+  { fn: 'save_cleanup_choices', args: { p_project: null, p_lock_epoch: null, p_keep: null, p_delete: null } },
   // EZD-5601 step 2 (vault/plans/EZD-5601.md): the user's own Anthropic key functions, authenticated only.
   { fn: 'get_my_ai_key', args: {} },
   {
@@ -389,4 +391,7 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'create_field_measure_import', args: { p_project: null, p_change: null, p_items: null } },
   // EZD-1409: the phone's Edit text of a field task, authenticated only.
   { fn: 'edit_field_task', args: { p_project: null, p_task: null, p_text: null } },
+  // EZD-717: Issue Rev 0 and Rev N, and the issue's export job record, authenticated only.
+  { fn: 'issue_permit_set', args: { p_project: null, p_description: null, p_electrical: null, p_ip: null } },
+  { fn: 'attach_permit_revision_export', args: { p_revision: null, p_job: null } },
 ];

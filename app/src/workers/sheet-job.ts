@@ -9,8 +9,15 @@
 // \"NTS\""; AC-EZD-705-1): a viewport that draws anything keeps a strip at the bottom of its area for its print marks
 // (packages/geometry drawing/print-marks.ts): a scale bar and a check dimension at its scale, or NTS. The drawing is
 // centred in the area above the strip.
+// EZD-707 (R24; AC-EZD-707-1, -2, -3): an elevation viewport (`elevation` set) draws its floor's elevations
+// (packages/geometry elevations/wall-elevation.ts) and then its added walls, each in its own cell of the area
+// (lib/sheets/elevation-sheet.ts) with its own print marks, in the viewport's view.
 import { viewDrawsAs, viewShows } from '../lib/sheets/viewport';
+import { elevationCells } from '../lib/sheets/elevation-sheet';
+import { scheduleTableFor } from '../lib/sheets/cabinet-schedule-table';
+import type { CabinetScheduleRow } from '../lib/cabinets/cabinet-schedule';
 import {
+  SHEET_SIZES,
   SHEET_VIEWS,
   buildDrawingList,
   drawingListBounds,
@@ -22,10 +29,12 @@ import {
   type DrawingList,
   type ModelObject,
   type SheetArea,
+  type SheetSize,
   type SheetView,
   type SheetSvg,
   type StoredObject,
 } from '@ezdraft/geometry';
+import { elevationDrawingList, elevationSubjects } from '@ezdraft/geometry/elevations';
 
 export const SHEET_JOB = 'sheet-svg';
 
@@ -41,6 +50,13 @@ export type SheetJobInput = {
   area: SheetArea;
   // The statuses shown; absent draws every status.
   view?: SheetView;
+  // EZD-707: an elevation viewport, with the walls added to it; absent for a plan.
+  elevation?: { walls: string[] };
+};
+
+// EZD-707: the cabinet schedule table of one schedule sheet (A4.0 or a continuation), from the schedule rows.
+export type SheetTableJobInput = {
+  table: { sheet: string; size: SheetSize; rows: CabinetScheduleRow[] };
 };
 
 // An NTS drawing fills this share of its area, so it never touches the area's edge.
@@ -57,6 +73,11 @@ function readInput(input: unknown): SheetJobInput {
     typeof i.level !== 'string' ||
     !(i.scale === null || (finite(i.scale) && i.scale > 0)) ||
     (i.view !== undefined && !(SHEET_VIEWS as readonly unknown[]).includes(i.view)) ||
+    (i.elevation !== undefined &&
+      (typeof i.elevation !== 'object' ||
+        i.elevation === null ||
+        !Array.isArray(i.elevation.walls) ||
+        !i.elevation.walls.every((w) => typeof w === 'string'))) ||
     a === undefined ||
     !finite(a.x) ||
     !finite(a.y) ||
@@ -74,6 +95,14 @@ export function viewportDrawingList(
   level: string,
   view?: SheetView,
 ): DrawingList {
+  return buildDrawingList(
+    { objects: viewObjects(objects, view) },
+    { level, dimensionTextPt: SHEET_LABEL_PT, roomHatch: null, roomLabelPt: SHEET_LABEL_PT },
+  );
+}
+
+// The stored objects a view shows, parsed; what is marked Demo is drawn as existing in the Existing view.
+function viewObjects(objects: readonly StoredObject[], view?: SheetView): ModelObject[] {
   const parsed: ModelObject[] = [];
   for (const stored of objects) {
     const r = parseStoredObject(stored);
@@ -85,19 +114,56 @@ export function viewportDrawingList(
       parsed.push({ ...r.object, data: { ...r.object.data, status: viewDrawsAs(view, status) } } as ModelObject);
     else parsed.push(r.object);
   }
-  return buildDrawingList(
-    { objects: parsed },
-    { level, dimensionTextPt: SHEET_LABEL_PT, roomHatch: null, roomLabelPt: SHEET_LABEL_PT },
-  );
+  return parsed;
 }
 
-export function sheetJob(input: unknown): SheetSvg {
-  const { objects, level, scale, area, view } = readInput(input);
-  const list = viewportDrawingList(objects, level, view);
+// EZD-707: an elevation viewport's elevations, one drawing list per cell of its area, in sheet order (shared with
+// the PDF export job, R7). The title prints one size up from notes, as labels do (09h).
+export function elevationViewportLists(
+  objects: readonly StoredObject[],
+  level: string,
+  view: SheetView | undefined,
+  walls: readonly string[],
+  area: SheetArea,
+): { list: DrawingList; area: SheetArea }[] {
+  const shown = viewObjects(objects, view);
+  const subjects = elevationSubjects(shown, level, walls);
+  const cells = elevationCells(area, subjects.length);
+  return subjects.map((subject, i) => ({
+    list: elevationDrawingList(subject, shown, { level, titlePt: SHEET_LABEL_PT }),
+    area: cells[i]!,
+  }));
+}
+
+// One drawing in its area, above its print marks.
+function drawInArea(list: DrawingList, scale: number | null, area: SheetArea): SheetSvg {
   const { drawing } = splitPrintMarkBand(area);
   const svg = sheetSvg(list, { scale: scale ?? ntsScale(list, drawing), area: drawing });
   if (svg.markup === '') return svg;
   return { ...svg, markup: svg.markup + printMarksSvg(printMarks(scale, area)) };
+}
+
+function tableJob(input: SheetTableJobInput['table']): SheetSvg {
+  if (typeof input.sheet !== 'string' || !Array.isArray(input.rows) || !SHEET_SIZES.includes(input.size))
+    throw new Error('sheet_input');
+  const t = scheduleTableFor(input.sheet, input.size, input.rows);
+  if (t === null) return { markup: '', shown: [] };
+  // Paper inches at scale 1, in the table's own rectangle; the table names no model object.
+  return { markup: sheetSvg(t.list, { scale: 1, area: t.area }).markup, shown: [] };
+}
+
+export function sheetJob(input: unknown): SheetSvg {
+  if (typeof input === 'object' && input !== null && 'table' in input) {
+    const table = (input as Partial<SheetTableJobInput>).table;
+    if (typeof table !== 'object' || table === null) throw new Error('sheet_input');
+    return tableJob(table);
+  }
+  const { objects, level, scale, area, view, elevation } = readInput(input);
+  if (elevation === undefined) return drawInArea(viewportDrawingList(objects, level, view), scale, area);
+  const svgs = elevationViewportLists(objects, level, view, elevation.walls, area).map((c) =>
+    drawInArea(c.list, scale, c.area),
+  );
+  return { markup: svgs.map((s) => s.markup).join(''), shown: [...new Set(svgs.flatMap((s) => s.shown))].sort() };
 }
 
 // The scale that fits the drawing to the area, at NTS_FILL.

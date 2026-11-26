@@ -6,7 +6,8 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { expect, test } from '../test-harness/e2e/test';
+import { cleanup, closeHarness, expect, test } from '../test-harness/e2e/test';
+import { fieldPerfSession } from './perf-field-session';
 
 type Row = {
   id: string;
@@ -77,9 +78,17 @@ const PENDING = [
 ];
 
 test.describe('EZD-017 performance check', () => {
-  test('EZD-017 done when: the check passes on the empty shell (T1)', async () => {
-    test.setTimeout(180000);
-    const r = runPerf([]);
+  test.afterAll(async () => {
+    await cleanup();
+    await closeHarness();
+  });
+
+  // EZD-1998 (AC-EZD-1998-1): the whole check now includes the real field pages of a seeded project, so T1 seeds one
+  // and signs in (the browser fixture is used for that only; the CLI opens its own browser).
+  test('EZD-017 done when: the check passes on the empty shell (T1)', async ({ browser }) => {
+    test.setTimeout(240000);
+    const field = await fieldPerfSession(browser, String(test.info().project.use.baseURL));
+    const r = runPerf(field.args);
     // (a)
     expect(r.status, r.stdout).toBe(0);
     expect(r.stdout).toContain('PERF PASS');
@@ -126,6 +135,31 @@ test.describe('EZD-017 performance check', () => {
       expect(row.value as number).toBeGreaterThan(0);
       expect(row.value as number).toBeLessThanOrEqual(200000);
     }
+
+    // EZD-1998 (AC-EZD-1998-1, AC-EZD-1998-2): the field pack and field measure rows measure the seeded project's
+    // real pages, signed in, each within the 200 KB download.field-pack budget (11 Budgets Download size; KB = 1,000).
+    for (const [id, page] of [
+      ['js-size:field-pack', 'field'],
+      ['js-size:field-measure', 'field-measure'],
+      ['entry-contents:field-pack', 'field'],
+      ['entry-contents:field-measure', 'field-measure'],
+    ]) {
+      const row = rowOf(res, id);
+      expect(row.details.url, id).toBe(`/projects/${field.projectId}/${page}`);
+      expect(row.status, id).toBe('pass');
+    }
+    for (const id of ['js-size:field-pack', 'js-size:field-measure']) {
+      const row = rowOf(res, id);
+      expect(row.budget, id).toBe(200000);
+      expect(row.value as number, id).toBeGreaterThan(0);
+      expect(row.value as number, id).toBeLessThanOrEqual(200000);
+    }
+    // AC-EZD-1998-2: field measure checks the saved copy by hand; zod is not in its first load.
+    const measureModules = Object.keys(
+      (rowOf(res, 'entry-contents:field-measure').details.modules ?? {}) as Record<string, number>,
+    );
+    expect(measureModules).toContain('app:field-measure/FieldMeasureScreen.tsx');
+    expect(measureModules.filter((k) => k === 'pkg:zod' || k.startsWith('pkg:zod/'))).toEqual([]);
 
     // (f)
     const ltPan = rowOf(res, 'long-tasks-during-pan');

@@ -94,6 +94,9 @@ export const en = {
   'error.share_link_not_found': "That link isn't available.",
   'error.share_link_revoked': 'That link was turned off and cannot be renewed.',
   'error.version_not_found': "That version isn't available.",
+  'error.issue_blocked': 'Fix the red checklist items before issuing.',
+  'error.revision_not_found': "That revision isn't available.",
+  'error.pdf_not_ready': "That PDF isn't ready yet.",
   'error.thumbnail_invalid': "That plan image couldn't be saved.",
   'error.thumbnail_not_found': "That plan image isn't available.",
   'error.stale_lock_epoch':
@@ -1794,6 +1797,8 @@ export const en = {
   'office.new_project.template_accepts':
     'Accepts 12\'6", 12\' 6 1/2", 150" or 12.5\'. Fractions to 1/16".',
   'office.new_project.template_load_failed': "Couldn't load the templates.",
+  // EZD-1999: the New project wizard's code did not download (wording for Josh, assumptions EZD-1999).
+  'office.new_project.load_failed': "Couldn't open New project. Try again.",
   'office.new_project.settings_title': 'Project settings',
   'office.new_project.units': 'Units',
   'office.new_project.units_value': 'Imperial',
@@ -2587,6 +2592,34 @@ export const en = {
   'office.versions.revert_note':
     'Revert makes a new working version from {label}. Sent versions never change.',
   'error.version_not_working': 'Only a working version can be named.',
+  // EZD-123 (board S20 cleanup sheet; vault/build/assumptions/EZD-123.md wording): the version cleanup sheet.
+  'office.versions.cleanup.title': 'Clean up working versions',
+  'office.versions.cleanup.note': {
+    one: '{count} unsent working version reached {days} days. Tick the ones to keep; kept versions become named snapshots. Sent versions and snapshots are never deleted.',
+    other:
+      '{count} unsent working versions reached {days} days. Tick the ones to keep; kept versions become named snapshots. Sent versions and snapshots are never deleted.',
+  },
+  'office.versions.cleanup.close': 'Close',
+  'office.versions.cleanup.select': 'Select',
+  'office.versions.cleanup.all': 'All',
+  'office.versions.cleanup.none': 'None',
+  'office.versions.cleanup.counts': '{keep} keep · {remove} delete',
+  'office.versions.cleanup.summary': '{added} added · {changed} changed · {removed} removed',
+  'office.versions.cleanup.first_version': 'First version',
+  'office.versions.cleanup.age': { one: '{count} day old · unsent', other: '{count} days old · unsent' },
+  'office.versions.cleanup.preview_alt': 'Plan preview, {when}',
+  'office.versions.cleanup.no_preview': 'No preview',
+  'office.versions.cleanup.keep': 'Keep {when}',
+  'office.versions.cleanup.deletes': 'Deletes',
+  'office.versions.cleanup.footer_lead': 'If you do nothing, unticked versions delete on',
+  'office.versions.cleanup.footer_tail': {
+    one: ', {count} day after this sheet first appeared.',
+    other: ', {count} days after this sheet first appeared.',
+  },
+  'office.versions.cleanup.footer_note':
+    'A deleted working version cannot be restored. Needs Edit model and the edit lock.',
+  'office.versions.cleanup.later': 'Later',
+  'office.versions.cleanup.save': 'Keep {keep}, delete {remove} unticked',
   // EZD-409: the schedule view and its CSV (S04 "code, qty, finish, notes"; 08 Exports).
   'office.cabinets.schedule_code': 'Code',
   'office.cabinets.schedule_qty': 'Qty',
@@ -3246,6 +3279,9 @@ export const en = {
   'office.sheets.viewport.scale': 'Scale',
   'office.sheets.viewport.add': 'Add viewport',
   'office.sheets.viewport.remove': 'Remove viewport',
+  'office.sheets.viewport.add_elevation': 'Add elevation',
+  'office.sheets.viewport.wall': 'Wall {number}',
+  'office.sheets.viewport.wall_unnumbered': 'Wall (not saved yet)',
   // EZD-1404 (S17 Field pack phone shell; wording in vault/build/assumptions.md EZD-1404 unless on the S17 mockup).
   'field.offline_icon.cached': 'Saved on this phone for offline use',
   'field.offline_icon.caching': 'Saving for offline use…',
@@ -3439,6 +3475,20 @@ export const en = {
   'office.issue_checklist.renders.detail': 'R1.0 · not client-ready until approved',
   'office.issue_checklist.blocked': 'Red items block issue until they are fixed.',
   'office.issue_checklist.warnings_only': 'Warnings will not block issue.',
+  // EZD-717 (S13 Issue Rev n, Revision log; board S13Sheets inspector): the Issue button and the revision log.
+  'office.issue.button': 'Issue Rev {n}',
+  'office.issue.issuing': 'Issuing Rev {n}',
+  'office.issue.generating': 'Generating PDF · {percent}%',
+  'office.issue.issued': 'Rev {n} issued',
+  'office.issue.copy_link': 'Copy link',
+  'office.issue.copied': 'Link copied',
+  'office.issue.pdf_failed': 'The PDF could not be made.',
+  'office.issue.failed': 'The set could not issue. Try again.',
+  'office.issue.unsaved': 'Changes are still saving. Issue again once they are saved.',
+  'office.revision_log.title': 'Revision log',
+  'office.revision_log.rev': 'Rev {n}',
+  'office.revision_log.issued': 'Issued',
+  'office.revision_log.empty': 'No revisions issued yet.',
   // EZD-509: Defaults CU, LLF and the light target popover; the Auto-layout cans panel.
   'office.defaults.row.light_cu': 'Coefficient of utilization (CU)',
   'office.defaults.row.light_llf': 'Light loss factor (LLF)',
@@ -3463,6 +3513,17 @@ export const en = {
   'office.ceiling.auto.set_in_defaults': 'Set CU and LLF in Defaults.',
   'office.ceiling.auto.no_type': 'Give a can a type tag and lumens first.',
   'office.ceiling.auto.no_room': 'Draw a room first.',
+  // EZD-1611a: the takeoff's Defaults rows under Waste factors.
+  'office.defaults.row.drywall_sheet': 'Drywall sheet',
+  'office.defaults.row.paint_coats': 'Paint coats',
+  'office.defaults.row.paint_coverage': 'Paint coverage',
+  'office.defaults.row.tile_box_coverage': 'Tile box coverage',
+  'office.defaults.choice.4x8': '4 x 8',
+  'office.defaults.choice.4x10': '4 x 10',
+  'office.defaults.choice.4x12': '4 x 12',
+  'office.defaults.error.paint_coats': 'Enter a whole number from 1 to 5',
+  'office.defaults.error.paint_coverage': 'Enter a whole number from 100 to 1,000',
+  'office.defaults.error.tile_box_coverage': 'Enter a whole number from 1 to 100',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

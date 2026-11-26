@@ -2,8 +2,6 @@
 // "sendBeforeSignOut"; Q-0503; Q-0507): sends one person's queued edits from any office page, and before a
 // sign-out. Loaded with import() only when something is queued. Never deletes edits.
 // EZD-1402: and the queued field actions, through one field sender per page.
-import { createFieldQueue, type FieldQueue } from './field-queue';
-import { createFieldSync, type FieldSync } from './field-sync';
 import type { Actor, OutboxStorage } from './outbox';
 import { createIdbOutboxStorage } from './outbox-idb';
 import { createOutboxSync, type OutboxSync } from './outbox-sync';
@@ -27,22 +25,10 @@ export function startDrain(actor: Actor): DrainHandle {
   };
 }
 
-export type FieldDrainHandle = { sync: FieldSync; queue: FieldQueue; dispose(): void };
-
-// EZD-1402: sends what is queued now and every field action added through `sync.add`.
-export function startFieldDrain(actor: Actor): FieldDrainHandle {
-  const queue = createFieldQueue(actor);
-  const sync = createFieldSync({ actor, queue });
-  void sync.drain();
-  return {
-    sync,
-    queue,
-    dispose() {
-      sync.dispose();
-      queue.close();
-    },
-  };
-}
+// EZD-1998: the field sender lives in field-drain.ts (re-exported here), so a field page loads it without the office
+// autosave.
+import { startFieldDrain, type FieldDrainHandle } from './field-drain';
+export { startFieldDrain, type FieldDrainHandle };
 
 // EZD-1402 (Q-0503): `field` also sends the queued field actions (null starts a sender for the call; left out,
 // only the edits are sent); `sent` needs both emptied.

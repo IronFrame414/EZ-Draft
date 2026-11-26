@@ -44,7 +44,8 @@ import { OfflineBanner } from '../states/OfflineBanner';
 import { Skeleton, SkeletonGroup } from '../states/Skeleton';
 import { StateButton } from '../states/StateButton';
 import buttonStyles from '../states/StateButton.module.css';
-import { NewProjectDialog } from './NewProjectDialog';
+// EZD-1999 (audit F10, Q-0814): the wizard loads when New project is opened, not with the page.
+import { NewProjectLoader } from './NewProjectLoader';
 import { importReviewPath } from '../../lib/imports/upload-client';
 import { ProjectCard } from './ProjectCard';
 import { ProjectCardWithMenu, type CardMenuConfig } from './ProjectCardMenu';
@@ -470,7 +471,7 @@ export function ProjectsView({
         />
       </div>
       {creating !== null ? (
-        <NewProjectDialog
+        <NewProjectLoader
           start={creating.start}
           files={creating.files}
           canImport={canImport}

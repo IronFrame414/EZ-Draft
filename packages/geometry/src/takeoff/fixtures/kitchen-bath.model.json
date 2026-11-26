@@ -1,0 +1,884 @@
+{
+ "objects": [
+  {
+   "id": "00000000-0000-4000-8000-000000000001",
+   "type": "floor",
+   "schema_version": 7,
+   "data": {
+    "name": "First floor",
+    "order": 1
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000011",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": -2.25,
+      "y": -2.25
+     },
+     "end": {
+      "x": 146.25,
+      "y": -2.25
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000012",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": 146.25,
+      "y": 0
+     },
+     "end": {
+      "x": 146.25,
+      "y": 120
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000013",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": 146.25,
+      "y": 122.25
+     },
+     "end": {
+      "x": -2.25,
+      "y": 122.25
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000014",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": -2.25,
+      "y": 122.25
+     },
+     "end": {
+      "x": -2.25,
+      "y": -2.25
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000015",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": 146.25,
+      "y": -2.25
+     },
+     "end": {
+      "x": 210.75,
+      "y": -2.25
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000016",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": 210.75,
+      "y": -2.25
+     },
+     "end": {
+      "x": 210.75,
+      "y": 98.25
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000017",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": 210.75,
+      "y": 98.25
+     },
+     "end": {
+      "x": 146.25,
+      "y": 98.25
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000018",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": 210.75,
+      "y": -42.75
+     },
+     "end": {
+      "x": 210.75,
+      "y": -2.25
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000019",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": 210.75,
+      "y": -42.75
+     },
+     "end": {
+      "x": 146.25,
+      "y": -42.75
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-00000000001a",
+   "type": "wall",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "start": {
+      "x": 146.25,
+      "y": -2.25
+     },
+     "end": {
+      "x": 146.25,
+      "y": -42.75
+     }
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "thickness": 4.5,
+     "thicknessSide": "center",
+     "height": 96,
+     "topCutToCeiling": false,
+     "bearing": false,
+     "layers": [
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      },
+      {
+       "material": "stud",
+       "thickness": 3.5
+      },
+      {
+       "material": "drywall",
+       "thickness": 0.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000021",
+   "type": "opening",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "center": {
+      "x": 72,
+      "y": 122.25
+     },
+     "hostWallId": "00000000-0000-4000-8000-000000000013",
+     "axis": null
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "window",
+     "width": 36,
+     "height": 48,
+     "roughOpening": {
+      "width": 38,
+      "height": 50
+     },
+     "sillHeight": 36,
+     "swing": null,
+     "hand": null,
+     "impactRating": "not_rated",
+     "shutterType": null,
+     "roughOpeningMode": "auto"
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000022",
+   "type": "opening",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "center": {
+      "x": -2.25,
+      "y": 60
+     },
+     "hostWallId": "00000000-0000-4000-8000-000000000014",
+     "axis": null
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "door",
+     "width": 36,
+     "height": 84,
+     "roughOpening": {
+      "width": 38,
+      "height": 86
+     },
+     "sillHeight": 0,
+     "swing": "left",
+     "hand": "left",
+     "impactRating": "not_rated",
+     "shutterType": null,
+     "roughOpeningMode": "auto"
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000023",
+   "type": "opening",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "center": {
+      "x": 178.5,
+      "y": -2.25
+     },
+     "hostWallId": "00000000-0000-4000-8000-000000000015",
+     "axis": null
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "kind": "door",
+     "width": 36,
+     "height": 80,
+     "roughOpening": {
+      "width": 38,
+      "height": 82
+     },
+     "sillHeight": 0,
+     "swing": "left",
+     "hand": "left",
+     "impactRating": "not_rated",
+     "shutterType": null,
+     "roughOpeningMode": "auto"
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000031",
+   "type": "room",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "boundary": [
+      {
+       "x": 0,
+       "y": 0
+      },
+      {
+       "x": 144,
+       "y": 0
+      },
+      {
+       "x": 144,
+       "y": 120
+      },
+      {
+       "x": 0,
+       "y": 120
+      }
+     ]
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "name": "Kitchen",
+     "floorLevel": 0,
+     "photos": [],
+     "roomType": "kitchen",
+     "floorFinish": "",
+     "ceilingType": null,
+     "ceiling": null
+    },
+    "closureOverride": null
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000032",
+   "type": "room",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "boundary": [
+      {
+       "x": 148.5,
+       "y": 0
+      },
+      {
+       "x": 208.5,
+       "y": 0
+      },
+      {
+       "x": 208.5,
+       "y": 96
+      },
+      {
+       "x": 148.5,
+       "y": 96
+      }
+     ]
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "name": "Bath",
+     "floorLevel": 0,
+     "photos": [],
+     "roomType": "bath",
+     "floorFinish": "",
+     "ceilingType": null,
+     "ceiling": null
+    },
+    "closureOverride": null
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000033",
+   "type": "room",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "boundary": [
+      {
+       "x": 148.5,
+       "y": -40.5
+      },
+      {
+       "x": 208.5,
+       "y": -40.5
+      },
+      {
+       "x": 208.5,
+       "y": -4.5
+      },
+      {
+       "x": 148.5,
+       "y": -4.5
+      }
+     ]
+    },
+    "status": "existing",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "name": "Hall",
+     "floorLevel": 0,
+     "photos": [],
+     "roomType": "other",
+     "floorFinish": "",
+     "ceilingType": null,
+     "ceiling": null
+    },
+    "closureOverride": null
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000041",
+   "type": "cabinet_box",
+   "schema_version": 7,
+   "data": {
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "code": "B36",
+     "boxType": "base",
+     "width": 36,
+     "depth": 24,
+     "height": 34.5,
+     "faceLayout": "doors_2",
+     "hingeSide": "pair",
+     "finishedEnds": "none",
+     "catalogItemId": null,
+     "finish": null
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000042",
+   "type": "cabinet_box",
+   "schema_version": 7,
+   "data": {
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "code": "SB36",
+     "boxType": "sink_base",
+     "width": 36,
+     "depth": 24,
+     "height": 34.5,
+     "faceLayout": "doors_2",
+     "hingeSide": "pair",
+     "finishedEnds": "none",
+     "catalogItemId": null,
+     "finish": null
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000044",
+   "type": "cabinet_box",
+   "schema_version": 7,
+   "data": {
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "code": "V30",
+     "boxType": "vanity",
+     "width": 30,
+     "depth": 21,
+     "height": 34.5,
+     "faceLayout": "doors_2",
+     "hingeSide": "pair",
+     "finishedEnds": "none",
+     "catalogItemId": null,
+     "finish": null
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000051",
+   "type": "cabinet_run",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "hostWallId": "00000000-0000-4000-8000-000000000013",
+     "start": {
+      "x": 0,
+      "y": 120
+     },
+     "axis": {
+      "x": 1,
+      "y": 0
+     }
+    },
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "name": "Kitchen run",
+     "base": [
+      "00000000-0000-4000-8000-000000000041",
+      "00000000-0000-4000-8000-000000000042"
+     ],
+     "upper": []
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000052",
+   "type": "cabinet_run",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "hostWallId": "00000000-0000-4000-8000-000000000016",
+     "start": {
+      "x": 208.5,
+      "y": 10
+     },
+     "axis": {
+      "x": 0,
+      "y": 1
+     }
+    },
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "name": "Vanity",
+     "base": [
+      "00000000-0000-4000-8000-000000000044"
+     ],
+     "upper": []
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000061",
+   "type": "tile_layout",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "host": {
+      "kind": "floor",
+      "roomId": "00000000-0000-4000-8000-000000000031"
+     },
+     "start": {
+      "x": 0,
+      "y": 0
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "pattern": "straight",
+     "tileWidth": 12,
+     "tileHeight": 24,
+     "joint": 0.125
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000062",
+   "type": "tile_layout",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "host": {
+      "kind": "floor",
+      "roomId": "00000000-0000-4000-8000-000000000032"
+     },
+     "start": {
+      "x": 0,
+      "y": 0
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "pattern": "herringbone",
+     "tileWidth": 12,
+     "tileHeight": 24,
+     "joint": 0.125
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000063",
+   "type": "tile_layout",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "host": {
+      "kind": "wall",
+      "wallId": "00000000-0000-4000-8000-000000000015",
+      "side": "left",
+      "height": 48
+     },
+     "start": {
+      "x": 0,
+      "y": 0
+     }
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "pattern": "straight",
+     "tileWidth": 12,
+     "tileHeight": 24,
+     "joint": 0.125
+    }
+   }
+  },
+  {
+   "id": "00000000-0000-4000-8000-000000000071",
+   "type": "tile_shower",
+   "schema_version": 7,
+   "data": {
+    "geometry": {
+     "footprint": [
+      {
+       "x": 148.5,
+       "y": 60
+      },
+      {
+       "x": 208.5,
+       "y": 60
+      },
+      {
+       "x": 208.5,
+       "y": 96
+      },
+      {
+       "x": 148.5,
+       "y": 96
+      }
+     ]
+    },
+    "status": "new",
+    "level": "00000000-0000-4000-8000-000000000001",
+    "attributes": {
+     "curb": {
+      "height": 4,
+      "width": 4
+     },
+     "niches": [
+      {
+       "width": 12,
+       "height": 24,
+       "bottomHeight": 48,
+       "side": 2
+      }
+     ],
+     "bench": null,
+     "glass": [
+      {
+       "type": "fixed",
+       "length": 30,
+       "side": 0
+      },
+      {
+       "type": "door",
+       "length": 30,
+       "side": 0,
+       "swing": "out"
+      }
+     ],
+     "panSlope": 0.25,
+     "drain": {
+      "type": "center",
+      "at": {
+       "x": 30,
+       "y": 18
+      }
+     }
+    }
+   }
+  }
+ ]
+}

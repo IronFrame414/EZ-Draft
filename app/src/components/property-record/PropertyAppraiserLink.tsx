@@ -15,12 +15,13 @@ import {
   SCREENSHOT_TYPES,
   confirmedFields,
   isPre1978,
-  type ConfirmedRecord,
   type PropertyField,
   type PropertyFields,
-} from '../../lib/property-record/property-record';
-import { getRealtimeHub } from '../../lib/realtime';
+} from '../../lib/property-record/fields';
+import type { ConfirmedRecord } from '../../lib/property-record/property-record';
+import { loadRealtimeHub } from '../../lib/realtime/deferred';
 import type { UserHandle } from '../../lib/realtime/hub';
+import { openReadChannel } from './read-channel';
 import type { MessageKey } from '../../server/messages/catalog';
 import { Icon } from '../icon/Icon';
 import { StateButton } from '../states/StateButton';
@@ -114,7 +115,16 @@ export function PropertyAppraiserLink({
       finish(started, source);
       return;
     }
-    const handle = channel ? channel() : getRealtimeHub().user();
+    // EZD-1997 (audit F6): Realtime is downloaded only when a read needs the channel (read-channel.ts). A
+    // failed download fails the read (the paste box opens, as for any failure).
+    const handle = await openReadChannel(channel, loadRealtimeHub, (s) => {
+      stop.current = s;
+    });
+    if (handle === 'cancelled') return;
+    if (handle === 'failed') {
+      finish({ status: 'failed' }, source);
+      return;
+    }
     const off = watchRead(
       handle,
       started.jobId,

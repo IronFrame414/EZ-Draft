@@ -18,10 +18,18 @@ import {
 import type { ReactElement, ReactNode } from 'react';
 import { countQueued } from '../../lib/outbox/device-db';
 import type { Actor } from '../../lib/outbox/outbox';
-import type { DrainHandle, FieldDrainHandle } from '../../lib/outbox/office-drain';
+import type { DrainHandle } from '../../lib/outbox/office-drain';
+import type { FieldDrainHandle } from '../../lib/outbox/field-drain';
 import type { FieldSync } from '../../lib/outbox/field-sync';
-import { ConfirmDialog } from '../states/ConfirmDialog';
 import { createConfirmController } from '../states/confirm-controller';
+import { lazyModule } from '../../lib/lazy/lazy-module';
+
+// EZD-1998 (AC-EZD-1998-2; 11 rule 7): the sign-out dialog and its Radix AlertDialog are not in the first download
+// of a page with nothing queued (the field pages and the office). They are fetched when the page opens with
+// something queued (the dialog may be needed offline, EZD-120d B3) and on the first press or key (as
+// ConfirmProvider, EZD-215), so they are there before the person can go offline and sign out; the check loads them
+// too. If they still cannot load, the answer is Cancel: the person stays signed in and nothing queued is lost.
+const dialogModule = lazyModule(() => import('../../lazy/confirm-dialog'));
 
 type DrainContext = {
   actor: Actor | null;
@@ -39,6 +47,20 @@ type OfficeDrainModule = typeof import('../../lib/outbox/office-drain');
 export async function loadOfficeDrain(
   load: () => Promise<OfficeDrainModule> = () => import('../../lib/outbox/office-drain'),
 ): Promise<OfficeDrainModule | null> {
+  try {
+    return await load();
+  } catch {
+    return null;
+  }
+}
+
+type FieldDrainModule = typeof import('../../lib/outbox/field-drain');
+
+// EZD-1998 (AC-EZD-1998-2; audit F7): the field sender alone, so a field page that starts it on first use does not
+// also load the office autosave. As loadOfficeDrain, a failed import answers null and never rejects.
+export async function loadFieldDrain(
+  load: () => Promise<FieldDrainModule> = () => import('../../lib/outbox/field-drain'),
+): Promise<FieldDrainModule | null> {
   try {
     return await load();
   } catch {
@@ -73,7 +95,7 @@ export function OutboxDrain({
       async startField() {
         if (who === null) return null;
         if (fieldRef.current !== null) return fieldRef.current;
-        const drain = await loadOfficeDrain();
+        const drain = await loadFieldDrain();
         if (drain === null) return null;
         fieldRef.current ??= drain.startFieldDrain(who);
         return fieldRef.current;
@@ -114,6 +136,32 @@ export function useOutboxSignOut(): { check(): Promise<boolean>; dialog: ReactEl
   const ctx = useContext(Context);
   const [controller] = useState(() => createConfirmController());
   const request = useSyncExternalStore(controller.subscribe, controller.getSnapshot, () => null);
+  const appUserId = ctx?.actor?.appUserId;
+  const tenantId = ctx?.actor?.tenantId;
+
+  useEffect(() => {
+    if (appUserId === undefined || tenantId === undefined || dialogModule.peek() !== undefined)
+      return;
+    let live = true;
+    void countQueued(appUserId, tenantId).then((n) => {
+      // null: the count could not be read, so something may be queued (as the drain above).
+      if (live && n !== 0) dialogModule.preload();
+    });
+    const on = () => {
+      off();
+      dialogModule.preload();
+    };
+    const off = () => {
+      window.removeEventListener('pointerdown', on, true);
+      window.removeEventListener('keydown', on, true);
+    };
+    window.addEventListener('pointerdown', on, true);
+    window.addEventListener('keydown', on, true);
+    return () => {
+      live = false;
+      off();
+    };
+  }, [appUserId, tenantId]);
 
   const check = async (): Promise<boolean> => {
     const actor = ctx?.actor ?? null;
@@ -125,6 +173,11 @@ export function useOutboxSignOut(): { check(): Promise<boolean>; dialog: ReactEl
       (await drain.sendBeforeSignOut(actor, ctx.handle(), undefined, ctx.field())) === 'sent'
     )
       return true;
+    const loaded = await dialogModule.load().then(
+      () => true,
+      () => false,
+    );
+    if (!loaded) return false;
     const choice = await controller.open({
       title: 'office.outbox.sign_out_title',
       message: 'office.outbox.sign_out_message',
@@ -135,9 +188,11 @@ export function useOutboxSignOut(): { check(): Promise<boolean>; dialog: ReactEl
     return choice === 'confirm';
   };
 
-  const dialog = request ? (
-    <ConfirmDialog key={request.id} request={request} onChoose={controller.choose} />
-  ) : null;
+  const ConfirmDialog = dialogModule.peek()?.ConfirmDialog;
+  const dialog =
+    request && ConfirmDialog ? (
+      <ConfirmDialog key={request.id} request={request} onChoose={controller.choose} />
+    ) : null;
   return { check, dialog };
 }
 

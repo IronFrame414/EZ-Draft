@@ -400,3 +400,36 @@ describe('EZD-509 CU, LLF and the light target per room type', () => {
     expect(STORABLE_KEYS).not.toContain('bath_clearances');
   });
 });
+
+// EZD-1611a (09i Takeoff rules: every number the formulas name is a Defaults value; vault/build/assumptions/EZD-1611a.md
+// "Defaults the formulas name"): Drywall sheet (4 x 8, 4 x 10, 4 x 12; 4 x 8), Paint coats (1-5; 2), Paint coverage
+// (100-1,000 SF per gallon; 350), Tile box coverage (1-100 SF; 10), after the pattern rows; company only.
+describe('EZD-1611a takeoff Defaults rows', () => {
+  it('sit in Waste factors after the patterns with the formulas table numbers', () => {
+    const keys = DEFAULTS_REGISTRY.filter((r) => r.group === 'waste').map((r) => r.key);
+    expect(keys.slice(-4)).toEqual(['drywall_sheet', 'paint_coats', 'paint_coverage', 'tile_box_coverage']);
+    expect(row('drywall_sheet').choices).toEqual(['4x8', '4x10', '4x12']);
+    expect(effectiveValue('drywall_sheet', {})).toBe('4x8');
+    expect(effectiveValue('paint_coats', {})).toBe(2);
+    expect(effectiveValue('paint_coverage', {})).toBe(350);
+    expect(effectiveValue('tile_box_coverage', {})).toBe(10);
+    for (const k of keys.slice(-4)) {
+      expect(STORABLE_KEYS, k).toContain(k);
+      expect(PER_PROJECT_KEYS, k).not.toContain(k);
+    }
+    // The waste factors stay owner-entered (S15d Decision 6).
+    expect(effectiveValue('waste_drywall', {})).toBeNull();
+    expect(effectiveValue('waste_trim', {})).toBeNull();
+  });
+
+  it('take values in their range', () => {
+    expect(checkValue(row('drywall_sheet'), '4x10').ok).toBe(true);
+    expect(checkValue(row('drywall_sheet'), '4x9').ok).toBe(false);
+    expect(parse('paint_coats', '5')).toEqual({ ok: true, value: 5 });
+    expect(parse('paint_coats', '6').ok).toBe(false);
+    expect(parse('paint_coverage', '400')).toEqual({ ok: true, value: 400 });
+    expect(parse('paint_coverage', '99').ok).toBe(false);
+    expect(parse('paint_coverage', '350.5').ok).toBe(false);
+    expect(parse('tile_box_coverage', '101').ok).toBe(false);
+  });
+});

@@ -21,6 +21,7 @@ import { catalogFor } from '../../server/messages/catalog';
 import { can } from '../../server/permissions';
 import { loadProjectsAccount } from '../../server/projects/account';
 import { settingsPermissionContext } from '../../server/settings/shell-data';
+import { valueOf } from '../../server/settled';
 import styles from '../../components/projects/Projects.module.css';
 
 export default async function ProjectsPage(): Promise<ReactElement> {
@@ -28,7 +29,14 @@ export default async function ProjectsPage(): Promise<ReactElement> {
   // cookies, so Next.js would otherwise prerender a permanent redirect to /sign-in.
   await connection();
   const session = await requireSession();
-  const ctx = await settingsPermissionContext();
+  // EZD-1994 (performance audit 2026-11-26, Q-0814): the permissions and the account do not depend on each other,
+  // so both reads start together and the page waits for the slower one, not for their sum. The answers are taken in
+  // the old order (server/settled.ts), so a failed permission load is still reported when the account read fails.
+  const [ctxRead, accountRead] = await Promise.allSettled([
+    settingsPermissionContext(),
+    loadProjectsAccount(createSessionClient(), session),
+  ]);
+  const ctx = valueOf(ctxRead);
   if (ctx === 'failed') {
     await reportError(new Error('home_permissions_load_failed'), {
       source: 'function',
@@ -50,10 +58,7 @@ export default async function ProjectsPage(): Promise<ReactElement> {
   const canMeasure =
     ctx !== 'failed' &&
     (can(ctx, 'send_field_measurement') || can(ctx, 'approve_field_measurements'));
-  const account = {
-    ...(await loadProjectsAccount(createSessionClient(), session)),
-    showSettings,
-  };
+  const account = { ...valueOf(accountRead), showSettings };
   return (
     <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
       <StateHost>

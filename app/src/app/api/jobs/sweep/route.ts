@@ -9,6 +9,7 @@ import { defaultJobHooks } from '../../../../server/jobs/default-hooks';
 import { runJobs } from '../../../../server/jobs/runner';
 import { sweepExpiredLocks } from '../../../../server/lock/sweep';
 import { sweepShareLinkReminders } from '../../../../server/share-links/sweep';
+import { sweepVersionCleanup } from '../../../../server/versions/cleanup-sweep';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
@@ -29,6 +30,16 @@ export async function GET(request: Request): Promise<Response> {
       { error: { code: 'not_authorized', message_key: 'error.not_authorized' } },
       { status: 401, headers },
     );
+  }
+  // EZD-123 (Q-0700 03 "Daily cleanup"): the day's version cleanup jobs are queued before the run, so the first
+  // sweep after the run time runs them; a failure is reported by code and does not change the answer.
+  try {
+    await sweepVersionCleanup();
+  } catch {
+    await reportError(new Error('version_cleanup_enqueue_failed'), {
+      source: 'job',
+      location: '/api/jobs/sweep',
+    });
   }
   const summary = await runJobs({ ...defaultJobHooks() });
   // EZD-5601 Step 17 ("D-Rewrap"; Q-0638 rotation): one pass of the AI key rewrap per sweep; a failure is

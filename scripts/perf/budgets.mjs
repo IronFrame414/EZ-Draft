@@ -13,6 +13,11 @@ export function compressedSize(body) {
   return zlib.gzipSync(body, { level: 6 }).length;
 }
 
+// EZD-1996 (AC-EZD-1996-3): sign-in CSS measured by scripts/perf after the per-page CSS split, and its gate value
+// (measured + 10%, rounded up to a whole byte).
+const SIGN_IN_CSS_MEASURED = 4163;
+const SIGN_IN_CSS_BUDGET = Math.ceil(SIGN_IN_CSS_MEASURED * 1.1);
+
 const SIZE_SOURCE = '11 Budgets Download size; Q-0071 (a)';
 const FRAME_SOURCE = '11 Budgets Pan row; Q-0061 (a)';
 
@@ -42,6 +47,15 @@ const ROWS = [
     unit: 'bytes',
     value: 200 * KB_BYTES,
     source: 'Q-0072 (a) (per page); Q-0071 (a)',
+  },
+  // EZD-1996 (AC-EZD-1996-3): the sign-in page's CSS alone, at its measured size after the per-page CSS split plus
+  // 10%.
+  {
+    id: 'download.sign-in-css',
+    kind: 'gate',
+    unit: 'bytes',
+    value: SIGN_IN_CSS_BUDGET,
+    source: 'AC-EZD-1996-3 (Q-0814): measured sign-in CSS + 10%; Q-0071 (a)',
   },
   { id: 'react-commits.pan', kind: 'gate', unit: 'count', value: 0, source: '11 rule 4; EZD-207 row' },
   { id: 'long-tasks.pan', kind: 'gate', unit: 'count', value: 0, source: 'Q-0073 (a); 11 opening paragraph' },

@@ -1,5 +1,6 @@
 // EZD-701 (AC-EZD-701-1, -2): a project's permit set, read through the member's session so project RLS applies.
 // Another company's project, or one outside the member's scope, reads as null.
+import { SCHEDULE_OBJECT_TYPES, scheduleRowsOf, withScheduleSheets } from '../../lib/sheets/cabinet-schedule-table';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { isScopeTrade } from '../../lib/projects/new-project';
 import {
@@ -18,6 +19,8 @@ import {
   type SheetSetSummary,
 } from '../../lib/sheets/sheet-set';
 import type { Database } from '../db/database.types';
+import { latestRevision } from '../../lib/sheets/revisions';
+import { loadPermitRevisions } from './issue-revision';
 
 export async function loadProjectSheets(
   client: SupabaseClient<Database>,
@@ -40,6 +43,7 @@ export async function loadProjectSheets(
 // outside the member's scope, reads as null.
 // EZD-703 (Q-0509): each floor after the lowest adds its copies of the floor-plan sheets (withFloorSheets), and a set
 // returns its stored viewports and changed-viewport sheets (null while it has none).
+// EZD-717: the permit set carries its issued revisions (permit_revision, oldest first) and its last issued version.
 export async function loadProjectSheetSets(
   client: SupabaseClient<Database>,
   projectId: string,
@@ -56,14 +60,20 @@ export async function loadProjectSheetSets(
     .from('model_object')
     .select('object_id, type, schema_version, data')
     .eq('project_id', projectId)
-    .in('type', ['sheet_set', 'floor'])
+    .in('type', ['sheet_set', 'floor', ...SCHEDULE_OBJECT_TYPES])
     .eq('deleted', false)
     .order('object_id');
   if (rows.error) throw rows.error;
+  const revisions = await loadPermitRevisions(client, projectId);
   // EZD-703 (Q-0509): the project's floors, by order then id (as the editor lists them), for the floor-plan copies.
   const floorRows: (SheetFloor & { order: number })[] = [];
   const stored = new Map<SheetSetKind, { id: string; data: SheetSetData }>();
+  // EZD-707: the cabinet schedule's rows decide how many continuation sheets follow A4.0.
+  const scheduleRows = scheduleRowsOf(
+    rows.data.map((row) => ({ id: row.object_id, type: row.type, schema_version: row.schema_version, data: row.data })),
+  ).length;
   for (const row of rows.data) {
+    if (row.type !== 'sheet_set' && row.type !== 'floor') continue;
     const parsed = parseStoredObject({
       id: row.object_id,
       type: row.type,
@@ -89,8 +99,11 @@ export async function loadProjectSheetSets(
       kind,
       size: d.size,
       keyPlacement: d.keyPlacement,
-      lastIssuedVersionId: d.lastIssuedVersionId,
-      sheets: withFloorSheets(sheetsForSet(kind, trades), floors),
+      // EZD-717: the permit set's last issue is its newest permit_revision; the client set is never issued.
+      lastIssuedVersionId:
+        kind === 'permit' ? (latestRevision(revisions)?.modelVersionId ?? d.lastIssuedVersionId) : d.lastIssuedVersionId,
+      revisions: kind === 'permit' ? revisions : [],
+      sheets: withScheduleSheets(withFloorSheets(sheetsForSet(kind, trades), floors), d.size, scheduleRows),
       viewports: d.viewports ?? null,
       viewportSheets: d.viewportSheets ?? null,
     };

@@ -5,6 +5,9 @@
 // and the lock each is a picker and the sheet can gain or lose a viewport; otherwise the same rows are read only.
 // The sheet rail comes with EZD-704, so the tool sits in the left panel under the sheet list until then
 // (vault/build/assumptions/EZD-703.md).
+// EZD-707 (R24 "any other wall is added with Add elevation"; AC-EZD-707-3): with Edit model and the lock, the sheet's
+// first elevation viewport carries an Add elevation picker of the floor's walls it does not draw yet; picking one
+// adds that wall's elevation to the sheet.
 import type { ReactElement } from 'react';
 import {
   SHEET_VIEWS,
@@ -38,6 +41,7 @@ export function ViewportTool({ screen, canEdit }: { screen: SheetsScreen; canEdi
   const sheet = state.open;
   if (state.load !== 'ready' || sheet === null) return null;
   const lowest = state.floors[0]?.id ?? '';
+  const firstElevation = state.viewports.findIndex((v) => v.kind === 'elevation');
   return (
     <section className={styles.viewports} aria-label={t('office.sheets.viewports')} data-testid="sheet-viewports">
       <h3 className={styles.groupLabel}>{t('office.sheets.viewports')}</h3>
@@ -108,6 +112,28 @@ export function ViewportTool({ screen, canEdit }: { screen: SheetsScreen; canEdi
                 ))}
               </select>
             </label>
+            {canEdit && i === firstElevation ? (
+              <label className={styles.viewportField}>
+                <span>{t('office.sheets.viewport.add_elevation')}</span>
+                <select
+                  value=""
+                  data-testid="sheet-elevation-add"
+                  disabled={state.elevationWalls.length === 0}
+                  onChange={(e) => {
+                    if (e.target.value !== '') screen.addElevation(e.target.value);
+                  }}
+                >
+                  <option value="">{t('office.sheets.viewport.add_elevation')}</option>
+                  {state.elevationWalls.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.number === null
+                        ? t('office.sheets.viewport.wall_unnumbered')
+                        : t('office.sheets.viewport.wall', { number: w.number })}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             {canEdit ? (
               <button
                 type="button"

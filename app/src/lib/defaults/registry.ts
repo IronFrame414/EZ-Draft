@@ -62,7 +62,8 @@ export type LengthRange = { min: number; max: number };
 export type ShortcutMap = Readonly<Record<string, string>>;
 // EZD-228: a 'values' row's named numbers (Bath clearances: inches, the shower area in square inches).
 export type NamedValues = Readonly<Record<string, number>>;
-export type DefaultValue = number | string | boolean | readonly string[] | LengthRange | ShortcutMap | NamedValues;
+export type DefaultValue =
+  number | string | boolean | readonly string[] | LengthRange | ShortcutMap | NamedValues;
 
 export type DefaultRow = {
   key: string;
@@ -93,6 +94,13 @@ export const ROUNDING_CHOICES_IN = [0.0625, 0.125, 0.25, 0.5, 1] as const;
 export const SNAP_CHOICES_IN = [0.0625, 0.125, 0.25, 0.5, 1, 6, 12] as const;
 // S15d Details row: the seven detail scales.
 export const DETAIL_SCALES = ['3/4', '1', '1 1/2', '3', '6', 'full', 'nts'] as const;
+// EZD-1611a: the drywall sheet sizes and the SF of each (09i Drywall "Sheet 4 x 8 (32 SF)").
+export const DRYWALL_SHEETS = ['4x8', '4x10', '4x12'] as const;
+export const DRYWALL_SHEET_SQ_FT: Readonly<Record<string, number>> = {
+  '4x8': 32,
+  '4x10': 40,
+  '4x12': 48,
+};
 // Q-0570 / S15d: the field measure sanity range tops out at 200 ft (assumption Q-0715 (a)).
 export const FIELD_RANGE_MAX_IN = 2400;
 
@@ -106,7 +114,13 @@ const H = (k: string) => `office.defaults.hint.${k}` as MessageKey;
 
 export const DEFAULTS_REGISTRY: readonly DefaultRow[] = [
   // Units
-  row({ key: 'units_display', group: 'units', label: L('units_display'), type: 'fixed', default: null }),
+  row({
+    key: 'units_display',
+    group: 'units',
+    label: L('units_display'),
+    type: 'fixed',
+    default: null,
+  }),
   row({
     key: 'plan_dimension_rounding',
     group: 'units',
@@ -163,7 +177,14 @@ export const DEFAULTS_REGISTRY: readonly DefaultRow[] = [
     default: 0.5,
   }),
   // Walls (Q-0558)
-  row({ key: 'wall_thickness', group: 'walls', label: L('wall_thickness'), type: 'length', unit: 'in', default: 4.5 }),
+  row({
+    key: 'wall_thickness',
+    group: 'walls',
+    label: L('wall_thickness'),
+    type: 'length',
+    unit: 'in',
+    default: 4.5,
+  }),
   row({
     key: 'wall_stud',
     group: 'walls',
@@ -180,7 +201,14 @@ export const DEFAULTS_REGISTRY: readonly DefaultRow[] = [
     unit: 'in',
     default: 0.5,
   }),
-  row({ key: 'wall_height', group: 'walls', label: L('wall_height'), type: 'length', unit: 'in', default: 96 }),
+  row({
+    key: 'wall_height',
+    group: 'walls',
+    label: L('wall_height'),
+    type: 'length',
+    unit: 'in',
+    default: 96,
+  }),
   row({
     key: 'wall_exterior_block',
     group: 'walls',
@@ -246,7 +274,14 @@ export const DEFAULTS_REGISTRY: readonly DefaultRow[] = [
     default: { min: 0, max: FIELD_RANGE_MAX_IN },
   }),
   // 3D
-  row({ key: 'walk_eye_height', group: 'three_d', label: L('walk_eye_height'), type: 'length', unit: 'in', default: 66 }),
+  row({
+    key: 'walk_eye_height',
+    group: 'three_d',
+    label: L('walk_eye_height'),
+    type: 'length',
+    unit: 'in',
+    default: 66,
+  }),
   // Countertops
   row({
     key: 'overhang_standard',
@@ -428,6 +463,47 @@ export const DEFAULTS_REGISTRY: readonly DefaultRow[] = [
       default: null,
     }),
   ),
+  // EZD-1611a (09i Takeoff rules: "Every number named here is a Defaults value the owner can change";
+  // vault/build/assumptions/EZD-1611a.md "Defaults the formulas name"): the drywall sheet, paint coats and coverage and
+  // the tile box coverage, with the formulas table's numbers; company only, not copied per project.
+  row({
+    key: 'drywall_sheet',
+    group: 'waste',
+    label: L('drywall_sheet'),
+    type: 'choice',
+    choices: DRYWALL_SHEETS,
+    default: '4x8',
+  }),
+  row({
+    key: 'paint_coats',
+    group: 'waste',
+    label: L('paint_coats'),
+    type: 'count',
+    refusal: 'office.defaults.error.paint_coats' as MessageKey,
+    default: 2,
+    min: 1,
+    max: 5,
+  }),
+  row({
+    key: 'paint_coverage',
+    group: 'waste',
+    label: L('paint_coverage'),
+    type: 'count',
+    refusal: 'office.defaults.error.paint_coverage' as MessageKey,
+    default: 350,
+    min: 100,
+    max: 1000,
+  }),
+  row({
+    key: 'tile_box_coverage',
+    group: 'waste',
+    label: L('tile_box_coverage'),
+    type: 'count',
+    refusal: 'office.defaults.error.tile_box_coverage' as MessageKey,
+    default: 10,
+    min: 1,
+    max: 100,
+  }),
   // Catalog
   row({
     key: 'recently_added_window',
@@ -535,9 +611,9 @@ export const STORABLE_KEYS: readonly string[] = DEFAULTS_REGISTRY.filter(
   (r) => r.type !== 'fixed' && (r.type !== 'values' || r.fields !== undefined),
 ).map((r) => r.key);
 
-export const PER_PROJECT_KEYS: readonly string[] = DEFAULTS_REGISTRY.filter((r) => r.perProject).map(
-  (r) => r.key,
-);
+export const PER_PROJECT_KEYS: readonly string[] = DEFAULTS_REGISTRY.filter(
+  (r) => r.perProject,
+).map((r) => r.key);
 
 export const GROUP_LABEL: Record<DefaultGroup, MessageKey> = Object.fromEntries(
   DEFAULT_GROUPS.map((g) => [g, `office.defaults.group.${g}` as MessageKey]),

@@ -9,7 +9,7 @@ import { createOnlineSource, type OnlineSource } from '../network';
 import { FIELD_PHOTO_TYPES, type FieldAction, type NewFieldAction } from './field-action';
 import type { FieldQueue } from './field-queue';
 import { MEMBERSHIP_HEADER, type Actor } from './outbox';
-import { webTabLock, type TabLock } from './outbox-sync';
+import { webTabLock, type TabLock } from './tab-lock';
 
 // The same waits as the model autosave's retries (outbox-sync.ts Decided "Failed"); the last repeats.
 const RETRY_DELAYS_MS = [2000, 4000, 8000, 16000, 30000];

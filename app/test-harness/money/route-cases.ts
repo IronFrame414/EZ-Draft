@@ -344,6 +344,30 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatusWithout: { permission: 'export', status: 403 },
     note: 'EZD-715: the export job id (no money)',
   },
+  // EZD-717: the permit set's issued revisions, and Issue (the bare project's checklist blocks it: 409 with the gate
+  // ids). Revision numbers, times, version and job ids only (no money).
+  {
+    file: `${API}projects/[id]/issue/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/issue/route'),
+    request: async (env) => ({
+      ...(await get(`/api/projects/${env.projectId}/issue`)()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-717: revisions, next number and canIssue (no money)',
+  },
+  {
+    file: `${API}projects/[id]/issue/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/issue/route'),
+    request: async (env) => ({
+      ...(await sendJson('POST', `/api/projects/${env.projectId}/issue`, {})()),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 409,
+    note: 'EZD-717: the checklist gate ids, or the revision number and ids (no money)',
+  },
   // EZD-304: the scale of the PDF uploaded above (kind pdf, finished): the project's PDFs, then set and read its
   // scale. Answers are source_file ids, names, the calibration and a signed link (no money).
   {
@@ -1762,6 +1786,32 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     },
     expectStatus: 200,
     note: 'EZD-122: Revert with no holder at generation 0 (as a save); 200 { version: { id } } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/versions/cleanup/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/projects/[id]/versions/cleanup/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/versions/cleanup`),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-123: the cleanup sheet rows; 200 { rows, graceDays, ageDays } (no money)',
+  },
+  {
+    file: `${API}projects/[id]/versions/cleanup/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/versions/cleanup/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/versions/cleanup`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ lockEpoch: 0, keep: [], remove: [] }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 200,
+    note: 'EZD-123: cleanup Save choices with nothing chosen; 200 { kept, deleted } (no money)',
   },
   {
     file: `${API}projects/[id]/plan-scale/route.ts`,

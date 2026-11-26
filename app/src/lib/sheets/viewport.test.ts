@@ -119,7 +119,7 @@ describe('EZD-703 viewport rules', () => {
     expect(viewportAreas(area, 0)).toEqual([]);
   });
 
-  it('renderer inputs: one job per plan viewport, its floor or the lowest when that floor is gone', () => {
+  it('renderer inputs: one job per plan or elevation viewport, its floor or the lowest when that floor is gone', () => {
     const floor = (name: string, order: number) => ({
       type: 'floor',
       schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -139,12 +139,13 @@ describe('EZD-703 viewport rules', () => {
       ],
     });
     const area = sheetDrawingArea('24x36');
-    expect(inputs.map((i) => [i.level, i.view, i.scale])).toEqual([
-      [F2, 'existing', 1 / 48],
-      [F1, 'demo', null],
+    expect(inputs.map((i) => [i.level, i.view, i.scale, i.elevation])).toEqual([
+      [F2, 'existing', 1 / 48, undefined],
+      [F1, 'proposed', 1 / 24, { walls: [] }],
+      [F1, 'demo', null, undefined],
     ]);
     expect(inputs[0]!.area.width).toBeCloseTo(area.width / 3, 9);
-    expect(inputs[1]!.area.x).toBeCloseTo(area.x + (2 * area.width) / 3, 9);
+    expect(inputs[2]!.area.x).toBeCloseTo(area.x + (2 * area.width) / 3, 9);
     expect(sheetJobInputs({ objects: new Map(), size: '24x36', viewports: defaultViewports('A1.0') })).toEqual([]);
   });
 });

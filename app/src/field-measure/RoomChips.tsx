@@ -7,7 +7,7 @@ import { useRef, useState } from 'react';
 import { Icon } from '../components/icon/Icon';
 import { useT } from '../lib/messages';
 import type { MessageKey } from '../server/messages/catalog';
-import { MAX_ROOM_NAME, type FieldRoom } from './rooms';
+import { MAX_ROOM_NAME, type FieldRoom } from './room-model';
 import styles from './FieldMeasure.module.css';
 
 const PICKS: readonly MessageKey[] = [

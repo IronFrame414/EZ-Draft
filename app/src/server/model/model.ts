@@ -493,32 +493,53 @@ export async function loadModel(
   };
 
   // EZD-223: the viewer's own iPad drawing setting rides with the load for the Sketch tool.
-  const [project, lock, firstPage, firstDeleted, me, companyDefaults, lastSent] = await Promise.all([
-    client
-      .from('project')
-      .select('id, name, tenant_id, settings, phase_default, customer!project_customer_fk(name)')
-      .eq('id', projectId)
-      .maybeSingle(),
-    // EZD-125 (Q-0697 03 "every lock read"): through read_edit_lock, so opening a project applies an expired
-    // request first; a project out of scope (P0002) reads as no lock and the project read answers null.
-    client.rpc('read_edit_lock', { p_project: projectId }),
-    page(null),
-    deletedPage(null),
-    client.from('app_user').select('ipad_input_mode').eq('id', ctx.appUserId).maybeSingle(),
-    // EZD-116 (Q-0697 03): the company defaults ride with the load.
-    loadTenantDefaults(client),
-    // EZD-121 (Q-0700 05): the newest sent version's number, for the header label.
-    client
-      .from('model_version')
-      .select('version_no')
-      .eq('project_id', projectId)
-      .eq('is_sent', true)
-      .order('version_no', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
+  const [project, lock, firstPage, firstDeleted, me, companyDefaults, lastSent, cleanupDue, lastIssued] =
+    await Promise.all([
+      client
+        .from('project')
+        .select('id, name, tenant_id, settings, phase_default, customer!project_customer_fk(name)')
+        .eq('id', projectId)
+        .maybeSingle(),
+      // EZD-125 (Q-0697 03 "every lock read"): through read_edit_lock, so opening a project applies an expired
+      // request first; a project out of scope (P0002) reads as no lock and the project read answers null.
+      client.rpc('read_edit_lock', { p_project: projectId }),
+      page(null),
+      deletedPage(null),
+      client.from('app_user').select('ipad_input_mode').eq('id', ctx.appUserId).maybeSingle(),
+      // EZD-116 (Q-0697 03): the company defaults ride with the load.
+      loadTenantDefaults(client),
+      // EZD-121 (Q-0700 05): the newest sent version's number, for the header label.
+      client
+        .from('model_version')
+        .select('version_no')
+        .eq('project_id', projectId)
+        .eq('is_sent', true)
+        .order('version_no', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      // EZD-123 (Q-0700 05 "Cleanup sheet"): whether a working row is up for cleanup, so the editor reads the sheet's
+      // rows only then.
+      client
+        .from('model_version')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('is_sent', false)
+        .eq('is_snapshot', false)
+        .not('cleanup_shown_at', 'is', null)
+        .limit(1),
+      // EZD-717 (board S13Sheets header "Working copy · Rev 0 issued"): the newest issued revision's number.
+      client
+        .from('permit_revision')
+        .select('rev_no')
+        .eq('project_id', projectId)
+        .order('rev_no', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
   if (project.error) throw project.error;
+  if (cleanupDue.error) throw cleanupDue.error;
   if (lastSent.error) throw lastSent.error;
+  if (lastIssued.error) throw lastIssued.error;
   if (lock.error && lock.error.code !== 'P0002') throw lock.error;
   if (me.error) throw me.error;
   if (project.data === null) return null;
@@ -576,6 +597,10 @@ export async function loadModel(
       phaseDefault: phaseViewOf(project.data.phase_default),
       // Absent before any send (the header reads "Working copy").
       ...(lastSent.data?.version_no == null ? {} : { versionNo: lastSent.data.version_no }),
+      // EZD-717: absent before Rev 0.
+      ...(lastIssued.data == null ? {} : { revNo: lastIssued.data.rev_no }),
+      // EZD-123: present only when a working row is up for cleanup.
+      ...(cleanupDue.data.length > 0 ? { cleanupDue: true } : {}),
     },
     viewer: {
       appUserId: ctx.appUserId,

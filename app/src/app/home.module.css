@@ -34,3 +34,22 @@
   gap: 16px;
   text-align: center;
 }
+
+/* EZD-1996 (AC-EZD-1996-1): the signed-in not-found page's frame and sticky footer, the same declarations as
+   Projects.module.css .page and .footer. Kept here because the root not-found file is in every route's tree: importing
+   the Projects page's CSS module put the whole Projects stylesheet on every page, sign-in included. */
+.signedInPage {
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--ez-canvas);
+  color: var(--ez-ink);
+  font-family: var(--ez-font-sans);
+}
+
+.signedInFooter {
+  position: sticky;
+  bottom: 0;
+  background: var(--ez-canvas);
+}

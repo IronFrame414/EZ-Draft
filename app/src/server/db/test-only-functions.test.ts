@@ -223,6 +223,8 @@ describe('EZD-323 test-only database functions', () => {
       'app/src/server/jobs/ai-purposes/property-appraiser-screenshot.ts',
       'app/src/server/jobs/db.ts',
       'app/src/server/jobs/default-hooks.ts',
+      // EZD-123: the daily version cleanup job runs run_version_cleanup, granted to service_role only (Q-0700 decisions 03).
+      'app/src/server/jobs/handlers/cleanup.ts',
       // EZD-1408: the field task draft job reads the project's rooms and the company's templates and writes draft field_task rows (no member write policy on field_task; S22).
       'app/src/server/jobs/handlers/field-task-draft.ts',
       // EZD-302: the import job reads the project's source files and writes import_session rows (service_role writes only).
@@ -240,6 +242,8 @@ describe('EZD-323 test-only database functions', () => {
       'app/src/server/lock/sweep.ts',
       // EZD-1201: the sweep's share link reminder pass (called from api/jobs/sweep/route.ts) runs sweep_share_link_reminders, granted to service_role only (07 share_link.expiring).
       'app/src/server/share-links/sweep.ts',
+      // EZD-123: the sweep's daily cleanup enqueue (called from api/jobs/sweep/route.ts) runs enqueue_version_cleanup, granted to service_role only (Q-0700 decisions 03).
+      'app/src/server/versions/cleanup-sweep.ts',
     ]);
   });
 });

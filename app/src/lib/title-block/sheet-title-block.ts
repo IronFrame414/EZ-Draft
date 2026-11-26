@@ -14,6 +14,7 @@ import {
 } from '../sheets/sheet-set';
 import type { CompanyContact } from '../company/company';
 import { missingTitleBlockFields, type TitleBlockField } from './title-block';
+import { titleBlockRevisionRows } from '../sheets/revisions';
 
 // The project's title block, the same on every sheet. Null text is not filled.
 export type ProjectTitleBlock = {
@@ -63,7 +64,7 @@ const text = (v: string | null | undefined): string => (v ?? '').trim();
 
 export function sheetTitleBlockValues(
   tb: ProjectTitleBlock,
-  set: Pick<SheetSetSummary, 'kind' | 'sheets' | 'lastIssuedVersionId'>,
+  set: Pick<SheetSetSummary, 'kind' | 'sheets' | 'lastIssuedVersionId' | 'revisions'>,
   sheet: Pick<Sheet, 'number' | 'title'>,
   today: Date,
   scale?: string | null,
@@ -87,8 +88,8 @@ export function sheetTitleBlockValues(
     scopeOfWork: text(tb.scopeOfWork),
     owner: text(tb.owner),
     parcel: text(tb.parcel),
-    // Issued revisions fill the table with EZD-717; a draft set has none yet.
-    revisions: [],
+    // EZD-717: the set's issued revisions, oldest first (no, date, description); a set never issued has none.
+    revisions: titleBlockRevisionRows(set.revisions ?? []),
     stampAreas: set.kind === 'permit',
     drawn: tb.drawn,
     checked: '',

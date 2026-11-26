@@ -76,7 +76,7 @@ import {
   type ReactNode,
 } from 'react';
 import { DeviceLayout } from '../components/device/DeviceLayout';
-import { bindingsOf, commandForKey } from '../lib/defaults/shortcut-keys';
+import { commandForKey } from '../lib/defaults/shortcut-keys';
 import { railToolsWithKeys, shortcutText } from './help/rail-keys';
 import { nextRailOrder } from '../components/shell/rail-types';
 import { isTypingTarget } from './typed-entry/typed-entry';
@@ -96,13 +96,9 @@ import { useToast } from '../components/states/ToastProvider';
 import { countForProject } from '../lib/conflicts/conflict-groups';
 import { useCoarsePointer } from '../lib/device/useDeviceLayout';
 import { useT } from '../lib/messages';
-import { DEFAULT_PLAN_SCALE, isPlanScale, savePlanScale } from '../lib/plan/plan-scale';
 import type { MessageKey } from '../server/messages/catalog';
-import { createAssistantLoader, type AssistantLoader } from './assistant/assistant-loader';
 import type { PreviewStore } from './assistant/preview-store';
-import { createRoutedStore } from './model/routed-store';
 import { newObjectId } from './tools/model-changes';
-import { ceilingAware, receiverRouter } from './tools/beam-tool';
 import {
   CEILING_DEVICE_TOOL_IDS,
   createDeviceChoice,
@@ -121,7 +117,6 @@ import {
 import { hubResync } from './project-defaults';
 import { newerVersionNo, versionLabel } from './version-label';
 import { hubVersionSent } from './version-sent';
-import { createEditController, type EditController } from './edit/edit-controller';
 import { InspectorMore, InspectorStack } from './edit/InspectorMore';
 import type { EditMenuRequest } from '../lazy/edit-menu';
 import { expandGroups } from './selection/groups';
@@ -130,18 +125,11 @@ import { createCountertopSelectionStore } from './countertops/selection-store';
 import { createCabinetSelectionStore } from './cabinets/cabinet-selection-store';
 import { InspectorEmpty } from './inspector/InspectorEmpty';
 import type { InspectorPanelProps } from '../lazy/inspector-panel';
-import {
-  createPlanController,
-  type PlanController,
-} from './plan/controller';
-import { openFloorId } from './plan/batches';
-import { chosenFloor, createFloorView, type FloorView } from './floors/floors';
+import { chosenFloor } from './floors/floors';
 import { FloorSwitcher } from './floors/FloorSwitcher';
-import { createGlyphAtlas } from './plan/glyph-atlas-canvas';
 import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
 import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
 import { usePdfUnderlay } from './plan/PdfUnderlay';
-import { createPlanRoot } from './plan/render-root';
 import { ZoomStack } from './plan/ZoomStack';
 import type { ConflictBannerProps } from './conflicts/ConflictBanner';
 import { lazyModule } from '../lib/lazy/lazy-module';
@@ -152,12 +140,7 @@ import type { Scene3d } from '../lazy/scene-3d';
 import { useConflictInputs } from './conflicts/use-conflicts';
 import { SelectionLayer } from './selection/SelectionLayer';
 import type { LockPartName, LockUi } from '../lazy/lock-ui';
-import {
-  createSelectionController,
-  editorRail,
-  shareReceiver,
-  type SelectionController,
-} from './selection/selection-controller';
+import { editorRail } from './selection/selection-controller';
 import { SaveFailedBanner, SaveStateText } from './SaveStatus';
 import { OfflineStatusIcon } from './OfflineStatusIcon';
 import { createProjectCache } from '../lib/pwa/project-cache';
@@ -167,33 +150,24 @@ import {
   PlanStatusEnd,
   PlanStatusStart,
 } from './status/PlanStatus';
-import { createPhaseSetting, type PhaseSetting } from './status/phase-setting';
-import { createLayerSetting, type LayerSetting } from './layers/layer-setting';
 import { LeftPanel, type Tab as LeftTab } from './layers/LeftPanel';
 import type { ToolBase } from './electrical';
 import { createReceiverSlot } from './electrical/receiver-slot';
 import { createSurfaceSetting, type SurfaceSetting } from './ceiling/surface';
 import { rcpModule } from './ceiling/rcp-module';
 import { useCeilingKeys } from './ceiling/CeilingParts';
-import type { RoutedStore } from './model/routed-store';
 import { versionTitle } from './versions/versions-list';
-import {
-  createVersionView,
-  type VersionView,
-  type VersionViewState,
-} from './versions/version-view';
+import { fetchCleanup, postCleanup, type CleanupList } from './versions/cleanup-summary';
+import type { VersionViewState } from './versions/version-view';
 import { hubVersionEvents } from './versions/version-events';
 import { fetchVersions, postRevert, postSnapshot, type VersionRow } from '../lib/versions/versions';
-import { createModelDerived, type ModelDerived } from './derived/model-derived';
-import { phaseViewOf, savePhaseView } from '../lib/plan/phase-view';
-import { createScaleSetting, deviceSnapSettings, type ScaleSetting } from './status/view-settings';
-import type { DrawingController } from './tools/drawing-controller';
+import { deviceSnapSettings } from './status/view-settings';
 import { fixturesModule } from './tools/fixtures-module';
-import { createDrawingShell } from './tools/drawing-shell';
 import { DrawingLayer, DrawingRail } from './tools/DrawingTools';
 import { CheckPill } from './check/CheckPill';
 import { useCodeCheck } from './check/use-code-check';
 import { useDevHooks } from './dev-hooks';
+import { createControllers, type EditorControllers } from './session/create-controllers';
 import styles from './ProjectEditor.module.css';
 
 // EZD-1911: kept here for the code that reads it from ProjectEditor.
@@ -225,24 +199,7 @@ export type ProjectEditorProps = {
 type CanvasState =
   | { kind: 'loading' }
   | Exclude<OpenResult, { kind: 'ready' }>
-  | {
-      kind: 'ready';
-      session: EditorSession;
-      plan: PlanController;
-      drawing: DrawingController;
-      selection: SelectionController;
-      edit: EditController;
-      scale: ScaleSetting;
-      phase: PhaseSetting;
-      layers: LayerSetting;
-      derived: ModelDerived;
-      assistant: AssistantLoader | null;
-      floors: FloorView;
-      routed: RoutedStore;
-      versions: VersionView;
-      // EZD-505: puts the Beam tool's receiver in front of the drawing and selection receivers.
-      toolRoute: (r: PlanPointerReceiver | null) => void;
-    };
+  | ({ kind: 'ready'; session: EditorSession } & EditorControllers);
 
 // EZD-702a: the Sheets tab needs no plan canvas, so it shows with the plan alone too.
 const PLAN_VIEWS: EditorView[] = ['plan', 'sheets'];
@@ -329,145 +286,21 @@ export function ProjectEditor({
         return;
       }
       if (result.kind === 'ready') {
-        const loaded = result.session.model.project.planScale;
-        const scale = createScaleSetting({
-          scale: isPlanScale(loaded) ? loaded : DEFAULT_PLAN_SCALE,
-          canEdit: result.session.model.viewer.canEdit,
-          save: (s) => savePlanScale(projectId, s),
-        });
-        // EZD-214 (03 Q-0664): the View starts from the project's phase_default; a view-only switch saves nothing.
-        const phase = createPhaseSetting({
-          view: phaseViewOf(result.session.model.project.phaseDefault),
-          canEdit: result.session.model.viewer.canEdit,
-          save: (v) => savePhaseView(projectId, v),
-        });
-        // EZD-5605 D-Who gets which store: the canvas and the editing controllers use the routed store, which is
-        // the model store except while an Assistant preview is adjusted.
-        const routed = createRoutedStore(result.session.store);
-        // The Assistant loader is made after the controllers, which read Adjust through it.
-        let assistant: AssistantLoader | null = null;
-        const layers = createLayerSetting(phase);
-        const derived = createModelDerived(routed);
-        const floors = createFloorView();
-        const plan = createPlanController(
-          { store: routed, scale: scale.get(), phase: layers, derived, floors },
-          { createRoot: createPlanRoot, createAtlas: createGlyphAtlas },
-        );
-        const router = receiverRouter(plan.handle.setPointerReceiver);
-        const slots = shareReceiver(router.base);
-        const unsubscribeScale = scale.subscribe(() => plan.handle.setScale(scale.get()));
-        // EZD-222: the tools read the company key map on every key, so a resync applies at once.
-        const shortcutKeys = () => bindingsOf(result.session.defaults.get()['keyboard_shortcuts']);
-        // EZD-423: the drawing engine loads on the first input in the page or the first tool asked for.
-        const drawing = createDrawingShell(
-          {
-            handle: { ...plan.handle, setPointerReceiver: slots.drawing },
-            store: routed,
-            viewer: result.session.model.viewer,
-            onMessage: (key) => messageRef.current(key),
-            snapSettings: () => deviceSnapSettings.get(),
-            phase,
-            ipadDrawing: () => result.session.model.viewer.ipadDrawing ?? 'finger',
-            floors,
-            keys: shortcutKeys,
-          },
-          { load: () => drawingEngine.load(), inputs: window },
-        );
-        const selection = createSelectionController({
-          handle: plan.handle,
-          store: routed,
-          drawing,
-          setReceiver: slots.selection,
-          claim: drawing.claimSelectPointer,
-          phase: ceilingAware(layers.selectable, surface),
-          floors,
-          keys: shortcutKeys,
-        });
-        drawing.attachSelection(selection);
-        const edit = createEditController({
-          store: routed,
-          selection,
-          drawing,
-          handle: plan.handle,
-          canEdit: result.session.model.viewer.canEdit,
-          newStatus: () => phase.newObjectStatus(),
-          floors,
-          keys: shortcutKeys,
-        });
-        // EZD-5603a Decided "Editor wiring": one Assistant session per page load, editors only.
-        const sync = result.session.sync;
-        assistant =
-          sync === null
-            ? null
-            : createAssistantLoader(
-                {
-                  projectId,
-                  sync,
-                  getFloorId: () =>
-                    openFloorId(
-                      result.session.store.getState().objects,
-                      floors.getState().chosenId,
-                    ),
-                  getSelectedIds: () => selection.getUi().ids,
-                  getNewStatus: () => phase.newObjectStatus(),
-                  // EZD-5604b D-Editor: the preview watches the open model store; nothing in it is saved.
-                  preview: {
-                    model: result.session.store,
-                    newId: newObjectId,
-                    adjust: {
-                      routed,
-                      selection,
-                      drawing,
-                      lockEpoch: result.session.model.lockEpoch,
-                      onMessage: (key) => messageRef.current(key),
-                    },
-                  },
-                },
-                // EZD-5604b: the session loads with the panel's lazy module on the first press.
-                () => assistantPanelModule.load(),
-              );
-        // EZD-122: a version open read-only points the routed store at its objects.
-        const versions = createVersionView({
+        // EZD-1912: the controllers are built and disposed in session/create-controllers.ts.
+        const made = createControllers({
           projectId,
-          routed,
-          base: result.session.store,
-          reset: () => {
-            drawing.selectTool(null);
-            selection.clear();
-          },
+          session: result.session,
+          surface,
+          onMessage: (key) => messageRef.current(key),
+          loadAssistant: () => assistantPanelModule.load(),
         });
         dispose = () => {
-          versions.dispose();
-          assistant?.dispose();
-          drawing.attachSelection(null);
-          edit.dispose();
-          selection.dispose();
-          unsubscribeScale();
-          scale.dispose();
-          phase.dispose();
-          drawing.dispose();
-          plan.dispose();
+          made.dispose();
           result.session.dispose();
           onSessionRef.current?.(null);
         };
         onSessionRef.current?.(result.session);
-        setState({
-          kind: 'ready',
-          session: result.session,
-          plan,
-          drawing,
-          selection,
-          edit,
-          scale,
-          phase,
-          layers,
-          derived,
-          assistant,
-          floors,
-          routed,
-          versions,
-          toolRoute: router.tool,
-        });
+        setState({ kind: 'ready', session: result.session, ...made.controllers });
         return;
       }
       setState(result);
@@ -499,7 +332,11 @@ export function ProjectEditor({
   const sync = session?.sync ?? null;
 
   // EZD-5605 D-Wire: Adjust is made by the Assistant session, which tells its listeners when Adjust starts or ends.
-  const adjusting = useStoreValue(assistant, (a) => a.getControls()?.adjust.getUi().adjusting ?? false, false);
+  const adjusting = useStoreValue(
+    assistant,
+    (a) => a.getControls()?.adjust.getUi().adjusting ?? false,
+    false,
+  );
 
   // EZD-404: the cabinet run screen is shown while the Cabinets tool is on.
   const cabinetsOn = useStoreValue(drawing, (d) => d.getUi().tool === 'cabinets', false);
@@ -821,6 +658,42 @@ export function ProjectEditor({
   // working copy shown (EZD-122).
   const holdsLock = (session?.model.viewer.canEdit ?? false) && !lockLost;
   const mayEdit = holdsLock && viewing === null;
+
+  // EZD-123 (Q-0700 05 "Cleanup sheet"; S20 Permissions): a project with due rows opens the cleanup sheet once for a
+  // user with Edit model; Save choices shows only to the lock holder, Later closes it.
+  const canEditModel = session?.lock.canEditModel ?? false;
+  const [cleanup, setCleanup] = useState<CleanupList | null>(null);
+  const [cleanupOpen, setCleanupOpen] = useState(false);
+  const [cleanupSaving, setCleanupSaving] = useState(false);
+  const [cleanupError, setCleanupError] = useState<MessageKey | null>(null);
+  const cleanupRead = useRef<string | null>(null);
+  useEffect(() => {
+    // The model load says whether any row is due, so a project with none asks for nothing more (EZD-120c B1).
+    if (session === null || !canEditModel || session.model.project.cleanupDue !== true) return;
+    if (cleanupRead.current === projectId) return;
+    cleanupRead.current = projectId;
+    void fetchCleanup(projectId).then((r) => {
+      if (!r.ok || r.list.rows.length === 0) return;
+      setCleanup(r.list);
+      setCleanupOpen(true);
+    });
+  }, [session, canEditModel, projectId]);
+  const saveCleanup = async (choices: {
+    keep: { id: string; name: string }[];
+    remove: string[];
+  }) => {
+    if (session === null || cleanupSaving) return;
+    setCleanupSaving(true);
+    setCleanupError(null);
+    const r = await postCleanup(projectId, { lockEpoch: session.model.lockEpoch, ...choices });
+    setCleanupSaving(false);
+    if (!r.ok) {
+      setCleanupError(versionErrorKey(r.code));
+      return;
+    }
+    setCleanupOpen(false);
+    refreshVersions();
+  };
   useEffect(() => {
     if (lockLost) drawing?.pause();
   }, [lockLost, drawing]);
@@ -855,6 +728,24 @@ export function ProjectEditor({
   useEffect(() => {
     sheetsScreen?.setShown(showSheets);
   }, [sheetsScreen, showSheets]);
+  // EZD-717: Issue drains the outbox first, so the issued checkpoint holds the latest edits (as Send does).
+  useEffect(() => {
+    if (sheetsScreen === null) return;
+    sheetsScreen.setSync(sync);
+    return () => sheetsScreen.setSync(null);
+  }, [sheetsScreen, sync]);
+  // EZD-717: a set issued on the Sheets screen moves the header to "Rev N issued" at once.
+  const [issuedNo, setIssuedNo] = useState<number | null>(null);
+  useEffect(() => {
+    if (sheetsScreen === null) return;
+    const read = () => {
+      let max: number | null = null;
+      for (const r of sheetsScreen.get().issue.revisions) if (max === null || r.revNo > max) max = r.revNo;
+      setIssuedNo((cur) => newerVersionNo(cur, max));
+    };
+    read();
+    return sheetsScreen.subscribe(read);
+  }, [sheetsScreen]);
   useEffect(
     () => (sheetsScreen === null ? undefined : () => sheetsScreen.dispose()),
     [sheetsScreen],
@@ -1000,8 +891,15 @@ export function ProjectEditor({
   }, [plan, selection, drawing, session, menuCanEdit, adjusting]);
 
   const versionNo = newerVersionNo(session?.model.project.versionNo ?? null, sentNo);
+  // EZD-717 (board S13Sheets header "Working copy · Rev 0 issued"): after Rev 0 the header names the newest issue.
+  const revNo = newerVersionNo(session?.model.project.revNo ?? null, issuedNo);
   const label = versionLabel({
-    lastSent: versionNo === null ? null : { kind: 'version', no: versionNo },
+    lastSent:
+      revNo !== null
+        ? { kind: 'rev', no: revNo }
+        : versionNo === null
+          ? null
+          : { kind: 'version', no: versionNo },
     // EZD-121 text: "Version N" while that sent version is open read-only.
     viewing:
       viewing !== null && viewing.isSent && viewing.versionNo !== null
@@ -1135,6 +1033,18 @@ export function ProjectEditor({
             onSent={onSent}
             onOpenSettings={() => setSendSettingsOpen(true)}
             onCloseSettings={() => setSendSettingsOpen(false)}
+          />
+        ) : null}
+        {cleanupOpen && cleanup !== null ? (
+          <LazyCleanupSheet
+            rows={cleanup.rows}
+            graceDays={cleanup.graceDays}
+            ageDays={cleanup.ageDays}
+            canSave={holdsLock}
+            saving={cleanupSaving}
+            error={cleanupError === null ? null : t(cleanupError)}
+            onSave={(choices) => void saveCleanup(choices)}
+            onLater={() => setCleanupOpen(false)}
           />
         ) : null}
         {conflictCount > 0 ? (
@@ -1707,8 +1617,6 @@ export function ProjectEditor({
 }
 
 const conflictPanelModule = lazyModule(() => import('../lazy/conflict-panel'));
-// EZD-423 (11 Budgets editor download size): the drawing engine behind the entry's drawing shell.
-const drawingEngine = lazyModule(() => import('../lazy/drawing-engine'));
 
 // EZD-1910 (editor plan R11, L4): every lazy part below is one `lazyPart` call (shared/lazy-part.tsx); nothing shows
 // for the moment a module downloads, and a failed download is tried again the next time the part is wanted.
@@ -1798,6 +1706,7 @@ function versionErrorKey(code: string): MessageKey {
 const LazyVersions = lazyPart(versionsModule, 'VersionsPanel');
 const LazyVersionInspector = lazyPart(versionsModule, 'VersionInspector');
 const LazyVersionsStatus = lazyPart(versionsModule, 'VersionsStatus');
+const LazyCleanupSheet = lazyPart(versionsModule, 'CleanupSheet');
 
 // EZD-1401 (11 Budgets; EZD-120c B11): the beam spacing pill loads when the Ceiling or Both view first shows.
 const beamSpacingModule = lazyModule(() => import('../lazy/beam-spacing'));
@@ -1847,7 +1756,9 @@ function usePreviewOpen(props: { store: PreviewStore }) {
   );
 }
 
-const LazyPreviewLayer = lazyPart(assistantPanelModule, 'PreviewLayer', { useWanted: usePreviewOpen });
+const LazyPreviewLayer = lazyPart(assistantPanelModule, 'PreviewLayer', {
+  useWanted: usePreviewOpen,
+});
 
 // EZD-214 (11 Budgets; EZD-120c B11): the inspector panel loads on the first press or key in the editor, or when
 // something is selected; until then the empty inspector is drawn from the entry.

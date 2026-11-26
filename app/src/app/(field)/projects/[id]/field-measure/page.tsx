@@ -25,6 +25,7 @@ import { readFieldMeasure } from '../../../../../server/field-measure/session';
 import { loadOutboxActor } from '../../../../../server/outbox/actor';
 import { catalogFor } from '../../../../../server/messages/catalog';
 import { can, getPermissionContext } from '../../../../../server/permissions';
+import { valueOf } from '../../../../../server/settled';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -40,18 +41,21 @@ export default async function FieldMeasurePage({
   const ctx = await getPermissionContext();
   if (ctx === null || !can(ctx, 'view_projects', { projectId: id })) notFound();
   const client = createSessionClient();
-  const view = await readFieldMeasure(client, id);
+  // Performance audit 2026-11-26: once the permission check has passed, the rooms, the user's language, the company
+  // defaults and the outbox actor do not depend on each other, so the four reads start together and the phone waits
+  // for the slowest one, not for their sum. The answers are taken in the old order (server/settled.ts).
+  const [viewRead, userRead, defaultsRead, actorRead] = await Promise.allSettled([
+    readFieldMeasure(client, id),
+    client.from('app_user').select('language').eq('id', session.appUserId).maybeSingle(),
+    loadTenantDefaults(client),
+    loadOutboxActor(),
+  ]);
+  const view = valueOf(viewRead);
   if (view === null) notFound();
-  const user = await client
-    .from('app_user')
-    .select('language')
-    .eq('id', session.appUserId)
-    .maybeSingle();
-  const tolerance = reviewTolerance(
-    effectiveValue('measurement_tolerance', await loadTenantDefaults(client)),
-  );
+  const user = valueOf(userRead);
+  const tolerance = reviewTolerance(effectiveValue('measurement_tolerance', valueOf(defaultsRead)));
   const language: Language = user.data?.language === 'es' ? 'es' : 'en';
-  const actor = await loadOutboxActor();
+  const actor = valueOf(actorRead);
   return (
     <MessagesProvider language={language} messages={catalogFor('field', language)}>
       <StateHost>

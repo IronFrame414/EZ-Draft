@@ -20,7 +20,8 @@ export type EventEntry = { kind: EventKind; later?: `EZD-${string}`; notInV1?: `
 
 export const EVENTS = {
   // Outbound webhooks to EZ Binder, and Added in Round 24 under Delivery rules (07 Hooks)
-  'plan_set.issued': { kind: 'webhook', notInV1: 'Q-0190' },
+  // EZD-717: written to the event log by public.issue_permit_set; delivery to EZ Binder stays out of v1 (Q-0190).
+  'plan_set.issued': { kind: 'webhook' },
   'selection.approved': { kind: 'webhook', later: 'EZD-1211' },
   'revision.created': { kind: 'webhook', later: 'EZD-718' },
   'change_order.sent': { kind: 'webhook', notInV1: 'Q-0190' },
@@ -63,7 +64,8 @@ export const EVENTS = {
   'offline_change.synced': { kind: 'internal' },
   // EZD-1201 (07 share_link.expiring): written as the event_log row by sweep_share_link_reminders.
   'share_link.expiring': { kind: 'internal' },
-  'cleanup.due': { kind: 'internal', later: 'EZD-123' },
+  // EZD-123 (S20 Events emitted): written as event_log rows by run_version_cleanup and save_cleanup_choices.
+  'cleanup.due': { kind: 'internal' },
   // EZD-612 (07 code_check.completed "with warning count"; assumptions EZD-611a, EZD-612 events row): a Check run,
   // and one warning accepted with a note (ids only, never the note).
   'code_check.completed': { kind: 'internal' },
@@ -73,7 +75,7 @@ export const EVENTS = {
   'version.sent': { kind: 'internal' },
   'version.snapshot_named': { kind: 'internal' },
   'version.reverted': { kind: 'internal' },
-  'cleanup.deleted': { kind: 'internal', later: 'EZD-123' },
+  'cleanup.deleted': { kind: 'internal' },
   'room.closure_overridden': { kind: 'internal' },
   // EZD-5605 (Q-0638 gap 11; S03c "Accepted changes are marked as AI in the event log"): an Assistant change the
   // user accepted, saved through the objects route; ids and count only, never prompt or reply text.
@@ -244,7 +246,7 @@ export interface EventPayloads {
   'field_pack.issued': Record<string, unknown>;
   'share_link.expiring': { projectId: string; expiresAt: string };
   'edge_profile.offered': { projectId: string; pieceId: string; choices: string[] };
-  'cleanup.due': Record<string, unknown>;
+  'cleanup.due': { versionIds: string[]; count: number };
   'code_check.completed': {
     runId: string;
     edition: string;
@@ -258,7 +260,7 @@ export interface EventPayloads {
   'version.sent': Record<string, unknown>;
   'version.snapshot_named': Record<string, unknown>;
   'version.reverted': Record<string, unknown>;
-  'cleanup.deleted': Record<string, unknown>;
+  'cleanup.deleted': { versionIds: string[]; count: number; by: 'run' | 'sheet' };
   'room.closure_overridden': { roomId: string; gapIn: number; userId: string };
   'model.ai_change_accepted': { objectIds: string[]; count: number };
   // EZD-215 (07 Q-0708): fileId null when the note has no letter.

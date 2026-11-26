@@ -412,7 +412,8 @@ test.describe('EZD-221b New project wizard: template step', () => {
     expect(keys.filter((k) => k.startsWith('app:lazy/template-picker/'))).toEqual([]);
     expect(keys.filter((k) => k.startsWith('geometry:'))).toEqual([]);
     expect(keys.filter((k) => k === 'pkg:@ezdraft/geometry')).toEqual([]);
-    expect(keys).toContain('app:components/projects/NewProjectDialog.tsx');
+    // EZD-1999 (audit F10, Q-0814): the wizard itself now loads when New project is opened, not with the page.
+    expect(keys).not.toContain('app:components/projects/NewProjectDialog.tsx');
 
     await step1(page);
     await step2(page);

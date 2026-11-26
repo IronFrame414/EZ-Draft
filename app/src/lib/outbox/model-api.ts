@@ -24,6 +24,10 @@ export type ModelLoad = {
     phaseDefault?: PhaseView;
     // EZD-121 (Q-0700 05): the highest sent version number for the header; null or missing before any send.
     versionNo?: number | null;
+    // EZD-717: the newest issued permit revision (Rev N) for the header; missing before Rev 0.
+    revNo?: number | null;
+    // EZD-123 (Q-0700 05): true when a working version is up for cleanup; the editor then reads the sheet's rows.
+    cleanupDue?: boolean;
   };
   // EZD-223: `ipadDrawing` is the viewer's own iPad drawing setting (S15d, Q-0392); missing reads as finger.
   viewer: {

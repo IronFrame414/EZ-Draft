@@ -58,7 +58,7 @@ function classify(n) {
 }
 
 /**
- * @param ctx { browser, profile, baseUrl }
+ * @param ctx { browser, profile, baseUrl, storageState? }
  * @param entry an ENTRY_RULES key (`office`, `editor`, `field-pack`, `client-link`, `sign-in`)
  * @returns {Promise<{ value: number; details: object } | { error: string; details: object }>}
  */
@@ -67,6 +67,7 @@ export async function measureJsContents(ctx, url, entry) {
   if (!rules) throw new Error(`no ENTRY_RULES for entry ${entry}`);
   const collected = await collectScripts(ctx, url);
   const details = { url, status: collected.details.status, files: [] };
+  if (collected.details.landedUrl !== undefined) details.landedUrl = collected.details.landedUrl;
   if (collected.error !== undefined) return { error: collected.error, details };
 
   const modules = {};
