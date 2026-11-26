@@ -543,7 +543,8 @@
     "EZD-612",
     "EZD-916",
     "EZD-1955",
-    "EZD-1409"
+    "EZD-1409",
+    "EZD-703"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2269,6 +2270,14 @@
       "ts": "2026-11-26T07:53:49Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-703",
+      "title": "Viewports and scales",
+      "commit": "d670e745",
+      "ts": "2026-11-26T08:24:28Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2525,14 +2534,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-703": {
-      "lane": 1,
-      "title": "Viewports and scales",
-      "started": "2026-11-26T06:16:38Z",
-      "develop": "a70425b1"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-26T04:19:51Z",
   "hold": {},
   "perf_trend_at": "2026-11-26T03:55:15Z",
