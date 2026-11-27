@@ -2595,9 +2595,18 @@
       "lane": 4
     }
   ],
-  "set_aside": {},
+  "set_aside": {
+    "EZD-2029": {
+      "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
+      "ts": "2026-11-27T11:03:52Z",
+      "reason": "check red after merging newer develop (first try: check red after merging newer develop)",
+      "detail": "test.mjs\nfull log: /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-2029/check.log\n\n== failure lines ==\nnot ok 50 - scripts/db/__tests__/types-check.test.mjs\n  location: '/Users/josh/Projects/ezdraft/.claude/worktrees/EZD-2029/scripts/db/__tests__/types-check.test.mjs:1:1'\n  error: 'test timed out after 300000ms'\n  code: 'ERR_TEST_FAILURE'\n\n== last lines ==\n      type: 'test'\n      ...\n    # Subtest: EZD-023a T10 findUnverifiable: cascade and dynamic text (Step 3)\n    ok 5 - EZD-023a T10 findUnverifiable: cascade and dynamic text (Step 3)\n      ---\n      duration_ms: 0.605791\n      type: 'test'\n      ...\n    1..5\nok 578 - EZD-023a sql scan\n  ---\n  duration_ms: 4.005375\n  type: 'suite'\n  ...\n# Subtest: EZD-325 scratch stack ports\n    # Subtest: EZD-325 T1 scratch stack ports are bare integers below 32768 and not shared\n    ok 1 - EZD-325 T1 scratch stack ports are bare integers below 32768 and not shared\n      ---\n      duration_ms: 13.3605\n      type: 'test'\n      ...\n    1..1\nok 579 - EZD-325 scratch stack ports\n  ---\n  duration_ms: 13.851834\n  type: 'suite'\n  ...\n# Subtest: EZD-023a release tags\n    # Subtest: EZD-023a T13 Tag order: listReleaseTags sorts by phase then patch and ignores other names\n    ok 1 - EZD-023a T13 Tag order: listReleaseTags sorts by phase then patch and ignores other names\n      ---\n      duration_ms: 1.885459\n      type: 'test'\n      ...\n    # Subtest: EZD-360 T6 compareReleaseTags orders phase-56 after phase-5.3 and before phase-6 (AC-EZD-360-3)\n    ok 2 - EZD-360 T6 compareReleaseTags orders phase-56 after phase-5.3 and before phase-6 (AC-EZD-360-3)\n      ---\n      duration_ms: 0.126125\n      type: 'test'\n      ...\n    # Subtest: EZD-360 T7 a Phase 6 pull request after phase-56 gets phase-6 (AC-EZD-360-3)\n    ok 3 - EZD-360 T7 a Phase 6 pull request after phase-56 gets phase-6 (AC-EZD-360-3)\n      ---\n      duration_ms: 0.552625\n      type: 'test'\n      ...\n    # Subtest: EZD-360 T8 a Phase 56 pull request after phase-5 gets phase-56 (AC-EZD-360-3)\n    ok 4 - EZD-360 T8 a Phase 56 pull request after phase-5 gets phase-56 (AC-EZD-360-3)\n      ---\n      duration_ms: 0.353125\n      type: 'test'\n      ...\n    # Subtest: EZD-360 T9 a Phase 56 pull request after phase-6 is not_newer (AC-EZD-360-3)\n    ok 5 - EZD-360 T9 a Phase 56 pull request after phase-6 is not_newer (AC-EZD-360-3)\n      ---\n      duration_ms: 0.147416\n      type: 'test'\n      ...\n    1..5\nok 580 - EZD-023a release tags\n  ---\n  duration_ms: 3.6945\n  type: 'suite'\n  ...\n# Subtest: EZD-023c Vercel client requests\n    # Subtest: EZD-023c T23 (a)-(g) requests and results\n    ok 1 - EZD-023c T23 (a)-(g) requests and results\n      ---\n      duration_ms: 4.132625\n      type: 'test'\n      ...\n    # Subtest: EZD-023c T23 (h) errors name neither ids nor token nor body\n    ok 2 - EZD-023c T23 (h) errors name neither ids nor token nor body\n      ---\n      duration_ms: 0.574708\n      type: 'test'\n      ...\n    # Subtest: EZD-023c T23 (i) evaluateVercelProject and P",
+      "branch": "t/EZD-2029",
+      "worktree": ".claude/worktrees/EZD-2029"
+    }
+  },
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2880,12 +2889,6 @@
     }
   },
   "running": {
-    "EZD-2029": {
-      "lane": 1,
-      "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
-      "started": "2026-11-27T09:18:07Z",
-      "develop": "2f1a33eb"
-    },
     "EZD-2030": {
       "lane": 2,
       "title": "The emailed sign-in code is 8 digits",
@@ -2897,6 +2900,12 @@
       "title": "Storage hides supplier-named files from members without See company costs",
       "started": "2026-11-27T09:18:08Z",
       "develop": "2f1a33eb"
+    },
+    "EZD-2012": {
+      "lane": 4,
+      "title": "Fix: perf js-contents C4 verdicts differ by which scripts loaded first (EZD-020)",
+      "started": "2026-11-27T10:36:57Z",
+      "develop": "888748c3"
     }
   },
   "advisories_checked_at": "2026-11-27T10:22:44Z",
