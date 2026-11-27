@@ -573,7 +573,8 @@
     "EZD-1913a",
     "EZD-614",
     "EZD-2008",
-    "EZD-2023"
+    "EZD-2023",
+    "EZD-2024"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2539,6 +2540,14 @@
       "ts": "2026-11-27T05:44:26Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-2024",
+      "title": "Only an Owner can give or take away the Owner role",
+      "commit": "df5e00db",
+      "ts": "2026-11-27T06:17:33Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2821,12 +2830,6 @@
     }
   },
   "running": {
-    "EZD-2024": {
-      "lane": 2,
-      "title": "Only an Owner can give or take away the Owner role",
-      "started": "2026-11-27T04:24:45Z",
-      "develop": "9373efb3"
-    },
     "EZD-2026": {
       "lane": 1,
       "title": "Field measure on a wide screen: drawing on the left, fields and keypad on the right",
