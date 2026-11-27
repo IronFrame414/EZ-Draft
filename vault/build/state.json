@@ -577,7 +577,13 @@
     "EZD-2024",
     "EZD-2026",
     "EZD-2027",
-    "EZD-2001"
+    "EZD-2001",
+    "EZD-2028",
+    "EZD-2006",
+    "EZD-2005",
+    "EZD-2012",
+    "EZD-2009",
+    "EZD-2015"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2575,11 +2581,59 @@
       "ts": "2026-11-27T08:12:06Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-2028",
+      "title": "Toasts and the reload notice sit above the field tab bar and the home bar",
+      "commit": "b5d7461d",
+      "ts": "2026-11-27T09:17:12Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-2006",
+      "title": "Client link views are logged at most once per link per hour",
+      "commit": "509765b8",
+      "ts": "2026-11-27T10:36:46Z",
+      "kind": "ticket",
+      "lane": 4
+    },
+    {
+      "id": "EZD-2005",
+      "title": "Storage hides supplier-named files from members without See company costs",
+      "commit": "e1750de8",
+      "ts": "2026-11-27T11:49:24Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-2012",
+      "title": "Fix: perf js-contents C4 verdicts differ by which scripts loaded first (EZD-020)",
+      "commit": "a67b8fd9",
+      "ts": "2026-11-27T12:15:36Z",
+      "kind": "ticket",
+      "lane": 4
+    },
+    {
+      "id": "EZD-2009",
+      "title": "Fix: first 3D open within 1,000 ms (AC-EZD-1001a-3) fails on CI under shared workers",
+      "commit": "7763154e",
+      "ts": "2026-11-27T12:48:43Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-2015",
+      "title": "Loop: builders only add assumption rows, never edit or remove old ones (EZD-1953 T6)",
+      "commit": "7eb1d36b5",
+      "ts": "2026-11-27T14:45:01Z",
+      "kind": "ticket",
+      "lane": 4
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2633,7 +2687,11 @@
     "EZD-2000": 1,
     "EZD-1913b": 1,
     "EZD-640": 1,
-    "EZD-2029": 1
+    "EZD-2029": 1,
+    "EZD-2030": 1,
+    "EZD-2010": 1,
+    "EZD-2022": 1,
+    "EZD-2019": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2859,17 +2917,45 @@
     "EZD-2029": {
       "ts": "2026-11-27T08:19:11Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-2030": {
+      "ts": "2026-11-27T11:08:44Z",
+      "reason": "check red after a review fix"
+    },
+    "EZD-2010": {
+      "ts": "2026-11-27T13:19:30Z",
+      "reason": "check red after a review fix"
+    },
+    "EZD-2022": {
+      "ts": "2026-11-27T13:23:51Z",
+      "reason": "check red after a review fix"
+    },
+    "EZD-2019": {
+      "ts": "2026-11-27T14:17:26Z",
+      "reason": "check red after a review fix"
     }
   },
   "running": {
-    "EZD-2028": {
+    "EZD-2029": {
+      "lane": 1,
+      "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
+      "started": "2026-11-27T12:48:54Z",
+      "develop": "b791995e"
+    },
+    "EZD-2022": {
+      "lane": 3,
+      "title": "Security: request gate covers every page path, browser protection headers, and a quieter health check",
+      "started": "2026-11-27T13:24:42Z",
+      "develop": "05c93a08"
+    },
+    "EZD-2030": {
       "lane": 2,
-      "title": "Toasts and the reload notice sit above the field tab bar and the home bar",
-      "started": "2026-11-27T07:38:20Z",
-      "develop": "22bfb49e"
+      "title": "The emailed sign-in code is 8 digits",
+      "started": "2026-11-27T14:18:13Z",
+      "develop": "15e028b9"
     }
   },
-  "advisories_checked_at": "2026-11-27T04:21:45Z",
+  "advisories_checked_at": "2026-11-27T10:22:44Z",
   "hold": {},
   "perf_trend_at": "2026-11-27T04:12:31Z",
   "set_aside_history": [
@@ -2879,7 +2965,21 @@
       "set_aside_ts": "2026-11-27T04:12:31Z",
       "retried_ts": "2026-11-27T04:29:39Z",
       "by": "overwatch"
+    },
+    {
+      "ticket": "EZD-2029",
+      "reason": "check red after merging newer develop (first try: check red after merging newer develop)",
+      "set_aside_ts": "2026-11-27T11:03:52Z",
+      "retried_ts": "2026-11-27T11:14:41Z",
+      "by": "overwatch"
+    },
+    {
+      "ticket": "EZD-2030",
+      "reason": "check red after merging newer develop (first try: check red after a review fix)",
+      "set_aside_ts": "2026-11-27T12:57:50Z",
+      "retried_ts": "2026-11-27T12:59:35Z",
+      "by": "overwatch"
     }
   ],
-  "backups_checked_at": "2026-11-26T09:58:49Z"
+  "backups_checked_at": "2026-11-27T09:59:34Z"
 }

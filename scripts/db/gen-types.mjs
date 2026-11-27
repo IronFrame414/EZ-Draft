@@ -20,13 +20,18 @@ import {
 } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { readLane } from './lane.mjs';
 import { runLocalSql } from './sql.mjs';
 import { sharedTempDir } from './stack-config.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const supabaseBin = path.join(repo, 'node_modules', '.bin', 'supabase');
 const defaultFile = path.join(repo, 'app', 'src', 'server', 'db', 'database.types.ts');
-const defaultLockDir = () => path.join(sharedTempDir(repo), 'ezd-gen-types.lock');
+// EZD-2005: one lock per lane. The lock exists so checks take turns on one local stack (EZD-200); each build
+// lane has its own stack (lane.mjs), so a lane's checks wait only for that lane's. Lane 0 keeps the EZD-200 name.
+export const genTypesLockName = (lane) =>
+  lane === 0 ? 'ezd-gen-types.lock' : `ezd-gen-types-lane${lane}.lock`;
+const defaultLockDir = () => path.join(sharedTempDir(repo), genTypesLockName(readLane()));
 
 export const GEN_TYPES_ARGS = ['gen', 'types', 'typescript', '--local', '--schema', 'public'];
 export const GEN_TYPES_LOCK_WAIT_MS = 120000;

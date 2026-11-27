@@ -68,6 +68,8 @@ export async function measureJsContents(ctx, url, entry) {
   const collected = await collectScripts(ctx, url);
   const details = { url, status: collected.details.status, files: [] };
   if (collected.details.landedUrl !== undefined) details.landedUrl = collected.details.landedUrl;
+  // EZD-2012: the scripts the document names that never finished loading.
+  if (collected.details.pendingScripts !== undefined) details.pendingScripts = collected.details.pendingScripts;
   if (collected.error !== undefined) return { error: collected.error, details };
 
   const modules = {};

@@ -11,6 +11,8 @@ const HOOKS_PATH = path.join(import.meta.dirname, 'page-hooks.browser.js');
 const IDLE_MS = 1000;
 const IDLE_CAP_MS = 15000;
 const POLL_MS = 100;
+// EZD-2012: how long the collector waits for the scripts the document names to finish loading.
+const NAMED_CAP_MS = 15000;
 
 /**
  * S4: after `goto` resolves at `load`, waits until no request has started for 1,000 ms (polled every 100 ms),
@@ -35,6 +37,47 @@ export function settlePage(page) {
       resolve({ idleTimeout });
     }, POLL_MS);
   });
+}
+
+/**
+ * EZD-2012: the addresses of the scripts the document names (script elements with a `src`) that the browser loads:
+ * not `nomodule` scripts, and not a `type` that is no script (JSON, templates).
+ */
+function namedScripts(page) {
+  return page.evaluate(() =>
+    [...document.scripts]
+      .filter((s) => {
+        if (!s.src || s.noModule) return false;
+        const type = (s.getAttribute('type') ?? '').trim().toLowerCase();
+        return type === '' || type === 'module' || type.endsWith('javascript') || type.endsWith('ecmascript');
+      })
+      .map((s) => s.src),
+  );
+}
+
+/**
+ * EZD-2012: waits until the page is quiet (settlePage) and every script the document names has finished loading,
+ * so the set of files read never depends on how fast the server answered. A named script counts as loading from
+ * the moment its request starts (`started`) until it finishes or fails (`finished`); one the browser never
+ * requests (blocked by the page's own policy) is not waited for. After a wait the page is settled again, since
+ * the late script may start requests of its own. At most NAMED_CAP_MS of waiting on named scripts.
+ * @returns {Promise<{ idleTimeout: boolean; pending: string[] }>} pending = named scripts still loading at the cap
+ */
+export async function settleScripts(page, started, finished) {
+  const deadline = Date.now() + NAMED_CAP_MS;
+  let idleTimeout = false;
+  const loading = async () =>
+    [...new Set(await namedScripts(page))].filter((u) => started.has(u) && !finished.has(u));
+  for (;;) {
+    idleTimeout = (await settlePage(page)).idleTimeout || idleTimeout;
+    let pending = await loading();
+    if (pending.length === 0) return { idleTimeout, pending };
+    while (pending.length > 0 && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, POLL_MS));
+      pending = await loading();
+    }
+    if (pending.length > 0) return { idleTimeout, pending };
+  }
 }
 
 // EZD-1998: `storageState` (a Playwright storage state file) opens the page signed in.
@@ -72,7 +115,8 @@ function displayUrl(url, baseOrigin) {
  * Step 5). `ctx` = { browser, profile, baseUrl, storageState? }. With `styles: true` the page's CSS files are collected too
  * (EZD-1996), each marked `kind: 'css'`; scripts are `kind: 'js'`.
  * @returns {Promise<{ error?: string; details: object; scripts: { url: string; displayUrl: string; body: Buffer;
- *   serviceWorker: boolean; kind: 'js' | 'css' }[] }>} details = { url, status, idleTimeout }
+ *   serviceWorker: boolean; kind: 'js' | 'css' }[] }>} details = { url, status, idleTimeout }; with the error
+ *   `scripts_not_loaded` (EZD-2012) also pendingScripts, the named scripts that never finished loading
  */
 export async function collectScripts(ctx, url, { styles = false, documents = false } = {}) {
   const { browser, profile, baseUrl, storageState } = ctx;
@@ -101,6 +145,14 @@ export async function collectScripts(ctx, url, { styles = false, documents = fal
       collected.push({ url: rUrl, fromWorker, body, kind: html ? 'html' : css ? 'css' : 'js' });
     });
 
+    // EZD-2012: which requests have started and which have ended, by address, so the collector can tell when a
+    // script the document names is still loading.
+    const started = new Set();
+    const finished = new Set();
+    context.on('request', (request) => started.add(request.url()));
+    context.on('requestfinished', (request) => finished.add(request.url()));
+    context.on('requestfailed', (request) => finished.add(request.url()));
+
     const page = await context.newPage();
     let response;
     try {
@@ -120,8 +172,14 @@ export async function collectScripts(ctx, url, { styles = false, documents = fal
       return { error: 'redirected', details, scripts };
     }
 
-    const { idleTimeout } = await settlePage(page);
+    const { idleTimeout, pending } = await settleScripts(page, started, finished);
     details.idleTimeout = idleTimeout;
+    // A file set that is missing a script the page names would give a wrong size or verdict: an error, never a
+    // silent pass.
+    if (pending.length > 0) {
+      details.pendingScripts = pending.map((u) => displayUrl(u, baseOrigin));
+      return { error: 'scripts_not_loaded', details, scripts };
+    }
     const swUrls = new Set(await page.evaluate(() => window.__EZD_PERF__.swUrls));
 
     for (const c of collected) {
@@ -164,6 +222,7 @@ async function measureSize(browser, profile, baseUrl, url, kinds, storageState) 
     details.documents = [];
   }
   if (collected.details.landedUrl !== undefined) details.landedUrl = collected.details.landedUrl;
+  if (collected.details.pendingScripts !== undefined) details.pendingScripts = collected.details.pendingScripts;
   if (collected.error !== undefined) return { error: collected.error, details };
   let value = 0;
   for (const s of collected.scripts) {

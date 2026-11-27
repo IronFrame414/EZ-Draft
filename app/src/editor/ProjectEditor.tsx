@@ -128,6 +128,7 @@ import { chosenFloor } from './floors/floors';
 import { FloorSwitcher } from './floors/FloorSwitcher';
 import { PlanCanvas, PlanInputSurface } from './plan/PlanCanvas';
 import { PlanTextFailedBanner } from './plan/PlanTextFailedBanner';
+import { loadAfterFirstInput } from './plan/scene-warmup';
 import { usePdfUnderlay } from './plan/PdfUnderlay';
 import { ZoomStack } from './plan/ZoomStack';
 import type { ConflictBannerProps } from './conflicts/ConflictBanner';
@@ -790,6 +791,13 @@ export function ProjectEditor({
     if (plan === null) return;
     plan.showScene(show3d ? scene3d : null);
   }, [plan, show3d, scene3d]);
+  // EZD-2009 (AC-EZD-2009-1): the 3D scene's chunk is downloaded while the editor is idle, after the person's first
+  // input, so the first press of 3D does not wait for it. Nothing is built or shown, and no state changes here.
+  const can3d = plan !== null && !canvasFailed;
+  useEffect(() => {
+    if (!can3d) return;
+    return loadAfterFirstInput(() => scene3dModule.preload());
+  }, [can3d]);
   useEffect(() => {
     if (toolRoute === null || routedStore === null || selection === null || phase === null) return;
     // EZD-222 (11 Budgets; EZD-1401 precedent): the placement code comes with the Ceiling view's lazy module, which
@@ -879,7 +887,7 @@ export function ProjectEditor({
   }, [listOpen, session]);
 
   // EZD-1911: the dev and test hooks (`__ezdraftEditor`, `__ezdraftPlan`, `__ezdraftSelection`, `__ezdraft3d`).
-  useDevHooks({ devHooks, projectId, session, sync, plan, phase, selection, scene3d, show3d });
+  useDevHooks({ devHooks, projectId, session, sync, plan, phase, selection, scene3d, show3d, scene3dLoaded });
 
   const menuCanEdit = mayEdit;
   useEffect(() => {
@@ -1759,6 +1767,9 @@ const benchmarkRunnerModule = lazyModule(() => import('../lazy/benchmark-runner'
 
 // EZD-1001a (11 rule 7): the 3D scene loads on the first press of the 3D tab.
 const scene3dModule = lazyModule(() => import('../lazy/scene-3d'));
+
+// EZD-2009: for the `__ezdraftEditor` dev hook.
+const scene3dLoaded = () => scene3dModule.peek() !== undefined;
 
 const LazyScene3dOverlay = lazyPart(scene3dModule, 'Scene3dOverlay');
 const LazyBenchmarkRunner = lazyPart(benchmarkRunnerModule, 'BenchmarkRunner');

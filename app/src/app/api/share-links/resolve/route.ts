@@ -2,10 +2,13 @@
 // the client link's status, for the signed-out client page (EZD-1202). POST so the token travels in the body,
 // never in a URL or a log. 200 `{ link: { status: 'active', expiresAt } }`; 410 the expired response with the
 // company name only; 404 for an unknown, malformed, revoked or deleted-project link. `view: true` records
-// share_link.viewed (the page open).
+// share_link.viewed (the page open), at most once per link per hour (EZD-2006, in resolve_share_link).
+// EZD-2006 (AC-EZD-2006-2): every call first takes a slot of the error tunnel's per-address throttle
+// (tunnelAllows, error_tunnel_take: 60 per address per rolling hour); past the limit it answers 429.
 import { z } from 'zod';
 import { endedSessionResponse } from '../../../../server/auth/ended-session';
 import { reportRouteFailure } from '../../../../server/errors/route-failure';
+import { tunnelAllows } from '../../../../server/errors/tunnel-throttle';
 import { fail, SHARE_LINK_HEADERS } from '../../../../server/share-links/route-helpers';
 import { resolveShareLink } from '../../../../server/share-links/share-links';
 
@@ -17,6 +20,7 @@ const bodySchema = z.object({ token: z.string().max(64), view: z.boolean().optio
 
 export async function POST(request: Request): Promise<Response> {
   try {
+    if (!(await tunnelAllows(request.headers, 1))) return fail(429, 'too_many_requests');
     let raw: unknown;
     try {
       raw = await request.json();

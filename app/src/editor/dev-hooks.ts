@@ -19,6 +19,8 @@ export type EditorTestHook = {
   objects(): Array<{ id: string } & ObjectValue>;
   edit(changes: Change[]): string[];
   checkpoint(): Promise<CheckpointOutcome>;
+  // EZD-2009: true once the lazy `scene-3d` module is downloaded and ready (before or after 3D is pressed).
+  scene3dLoaded(): boolean;
 };
 
 export type PlanTestHook = {
@@ -53,9 +55,9 @@ type Sync = NonNullable<EditorSession['sync']>;
 // Each install puts one hook on `w` and returns the function that takes it away.
 export function installEditorHook(
   w: DevHookWindow,
-  o: { session: EditorSession; sync: Sync; plan: PlanController; projectId: string },
+  o: { session: EditorSession; sync: Sync; plan: PlanController; projectId: string; scene3dLoaded: () => boolean },
 ): () => void {
-  const { session, sync, plan, projectId } = o;
+  const { session, sync, plan, projectId, scene3dLoaded } = o;
   const store = session.store;
   const hook: EditorTestHook = {
     objects: () => [...store.getState().objects].map(([id, value]) => ({ id, ...value })),
@@ -65,6 +67,7 @@ export function installEditorHook(
       const { makeCheckpoint } = await import('./thumbnail/checkpoint');
       return makeCheckpoint({ projectId, capture: () => plan.captureThumbnail() });
     },
+    scene3dLoaded,
   };
   w.__ezdraftEditor = hook;
   return () => {
@@ -124,20 +127,22 @@ export type DevHookParts = {
   selection: SelectionController | null;
   scene3d: Scene3d | null;
   show3d: boolean;
+  // EZD-2009: whether the lazy `scene-3d` module has loaded. The same function on every render.
+  scene3dLoaded: () => boolean;
 };
 
 // The editor's one call: each hook is put up when `devHooks` is on and its parts are ready, with the same
 // dependencies ProjectEditor's effects had.
 export function useDevHooks(p: DevHookParts): void {
-  const { devHooks, projectId, session, sync, plan, phase, selection, scene3d, show3d } = p;
+  const { devHooks, projectId, session, sync, plan, phase, selection, scene3d, show3d, scene3dLoaded } = p;
   useEffect(() => {
     if (plan === null || scene3d === null || !devHooks) return;
     return install3dHook(window as DevHookWindow, { scene3d, shown: show3d });
   }, [plan, scene3d, show3d, devHooks]);
   useEffect(() => {
     if (session === null || sync === null || plan === null || !devHooks) return;
-    return installEditorHook(window as DevHookWindow, { session, sync, plan, projectId });
-  }, [session, sync, plan, devHooks, projectId]);
+    return installEditorHook(window as DevHookWindow, { session, sync, plan, projectId, scene3dLoaded });
+  }, [session, sync, plan, devHooks, projectId, scene3dLoaded]);
   useEffect(() => {
     if (plan === null || phase === null || !devHooks) return;
     return installPlanHook(window as DevHookWindow, { plan, phase });

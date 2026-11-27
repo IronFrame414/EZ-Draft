@@ -52,7 +52,9 @@ export function FieldPackScreen({
   const [edited, setEdited] = useState<TaskOverlay['edited']>(new Map());
 
   const packUrl = `/api/projects/${projectId}/field-pack`;
-  const fetchPack = useMemo(() => cache.wrap(globalThis.fetch.bind(globalThis)), [cache]);
+  // EZD-2028: fetch is looked up on each read, so the pack read goes through the version check the root layout
+  // installs (version-fetch.ts) even when this screen renders first; a newer build then shows the reload notice.
+  const fetchPack = useMemo(() => cache.wrap((...a) => globalThis.fetch(...a)), [cache]);
 
   const load = useCallback(
     async (signal: AbortSignal): Promise<PackData> => {

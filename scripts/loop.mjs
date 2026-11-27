@@ -362,6 +362,9 @@ function checkOnce(cwd, lane = 0) {
 // ---------- prompts ----------
 // EZD-1988: a builder's `pkill -f "scripts/check.mjs"` stopped other lanes' builders and checks three times.
 const NO_PATTERN_KILL = 'Other lanes run their own checks, servers and claude sessions on this Mac. Never stop processes by name or pattern (no pkill, killall, or pgrep/ps piped to kill): `pkill -f "scripts/check.mjs"` stops every other lane\'s check and builder. Stop only what you started: a background task through its own controls, or a process by the pid it gave you.';
+// EZD-2015 (flaky-test audit 2026-11-27 row 8): vault/tools/assumptions-index.test.mjs pins every old row by a hash of
+// its text (rowId), so a builder that reworded an old row in its own file failed it (EZD-707, EZD-708c).
+const ASSUMPTION_ROWS_APPEND_ONLY = 'Assumption rows are append-only: in every file in vault/build/assumptions/, existing rows are only added to, never edited or removed (not even to fix a typo, reword, move or mark them done). vault/build/assumptions.md is a generated index: never edit it. The index test pins each old row by a hash of its exact text. To change or take back an old answer, add a new row at the end of the "## Open" table of your own ticket file that names the old row and says what replaces it.';
 // The parallel-build rules a builder gets (Josh 2026-11-16: lanes never edit the same file).
 function lanesNote(t) {
   const claims = readClaims(ROOT);
@@ -407,6 +410,7 @@ function builderPrompt(t, plan, reads) {
     // EZD-1953 (audit 2026-11-23 B6): one assumptions file per ticket, so lanes never share it. CLAUDE.md rules 1 and 6
     // still name vault/build/assumptions.md until Josh approves their new pointer; that file is now the generated index.
     '', `Unsettled question: follow CLAUDE.md rule 1, and record it (and any wording for Josh, rule 6) in your own ticket file ${ownAssumptions(t.id)}, not in vault/build/assumptions.md, which is now a generated index. Add rows at the end of its "## Open" table (\`| Ticket | Question or text | Choice made | Source |\`); create the file with that heading and table header if it does not exist. Keep going.`,
+    ASSUMPTION_ROWS_APPEND_ONLY,
     'If the existing code already satisfies the ticket, add tests that prove the acceptance criteria and commit them.',
     'If you truly cannot finish, commit what works and make the last line of your answer start with "BLOCKED:" and the reason.',
     lanesNote(t),
@@ -414,6 +418,10 @@ function builderPrompt(t, plan, reads) {
 }
 function fixPrompt(kind, detail) {
   return `${fixPromptBody(kind, detail)}\n\n${NO_PATTERN_KILL}`;
+}
+// EZD-2015: the prompt a fix run gets: the fix text plus the append-only rule for assumption rows.
+function fixRunPrompt(kind, detail) {
+  return `${fixPrompt(kind, detail)}\n\n${ASSUMPTION_ROWS_APPEND_ONLY}`;
 }
 // EZD-1948: the text lives in scripts/loop/test-scope.mjs; the types file is the one the merge step regenerates.
 function fixPromptBody(kind, detail) {
@@ -594,7 +602,7 @@ async function doTicket(t, s, lane, kind = 'ticket') {
     return ids.length ? ids : null;
   };
   const plan = existsSync(path.join(ROOT, 'vault/plans', `${t.id}.md`));
-  const prompt = t.prompt ? `${t.prompt}\n${lanesNote(t)}` : builderPrompt(t, plan, readingList(t.id));
+  const prompt = t.prompt ? `${t.prompt}\n\n${ASSUMPTION_ROWS_APPEND_ONLY}\n${lanesNote(t)}` : builderPrompt(t, plan, readingList(t.id));
   const buildModel = isFixTicket(t) ? (c.fix_model || c.builder_model) : c.builder_model;
   await WTC.waitOff(); // EZD-1945: no builder starts while worktree config is on
   let r = await runClaude({ cwd: wt, prompt, model: buildModel, effort: c.builder_effort, name: `${t.id} build`, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
@@ -612,11 +620,11 @@ async function doTicket(t, s, lane, kind = 'ticket') {
   const fix = async (kindOf, detail, label) => {
     const fixModel = c.fix_model || c.builder_model;
     await WTC.waitOff(); // EZD-1945
-    let f = await runClaude({ cwd: wt, prompt: fixPrompt(kindOf, detail), model: fixModel, effort: c.builder_effort, name: `${t.id} ${label}`, resume: session, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
+    let f = await runClaude({ cwd: wt, prompt: fixRunPrompt(kindOf, detail), model: fixModel, effort: c.builder_effort, name: `${t.id} ${label}`, resume: session, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
     recordUsage(t.id, `builder-fix-${kindOf}`, fixModel, f);
     if (fixModel !== c.builder_model && !f.res && !f.timedOut && !f.limited) {
       log(`${t.id} ${label}: ${fixModel} gave no result; trying ${c.builder_model}`);
-      f = await runClaude({ cwd: wt, prompt: fixPrompt(kindOf, detail), model: c.builder_model, effort: c.builder_effort, name: `${t.id} ${label} (fallback)`, resume: session, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
+      f = await runClaude({ cwd: wt, prompt: fixRunPrompt(kindOf, detail), model: c.builder_model, effort: c.builder_effort, name: `${t.id} ${label} (fallback)`, resume: session, timeoutMin: c.builder_timeout_min, lane, ticket: t.id });
       recordUsage(t.id, `builder-fix-${kindOf}`, c.builder_model, f);
     }
     if (f.res?.session_id) session = f.res.session_id;

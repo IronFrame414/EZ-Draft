@@ -23,6 +23,8 @@ function typeFor(p) {
  */
 export function startFixtureServer(files) {
   const requests = [];
+  // EZD-2012: delayed answers still waiting, cleared on close so a long delay never keeps the test process alive.
+  const timers = new Set();
   const server = http.createServer((req, res) => {
     const u = new URL(req.url ?? '/', 'http://127.0.0.1');
     requests.push(u.pathname + u.search);
@@ -44,8 +46,13 @@ export function startFixtureServer(files) {
       res.writeHead(f.status ?? 200, headers);
       res.end(req.method === 'HEAD' ? undefined : body);
     };
-    if (typeof f.delayMs === 'number') setTimeout(send, f.delayMs);
-    else send();
+    if (typeof f.delayMs === 'number') {
+      const timer = setTimeout(() => {
+        timers.delete(timer);
+        send();
+      }, f.delayMs);
+      timers.add(timer);
+    } else send();
   });
   const sockets = new Set();
   server.on('connection', (s) => {
@@ -62,6 +69,8 @@ export function startFixtureServer(files) {
         requests,
         close: () =>
           new Promise((done) => {
+            for (const t of timers) clearTimeout(t);
+            timers.clear();
             for (const s of sockets) s.destroy();
             server.close(() => done());
           }),

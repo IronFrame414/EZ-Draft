@@ -334,4 +334,7 @@ export const es = {
   'field.tasks.edit_failed': 'No se pudo guardar la tarea. Inténtalo de nuevo.',
   'field.tasks.save': 'Guardar',
   'field.tasks.cancel': 'Cancelar',
+  // EZD-2028 (Q-0907): the reload notice on the field pack.
+  'field.app.reload_message': 'EZ Draft se actualizó. Recarga para usar la nueva versión.',
+  'field.app.reload': 'Recargar',
 } as const satisfies Record<SpanishKey, Message>;

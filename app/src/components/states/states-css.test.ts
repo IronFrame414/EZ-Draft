@@ -106,7 +106,7 @@ describe('EZD-015b toast and dialog CSS', () => {
     const T = 'Toast.module.css';
     const C = 'ConfirmDialog.module.css';
     expect(decls(T, '.viewport')).toEqual(
-      expect.arrayContaining(['position: fixed', 'right: 16px', 'bottom: 16px', 'z-index: 102']),
+      expect.arrayContaining(['position: fixed', 'right: 16px', 'z-index: 102']),
     );
     expect(decls(T, '.toast')).toEqual(
       expect.arrayContaining([

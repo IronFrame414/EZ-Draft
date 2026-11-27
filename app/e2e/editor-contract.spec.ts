@@ -34,7 +34,8 @@ const FLOOR_RAIL = [
 ];
 // Section 2.6 dev hooks and their members.
 const HOOKS: Record<string, string[]> = {
-  __ezdraftEditor: ['checkpoint', 'edit', 'objects'],
+  // EZD-2009 added scene3dLoaded (whether the lazy 3D scene module has loaded); the three before it are unchanged.
+  __ezdraftEditor: ['checkpoint', 'edit', 'objects', 'scene3dLoaded'],
   __ezdraftPlan: ['drawn', 'drawnTexts', 'handle', 'phase', 'stats', 'underlay'],
   __ezdraftSelection: ['hoveredId', 'ids'],
 };

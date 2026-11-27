@@ -92,6 +92,12 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* EZD-2028 (Q-0907): while the tab bar is on the page, toasts and the reload notice (fixed, outside this
+   subtree) clear it: the bar's 1 px top border and 56 px tabs; its safe-area padding is added by those rules. */
+:global(:root):has(.tabBar) {
+  --ez-bottom-bar: 57px;
+}
+
 .tab {
   flex: 1;
   display: flex;
