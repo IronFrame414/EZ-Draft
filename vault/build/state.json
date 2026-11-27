@@ -574,7 +574,8 @@
     "EZD-614",
     "EZD-2008",
     "EZD-2023",
-    "EZD-2024"
+    "EZD-2024",
+    "EZD-2026"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2548,6 +2549,14 @@
       "ts": "2026-11-27T06:17:33Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-2026",
+      "title": "Field measure on a wide screen: drawing on the left, fields and keypad on the right",
+      "commit": "1db0cd76",
+      "ts": "2026-11-27T06:36:10Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2829,14 +2838,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-2026": {
-      "lane": 1,
-      "title": "Field measure on a wide screen: drawing on the left, fields and keypad on the right",
-      "started": "2026-11-27T05:19:01Z",
-      "develop": "0010643e"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-27T04:21:45Z",
   "hold": {
     "EZD-2001": {
