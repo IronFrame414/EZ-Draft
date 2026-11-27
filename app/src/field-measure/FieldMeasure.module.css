@@ -610,3 +610,11 @@
     border-radius: var(--ez-radius-12);
   }
 }
+
+/* EZD-2027: the global touch rule (globals.css) sets boxes to 16 px; the ceiling box is already bigger and keeps
+   its 20 px. */
+@media (any-pointer: coarse) {
+  .fieldInput {
+    font-size: var(--ez-text-20) !important;
+  }
+}
