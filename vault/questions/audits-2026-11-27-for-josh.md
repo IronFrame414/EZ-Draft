@@ -26,3 +26,7 @@ Sources: vault/plans/audit-security-2026-11-27.md (S), vault/plans/audit-a11y-ip
 
 ## Answers
 - 910: A (Josh 2026-11-27, chat). Also: Josh checks Supabase Auth captcha and rate limits next week when home.
+- Josh 2026-11-27, chat, answers in order:
+  - 901 A. 902 "Change nothing. It won't be used until the system is finished and tested." 903 A. 904 "Follow your recommendation" (A). 905 A. 906 "B. This will be assessed later." 907 A. 908 B. 909 A.
+  - "Run audits now and again after tickets are done."
+  - 911 A. 912 A. 913 A. 914 B. 915 A. 916 A. 917 B. 918 A. 919 A.
