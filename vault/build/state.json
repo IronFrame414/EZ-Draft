@@ -570,7 +570,8 @@
     "EZD-232",
     "EZD-1995",
     "EZD-708c",
-    "EZD-1913a"
+    "EZD-1913a",
+    "EZD-614"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2512,6 +2513,14 @@
       "ts": "2026-11-27T01:44:17Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-614",
+      "title": "Appliance rating defaults",
+      "commit": "5d9ea4d9",
+      "ts": "2026-11-27T02:14:41Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2785,11 +2794,11 @@
       "started": "2026-11-27T00:02:46Z",
       "develop": "1424682b"
     },
-    "EZD-614": {
-      "lane": 2,
-      "title": "Appliance rating defaults",
-      "started": "2026-11-27T00:52:27Z",
-      "develop": "41009561"
+    "EZD-1913b": {
+      "lane": 3,
+      "title": "Electrical and Ceiling modes as registry features",
+      "started": "2026-11-27T01:44:39Z",
+      "develop": "f00344c1"
     }
   },
   "advisories_checked_at": "2026-11-26T22:21:01Z",
