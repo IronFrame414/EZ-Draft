@@ -25,10 +25,11 @@
   color: var(--ez-amber-icon);
 }
 
+/* EZD-2028 (Q-0907): above the field tab bar and the home bar, as the toasts (Toast.module.css). */
 .reload {
   position: fixed;
   left: 50%;
-  bottom: 16px;
+  bottom: calc(16px + var(--ez-bottom-bar, 0px) + env(safe-area-inset-bottom, 0px));
   z-index: 1000;
   transform: translateX(-50%);
   display: flex;

@@ -3565,6 +3565,9 @@ export const en = {
   'office.defaults.error.tile_box_coverage': 'Enter a whole number from 1 to 100',
   // EZD-1611b: the takeoff's wire slack row under Electrical.
   'office.defaults.row.wire_slack': 'Wire slack',
+  // EZD-2028 (Q-0907): the reload notice on the field pack (the office prompt's words, office.app.reload_*).
+  'field.app.reload_message': 'EZ Draft has been updated. Reload to use the new version.',
+  'field.app.reload': 'Reload',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

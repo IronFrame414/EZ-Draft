@@ -1,7 +1,9 @@
+/* EZD-2028 (Q-0907): 16 px above the bottom bar of the page (the field tab bar, --ez-bottom-bar, set in
+   FieldPack.module.css; 0 elsewhere) and the home bar (the safe-area inset); 16 px from the bottom on a desktop. */
 .viewport {
   position: fixed;
   right: 16px;
-  bottom: 16px;
+  bottom: calc(16px + var(--ez-bottom-bar, 0px) + env(safe-area-inset-bottom, 0px));
   z-index: 102;
   display: flex;
   flex-direction: column;

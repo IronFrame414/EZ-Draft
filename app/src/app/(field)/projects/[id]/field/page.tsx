@@ -10,6 +10,7 @@ import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import type { ReactElement } from 'react';
 import { OutboxDrain } from '../../../../../components/outbox/OutboxDrain';
+import { FIELD_RELOAD_KEYS, ReloadPrompt } from '../../../../../components/pwa/ReloadPrompt';
 import { StateHost } from '../../../../../components/states/StateHost';
 import { FieldPackScreen } from '../../../../../field-pack/FieldPackScreen';
 import { MessagesProvider } from '../../../../../lib/messages';
@@ -20,6 +21,8 @@ import { loadOutboxActor } from '../../../../../server/outbox/actor';
 import { catalogFor } from '../../../../../server/messages/catalog';
 import { can, getPermissionContext } from '../../../../../server/permissions';
 import { valueOf } from '../../../../../server/settled';
+// EZD-2028 (Q-0907): the reload notice (03b Architecture rule 12) shows on the field pack too, in the user's
+// language, above the tab bar.
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -52,7 +55,7 @@ export default async function FieldPackPage({
   return (
     <MessagesProvider language={language} messages={catalogFor('field', language)}>
       <StateHost>
-        <OutboxDrain actor={actor}>
+        <OutboxDrain actor={actor} notice={<ReloadPrompt keys={FIELD_RELOAD_KEYS} />}>
           <FieldPackScreen
             projectId={id}
             language={language}
