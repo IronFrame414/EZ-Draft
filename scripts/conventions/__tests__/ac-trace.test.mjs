@@ -8,7 +8,7 @@ import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isTestFile, namedAcIds, traceDone, untracedForTicket } from '../ac-trace.mjs';
+import { isTestFile, namedAcIds, skipReason, skippedAcIds, traceDone, traceForTicket, untracedForTicket } from '../ac-trace.mjs';
 
 const script = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'ac-trace.mjs');
 const ac = (t, n) => ['AC', 'EZD', t, n].join('-');
@@ -85,4 +85,69 @@ test('AC-EZD-1955-1: the CLI lists the missing id, reports and exits 0; --ticket
   const one = spawnSync(process.execPath, [script, '--root', root, '--ticket', 'EZD-9106', '--json'], { encoding: 'utf8' });
   assert.equal(one.status, 1);
   assert.deepEqual(JSON.parse(one.stdout), { ticket: 'EZD-9106', missing: [ac('9106', 2)] });
+});
+
+// EZD-2023 (audit 2026-11-27 X2): rows marked *(field check)*, *(met by EZD-xxx)* or *(not a builder task)* are skipped.
+// AC-EZD-2023-4: the new tests for the AC trace change. They run on temporary fixture repos; the only child process is
+// the ac-trace.mjs script itself on a fixture (no docker, no launchctl, no loop or claude process).
+const acRow = (id, text) => `| ${id} | EZD-x title | ${text} |`;
+test('AC-EZD-2023-2: marked rows are listed as skipped, never as missing; every other AC is still traced', () => {
+  const root = fixture(
+    {
+      'vault/spec/acceptance-criteria.md': ['| AC | Ticket | Criterion |', '|---|---|---|',
+        acRow(ac('9401', 1), 'Field check: Josh runs it on the iPad. *(field check)*'),
+        acRow(ac('9401', 2), 'It becomes the selection item of an option in EZD-1011. *(met by EZD-1011)*'),
+        acRow(ac('9401', 3), 'Done by the overseer session. *(not a builder task)*'),
+        acRow(ac('9401', 4), 'A field check of the plan saves (no marker, so it is traced).'),
+        acRow(ac('9401', 5), 'Named in a test.'),
+      ].join('\n'),
+      'app/n.test.ts': `// ${ac('9401', 5)}\n` },
+    [{ id: 'EZD-9401', acs: [1, 2, 3, 4, 5].map((n) => ac('9401', n)) }],
+    ['EZD-9401'],
+  );
+  const skipped = [
+    { id: ac('9401', 1), reason: 'field check' },
+    { id: ac('9401', 2), reason: 'met by EZD-1011' },
+    { id: ac('9401', 3), reason: 'not a builder task' },
+  ];
+  assert.deepEqual(traceForTicket(root, 'EZD-9401'), { missing: [ac('9401', 4)], skipped });
+  assert.deepEqual(untracedForTicket(root, 'EZD-9401'), [ac('9401', 4)]);
+  const r = traceDone(root);
+  assert.equal(r.missing, 1);
+  assert.equal(r.skipped, 3);
+  assert.deepEqual(r.tickets, [{ ticket: 'EZD-9401', total: 5, missing: [ac('9401', 4)], skipped }]);
+  const one = spawnSync(process.execPath, [script, '--root', root, '--ticket', 'EZD-9401', '--json'], { encoding: 'utf8' });
+  assert.equal(one.status, 1);
+  assert.deepEqual(JSON.parse(one.stdout), { ticket: 'EZD-9401', missing: [ac('9401', 4)], skipped });
+  const text = spawnSync(process.execPath, [script, '--root', root, '--ticket', 'EZD-9401'], { encoding: 'utf8' });
+  assert.match(text.stdout, new RegExp(`^EZD-9401 ${ac('9401', 1)} skipped \\(field check\\)$`, 'm'));
+  assert.match(text.stdout, new RegExp(`^EZD-9401 ${ac('9401', 4)}$`, 'm'));
+});
+
+test('AC-EZD-2023-2: a ticket whose only unnamed ACs are marked passes --ticket (exit 0)', () => {
+  const root = fixture(
+    { 'vault/spec/acceptance-criteria.md': acRow(ac('9402', 1), 'Josh measures a print. *(field check)*') },
+    [{ id: 'EZD-9402', acs: [ac('9402', 1)] }], [],
+  );
+  const one = spawnSync(process.execPath, [script, '--root', root, '--ticket', 'EZD-9402'], { encoding: 'utf8' });
+  assert.equal(one.status, 0);
+});
+
+test('AC-EZD-2023-2: skipReason reads only the three markers; the real AC file marks the audit rows', () => {
+  assert.equal(skipReason('Josh tries real panel photos. *(field check)*'), 'field check');
+  assert.equal(skipReason('*(met by EZD-1204a)*'), 'met by EZD-1204a');
+  assert.equal(skipReason('*(not a builder task)*'), 'not a builder task');
+  assert.equal(skipReason('A field check of the plan'), '');
+  assert.equal(skipReason('(field check) without the stars'), '');
+  // A marker counts only at the end of the criterion: a sentence that talks about the markers is still traced.
+  assert.equal(skipReason('The trace skips rows marked *(field check)* or *(not a builder task)*; every other AC is traced. |'), '');
+  assert.equal(skipReason('Josh measures a print. *(field check)* |'), 'field check');
+  const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+  const real = skippedAcIds(repo);
+  // vault/spec/acceptance-criteria.md: the EZD-516 pointer row and the EZD-1014 USDZ row (audit 2026-11-27 X2).
+  assert.equal(real.get(ac('516', 4)), 'met by EZD-1011');
+  assert.equal(real.get(ac('1014', 3)), 'field check');
+  assert.equal(real.has(ac('1014', 1)), false);
+  // This ticket's own row about the markers names them mid-sentence and is traced, not skipped.
+  assert.equal(real.has(ac('2023', 2)), false);
 });

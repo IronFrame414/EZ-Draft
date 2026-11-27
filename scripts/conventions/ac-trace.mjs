@@ -6,6 +6,8 @@
 //   node scripts/conventions/ac-trace.mjs [--root <dir>]              every done ticket (a report; exits 0)
 //   node scripts/conventions/ac-trace.mjs --ticket <T> [--root <dir>] one ticket, done or not (exits 1 when one is unnamed)
 //   add --json for machine-readable output.
+// EZD-2023 (audit 2026-11-27 X2): a row of vault/spec/acceptance-criteria.md marked *(field check)*, *(met by EZD-xxx)* or
+// *(not a builder task)* cannot be an automated test of this ticket. It is listed as skipped, never as missing.
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -45,6 +47,26 @@ export function namedAcIds(root) {
   }
   return named;
 }
+// The marker of an AC row that is not traced, or '' for a row that is: 'field check', 'met by EZD-1011', 'not a builder task'.
+// The marker counts only as the last thing in the criterion, so a row whose sentence talks about the markers is traced.
+const SKIP_RE = /\*\((field check|met by EZD-[0-9]+[a-z]?|not a builder task)\)\*[\s|]*$/;
+export function skipReason(text) {
+  const m = String(text || '').match(SKIP_RE);
+  return m ? m[1] : '';
+}
+// Map of AC id -> skip reason for every marked row of vault/spec/acceptance-criteria.md in root (empty when absent).
+export function skippedAcIds(root) {
+  const f = path.join(root, 'vault/spec/acceptance-criteria.md');
+  const out = new Map();
+  if (!existsSync(f)) return out;
+  for (const line of readFileSync(f, 'utf8').split('\n')) {
+    const m = line.match(/^\|\s*(AC-EZD-[0-9]+[a-z]?-[0-9]+)\s*\|/);
+    if (!m) continue;
+    const why = skipReason(line.slice(m[0].length));
+    if (why) out.set(m[1], why);
+  }
+  return out;
+}
 export function readTickets(root) {
   const f = path.join(root, 'vault/tickets/tickets.json');
   if (!existsSync(f)) return [];
@@ -56,23 +78,33 @@ export function readDone(root) {
   if (!existsSync(f)) return [];
   return JSON.parse(readFileSync(f, 'utf8')).done || [];
 }
-// [{ ticket, missing: [ac ids], total }] for each given ticket that has acs; missing is empty when every one is named.
-export function traceTickets(list, named) {
-  return list.filter((t) => (t.acs || []).length)
-    .map((t) => ({ ticket: t.id, total: t.acs.length, missing: t.acs.filter((a) => !named.has(a)) }));
+// [{ ticket, missing: [ac ids], total, skipped? }] for each given ticket that has acs; missing is empty when every one
+// is named. skip: skippedAcIds(); a skipped AC is never missing and is listed in skipped ([{ id, reason }], only when any).
+export function traceTickets(list, named, skip = new Map()) {
+  return list.filter((t) => (t.acs || []).length).map((t) => {
+    const skipped = t.acs.filter((a) => skip.has(a)).map((a) => ({ id: a, reason: skip.get(a) }));
+    const row = { ticket: t.id, total: t.acs.length, missing: t.acs.filter((a) => !skip.has(a) && !named.has(a)) };
+    return skipped.length ? { ...row, skipped } : row;
+  });
+}
+// { missing, skipped } of one ticket in root (done or not). Both empty when the ticket has no acs or is unknown.
+export function traceForTicket(root, id, named = namedAcIds(root), skip = skippedAcIds(root)) {
+  const t = readTickets(root).find((x) => x.id === id);
+  const row = t ? traceTickets([t], named, skip)[0] : undefined;
+  return { missing: row?.missing || [], skipped: row?.skipped || [] };
 }
 // Untraced ACs of one ticket in root (done or not). Empty when the ticket has no acs or is unknown.
 export function untracedForTicket(root, id, named = namedAcIds(root)) {
-  const t = readTickets(root).find((x) => x.id === id);
-  return t ? traceTickets([t], named)[0]?.missing || [] : [];
+  return traceForTicket(root, id, named).missing;
 }
-// The report: every done ticket with at least one unnamed AC, plus totals.
+// The report: every done ticket with at least one unnamed AC, plus totals (skipped: ACs not traced, by marker).
 export function traceDone(root) {
   const done = new Set(readDone(root));
-  const rows = traceTickets(readTickets(root).filter((t) => done.has(t.id)), namedAcIds(root));
+  const rows = traceTickets(readTickets(root).filter((t) => done.has(t.id)), namedAcIds(root), skippedAcIds(root));
   const total = rows.reduce((n, r) => n + r.total, 0);
   const missing = rows.reduce((n, r) => n + r.missing.length, 0);
-  return { total, missing, tickets: rows.filter((r) => r.missing.length) };
+  const skipped = rows.reduce((n, r) => n + (r.skipped?.length || 0), 0);
+  return { total, missing, skipped, tickets: rows.filter((r) => r.missing.length) };
 }
 
 function main(argv) {
@@ -81,9 +113,12 @@ function main(argv) {
   const json = argv.includes('--json');
   const one = arg('--ticket');
   if (one) {
-    const missing = untracedForTicket(root, one);
-    if (json) console.log(JSON.stringify({ ticket: one, missing }));
-    else for (const a of missing) console.log(`${one} ${a}`);
+    const { missing, skipped } = traceForTicket(root, one);
+    if (json) console.log(JSON.stringify(skipped.length ? { ticket: one, missing, skipped } : { ticket: one, missing }));
+    else {
+      for (const a of missing) console.log(`${one} ${a}`);
+      for (const k of skipped) console.log(`${one} ${k.id} skipped (${k.reason})`);
+    }
     return missing.length ? 1 : 0;
   }
   const r = traceDone(root);
@@ -91,6 +126,7 @@ function main(argv) {
   else {
     for (const t of r.tickets) for (const a of t.missing) console.log(`${t.ticket} ${a}`);
     console.log(`${r.missing} of ${r.total} acceptance criteria of done tickets are not named in a test`);
+    if (r.skipped) console.log(`${r.skipped} skipped: marked field check, met by another ticket or not a builder task`);
   }
   return 0;
 }

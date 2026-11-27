@@ -62,3 +62,35 @@ test('AC-EZD-1955-3: scripts/loop.mjs puts the AC trace into the reviewer prompt
   assert.equal((src.match(/reviewerPrompt\(t, sec, plan, trace\)/g) || []).length, 2);
   assert.match(src, /traceDone\(ROOT\)/);
 });
+
+// EZD-2023 (audit 2026-11-27 X2): marked ACs are listed as skipped in the reviewer prompt, never as blocking findings.
+// AC-EZD-2023-4: the new tests for the AC review change. They run on a temporary fixture folder; they start no docker,
+// launchctl or child process.
+test('AC-EZD-2023-2: the reviewer prompt lists skipped ACs as skipped and fails only the traced ones', () => {
+  const t = { id: 'EZD-9206', acs: [ac('9206', 1), ac('9206', 2), ac('9206', 3)] };
+  const skipped = [{ id: ac('9206', 1), reason: 'field check' }, { id: ac('9206', 2), reason: 'met by EZD-1011' }];
+  const text = acReviewLines(t, [ac('9206', 3)], { skipped }).join('\n');
+  assert.match(text, new RegExp(`Skipped by the AC trace.*${ac('9206', 1)} \\(field check\\), ${ac('9206', 2)} \\(met by EZD-1011\\)`));
+  assert.match(text, /do not fail the ticket over them/);
+  assert.match(text, new RegExp(`not named in any test: ${ac('9206', 3)}\\.`));
+  assert.doesNotMatch(text, new RegExp(`not named in any test: [^\\n]*${ac('9206', 1)}(?![0-9])`));
+  // All ACs either named or skipped: no blocking rule, the skipped ones still listed.
+  const clean = acReviewLines(t, [], { skipped }).join('\n');
+  assert.doesNotMatch(clean, /blocking finding/);
+  assert.match(clean, /found every other one named in a test/);
+  assert.match(clean, /Skipped by the AC trace/);
+  // No skipped ACs: no skipped line.
+  assert.doesNotMatch(acReviewLines(t, []).join('\n'), /Skipped by the AC trace/);
+});
+
+test('AC-EZD-2023-2: traceTicket reads the markers of the worktree AC file and the loop logs the skipped ones', () => {
+  const wt = mkdtempSync(path.join(os.tmpdir(), 'ac-review-'));
+  roots.push(wt);
+  mkdirSync(path.join(wt, 'vault/tickets'), { recursive: true });
+  mkdirSync(path.join(wt, 'vault/spec'), { recursive: true });
+  writeFileSync(path.join(wt, 'vault/tickets/tickets.json'), JSON.stringify({ tickets: [{ id: 'EZD-9207', acs: [ac('9207', 1), ac('9207', 2)] }] }));
+  writeFileSync(path.join(wt, 'vault/spec/acceptance-criteria.md'), `| ${ac('9207', 1)} | EZD-9207 x | Done by the planner. *(not a builder task)* |\n| ${ac('9207', 2)} | EZD-9207 x | A thing works. |\n`);
+  assert.deepEqual(traceTicket(wt, 'EZD-9207'), { missing: [ac('9207', 2)], error: '', skipped: [{ id: ac('9207', 1), reason: 'not a builder task' }] });
+  const src = readFileSync(path.join(REPO, 'scripts/loop.mjs'), 'utf8');
+  assert.match(src, /AC trace: skipped \(not a test\)/);
+});

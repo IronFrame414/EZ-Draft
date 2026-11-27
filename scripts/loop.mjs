@@ -31,6 +31,8 @@ import { createEvents, failureSummary, msToSecondEnd, oneLine, sameSecondEvents,
 import { withImportingTests } from './loop/import-graph.mjs';
 import { changedFiles, createSelfRestart, runDryRun } from './loop/self-restart.mjs';
 import { buildOrder, phaseRank } from './loop/order.mjs';
+// EZD-2023: max_phase compares the phase number too, so the sweeps (rank after 58) still start under max_phase 58.
+import { withinMaxPhase } from './loop/order.mjs';
 import { rebuild as rebuildAssumptions } from '../vault/tools/assumptions-index.mjs';
 import { drift, impliedFiles, overlaps, ownAssumptions, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 import { TYPES_FILE, orderMigrations, regenerateTypes, settleGeneratedConflicts, touchesSchema } from './loop/merge-files.mjs';
@@ -38,6 +40,7 @@ import { PERF_TREND_ID, perfDue, runPerfTrend } from './loop/perf-trend.mjs';
 import { retryCli, setAsideMarkdown, takeInRetries } from './loop/retry.mjs';
 import { createWorktreeGuard } from './loop/worktree-config.mjs';
 import { acReviewLines, traceTicket } from './loop/ac-review.mjs';
+import { prepRowsLine } from './loop/prep-rows.mjs';
 import { checkBackups } from './loop/backup-status.mjs';
 import { traceDone } from './conventions/ac-trace.mjs';
 
@@ -199,7 +202,7 @@ function candidates(s, c, statuses) {
   // A ticket that stopped because a file it needs was held waits until that holder is no longer building.
   const holding = (t) => (s.hold?.[t.id]?.holders || []).some((h) => running[h]);
   const list = tickets().filter((t) => !done.has(t.id) && !aside.has(t.id) && !running[t.id] && !holding(t)
-    && !(phaseRank(t.phase) > Number(c.max_phase ?? 999))
+    && withinMaxPhase(t.phase, c.max_phase ?? 999)
     && !c.skip_tracks.includes(t.track) && !c.skip_statuses.includes(statuses[t.id])
     && (t.depends_on || []).every((d) => done.has(d)));
   // Security, priority list, retried first, phase, build position, id (scripts/loop/order.mjs, EZD-1940).
@@ -392,6 +395,7 @@ function builderPrompt(t, plan, reads) {
     `Work only in the current directory (a git worktree on branch t/${t.id}, cut from develop). Read CLAUDE.md first and follow it.`,
     '', 'Ticket record from vault/tickets/tickets.json:', JSON.stringify(t, null, 1),
     '', `Acceptance criteria: look up each id in "acs" in vault/spec/acceptance-criteria.md (grep the id). They define done.`,
+    prepRowsLine(t.id, 'builder'),
     reads ? `Reading list (spec, decisions, architecture sections):\n${reads}` : 'Read the spec_files and decisions listed in the record.',
     plan ? `An earlier plan exists at vault/plans/${t.id}.md. Use it as input; where it disagrees with the spec or decisions, they win. Ignore its process steps (worktree, gate.mjs, STATUS, reviewers): this process replaces them.` : 'There is no plan; plan the work yourself briefly before coding.',
     '', 'Steps:',
@@ -424,6 +428,7 @@ function reviewerPrompt(t, security, plan, trace = {}) {
     'Report ONLY blocking problems: an acceptance criterion not met; wrong behaviour or a bug; a security or data-isolation hole (missing RLS, a policy that lets one company see or change another company\'s rows, an auth or permission bypass, a secret in code); a test deleted or weakened without a good reason; text that contradicts a mockup.',
     'Do not report style, naming, refactors, extra tests for impossible cases, or nice-to-haves. The automatic checks (typecheck, lint, tests, build, e2e) already passed; do not rerun them.',
     security ? `This change touches security-sensitive paths (${security}). Check RLS, permissions and tenant isolation carefully.` : '',
+    prepRowsLine(t.id, 'reviewer'),
     ...acReviewLines(t, trace.missing, trace),
     '', 'Ticket record:', JSON.stringify(t, null, 1),
     '', 'Your last line must be exactly one JSON object and nothing after it:',
@@ -530,6 +535,7 @@ async function review(t, wt, s, round, lane) {
   const plan = existsSync(path.join(ROOT, 'vault/plans', `${t.id}.md`));
   const trace = { ...traceTicket(wt, t.id), alreadyDone: (s.done || []).includes(t.id) };
   if (trace.missing.length) log(`${t.id} AC trace: not named in a test: ${trace.missing.join(', ')}${trace.alreadyDone ? ' (merged before; reported only)' : ''}`);
+  if (trace.skipped?.length) log(`${t.id} AC trace: skipped (not a test): ${trace.skipped.map((k) => `${k.id} (${k.reason})`).join(', ')}`);
   let model = c.reviewer_model;
   let r = await runClaude({ cwd: wt, prompt: reviewerPrompt(t, sec, plan, trace), model, effort: c.reviewer_effort, name: `${t.id} review ${round}`, timeoutMin: c.reviewer_timeout_min, readOnly: true, lane, ticket: t.id });
   recordUsage(t.id, 'reviewer', model, r);
@@ -907,7 +913,7 @@ async function main() {
   }
   log(`loop start at ${git(['rev-parse', '--short', 'HEAD']).out || 'unknown'} (pid ${process.pid}; lanes ${laneList().join(', ')})`);
   // EZD-1955: tickets merged before the traceability rule are reported here, never failed.
-  try { const tr = traceDone(ROOT); log(`AC trace: ${tr.missing} of ${tr.total} acceptance criteria of done tickets are not named in a test (report only; node scripts/conventions/ac-trace.mjs lists them)`); } catch (e) { log(`AC trace report failed: ${String(e?.message || e).slice(0, 160)}`); }
+  try { const tr = traceDone(ROOT); log(`AC trace: ${tr.missing} of ${tr.total} acceptance criteria of done tickets are not named in a test, ${tr.skipped} skipped as not a test (report only; node scripts/conventions/ac-trace.mjs lists them)`); } catch (e) { log(`AC trace report failed: ${String(e?.message || e).slice(0, 160)}`); }
   const heavyLock = path.join(os.tmpdir(), 'ezdraft-check-heavy.lock'); // slot 1; heartbeat reads every slot
   const beat = () => { try { writeBeat(P.heartbeat, sample({ running: Object.keys(s.running), heavyLock })); } catch (e) { console.log(`heartbeat: ${e?.message || e}`); } };
   writeBeat(P.heartbeat, { ...first, running: [] });
