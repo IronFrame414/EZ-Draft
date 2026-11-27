@@ -568,7 +568,8 @@
     "EZD-1611b",
     "EZD-708b",
     "EZD-232",
-    "EZD-1995"
+    "EZD-1995",
+    "EZD-708c"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2494,6 +2495,14 @@
       "ts": "2026-11-27T00:01:59Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-708c",
+      "title": "E2.0 panel schedule and load calc",
+      "commit": "2d145986",
+      "ts": "2026-11-27T00:52:18Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2761,11 +2770,17 @@
     }
   },
   "running": {
-    "EZD-708c": {
-      "lane": 2,
-      "title": "E2.0 panel schedule and load calc",
-      "started": "2026-11-26T23:23:57Z",
-      "develop": "3e7b0739"
+    "EZD-2000": {
+      "lane": 1,
+      "title": "Gate rules that keep pages small and fast as the app grows",
+      "started": "2026-11-27T00:02:46Z",
+      "develop": "1424682b"
+    },
+    "EZD-1913a": {
+      "lane": 3,
+      "title": "Cabinets and Countertops modes as registry features",
+      "started": "2026-11-27T00:02:47Z",
+      "develop": "1424682b"
     }
   },
   "advisories_checked_at": "2026-11-26T22:21:01Z",
