@@ -34,7 +34,7 @@ import { buildOrder, phaseRank } from './loop/order.mjs';
 // EZD-2023: max_phase compares the phase number too, so the sweeps (rank after 58) still start under max_phase 58.
 import { withinMaxPhase } from './loop/order.mjs';
 import { rebuild as rebuildAssumptions } from '../vault/tools/assumptions-index.mjs';
-import { drift, impliedFiles, overlaps, ownAssumptions, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
+import { configLanes, drift, impliedFiles, overlaps, ownAssumptions, parseFootprint, readClaims, schedule, sharedSet, withClaims } from './loop/lanes.mjs';
 import { TYPES_FILE, orderMigrations, regenerateTypes, settleGeneratedConflicts, touchesSchema } from './loop/merge-files.mjs';
 import { PERF_TREND_ID, perfDue, runPerfTrend } from './loop/perf-trend.mjs';
 import { retryCli, setAsideMarkdown, takeInRetries } from './loop/retry.mjs';
@@ -829,11 +829,9 @@ function startPerfTrend(s, lane, active) {
 }
 
 // ---------- lanes ----------
-// config `lanes`: the database lanes to build on (0-3), or a count n meaning lanes 0..n-1. One ticket per lane.
+// config `lanes`: the database lanes to build on (0-4, EZD-2001), or a count n. One ticket per lane (scripts/loop/lanes.mjs).
 function laneList(c = cfg()) {
-  const v = c.lanes ?? [0];
-  const list = Array.isArray(v) ? v.map(Number) : Array.from({ length: Math.max(1, Math.min(4, Number(v) || 1)) }, (_, i) => i);
-  return [...new Set(list.filter((n) => Number.isInteger(n) && n >= 0 && n <= 3))].sort();
+  return configLanes(c);
 }
 // Takes the ticket's claim under the claims lock, checking again that no builder claimed one of its files since the
 // schedule was worked out. Returns false (and starts nothing) when one did.

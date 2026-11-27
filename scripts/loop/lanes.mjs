@@ -4,6 +4,17 @@
 // that needs a file another lane holds stops and waits for it. Node built-ins only.
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { MAX_LANE } from '../db/lane.mjs';
+
+// config `lanes`: the database lanes to build on (0..MAX_LANE, scripts/db/lane.mjs; EZD-2001 made it 4), or a count n
+// meaning lanes 0..n-1 (at most MAX_LANE + 1). Unknown and repeated lanes are dropped; the list is sorted.
+export function configLanes(c = {}) {
+  const v = c.lanes ?? [0];
+  const list = Array.isArray(v)
+    ? v.map(Number)
+    : Array.from({ length: Math.max(1, Math.min(MAX_LANE + 1, Number(v) || 1)) }, (_, i) => i);
+  return [...new Set(list.filter((n) => Number.isInteger(n) && n >= 0 && n <= MAX_LANE))].sort((a, b) => a - b);
+}
 
 // Files no two lanes may share even though no footprint names them: they follow from other changes.
 // A migration regenerates the database types; a dependency change touches the lockfile and the architecture list.

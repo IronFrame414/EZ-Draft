@@ -65,18 +65,19 @@ describe('EZD-172 build lanes', () => {
     assert.equal(lane.readLane({ EZD_LANE: '1' }), 1);
     assert.equal(lane.readLane({ EZD_LANE: '2' }), 2);
     assert.equal(lane.readLane({ EZD_LANE: '3' }), 3);
-    for (const v of ['4', '-1', '01', ' 1', 'a', '1.0']) {
+    assert.equal(lane.readLane({ EZD_LANE: '4' }), 4);
+    for (const v of ['5', '-1', '01', ' 1', 'a', '1.0']) {
       assert.throws(
         () => lane.readLane({ EZD_LANE: v }),
         (e) =>
-          e.code === 'lane_invalid' && e.message === `EZD_LANE must be 0, 1, 2 or 3 (got "${v}").`,
+          e.code === 'lane_invalid' && e.message === `EZD_LANE must be 0, 1, 2, 3 or 4 (got "${v}").`,
         `value ${JSON.stringify(v)}`,
       );
     }
   });
 
   test('EZD-172 L2 laneConfigToml', () => {
-    assert.equal(lane.MAX_LANE, 3);
+    assert.equal(lane.MAX_LANE, 4);
     assert.equal(lane.STACK_PORT_STEP, 100);
     assert.equal(lane.APP_PORT_STEP, 10);
     assert.equal(lane.BASE_WEB_PORT, 3000);
@@ -84,7 +85,7 @@ describe('EZD-172 build lanes', () => {
     assert.equal(lane.LANES_DIR, '.lanes');
     const src = committed.split('\n');
     assert.ok(committed.includes('# smtp_port = 54325'), 'committed config has the commented smtp_port');
-    for (const n of [1, 2, 3]) {
+    for (const n of [1, 2, 3, 4]) {
       const out = lane.laneConfigToml(committed, n).split('\n');
       assert.equal(out.length, src.length, 'same line count');
       const web = 3000 + 10 * n;
@@ -115,7 +116,7 @@ describe('EZD-172 build lanes', () => {
   test('EZD-172 L3 lanes differ', () => {
     const ids = new Set();
     const ports = [];
-    for (const n of [0, 1, 2, 3]) {
+    for (const n of [0, 1, 2, 3, 4]) {
       ids.add(lane.laneProjectId('ezdraft', n));
       const lp = lane.lanePorts(committed, n);
       assert.deepEqual(lp, expectedPorts(n), `stack ports of lane ${n}`);
@@ -123,19 +124,19 @@ describe('EZD-172 build lanes', () => {
       assert.deepEqual(app, { web: 3000 + 10 * n, perf: 3200 + 10 * n });
       ports.push(...Object.values(lp), app.web, app.perf);
     }
-    assert.equal(ids.size, 4);
+    assert.equal(ids.size, 5);
     assert.equal(lane.laneProjectId('ezdraft', 0), 'ezdraft');
     assert.equal(lane.laneProjectId('ezdraft', 2), 'ezdraft-lane2');
-    assert.equal(ports.length, 40);
-    assert.equal(new Set(ports).size, 40, 'all 40 port values are distinct');
+    assert.equal(ports.length, 50);
+    assert.equal(new Set(ports).size, 50, 'all 50 port values are distinct');
     const scratch = new Set();
-    for (const m of [0, 1, 2, 3]) for (let p = 25320; p <= 25329; p++) scratch.add(p + 100 * m);
+    for (const m of [0, 1, 2, 3, 4]) for (let p = 25320; p <= 25329; p++) scratch.add(p + 100 * m);
     for (const p of ports) assert.ok(!scratch.has(p), `${p} is not a scratch port`);
   });
 
   test('EZD-172 L4 refusals', () => {
     assert.throws(() => lane.laneConfigToml(committed, 0), { code: 'lane_invalid' });
-    assert.throws(() => lane.laneConfigToml(committed, 4), { code: 'lane_invalid' });
+    assert.throws(() => lane.laneConfigToml(committed, 5), { code: 'lane_invalid' });
     const noId = committed
       .split('\n')
       .filter((l) => !/^\s*project_id\s*=/.test(l))
@@ -271,7 +272,7 @@ describe('EZD-172 build lanes', () => {
     const r9 = run({ EZD_LANE: '9' });
     assert.equal(r9.status, 1);
     assert.equal(r9.stdout, '');
-    assert.ok(r9.stderr.includes('EZD_LANE must be 0, 1, 2 or 3'), r9.stderr);
+    assert.ok(r9.stderr.includes('EZD_LANE must be 0, 1, 2, 3 or 4'), r9.stderr);
   });
 
   test('EZD-172 L8 env and prepare refused without SUPABASE_WORKDIR', () => {
@@ -603,7 +604,7 @@ describe('EZD-172 L13-L15 restart marker and up()', () => {
       assert.equal(b.stdout, '');
       assert.equal(
         b.stderr,
-        "stop-lane is for lanes 1-3; lane 0's stack keeps running (pnpm db:stop stops it).\n",
+        "stop-lane is for lanes 1-4; lane 0's stack keeps running (pnpm db:stop stops it).\n",
       );
       assert.equal(existsSync(called), false, 'no CLI call');
 

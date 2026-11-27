@@ -112,7 +112,7 @@ test.describe('EZD-036 production build', () => {
     requireBuild(app);
     const laneValue = process.env.EZD_LANE;
     const lane =
-      laneValue === '1' || laneValue === '2' || laneValue === '3' ? Number(laneValue) : 0;
+      laneValue === '1' || laneValue === '2' || laneValue === '3' || laneValue === '4' ? Number(laneValue) : 0;
     const port = 3036 + 10 * lane;
     const child = spawn(
       process.execPath,

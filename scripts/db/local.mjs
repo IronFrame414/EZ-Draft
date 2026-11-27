@@ -280,7 +280,7 @@ else if (command === 'prepare') {
   process.exit(0);
 } else if (command === 'stop-lane') {
   if (checked.lane === 0) {
-    process.stderr.write("stop-lane is for lanes 1-3; lane 0's stack keeps running (pnpm db:stop stops it).\n");
+    process.stderr.write("stop-lane is for lanes 1-4; lane 0's stack keeps running (pnpm db:stop stops it).\n");
     process.exit(1);
   }
   try {

@@ -312,4 +312,4 @@ The loop builds eligible tickets in this order: security fix tickets, then the `
 
 ## Base local database for live UI checks (EZD-1959)
 
-The build lanes use stacks 1-3, so the base stack (lane 0, port 54321) falls behind. Before checking signed-in screens against it, run `pnpm db:base` in Terminal from the repo (any checkout). It ends with "Base local database (lane 0, port 54321) is up to date" and exit 0. If it says a lane-0 gate or database reset holds the base stack, wait for that run to end and try again. If it says Docker is not running, start Docker Desktop first. It wipes local data on lane 0 only; lanes 1-3 are never touched.
+The build lanes use stacks 1-4 (lane 4 since EZD-2001), so the base stack (lane 0, port 54321) falls behind. Before checking signed-in screens against it, run `pnpm db:base` in Terminal from the repo (any checkout). It ends with "Base local database (lane 0, port 54321) is up to date" and exit 0. If it says a lane-0 gate or database reset holds the base stack, wait for that run to end and try again. If it says Docker is not running, start Docker Desktop first. It wipes local data on lane 0 only; lanes 1-4 are never touched.
