@@ -2622,9 +2622,18 @@
       "lane": 1
     }
   ],
-  "set_aside": {},
+  "set_aside": {
+    "EZD-2030": {
+      "title": "The emailed sign-in code is 8 digits",
+      "ts": "2026-11-27T12:57:50Z",
+      "reason": "check red after merging newer develop (first try: check red after a review fix)",
+      "detail": "996-2 the same screens reached by moving around the app without a reload @desktop @ipad\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n[WebServer] SentryPropagator: Injecting trace data of a different context than the active one is not supported. Skipping injection.\n  -  702 [ipad-landscape] › e2e/ezd-2026-field-measure-wide.spec.ts:214:9 › EZD-2026 Field measure screenshots before / after (AC-EZD-2026-2) › EZD-2026 field measure narrow-1023x768 looks as before @ipad\n  -  703 [ipad-landscape] › e2e/ezd-2026-field-measure-wide.spec.ts:214:9 › EZD-2026 Field measure screenshots before / after (AC-EZD-2026-2) › EZD-2026 field measure portrait-820x1180 looks as before @ipad\n[WebServer] Error: aborted\n[WebServer]     at ignore-listed frames {\n[WebServer]   code: 'ECONNRESET'\n[WebServer] }\n  -  726 [ipad-landscape] › e2e/style-split-screens.spec.ts:101:7 › EZD-1996 screens look the same with per-page CSS › AC-EZD-1996-2 sign-in @desktop @ipad\n  -  727 [ipad-landscape] › e2e/style-split-screens.spec.ts:107:7 › EZD-1996 screens look the same with per-page CSS › AC-EZD-1996-2 Projects, editor Plan, Settings and field pack @desktop @ipad\n  -  728 [ipad-landscape] › e2e/style-split-screens.spec.ts:149:7 › EZD-1996 screens look the same with per-page CSS › AC-EZD-1996-2 the same screens reached by moving around the app without a reload @desktop @ipad\n  -  759 [phone] › e2e/ezd-2026-field-measure-wide.spec.ts:214:9 › EZD-2026 Field measure screenshots before / after (AC-EZD-2026-2) › EZD-2026 field measure phone-390x844 looks as before @phone\n  1) [desktop] › e2e/screen-messages.spec.ts:45:7 › EZD-1995 per-screen messages › AC-EZD-1995-1 an editor open and the first pointer move fetch the lock UI messages only, never the whole catalog \n    Error: expect(received).toBeLessThan(expected)\n    Expected: < 20000\n    Received:   33511\n      78 |     await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2 + 40);\n      79 |     const sliceBody = await (await slice).text();\n    > 80 |     expect(sliceBody.length).toBeLessThan(SLICE_MAX_BYTES);\n         |                              ^\n      81 |     expect(wholeCatalog(sliceBody)).toBe(false);\n      82 |\n      83 |     await page.waitForLoadState('networkidle');\n        at /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-2030/app/e2e/screen-messages.spec.ts:80:30\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results/screen-messages-EZD-1995-p-1f3b8-nly-never-the-whole-catalog-desktop/test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n    Error Context: test-results/screen-messages-EZD-1995-p-1f3b8-nly-never-the-whole-catalog-desktop/error-context.md\n    Err",
+      "branch": "t/EZD-2030",
+      "worktree": ".claude/worktrees/EZD-2030"
+    }
+  },
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2912,12 +2921,6 @@
     }
   },
   "running": {
-    "EZD-2030": {
-      "lane": 2,
-      "title": "The emailed sign-in code is 8 digits",
-      "started": "2026-11-27T11:09:23Z",
-      "develop": "3290759a"
-    },
     "EZD-2022": {
       "lane": 3,
       "title": "Security: request gate covers every page path, browser protection headers, and a quieter health check",
@@ -2929,6 +2932,12 @@
       "title": "Fix: sign-out outbox B5 misses the signed-out marker cookie on CI (EZD-120d)",
       "started": "2026-11-27T12:15:49Z",
       "develop": "19ffda24"
+    },
+    "EZD-2029": {
+      "lane": 1,
+      "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
+      "started": "2026-11-27T12:48:54Z",
+      "develop": "b791995e"
     }
   },
   "advisories_checked_at": "2026-11-27T10:22:44Z",
