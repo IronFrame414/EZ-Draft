@@ -429,18 +429,21 @@ describe('EZD-1901 contract: status bar (section 2.6)', () => {
 
 // Hook name and the members section 2.6 names. Many e2e specs read them; names and shapes must not change.
 const DEV_HOOKS: Readonly<Record<string, readonly string[]>> = {
-  __ezdraftEditor: ['objects', 'edit', 'checkpoint'],
+  // EZD-2009 added scene3dLoaded (whether the lazy 3D scene module has loaded); the three before it are unchanged.
+  __ezdraftEditor: ['objects', 'edit', 'checkpoint', 'scene3dLoaded'],
   __ezdraftPlan: ['handle', 'stats', 'phase', 'underlay', 'drawn', 'drawnTexts'],
   __ezdraftSelection: ['ids', 'hoveredId'],
   __ezdraft3d: ['stats'],
   __ezdraftWorkerProbe: [],
 };
 
-// A type check: EditorTestHook keeps exactly objects, edit and checkpoint (typecheck fails otherwise).
+// A type check: EditorTestHook keeps exactly objects, edit, checkpoint and (EZD-2009) scene3dLoaded (typecheck fails
+// otherwise).
 const EDITOR_HOOK_KEYS: Record<keyof EditorTestHook, true> = {
   objects: true,
   edit: true,
   checkpoint: true,
+  scene3dLoaded: true,
 };
 
 const SRC = fileURLToPath(new URL('../../', import.meta.url));

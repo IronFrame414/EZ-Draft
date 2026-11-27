@@ -1,8 +1,8 @@
 // EZD-1001a (AC-EZD-1001a-1, -2, -3; phase-10.md EZD-1001a; 11 Budgets "first open of 3D within 1 second"; 11 rules
 // 4 and 7; S07 Layout footer). Untagged, so desktop 1600 x 1000. The benchmark project (POST /api/benchmark/project,
 // EZD-237) in its own company, opened by a member with View projects, Edit model and System status.
-// AC-3 is timed in the page: from the click on the 3D tab to the first frame the renderer draws of the 3D scene
-// (`__ezdraft3d.stats().frames`), against the 1,000 ms budget.
+// AC-3 (the 1,000 ms budget, from the click on the 3D tab to the first frame of the 3D scene) is timed in
+// e2e/perf-scene-3d-first-open.spec.ts since EZD-2009: the perf project runs alone with one worker.
 import { benchmarkObjectId } from '@ezdraft/geometry/benchmark';
 import type { Page } from '@playwright/test';
 import {
@@ -17,8 +17,6 @@ import {
 } from '../test-harness/e2e/test';
 import { appOriginHeaders } from '../test-harness/e2e/same-origin';
 
-// 11 Budgets: first open of 3D within 1 second.
-const FIRST_OPEN_BUDGET_MS = 1000;
 // The same wall the EZD-237 benchmark run drags.
 const WALL = benchmarkObjectId(562);
 // The 3D scene's files: none may be in the editor route's first download (AC-EZD-1001a-2).
@@ -101,7 +99,7 @@ test.describe('EZD-1001a 3D scene core', () => {
     await page.goto('about:blank');
   });
 
-  test('AC-EZD-1001a-3 first open of 3D on the benchmark project is within 1,000 ms; AC-1 a moved wall shows at once', async ({
+  test('AC-EZD-1001a-1 3D opens in the plan\'s one renderer and a moved wall shows at once', async ({
     page,
     signInAs,
   }) => {
@@ -109,25 +107,10 @@ test.describe('EZD-1001a 3D scene core', () => {
     await openBenchmark(page, signInAs);
     await expect(tab(page, '3D')).toBeVisible();
 
-    // Timed in the page: the click, then each animation frame until the 3D scene has drawn a frame.
-    const elapsed = await page.evaluate(async () => {
-      const w = window as unknown as Win;
-      const button = [...document.querySelectorAll('nav[aria-label="Views"] button')].find(
-        (b) => b.textContent === '3D',
-      ) as HTMLButtonElement;
-      const t0 = performance.now();
-      button.click();
-      return new Promise<number>((resolve) => {
-        const tick = () => {
-          const s = w.__ezdraft3d?.stats();
-          if (s !== undefined && s.shown && s.frames > 0) resolve(performance.now() - t0);
-          else requestAnimationFrame(tick);
-        };
-        tick();
-      });
-    });
-    console.log(`EZD-1001a first open of 3D on the benchmark project: ${Math.round(elapsed)} ms`);
-    expect(elapsed).toBeLessThanOrEqual(FIRST_OPEN_BUDGET_MS);
+    // EZD-2009: the 1,000 ms timing is taken in e2e/perf-scene-3d-first-open.spec.ts (the perf project, one
+    // worker). Here 3D is opened and its first frame waited for.
+    await tab(page, '3D').click();
+    await expect.poll(async () => (await stats3d(page))?.frames ?? 0).toBeGreaterThan(0);
 
     const first = (await stats3d(page))!;
     expect(first.walls).toBeGreaterThan(0);

@@ -21,7 +21,7 @@ import { useDevHooks, type DevHookParts, type DevHookWindow } from './dev-hooks'
 
 // Section 2.6: hook name and its members.
 const HOOKS: Record<string, string[]> = {
-  __ezdraftEditor: ['checkpoint', 'edit', 'objects'],
+  __ezdraftEditor: ['checkpoint', 'edit', 'objects', 'scene3dLoaded'],
   __ezdraftPlan: ['drawn', 'drawnTexts', 'handle', 'phase', 'stats', 'underlay'],
   __ezdraftSelection: ['hoveredId', 'ids'],
   __ezdraft3d: ['stats'],
@@ -60,17 +60,22 @@ function parts(over: Partial<DevHookParts> = {}): DevHookParts & { applied: unkn
     selection: { getUi: () => ({ ids: ['w-1'] }) } as unknown as DevHookParts['selection'],
     scene3d: { stats: () => ({ meshes: 3 }) } as unknown as DevHookParts['scene3d'],
     show3d: true,
+    scene3dLoaded: () => loaded3d,
     applied,
     flushed,
     ...over,
   };
 }
 
+// EZD-2009: what the editor's `scene-3d` lazy module reports.
+let loaded3d = false;
+
 const g = globalThis as unknown as { window?: DevHookWindow };
 const w = () => g.window as Record<string, Record<string, unknown> | undefined>;
 
 beforeEach(() => {
   g.window = {};
+  loaded3d = false;
 });
 afterEach(() => {
   while (cleanups.length) cleanups.pop()!();
@@ -117,7 +122,12 @@ describe('EZD-1911 dev hooks (AC-EZD-1911-1)', () => {
       objects(): unknown[];
       edit(c: unknown[]): string[];
       checkpoint(): Promise<unknown>;
+      scene3dLoaded(): boolean;
     };
+    // EZD-2009: read each time it is asked, so a spec sees the module arrive.
+    expect(ed.scene3dLoaded()).toBe(false);
+    loaded3d = true;
+    expect(ed.scene3dLoaded()).toBe(true);
     expect(ed.objects()).toEqual([{ id: 'w-1', kind: 'wall' }]);
     expect(ed.edit([{ op: 'x' }])).toEqual(['w-1']);
     expect(p.applied).toEqual([[{ op: 'x' }]]);
