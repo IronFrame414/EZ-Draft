@@ -592,7 +592,8 @@
     "EZD-2017",
     "EZD-2018",
     "EZD-2031",
-    "EZD-2002"
+    "EZD-2002",
+    "EZD-2013"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2710,6 +2711,14 @@
       "ts": "2026-11-27T22:02:55Z",
       "kind": "ticket",
       "lane": 4
+    },
+    {
+      "id": "EZD-2013",
+      "title": "Fix: assistant preview B4 Send stays disabled after typing on iPad (EZD-5604b)",
+      "commit": "657408daa",
+      "ts": "2026-11-27T22:33:03Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -3033,20 +3042,20 @@
       "started": "2026-11-27T20:06:54Z",
       "develop": "73e3ccd66"
     },
-    "EZD-2013": {
-      "lane": 1,
-      "title": "Fix: assistant preview B4 Send stays disabled after typing on iPad (EZD-5604b)",
-      "started": "2026-11-27T20:54:50Z",
-      "develop": "638f4a580"
-    },
     "EZD-2019": {
       "lane": 2,
       "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
       "started": "2026-11-27T21:28:55Z",
       "develop": "437ef24f6"
+    },
+    "EZD-2025": {
+      "lane": 4,
+      "title": "Field screens say when a save, a Send or a task tick did not reach the office, with Retry",
+      "started": "2026-11-27T22:03:54Z",
+      "develop": "35045c75d"
     }
   },
-  "advisories_checked_at": "2026-11-27T16:29:29Z",
+  "advisories_checked_at": "2026-11-27T22:29:55Z",
   "hold": {},
   "perf_trend_at": "2026-11-27T04:12:31Z",
   "set_aside_history": [
