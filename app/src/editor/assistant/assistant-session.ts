@@ -159,7 +159,12 @@ export function createAssistantSession(deps: AssistantSessionDeps): AssistantSes
     if (disposed) return;
     keyEpoch += 1;
     const epoch = keyEpoch;
-    const state = await readAiKeyState({ fetchImpl });
+    let state = await readAiKeyState({ fetchImpl });
+    // EZD-2013: one failed read (a dropped connection) is tried once more before the panel shows the key error, so
+    // Send does not stay off under a typed prompt. Only keyState is set here: a late answer never touches the draft.
+    if (state === 'failed' && !disposed && epoch === keyEpoch) {
+      state = await readAiKeyState({ fetchImpl });
+    }
     if (disposed || epoch !== keyEpoch) return;
     set({ keyState: state });
   };

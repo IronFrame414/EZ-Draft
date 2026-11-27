@@ -94,6 +94,7 @@ async function ready(
   page: Page,
   signInAs: (email: string) => Promise<unknown>,
   reply: (ids: Ids) => { changes: unknown[]; refs: Record<string, string> },
+  beforeOpen: () => Promise<void> = async () => {},
 ) {
   const { ids, user } = await fixtureS();
   await signInAs(user.email);
@@ -118,9 +119,15 @@ async function ready(
       json: { message: 'Here is a door.', costMicroUsd: 20000, model: 'sonnet', ...reply(walls) },
     });
   });
+  await beforeOpen();
   await tool(page, 'assistant').click();
-  await expect(id(page, 'assistant-prompt')).toBeEnabled();
-  await id(page, 'assistant-prompt').fill('add a door');
+  // EZD-2013 (AC-EZD-2013-1): each condition Send needs is asserted on its own, so a failure names the one that
+  // was false: the key was read, the box holds the text, Send is enabled.
+  const prompt = id(page, 'assistant-prompt');
+  await expect(prompt).toBeEnabled();
+  await prompt.fill('add a door');
+  await expect(prompt).toHaveValue('add a door');
+  await expect(id(page, 'assistant-send')).toBeEnabled();
   await id(page, 'assistant-send').click();
   await expect(id(page, 'assistant-reply-text')).toHaveText('Here is a door.');
   return { walls, requests: () => requests };
@@ -225,6 +232,28 @@ test.describe('EZD-5604b assistant preview', () => {
     await expect(id(page, 'preview-chip')).toHaveCount(0);
     expect((await objects(page)).some((o) => o.id === walls.w2)).toBe(true);
   });
+
+  // EZD-2013 (AC-EZD-2013-2; flaky-test audit 2026-11-27 row 6): the racing condition, made with a stub. The first
+  // key read is dropped and the next is held for a fixed 1.5 s, so the prompt is typed before the key state lands.
+  test(
+    'EZD-2013 B5 a prompt typed before a slow key read lands is kept, and Send turns on',
+    { tag: ['@ipad', '@desktop'] },
+    async ({ page, signInAs }) => {
+      let reads = 0;
+      await ready(page, signInAs, DOOR, async () => {
+        await page.route('**/api/profile', async (r) => {
+          if (r.request().method() !== 'GET') return r.fallback();
+          reads += 1;
+          if (reads === 1) return r.abort('connectionreset');
+          await new Promise((done) => setTimeout(done, 1500));
+          return r.fallback();
+        });
+      });
+      expect(reads).toBe(2);
+      await expect(id(page, 'assistant-key-failed')).toHaveCount(0);
+      await expect(id(page, 'assistant-preview-actions')).toBeVisible();
+    },
+  );
 
   test(
     'EZD-5604b B4 the preview buttons are touch targets',
