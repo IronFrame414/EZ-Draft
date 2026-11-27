@@ -258,7 +258,7 @@ test.describe('EZD-014c device layouts', () => {
   });
 
   test(
-    'EZD-014c B5 layout switches live at 1024 px (EZD-324)',
+    'EZD-014c B5 layout switches live at 744 px wide and tall and at 1024 px (EZD-324; Q-0908)',
     { tag: ['@ipad'] },
     async ({ page }) => {
       await page.goto('/dev/device');
@@ -266,9 +266,14 @@ test.describe('EZD-014c device layouts', () => {
       await page.evaluate(() => {
         (window as unknown as Record<string, unknown>).__ezdMarker = 1;
       });
+      // AC-EZD-2031-4: this test assumed the 1024 px boundary; from 1024 px wide the steps are unchanged.
+      // EZD-2031 (Q-0908, which changes Q-0054 (a)): under 1024 px wide the full shell needs at least 744 px each way.
       const steps: Array<[number, number, 'full' | 'phone']> = [
         [1024, 820, 'full'],
-        [1023, 820, 'phone'],
+        [1023, 820, 'full'],
+        [1023, 743, 'phone'],
+        [768, 1024, 'full'],
+        [743, 1024, 'phone'],
         [1180, 820, 'full'],
         [390, 844, 'phone'],
         [1180, 820, 'full'],

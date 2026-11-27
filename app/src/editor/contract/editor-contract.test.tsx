@@ -10,7 +10,7 @@
 //
 // AC-EZD-1901-2: the 7 built tickets that no test names (section 2.7) are each covered by these existing tests,
 // which the gate already runs; no characterization test is needed:
-// - EZD-014a (device switch, phone layout; components/shell/EmptyEditor.tsx "under 1024 px the phone notice"):
+// - EZD-014a (device switch, phone layout; components/shell/EmptyEditor.tsx "phone notice", Q-0908):
 //   components/device/DeviceLayout.test.tsx "EZD-014a done when", components/phone/PhoneFrame.test.tsx
 //   "EZD-014a phone components", components/shell/EmptyEditor.test.tsx "U3 EmptyEditor renders the full frame with or
 //   without a phone prop".

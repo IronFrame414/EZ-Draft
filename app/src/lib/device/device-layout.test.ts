@@ -9,6 +9,7 @@ import {
   DESKTOP_REFERENCE_WIDTH,
   FULL_SHELL_MIN_WIDTH,
   PHONE_LAYOUT_QUERY,
+  UPRIGHT_MIN_SIDE,
   getDeviceLayout,
   subscribeDeviceLayout,
 } from './device-layout';
@@ -23,14 +24,27 @@ type FakeList = {
   removeEventListener: ReturnType<typeof vi.fn>;
 };
 
-function fakeMatchMedia(width: number) {
+// EZD-2031: evaluates a comma list (or) of `and`-joined `(width < N px)` / `(height < N px)` features at a size.
+function evaluate(query: string, width: number, height: number): boolean {
+  return query.split(',').some((part) =>
+    part
+      .trim()
+      .split(/\s+and\s+/)
+      .every((feature) => {
+        const m = /^\((width|height) < (\d+)px\)$/.exec(feature.trim());
+        if (!m) return false;
+        return (m[1] === 'width' ? width : height) < Number(m[2]);
+      }),
+  );
+}
+
+function fakeMatchMedia(width: number, height = 820) {
   const queries: string[] = [];
   const lists: FakeList[] = [];
   const fn = (query: string) => {
     queries.push(query);
-    const m = /^\(width < (\d+)px\)$/.exec(query);
     const list = {
-      matches: m ? width < Number(m[1]) : false,
+      matches: evaluate(query, width, height),
       media: query,
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
@@ -54,25 +68,39 @@ afterEach(() => {
 });
 
 describe('EZD-014a device layout', () => {
-  it('EZD-014a done when: getDeviceLayout returns phone below 1024 px and full from 1024 px', () => {
+  // EZD-2031 (Q-0908, which changes Q-0054 (a)): the full shell from 1024 px wide, and from 744 px wide on a screen
+  // at least 744 px tall; a phone, also held sideways, keeps the phone layout.
+  it('AC-EZD-2031-1, AC-EZD-2031-4: from 1024 px wide nothing changes; getDeviceLayout gives the full shell to an iPad held upright and the phone layout to a phone', () => {
     expect(FULL_SHELL_MIN_WIDTH).toBe(1024);
-    expect(PHONE_LAYOUT_QUERY).toBe('(width < 1024px)');
-    expect(PHONE_LAYOUT_QUERY).toBe(`(width < ${FULL_SHELL_MIN_WIDTH}px)`);
+    expect(UPRIGHT_MIN_SIDE).toBe(744);
+    expect(PHONE_LAYOUT_QUERY).toBe('(width < 744px), (width < 1024px) and (height < 744px)');
     expect(DESKTOP_REFERENCE_WIDTH).toBe(1600);
     expect(COMPACT_HEADER_QUERY).toBe('(width < 1600px)');
     expect(COARSE_POINTER_QUERY).toBe('(any-pointer: coarse)');
 
-    const expected: Array<[number, string]> = [
-      [390, 'phone'],
-      [1023, 'phone'],
-      [1024, 'full'],
-      [1180, 'full'],
-      [1600, 'full'],
+    const expected: Array<[number, number, string]> = [
+      [390, 844, 'phone'],
+      [430, 932, 'phone'],
+      [932, 430, 'phone'],
+      [844, 390, 'phone'],
+      [743, 1100, 'phone'],
+      [744, 744, 'full'],
+      [744, 1133, 'full'],
+      [768, 1024, 'full'],
+      [834, 1194, 'full'],
+      [1023, 743, 'phone'],
+      [1023, 744, 'full'],
+      [1024, 600, 'full'],
+      [1024, 1366, 'full'],
+      [1180, 820, 'full'],
+      [1600, 1000, 'full'],
     ];
-    for (const [w, layout] of expected) {
-      const mm = fakeMatchMedia(w);
-      expect(getDeviceLayout(mm.fn as unknown as typeof window.matchMedia), String(w)).toBe(layout);
-      expect(mm.queries).toEqual(['(width < 1024px)']);
+    for (const [w, h, layout] of expected) {
+      const mm = fakeMatchMedia(w, h);
+      expect(getDeviceLayout(mm.fn as unknown as typeof window.matchMedia), `${w}x${h}`).toBe(
+        layout,
+      );
+      expect(mm.queries).toEqual([PHONE_LAYOUT_QUERY]);
     }
   });
 
@@ -96,12 +124,13 @@ describe('EZD-014a device layout', () => {
   });
 
   it('U1 (d) the store reads the window and the server snapshot is full (EZD-158)', () => {
-    for (const [w, layout] of [
-      [1023, 'phone'],
-      [1024, 'full'],
+    for (const [w, h, layout] of [
+      [743, 1024, 'phone'],
+      [768, 1024, 'full'],
+      [1024, 600, 'full'],
     ] as const) {
       const spyW = vi.fn();
-      const mm = fakeMatchMedia(w);
+      const mm = fakeMatchMedia(w, h);
       vi.stubGlobal('window', { matchMedia: mm.fn, addEventListener: spyW });
       expect(deviceLayoutStore.getSnapshot()).toBe(layout);
       expect(deviceLayoutStore.getServerSnapshot()).toBe('full');
@@ -127,16 +156,17 @@ describe('EZD-014a device layout', () => {
     }
   });
 
-  it('U8 part a: EditorFrame hides the frame below 1024 px, once, after the base rule', () => {
+  // EZD-2031 (AC-EZD-2031-4: this test assumed the 1024 px boundary): the CSS hides the frame by the same query as PHONE_LAYOUT_QUERY, once, after the base rule.
+  it('U8 part a: EditorFrame hides the frame by PHONE_LAYOUT_QUERY, once, after the base rule', () => {
     const css = squash(
       readFileSync(path.join(here, '../../components/shell/EditorFrame.module.css'), 'utf8'),
     );
-    expect(css.match(/@media \(width < 1024px\)/g) ?? []).toHaveLength(1);
-    const media = /@media \(width < 1024px\) \{ \.frame \{ display: none;? \} \}/.exec(css);
-    expect(media).not.toBeNull();
+    const hides = [...css.matchAll(/@media ([^{]+) \{ \.frame \{ display: none;? \} \}/g)];
+    expect(hides).toHaveLength(1);
+    expect(hides[0]![1]).toBe(PHONE_LAYOUT_QUERY);
+    expect(css.split(`@media ${PHONE_LAYOUT_QUERY}`)).toHaveLength(2);
     const base = /(^| )\.frame \{[^{}]*\}/.exec(css);
     expect(base).not.toBeNull();
-    expect(media!.index).toBeGreaterThan(base!.index + base![0].length - 1);
-    expect(1024).toBe(FULL_SHELL_MIN_WIDTH);
+    expect(hides[0]!.index).toBeGreaterThan(base!.index + base![0].length - 1);
   });
 });

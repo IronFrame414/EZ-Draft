@@ -300,10 +300,13 @@ export function PlanStatusEnd(props: {
     const el = cursorRef.current;
     if (el === null) return;
     const none = t('office.status.cursor_none');
-    el.textContent = none;
-    return handle.onCursorChange((model) => {
-      el.textContent = model === null ? none : formatCursor(model);
-    });
+    // EZD-2031 (Q-0807; AC-EZD-2031-2): the reading is also the tooltip, for when the cell is cut with an ellipsis.
+    const write = (text: string) => {
+      el.textContent = text;
+      el.title = text;
+    };
+    write(none);
+    return handle.onCursorChange((model) => write(model === null ? none : formatCursor(model)));
   }, [handle, t]);
 
   useEffect(() => {

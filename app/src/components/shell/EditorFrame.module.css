@@ -134,7 +134,73 @@
   }
 }
 
+/* EZD-2031 (Q-0908; AC-EZD-2031-1, -2): under 1024 px wide the frame runs on a screen at least 744 px wide and tall (an
+   iPad held upright); the inspector sits below the canvas, as wide as it, and the rail column keeps the body's full
+   height, so the canvas is wide enough for the tablet edit bar and the zoom stack. With a mouse the left panel keeps its
+   column next to the rail. Columns are spaced by margins, not the column gap, so a column with nothing in it (3D has
+   no rail and no left panel) takes no room. From 1024 px nothing changes. */
 @media (width < 1024px) {
+  .body {
+    --ez-inspector-upright-height: var(--ez-inspector-width);
+    display: grid;
+    column-gap: 0;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) var(--ez-inspector-upright-height);
+    grid-template-areas:
+      'rail panel canvas'
+      'rail panel inspector';
+  }
+
+  .railColumn [data-shell-region='rail'] {
+    grid-area: rail;
+    margin-right: var(--ez-body-gap);
+  }
+
+  .leftPanel {
+    grid-area: panel;
+    margin-right: var(--ez-body-gap);
+  }
+
+  .canvas {
+    grid-area: canvas;
+  }
+
+  .inspector {
+    grid-area: inspector;
+    width: auto;
+  }
+
+  /* A view with no inspector (3D, Sheets): the canvas takes both rows. */
+  .canvas:last-child {
+    grid-area: canvas-start / canvas-start / inspector-end / canvas-end;
+  }
+}
+
+@media (width < 1024px) and (any-pointer: coarse) {
+  .body {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'rail canvas'
+      'rail inspector';
+  }
+
+  .railColumn {
+    grid-area: rail;
+    margin-right: var(--ez-body-gap);
+  }
+
+  .railColumn [data-shell-region='rail'] {
+    margin-right: 0;
+  }
+
+  /* Open, the left panel lies over the canvas only, not the inspector below it. */
+  .body:has(> .inspector) .leftPanel[data-open] {
+    bottom: calc(var(--ez-inspector-upright-height) + var(--ez-body-gap));
+  }
+}
+
+/* The phone layout: the same query as PHONE_LAYOUT_QUERY (lib/device/device-layout.ts; Q-0908). */
+@media (width < 744px), (width < 1024px) and (height < 744px) {
   .frame {
     display: none;
   }
