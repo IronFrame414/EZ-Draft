@@ -2579,7 +2579,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2632,7 +2632,8 @@
     "EZD-1995": 1,
     "EZD-2000": 1,
     "EZD-1913b": 1,
-    "EZD-640": 1
+    "EZD-640": 1,
+    "EZD-2029": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2854,15 +2855,13 @@
     "EZD-640": {
       "ts": "2026-11-27T04:24:42Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-2029": {
+      "ts": "2026-11-27T08:19:11Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-2029": {
-      "lane": 3,
-      "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
-      "started": "2026-11-27T06:36:49Z",
-      "develop": "48f113c6"
-    },
     "EZD-2028": {
       "lane": 2,
       "title": "Toasts and the reload notice sit above the field tab bar and the home bar",
