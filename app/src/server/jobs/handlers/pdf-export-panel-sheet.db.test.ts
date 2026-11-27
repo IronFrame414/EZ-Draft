@@ -158,7 +158,7 @@ describe('EZD-708c E2.0 in the permit PDF', () => {
     circuit(14, 1, 'Small appl. 2', 20, 'gfci', 1500);
     circuit(1, 2, 'Range', 50, null, 12000);
     circuit(24, 1, 'Kitchen lighting', 15, 'afci', 171);
-    entry = panelSheetFor(objects, panel)!;
+    entry = panelSheetFor(objects, panel, {})!;
     const set = panelSheetChange(objects, entry, () => randomUUID());
     objects.set(set.id, set.value!);
     const saved = await editor.serverDb.rpc('save_objects', {

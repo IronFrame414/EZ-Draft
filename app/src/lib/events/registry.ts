@@ -98,6 +98,9 @@ export const EVENTS = {
   // EZD-708c (S06 Events emitted "sheet.updated (new) on Add to E2.0"): Add to E2.0 or Update E2.0 placed a panel's
   // schedule and load calc on the panel sheet; the sheet's number and the panel.
   'sheet.updated': { kind: 'log_only' },
+  // EZD-614 (S15e Events emitted "catalog.settings_updated (new)"): Settings > Catalog saved (the Appliance rating
+  // defaults card); the appliance types added, changed or removed.
+  'catalog.settings_updated': { kind: 'log_only' },
   // EZD-1102 (S15f Events emitted "render.model_config_updated (new)"): Settings > Render models saved.
   'render.model_config_updated': { kind: 'log_only' },
   // EZD-125 (Q-0697 decisions 10): Cancel request; written as the event_log row by cancel_edit_request.
@@ -277,6 +280,7 @@ export interface EventPayloads {
   'tenant.code_edition_updated': { keys: ('code_edition' | 'optional_load_calc')[] };
   'tenant.title_block_updated': { keys: 'show_company'[] };
   'sheet.updated': { sheet: string; panelId: string };
+  'catalog.settings_updated': { section: 'appliance_ratings'; applianceTypes: string[] };
   // EZD-1102: the tiers whose model or cost changed, and whether the allowance changed.
   'render.model_config_updated': {
     tiers: ('fast' | 'standard' | 'photoreal')[];

@@ -82,13 +82,13 @@ describe('EZD-708c the panel sheet preview', () => {
     // Add to E2.0.
     const place = () => {
       const now = store.getState().objects;
-      store.applyEdit([panelSheetChange(now, panelSheetFor(now, PANEL_A)!, newId)]);
+      store.applyEdit([panelSheetChange(now, panelSheetFor(now, PANEL_A, {})!, newId)]);
     };
     place();
     await settle();
     let markup = screen.get().drawing?.markup;
     expect(has(markup, EC_NOTE_TEXT)).toBe(true);
-    const entry = panelSheetFor(store.getState().objects, PANEL_A)!;
+    const entry = panelSheetFor(store.getState().objects, PANEL_A, {})!;
     for (const row of [...entry.schedule, ...entry.loadCalc])
       for (const cell of row) if (cell !== '') expect(has(markup, cell), cell).toBe(true);
     for (const v of ['7,350', '6,098', '6,120', '9,600', '1,050', '35,868 VA', '149.5 A', '50.5 A spare'])
@@ -129,7 +129,7 @@ describe('EZD-708c the panel sheet preview', () => {
     objects.set(uid(950), {
       type: 'sheet_set',
       schemaVersion: CURRENT_SCHEMA_VERSION,
-      data: panelSheetChange(objects, panelSheetFor(objects, PANEL_A)!, () => uid(950)).value!.data,
+      data: panelSheetChange(objects, panelSheetFor(objects, PANEL_A, {})!, () => uid(950)).value!.data,
     });
     expect(sheetPanelJobInput({ objects, size: '24x36', viewports: [], sheet: 'E2.0' })).not.toBeNull();
     expect(sheetPanelJobInput({ objects, size: '24x36', viewports: [], sheet: 'E1.0' })).toBeNull();

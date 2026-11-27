@@ -97,6 +97,26 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"appliance_rating_default": {
+                  Row: {
+                    "amps": number,"appliance_type": string,"created_at": string,"id": string,"name": string,"tenant_id": string,"updated_at": string,"volts": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amps": number,"appliance_type": string,"created_at"?: string,"id"?: string,"name": string,"tenant_id": string,"updated_at"?: string,"volts": number
+                  }
+                  Update: {
+                    "amps"?: number,"appliance_type"?: string,"created_at"?: string,"id"?: string,"name"?: string,"tenant_id"?: string,"updated_at"?: string,"volts"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "appliance_rating_default_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"backup_run": {
                   Row: {
                     "bytes_copied": number,"created_at": string,"error": string | null,"files_cursor": string | null,"finished_at": string | null,"id": string,"kind": string,"location": string | null,"objects_copied": number,"objects_hidden": number,"objects_skipped": number,"scope": string,"started_at": string,"status": string
@@ -1976,6 +1996,11 @@ isOneToOne: false
                            },
 "run_version_cleanup":
 { Args: { "p_dry_run"?: boolean,"p_now": string,"p_tenant": string }; Returns: Json
+                           },
+"save_appliance_rating_defaults":
+{ Args: { "p_rows": Json }; Returns: {
+              "changed": (string)[],"tenant_id": string
+            }[]
                            },
 "save_cleanup_choices":
 { Args: { "p_delete": (string)[],"p_keep": Json,"p_lock_epoch": number,"p_project": string }; Returns: Json

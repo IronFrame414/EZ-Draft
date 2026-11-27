@@ -59,6 +59,10 @@ import { panelRows } from '../../editor/electrical/electrical';
 import { panelLoadCalc } from '../../editor/electrical/existing-panel';
 import type { SheetRenderer } from '../sheets';
 import type { IssuedRevision } from '../../lib/sheets/revisions';
+import {
+  createApplianceDefaults,
+  type ApplianceDefaultsSource,
+} from '../../lib/appliance-ratings/defaults-source';
 
 // EZD-717: where the Issue button is. `blocked` carries the checklist gates the server named.
 export type IssueRun =
@@ -124,11 +128,16 @@ export type SheetsModelSource = {
   applyEdit?(changes: Change[]): string[];
 };
 
-// EZD-716: the main panel's load calc (the first panel, as the electrical status bar reads it).
-export function liveLoadCalc(objects: Objects, edition: string): LoadCalcFacts {
+// EZD-716: the main panel's load calc (the first panel, as the electrical status bar reads it). EZD-614: with the
+// company's appliance rating defaults (AC-EZD-614-1).
+export function liveLoadCalc(
+  objects: Objects,
+  edition: string,
+  defaults: Readonly<Record<string, number>>,
+): LoadCalcFacts {
   const main = panelRows(objects)[0];
   if (main === undefined) return { state: 'none' };
-  const r = panelLoadCalc(objects, main.id);
+  const r = panelLoadCalc(objects, main.id, defaults);
   if (r === null) return { state: 'none' };
   if (!r.ok) return { state: 'error' };
   return { state: 'done', edition, serviceAmps: r.service?.amps ?? null, pass: r.service?.pass ?? null };
@@ -138,10 +147,11 @@ export function liveLoadCalc(objects: Objects, edition: string): LoadCalcFacts {
 export function liveElectricalCalc(
   objects: Objects,
   edition: string,
+  defaults: Readonly<Record<string, number>>,
 ): { case: 'proposed'; method: 'standard'; inputs: Record<string, unknown>; results: Record<string, unknown> } | null {
   const main = panelRows(objects)[0];
   if (main === undefined) return null;
-  const r = panelLoadCalc(objects, main.id);
+  const r = panelLoadCalc(objects, main.id, defaults);
   if (r === null || !r.ok) return null;
   return {
     case: 'proposed',
@@ -158,6 +168,8 @@ export type SheetsScreenDeps = {
   wait?: (ms: number) => Promise<void>;
   // EZD-717: the page's origin, for the PDF link Copy link copies.
   origin?: () => string;
+  // EZD-614: the company's appliance rating defaults the load calc takes; by default read through `fetchFn`.
+  applianceDefaults?: ApplianceDefaultsSource;
 };
 
 const sheetsRenderer = lazyModule(() => import('../sheets'));
@@ -343,15 +355,25 @@ export function createSheetsScreen(
     const objects = source.getState().objects;
     if (!force && objects === calcFor) return;
     calcFor = objects;
-    const next = issueChecklist({ ...facts.facts, loadCalc: liveLoadCalc(objects, facts.facts.edition) });
+    const next = issueChecklist({
+      ...facts.facts,
+      loadCalc: liveLoadCalc(objects, facts.facts.edition, applianceDefaults.get()),
+    });
     if (force || JSON.stringify(next) !== JSON.stringify(state.checklist))
       update({ checklist: next, checklistLoad: 'ready' });
   };
+  // EZD-614 (AC-EZD-614-1): the appliance rating defaults are read with the checklist; a later change works the
+  // load calc row out again.
+  const applianceDefaults = deps.applianceDefaults ?? createApplianceDefaults(fetchFn);
+  const unwatchDefaults = applianceDefaults.subscribe(() => refreshChecklist(true));
   const reloadChecklist = async () => {
     const n = ++checklistRead;
     if (state.checklist === null) update({ checklistLoad: 'loading' });
     try {
-      const res = await fetchFn(`/api/projects/${projectId}/code-check?checklist=1`, { cache: 'no-store' });
+      const [res] = await Promise.all([
+        fetchFn(`/api/projects/${projectId}/code-check?checklist=1`, { cache: 'no-store' }),
+        applianceDefaults.load(),
+      ]);
       if (!res.ok) throw new Error(String(res.status));
       const body = (await res.json()) as Partial<{ facts: ProjectIssueFacts; checklist: IssueChecklist }>;
       if (typeof body.facts !== 'object' || body.facts === null || typeof body.checklist !== 'object')
@@ -436,7 +458,7 @@ export function createSheetsScreen(
       const edition = facts?.facts.edition ?? null;
       const electrical =
         objects !== null && edition !== null && permit?.sheets.some((x) => x.number === 'E2.0')
-          ? liveElectricalCalc(objects, edition)
+          ? liveElectricalCalc(objects, edition, await applianceDefaults.load())
           : null;
       let res: Response;
       try {
@@ -618,6 +640,7 @@ export function createSheetsScreen(
     reloadIssue,
     dispose() {
       disposed = true;
+      unwatchDefaults();
       unwatch?.();
       unwatch = null;
       shown = false;

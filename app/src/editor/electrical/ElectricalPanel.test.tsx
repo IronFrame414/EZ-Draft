@@ -324,7 +324,7 @@ describe('EZD-708c Add to E2.0', () => {
 
   it('reads "Update E2.0" once the panel is placed', async () => {
     const objects = electricalObjects();
-    const entry = panelSheetFor(objects, PANEL_A)!;
+    const entry = panelSheetFor(objects, PANEL_A, {})!;
     const c = panelSheetChange(objects, entry, () => PERMIT_SET);
     objects.set(c.id, c.value!);
     const placed = one(await renderPanel(false, objects), 'electrical-panel-sheet');

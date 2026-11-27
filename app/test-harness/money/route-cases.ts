@@ -1256,6 +1256,24 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-613: save the company code edition; 200 { edition, optionalLoadCalc, available } (no money)',
   },
   {
+    file: `${API}settings/appliance-ratings/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/appliance-ratings/route'),
+    request: get('/api/settings/appliance-ratings'),
+    expectStatus: 200,
+    note: 'EZD-614: the company appliance rating defaults; 200 { rows } (volts and amps, no money)',
+  },
+  {
+    file: `${API}settings/appliance-ratings/route.ts`,
+    method: 'PUT',
+    load: () => import('../../src/app/api/settings/appliance-ratings/route'),
+    request: sendJson('PUT', '/api/settings/appliance-ratings', {
+      rows: [{ applianceType: 'dishwasher', name: 'Dishwasher', volts: 120, amps: 10 }],
+    }),
+    expectStatus: 200,
+    note: 'EZD-614: save the company appliance rating defaults; 200 { rows } (no money)',
+  },
+  {
     file: `${API}settings/title-block/route.ts`,
     method: 'GET',
     load: () => import('../../src/app/api/settings/title-block/route'),

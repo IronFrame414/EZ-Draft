@@ -368,7 +368,7 @@ describe('EZD-607 panel load calc', () => {
   });
 
   it('no load calc on the panel gives null', () => {
-    expect(panelLoadCalc(withCalc(undefined), PANEL_A)).toBeNull();
+    expect(panelLoadCalc(withCalc(undefined), PANEL_A, {})).toBeNull();
   });
 
   it('reproduces 35,868 VA and 149.5 A on the 200 A service, the dryer at the default rating', () => {
@@ -382,7 +382,7 @@ describe('EZD-607 panel load calc', () => {
   });
 
   it('a load with no rating and no default is the calc error naming it', () => {
-    expect(panelLoadCalc(withCalc(calc()), PANEL_A)).toEqual({
+    expect(panelLoadCalc(withCalc(calc()), PANEL_A, {})).toEqual({
       ok: false,
       errors: [{ code: 'missing_rating', loadId: 'dry', name: 'Dryer' }],
     });

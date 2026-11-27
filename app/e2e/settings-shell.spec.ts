@@ -144,8 +144,8 @@ test.describe('EZD-103a settings shell', () => {
     await signInAsOwner(page);
     // EZD-112 built the company page, EZD-104 the users page, EZD-135b the system status page and EZD-131 the
     // libraries page, EZD-116 the defaults page, EZD-613 the code edition page, EZD-712 the sheet presets
-    // page, EZD-1102 the render models page and EZD-709 the title block page, so none of them is an unbuilt,
-    // title-only page.
+    // page, EZD-1102 the render models page, EZD-709 the title block page and EZD-614 the catalog page, so none
+    // of them is an unbuilt, title-only page.
     for (const [id, slug, label] of SECTIONS.filter(
       ([id]) =>
         ![
@@ -158,6 +158,7 @@ test.describe('EZD-103a settings shell', () => {
           'sheet_presets',
           'render_models',
           'title_block',
+          'catalog',
         ].includes(id),
     )) {
       const res = await page.goto(`/settings/${slug}`);

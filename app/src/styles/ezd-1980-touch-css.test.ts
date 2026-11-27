@@ -90,6 +90,12 @@ const CASES: Array<[string, string, string | null, string[]]> = [
   ['components/settings/title-block/TitleBlockForm.module.css', '.segmentButton', 'height: 30px', [`height: ${T}`]],
   ['components/settings/code-edition/CodeEditionForm.module.css', '.select', 'height: 38px', [`height: ${T}`]],
   ['components/settings/code-edition/CodeEditionForm.module.css', '.switch', 'height: 20px', ['border: calc((var(--ez-touch-target) - 20px) / 2) solid transparent', 'background-clip: padding-box']],
+  // EZD-614 Catalog appliance ratings: 30 px inputs, volts select, Add choice and 26 px remove buttons.
+  ['components/settings/catalog/ApplianceRatings.module.css', '.nameInput', 'height: 30px', [`height: ${T}`]],
+  ['components/settings/catalog/ApplianceRatings.module.css', '.numInput', 'height: 30px', [`height: ${T}`]],
+  ['components/settings/catalog/ApplianceRatings.module.css', '.voltsSelect', 'height: 30px', [`height: ${T}`]],
+  ['components/settings/catalog/ApplianceRatings.module.css', '.add', 'height: 30px', [`height: ${T}`]],
+  ['components/settings/catalog/ApplianceRatings.module.css', '.remove', 'height: 26px', [`height: ${T}`, `width: ${T}`]],
   // Sheets: 32 px rows and set selector, 36 px Add sheet / property import, 32 x 32 Previous / Next.
   ['lazy/sheets-screen/SheetsScreen.module.css', '.row', 'min-height: 32px', [`min-height: ${T}`]],
   ['lazy/sheets-screen/SheetsScreen.module.css', '.setButton', 'min-height: 32px', [`min-height: ${T}`]],

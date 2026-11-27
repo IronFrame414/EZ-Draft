@@ -417,10 +417,12 @@ function dwellingLoads(objects: Objects, panelId: string, calc: PanelLoadCalc): 
   return [...out, ...entries];
 }
 
+// EZD-614 (AC-EZD-614-1): `defaults` is the company's appliance rating defaults (VA by appliance type,
+// lib/appliance-ratings/defaults-source.ts). Required, so every place the calc runs passes them.
 export function panelLoadCalc(
   objects: Objects,
   panelId: string | null,
-  defaults?: Readonly<Record<string, number>>,
+  defaults: Readonly<Record<string, number>>,
 ): LoadCalcResult | null {
   const found = findPanel(objects, panelId);
   if (found === null || panelId === null) return null;
@@ -432,7 +434,7 @@ export function panelLoadCalc(
     laundryCircuits: calc.laundryCircuits,
     loads: dwellingLoads(objects, panelId, calc),
     overrides: calc.overrides,
-    ...(defaults === undefined ? {} : { defaults }),
+    defaults,
     ...(calc.largestMotorId === undefined ? {} : { largestMotorId: calc.largestMotorId }),
     serviceAmps: existingPanelInputs(objects, panelId).serviceSize,
   });

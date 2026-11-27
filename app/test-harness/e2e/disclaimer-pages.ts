@@ -114,6 +114,12 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
     placement: 'bar',
   },
   {
+    file: 'src/app/(office)/settings/catalog/page.tsx',
+    path: '/settings/catalog',
+    signedIn: true,
+    placement: 'bar',
+  },
+  {
     file: 'src/app/(office)/settings/render-models/page.tsx',
     path: '/settings/render-models',
     signedIn: true,
@@ -151,9 +157,11 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
   },
   {
     file: 'src/app/(office)/settings/[section]/page.tsx',
-    path: '/settings/catalog',
+    // EZD-614: every Settings section has its own page now, so this route answers only an unknown slug, with the
+    // not-found page and its line.
+    path: '/settings/no-such-section',
     signedIn: true,
-    placement: 'bar',
+    placement: 'page',
   },
   {
     file: 'src/app/(office)/dev/settings/page.tsx',

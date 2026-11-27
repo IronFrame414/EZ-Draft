@@ -19,6 +19,7 @@ const PAGE_FILES = [
   'app/src/app/(office)/dev/entry/office/page.tsx',
   'app/src/app/(office)/dev/settings/page.tsx',
   'app/src/app/(office)/settings/[section]/page.tsx',
+  'app/src/app/(office)/settings/catalog/page.tsx',
   'app/src/app/(office)/settings/code-edition/page.tsx',
   'app/src/app/(office)/settings/company/page.tsx',
   'app/src/app/(office)/settings/defaults/page.tsx',
@@ -77,6 +78,7 @@ function basePath(file: string): string {
 const OWN_PAGES = new Set([
   'company',
   'defaults',
+  'catalog',
   'users',
   'system-status',
   'libraries',
