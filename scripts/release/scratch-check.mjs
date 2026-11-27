@@ -4,13 +4,16 @@
 // one file at a time with `supabase migration up --local`; the catalog is read before and after each. Identity is
 // the object id, so a rename, a move and a drop-and-recreate all show. M1 = a base object dropped or renamed
 // unless retired; M4 = a created object whose create statement the scan does not find, or a migration that fails.
+// EZD-2008: each build lane (EZD_LANE 0-4) has its own scratch stack (project id, container, ports + 100 x lane) and
+// its own lock, so one lane's check never waits on another's; lane 0 is the committed config, unchanged.
 // Children get only SCRATCH_ENV_NAMES; their output is captured and printed only as failure notes (cliFailureNotes, EZD-259): URL passwords redacted, at most CLI_NOTE_MAX_LINES lines per source.
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { withTypesLock } from '../db/gen-types.mjs';
+import { laneAppPorts, laneProjectId, stackContainer, STACK_PORT_STEP } from '../db/lane.mjs';
 import { sharedTempDir } from '../db/stack-config.mjs';
 import { redactUrl } from './redact.mjs';
 import { findCreated, OBJECT_KINDS, splitStatements } from './sql-scan.mjs';
@@ -34,6 +37,54 @@ export const MIGCHECK_EXCLUDE = Object.freeze([
   'supavisor',
 ]);
 export const SCRATCH_LOCK_WAIT_MS = 600000;
+/** EZD-2008 (AC-EZD-2008-1): the scratch stack has lanes 0-4. */
+export const SCRATCH_MAX_LANE = 4;
+
+/** 0-4 from EZD_LANE (unset or '' is 0); anything else is null. */
+export function scratchLane(env) {
+  const v = env.EZD_LANE;
+  if (v === undefined || v === '') return 0;
+  return /^[0-4]$/.test(v) ? Number(v) : null;
+}
+
+/** The scratch project of a lane: lane 0 is SCRATCH_PROJECT_ID, lane n adds -lane<n>. */
+export function scratchProjectId(lane) {
+  return laneProjectId(SCRATCH_PROJECT_ID, lane);
+}
+
+/** The scratch database container of a lane: lane 0 is SCRATCH_DB_CONTAINER. */
+export function scratchDbContainer(lane) {
+  return stackContainer('db', SCRATCH_PROJECT_ID, lane);
+}
+
+/** A lane's scratch config: project id, every port (+ 100 x lane) and the site URL moved; lane 0 and every other line unchanged. */
+export function scratchConfigToml(toml, lane) {
+  if (lane === 0) return toml;
+  const web = laneAppPorts(lane).web;
+  return toml
+    .split('\n')
+    .map((line) => {
+      if (/^project_id\s*=\s*"[^"]+"\s*$/.test(line)) return `project_id = "${scratchProjectId(lane)}"`;
+      const port = /^(\s*)([a-z_]*port)(\s*=\s*)(\d+)\s*$/.exec(line);
+      if (port) return `${port[1]}${port[2]}${port[3]}${Number(port[4]) + STACK_PORT_STEP * lane}`;
+      if (/^site_url\s*=\s*"http:\/\/127\.0\.0\.1:3000"\s*$/.test(line)) {
+        return line.replace('127.0.0.1:3000', `127.0.0.1:${web}`);
+      }
+      return line;
+    })
+    .join('\n');
+}
+
+/** The lock folder name of a lane: one scratch run per lane, never one per machine. */
+export function scratchLockName(lane) {
+  return lane === 0 ? 'ezd-migcheck.lock' : `ezd-migcheck-lane${lane}.lock`;
+}
+
+/** The lock of defaultScratchDeps: `lock(fn, { lane })` holds only that lane's folder under `lockRoot`. */
+export function scratchLock({ lockRoot, waitMs = SCRATCH_LOCK_WAIT_MS }) {
+  return (fn, { lane = 0 } = {}) =>
+    withTypesLock(fn, { lockDir: path.join(lockRoot, scratchLockName(lane)), waitMs });
+}
 /** The only environment names a scratch child gets (the release step holds its secrets in process.env). */
 export const SCRATCH_ENV_NAMES = Object.freeze([
   'PATH',
@@ -101,11 +152,11 @@ const relationOf = (columnName) => columnName.slice(0, columnName.lastIndexOf('.
 const relationIdOf = (columnId) => columnId.slice(0, columnId.indexOf(':'));
 
 /** The `docker exec` arguments of the snapshot psql (backup `scratchPsqlArgs` with user `postgres`). */
-export function snapshotPsqlArgs() {
+export function snapshotPsqlArgs(container = SCRATCH_DB_CONTAINER) {
   return [
     'exec',
     '-i',
-    SCRATCH_DB_CONTAINER,
+    container,
     'psql',
     '-v',
     'ON_ERROR_STOP=1',
@@ -228,11 +279,7 @@ export function defaultScratchDeps() {
       });
       return { status: r.error ? null : r.status, stdout: r.stdout ?? '', stderr: r.stderr ?? '' };
     },
-    lock: (fn) =>
-      withTypesLock(fn, {
-        lockDir: path.join(sharedTempDir(REPO_ROOT), 'ezd-migcheck.lock'),
-        waitMs: SCRATCH_LOCK_WAIT_MS,
-      }),
+    lock: scratchLock({ lockRoot: sharedTempDir(REPO_ROOT) }),
     tmpRoot: os.tmpdir(),
     env: process.env,
     supabaseBin: path.join(REPO_ROOT, 'node_modules', '.bin', 'supabase'),
@@ -300,12 +347,16 @@ function appliedNames(stdout) {
 
 /** Builds the scratch, applies the new files one at a time and compares the catalog (section 1 steps 1-9). */
 export function runScratchCheck(input, deps = defaultScratchDeps()) {
-  const locked = deps.lock(() => scratchBody(input, deps));
+  const lane = scratchLane(deps.env);
+  if (lane === null) return { violations: [], notes: [], failure: 'scratch_lane_invalid' };
+  const locked = deps.lock(() => scratchBody(input, deps, lane), { lane });
   if (!locked.ok) return { violations: [], notes: [], failure: 'scratch_db_lock_timeout' };
   return locked.value;
 }
 
-function scratchBody(input, deps) {
+function scratchBody(input, deps, lane) {
+  const projectId = scratchProjectId(lane);
+  const dbContainer = scratchDbContainer(lane);
   const env = scratchEnv(deps.env);
   const run = (command, args, opts) => deps.run(command, args, { ...opts, env });
   const bin = deps.supabaseBin;
@@ -316,7 +367,7 @@ function scratchBody(input, deps) {
   const migrationsDir = path.join(w, 'supabase', 'migrations');
   const snapshot = () => {
     try {
-      const r = run('docker', snapshotPsqlArgs(), { input: SNAPSHOT_SQL, timeoutMs: 120000 });
+      const r = run('docker', snapshotPsqlArgs(dbContainer), { input: SNAPSHOT_SQL, timeoutMs: 120000 });
       if (r.status !== 0) return null;
       return parseSnapshot(r.stdout);
     } catch {
@@ -326,7 +377,10 @@ function scratchBody(input, deps) {
 
   const steps = () => {
     mkdirSync(migrationsDir, { recursive: true });
-    copyFileSync(SCRATCH_CONFIG_PATH, path.join(w, 'supabase', 'config.toml'));
+    writeFileSync(
+      path.join(w, 'supabase', 'config.toml'),
+      scratchConfigToml(readFileSync(SCRATCH_CONFIG_PATH, 'utf8'), lane),
+    );
     for (const [name, text] of Object.entries(input.released)) writeFileSync(path.join(migrationsDir, name), text);
 
     const pre = run(bin, ['stop', '--no-backup', '--workdir', w], { cwd: w, timeoutMs: 120000 });
@@ -351,15 +405,15 @@ function scratchBody(input, deps) {
     const names = ps.stdout
       .split('\n')
       .map((l) => l.trim())
-      .filter((l) => l.endsWith(`_${SCRATCH_PROJECT_ID}`));
-    if (!names.includes(SCRATCH_DB_CONTAINER)) {
+      .filter((l) => l.endsWith(`_${projectId}`));
+    if (!names.includes(dbContainer)) {
       notes.push(
-        `scratch start: ${SCRATCH_DB_CONTAINER} is not running; running: ${names.length > 0 ? names.join(', ') : 'none'}`,
+        `scratch start: ${dbContainer} is not running; running: ${names.length > 0 ? names.join(', ') : 'none'}`,
       );
       return 'scratch_start_failed';
     }
     for (const name of names) {
-      if (name === SCRATCH_DB_CONTAINER) continue;
+      if (name === dbContainer) continue;
       const r = run('docker', ['stop', name], { timeoutMs: 120000 });
       if (r.status !== 0) {
         notes.push(...cliFailureNotes(`docker stop ${name}`, r));
