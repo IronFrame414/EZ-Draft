@@ -69,6 +69,10 @@ import { notifyPanelSheet } from './panel-sheet-client';
 import { CompactSchedule, ScheduleDialog } from './PanelSchedule';
 import { idKey } from '../shared/ids';
 import { useStoreValue } from '../shared/use-store-value';
+import {
+  useApplianceDefaults,
+  type ApplianceDefaultsSource,
+} from '../../lib/appliance-ratings/defaults-source';
 
 export type ElectricalTab = 'circuits' | 'devices' | 'panel';
 
@@ -109,6 +113,9 @@ export type ElectricalPanelProps = {
     paused: boolean;
     projectId?: string;
     reader?: PanelPhotoReader;
+    // EZD-614: the company's appliance rating defaults Add to E2.0 works the load calc out with; tests pass their
+    // own, the page shares one (lib/appliance-ratings/defaults-source.ts).
+    defaultsSource?: ApplianceDefaultsSource;
   };
 };
 
@@ -168,6 +175,7 @@ export function ElectricalPanel({
   const [existingOpen, setExistingOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const projectId = edit?.projectId;
+  const defaults = useApplianceDefaults(edit?.defaultsSource);
   const givenReader = edit?.reader;
   const reader = useMemo<PanelPhotoReader | null>(
     () => givenReader ?? (projectId === undefined ? null : createPanelPhotoReader(projectId)),
@@ -199,7 +207,7 @@ export function ElectricalPanel({
   const placePanelSheet = () => {
     if (base === null || panel === null) return;
     const now = base.store.getState().objects;
-    const entry = panelSheetFor(now, panel.id);
+    const entry = panelSheetFor(now, panel.id, defaults);
     if (entry === null) return;
     base.store.applyEdit([panelSheetChange(now, entry, base.newId)]);
     if (projectId !== undefined) notifyPanelSheet(projectId, { sheet: panelSheet, panelId: panel.id });

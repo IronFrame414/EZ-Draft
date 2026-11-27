@@ -288,4 +288,36 @@ describe('EZD-106 member write routes', () => {
     expect(res.status).toBe(409);
     expect(await body(res)).toEqual(err('active_elsewhere'));
   }, 120000);
+
+  it('AC-EZD-2024-1 (Q-0901): a holder who is not an Owner gets 403 owner_role_owner_only giving or taking the Owner role', async () => {
+    const admin = await addUser(t, {
+      preset: 'designer',
+      name: 'Route Admin',
+      granted: [...PRESET_KEYS.designer, 'settings_users'],
+    });
+    const c = await addUser(t, { preset: 'crew', name: 'Route Crew' });
+    const o = await addUser(t, { preset: 'owner', name: 'Route Owner Two' });
+    const ownerRole = await roleId(t, 'owner');
+    const crewRole = await roleId(t, 'crew');
+    state.store = await cookiesFor(admin.email);
+    for (const [id, payload] of [
+      [admin.membershipId, { roleId: ownerRole, language: 'en', grantedKeys: PRESET_KEYS.owner }],
+      [c.membershipId, { roleId: ownerRole, language: 'en', grantedKeys: PRESET_KEYS.owner }],
+      [o.membershipId, { roleId: crewRole, language: 'en', grantedKeys: PRESET_KEYS.crew }],
+    ] as const) {
+      const res = await patch(id, payload);
+      expect(res.status).toBe(403);
+      expect(await body(res)).toEqual(err('owner_role_owner_only'));
+      noStore(res);
+    }
+    expect(state.emitted).toEqual([]);
+
+    state.store = new Map(ownerCookies);
+    const ok = await patch(c.membershipId, {
+      roleId: ownerRole,
+      language: 'en',
+      grantedKeys: PRESET_KEYS.owner,
+    });
+    expect(ok.status).toBe(200);
+  }, 120000);
 });

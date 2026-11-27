@@ -146,6 +146,11 @@ export const EVENT_LOG: EventLogRules = {
   },
   // EZD-708c: Add to E2.0 or Update E2.0, on the project.
   'sheet.updated': SINK,
+  // EZD-614 (S15e Events emitted): Settings > Catalog saved.
+  'catalog.settings_updated': {
+    mode: 'sink',
+    object: (e) => ({ type: 'tenant', id: e.tenantId }),
+  },
   // EZD-1102 (S15f Events emitted): Settings > Render models saved.
   'render.model_config_updated': {
     mode: 'sink',

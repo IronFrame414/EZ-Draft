@@ -94,6 +94,7 @@ const KNOWN_ERRORS = new Set([
   'error.member_not_found',
   'error.project_unavailable',
   'error.not_authorized',
+  'error.owner_role_owner_only',
 ]);
 
 async function knownErrorOf(res: Response): Promise<MessageKey | null> {
@@ -140,6 +141,8 @@ type InspectorBodyProps = {
   access?: { status: 'loading' | 'error' | 'ready'; onRetry: () => void };
   // EZD-105b: opens the Set password dialog; the section is shown when given and row.canSetPassword.
   onSetPassword?: (row: UserRow) => void;
+  // EZD-2024 (Q-0901): only an Owner-preset viewer is offered the Owner role or may move a member off it.
+  viewerIsOwner: boolean;
 };
 
 export type InviteActions = {
@@ -199,6 +202,11 @@ function InspectorBody(p: InspectorBodyProps) {
   const pending = pendingEdits(saved, draft);
   const locked = !p.online || p.saving;
   const isPreset = role !== null && role.preset !== null;
+  // EZD-2024 (Q-0901): a viewer who is not an Owner sees an Owner's role read-only and is not offered the Owner
+  // role for anyone else.
+  const savedIsOwner = roles.some((r) => r.id === saved.roleId && r.preset === 'owner');
+  const roleLocked = !p.viewerIsOwner && savedIsOwner;
+  const offered = p.viewerIsOwner || savedIsOwner ? roles : roles.filter((r) => r.preset !== 'owner');
   return (
     <>
       <div className={styles.inspectorScroll}>
@@ -212,7 +220,8 @@ function InspectorBody(p: InspectorBodyProps) {
             data-testid="users-role-select"
             className={`${styles.select} ${touch.target}`}
             value={draft.roleId ?? ''}
-            disabled={locked}
+            disabled={locked || roleLocked}
+            aria-describedby={roleLocked ? 'users-role-owner-only' : undefined}
             onChange={(e) => {
               const next = roles.find((r) => r.id === e.target.value);
               if (next) onDraft(chooseRole(draft, next));
@@ -224,8 +233,8 @@ function InspectorBody(p: InspectorBodyProps) {
               </option>
             ) : null}
             {[
-              { label: 'office.roles.group_presets' as const, list: splitRoles(roles).presets },
-              { label: 'office.roles.group_custom' as const, list: splitRoles(roles).custom },
+              { label: 'office.roles.group_presets' as const, list: splitRoles(offered).presets },
+              { label: 'office.roles.group_custom' as const, list: splitRoles(offered).custom },
             ]
               .filter((g) => g.list.length > 0)
               .map((g) => (
@@ -240,8 +249,14 @@ function InspectorBody(p: InspectorBodyProps) {
                 </optgroup>
               ))}
           </select>
-          {/* S15 Save as new role: shown only while the person is "(modified)". */}
-          {modified ? (
+          {roleLocked ? (
+            <p id="users-role-owner-only" data-testid="users-role-owner-only" className={styles.help}>
+              {t('error.owner_role_owner_only')}
+            </p>
+          ) : null}
+          {/* S15 Save as new role: shown only while the person is "(modified)"; never on an Owner's row for a
+              viewer who is not an Owner, as it would move them off the Owner role (EZD-2024). */}
+          {modified && !roleLocked ? (
             <button
               type="button"
               data-testid="users-save-as-new-role"
@@ -419,6 +434,8 @@ export function UsersPanel() {
   const [counts, setCounts] = useState<UserCounts | null>(null);
   const [rows, setRows] = useState<UserRow[]>([]);
   const [roles, setRoles] = useState<UserRole[]>([]);
+  // EZD-2024: whether the viewer holds the Owner preset (GET /api/settings/users viewerIsOwner).
+  const [viewerIsOwner, setViewerIsOwner] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // The selected member as last loaded. While the inspector has unsaved edits it stays selected even when a
   // search or another page hides its row, so the edits wait for the Save / Discard / Cancel prompt (AC-5).
@@ -466,6 +483,7 @@ export function UsersPanel() {
       if (res.status !== 200) throw new Error('users_load_failed');
       const data = (await res.json()) as UserPage;
       setRoles(data.roles);
+      setViewerIsOwner(data.viewerIsOwner === true);
       setCounts({ active: data.active, invited: data.invited, en: data.en, es: data.es });
       setRows(data.rows);
       const keep = dirtyRef.current;
@@ -1471,6 +1489,7 @@ export function UsersPanel() {
             selected !== null && saved !== null && current !== null
               ? {
                   roles,
+                  viewerIsOwner,
                   draft: current,
                   saved,
                   onDraft: (d) => {
@@ -1502,7 +1521,7 @@ export function UsersPanel() {
       )}
       {inviting ? (
         <InviteDialog
-          roles={roles}
+          roles={viewerIsOwner ? roles : roles.filter((r) => r.preset !== 'owner')}
           onClose={() => setInviting(false)}
           onSent={() => setReload((n) => n + 1)}
         />

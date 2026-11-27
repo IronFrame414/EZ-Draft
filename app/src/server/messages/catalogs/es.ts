@@ -187,6 +187,8 @@ export const es = {
     'Al menos una persona activa debe conservar el permiso de la página Usuarios y permisos.',
   'error.active_elsewhere':
     'Esta persona está activa en otra empresa, así que no se puede reactivar aquí.',
+  // EZD-2024 (Q-0901): only an Owner gives or takes away the Owner role.
+  'error.owner_role_owner_only': 'Solo un Owner puede dar o quitar el rol Owner.',
   'error.project_customer_unavailable':
     'Este cliente no está disponible. Elige otro cliente o deja Cliente vacío.',
   'error.password_too_short': 'Usa al menos 8 caracteres.',

@@ -218,6 +218,8 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'update_tenant_code_edition', args: { p_code_edition: null, p_optional_load_calc: null } },
   // EZD-709: the Title block write path, authenticated only.
   { fn: 'update_tenant_title_block', args: { p_show_company: true } },
+  // EZD-614: the Appliance rating defaults write path (Settings > Catalog), authenticated only.
+  { fn: 'save_appliance_rating_defaults', args: { p_rows: [] } },
   // EZD-1102: the Render models write path, authenticated only.
   { fn: 'save_render_settings', args: { p_tiers: [], p_allowance: null } },
   // EZD-712: the Sheet presets (submittal profile) write paths, authenticated only.

@@ -45,6 +45,9 @@ export type UserPage = UserCounts & {
   rows: UserRow[];
   // EZD-106: the company's roles for the inspector's Role select (presets, then custom roles by name).
   roles: UserRole[];
+  // EZD-2024 (Q-0901): the viewer's own active membership holds the Owner preset; only then is the Owner role
+  // offered in the Role pickers.
+  viewerIsOwner: boolean;
   total: number;
   page: number;
   pageSize: number;

@@ -1,10 +1,10 @@
 // EZD-172 Step 1 (vault/plans/EZD-172.md; Interface contract): build lanes. Lane 0 is today's single
-// local stack; lanes 1-3 each get their own Supabase project folder (.lanes/lane<n>/), project id,
+// local stack; lanes 1-4 (EZD-2001 added lane 4) each get their own Supabase project folder (.lanes/lane<n>/), project id,
 // stack ports and app ports. Node 22 built-ins only.
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-export const MAX_LANE = 3;
+export const MAX_LANE = 4;
 export const STACK_PORT_STEP = 100;
 export const APP_PORT_STEP = 10;
 export const BASE_WEB_PORT = 3000;
@@ -15,12 +15,12 @@ const laneError = (code, message) => Object.assign(new Error(message), { code })
 const unexpected = () =>
   laneError('lane_config_unexpected', 'supabase/config.toml has no project_id, site_url or port line the lanes need.');
 
-/** 0-3 from EZD_LANE (unset or '' is 0); anything else throws lane_invalid. */
+/** 0-4 from EZD_LANE (unset or '' is 0); anything else throws lane_invalid. */
 export function readLane(env = process.env) {
   const v = env.EZD_LANE;
   if (v === undefined || v === '') return 0;
-  if (/^[0-3]$/.test(v)) return Number(v);
-  throw laneError('lane_invalid', `EZD_LANE must be 0, 1, 2 or 3 (got "${v}").`);
+  if (/^[0-4]$/.test(v)) return Number(v);
+  throw laneError('lane_invalid', `EZD_LANE must be 0, 1, 2, 3 or 4 (got "${v}").`);
 }
 
 export function laneProjectId(baseId, lane) {
@@ -83,7 +83,7 @@ export function lanePorts(toml, lane) {
 /** A lane's config text: project id, stack ports and auth URLs moved; every other line byte-identical. */
 export function laneConfigToml(toml, lane) {
   if (!Number.isInteger(lane) || lane < 1 || lane > MAX_LANE) {
-    throw laneError('lane_invalid', `EZD_LANE must be 0, 1, 2 or 3 (got "${lane}").`);
+    throw laneError('lane_invalid', `EZD_LANE must be 0, 1, 2, 3 or 4 (got "${lane}").`);
   }
   const web = laneAppPorts(lane).web;
   let sawId = false;

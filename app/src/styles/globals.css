@@ -2,3 +2,15 @@ body {
   margin: 0;
   font-family: var(--ez-font-sans);
 }
+
+/* EZD-2027 (Q-0905 A; audit A8, A27): on a touch screen every input, select and text area shows 16 px text, so
+   iPhone Safari does not zoom the page when one is tapped. !important because each box's own class rule is more
+   specific than this element rule; a box that is bigger than 16 px keeps its size with its own coarse rule
+   (FieldMeasure.module.css .fieldInput). With a mouse nothing changes. */
+@media (any-pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: var(--ez-text-16) !important;
+  }
+}

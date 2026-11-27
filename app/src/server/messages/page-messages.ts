@@ -100,6 +100,7 @@ export const PAGE_MESSAGES = {
     ...EVERY_PAGE,
     ...DEFAULTS_ANSWERS,
     ...ACCOUNT_MENU,
+    'office.appliance_ratings.',
     'office.benchmark.',
     'office.code_edition.',
     'office.company.',

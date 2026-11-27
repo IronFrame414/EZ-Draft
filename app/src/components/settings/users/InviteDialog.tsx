@@ -123,7 +123,10 @@ export function InviteDialog({
         return;
       }
       const data: unknown = await res.json().catch(() => null);
-      const key = inviteRefusalKey((data as { error?: { code?: unknown } } | null)?.error?.code);
+      const code = (data as { error?: { code?: unknown } } | null)?.error?.code;
+      // EZD-2024 (Q-0901): the Owner role is offered only to an Owner; a refusal still names the rule.
+      const key: MessageKey | null =
+        code === 'owner_role_owner_only' ? 'error.owner_role_owner_only' : inviteRefusalKey(code);
       if (key !== null) {
         setRefusal(key);
         emailRef.current?.focus();

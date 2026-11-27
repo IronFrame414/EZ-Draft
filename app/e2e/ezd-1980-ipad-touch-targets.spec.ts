@@ -231,6 +231,20 @@ test.describe('EZD-1980 touch targets of at least 44 px on iPad', () => {
   );
 
   test(
+    'EZD-614 Settings Catalog: every appliance rating control is at least 44 px @ipad',
+    { tag: ['@ipad'] },
+    async ({ page, signInAs }) => {
+      const { tenant, email } = await owner();
+      await harnessSql()`insert into public.appliance_rating_default (tenant_id, appliance_type, name, volts, amps)
+        values (${tenant}::uuid, 'dishwasher', 'Dishwasher', 120, 10)`;
+      await signInAs(email);
+      await page.goto('/settings/catalog');
+      await expect(tid(page, 'appliance-rating-row')).toHaveCount(1);
+      await expectAllTouchTargets(page, settingsPage(page, 'catalog'));
+    },
+  );
+
+  test(
     'EZD-1980 Sheets: the sheet list and Previous / Next sheet are at least 44 px @ipad',
     { tag: ['@ipad'] },
     async ({ page, signInAs }) => {

@@ -62,7 +62,7 @@ const texts = (list: DrawingList) =>
 
 describe('EZD-708c AC-EZD-708c-1 the panel sheet entry', () => {
   it('holds one row per space of the panel, with every column of the schedule', () => {
-    const e = panelSheetFor(workedExampleModel(), PANEL_A)!;
+    const e = panelSheetFor(workedExampleModel(), PANEL_A, {})!;
     expect(e.title).toBe('Panel A - 200A main');
     // Panel A has 40 spaces; the board's eight circuits take nine of them (the range is 2-pole, 1-3).
     expect(e.schedule).toHaveLength(40);
@@ -77,7 +77,7 @@ describe('EZD-708c AC-EZD-708c-1 the panel sheet entry', () => {
   });
 
   it('holds every line of the 09a worked example, then amps and the service', () => {
-    const e = panelSheetFor(workedExampleModel(), PANEL_A)!;
+    const e = panelSheetFor(workedExampleModel(), PANEL_A, {})!;
     expect(e.loadCalc).toEqual([
       ['General lighting', '220.41', '2,450 sf x 3', '7,350'],
       ['Small appliance', '220.52(A)', '2 x 1,500', '3,000'],
@@ -96,15 +96,15 @@ describe('EZD-708c AC-EZD-708c-1 the panel sheet entry', () => {
   });
 
   it('a panel with no load calc places its schedule and says the load calc is not complete', () => {
-    const e = panelSheetFor(electricalObjects(), PANEL_A)!;
+    const e = panelSheetFor(electricalObjects(), PANEL_A, {})!;
     expect(e.schedule).toHaveLength(40);
     expect(e.loadCalc).toEqual([[LOAD_CALC_NOT_COMPLETE, '', '', '']]);
-    expect(panelSheetFor(electricalObjects(), uid(999))).toBeNull();
+    expect(panelSheetFor(electricalObjects(), uid(999), {})).toBeNull();
   });
 
   it('the stored entry parses on the permit set', () => {
     const objects = workedExampleModel();
-    const c = panelSheetChange(objects, panelSheetFor(objects, PANEL_A)!, newId);
+    const c = panelSheetChange(objects, panelSheetFor(objects, PANEL_A, {})!, newId);
     expect(c.value?.type).toBe('sheet_set');
     expect(
       parseStoredObject({ id: c.id, type: 'sheet_set', schema_version: CURRENT_SCHEMA_VERSION, data: c.value!.data }).ok,
@@ -113,7 +113,7 @@ describe('EZD-708c AC-EZD-708c-1 the panel sheet entry', () => {
 });
 
 describe('EZD-708c AC-EZD-708c-1 the panel sheet tables', () => {
-  const entry = () => panelSheetFor(workedExampleModel(), PANEL_A)!;
+  const entry = () => panelSheetFor(workedExampleModel(), PANEL_A, {})!;
 
   it('draw on E2.0 with one floor (E3.0 with two), and on no other sheet', () => {
     expect(panelSheetTables('E2.0', '24x36', 1, [entry()])).toHaveLength(2);
@@ -163,7 +163,7 @@ describe('EZD-708c AC-EZD-708c-2 Add to E2.0, then Update E2.0 after a circuit c
     expect(placedPanelSheets(objects)).toEqual([]);
 
     // Add: a project with no stored permit set gets one.
-    const add = panelSheetChange(objects, panelSheetFor(objects, PANEL_A)!, newId);
+    const add = panelSheetChange(objects, panelSheetFor(objects, PANEL_A, {})!, newId);
     apply(objects, add);
     expect(panelPlaced(objects, PANEL_A)).toBe(true);
     expect(panelPlaced(objects, PANEL_A.toUpperCase())).toBe(true);
@@ -178,7 +178,7 @@ describe('EZD-708c AC-EZD-708c-2 Add to E2.0, then Update E2.0 after a circuit c
     expect(placedPanelSheets(objects)[0]!.schedule[11]![2]).toBe('20A');
 
     // Update: the same set object, the entry refreshed in place.
-    const update = panelSheetChange(objects, panelSheetFor(objects, PANEL_A)!, newId);
+    const update = panelSheetChange(objects, panelSheetFor(objects, PANEL_A, {})!, newId);
     expect(update.id).toBe(add.id);
     apply(objects, update);
     expect(placedPanelSheets(objects)).toHaveLength(1);
@@ -207,7 +207,7 @@ describe('EZD-708c AC-EZD-708c-2 Add to E2.0, then Update E2.0 after a circuit c
         ],
       },
     });
-    const c = panelSheetChange(objects, panelSheetFor(objects, PANEL_A)!, newId);
+    const c = panelSheetChange(objects, panelSheetFor(objects, PANEL_A, {})!, newId);
     expect(c.id).toBe(SET);
     const data = c.value!.data as { keyPlacement: string; panelSheets: PanelSheetEntry[] };
     expect(data.keyPlacement).toBe('cover_only');
@@ -221,17 +221,17 @@ describe('EZD-708c a deleted panel is not on the panel sheet', () => {
     const objects = workedExampleModel();
     const B = uid(101);
     objects.set(B, structuredClone(objects.get(PANEL_A)!));
-    apply(objects, panelSheetChange(objects, panelSheetFor(objects, PANEL_A)!, newId));
-    apply(objects, panelSheetChange(objects, panelSheetFor(objects, B)!, newId));
+    apply(objects, panelSheetChange(objects, panelSheetFor(objects, PANEL_A, {})!, newId));
+    apply(objects, panelSheetChange(objects, panelSheetFor(objects, B, {})!, newId));
     expect(placedPanelSheets(objects).map((e) => e.panelId)).toEqual([PANEL_A, B]);
 
     objects.delete(PANEL_A);
     expect(placedPanelSheets(objects).map((e) => e.panelId)).toEqual([B]);
     expect(panelPlaced(objects, PANEL_A)).toBe(false);
     expect(panelSheetTables('E2.0', '24x36', 1, placedPanelSheets(objects))!.map((t) => t.panelId)).toEqual([B, B]);
-    expect(livePanelSheets([{ ...panelSheetFor(objects, B)!, panelId: B.toUpperCase() }], [B])).toHaveLength(1);
+    expect(livePanelSheets([{ ...panelSheetFor(objects, B, {})!, panelId: B.toUpperCase() }], [B])).toHaveLength(1);
 
-    const update = panelSheetChange(objects, panelSheetFor(objects, B)!, newId);
+    const update = panelSheetChange(objects, panelSheetFor(objects, B, {})!, newId);
     expect((update.value!.data as { panelSheets: PanelSheetEntry[] }).panelSheets.map((e) => e.panelId)).toEqual([B]);
   });
 });

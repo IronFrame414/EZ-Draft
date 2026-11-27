@@ -16,7 +16,7 @@ export function lockPathFor(email: string): string {
   const hash = createHash('sha256').update(email.toLowerCase()).digest('hex').slice(0, 16);
   const lane = process.env.EZD_LANE;
   const folder =
-    lane === '1' || lane === '2' || lane === '3'
+    lane === '1' || lane === '2' || lane === '3' || lane === '4'
       ? `ezdraft-e2e-locks-lane${lane}`
       : 'ezdraft-e2e-locks';
   return path.join(os.tmpdir(), folder, `${hash}.lock`);

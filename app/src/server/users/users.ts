@@ -51,6 +51,7 @@ const rowSchema = z.object({
 const listSchema = z.object({
   rows: z.array(rowSchema),
   roles: z.array(roleSchema),
+  viewerIsOwner: z.boolean(),
   total: count,
   active: count,
   invited: count,
@@ -69,7 +70,7 @@ export async function listUsers(
   if (error) throw error;
   const parsed = listSchema.safeParse(data);
   if (!parsed.success) throw new Error('list_users_bad_result');
-  const { roles, total, active, invited, en, es } = parsed.data;
+  const { roles, viewerIsOwner, total, active, invited, en, es } = parsed.data;
   // EZD-138: the pending rows' link and code, for the viewer who may see them (null otherwise).
   const links = await loadInviteLinks(
     client,
@@ -83,6 +84,7 @@ export async function listUsers(
     es,
     rows,
     roles,
+    viewerIsOwner,
     total,
     page: query.page,
     pageSize: USER_PAGE_SIZE,

@@ -570,7 +570,14 @@
     "EZD-232",
     "EZD-1995",
     "EZD-708c",
-    "EZD-1913a"
+    "EZD-1913a",
+    "EZD-614",
+    "EZD-2008",
+    "EZD-2023",
+    "EZD-2024",
+    "EZD-2026",
+    "EZD-2027",
+    "EZD-2001"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2512,11 +2519,67 @@
       "ts": "2026-11-27T01:44:17Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-614",
+      "title": "Appliance rating defaults",
+      "commit": "5d9ea4d9",
+      "ts": "2026-11-27T02:14:41Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-2008",
+      "title": "Fix: scratch-check-local times out when lanes share one scratch database (EZD-153)",
+      "commit": "887e15a8",
+      "ts": "2026-11-27T05:15:07Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-2023",
+      "title": "Loop: final sweeps build after phase 58, non-test ACs skip the AC trace, and prep rows bind the builder",
+      "commit": "a160877a",
+      "ts": "2026-11-27T05:44:26Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-2024",
+      "title": "Only an Owner can give or take away the Owner role",
+      "commit": "df5e00db",
+      "ts": "2026-11-27T06:17:33Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-2026",
+      "title": "Field measure on a wide screen: drawing on the left, fields and keypad on the right",
+      "commit": "1db0cd76",
+      "ts": "2026-11-27T06:36:10Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-2027",
+      "title": "Typed text is 16 px on touch screens so iPhone Safari does not zoom in",
+      "commit": "37927733",
+      "ts": "2026-11-27T07:38:14Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-2001",
+      "title": "Loop: a fourth build lane (lane 4)",
+      "commit": "4276f94c",
+      "ts": "2026-11-27T08:12:06Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2566,7 +2629,11 @@
     "EZD-1990": 1,
     "EZD-1993": 1,
     "EZD-614": 1,
-    "EZD-1995": 1
+    "EZD-1995": 1,
+    "EZD-2000": 1,
+    "EZD-1913b": 1,
+    "EZD-640": 1,
+    "EZD-2029": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2776,25 +2843,43 @@
     "EZD-1995": {
       "ts": "2026-11-26T20:58:01Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-2000": {
+      "ts": "2026-11-27T02:22:11Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1913b": {
+      "ts": "2026-11-27T04:22:35Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-640": {
+      "ts": "2026-11-27T04:24:42Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-2029": {
+      "ts": "2026-11-27T08:19:11Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-2000": {
-      "lane": 1,
-      "title": "Gate rules that keep pages small and fast as the app grows",
-      "started": "2026-11-27T00:02:46Z",
-      "develop": "1424682b"
-    },
-    "EZD-614": {
+    "EZD-2028": {
       "lane": 2,
-      "title": "Appliance rating defaults",
-      "started": "2026-11-27T00:52:27Z",
-      "develop": "41009561"
+      "title": "Toasts and the reload notice sit above the field tab bar and the home bar",
+      "started": "2026-11-27T07:38:20Z",
+      "develop": "22bfb49e"
     }
   },
-  "advisories_checked_at": "2026-11-26T22:21:01Z",
+  "advisories_checked_at": "2026-11-27T04:21:45Z",
   "hold": {},
-  "perf_trend_at": "2026-11-26T03:55:15Z",
-  "set_aside_history": [],
+  "perf_trend_at": "2026-11-27T04:12:31Z",
+  "set_aside_history": [
+    {
+      "ticket": "EZD-2000",
+      "reason": "check red after merging newer develop (first try: check red after merging newer develop)",
+      "set_aside_ts": "2026-11-27T04:12:31Z",
+      "retried_ts": "2026-11-27T04:29:39Z",
+      "by": "overwatch"
+    }
+  ],
   "backups_checked_at": "2026-11-26T09:58:49Z"
 }

@@ -1,6 +1,6 @@
 // EZD-1959 (audit 2026-11-23 O7, area 7 finding 11): helpers for `pnpm db:base` (node scripts/db/local.mjs base), which
 // brings the lane-0 stack (port 54321) to the newest migration with a matching gate secret, for live UI checks.
-// The build lanes use 1-3, so lane 0 goes stale; a lane-0 gate (scripts/check.mjs with EZD_LANE unset or 0) or a lane-0
+// The build lanes use 1-4, so lane 0 goes stale; a lane-0 gate (scripts/check.mjs with EZD_LANE unset or 0) or a lane-0
 // `db:up` resets it too, so `base` refuses while one runs. There is no lane-0 lock to read: a running gate is found in
 // the process list, its lane in its environment (`ps -E`, same-user processes). Node built-ins only.
 import { spawnSync } from 'node:child_process';
@@ -25,11 +25,11 @@ export function isHolderCommand(command) {
   return /(^|\/)scripts\/db\/local\.mjs$/.test(script) && (sub === 'up' || sub === 'base');
 }
 
-/** Lane of a process from its `ps -E` line (the environment comes last): EZD_LANE=1-3 is that lane; unset, empty or 0 is lane 0. */
+/** Lane of a process from its `ps -E` line (the environment comes last): EZD_LANE=1-4 is that lane; unset, empty or 0 is lane 0. */
 export function laneOfLine(line) {
   const all = [...String(line).matchAll(/(?:^|\s)EZD_LANE=(\S*)/g)];
   const v = all.length ? all.at(-1)[1] : '';
-  return /^[1-3]$/.test(v) ? Number(v) : 0;
+  return /^[1-4]$/.test(v) ? Number(v) : 0;
 }
 
 /** Lane-0 holders in `ps -A -ww -E -o pid=,command=` output, other than the pids in `skip`: [{ pid, command }]. */

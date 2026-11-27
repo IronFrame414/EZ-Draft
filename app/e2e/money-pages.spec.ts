@@ -31,7 +31,8 @@ const EXPECTED_PATHS = 50;
 const TABS = 6;
 
 // EZD-1950: the 50 paths of the sweep before EZD-1950, in MONEY_PAGE_CASES order (page-cases.ts PAGE_FILES; the
-// [section] page once, for catalog, the only Settings slug without its own page).
+// [section] page once, for catalog, the only Settings slug without its own page). EZD-614: catalog has its own page
+// now, in the same place in the list, and [section] adds no path.
 function sweptPaths(projectId: string): string[] {
   return [
     '/dev/entry/client',
