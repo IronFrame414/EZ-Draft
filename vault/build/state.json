@@ -581,7 +581,8 @@
     "EZD-2028",
     "EZD-2006",
     "EZD-2005",
-    "EZD-2012"
+    "EZD-2012",
+    "EZD-2009"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2611,6 +2612,14 @@
       "ts": "2026-11-27T12:15:36Z",
       "kind": "ticket",
       "lane": 4
+    },
+    {
+      "id": "EZD-2009",
+      "title": "Fix: first 3D open within 1,000 ms (AC-EZD-1001a-3) fails on CI under shared workers",
+      "commit": "7763154e",
+      "ts": "2026-11-27T12:48:43Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2903,12 +2912,6 @@
     }
   },
   "running": {
-    "EZD-2009": {
-      "lane": 1,
-      "title": "Fix: first 3D open within 1,000 ms (AC-EZD-1001a-3) fails on CI under shared workers",
-      "started": "2026-11-27T11:03:52Z",
-      "develop": "8e13886c"
-    },
     "EZD-2030": {
       "lane": 2,
       "title": "The emailed sign-in code is 8 digits",
@@ -2920,6 +2923,12 @@
       "title": "Security: request gate covers every page path, browser protection headers, and a quieter health check",
       "started": "2026-11-27T11:49:36Z",
       "develop": "74c9d63e"
+    },
+    "EZD-2010": {
+      "lane": 4,
+      "title": "Fix: sign-out outbox B5 misses the signed-out marker cookie on CI (EZD-120d)",
+      "started": "2026-11-27T12:15:49Z",
+      "develop": "19ffda24"
     }
   },
   "advisories_checked_at": "2026-11-27T10:22:44Z",
