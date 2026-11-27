@@ -12,14 +12,28 @@ const workspaceRoot = path.resolve(__dirname, '..');
 const APP_BUILD = String(Math.floor(Date.now() / 1000));
 
 // EZD-1930: the security headers on every answer (docs/architecture.md Security headers).
+// EZD-2022 (audit 2026-11-27 X6): the policy also bars plugins (object-src 'none') and a planted <base> tag
+// (base-uri 'self'); a site-wide Referrer-Policy; HSTS for the subdomains too (Vercel's 2-year max-age, no preload).
 const SECURITY_HEADERS = [
-  { key: 'Content-Security-Policy', value: "frame-ancestors 'self'" },
+  {
+    key: 'Content-Security-Policy',
+    value: "frame-ancestors 'self'; object-src 'none'; base-uri 'self'",
+  },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
 ];
+
+// EZD-2022 (audit 2026-11-27 X7): the build number goes only to a caller that sends a session cookie (plain sb-…
+// on http, __Host-sb-… on https; chunked names end in .<n>), so a signed-out visitor does not learn the deploy time.
+// Next matches the whole Cookie header against this pattern (anchored at both ends).
+const SESSION_COOKIE_PATTERN = '(?:.*;\\s*)?(?:__Host-)?sb-[^=;\\s]+-auth-token(?:\\.\\d+)?=[^;\\s]+.*';
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: workspaceRoot,
+  // EZD-2022 (audit 2026-11-27 X6): no x-powered-by header.
+  poweredByHeader: false,
   turbopack: {
     root: workspaceRoot,
     // EZD-1995 (AC-EZD-1995-1; Q-0814): a lazy screen's messages file is replaced by its own slice of the catalog,
@@ -56,7 +70,11 @@ const nextConfig: NextConfig = {
   // EZD-007f Step 9 (vault/plans/EZD-007f.md F3): the confirm page's token_hash never leaves in a Referer.
   async headers() {
     return [
-      { source: '/:path*', headers: [{ key: 'x-ezdraft-app-build', value: APP_BUILD }] },
+      {
+        source: '/:path*',
+        has: [{ type: 'header', key: 'cookie', value: SESSION_COOKIE_PATTERN }],
+        headers: [{ key: 'x-ezdraft-app-build', value: APP_BUILD }],
+      },
       // EZD-1930 (audit 2026-11-23 S6): every page and /api answer. frame-ancestors is 'self', not 'none', because
       // Run benchmark frames the editor from the same origin (docs/architecture.md Benchmark runs, Framing). No
       // shipped feature uses the camera, microphone or location (photos come from a file input), so all three are off.
@@ -64,6 +82,9 @@ const nextConfig: NextConfig = {
       { source: '/auth/confirm', headers: [{ key: 'Referrer-Policy', value: 'no-referrer' }] },
       // EZD-105: the invite token is in the path; never sent on as a referrer.
       { source: '/invite/:token', headers: [{ key: 'Referrer-Policy', value: 'no-referrer' }] },
+      // EZD-2022 (AC-EZD-2022-2): a client link's token is in the path too. A later rule wins over the site-wide one.
+      { source: '/c', headers: [{ key: 'Referrer-Policy', value: 'no-referrer' }] },
+      { source: '/c/:path*', headers: [{ key: 'Referrer-Policy', value: 'no-referrer' }] },
       // EZD-013 Step 8 (vault/plans/EZD-013.md D11): the worker script is never cached, so updates arrive at once.
       {
         source: '/sw.js',

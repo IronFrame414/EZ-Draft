@@ -10,7 +10,12 @@ describe('EZD-134 app build header', () => {
     const build = config.env?.EZD_APP_BUILD;
     expect(build).toMatch(/^[1-9][0-9]{9}$/);
     const rules = await config.headers!();
-    const all = rules.find((r) => r.source === '/:path*');
+    // EZD-2022 (audit 2026-11-27 X7): the rule only answers a caller with a session cookie (has: cookie header);
+    // security-headers-2022.test.ts runs Next's matcher on it signed in and signed out.
+    const all = rules.find(
+      (r) => r.source === '/:path*' && r.headers.some((h) => h.key === APP_BUILD_HEADER),
+    );
     expect(all?.headers).toEqual([{ key: APP_BUILD_HEADER, value: build }]);
+    expect(all?.has).toEqual([{ type: 'header', key: 'cookie', value: expect.stringContaining('sb-') }]);
   });
 });

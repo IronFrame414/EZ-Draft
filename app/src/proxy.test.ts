@@ -132,7 +132,7 @@ describe('EZD-007d request gate', () => {
     // (i) matcher
     // EZD-346 E1 (Decided "Matcher"): the matcher gains the /api entry.
     expect(config.matcher).toEqual([
-      '/((?!_next/static|_next/image|.*\\..*).*)',
+      '/((?!_next/static|_next/image|.*\\.(?:png|jpe?g|gif|webp|avif|svg|ico|js|mjs|css|map|woff2?|txt|webmanifest|json)$).*)',
       '/api/:path*',
       '/dev/:path*',
       '/((?:d|%64)(?:e|%65)(?:v|%76)(?:/.*)?)',
@@ -542,7 +542,7 @@ describe('EZD-346 same-origin writes', () => {
 
   it('S11 matcher', async () => {
     expect(config.matcher).toEqual([
-      '/((?!_next/static|_next/image|.*\\..*).*)',
+      '/((?!_next/static|_next/image|.*\\.(?:png|jpe?g|gif|webp|avif|svg|ico|js|mjs|css|map|woff2?|txt|webmanifest|json)$).*)',
       '/api/:path*',
       '/dev/:path*',
       '/((?:d|%64)(?:e|%65)(?:v|%76)(?:/.*)?)',
@@ -816,5 +816,51 @@ describe('EZD-1977 the sign-in redirect carries the asked-for page', () => {
   it('a path the browser would read as another host carries no next', async () => {
     clientWith(async () => NO_CLAIMS);
     expectSignInRedirect(await call('//evil.example/x'));
+  });
+});
+
+// EZD-2022 (AC-EZD-2022-1; audit 2026-11-27 X5): the gate skips only real static file endings. The audit's live
+// examples /projects/a.b and /settings/a.b reach the gate; the files a signed-out browser fetches (robots.txt, the
+// manifest, the root icons, the service worker, public/ files) stay outside it, so they never 307 to /sign-in.
+// AC-EZD-2022-4: unit tests of the matcher change through Next's own matcher; no live service.
+describe('EZD-2022 the matcher skips only static file endings', () => {
+  it('a page path with a dot in it reaches the gate', async () => {
+    const matches = await loadMatcher();
+    for (const p of [
+      '/projects/a.b',
+      '/settings/a.b',
+      '/projects/p1/field.x',
+      '/a.php',
+      '/projects/a.b/c',
+    ]) {
+      expect(matches(`http://localhost:3000${p}`), p).toBe(true);
+    }
+  });
+
+  it('static files stay outside the gate', async () => {
+    const matches = await loadMatcher();
+    for (const p of [
+      '/robots.txt',
+      '/manifest.webmanifest',
+      '/icon.png',
+      '/apple-icon.png',
+      '/sw.js',
+      '/licenses/inter.txt',
+      '/icons/sprite.svg',
+      '/favicon.ico',
+      '/fonts/a.woff2',
+    ]) {
+      expect(matches(`http://localhost:3000${p}`), p).toBe(false);
+    }
+  });
+
+  it('every file in public/ ends in a skipped ending', async () => {
+    const matches = await loadMatcher();
+    const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
+    const files = readdirSync(root, { recursive: true, withFileTypes: true })
+      .filter((d) => d.isFile())
+      .map((d) => '/' + path.relative(root, path.join(d.parentPath, d.name)).split(path.sep).join('/'));
+    expect(files.length).toBeGreaterThan(0);
+    for (const f of files) expect(matches(`http://localhost:3000${encodeURI(f)}`), f).toBe(false);
   });
 });

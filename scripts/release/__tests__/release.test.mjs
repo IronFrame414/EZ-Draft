@@ -110,6 +110,7 @@ function cleanEnv(tip) {
     RELEASE_S3_ACCESS_KEY_ID: 'relkey_TEST',
     RELEASE_S3_SECRET_ACCESS_KEY: 'rel-secret-TEST',
     TENANT1_OWNER_EMAIL: 'owner.test@example.com',
+    CRON_SECRET: 'cron-secret-TEST',
   };
 }
 
@@ -516,6 +517,22 @@ describe('EZD-023b release guards and naming', () => {
       if (id === 'c') {
         assert.ok(h.summaries().includes(missingLine(['VERCEL_TEAM_ID'])), '(c) summary names the missing name');
       }
+    }
+
+    // EZD-2022 (AC-EZD-2022-3): a configured release without CRON_SECRET (missing, blank or whitespace) stops here,
+    // before git, GitHub or any change, since step H could not read the schema version without it.
+    for (const [id, value] of [['h1', undefined], ['h2', ''], ['h3', '  ']]) {
+      const env = { ...cleanEnv(R.tip) };
+      if (value === undefined) delete env.CRON_SECRET;
+      else env.CRON_SECRET = value;
+      const h = makeClean(mod, R, { env });
+      const result = await h.run();
+      assert.equal(result.ok, false, `(${id}) ok is false`);
+      assert.equal(result.code, 'env_missing', `(${id}) code`);
+      assert.deepEqual(result.missing, ['CRON_SECRET'], `(${id}) missing list`);
+      assert.ok(h.summaries().includes(missingLine(['CRON_SECRET'])), `(${id}) summary names CRON_SECRET`);
+      assertNoGitGithubMask(h);
+      assertNoExternalEffect(h);
     }
 
     // (f): case (a) through the CLI with a job summary file.
@@ -1633,6 +1650,8 @@ describe('EZD-023e go live, verify, rollback and record', () => {
     assert.equal(fetches[0].args[0], HEALTH_URL_EXPECTED);
     assert.equal(fetches[0].args[1].method, 'GET');
     assert.ok(fetches[0].args[1].signal instanceof AbortSignal, 'fetch gets an AbortSignal');
+    // EZD-2022 (AC-EZD-2022-3): the health poll carries the cron secret, the only caller shown the schema version.
+    assert.deepEqual(fetches[0].args[1].headers, { authorization: 'Bearer cron-secret-TEST' });
     assert.equal(h.calls('checkLive').length, 1, '1 checkLive call');
     assert.equal(h.calls('offsite').length, 1, 'offsite factory called once');
     for (const c of h.external.filter((e) => e.target.startsWith('offsite.put'))) {

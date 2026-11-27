@@ -182,6 +182,17 @@ export async function runRelease(opts, deps) {
     summary(missingLine(presence.missing));
     return { ok: false, code: 'env_missing', missing: presence.missing, notices: [] };
   }
+  // EZD-2022 (audit 2026-11-27 X7): /api/health shows the schema version only to the cron secret, so step H sends
+  // CRON_SECRET (the same value as Vercel's). Without it the release stops here, before anything changes, instead
+  // of failing its verify and rolling back.
+  const cronSecret = processEnv.CRON_SECRET;
+  if (typeof cronSecret !== 'string' || cronSecret.trim() === '') {
+    log('env_missing: CRON_SECRET');
+    summary(stoppedLine('env_missing'));
+    summary(missingLine(['CRON_SECRET']));
+    return { ok: false, code: 'env_missing', missing: ['CRON_SECRET'], notices: [] };
+  }
+  // A GitHub secret, so GitHub masks it itself (the mask list is for derived values, Q-0112 finding 7).
   for (const value of valuesToMask(processEnv)) mask(value);
 
   // 3. The commit.
@@ -690,7 +701,12 @@ export async function runRelease(opts, deps) {
       tries += 1;
       let ok = false;
       try {
-        const res = await fetch(HEALTH_URL, { method: 'GET', signal: AbortSignal.timeout(HEALTH_REQUEST_TIMEOUT_MS) });
+        // EZD-2022 (audit 2026-11-27 X7): the schema version is shown only to the cron secret.
+        const res = await fetch(HEALTH_URL, {
+          method: 'GET',
+          headers: { authorization: `Bearer ${cronSecret}` },
+          signal: AbortSignal.timeout(HEALTH_REQUEST_TIMEOUT_MS),
+        });
         ok = await passes(res);
       } catch {
         ok = false;

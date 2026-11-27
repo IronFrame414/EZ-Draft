@@ -16,7 +16,10 @@ import {
 } from '../test-harness/e2e/test';
 import { seedFixtureS } from '../test-harness/projects-fixture';
 
-const CSP = "frame-ancestors 'self'";
+// EZD-2022 (AC-EZD-2022-2): the policy gained object-src 'none' and base-uri 'self'. Chrome's console refusal quotes
+// the frame-ancestors directive alone.
+const FRAME_ANCESTORS = "frame-ancestors 'self'";
+const CSP = `${FRAME_ANCESTORS}; object-src 'none'; base-uri 'self'`;
 const PERMISSIONS = 'camera=(), microphone=(), geolocation=()';
 const CHROME_ERROR_URL = 'chrome-error://chromewebdata/';
 
@@ -106,6 +109,53 @@ test.describe('EZD-1930 security headers', () => {
     expectSecurityHeaders(await framed);
     await expect.poll(() => childFrame(page)?.url() ?? '').toBe(CHROME_ERROR_URL);
     await expect.poll(() => refusals.length).toBeGreaterThan(0);
-    expect(refusals[0]).toContain(`"${CSP}"`);
+    expect(refusals[0]).toContain(`"${FRAME_ANCESTORS}"`);
+  });
+
+  // EZD-2022 (AC-EZD-2022-2, AC-EZD-2022-3; audit 2026-11-27 X6, X7). Expected values: the acceptance criteria.
+  test('EZD-2022 B3 protection headers, robots.txt and a quiet health check signed out', async ({
+    page,
+  }) => {
+    const signIn = await page.request.get('/sign-in');
+    expect(signIn.status()).toBe(200);
+    const h = signIn.headers();
+    expect(h['x-powered-by']).toBeUndefined();
+    expect(h['referrer-policy']).toBe('strict-origin-when-cross-origin');
+    expect(h['strict-transport-security']).toBe('max-age=63072000; includeSubDomains');
+    expect(h['x-ezdraft-app-build']).toBeUndefined();
+
+    const robots = await page.request.get('/robots.txt');
+    expect(robots.status()).toBe(200);
+    expect(await robots.text()).toBe('User-agent: *\nDisallow: /\n');
+    expect(robots.headers()['x-ezdraft-app-build']).toBeUndefined();
+
+    const health = await page.request.get('/api/health');
+    expect(health.status()).toBe(200);
+    expect(await health.json()).toEqual({ status: 'ok' });
+    expect(health.headers()['x-ezdraft-app-build']).toBeUndefined();
+    expect(health.headers()['x-powered-by']).toBeUndefined();
+
+    // A page path with a dot in it is turned away by the request gate itself: its 307 carries ?next= (EZD-1977),
+    // the page's own requireSession redirect is a bare /sign-in.
+    const dotted = await page.request.get('/projects/a.b', { maxRedirects: 0 });
+    expect(dotted.status()).toBe(307);
+    const to = new URL(dotted.headers()['location']!, 'http://x');
+    expect(to.pathname).toBe('/sign-in');
+    expect(to.searchParams.get('next')).toBe('/projects/a.b');
+  });
+
+  test('EZD-2022 B4 signed in, the build header and the schema version come back', async ({
+    page,
+    signInAs,
+  }) => {
+    const tenant = await createTenant();
+    const m = await createMember({ tenantId: tenant, scope: 'all' });
+    await signInAs(m.email);
+    const health = await page.request.get('/api/health');
+    expect(health.status()).toBe(200);
+    const body = await health.json();
+    expect(body.status).toBe('ok');
+    expect(body.schema_version).toMatch(/^[0-9]{14}$/);
+    expect(health.headers()['x-ezdraft-app-build']).toMatch(/^[0-9]+$/);
   });
 });

@@ -111,7 +111,8 @@ describe('EZD-150 health check timeout', () => {
     const init = initOfFirstCall(fetchMock);
     expect(init?.signal).toBeDefined();
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ status: 'ok', schema_version: '20260101000000' });
+    // EZD-2022 (AC-EZD-2022-3): no session and no cron secret, so only the status (the read itself is unchanged).
+    expect(await res.json()).toEqual({ status: 'ok' });
 
     await vi.advanceTimersByTimeAsync(HEALTH_DB_TIMEOUT_MS);
     expect(init?.signal?.aborted).toBe(false);
