@@ -1829,6 +1829,21 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     note: 'EZD-219: the plan scale; 200 { scale } (no money)',
   },
   {
+    file: `${API}projects/[id]/panel-sheet/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/projects/[id]/panel-sheet/route'),
+    request: async (env) => ({
+      request: new Request(`${BASE}/api/projects/${env.projectId}/panel-sheet`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ sheet: 'E2.0', panelId: randomUUID() }),
+      }),
+      params: { id: env.projectId },
+    }),
+    expectStatus: 204,
+    note: 'EZD-708c: Add to E2.0 logs sheet.updated; 204 with no body (no money)',
+  },
+  {
     file: `${API}projects/[id]/phase-default/route.ts`,
     method: 'PUT',
     load: () => import('../../src/app/api/projects/[id]/phase-default/route'),

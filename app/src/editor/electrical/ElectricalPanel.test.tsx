@@ -16,6 +16,9 @@ import { baseObjects } from '../tools/test-utils/fixtures';
 import type { ObjectValue } from '../../lib/outbox/model-api';
 import { ElectricalPanel, type ElectricalTab } from './ElectricalPanel';
 import { electricalObjects, PANEL_A } from './test-fixture';
+import { CURRENT_SCHEMA_VERSION } from '@ezdraft/geometry';
+import { panelSheetFor } from './panel-schedule';
+import { panelSheetChange } from '../../lib/sheets/panel-sheet-table';
 
 function render(objects: Map<string, ObjectValue>, tab?: ElectricalTab): string {
   const store = createModelStore({ objects });
@@ -272,5 +275,70 @@ describe('EZD-604 New circuit and the chosen circuit', () => {
     } finally {
       circuitView.set({ switchLegs: true });
     }
+  });
+});
+
+// EZD-708c (S06 Controls "Add to E2.0 | Inspector, bottom | Places/updates panel schedule and load calc on sheet E2.0.
+// | Edit model. If already placed, label reads "Update E2.0""; Q-0763 the panel sheet follows the last layout sheet;
+// assumptions EZD-708c: beside Panel schedule in the Panel tab until the inspector exists, as EZD-609).
+describe('EZD-708c Add to E2.0', () => {
+  const PERMIT_SET = '6c1e3b7a-2f4d-4a8e-9b1c-7d3e5f2a4b6c';
+  const renderPanel = async (paused: boolean | null, objects = electricalObjects()) => {
+    const { createReceiverSlot } = await import('./receiver-slot');
+    const store = createModelStore({ objects });
+    const slot = createReceiverSlot<import('./DeviceTools').ToolBase>();
+    slot.setState({
+      base: {
+        store,
+        chosenFloor: () => null,
+        newStatus: () => 'new',
+        newId: () => PERMIT_SET,
+        select: () => {},
+        onMessage: () => {},
+      },
+    });
+    const ui = { ids: [] as string[], selectMore: false };
+    const selection = { getUi: () => ui, subscribe: () => () => {}, select: () => {} };
+    return renderToStaticMarkup(
+      <MessagesProvider language="en" messages={catalogFor('office', 'en') as never}>
+        <ElectricalPanel
+          store={store}
+          selection={selection}
+          showObject={() => true}
+          initialTab="panel"
+          edit={paused === null ? undefined : { slot, paused }}
+        />
+      </MessagesProvider>,
+    );
+  };
+
+  it('reads "Add to E2.0" beside Panel schedule with Edit model; disabled in view only; hidden without', async () => {
+    const on = one(await renderPanel(false), 'electrical-panel-sheet');
+    expect(textOf(on.inner)).toBe('Add to E2.0');
+    expect(attr(on.attrs, 'disabled')).toBeNull();
+    expect(attr(on.attrs, 'data-placed')).toBe('false');
+    expect(attr(one(await renderPanel(true), 'electrical-panel-sheet').attrs, 'disabled')).not.toBeNull();
+    expect(elements(await renderPanel(null), 'electrical-panel-sheet')).toHaveLength(0);
+    expect(elements(render(electricalObjects(), 'circuits'), 'electrical-panel-sheet')).toHaveLength(0);
+  });
+
+  it('reads "Update E2.0" once the panel is placed', async () => {
+    const objects = electricalObjects();
+    const entry = panelSheetFor(objects, PANEL_A)!;
+    const c = panelSheetChange(objects, entry, () => PERMIT_SET);
+    objects.set(c.id, c.value!);
+    const placed = one(await renderPanel(false, objects), 'electrical-panel-sheet');
+    expect(textOf(placed.inner)).toBe('Update E2.0');
+    expect(attr(placed.attrs, 'data-placed')).toBe('true');
+  });
+
+  it('names E3.0 on a two-floor project (Q-0763: the panel sheet after the last layout sheet)', async () => {
+    const objects = electricalObjects();
+    objects.set('9d4c2b1a-3e5f-4a6b-8c7d-0e1f2a3b4c5d', {
+      type: 'floor',
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      data: { name: 'Second floor', order: 99 },
+    });
+    expect(textOf(one(await renderPanel(false, objects), 'electrical-panel-sheet').inner)).toBe('Add to E3.0');
   });
 });

@@ -23,9 +23,12 @@
 // sheet (`electrical` set) draws the electrical plan with the circuit tags and home runs (lazy/electrical-sheet, loaded
 // by import() from `runSheetJob` as the RCP is), and the sheet's EC verification note is a job of its own (`ecNote`,
 // lib/sheets/electrical-kinds.ts).
+// EZD-708c (AC-EZD-708c-1): the panel sheet's schedules and load calcs, as Add to E2.0 placed them, are a job of
+// their own (`panelSheet`, lib/sheets/panel-sheet-table.ts).
 import { viewDrawsAs, viewShows } from '../lib/sheets/viewport';
 import { fixtureTableFor } from '../lib/sheets/fixture-schedule-table';
 import { ecNoteFor } from '../lib/sheets/electrical-kinds';
+import { panelSheetTables } from '../lib/sheets/panel-sheet-table';
 import type { FixtureScheduleRow } from '../lib/sheets/fixture-schedule-rows';
 import { elevationCells } from '../lib/sheets/elevation-sheet';
 import { scheduleTableFor } from '../lib/sheets/cabinet-schedule-table';
@@ -35,6 +38,7 @@ import {
   SHEET_VIEWS,
   buildDrawingList,
   drawingListBounds,
+  panelSheetEntrySchema,
   parseStoredObject,
   printMarks,
   printMarksSvg,
@@ -42,6 +46,7 @@ import {
   splitPrintMarkBand,
   type DrawingList,
   type ModelObject,
+  type PanelSheetEntry,
   type SheetArea,
   type SheetSize,
   type SheetView,
@@ -49,6 +54,7 @@ import {
   type StoredObject,
 } from '@ezdraft/geometry';
 import { elevationDrawingList, elevationSubjects } from '@ezdraft/geometry/elevations';
+import * as z from 'zod/mini';
 
 export const SHEET_JOB = 'sheet-svg';
 
@@ -75,6 +81,12 @@ export type SheetJobInput = {
 // EZD-708b: the EC verification note of an electrical sheet.
 export type SheetEcNoteJobInput = {
   ecNote: { sheet: string; size: SheetSize };
+};
+
+// EZD-708c: the panel schedules and load calcs Add to E2.0 placed (the permit set's `panelSheets`), drawn on the panel
+// sheet, the sheet after the last electrical layout sheet of a model with `floorCount` floors.
+export type SheetPanelJobInput = {
+  panelSheet: { sheet: string; size: SheetSize; floorCount: number; entries: PanelSheetEntry[] };
 };
 
 // EZD-708a: the fixture schedule table of an RCP sheet (A6.0 or a floor copy), from its floor's schedule rows.
@@ -187,6 +199,19 @@ function ecNoteJob(input: SheetEcNoteJobInput['ecNote']): SheetSvg {
   return { markup: lines.map((l) => sheetSvg(l.list, { scale: 1, area: l.area }).markup).join(''), shown: [] };
 }
 
+function panelSheetJob(input: SheetPanelJobInput['panelSheet']): SheetSvg {
+  const entries = z.array(panelSheetEntrySchema).safeParse(input.entries);
+  if (
+    typeof input.sheet !== 'string' ||
+    !SHEET_SIZES.includes(input.size) ||
+    !(Number.isInteger(input.floorCount) && input.floorCount >= 0) ||
+    !entries.success
+  )
+    throw new Error('sheet_input');
+  const tables = panelSheetTables(input.sheet, input.size, input.floorCount, entries.data) ?? [];
+  return { markup: tables.map((t) => sheetSvg(t.list, { scale: 1, area: t.area }).markup).join(''), shown: [] };
+}
+
 function tableJob(input: SheetTableJobInput['table']): SheetSvg {
   if (typeof input.sheet !== 'string' || !Array.isArray(input.rows) || !SHEET_SIZES.includes(input.size))
     throw new Error('sheet_input');
@@ -206,6 +231,11 @@ export function sheetJob(input: unknown): SheetSvg {
     const fixtures = (input as Partial<SheetFixturesJobInput>).fixtures;
     if (typeof fixtures !== 'object' || fixtures === null) throw new Error('sheet_input');
     return fixturesJob(fixtures);
+  }
+  if (typeof input === 'object' && input !== null && 'panelSheet' in input) {
+    const panelSheet = (input as Partial<SheetPanelJobInput>).panelSheet;
+    if (typeof panelSheet !== 'object' || panelSheet === null) throw new Error('sheet_input');
+    return panelSheetJob(panelSheet);
   }
   if (typeof input === 'object' && input !== null && 'ecNote' in input) {
     const ecNote = (input as Partial<SheetEcNoteJobInput>).ecNote;

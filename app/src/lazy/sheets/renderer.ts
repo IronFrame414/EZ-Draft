@@ -10,6 +10,8 @@
 // EZD-708a (AC-EZD-708a-1, -3): on the RCP sheet (A6.0 and its floor copies) each plan viewport draws the reflected
 // ceiling plan (`rcp`), and the sheet's floor's fixture schedule is one more job, a table at the bottom of the drawing
 // area with the viewports above it (lib/sheets/fixture-schedule-table.ts).
+// EZD-708c (AC-EZD-708c-1, -2): on the panel sheet (E2.0 with one floor) the panel schedules and load calcs Add to
+// E2.0 placed on the permit set are one more job (lib/sheets/panel-sheet-table.ts).
 // EZD-708b (AC-EZD-708b-1): on an electrical sheet (E1.0, E2.0 ...) each plan viewport draws the electrical plan
 // (`electrical`), and the EC verification note is one more job, the sheet's general notes block at the bottom of the
 // notes column (lib/sheets/electrical-kinds.ts).
@@ -24,11 +26,14 @@ import {
   SHEET_JOB,
   type SheetEcNoteJobInput,
   type SheetFixturesJobInput,
+  type SheetPanelJobInput,
   type SheetJobInput,
   type SheetTableJobInput,
 } from '../../workers/sheet-job';
 import { fixtureRowsOf, fixtureTablePlan, isRcpSheet } from '../../lib/sheets/fixture-schedule-table';
-import { isElectricalSheet } from '../../lib/sheets/electrical-kinds';
+import { isElectricalSheet, panelSheetNumber } from '../../lib/sheets/electrical-kinds';
+import { placedPanelSheets } from '../../lib/sheets/panel-sheet-table';
+import { listFloors } from '../../editor/floors/floors';
 
 export type SheetRenderRequest = {
   objects: Objects;
@@ -45,13 +50,29 @@ export type SheetRenderer = {
   dispose(): void;
 };
 
-type AnyJobInput = SheetJobInput | SheetTableJobInput | SheetFixturesJobInput | SheetEcNoteJobInput;
+type AnyJobInput =
+  | SheetJobInput
+  | SheetTableJobInput
+  | SheetFixturesJobInput
+  | SheetEcNoteJobInput
+  | SheetPanelJobInput;
 export type RunSheetJob = (input: AnyJobInput) => Promise<SheetSvg>;
 
 // EZD-708b: the EC verification note job of an electrical sheet, or null on any other sheet.
 export function sheetEcNoteJobInput(request: SheetRenderRequest): SheetEcNoteJobInput | null {
   if (request.sheet === undefined || !isElectricalSheet(request.sheet)) return null;
   return { ecNote: { sheet: request.sheet, size: request.size } };
+}
+
+// EZD-708c (AC-EZD-708c-1): the panel sheet's job, what Add to E2.0 placed on the permit set; null on any other sheet
+// or while nothing is placed.
+export function sheetPanelJobInput(request: SheetRenderRequest): SheetPanelJobInput | null {
+  if (request.sheet === undefined) return null;
+  const floorCount = listFloors(request.objects).length;
+  if (request.sheet !== panelSheetNumber(floorCount)) return null;
+  const entries = placedPanelSheets(request.objects);
+  if (entries.length === 0) return null;
+  return { panelSheet: { sheet: request.sheet, size: request.size, floorCount, entries: [...entries] } };
 }
 
 // EZD-708a: the floor an RCP sheet's schedule lists: its first plan viewport's floor (the lowest when that names none
@@ -142,6 +163,8 @@ export function createSheetRenderer(run?: RunSheetJob): SheetRenderer {
       if (fixtures !== null) inputs.push(fixtures);
       const ecNote = sheetEcNoteJobInput(request);
       if (ecNote !== null) inputs.push(ecNote);
+      const panelSheet = sheetPanelJobInput(request);
+      if (panelSheet !== null) inputs.push(panelSheet);
       if (inputs.length === 0) return null;
       made ??= poolRun();
       const run = made.run;

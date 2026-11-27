@@ -2865,6 +2865,9 @@ export const en = {
   'office.electrical.schedule.col.load': 'Load',
   'office.electrical.schedule.spaces_left': { one: '{count} space left', other: '{count} spaces left' },
   'office.electrical.schedule.no_spaces_left': 'No spaces left',
+  // EZD-708c (S06 "Add to E2.0"; "If already placed, label reads "Update E2.0""): {sheet} is the panel sheet's number.
+  'office.electrical.panel_sheet.add': 'Add to {sheet}',
+  'office.electrical.panel_sheet.update': 'Update {sheet}',
   'office.fixtures.detail.receptacle_duplex': 'Duplex receptacle',
   'office.fixtures.detail.receptacle_240v': '240V receptacle',
   'office.fixtures.detail.switch_single': 'Switch',

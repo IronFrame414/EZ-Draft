@@ -97,6 +97,13 @@ export type IssueChecklist = { rows: ChecklistRow[]; blocked: boolean; gates: Ch
 
 export const LOAD_CALC_SHEET = 'E2.0';
 
+// EZD-708c (Q-0763 "the panel schedule and load calc go on the sheet after the last layout sheet"): the set's panel
+// sheet, its last electrical sheet (E2.0 with one floor, E3.0 with two); null when the set has no electrical sheet.
+export function loadCalcSheetOf(sheets: readonly string[]): string | null {
+  const last = sheets.filter((s) => /^E[1-9]\d*\.0$/.test(s)).at(-1);
+  return last === undefined || last === 'E1.0' ? null : last;
+}
+
 export function issueChecklist(f: IssueFacts): IssueChecklist {
   const rows: ChecklistRow[] = [];
   rows.push(
@@ -122,8 +129,9 @@ export function issueChecklist(f: IssueFacts): IssueChecklist {
     link: f.orphans.length > 0 ? 'open' : null,
   });
 
-  // Phase-07 EZD-716: "Load calc complete" only when the set contains E2.0.
-  if (f.loadCalc !== null && f.sheets.includes(LOAD_CALC_SHEET)) {
+  // Phase-07 EZD-716: "Load calc complete" only when the set contains E2.0 (EZD-708c: its panel sheet, E3.0 with two
+  // floors).
+  if (f.loadCalc !== null && loadCalcSheetOf(f.sheets) !== null) {
     const l = f.loadCalc;
     const done = l.state === 'done' && l.pass !== false;
     rows.push({

@@ -50,6 +50,7 @@ import { AS_NOTED } from '../../../lib/title-block/sheet-title-block';
 import { elevationViewportLists, viewportDrawingList } from '../../../workers/sheet-job';
 import { fixtureRowsOf, fixtureTableFor, fixtureTablePlan, isRcpSheet } from '../../../lib/sheets/fixture-schedule-table';
 import { ecNoteFor, isElectricalSheet } from '../../../lib/sheets/electrical-kinds';
+import { livePanelSheets, panelSheetTables } from '../../../lib/sheets/panel-sheet-table';
 import {
   SCHEDULE_SHEET,
   schedulePlan,
@@ -296,6 +297,14 @@ export const pdfExportHandler: JobHandler<PdfExportPayload, never, PdfExportResu
         viewports.push({ list: fixtureTable.list, scale: 1, area: fixtureTable.area, marks: false });
       for (const line of ecNoteFor(sheet.number, data.size) ?? [])
         viewports.push({ list: line.list, scale: 1, area: line.area, marks: false });
+      // EZD-708c (AC-EZD-708c-1): the panel sheet prints what Add to E2.0 placed on the set, as the preview: only
+      // the panels still in the model.
+      const placedPanels = livePanelSheets(
+        data.panelSheets ?? [],
+        objects.filter((o) => o.type === 'panel').map((o) => o.id),
+      );
+      for (const t of panelSheetTables(sheet.number, data.size, floors.length, placedPanels) ?? [])
+        viewports.push({ list: t.list, scale: 1, area: t.area, marks: false });
       pages.set(sheet.number, {
         number: sheet.number,
         title: sheet.title,

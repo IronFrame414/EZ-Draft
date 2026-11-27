@@ -21,6 +21,11 @@
 // selects its circuit.", "Panel schedule | Inspector, bottom | Opens the generated panel schedule ... Read only";
 // vault/build/assumptions.md EZD-609): the Panel tab's compact schedule and, until the inspector exists (EZD-608),
 // the Panel schedule button under it. Both allowed in view only.
+// EZD-708c (S06 Controls "Add to E2.0 | Inspector, bottom | Places/updates panel schedule and load calc on sheet E2.0.
+// | Edit model. If already placed, label reads "Update E2.0""; Q-0763 the panel sheet follows the last layout sheet;
+// AC-EZD-708c-1, -2; vault/build/assumptions/EZD-708c.md): until the inspector exists (EZD-608), Add to E2.0 sits
+// beside Panel schedule, shown with Edit model and disabled while paused. It stores the panel's schedule and load
+// calc on the permit set (one undoable edit) and logs sheet.updated.
 import { DEVICE_KINDS, WIRE_SIZES, type CircuitProtection, type WireSize } from '@ezdraft/geometry';
 import { useMemo, useState, useSyncExternalStore, type ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
@@ -56,7 +61,11 @@ import styles from './ElectricalPanel.module.css';
 import { heightNotesShown } from './height-notes-shown';
 import { ExistingPanelDialog } from './ExistingPanelDialog';
 import { createPanelPhotoReader, type PanelPhotoReader } from './panel-read-client';
-import { panelSchedule } from './panel-schedule';
+import { panelSchedule, panelSheetFor } from './panel-schedule';
+import { panelPlaced, panelSheetChange } from '../../lib/sheets/panel-sheet-table';
+import { panelSheetNumber } from '../../lib/sheets/sheet-set';
+import { listFloors } from '../floors/floors';
+import { notifyPanelSheet } from './panel-sheet-client';
 import { CompactSchedule, ScheduleDialog } from './PanelSchedule';
 import { idKey } from '../shared/ids';
 import { useStoreValue } from '../shared/use-store-value';
@@ -184,6 +193,17 @@ export function ElectricalPanel({
   );
   const totals = panelTotals(circuits);
   const schedule = useMemo(() => panelSchedule(objects, panel?.id ?? null), [objects, panel]);
+  // EZD-708c: the panel sheet's number (E2.0 with one floor) and whether this panel is placed on it.
+  const panelSheet = panelSheetNumber(listFloors(objects).length);
+  const placed = panel !== null && panelPlaced(objects, panel.id);
+  const placePanelSheet = () => {
+    if (base === null || panel === null) return;
+    const now = base.store.getState().objects;
+    const entry = panelSheetFor(now, panel.id);
+    if (entry === null) return;
+    base.store.applyEdit([panelSheetChange(now, entry, base.newId)]);
+    if (projectId !== undefined) notifyPanelSheet(projectId, { sheet: panelSheet, panelId: panel.id });
+  };
   const groups = useMemo(
     () => deviceGroups(objects, openFloorId(objects, chosen)),
     [objects, chosen],
@@ -482,6 +502,22 @@ export function ElectricalPanel({
         >
           <span>{t('office.electrical.schedule.open')}</span>
         </button>
+        {edit !== undefined ? (
+          <button
+            type="button"
+            className={`${styles.newCircuit} ${touch.target}`}
+            data-testid="electrical-panel-sheet"
+            data-placed={placed}
+            disabled={!writable}
+            onClick={placePanelSheet}
+          >
+            <span>
+              {t(placed ? 'office.electrical.panel_sheet.update' : 'office.electrical.panel_sheet.add', {
+                sheet: panelSheet,
+              })}
+            </span>
+          </button>
+        ) : null}
         {scheduleOpen ? (
           <ScheduleDialog
             schedule={schedule}
