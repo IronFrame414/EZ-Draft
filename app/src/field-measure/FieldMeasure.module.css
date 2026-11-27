@@ -506,3 +506,107 @@
   color: var(--ez-slate-700);
   font-size: var(--ez-text-12);
 }
+
+/* EZD-2026 (Q-0904 A; audit A7): on a wide screen (at least 1024 px wide and wider than tall, e.g. an iPad held
+   sideways) the drawing sits on the left and the room chips, wall and ceiling fields, hint line and keypad on the
+   right, all on screen with no page scroll. The phone board's parts and order are kept inside each column. Below
+   this width, or on a screen taller than wide, nothing here applies and the phone layout is unchanged. */
+@media (min-width: 1024px) and (orientation: landscape) {
+  /* The phone frame's scrolling main holds the screen and the disclaimer line; the screen takes what the line
+     leaves, so the page never scrolls. */
+  main:has(> .screen) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  main:has(> .screen) > * {
+    flex: none;
+  }
+
+  main > .screen {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    column-gap: 16px;
+    align-items: center;
+  }
+
+  .topRow {
+    grid-column: 1 / -1;
+  }
+
+  .titleRow {
+    grid-column: 1;
+    grid-row: 2;
+    margin-bottom: 0;
+  }
+
+  .readOnly,
+  .header > .refused {
+    grid-column: 1;
+    margin: 8px 0 0;
+  }
+
+  .chips {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .addRoom {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    gap: 10px 16px;
+    padding: 10px 16px 16px;
+  }
+
+  .shapes {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  /* The drawing fills the left column and keeps its shape: the card is a size container, and the canvas is as wide
+     as the card allows and no taller than the card less the hint or badge line under it. */
+  .canvasCard {
+    grid-column: 1;
+    grid-row: 2 / -1;
+    min-height: 0;
+    container-type: size;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .canvas {
+    flex: none;
+    width: min(100cqw, (100cqh - 40px) * 1.5);
+  }
+
+  .fields {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .hintLine {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .keypad {
+    grid-column: 2;
+    grid-row: 3;
+    margin: 0;
+    border-radius: var(--ez-radius-12);
+  }
+}
