@@ -2585,7 +2585,8 @@
     "EZD-1993": 1,
     "EZD-614": 1,
     "EZD-1995": 1,
-    "EZD-2000": 1
+    "EZD-2000": 1,
+    "EZD-1913b": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2799,25 +2800,29 @@
     "EZD-2000": {
       "ts": "2026-11-27T02:22:11Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1913b": {
+      "ts": "2026-11-27T04:22:35Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-1913b": {
-      "lane": 3,
-      "title": "Electrical and Ceiling modes as registry features",
-      "started": "2026-11-27T01:44:39Z",
-      "develop": "f00344c1"
-    },
     "EZD-640": {
       "lane": 2,
       "title": "Common loads list",
       "started": "2026-11-27T02:15:30Z",
       "develop": "d53e9133"
+    },
+    "EZD-2008": {
+      "lane": 1,
+      "title": "Fix: scratch-check-local times out when lanes share one scratch database (EZD-153)",
+      "started": "2026-11-27T04:16:44Z",
+      "develop": "cc6811c2"
     }
   },
-  "advisories_checked_at": "2026-11-26T22:21:01Z",
+  "advisories_checked_at": "2026-11-27T04:21:45Z",
   "hold": {},
-  "perf_trend_at": "2026-11-26T03:55:15Z",
+  "perf_trend_at": "2026-11-27T04:12:31Z",
   "set_aside_history": [],
   "backups_checked_at": "2026-11-26T09:58:49Z"
 }
