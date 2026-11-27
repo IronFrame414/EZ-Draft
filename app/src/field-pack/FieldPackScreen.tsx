@@ -8,6 +8,8 @@
 // check and a task photo are queued field actions (EZD-1402); the tasks show them at once (tasks-view.ts overlay),
 // including the ones still queued from before a reload. After each send the stored pack is read again while online,
 // so a reload with no network shows the synced state. Edit text is online only (PATCH field-tasks/<task>).
+// EZD-2002 (AC-EZD-2002-1): on a slow connection or a server error the stored pack answers (project-cache.ts); a
+// pack that lands after that is shown in its place.
 import { useCallback, useEffect, useMemo, useState, type ReactElement } from 'react';
 import { useFieldSync, useOutboxActor } from '../components/outbox/OutboxDrain';
 import { PhoneFrame } from '../components/phone/PhoneFrame';
@@ -50,6 +52,8 @@ export function FieldPackScreen({
   const [checked, setChecked] = useState<ReadonlyMap<string, number>>(new Map());
   const [photos, setPhotos] = useState<ReadonlyMap<string, number>>(new Map());
   const [edited, setEdited] = useState<TaskOverlay['edited']>(new Map());
+  // EZD-2002: the pack that landed after the stored pack answered.
+  const [fresh, setFresh] = useState<PackData | null>(null);
 
   const packUrl = `/api/projects/${projectId}/field-pack`;
   // EZD-2028: fetch is looked up on each read, so the pack read goes through the version check the root layout
@@ -63,6 +67,14 @@ export function FieldPackScreen({
       return (await res.json()) as PackData;
     },
     [fetchPack, packUrl],
+  );
+
+  useEffect(
+    () =>
+      cache.fresh((href, body) => {
+        if (new URL(href).pathname === packUrl) setFresh(body as PackData);
+      }),
+    [cache, packUrl],
   );
 
   const queued = useCallback(async () => {
@@ -172,7 +184,7 @@ export function FieldPackScreen({
     >
       {(data) => (
         <FieldPackView
-          data={data}
+          data={fresh ?? data}
           language={language}
           canPhoto={canPhoto}
           overlay={overlay}

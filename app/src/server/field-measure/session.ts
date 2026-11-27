@@ -9,7 +9,14 @@ import type { Json } from '../db/database.types';
 import type { DbClient } from '../storage/objects';
 
 // EZD-1417: sentAt is when the rooms were sent to the office (S17b States "sent"), null while not sent.
-export type FieldMeasureView = { projectName: string; rooms: FieldRoom[]; sentAt: string | null };
+// EZD-2002 (AC-EZD-2002-2): savedAt is when the rooms were last saved (field_measure_session.updated_at, the
+// database's clock), null while nothing is saved; the phone compares it with the save time its own copy carries.
+export type FieldMeasureView = {
+  projectName: string;
+  rooms: FieldRoom[];
+  sentAt: string | null;
+  savedAt: string | null;
+};
 
 /** Thrown for the refusals the route answers with 403, 404, 400 or (EZD-1419, rooms sent) 409. */
 export class FieldMeasureError extends Error {
@@ -32,21 +39,29 @@ export async function readFieldMeasure(
   if (project.data === null) return null;
   const session = await client
     .from('field_measure_session')
-    .select('rooms, sent_at')
+    .select('rooms, sent_at, updated_at')
     .eq('project_id', projectId)
     .maybeSingle();
   if (session.error) throw session.error;
   const parsed = session.data === null ? null : roomsSchema.safeParse(session.data.rooms);
   const rooms = parsed?.success ? parsed.data : initialRooms();
-  return { projectName: project.data.name, rooms, sentAt: session.data?.sent_at ?? null };
+  return {
+    projectName: project.data.name,
+    rooms,
+    sentAt: session.data?.sent_at ?? null,
+    savedAt: session.data?.updated_at ?? null,
+  };
 }
 
-/** Saves the rooms whole. Throws FieldMeasureError('invalid_input') before the database for a bad room list. */
+/**
+ * Saves the rooms whole. Throws FieldMeasureError('invalid_input') before the database for a bad room list.
+ * EZD-2002: answers when the saved rooms were stored (updated_at), or null when that read fails (the rooms are saved).
+ */
 export async function saveFieldMeasure(
   client: DbClient,
   projectId: string,
   rooms: unknown,
-): Promise<void> {
+): Promise<string | null> {
   const parsed = roomsSchema.safeParse(rooms);
   if (!parsed.success) throw new FieldMeasureError('invalid_input');
   const { error } = await client.rpc('save_field_measure_session', {
@@ -60,6 +75,12 @@ export async function saveFieldMeasure(
     if (error.code === '55000') throw new FieldMeasureError('sent');
     throw error;
   }
+  const saved = await client
+    .from('field_measure_session')
+    .select('updated_at')
+    .eq('project_id', projectId)
+    .maybeSingle();
+  return saved.error ? null : (saved.data?.updated_at ?? null);
 }
 
 /**

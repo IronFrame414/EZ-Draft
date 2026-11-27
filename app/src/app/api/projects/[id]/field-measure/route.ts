@@ -3,6 +3,8 @@
 // out of scope), then the session client. GET (View projects): 200 { rooms }. PUT (Send field measurement):
 // { rooms } replaces the stored rooms; 400 for a body that is not a room list, 200 { status: 'saved' }.
 // EZD-1419: 409 field_measure_sent while the rooms are sent (read-only until the office reopens them).
+// EZD-2002 (AC-EZD-2002-2): the PUT answer carries savedAt, when the database stored the rooms (null when unknown),
+// which the phone keeps with its copy of the rooms.
 import { z } from 'zod';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { endedSessionResponse } from '../../../../../server/auth/ended-session';
@@ -66,8 +68,9 @@ export async function PUT(request: Request, { params }: Ctx): Promise<Response> 
       return fail(400, 'invalid_input');
     }
     const rooms = (raw as { rooms?: unknown } | null)?.rooms;
+    let savedAt: string | null;
     try {
-      await saveFieldMeasure(createSessionClient(), id, rooms);
+      savedAt = await saveFieldMeasure(createSessionClient(), id, rooms);
     } catch (e) {
       if (!(e instanceof FieldMeasureError)) throw e;
       if (e.code === 'not_found') return fail(404, 'project_not_found');
@@ -75,7 +78,7 @@ export async function PUT(request: Request, { params }: Ctx): Promise<Response> 
       if (e.code === 'sent') return fail(409, 'field_measure_sent');
       return fail(403, 'permission_denied', 'error.not_authorized');
     }
-    return Response.json({ status: 'saved' }, { status: 200, headers });
+    return Response.json({ status: 'saved', savedAt }, { status: 200, headers });
   } catch (e) {
     return failed(e);
   }

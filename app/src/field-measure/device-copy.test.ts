@@ -1,7 +1,13 @@
 // EZD-1417 (S17b Header "Saved on phone"; States "offline (saved on phone)"): the phone's copy of the rooms is kept
 // per user, company and project, read back whole, and ignored when it no longer reads as rooms.
 import { describe, expect, it } from 'vitest';
-import { clearDeviceCopy, deviceCopyKey, readDeviceCopy, writeDeviceCopy } from './device-copy';
+import {
+  clearDeviceCopy,
+  deviceCopyKey,
+  openingRooms,
+  readDeviceCopy,
+  writeDeviceCopy,
+} from './device-copy';
 import { emptyRoom, initialRooms, withShape } from './rooms';
 
 function memoryStore() {
@@ -45,5 +51,69 @@ describe('EZD-1417 rooms saved on the phone', () => {
     s.setItem(deviceCopyKey(A, P), '{not json');
     expect(readDeviceCopy(A, P, s)).toBeNull();
     expect(writeDeviceCopy(A, P, { rooms: ROOMS, synced: false }, undefined)).toBe(false);
+  });
+});
+
+// EZD-2002 (audit 2026-11-27 A2; AC-EZD-2002-2 "Field measure uses the phone's copy of the rooms whenever it is newer
+// than the page's copy, so rooms saved online and reopened offline are the latest ones"; AC-EZD-2002-3). Times are
+// the database's (field_measure_session.updated_at as PostgREST writes it).
+describe("EZD-2002 the newer of the phone's copy and the page's rooms", () => {
+  const EMPTY = [initialRooms()[0]!];
+  const EARLY = '2026-11-27T14:00:00.000001+00:00';
+  const LATER = '2026-11-27T14:05:30.25+00:00';
+
+  it('the save time is kept with the copy and read back; a copy kept before it reads as before', () => {
+    const s = memoryStore();
+    writeDeviceCopy(A, P, { rooms: ROOMS, synced: true, savedAt: LATER }, s);
+    expect(readDeviceCopy(A, P, s)).toEqual({ rooms: ROOMS, synced: true, savedAt: LATER });
+    s.setItem(deviceCopyKey(A, P), JSON.stringify({ rooms: ROOMS, synced: true }));
+    expect(readDeviceCopy(A, P, s)).toEqual({ rooms: ROOMS, synced: true });
+  });
+
+  it('saved online, reopened offline from the first visit (no rooms saved then): the phone copy', () => {
+    const open = openingRooms(
+      { rooms: EMPTY, savedAt: null },
+      { rooms: ROOMS, synced: true, savedAt: LATER },
+    );
+    expect(open).toEqual({ rooms: ROOMS, savedAt: LATER, from: 'phone' });
+  });
+
+  it('saved online, reopened offline from an older stored page: the phone copy', () => {
+    const open = openingRooms(
+      { rooms: EMPTY, savedAt: EARLY },
+      { rooms: ROOMS, synced: true, savedAt: LATER },
+    );
+    expect(open.from).toBe('phone');
+    expect(open.rooms).toEqual(ROOMS);
+  });
+
+  it("a page saved later than the phone's copy (or at the same save) wins", () => {
+    expect(
+      openingRooms(
+        { rooms: EMPTY, savedAt: LATER },
+        { rooms: ROOMS, synced: true, savedAt: EARLY },
+      ),
+    ).toEqual({ rooms: EMPTY, savedAt: LATER, from: 'page' });
+    expect(
+      openingRooms({ rooms: ROOMS, savedAt: LATER }, { rooms: ROOMS, synced: true, savedAt: LATER })
+        .from,
+    ).toBe('page');
+  });
+
+  it('a copy not saved yet wins, as in EZD-1417; a saved copy with no save time gives way, as before', () => {
+    expect(
+      openingRooms(
+        { rooms: EMPTY, savedAt: LATER },
+        { rooms: ROOMS, synced: false, savedAt: EARLY },
+      ),
+    ).toEqual({ rooms: ROOMS, savedAt: EARLY, from: 'phone' });
+    expect(openingRooms({ rooms: EMPTY, savedAt: null }, { rooms: ROOMS, synced: true }).from).toBe(
+      'page',
+    );
+    expect(openingRooms({ rooms: EMPTY, savedAt: null }, null)).toEqual({
+      rooms: EMPTY,
+      savedAt: null,
+      from: 'page',
+    });
   });
 });

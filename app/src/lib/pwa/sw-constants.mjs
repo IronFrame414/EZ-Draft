@@ -22,3 +22,6 @@ export const DEVICE_CACHE_BUDGET_DEFAULT_MB = 500;
 export const DEVICE_CACHE_BUDGET_MIN_MB = 100;
 export const DEVICE_CACHE_BUDGET_MAX_MB = 10000;
 export const BYTES_PER_MB = 1048576;
+// EZD-2002 (audit 2026-11-27 A1; AC-EZD-2002-1): how long a field page load or the field pack read waits for the
+// network before the stored copy answers (the network answer still lands and refreshes the stored copy).
+export const FIELD_WAIT_MS = 4000;

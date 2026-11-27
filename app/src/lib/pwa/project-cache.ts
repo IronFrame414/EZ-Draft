@@ -8,7 +8,11 @@
 // NETWORK_ONLY_PATHS), and storing the answer the page already has costs no second download.
 // Sheet images and render copies are not built yet; when they are, their same-origin reads under
 // /api/projects/<id>/ are stored the same way (vault/build/assumptions.md EZD-1401).
-import { PROJECT_CACHE } from './sw-constants.mjs';
+// EZD-2002 (audit 2026-11-27 A1; AC-EZD-2002-1): the field pack read waits FIELD_WAIT_MS for the network. When it
+// has not answered by then, answers with a server error (5xx) or fails, the stored pack answers (when there is one);
+// a whole answer that lands after the stored pack answered is stored and handed to the `fresh` listeners, so the
+// screen shows it in place. The editor's model read is unchanged.
+import { FIELD_WAIT_MS, PROJECT_CACHE } from './sw-constants.mjs';
 import { isStorable } from './sw-rules.mjs';
 
 // What this page knows of the open project's stored copy: none yet, being stored, stored (or opened from it), or
@@ -20,12 +24,15 @@ export type ProjectCache = {
   wrap(base: typeof fetch): typeof fetch;
   get(): ModelCopy;
   subscribe(cb: () => void): () => void;
+  // EZD-2002: a field pack answer that landed after the stored pack answered, with its address.
+  fresh(cb: (href: string, body: unknown) => void): () => void;
 };
 
 type Store = Pick<CacheStorage, 'open'>;
 
 // EZD-1404: the phone's field pack answer (/api/projects/<id>/field-pack) is stored and answered the same way.
 const MODEL = /^\/api\/projects\/([^/]+)\/(?:model|field-pack)$/;
+const FIELD_PACK = /^\/api\/projects\/[^/]+\/field-pack$/;
 
 // The stored answer, made read-only.
 async function readOnly(stored: Response): Promise<Response> {
@@ -42,6 +49,7 @@ export function createProjectCache(
   const origin = opts.origin ?? globalThis.location?.origin ?? 'http://localhost';
   let copy: ModelCopy = 'none';
   const listeners = new Set<() => void>();
+  const freshListeners = new Set<(href: string, body: unknown) => void>();
   const set = (next: ModelCopy) => {
     if (next === copy) return;
     copy = next;
@@ -65,6 +73,10 @@ export function createProjectCache(
       listeners.add(cb);
       return () => listeners.delete(cb);
     },
+    fresh(cb) {
+      freshListeners.add(cb);
+      return () => freshListeners.delete(cb);
+    },
     wrap(base) {
       // The editor names its reads by address (model-api.ts fetchModel); any other form goes to `base` unchanged.
       return async (input, init) => {
@@ -78,18 +90,69 @@ export function createProjectCache(
         ) {
           return base(input, init);
         }
-        let response: Response;
-        try {
-          response = await base(input, init);
-        } catch (error) {
-          const stored = await store
+        const held = store;
+        const readStored = () =>
+          held
             .open(PROJECT_CACHE)
             .then((c) => c.match(url.href, { ignoreVary: true }))
             .catch(() => undefined);
-          if (!stored) throw error;
+        const fromStored = async (stored: Response) => {
           const answer = await readOnly(stored);
           set('stored');
           return answer;
+        };
+        if (!FIELD_PACK.test(url.pathname)) {
+          let response: Response;
+          try {
+            response = await base(input, init);
+          } catch (error) {
+            const stored = await readStored();
+            if (!stored) throw error;
+            return fromStored(stored);
+          }
+          if (isStorable(response)) void keep(url.href, response.clone());
+          return response;
+        }
+        // EZD-2002: the field pack.
+        const attempt = Promise.resolve().then(() => base(input, init));
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const late = new Promise<{ late: true }>((resolve) => {
+          timer = setTimeout(() => resolve({ late: true }), FIELD_WAIT_MS);
+        });
+        const first = await Promise.race([
+          attempt.then(
+            (response) => ({ response }),
+            (error: unknown) => ({ error }),
+          ),
+          late,
+        ]);
+        clearTimeout(timer);
+        if ('late' in first) {
+          const stored = await readStored();
+          if (!stored) {
+            const response = await attempt;
+            if (isStorable(response)) void keep(url.href, response.clone());
+            return response;
+          }
+          void attempt
+            .then(async (response) => {
+              if (!isStorable(response)) return;
+              await keep(url.href, response.clone());
+              const body: unknown = await response.json();
+              for (const cb of [...freshListeners]) cb(url.href, body);
+            })
+            .catch(() => {});
+          return fromStored(stored);
+        }
+        if ('error' in first) {
+          const stored = await readStored();
+          if (!stored) throw first.error;
+          return fromStored(stored);
+        }
+        const response = first.response;
+        if (response.status >= 500) {
+          const stored = await readStored();
+          return stored ? fromStored(stored) : response;
         }
         if (isStorable(response)) void keep(url.href, response.clone());
         return response;

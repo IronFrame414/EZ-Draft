@@ -8,6 +8,10 @@
 // it loaded (warm-message.ts); the worker stores those answers (WARM_MESSAGE) and trims the project cache to the
 // company's device cache budget. With the device offline the worker answers page loads and static files from the
 // caches (the offline* routes).
+// EZD-2002 (audit 2026-11-27 A1; AC-EZD-2002-1): the two field pages (the field pack and field measure) are the one
+// exception online. Their load waits FIELD_WAIT_MS for the network; when it has not answered by then, answers with
+// a server error (5xx) or fails, the stored copy answers (when there is one), and the network answer, once it
+// lands, replaces the stored copy behind it (answerFieldPage).
 
 import {
   BUILD_HEADER,
@@ -16,6 +20,7 @@ import {
   DEVICE_CACHE_BUDGET_DEFAULT_MB,
   DEVICE_CACHE_BUDGET_KEY,
   DEVICE_CACHE_BUDGET_MIN_MB,
+  FIELD_WAIT_MS,
   PROJECT_CACHE,
   SHELL_CACHE,
   STATIC_CACHE,
@@ -34,6 +39,11 @@ export function isShellPath(pathname) {
 // A project page: /projects/<id> and the pages under it.
 export function isProjectPath(pathname) {
   return /^\/projects\/[^/]+(\/|$)/.test(pathname);
+}
+
+// EZD-2002: a field page, the phone's field pack (/projects/<id>/field) or field measure (/projects/<id>/field-measure).
+export function isFieldPagePath(pathname) {
+  return /^\/projects\/[^/]+\/(field|field-measure)\/?$/.test(pathname);
 }
 
 // A built static file or an app icon.
@@ -81,6 +91,48 @@ export function offlineShellPage({ request, url }) {
 export function offlineProjectPage({ request, url }) {
   if (self.navigator.onLine || request.mode !== 'navigate' || url.origin !== location.origin) return false;
   return isProjectPath(url.pathname);
+}
+
+// EZD-2002: a field page load while the phone says it is online (offline, offlineProjectPage answers it).
+export function onlineFieldPage({ request, url }) {
+  if (!self.navigator.onLine || request.mode !== 'navigate' || url.origin !== location.origin) return false;
+  return isFieldPagePath(url.pathname);
+}
+
+// EZD-2002 (AC-EZD-2002-1): a field page load online. The network answer is used when it comes within FIELD_WAIT_MS
+// and is not a server error; otherwise the stored copy answers. With no stored copy the load goes on waiting for
+// the network and gets whatever it answers. A whole network answer (isStorable) always replaces the stored copy,
+// also when it lands after the stored copy answered, so the next load starts from the newest page. Workbox copies
+// this function into the worker as a route handler (build-sw.mjs).
+export async function answerFieldPage({ event, request, url }) {
+  const key = new URL(url.href);
+  key.hash = '';
+  const stored = () =>
+    caches
+      .open(PROJECT_CACHE)
+      .then((c) => c.match(key.href, { ignoreVary: true }))
+      .catch(() => undefined);
+  // The copy is taken as the answer arrives, before the page reads its body.
+  const network = fetch(request).then((response) => ({
+    response,
+    copy: isStorable(response) ? response.clone() : null,
+  }));
+  const refresh = network
+    .then(({ copy }) => (copy ? caches.open(PROJECT_CACHE).then((c) => c.put(key.href, copy)) : undefined))
+    .catch(() => undefined);
+  if (event && typeof event.waitUntil === 'function') event.waitUntil(refresh);
+  let timer;
+  const late = new Promise((resolve) => {
+    timer = setTimeout(() => resolve({ late: true }), FIELD_WAIT_MS);
+  });
+  const first = await Promise.race([network.catch((error) => ({ error })), late]);
+  clearTimeout(timer);
+  if (first.response && first.response.status < 500) return first.response;
+  const copy = await stored();
+  if (copy) return copy;
+  if (first.response) return first.response;
+  if (first.late) return (await network).response;
+  throw first.error;
 }
 
 export function offlineStaticFile({ url }) {
@@ -229,7 +281,8 @@ export function replyWarmed(source) {
   }
 }
 
-// Constants and functions the build copies into the worker, in order.
+// Constants and functions the build copies into the worker, in order (answerFieldPage goes in as a route handler,
+// build-sw.mjs).
 export const WORKER_CONSTANTS = {
   CACHE_PREFIX,
   SHELL_CACHE,
@@ -243,11 +296,13 @@ export const WORKER_CONSTANTS = {
   DEVICE_CACHE_BUDGET_MIN_MB,
   BYTES_PER_MB,
   NETWORK_ONLY_PATHS,
+  FIELD_WAIT_MS,
 };
 export const WORKER_FUNCTIONS = [
   isShellPath,
   isProjectPath,
   isStaticPath,
+  isFieldPagePath,
   isStorable,
   projectIdOf,
   planEviction,

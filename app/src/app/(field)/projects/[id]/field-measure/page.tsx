@@ -5,7 +5,8 @@
 // EZD-1416: the closure check reads the company Measurement tolerance
 // (S15d; 1/2" while Not set, as Import review). EZD-1417: the page's OutboxDrain is the field sender that sends a
 // queued Send to office on reconnect, and the screen gets the rooms' sent time. EZD-1419: the entry from the project
-// is the Projects card menu's Field measure; Approve field measurements may reopen sent rooms.
+// is the Projects card menu's Field measure; Approve field measurements may reopen sent rooms. EZD-2002: the screen
+// gets when the rooms were last saved, so a newer copy on the phone wins over this page's rooms.
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import type { ReactElement } from 'react';
@@ -68,6 +69,7 @@ export default async function FieldMeasurePage({
               canEdit={can(ctx, 'send_field_measurement', { projectId: id })}
               tolerance={tolerance}
               sentAt={view.sentAt}
+              savedAt={view.savedAt}
               canReopen={can(ctx, 'approve_field_measurements', { projectId: id })}
             />
           </OutboxDrain>

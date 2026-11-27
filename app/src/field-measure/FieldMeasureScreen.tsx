@@ -17,6 +17,10 @@
 // shape of a measured room asks to confirm and keeps the walls with the same letter (rooms.ts withShape).
 // EZD-1963: the menu button is disabled in the server's HTML and enabled once the screen runs on the phone, so a tap
 // that lands before then is not lost (the menu's handler is not attached to the server's HTML).
+// EZD-2002 (audit 2026-11-27 A2; AC-EZD-2002-2): the page's rooms can be a stored copy from an earlier visit (opened
+// offline or on a slow connection), so the phone's copy also wins when its last save is newer than the page's
+// (device-copy.ts openingRooms). The copy keeps the database's time of the save its rooms are built on, and every
+// change builds on the newer rooms, so it never overwrites them.
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useOutboxActor } from '../components/outbox/OutboxDrain';
@@ -31,7 +35,7 @@ import { applyKey, Keypad, type KeypadKey } from './Keypad';
 import { RoomChips } from './RoomChips';
 import { ShapeCanvas } from './ShapeCanvas';
 import { ShapePicker } from './ShapePicker';
-import { clearDeviceCopy, readDeviceCopy, writeDeviceCopy } from './device-copy';
+import { clearDeviceCopy, openingRooms, readDeviceCopy, writeDeviceCopy } from './device-copy';
 import { readFieldLength } from './entry';
 import { useMeasureSend } from './send';
 import {
@@ -56,6 +60,8 @@ export type FieldMeasureScreenProps = {
   tolerance?: number;
   /** When the rooms were sent to the office, or null (EZD-1417). */
   sentAt?: string | null;
+  /** EZD-2002: when these rooms were last saved (the database's time), or null while nothing is saved. */
+  savedAt?: string | null;
   /** EZD-1419: the member holds Approve field measurements, so may reopen sent rooms. */
   canReopen?: boolean;
 };
@@ -82,6 +88,7 @@ export function FieldMeasureScreen({
   canEdit: canChange,
   tolerance = DEFAULT_MEASUREMENT_TOLERANCE_IN,
   sentAt = null,
+  savedAt = null,
   canReopen = false,
 }: FieldMeasureScreenProps) {
   const t = useT();
@@ -104,23 +111,31 @@ export function FieldMeasureScreen({
   const [draft, setDraft] = useState<string | null>(null);
   const [refused, setRefused] = useState(false);
   const changed = useRef(false);
+  // EZD-2002: the database's time of the save the rooms on screen are built on; kept with the phone's copy.
+  const basis = useRef<string | null>(savedAt);
 
   const appUserId = actor?.appUserId;
   const tenantId = actor?.tenantId;
   const who = appUserId !== undefined && tenantId !== undefined ? { appUserId, tenantId } : null;
 
-  // A copy on the phone the server does not have yet (measured offline, then reloaded) wins over the server's.
+  // A copy on the phone the server does not have yet (measured offline, then reloaded) wins over the server's, and
+  // so does a saved copy newer than this page's rooms (EZD-2002).
   useEffect(() => {
     if (appUserId === undefined || tenantId === undefined || !canChange || sentAt !== null) return;
     const copy = readDeviceCopy({ appUserId, tenantId }, projectId);
     if (copy === null) return;
+    const open = openingRooms({ rooms: initialRooms, savedAt }, copy);
     // State is set from a microtask, not in the effect body (react-hooks/set-state-in-effect).
     queueMicrotask(() => {
       setOnPhone(true);
-      if (copy.synced) return;
-      changed.current = true;
-      setRooms(copy.rooms);
+      if (open.from === 'page') return;
+      basis.current = open.savedAt;
+      // A copy the server has is shown, not saved again.
+      if (!copy.synced) changed.current = true;
+      setRooms(open.rooms);
     });
+    // The page's rooms and save time are read once, as the screen opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [appUserId, tenantId, canChange, sentAt, projectId]);
 
   // Sent rooms live on the server: the phone's copy is dropped.
@@ -139,10 +154,16 @@ export function FieldMeasureScreen({
           body: JSON.stringify({ rooms: next }),
         });
         if (res.ok && appUserId !== undefined && tenantId !== undefined) {
+          const body = (await res.json().catch(() => null)) as { savedAt?: unknown } | null;
+          if (typeof body?.savedAt === 'string') basis.current = body.savedAt;
           const kept = readDeviceCopy({ appUserId, tenantId }, projectId);
           // Marked synced only when the phone still holds what was saved.
           if (kept !== null && JSON.stringify(kept.rooms) === JSON.stringify(next)) {
-            writeDeviceCopy({ appUserId, tenantId }, projectId, { rooms: next, synced: true });
+            writeDeviceCopy({ appUserId, tenantId }, projectId, {
+              rooms: next,
+              synced: true,
+              savedAt: basis.current,
+            });
           }
         }
       } catch {
@@ -157,7 +178,8 @@ export function FieldMeasureScreen({
   useEffect(() => {
     if (!changed.current || !canEdit) return;
     if (appUserId !== undefined && tenantId !== undefined) {
-      if (writeDeviceCopy({ appUserId, tenantId }, projectId, { rooms, synced: false })) {
+      const copy = { rooms, synced: false, savedAt: basis.current };
+      if (writeDeviceCopy({ appUserId, tenantId }, projectId, copy)) {
         queueMicrotask(() => setOnPhone(true));
       }
     }
