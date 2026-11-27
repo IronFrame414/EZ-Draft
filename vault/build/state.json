@@ -2525,7 +2525,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2575,7 +2575,8 @@
     "EZD-1990": 1,
     "EZD-1993": 1,
     "EZD-614": 1,
-    "EZD-1995": 1
+    "EZD-1995": 1,
+    "EZD-2000": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2785,20 +2786,24 @@
     "EZD-1995": {
       "ts": "2026-11-26T20:58:01Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-2000": {
+      "ts": "2026-11-27T02:22:11Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-2000": {
-      "lane": 1,
-      "title": "Gate rules that keep pages small and fast as the app grows",
-      "started": "2026-11-27T00:02:46Z",
-      "develop": "1424682b"
-    },
     "EZD-1913b": {
       "lane": 3,
       "title": "Electrical and Ceiling modes as registry features",
       "started": "2026-11-27T01:44:39Z",
       "develop": "f00344c1"
+    },
+    "EZD-640": {
+      "lane": 2,
+      "title": "Common loads list",
+      "started": "2026-11-27T02:15:30Z",
+      "develop": "d53e9133"
     }
   },
   "advisories_checked_at": "2026-11-26T22:21:01Z",
