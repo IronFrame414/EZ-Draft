@@ -16081,7 +16081,9 @@
     "EZD-1212",
     "EZD-1213",
     "EZD-1411",
-    "EZD-1104a"
+    "EZD-1104a",
+    "EZD-1609",
+    "EZD-1618"
    ],
    "build_position": 434,
    "acs": [
@@ -27423,10 +27425,10 @@
    "depends_raw": "",
    "spec_ref": "Performance audit 2026-11-26 (Fable agent, branch audit/perf-2026-11-26 in the local repo, commits 395f570d 3d1e67cd d823fc66 4bcb601c 7280c745; findings F1-F10 summarised in vault/plans/perf-audit-2026-11-26.md). Josh 2026-11-26, chat: \"Make all fixes found in the audit and add rules to be sure the system is built accordingly moving forward\" (decision Q-0814).",
    "spec_files": [
-    "vault/spec/sections/11-non-functional-requirements.md"
+    "spec/sections/11-non-functional-requirements.md"
    ],
    "decisions": [
-    "Q-0814"
+    "spec/decisions/11-non-functional-requirements.md#Q-0814"
    ],
    "mockups": [],
    "priority": 1,
@@ -27849,6 +27851,26 @@
     "AC-EZD-2022-2",
     "AC-EZD-2022-3",
     "AC-EZD-2022-4"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2023",
+   "phase": 10,
+   "title": "Loop: final sweeps build after phase 58, non-test ACs skip the AC trace, and prep rows bind the builder",
+   "depends_raw": "",
+   "spec_ref": "Spec readiness audit 2026-11-27 X1, X2, X3 (vault/plans/audit-spec-readiness-2026-11-27.md). X1: phases 54 and 55 (EZD-1701, 1705, 1706, 1708, 1709a/b/c, 1710) sort before phases 57 and 58 (scripts/loop/order.mjs:4), so the final sweeps run before the last 31 feature tickets. X2: scripts/conventions/ac-trace.mjs:59-67 and scripts/loop/ac-review.mjs make every AC id a blocking test name, including field checks and rows another ticket meets. X3: the builder prompt (scripts/loop.mjs:393, 405) never says the ticket's Settled rows in its vault/build/assumptions/<T>.md prep file are binding.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2023-1",
+    "AC-EZD-2023-2",
+    "AC-EZD-2023-3",
+    "AC-EZD-2023-4"
    ],
    "acs_source": "overwatch-2026-11-24"
   }
