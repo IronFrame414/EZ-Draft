@@ -590,7 +590,8 @@
     "EZD-2016",
     "EZD-2020",
     "EZD-2017",
-    "EZD-2018"
+    "EZD-2018",
+    "EZD-2031"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2692,6 +2693,14 @@
       "ts": "2026-11-27T20:06:40Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-2031",
+      "title": "The editor runs on an iPad held upright (744 to 1023 px wide)",
+      "commit": "53e9094c3",
+      "ts": "2026-11-27T20:54:42Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -3004,12 +3013,6 @@
     }
   },
   "running": {
-    "EZD-2031": {
-      "lane": 1,
-      "title": "The editor runs on an iPad held upright (744 to 1023 px wide)",
-      "started": "2026-11-27T17:52:32Z",
-      "develop": "70ffca174"
-    },
     "EZD-2002": {
       "lane": 4,
       "title": "Field pages use the stored copy on a slow connection and keep the newer phone copy of rooms",
@@ -3021,6 +3024,12 @@
       "title": "Security: signed-out sign-in and invite answers do not reveal who is a member or has an invite",
       "started": "2026-11-27T19:09:41Z",
       "develop": "9e7b6bae6"
+    },
+    "EZD-2003": {
+      "lane": 3,
+      "title": "Touch targets of at least 44 px on iPad in cabinets, countertops, import review, the edit menu and small editor controls",
+      "started": "2026-11-27T20:06:54Z",
+      "develop": "73e3ccd66"
     }
   },
   "advisories_checked_at": "2026-11-27T16:29:29Z",
