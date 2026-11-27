@@ -567,7 +567,8 @@
     "EZD-708a",
     "EZD-1611b",
     "EZD-708b",
-    "EZD-232"
+    "EZD-232",
+    "EZD-1995"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2485,6 +2486,14 @@
       "ts": "2026-11-26T23:23:51Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1995",
+      "title": "Each page sends only the screen messages it uses, not the whole office catalog",
+      "commit": "6a5e4053",
+      "ts": "2026-11-27T00:01:59Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2752,11 +2761,11 @@
     }
   },
   "running": {
-    "EZD-1995": {
-      "lane": 1,
-      "title": "Each page sends only the screen messages it uses, not the whole office catalog",
-      "started": "2026-11-26T20:58:59Z",
-      "develop": "2a85c872"
+    "EZD-708c": {
+      "lane": 2,
+      "title": "E2.0 panel schedule and load calc",
+      "started": "2026-11-26T23:23:57Z",
+      "develop": "3e7b0739"
     }
   },
   "advisories_checked_at": "2026-11-26T22:21:01Z",
