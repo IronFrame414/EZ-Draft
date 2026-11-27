@@ -108,3 +108,20 @@ export function readHistory(outDir) {
 export const hasLatest = (outDir) => existsSync(path.join(outDir, 'latest.json'));
 
 export const rowOf = (results, id) => results.measurements.find((m) => m.id === id);
+
+/**
+ * EZD-2012 (AC-EZD-2012-1): runs the assertions on one result row; when one fails, the error names the row and
+ * prints its status, error code, value and details (files, missing maps, pending scripts), and `stderr` (the
+ * CLI's, where an unexpected error leaves its stack). The first failure is kept as the error's cause.
+ */
+export function checkRow(row, assertions, stderr = '') {
+  try {
+    assertions(row);
+  } catch (cause) {
+    const shown = row
+      ? JSON.stringify({ status: row.status, error: row.error, value: row.value, details: row.details }, null, 2)
+      : 'no such row in the results';
+    const err = stderr.trim() === '' ? '' : `\nCLI stderr:\n${stderr.trim()}`;
+    throw new Error(`${cause.message}\nrow ${row?.id ?? '(missing)'}: ${shown}${err}`, { cause });
+  }
+}

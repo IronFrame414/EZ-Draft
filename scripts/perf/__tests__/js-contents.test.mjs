@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { Buffer } from 'node:buffer';
 import { startFixtureServer } from './fixture-server.mjs';
-import { PAN_HTML, htmlPage, readLatest, rowOf, runCli, tmpDir, writeConfig } from './helpers.mjs';
+import { PAN_HTML, checkRow, htmlPage, readLatest, rowOf, runCli, tmpDir, writeConfig } from './helpers.mjs';
 
 const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 function vlq(n) {
@@ -131,73 +131,90 @@ async function run(measurements, extra = []) {
 
 describe('EZD-020 entry contents', () => {
   test('EZD-020 C4 contents verdicts', { timeout: 300000 }, async () => {
-    const { res } = await run(MEASUREMENTS);
-    const get = (s) => rowOf(res, `entry-contents:fixture-${s}`);
+    const { r, res } = await run(MEASUREMENTS);
+    // EZD-2012: a failed assertion prints its row's details (error code, files, missing maps) and the CLI's stderr.
+    const check = (s, assertions, from = { r, res }) =>
+      checkRow(rowOf(from.res, `entry-contents:fixture-${s}`), assertions, from.r.stderr);
 
-    const a = get('clean');
-    assert.equal(a.status, 'pass');
-    assert.equal(a.value, 0);
-    assert.deepEqual(a.details.forbidden, []);
-    assert.deepEqual(a.details.modules, { 'app:lib/messages/t.ts': 10, 'pkg:react-dom': 10 });
+    check('clean', (a) => {
+      assert.equal(a.status, 'pass');
+      assert.equal(a.value, 0);
+      assert.deepEqual(a.details.forbidden, []);
+      assert.deepEqual(a.details.modules, { 'app:lib/messages/t.ts': 10, 'pkg:react-dom': 10 });
+    });
 
-    const bf = get('three-field');
-    assert.equal(bf.status, 'fail');
-    assert.equal(bf.value, 1);
-    assert.deepEqual(strip(bf.details.forbidden), [{ category: 'three', key: 'pkg:three' }]);
-    const be = get('three-editor');
-    assert.equal(be.status, 'pass');
-    assert.equal(be.value, 0);
+    check('three-field', (bf) => {
+      assert.equal(bf.status, 'fail');
+      assert.equal(bf.value, 1);
+      assert.deepEqual(strip(bf.details.forbidden), [{ category: 'three', key: 'pkg:three' }]);
+    });
+    check('three-editor', (be) => {
+      assert.equal(be.status, 'pass');
+      assert.equal(be.value, 0);
+    });
 
-    const c = get('shell');
-    assert.equal(c.status, 'fail');
-    assert.equal(c.value, 1);
-    assert.deepEqual(strip(c.details.forbidden), [
-      { category: 'editor', key: 'app:components/shell/' },
-    ]);
+    check('shell', (c) => {
+      assert.equal(c.status, 'fail');
+      assert.equal(c.value, 1);
+      assert.deepEqual(strip(c.details.forbidden), [
+        { category: 'editor', key: 'app:components/shell/' },
+      ]);
+    });
 
     for (const s of ['lazy-office', 'lazy-editor']) {
-      const d = get(s);
-      assert.equal(d.status, 'fail', s);
-      assert.equal(d.value, 1, s);
-      assert.deepEqual(strip(d.details.forbidden), [
-        { category: 'lazy', key: 'app:lazy/dev-sample/' },
-      ]);
+      check(s, (d) => {
+        assert.equal(d.status, 'fail', s);
+        assert.equal(d.value, 1, s);
+        assert.deepEqual(strip(d.details.forbidden), [
+          { category: 'lazy', key: 'app:lazy/dev-sample/' },
+        ]);
+      });
     }
 
-    const e = get('exporter');
-    assert.equal(e.status, 'fail');
-    assert.equal(e.value, 1);
-    assert.deepEqual(strip(e.details.forbidden), [
-      { category: 'heavy', key: 'pkg:three/examples/jsm/exporters/' },
-    ]);
+    check('exporter', (e) => {
+      assert.equal(e.status, 'fail');
+      assert.equal(e.value, 1);
+      assert.deepEqual(strip(e.details.forbidden), [
+        { category: 'heavy', key: 'pkg:three/examples/jsm/exporters/' },
+      ]);
+    });
 
-    const f = get('pdf');
-    assert.equal(f.status, 'fail');
-    assert.equal(f.value, 1);
-    assert.deepEqual(strip(f.details.forbidden), [{ category: 'heavy', key: 'pkg:pdfjs-dist' }]);
+    check('pdf', (f) => {
+      assert.equal(f.status, 'fail');
+      assert.equal(f.value, 1);
+      assert.deepEqual(strip(f.details.forbidden), [{ category: 'heavy', key: 'pkg:pdfjs-dist' }]);
+    });
 
-    const g = get('nomap');
-    assert.equal(g.status, 'error');
-    assert.deepEqual(g.details.missingMaps, ['/nomap.js']);
+    check('nomap', (g) => {
+      assert.equal(g.status, 'error');
+      assert.deepEqual(g.details.missingMaps, ['/nomap.js']);
+    });
 
-    const h = get('noapp');
-    assert.equal(h.status, 'error');
-    assert.equal(h.details.reason, 'no app sources');
+    check('noapp', (h) => {
+      assert.equal(h.status, 'error');
+      assert.equal(h.details.reason, 'no app sources');
+    });
 
-    const i = get('inline');
-    assert.equal(i.status, 'pass');
-    assert.ok('app:lib/messages/t.ts' in i.details.modules);
+    check('inline', (i) => {
+      assert.equal(i.status, 'pass');
+      assert.ok('app:lib/messages/t.ts' in i.details.modules);
+    });
 
     const j = await run([row('two', 'contents.field-pack', 'two')]);
-    const jr = rowOf(j.res, 'entry-contents:fixture-two');
-    assert.equal(jr.status, 'fail');
-    assert.equal(jr.value, 1);
-    assert.deepEqual(Object.keys(jr.details.modules).sort(), [
-      'app:lib/messages/t.ts',
-      'pkg:react-dom',
-      'pkg:three',
-    ]);
-    assert.equal(j.r.status, 1);
+    check(
+      'two',
+      (jr) => {
+        assert.equal(jr.status, 'fail');
+        assert.equal(jr.value, 1);
+        assert.deepEqual(Object.keys(jr.details.modules).sort(), [
+          'app:lib/messages/t.ts',
+          'pkg:react-dom',
+          'pkg:three',
+        ]);
+      },
+      j,
+    );
+    assert.equal(j.r.status, 1, j.r.stdout + j.r.stderr);
   });
 
   test('EZD-020 C5 report file and stdout', { timeout: 200000 }, async () => {
