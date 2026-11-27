@@ -13,6 +13,12 @@ import {
 } from '../../../test-harness/rls/fixtures';
 import { GET as sweep } from '../../app/api/jobs/sweep/route';
 
+// EZD-2020: the tunnel alert digest pass would stamp error_alert rows of files that hold the error-alert lock;
+// this file tests the job run only, so the pass is mocked.
+vi.mock('./tunnel-alert-digest', () => ({
+  sweepTunnelAlertDigest: vi.fn(async () => ({ status: 'none', count: 0 })),
+}));
+
 describe('EZD-009 sweep route on the local stack', () => {
   let tenantA = '';
   let projectId = '';

@@ -2174,6 +2174,11 @@ export const en = {
   'office.alert.webhook.body':
     'Delivery of {event} (event {eventId}) failed after {attempts} tries. Last response: {status}.',
   'office.alert.open_app': 'Open EZ Draft',
+  'office.alert.digest.subject': 'EZ Draft errors reported by a browser (unverified): {count} new',
+  'office.alert.digest.body':
+    'These errors were reported by a browser through the public error tunnel. Anyone can send such a report, so they are unverified. Browser reports come as one email per hour; repeats are counted but not emailed.',
+  'office.alert.digest.line': '{title} ({source}, seen {occurrences} times)',
+  'office.alert.digest.more': 'And {count} more.',
   'office.notifications.kind.client_response.approved': 'Client approved {version}',
   'office.notifications.kind.client_response.commented': 'Client commented on {version}',
   'office.notifications.kind.field_conflict': 'Field conflict to resolve',

@@ -182,7 +182,7 @@ describe('EZD-024 error alert store and reporting', () => {
     const F = fingerprint();
 
     // (a)
-    const a = await record(anon, F);
+    const a = await record(anon, F, { p_source: 'function' });
     expect(a.error).toBeNull();
     expect(a.data?.[0]).toMatchObject({ is_new: true, capped: false });
     expect(a.data?.[0].email_claim).not.toBeNull();
@@ -191,7 +191,7 @@ describe('EZD-024 error alert store and reporting', () => {
     expect(row?.occurrences).toBe(1);
 
     // (b)
-    const b = await record(anon, F);
+    const b = await record(anon, F, { p_source: 'function' });
     expect(b.data?.[0].is_new).toBe(false);
     expect(b.data?.[0].email_claim).toBeNull();
     row = await rowByFingerprint(F);
@@ -199,7 +199,7 @@ describe('EZD-024 error alert store and reporting', () => {
 
     // (c)
     const G = fingerprint();
-    const parallel = await Promise.all(Array.from({ length: 8 }, () => record(anon, G)));
+    const parallel = await Promise.all(Array.from({ length: 8 }, () => record(anon, G, { p_source: 'function' })));
     const rowsOut = parallel.map((r) => r.data?.[0] as Row);
     expect(rowsOut.filter((r) => r.is_new === true)).toHaveLength(1);
     expect(rowsOut.filter((r) => r.email_claim !== null)).toHaveLength(1);
@@ -214,7 +214,7 @@ describe('EZD-024 error alert store and reporting', () => {
     });
     expect(released.error).toBeNull();
     expect(released.data).toBe(true);
-    const again = await record(anon, G);
+    const again = await record(anon, G, { p_source: 'function' });
     expect(again.data?.[0].email_claim).not.toBeNull();
 
     // (e)
@@ -265,18 +265,18 @@ describe('EZD-024 error alert store and reporting', () => {
 
     // (b) email cap: 20 alerts emailed in the last hour
     await clearRows();
-    await fillErrorRows(20, { emailed_at: new Date().toISOString() });
+    await fillErrorRows(20, { emailed_at: new Date().toISOString(), source: 'function' });
     const G = fingerprint();
-    const first = await record(anonDb({ gate: true }), G);
+    const first = await record(anonDb({ gate: true }), G, { p_source: 'function' });
     expect(first.data?.[0]).toMatchObject({ is_new: true, email_claim: null, capped: true });
     expect((await rowByFingerprint(G))?.emailed_at).toBeNull();
     await harnessSql()`update public.error_alert set emailed_at = now() - interval '61 minutes' where emailed_at is not null`;
-    const second = await record(anonDb({ gate: true }), G);
+    const second = await record(anonDb({ gate: true }), G, { p_source: 'function' });
     expect(second.data?.[0].email_claim).not.toBeNull();
   });
 
   it('EZD-024 T7 through reportError the capped alert sends nothing, the next one sends one', async () => {
-    await fillErrorRows(20, { emailed_at: new Date().toISOString() });
+    await fillErrorRows(20, { emailed_at: new Date().toISOString(), source: 'function' });
     const message = 'EZD-024 cap ' + nonce();
     const ctx = { source: 'function' as const, location: '/api/cap' };
     const first = await reportError(new Error(message), ctx);

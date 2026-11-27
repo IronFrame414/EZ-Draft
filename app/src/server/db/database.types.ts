@@ -1612,6 +1612,11 @@ isOneToOne: false
 "carry_code_check_acceptances":
 { Args: { "p_run": string }; Returns: number
                            },
+"claim_tunnel_alert_digest":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "alert_id": string,"claim": string,"first_seen_at": string,"occurrences": number,"ref": string,"source": string,"title": string
+            }[]
+                           },
 "complete_project":
 { Args: { "p_project": string }; Returns: Json
                            },
@@ -1940,6 +1945,9 @@ isOneToOne: false
                            },
 "release_error_alert_email":
 { Args: { "p_alert_id": string,"p_claim": string }; Returns: boolean
+                           },
+"release_tunnel_alert_digest":
+{ Args: { "p_claim": string }; Returns: number
                            },
 "remove_member":
 { Args: { "p_ip"?: unknown,"p_membership_id": string }; Returns: Json

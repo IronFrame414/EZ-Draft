@@ -14,7 +14,18 @@ import {
   clearSentryStubOutbox,
   readSentryStubOutbox,
 } from '../../../server/errors/test-harness/sentry-stub-transport';
+import { sendTunnelAlertDigest } from '../../../server/errors/tunnel-digest';
 import { POST } from './route';
+
+// EZD-2020 (audit 2026-11-27 X3): tunnel reports are emailed only in the hourly digest. digestNow() moves the
+// last tunnel digest out of the hour and sends the digest, as the sweep would.
+async function digestNow() {
+  await harnessSql()`
+    update public.error_alert set emailed_at = now() - interval '61 minutes'
+    where emailed_at is not null and source in ('browser', 'worker')`;
+  return sendTunnelAlertDigest({ db: adminDb() as never, env: process.env });
+}
+const UNVERIFIED = 'reported by a browser (unverified)';
 
 const pending = vi.hoisted(() => [] as Promise<unknown>[]);
 vi.mock('next/server', async (importOriginal) => ({
@@ -104,13 +115,16 @@ describe('EZD-024 tunnel route', () => {
     }
   }, 180000);
 
-  it('EZD-024 T9 (e) with Sentry off nothing is forwarded, the owner is still emailed', async () => {
+  it('EZD-024 T9 (e) with Sentry off nothing is forwarded, the owner is still emailed (in the digest)', async () => {
     vi.stubEnv('SENTRY_TRANSPORT', '');
     const n = nonce();
     const response = await tunnel(envelope({ nonce: n }));
     expect(response.status).toBe(200);
     expect(readSentryStubOutbox()).toHaveLength(0);
+    expect(readStubOutbox()).toHaveLength(0);
+    expect((await digestNow()).status).toBe('emailed');
     expect(readStubOutbox()).toHaveLength(1);
+    expect(readStubOutbox()[0].subject).toContain(UNVERIFIED);
   });
 
   it('EZD-024 T9 (a)(g) a good envelope is scrubbed, forwarded and recorded once; a repeat sends no email', async () => {
@@ -132,9 +146,13 @@ describe('EZD-024 tunnel route', () => {
     expect('breadcrumbs' in event).toBe(false);
     expect(event.user).toEqual({ id: 'u1' });
 
+    expect(readStubOutbox()).toHaveLength(0);
+    await digestNow();
     const sent = readStubOutbox();
     expect(sent).toHaveLength(1);
     expect(sent[0].to).toBe('owner@example.test');
+    expect(sent[0].subject).toContain(UNVERIFIED);
+    expect(sent[0].subject).not.toContain(n);
     const [row] = await rowsFor(n);
     expect(row).toMatchObject({ source: 'browser', kind: 'error', tenant_id: null });
 
@@ -143,6 +161,7 @@ describe('EZD-024 tunnel route', () => {
     const again = await tunnel(envelope({ nonce: n }));
     expect(again.status).toBe(200);
     expect(readSentryStubOutbox()).toHaveLength(1);
+    expect(await digestNow()).toEqual({ status: 'none', count: 0 });
     expect(readStubOutbox()).toHaveLength(1);
   });
 
@@ -179,6 +198,8 @@ describe('EZD-024 tunnel route', () => {
     expect(response.status).toBe(200);
     const [row] = await rowsFor(n);
     expect(row.source).toBe('worker');
+    expect(readStubOutbox()).toHaveLength(0);
+    await digestNow();
     expect(readStubOutbox()).toHaveLength(1);
   });
 });
