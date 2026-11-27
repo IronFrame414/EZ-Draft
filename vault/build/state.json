@@ -578,7 +578,8 @@
     "EZD-2026",
     "EZD-2027",
     "EZD-2001",
-    "EZD-2028"
+    "EZD-2028",
+    "EZD-2006"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2584,6 +2585,14 @@
       "ts": "2026-11-27T09:17:12Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-2006",
+      "title": "Client link views are logged at most once per link per hour",
+      "commit": "509765b8",
+      "ts": "2026-11-27T10:36:46Z",
+      "kind": "ticket",
+      "lane": 4
     }
   ],
   "set_aside": {},
@@ -2870,8 +2879,27 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {},
-  "advisories_checked_at": "2026-11-27T04:21:45Z",
+  "running": {
+    "EZD-2029": {
+      "lane": 1,
+      "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
+      "started": "2026-11-27T09:18:07Z",
+      "develop": "2f1a33eb"
+    },
+    "EZD-2030": {
+      "lane": 2,
+      "title": "The emailed sign-in code is 8 digits",
+      "started": "2026-11-27T09:18:08Z",
+      "develop": "2f1a33eb"
+    },
+    "EZD-2005": {
+      "lane": 3,
+      "title": "Storage hides supplier-named files from members without See company costs",
+      "started": "2026-11-27T09:18:08Z",
+      "develop": "2f1a33eb"
+    }
+  },
+  "advisories_checked_at": "2026-11-27T10:22:44Z",
   "hold": {},
   "perf_trend_at": "2026-11-27T04:12:31Z",
   "set_aside_history": [
@@ -2883,5 +2911,5 @@
       "by": "overwatch"
     }
   ],
-  "backups_checked_at": "2026-11-26T09:58:49Z"
+  "backups_checked_at": "2026-11-27T09:59:34Z"
 }
