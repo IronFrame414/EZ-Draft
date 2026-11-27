@@ -1,0 +1,6 @@
+/* EZD-1986 (audit F9; board S04Cabinets), moved here by EZD-1913a: while the Cabinets tool is on, its own rail tooltip
+   ("Cabinets C") does not show on hover or focus, because it would sit over the cabinet library's rows; the other
+   tools' tooltips are unchanged. */
+.quietRail [data-rail-tool='cabinets'][aria-pressed='true'] + [data-rail-tooltip] {
+  display: none;
+}

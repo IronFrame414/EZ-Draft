@@ -95,13 +95,8 @@
   visibility: hidden;
 }
 
-/* EZD-1986 (audit F9; board S04Cabinets): while the Cabinets tool is on, its own rail tooltip ("Cabinets C") does not
-   show on hover or focus, because it would sit over the cabinet library's rows; the other tools' tooltips are
-   unchanged. The wrapper (always there, so the rail is not remounted) takes no box of its own. */
+/* EZD-1986 (audit F9): the rail's wrapper (always there, so the rail is not remounted) takes no box of its own; a
+   feature's railClass (EZD-1913a, features/cabinets.module.css) hides a tooltip while it is on. */
 .railWrap {
   display: contents;
-}
-
-.cabinetsRail [data-rail-tool='cabinets'][aria-pressed='true'] + [data-rail-tooltip] {
-  display: none;
 }
