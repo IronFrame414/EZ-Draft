@@ -583,7 +583,8 @@
     "EZD-2005",
     "EZD-2012",
     "EZD-2009",
-    "EZD-2015"
+    "EZD-2015",
+    "EZD-2029"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2629,6 +2630,14 @@
       "ts": "2026-11-27T14:45:01Z",
       "kind": "ticket",
       "lane": 4
+    },
+    {
+      "id": "EZD-2029",
+      "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
+      "commit": "55616b44a",
+      "ts": "2026-11-27T15:24:29Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2936,12 +2945,6 @@
     }
   },
   "running": {
-    "EZD-2029": {
-      "lane": 1,
-      "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
-      "started": "2026-11-27T12:48:54Z",
-      "develop": "b791995e"
-    },
     "EZD-2022": {
       "lane": 3,
       "title": "Security: request gate covers every page path, browser protection headers, and a quieter health check",
