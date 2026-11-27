@@ -446,6 +446,9 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
       };
     },
     expectStatus: 200,
+    // EZD-2005: Storage hides a supplier-named object from a member without See company costs, so their complete
+    // finds no upload (400 upload_missing); the app never gets them here (the start route answers 403).
+    expectStatusWithout: { permission: 'see_company_costs', status: 400 },
     note: 'EZD-914: source_file view (no money)',
   },
   {
