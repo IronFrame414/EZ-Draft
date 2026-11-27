@@ -584,7 +584,8 @@
     "EZD-2012",
     "EZD-2009",
     "EZD-2015",
-    "EZD-2029"
+    "EZD-2029",
+    "EZD-2022"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2638,6 +2639,14 @@
       "ts": "2026-11-27T15:24:29Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-2022",
+      "title": "Security: request gate covers every page path, browser protection headers, and a quieter health check",
+      "commit": "56550c9b6",
+      "ts": "2026-11-27T16:00:20Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2945,12 +2954,6 @@
     }
   },
   "running": {
-    "EZD-2022": {
-      "lane": 3,
-      "title": "Security: request gate covers every page path, browser protection headers, and a quieter health check",
-      "started": "2026-11-27T13:24:42Z",
-      "develop": "05c93a08"
-    },
     "EZD-2030": {
       "lane": 2,
       "title": "The emailed sign-in code is 8 digits",
