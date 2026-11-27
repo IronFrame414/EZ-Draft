@@ -591,7 +591,8 @@
     "EZD-2020",
     "EZD-2017",
     "EZD-2018",
-    "EZD-2031"
+    "EZD-2031",
+    "EZD-2002"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2701,11 +2702,19 @@
       "ts": "2026-11-27T20:54:42Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-2002",
+      "title": "Field pages use the stored copy on a slow connection and keep the newer phone copy of rooms",
+      "commit": "5e29404b4",
+      "ts": "2026-11-27T22:02:55Z",
+      "kind": "ticket",
+      "lane": 4
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -3018,12 +3027,6 @@
     }
   },
   "running": {
-    "EZD-2002": {
-      "lane": 4,
-      "title": "Field pages use the stored copy on a slow connection and keep the newer phone copy of rooms",
-      "started": "2026-11-27T19:02:40Z",
-      "develop": "602b4f894"
-    },
     "EZD-2003": {
       "lane": 3,
       "title": "Touch targets of at least 44 px on iPad in cabinets, countertops, import review, the edit menu and small editor controls",
@@ -3035,6 +3038,12 @@
       "title": "Fix: assistant preview B4 Send stays disabled after typing on iPad (EZD-5604b)",
       "started": "2026-11-27T20:54:50Z",
       "develop": "638f4a580"
+    },
+    "EZD-2019": {
+      "lane": 2,
+      "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
+      "started": "2026-11-27T21:28:55Z",
+      "develop": "437ef24f6"
     }
   },
   "advisories_checked_at": "2026-11-27T16:29:29Z",
