@@ -572,7 +572,8 @@
     "EZD-708c",
     "EZD-1913a",
     "EZD-614",
-    "EZD-2008"
+    "EZD-2008",
+    "EZD-2023"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2530,11 +2531,19 @@
       "ts": "2026-11-27T05:15:07Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-2023",
+      "title": "Loop: final sweeps build after phase 58, non-test ACs skip the AC trace, and prep rows bind the builder",
+      "commit": "a160877a",
+      "ts": "2026-11-27T05:44:26Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2812,17 +2821,17 @@
     }
   },
   "running": {
-    "EZD-2023": {
-      "lane": 3,
-      "title": "Loop: final sweeps build after phase 58, non-test ACs skip the AC trace, and prep rows bind the builder",
-      "started": "2026-11-27T04:22:38Z",
-      "develop": "baac1717"
-    },
     "EZD-2024": {
       "lane": 2,
       "title": "Only an Owner can give or take away the Owner role",
       "started": "2026-11-27T04:24:45Z",
       "develop": "9373efb3"
+    },
+    "EZD-2026": {
+      "lane": 1,
+      "title": "Field measure on a wide screen: drawing on the left, fields and keypad on the right",
+      "started": "2026-11-27T05:19:01Z",
+      "develop": "0010643e"
     }
   },
   "advisories_checked_at": "2026-11-27T04:21:45Z",
