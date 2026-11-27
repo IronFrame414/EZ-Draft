@@ -2792,7 +2792,8 @@
     "EZD-2022": 1,
     "EZD-2019": 1,
     "EZD-2031": 1,
-    "EZD-2021": 1
+    "EZD-2021": 1,
+    "EZD-2003": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -3042,15 +3043,13 @@
     "EZD-2021": {
       "ts": "2026-11-27T21:28:13Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-2003": {
+      "ts": "2026-11-27T23:12:19Z",
+      "reason": "develop kept moving: 3 merge rounds"
     }
   },
   "running": {
-    "EZD-2003": {
-      "lane": 3,
-      "title": "Touch targets of at least 44 px on iPad in cabinets, countertops, import review, the edit menu and small editor controls",
-      "started": "2026-11-27T20:06:54Z",
-      "develop": "73e3ccd66"
-    },
     "EZD-2025": {
       "lane": 4,
       "title": "Field screens say when a save, a Send or a task tick did not reach the office, with Retry",
@@ -3062,6 +3061,12 @@
       "title": "Gate rules that keep pages small and fast as the app grows",
       "started": "2026-11-27T22:33:13Z",
       "develop": "d84530a23"
+    },
+    "EZD-2021": {
+      "lane": 2,
+      "title": "Security: signed-out sign-in and invite answers do not reveal who is a member or has an invite",
+      "started": "2026-11-27T23:09:38Z",
+      "develop": "56df4b0e8"
     }
   },
   "advisories_checked_at": "2026-11-27T22:29:55Z",
