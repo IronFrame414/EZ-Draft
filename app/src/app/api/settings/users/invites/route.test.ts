@@ -330,4 +330,20 @@ describe('EZD-105 invite routes', () => {
     expect(active.status).toBe(409);
     expect(await json(active)).toEqual(err('member_state'));
   }, 60000);
+
+  it('AC-EZD-2024-2 (Q-0901): only an Owner invites as Owner; another holder gets 403 owner_role_owner_only', async () => {
+    const ownerRole = await roleId(t, 'owner');
+    state.store = new Map(holderCookies);
+    const before = await counts();
+    const refused = await invite({ email: newEmail(), roleId: ownerRole });
+    expect(refused.status).toBe(403);
+    expect(await json(refused)).toEqual(err('owner_role_owner_only'));
+    expect(await counts()).toEqual(before);
+    expect(readStubOutbox()).toEqual([]);
+    expect(state.emitted).toEqual([]);
+
+    state.store = new Map(ownerCookies);
+    const ok = await invite({ email: newEmail(), roleId: ownerRole });
+    expect(ok.status).toBe(201);
+  }, 60000);
 });

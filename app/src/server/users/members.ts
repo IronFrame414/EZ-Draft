@@ -75,6 +75,8 @@ export function memberRefusal(error: DbError): MemberRefusal | null {
     case 'P0001':
       if (message === 'last_settings_users_holder') return { status: 409, code: message };
       if (message === 'active_elsewhere') return { status: 409, code: message };
+      // EZD-2024 (Q-0901): only an Owner gives a member the Owner role or moves them off it.
+      if (message === 'owner_role_owner_only') return { status: 403, code: message };
       return null;
     default:
       return null;

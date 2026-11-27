@@ -188,6 +188,8 @@ export const en = {
     'At least one active person must keep the Users + permissions page switch.',
   'error.active_elsewhere':
     "This person is active in another company, so they can't be reactivated here.",
+  // EZD-2024 (Q-0901): only an Owner gives or takes away the Owner role.
+  'error.owner_role_owner_only': 'Only an Owner can give or take away the Owner role.',
   'error.project_customer_unavailable':
     "This customer isn't available. Pick another customer or leave Customer empty.",
   'error.password_too_short': 'Use at least 8 characters.',

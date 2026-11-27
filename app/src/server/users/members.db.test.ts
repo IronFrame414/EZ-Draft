@@ -279,7 +279,8 @@ describe('EZD-106 save_member (AC-1, AC-8, AC-9)', () => {
     expect(own.error).toBeNull();
     expect(await grantedOf(u.membershipId)).toEqual(['see_company_costs', 'settings_users']);
     const c = await addUser(t, { preset: 'crew', name: 'Crew Two' });
-    const r = await save(su, c.membershipId, await roleId(t, 'owner'), 'en', ALL);
+    // EZD-2024 (Q-0901): a non-Owner holder keeps the member's role; only an Owner gives the Owner role.
+    const r = await save(su, c.membershipId, await roleId(t, 'crew'), 'en', ALL);
     expect(r.error).toBeNull();
     expect(await grantedOf(c.membershipId)).toEqual(sorted(ALL));
   }, 120000);

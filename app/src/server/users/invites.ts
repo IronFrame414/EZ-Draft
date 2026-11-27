@@ -84,6 +84,8 @@ export function inviteRefusal(error: DbError): MemberRefusal | null {
       if (message === 'invalid_email') return { status: 400, code: 'invalid_email' };
       return { status: 400, code: 'invalid_input' };
     case 'P0001':
+      // EZD-2024 (Q-0901): only an Owner invites someone as Owner.
+      if (message === 'owner_role_owner_only') return { status: 403, code: message };
       return REFUSALS_409.has(message) ? { status: 409, code: message } : null;
     default:
       return null;
