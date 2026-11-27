@@ -2534,7 +2534,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2826,7 +2826,15 @@
     }
   },
   "advisories_checked_at": "2026-11-27T04:21:45Z",
-  "hold": {},
+  "hold": {
+    "EZD-2001": {
+      "holders": [
+        "EZD-2023"
+      ],
+      "ts": "2026-11-27T05:19:00Z",
+      "why": "needs a file held by EZD-2023"
+    }
+  },
   "perf_trend_at": "2026-11-27T04:12:31Z",
   "set_aside_history": [
     {
