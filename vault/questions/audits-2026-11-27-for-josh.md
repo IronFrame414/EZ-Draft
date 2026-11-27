@@ -16,3 +16,4 @@ Sources: vault/plans/audit-security-2026-11-27.md (S), vault/plans/audit-a11y-ip
 | 910 | Sign-in code length (X2, outside-attacker audit). The emailed sign-in code is 6 digits (your Q-0105). Someone with many internet addresses could guess one within its 15 minutes. | A. Make it 8 digits. B. Keep 6. | A |
 
 ## Answers
+- 910: A (Josh 2026-11-27, chat). Also: Josh checks Supabase Auth captcha and rate limits next week when home.
