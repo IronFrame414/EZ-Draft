@@ -27576,6 +27576,206 @@
     "AC-EZD-2004-3"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2008",
+   "phase": 10,
+   "title": "Fix: scratch-check-local times out when lanes share one scratch database (EZD-153)",
+   "depends_raw": "",
+   "spec_ref": "Flaky-test audit 2026-11-27 row 1 (vault/plans/audit-flaky-tests-2026-11-27.md): scripts/release/__tests__/scratch-check-local.test.mjs timed out in 10 unrelated tickets (EZD-503, 707, 715, 1611b, 1944, 1962, 1988, 1991, 1992, 1993). All lanes share one scratch stack and lock (scripts/release/scratch-check.mjs:21, 231-234, waits up to 600 s at :36); the file takes 175-184 s alone and is killed at 300 s (scripts/check.mjs:64). A 4th lane (EZD-2001) makes this worse.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2008-1",
+    "AC-EZD-2008-2",
+    "AC-EZD-2008-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2009",
+   "phase": 10,
+   "title": "Fix: first 3D open within 1,000 ms (AC-EZD-1001a-3) fails on CI under shared workers",
+   "depends_raw": "",
+   "spec_ref": "Flaky-test audit 2026-11-27 row 2 (vault/plans/audit-flaky-tests-2026-11-27.md): app/e2e/scene-3d.spec.ts:104 failed 26 CI runs, including docs-only merges; it measured 660-1,446 ms after EZD-1972 while 4 browser workers share the runner.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2009-1",
+    "AC-EZD-2009-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2010",
+   "phase": 10,
+   "title": "Fix: sign-out outbox B5 misses the signed-out marker cookie on CI (EZD-120d)",
+   "depends_raw": "",
+   "spec_ref": "Flaky-test audit 2026-11-27 row 3 (vault/plans/audit-flaky-tests-2026-11-27.md): app/e2e/sign-out-outbox.spec.ts:223 failed 4 CI runs at the 5 s poll for the ezd_signed_out=1 cookie (:241), read from headers of a request that fails offline (:105-116). Not confirmed; check the CI trace first; if the cookie really is late, fix app/src/lib/auth/device-sign-out.ts:38-52.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2010-1",
+    "AC-EZD-2010-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2011",
+   "phase": 10,
+   "title": "Fix: money pages sweep W1/W2 hangs on one page that never goes quiet (EZD-133)",
+   "depends_raw": "",
+   "spec_ref": "Flaky-test audit 2026-11-27 row 4 (vault/plans/audit-flaky-tests-2026-11-27.md): app/e2e/money-pages.spec.ts:144 and :151 hung the full 300 s at waitForLoadState('networkidle') (:116) in 3 CI runs, starting after the page-speed tickets merged on 11-26.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2011-1",
+    "AC-EZD-2011-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2012",
+   "phase": 10,
+   "title": "Fix: perf js-contents C4 verdicts differ by which scripts loaded first (EZD-020)",
+   "depends_raw": "",
+   "spec_ref": "Flaky-test audit 2026-11-27 row 5 (vault/plans/audit-flaky-tests-2026-11-27.md): scripts/perf/__tests__/js-contents.test.mjs:133 failed 3 CI runs and release PR #17's gate, a different assertion each time (144, 185, 193). The verdict depends on which fixture scripts were collected before the page settled (scripts/perf/js-size.mjs:87-103, 19-39; js-contents.mjs:84-86, 121-127).",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2012-1",
+    "AC-EZD-2012-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2013",
+   "phase": 10,
+   "title": "Fix: assistant preview B4 Send stays disabled after typing on iPad (EZD-5604b)",
+   "depends_raw": "",
+   "spec_ref": "Flaky-test audit 2026-11-27 row 6 (vault/plans/audit-flaky-tests-2026-11-27.md): app/e2e/assistant-preview.spec.ts:229 failed 3 CI runs; Send stayed disabled 60 s after the prompt was filled (:122-124). Send needs a non-empty draft, idle phase and a key (app/src/editor/assistant/assistant-ui.ts:103-110).",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2013-1",
+    "AC-EZD-2013-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2014",
+   "phase": 10,
+   "title": "Fix: password recovery email T7 not found within 10 s under load (EZD-033)",
+   "depends_raw": "",
+   "spec_ref": "Flaky-test audit 2026-11-27 row 7 (vault/plans/audit-flaky-tests-2026-11-27.md): app/src/server/auth/password-sign-in.test.ts:227 failed in EZD-1990 and EZD-1611b with \"no email within 10000 ms\" (app/test-harness/mail-catcher.ts:179); the email is filtered by comparing the Mac clock with Docker's (:63).",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2014-1",
+    "AC-EZD-2014-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2015",
+   "phase": 10,
+   "title": "Loop: builders only add assumption rows, never edit or remove old ones (EZD-1953 T6)",
+   "depends_raw": "",
+   "spec_ref": "Flaky-test audit 2026-11-27 row 8 (vault/plans/audit-flaky-tests-2026-11-27.md): vault/tools/assumptions-index.test.mjs:169 failed in EZD-707 and EZD-708c because each builder reworded an old row in its own assumptions file; the test pins old rows by a hash of their text (vault/tools/assumptions-index.mjs:49).",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2015-1",
+    "AC-EZD-2015-2",
+    "AC-EZD-2015-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2016",
+   "phase": 10,
+   "title": "Fix: benchmark 150,000-entity DXF hits the statement timeout on a busy runner (EZD-901a)",
+   "depends_raw": "",
+   "spec_ref": "Flaky-test audit 2026-11-27 row 9 (vault/plans/audit-flaky-tests-2026-11-27.md): app/src/server/references/benchmark-reference.db.test.ts:43 failed 2 CI runs with \"canceling statement due to statement timeout\" at about 8.6 s in ensureBenchmarkProject (app/src/server/benchmark/benchmark-project.ts:44, 54-58).",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2016-1",
+    "AC-EZD-2016-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2017",
+   "phase": 10,
+   "title": "Fix: sources bucket over-limit put T4 times out sending 50 MB under load (EZD-296)",
+   "depends_raw": "",
+   "spec_ref": "Flaky-test audit 2026-11-27 row 10 (vault/plans/audit-flaky-tests-2026-11-27.md): app/src/server/storage/sources-bucket.test.ts:151 timed out at 120 s in EZD-702b and EZD-403 sending a file just over 50 MB while other lanes ran gates.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2017-1",
+    "AC-EZD-2017-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2018",
+   "phase": 10,
+   "title": "Fix: conflict list B6 sign-in aborted after EZD-1935 (EZD-299)",
+   "depends_raw": "",
+   "spec_ref": "Flaky-test audit 2026-11-27 section B (vault/plans/audit-flaky-tests-2026-11-27.md): app/e2e/conflict-list.spec.ts:356 (net::ERR_ABORTED at app/test-harness/e2e/sign-in-as.ts:73) failed once more after EZD-1935.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2018-1",
+    "AC-EZD-2018-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
