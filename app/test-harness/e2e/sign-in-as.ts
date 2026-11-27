@@ -90,6 +90,16 @@ export async function signInAs(page: Page, rawEmail: string): Promise<SignedIn> 
   });
 }
 
+// EZD-2018 (AC-EZD-2018-1; flaky-test audit 2026-11-27 section B): sign in again on a page whose session the test
+// has just ended (for example by removing the member's listed project). The open page hears session.ended and loads
+// /sign-in by itself (src/lib/realtime/index.ts). A goto that starts while that load is under way is cancelled
+// (net::ERR_ABORTED, or "interrupted by another navigation"), so wait until /sign-in has loaded, then sign in.
+// waitForURL resolves at the load event of the matching page, and at once when the page is already there.
+export async function signInAgainAs(page: Page, email: string): Promise<SignedIn> {
+  await page.waitForURL((u) => u.pathname === '/sign-in');
+  return signInAs(page, email);
+}
+
 export function signInAsOwner(page: Page): Promise<SignedIn> {
   return signInAs(page, JOSH_EMAIL);
 }

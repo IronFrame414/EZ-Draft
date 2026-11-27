@@ -18,6 +18,7 @@ import {
   test,
 } from '../test-harness/e2e/test';
 import { seedFixtureS } from '../test-harness/projects-fixture';
+import { signInAgainAs } from '../test-harness/e2e/sign-in-as';
 
 const EDITOR = ['view_projects', 'edit_model'] as const;
 
@@ -369,7 +370,9 @@ test.describe('EZD-299 conflict list', () => {
       where membership_id = ${user.membershipId}::uuid and project_id = ${ids.P1}::uuid`;
 
     // Removing the membership_project row ends every session of the member (end-sessions trigger), so sign in again.
-    await signInAs(user.email);
+    // EZD-2018: the open page hears session.ended and loads /sign-in by itself; signInAgainAs waits for that page
+    // before it navigates, so its goto cannot be cancelled by the redirect.
+    await signInAgainAs(page, user.email);
     await page.goto(`/projects/${ids.P2}?conflicts=open`);
     await expect(tid(page, 'conflict-panel')).toBeVisible();
     const group = page.locator('[data-testid="conflict-group"][data-group="not_open"]');
