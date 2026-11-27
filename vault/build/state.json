@@ -2680,7 +2680,8 @@
     "EZD-640": 1,
     "EZD-2029": 1,
     "EZD-2030": 1,
-    "EZD-2010": 1
+    "EZD-2010": 1,
+    "EZD-2022": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2914,15 +2915,13 @@
     "EZD-2010": {
       "ts": "2026-11-27T13:19:30Z",
       "reason": "check red after a review fix"
+    },
+    "EZD-2022": {
+      "ts": "2026-11-27T13:23:51Z",
+      "reason": "check red after a review fix"
     }
   },
   "running": {
-    "EZD-2022": {
-      "lane": 3,
-      "title": "Security: request gate covers every page path, browser protection headers, and a quieter health check",
-      "started": "2026-11-27T11:49:36Z",
-      "develop": "74c9d63e"
-    },
     "EZD-2029": {
       "lane": 1,
       "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
@@ -2934,6 +2933,12 @@
       "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
       "started": "2026-11-27T12:57:50Z",
       "develop": "ad2addd3"
+    },
+    "EZD-2015": {
+      "lane": 4,
+      "title": "Loop: builders only add assumption rows, never edit or remove old ones (EZD-1953 T6)",
+      "started": "2026-11-27T13:19:51Z",
+      "develop": "99dd6dc6"
     }
   },
   "advisories_checked_at": "2026-11-27T10:22:44Z",
