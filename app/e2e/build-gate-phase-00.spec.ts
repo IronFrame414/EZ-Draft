@@ -49,21 +49,33 @@ test.describe('EZD-032 phase 0 build gate @desktop @ipad @surface @smoke', () =>
     await expect(frame).toBeVisible();
     await expect(page.locator('[data-phone-region]')).toHaveCount(0);
     await expect(page.locator('[data-shell-region=frame] > header')).toHaveCount(1);
+    // EZD-2029 (Q-0909): on a touch screen the left panel starts folded, the rail column holds the rail and the 56 px
+    // fold control 16 px below it, and the canvas takes the panel's width; with a mouse nothing changes.
+    const touch = testInfo.project.name !== 'desktop';
     for (const name of ['body', 'rail', 'left-panel', 'canvas', 'inspector', 'status-bar']) {
       const r = page.locator(`[data-shell-region=${name}]`);
       await expect(r, name).toHaveCount(1);
-      await expect(r, name).toBeVisible();
+      if (touch && name === 'left-panel') await expect(r, name).toBeHidden();
+      else await expect(r, name).toBeVisible();
     }
     await expect(page.locator('[data-rail-tool]')).toHaveCount(0);
 
-    const boxes: Record<string, Box> = {
-      header: { x: 16, y: 16, width: W - 32, height: 60 },
-      rail: { x: 16, y: 92, width: 56, height: H - 154 },
-      'left-panel': { x: 88, y: 92, width: 248, height: H - 154 },
-      canvas: { x: 352, y: 92, width: W - 720, height: H - 154 },
+    const boxes: Record<string, Box> = touch
+      ? {
+          header: { x: 16, y: 16, width: W - 32, height: 60 },
+          rail: { x: 16, y: 92, width: 56, height: H - 226 },
+          canvas: { x: 88, y: 92, width: W - 456, height: H - 154 },
+        }
+      : {
+          header: { x: 16, y: 16, width: W - 32, height: 60 },
+          rail: { x: 16, y: 92, width: 56, height: H - 154 },
+          'left-panel': { x: 88, y: 92, width: 248, height: H - 154 },
+          canvas: { x: 352, y: 92, width: W - 720, height: H - 154 },
+        };
+    Object.assign(boxes, {
       inspector: { x: W - 352, y: 92, width: 336, height: H - 154 },
       'status-bar': { x: 16, y: H - 46, width: W - 32, height: 30 },
-    };
+    });
     for (const [name, want] of Object.entries(boxes)) {
       const loc =
         name === 'header'

@@ -118,7 +118,7 @@ test.describe('EZD-1981 status bar cells stay on one line @desktop @ipad', () =>
   test('AC-EZD-1981-2: Plan, Electrical, Ceiling and Countertops status cells are one line tall', async ({
     page,
     signInAs,
-  }) => {
+  }, testInfo) => {
     const { ids, user } = await fixtureS();
     await signInAs(user.email);
     await openReady(page, ids.P1);
@@ -150,6 +150,8 @@ test.describe('EZD-1981 status bar cells stay on one line @desktop @ipad', () =>
     await expect(id(page, 'status-countertop-exposed')).toHaveCount(0);
 
     // Ceiling (Both): View and Joists "unknown · beam clash checks off".
+    // EZD-2029 (Q-0909): on a touch screen the left panel (Floor / Ceiling / Both) starts folded; its control opens it.
+    if (testInfo.project.name !== 'desktop') await id(page, 'left-panel-toggle').click();
     await id(page, 'surface-both').click();
     await expect(id(page, 'surface-both')).toHaveAttribute('aria-pressed', 'true');
     await expect(id(page, 'status-joists')).toHaveText('unknown · beam clash checks off');

@@ -88,6 +88,8 @@ export const en = {
   'common.disclaimer':
     "For design and planning only. All calculations and codes must be verified by the user and a licensed professional in the project's jurisdiction.",
   'common.no_access': "You don't have access to this. Ask your supervisor.",
+  // EZD-2029 (Q-0909): the touch-screen control that opens and folds the editor left panel.
+  'common.shell.left_panel_toggle': 'Show or hide the left panel',
   'error.project_not_found': "That project isn't available.",
   // EZD-1201: share links (S18 States Expired).
   'error.share_link_expired': 'This link has expired. Ask {company} to renew it.',
