@@ -12921,7 +12921,7 @@
    "phase": 36,
    "title": "Provider adapters",
    "depends_raw": "EZD-1101, EZD-1102, EZD-021",
-   "spec_ref": "Stack · AI; S08 Generate",
+   "spec_ref": "Stack · AI; S08 Generate; Q-0918: the live render trial runs right after phase 36 builds, and Josh picks the provider and default model per tier from it; build on stubs until then",
    "spec_files": [
     "spec/sections/02-product-overview.md#AI",
     "spec/sections/screens/S08-render-setup.md#Generate"
@@ -13168,7 +13168,7 @@
    "phase": 36,
    "title": "Tiers and Generate",
    "depends_raw": "EZD-1108, EZD-1103",
-   "spec_ref": "S08 Quality, Generate; R24 #19",
+   "spec_ref": "S08 Quality, Generate; R24 #19; Q-0918: the live render trial runs right after phase 36 builds, and Josh picks the provider and default model per tier from it; build on stubs until then",
    "spec_files": [
     "spec/sections/screens/S08-render-setup.md#Quality",
     "spec/sections/screens/S08-render-setup.md#Generate"
@@ -13563,7 +13563,7 @@
    "phase": 38,
    "title": "Second provider adapter",
    "depends_raw": "EZD-1103",
-   "spec_ref": "R26 R21",
+   "spec_ref": "R26 R21; Q-0918: the live render trial runs right after phase 36 builds, and Josh picks the provider and default model per tier from it; build on stubs until then",
    "spec_files": [
     "spec/decisions/13b-round-26.md#R21"
    ],
@@ -13783,7 +13783,7 @@
    "phase": 39,
    "title": "Plans tab",
    "depends_raw": "EZD-1202, EZD-702, EZD-1215",
-   "spec_ref": "S18 Page tab: Plans; Decisions",
+   "spec_ref": "S18 Page tab: Plans; Decisions. EZD-2032 (Q-0911) builds the Plans tab and the client_sheet_images job for Send set to client sends; this ticket switches the sheet list and the image job to the sheets ticked in the Send to client composer (EZD-1215).",
    "spec_files": [
     "spec/sections/screens/S18-client-approval-phone.md#Page tab: Plans"
    ],
@@ -13797,7 +13797,8 @@
     "EZD-702b",
     "EZD-1215",
     "EZD-715",
-    "EZD-719"
+    "EZD-719",
+    "EZD-2032"
    ],
    "build_position": 344,
    "acs": [
@@ -13810,7 +13811,8 @@
     "spec/decisions/13a-rounds-24-25.md",
     "spec/decisions/13b-round-26.md",
     "spec/decisions/07-hooks-events-and-integrations.md#Q-0059",
-    "spec/decisions/05-screens.md#Q-0781"
+    "spec/decisions/05-screens.md#Q-0781",
+    "spec/decisions/05-screens.md#Q-0911"
    ]
   },
   {
@@ -15805,7 +15807,8 @@
     "spec/decisions/05-screens.md#Q-0185",
     "spec/decisions/05-screens.md#Q-0214",
     "spec/decisions/13b-round-26.md#R2",
-    "spec/decisions/05-screens.md#Q-0790"
+    "spec/decisions/05-screens.md#Q-0790",
+    "spec/decisions/05-screens.md#Q-0919"
    ]
   },
   {
@@ -27873,6 +27876,497 @@
     "AC-EZD-2023-4"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2024",
+   "phase": 10,
+   "title": "Only an Owner can give or take away the Owner role",
+   "depends_raw": "",
+   "spec_ref": "Josh 2026-11-27, chat: \"901 A\" (Q-0901; vault/questions/audits-2026-11-27-for-josh.md). Security audit 2026-11-27 S4 (vault/plans/audit-security-2026-11-27.md): save_member (supabase/migrations/20261113140003_member_and_role_event_log.sql:33-73) checks only that the role is in the caller's company, so any settings_users holder can give themselves the Owner preset and then use Set password (owner_password_target, 20261115001454_create_owner_password_functions.sql:28-37) on non-admin members. create_invite (20261113150001_create_invite_functions.sql:63-108) takes p_role_id with the same check.",
+   "spec_files": [
+    "spec/sections/10-permissions-and-settings.md",
+    "spec/sections/screens/S15-settings-users-permissions.md"
+   ],
+   "decisions": [
+    "spec/decisions/10-permissions-and-settings.md#Q-0901",
+    "spec/decisions/10-permissions-and-settings.md#Q-0695",
+    "spec/decisions/10-permissions-and-settings.md#Q-0706"
+   ],
+   "mockups": [
+    "mockups/S15Settings.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2024-1",
+    "AC-EZD-2024-2",
+    "AC-EZD-2024-3",
+    "AC-EZD-2024-4"
+   ],
+   "acs_source": "josh-2026-11-27"
+  },
+  {
+   "id": "EZD-2025",
+   "phase": 10,
+   "title": "Field screens say when a save, a Send or a task tick did not reach the office, with Retry",
+   "depends_raw": "EZD-2002",
+   "spec_ref": "Josh 2026-11-27, chat: \"903 A\" (Q-0903; vault/questions/audits-2026-11-27-for-josh.md). Accessibility and iPad audit 2026-11-27 A3, A4, A5, A6 (vault/plans/audit-a11y-ipad-2026-11-27.md): field measure ignores a refused save (field-measure/FieldMeasureScreen.tsx:133-150) and a Send that could not be queued (FieldMeasureScreen.tsx:318-331,426; field-measure/send.ts:58-69,76); the field pack shows a task tick before it is stored (field-pack/FieldPackScreen.tsx:116-120) and hides its controls with no reason when the field sender cannot start (FieldPackScreen.tsx:110-111; FieldPackView.tsx:174-180). Builds after EZD-2002, which changes the same save path.",
+   "spec_files": [
+    "spec/sections/screens/S17b-field-measure-phone.md#States",
+    "spec/sections/screens/S17-field-pack-phone.md#States"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md#Q-0903"
+   ],
+   "mockups": [
+    "mockups/S17bFieldMeasure.png",
+    "mockups/S17Field.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-2002"
+   ],
+   "acs": [
+    "AC-EZD-2025-1",
+    "AC-EZD-2025-2",
+    "AC-EZD-2025-3",
+    "AC-EZD-2025-4",
+    "AC-EZD-2025-5"
+   ],
+   "acs_source": "josh-2026-11-27"
+  },
+  {
+   "id": "EZD-2026",
+   "phase": 10,
+   "title": "Field measure on a wide screen: drawing on the left, fields and keypad on the right",
+   "depends_raw": "",
+   "spec_ref": "Josh 2026-11-27, chat: \"Follow your recommendation\" (904 A; Q-0904; vault/questions/audits-2026-11-27-for-josh.md). Accessibility and iPad audit 2026-11-27 A7 (vault/plans/audit-a11y-ipad-2026-11-27.md): field-measure/FieldMeasure.module.css:186-196,383-390 has no width cap and no breakpoint, so on an iPad held sideways (1180 x 820) the drawing is about 1134 x 756 and the wall field and keypad sit below the screen. No iPad board exists for S17b; follow the S17b phone board's parts and order.",
+   "spec_files": [
+    "spec/sections/screens/S17b-field-measure-phone.md#Layout"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md#Q-0904"
+   ],
+   "mockups": [
+    "mockups/S17bFieldMeasure.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2026-1",
+    "AC-EZD-2026-2",
+    "AC-EZD-2026-3"
+   ],
+   "acs_source": "josh-2026-11-27"
+  },
+  {
+   "id": "EZD-2027",
+   "phase": 10,
+   "title": "Typed text is 16 px on touch screens so iPhone Safari does not zoom in",
+   "depends_raw": "",
+   "spec_ref": "Josh 2026-11-27, chat: \"905 A\" (Q-0905; vault/questions/audits-2026-11-27-for-josh.md). Accessibility and iPad audit 2026-11-27 A8 and A27 (vault/plans/audit-a11y-ipad-2026-11-27.md): no text box in the app reaches 16 px (12 to 14 px, for example field-measure/FieldMeasure.module.css:104-113, field-pack/FieldPack.module.css:293-302, editor/typed-entry/TypedEntryLayer.module.css:113, and the other files A27 lists), so iPhone Safari zooms the page on every focus.",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0905"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2027-1",
+    "AC-EZD-2027-2",
+    "AC-EZD-2027-3"
+   ],
+   "acs_source": "josh-2026-11-27"
+  },
+  {
+   "id": "EZD-2028",
+   "phase": 10,
+   "title": "Toasts and the reload notice sit above the field tab bar and the home bar",
+   "depends_raw": "",
+   "spec_ref": "Josh 2026-11-27, chat: \"907 A\" (Q-0907; vault/questions/audits-2026-11-27-for-josh.md). Accessibility and iPad audit 2026-11-27 A15 (vault/plans/audit-a11y-ipad-2026-11-27.md): components/states/Toast.module.css:1-5 and components/pwa/DeviceNotices.module.css:27-31 place toasts and the reload notice 16 px from the bottom with no safe-area inset, so on the field pack they cover the Tasks and Photo tabs (field-pack/FieldPack.module.css .tabBar) and the home bar.",
+   "spec_files": [
+    "spec/sections/04-app-shell-and-global-ui.md",
+    "spec/sections/screens/S17-field-pack-phone.md#Layout"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0907"
+   ],
+   "mockups": [
+    "mockups/S17Field.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2028-1",
+    "AC-EZD-2028-2",
+    "AC-EZD-2028-3"
+   ],
+   "acs_source": "josh-2026-11-27"
+  },
+  {
+   "id": "EZD-2029",
+   "phase": 10,
+   "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
+   "depends_raw": "",
+   "spec_ref": "Josh 2026-11-27, chat: \"909 A\" (Q-0909; vault/questions/audits-2026-11-27-for-josh.md). Accessibility and iPad audit 2026-11-27 A18 (vault/plans/audit-a11y-ipad-2026-11-27.md): on a 12.9 inch iPad held upright (1024 wide) the drawing area is about 304 px and the edit bar (about 520 px, editor/selection/SelectionLayer.module.css:34-49; styles/tokens.css:34-36) runs about 230 px over the inspector; at 1180 wide about 75 px. EZD-218's recorded assumption; EZD-1979 moved the bar off Zoom in.",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Layout"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0909",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0807"
+   ],
+   "mockups": [
+    "mockups/S03dTablet.png",
+    "mockups/S03Plan.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2029-1",
+    "AC-EZD-2029-2",
+    "AC-EZD-2029-3",
+    "AC-EZD-2029-4"
+   ],
+   "acs_source": "josh-2026-11-27"
+  },
+  {
+   "id": "EZD-2030",
+   "phase": 10,
+   "title": "The emailed sign-in code is 8 digits",
+   "depends_raw": "",
+   "spec_ref": "Josh 2026-11-27, chat: \"910 A\" (Q-0910; vault/questions/audits-2026-11-27-for-josh.md). Outside-attacker audit 2026-11-27 X2 (vault/plans/audit-security-external-2026-11-27.md): supabase/config.toml [auth.email] otp_length = 6 (line 238), so someone with many addresses could guess a code within its 15 minutes. The code is checked in app/src/app/sign-in/SignInForm.tsx:282-283 (pattern, maxLength), app/src/server/auth/actions.ts:35 CODE_PATTERN (also used for the 6-digit invite code at line 356), and the Set password reauthentication code in lib/profile/profile.ts:107 and lazy/my-profile/MyProfileDialog.tsx:269; lib/errors/scrub.ts:11 removes 6-digit runs. The hosted Supabase setting is changed by Josh in the dashboard next week, not by the builder.",
+   "spec_files": [
+    "spec/sections/10-permissions-and-settings.md",
+    "spec/sections/02-product-overview.md"
+   ],
+   "decisions": [
+    "spec/decisions/10-permissions-and-settings.md#Q-0910",
+    "spec/decisions/10-permissions-and-settings.md#Q-0447",
+    "spec/decisions/10-permissions-and-settings.md#Q-0800"
+   ],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2030-1",
+    "AC-EZD-2030-2",
+    "AC-EZD-2030-3",
+    "AC-EZD-2030-4"
+   ],
+   "acs_source": "josh-2026-11-27"
+  },
+  {
+   "id": "EZD-2031",
+   "phase": 10,
+   "title": "The editor runs on an iPad held upright (744 to 1023 px wide)",
+   "depends_raw": "EZD-2029",
+   "spec_ref": "Josh 2026-11-27, chat: \"908 B\" (Q-0908; vault/questions/audits-2026-11-27-for-josh.md), which changes Q-0054 (a) (full editor from 1024 px). Accessibility and iPad audit 2026-11-27 A17 (vault/plans/audit-a11y-ipad-2026-11-27.md): lib/device/device-layout.ts:2-3 (FULL_SHELL_MIN_WIDTH 1024, PHONE_LAYOUT_QUERY) and components/shell/EditorFrame.module.css:63-67 replace the editor with the phone notice (components/phone/EditorPhoneNotice.tsx) on every iPad held upright (744 to 834 px wide). Builds after EZD-2029 (left panel folds away on touch), which the upright layout needs. No upright board exists; S03dTablet is the sideways tablet board.",
+   "spec_files": [
+    "spec/sections/02-product-overview.md",
+    "spec/sections/screens/S03-plan-editor.md#Layout",
+    "spec/sections/04-app-shell-and-global-ui.md"
+   ],
+   "decisions": [
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0908",
+    "spec/decisions/02-product-overview.md#Q-0054",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0909",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0807"
+   ],
+   "mockups": [
+    "mockups/S03dTablet.png",
+    "mockups/S03Plan.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-2029"
+   ],
+   "acs": [
+    "AC-EZD-2031-1",
+    "AC-EZD-2031-2",
+    "AC-EZD-2031-3",
+    "AC-EZD-2031-4",
+    "AC-EZD-2031-5"
+   ],
+   "acs_source": "josh-2026-11-27"
+  },
+  {
+   "id": "EZD-2032",
+   "phase": 39,
+   "title": "Client page Plans tab: the sheets of a sent sheet set",
+   "depends_raw": "EZD-1202, EZD-719, EZD-702a, EZD-702b, EZD-238, EZD-715",
+   "spec_ref": "Josh 2026-11-27, chat: \"911 A\" (Q-0911; vault/questions/audits-2026-11-27-for-josh.md). Spec readiness audit 2026-11-27 J1 (vault/plans/audit-spec-readiness-2026-11-27.md, Phases 39 and 40): EZD-1205 waits on EZD-1215 (Send to client composer), which waits on EZD-1114 (render approval, phase 37) and EZD-1208, so it cannot come forward. This is the part that needs only built sends: Send set to client (EZD-719) records the sent set on sent_package (a nullable sheet_set id beside the set kind, vault/build/assumptions/EZD-719.md). It adds the client_sheet_images job and the Plans tab viewer as settled in vault/build/assumptions/EZD-1205.md, fed by EZD-719's send. EZD-1205 later switches the list to the composer's ticked sheets. Wording on the S18 rows of vault/build/assumptions/EZD-1202.md (approved, Q-0803).",
+   "spec_files": [
+    "spec/sections/screens/S18-client-approval-phone.md#Page tab: Plans",
+    "spec/sections/screens/S18-client-approval-phone.md#Layout",
+    "spec/sections/screens/S18-client-approval-phone.md#States",
+    "spec/sections/11-non-functional-requirements.md"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md#Q-0911",
+    "spec/decisions/04-app-shell-and-global-ui.md#Q-0805",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0059",
+    "spec/decisions/03-data-model.md#Q-0700",
+    "spec/decisions/05-screens.md#Q-0902"
+   ],
+   "mockups": [
+    "mockups/S18Client.png"
+   ],
+   "phase_file": "tickets/phases/phase-12.md",
+   "depends_on": [
+    "EZD-1202",
+    "EZD-719",
+    "EZD-702a",
+    "EZD-702b",
+    "EZD-238",
+    "EZD-715"
+   ],
+   "build_position": 336.5,
+   "acs": [
+    "AC-EZD-2032-1",
+    "AC-EZD-2032-2",
+    "AC-EZD-2032-3",
+    "AC-EZD-2032-4"
+   ],
+   "acs_source": "josh-2026-11-27",
+   "spec_phase": 12
+  },
+  {
+   "id": "EZD-2033",
+   "phase": 57,
+   "title": "Takeoff: a count line for each phase 57 object kind",
+   "depends_raw": "EZD-644, EZD-645, EZD-647, EZD-649, EZD-650, EZD-652, EZD-653, EZD-655, EZD-659, EZD-661, EZD-662, EZD-1611b, EZD-1613",
+   "spec_ref": "Josh 2026-11-27, chat: \"912 A\" (Q-0912; vault/questions/audits-2026-11-27-for-josh.md). Spec readiness audit 2026-11-27 J2 and X5: the takeoff (EZD-1611b) counts cabinets, tile, fixtures and devices but not the objects phase 57 adds (EZD-644's types and kinds); EZD-673 covers only the phase 58 kinds. 09i: \"Cabinets, fixtures, devices: counts by code or size, by type\".",
+   "spec_files": [
+    "spec/sections/09i-takeoff.md",
+    "spec/sections/screens/S19-takeoff.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0912",
+    "spec/decisions/09-calculations-and-rules.md#Q-0789"
+   ],
+   "mockups": [
+    "mockups/S19Takeoff.png"
+   ],
+   "phase_file": "tickets/phases/phase-57.md",
+   "depends_on": [
+    "EZD-644",
+    "EZD-645",
+    "EZD-647",
+    "EZD-649",
+    "EZD-650",
+    "EZD-652",
+    "EZD-653",
+    "EZD-655",
+    "EZD-659",
+    "EZD-661",
+    "EZD-662",
+    "EZD-1611b",
+    "EZD-1613"
+   ],
+   "build_position": 645.5,
+   "acs": [
+    "AC-EZD-2033-1",
+    "AC-EZD-2033-2",
+    "AC-EZD-2033-3"
+   ],
+   "acs_source": "josh-2026-11-27",
+   "spec_phase": 57
+  },
+  {
+   "id": "EZD-2034",
+   "phase": 58,
+   "title": "Company rules C-01 to C-10, each with an on/off switch in Defaults",
+   "depends_raw": "EZD-611a, EZD-612, EZD-116, EZD-604, EZD-603, EZD-609, EZD-610, EZD-614, EZD-708b, EZD-215, EZD-666",
+   "spec_ref": "Josh 2026-11-27, chat: \"913 A\" (Q-0913; vault/questions/audits-2026-11-27-for-josh.md). Spec readiness audit 2026-11-27 J3 and X5: vault/spec/code-check-rules.md \"Company rules\" lists C-01 to C-10 (Worth Properties standards, not code; the warning says \"Company rule\"; each can be turned off in Defaults); no ticket built them, and they are not in code-rules.json. C-02 needs the microwave fixture kind (EZD-666, phase 58); C-05 uses S15d's existing \"Voltage-drop warning threshold (%)\" and EZD-610's drop; C-06 uses the panel schedule (EZD-609); C-07 the E1.0 sheet (EZD-708b); C-09 the bearing wall rule (EZD-215).",
+   "spec_files": [
+    "spec/code-check-rules.md",
+    "spec/sections/09c-code-check-engine.md#Code check engine",
+    "spec/sections/09b-electrical-rules.md",
+    "spec/sections/screens/S15d-settings-defaults.md"
+   ],
+   "decisions": [
+    "spec/decisions/09-calculations-and-rules.md#Q-0913",
+    "spec/decisions/09-calculations-and-rules.md#Q-0001"
+   ],
+   "mockups": [
+    "mockups/S15dDefaults.png"
+   ],
+   "phase_file": "tickets/phases/phase-58.md",
+   "depends_on": [
+    "EZD-611a",
+    "EZD-612",
+    "EZD-116",
+    "EZD-604",
+    "EZD-603",
+    "EZD-609",
+    "EZD-610",
+    "EZD-614",
+    "EZD-708b",
+    "EZD-215",
+    "EZD-666"
+   ],
+   "build_position": 655.5,
+   "acs": [
+    "AC-EZD-2034-1",
+    "AC-EZD-2034-2",
+    "AC-EZD-2034-3",
+    "AC-EZD-2034-4"
+   ],
+   "acs_source": "josh-2026-11-27",
+   "spec_phase": 58
+  },
+  {
+   "id": "EZD-2035",
+   "phase": 30,
+   "title": "Cut a section detail from an elevation",
+   "depends_raw": "EZD-811, EZD-802, EZD-404, EZD-707",
+   "spec_ref": "Josh 2026-11-27, chat: \"914 B\" (Q-0914; vault/questions/audits-2026-11-27-for-josh.md). Spec readiness audit 2026-11-27 J4 and X5: S10 Entry points lets a detail be cut from the model by \"a section line on a plan or elevation\"; EZD-811 builds the plan cut only (vault/build/assumptions/EZD-811.md, \"Plan only\"; follow-up after EZD-707). This adds the cut from an elevation: the cabinet run elevation (S04, EZD-404) and the elevation views on the Elevations sheet (EZD-707). Same tool, data and numbers as EZD-811's settled rows.",
+   "spec_files": [
+    "spec/sections/screens/S10-detail-editor.md#Entry points",
+    "spec/sections/screens/S03-plan-editor.md#Detail callout",
+    "spec/sections/screens/S04-cabinet-run-elevation.md"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md#Q-0914",
+    "spec/decisions/05-screens.md#Q-0771",
+    "spec/decisions/05-screens.md#Q-0786"
+   ],
+   "mockups": [
+    "mockups/S10Detail.png",
+    "mockups/S04Cabinets.png"
+   ],
+   "phase_file": "tickets/phases/phase-08.md",
+   "depends_on": [
+    "EZD-811",
+    "EZD-802",
+    "EZD-404",
+    "EZD-707"
+   ],
+   "build_position": 279.5,
+   "acs": [
+    "AC-EZD-2035-1",
+    "AC-EZD-2035-2",
+    "AC-EZD-2035-3"
+   ],
+   "acs_source": "josh-2026-11-27",
+   "spec_phase": 8
+  },
+  {
+   "id": "EZD-2036",
+   "phase": 28,
+   "title": "Project history: a read-only list of the events recorded for a project",
+   "depends_raw": "EZD-109, EZD-122, EZD-736",
+   "spec_ref": "Josh 2026-11-27, chat: \"915 A\" (Q-0915; vault/questions/audits-2026-11-27-for-josh.md). Spec readiness audit 2026-11-27 J5 and X5: event_log (EZD-109; supabase/migrations/20261113140000_create_event_log.sql) records issues, sends, exports, acknowledgements, lock and permission changes, but nothing shows them except the acknowledgement line in the Revision log (EZD-736). event_log has no project column, so the ticket ties rows to a project (for example by a project id written with project events). Q-0915 lets one definer function read it, superseding Q-0695's \"no API role reads it in v1\" (AC-EZD-109-2) for that read only. S20 Permissions: \"View: View projects\".",
+   "spec_files": [
+    "spec/sections/screens/S20-revisions-version-history.md#Permissions",
+    "spec/sections/screens/S20-revisions-version-history.md#Entry points",
+    "spec/sections/11-non-functional-requirements.md",
+    "spec/sections/07-hooks-events-and-integrations.md"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md#Q-0915",
+    "spec/decisions/03-data-model.md#Q-0695",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0708"
+   ],
+   "mockups": [
+    "mockups/S20Versions.png"
+   ],
+   "phase_file": "tickets/phases/phase-07.md",
+   "depends_on": [
+    "EZD-109",
+    "EZD-122",
+    "EZD-736"
+   ],
+   "build_position": 266.5,
+   "acs": [
+    "AC-EZD-2036-1",
+    "AC-EZD-2036-2",
+    "AC-EZD-2036-3",
+    "AC-EZD-2036-4"
+   ],
+   "acs_source": "josh-2026-11-27",
+   "spec_phase": 7
+  },
+  {
+   "id": "EZD-2037",
+   "phase": 42,
+   "title": "Sketch strokes are saved with the project on the markup layer",
+   "depends_raw": "EZD-907, EZD-223",
+   "spec_ref": "Josh 2026-11-27, chat: \"916 A\" (Q-0916; vault/questions/audits-2026-11-27-for-josh.md). Spec readiness audit 2026-11-27 J6 and X5: S03 Sketch puts strokes \"on a markup layer\"; EZD-223 (built) keeps them on the page only (vault/build/assumptions/EZD-223.md \"lost on reload\"); EZD-907 creates the markup table and writes reference markup only (vault/build/assumptions/EZD-907.md, plan clouds and sketches row). 03c markup: target plan is allowed; kind has no sketch value yet; markup never alters the target.",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Sketch",
+    "spec/sections/03c-tables.md#markup",
+    "spec/sections/screens/S11-architect-dxf-reference-markup.md#Markup tools"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md#Q-0916",
+    "spec/decisions/05-screens.md#Q-0781"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "phase_file": "tickets/phases/phase-09.md",
+   "depends_on": [
+    "EZD-907",
+    "EZD-223"
+   ],
+   "build_position": 360.5,
+   "acs": [
+    "AC-EZD-2037-1",
+    "AC-EZD-2037-2",
+    "AC-EZD-2037-3",
+    "AC-EZD-2037-4"
+   ],
+   "acs_source": "josh-2026-11-27",
+   "spec_phase": 9
+  },
+  {
+   "id": "EZD-2038",
+   "phase": 38,
+   "title": "Third render provider: Flux Kontext",
+   "depends_raw": "EZD-1103, EZD-1121, EZD-1102, EZD-1109",
+   "spec_ref": "Josh 2026-11-27, chat: \"917 B\" (Q-0917; vault/questions/audits-2026-11-27-for-josh.md). Spec readiness audit 2026-11-27 J7 and X5: board S15f and S15f Controls list Flux Kontext pro in the Standard tier and Flux Kontext max in Photoreal; tickets build two providers (EZD-1103 Gemini, EZD-1121 GPT Image). Q-0076: Josh picks the account that serves Flux; the endpoint is configurable. Q-0918: the provider and default model per tier are picked at the live render trial right after phase 36. Model ids and the request format come from a research note in the prep file, not from memory (spec readiness audit X4).",
+   "spec_files": [
+    "spec/sections/screens/S15f-settings-render-models.md#Controls",
+    "spec/sections/02-product-overview.md#AI",
+    "spec/sections/screens/S08-render-setup.md#Generate"
+   ],
+   "decisions": [
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0917",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0918",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0076",
+    "spec/decisions/07-hooks-events-and-integrations.md#Q-0016"
+   ],
+   "mockups": [
+    "mockups/S15fRender.png"
+   ],
+   "phase_file": "tickets/phases/phase-11.md",
+   "depends_on": [
+    "EZD-1103",
+    "EZD-1121",
+    "EZD-1102",
+    "EZD-1109"
+   ],
+   "build_position": 334.5,
+   "acs": [
+    "AC-EZD-2038-1",
+    "AC-EZD-2038-2",
+    "AC-EZD-2038-3"
+   ],
+   "acs_source": "josh-2026-11-27",
+   "spec_phase": 11
   }
  ],
  "recut_applied": "2026-10-20"
