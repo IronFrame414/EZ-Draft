@@ -575,7 +575,8 @@
     "EZD-2008",
     "EZD-2023",
     "EZD-2024",
-    "EZD-2026"
+    "EZD-2026",
+    "EZD-2027"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2557,6 +2558,14 @@
       "ts": "2026-11-27T06:36:10Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-2027",
+      "title": "Typed text is 16 px on touch screens so iPhone Safari does not zoom in",
+      "commit": "37927733",
+      "ts": "2026-11-27T07:38:14Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2838,7 +2847,20 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {},
+  "running": {
+    "EZD-2001": {
+      "lane": 1,
+      "title": "Loop: a fourth build lane (lane 4)",
+      "started": "2026-11-27T06:36:48Z",
+      "develop": "48f113c6"
+    },
+    "EZD-2029": {
+      "lane": 3,
+      "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
+      "started": "2026-11-27T06:36:49Z",
+      "develop": "48f113c6"
+    }
+  },
   "advisories_checked_at": "2026-11-27T04:21:45Z",
   "hold": {
     "EZD-2001": {
