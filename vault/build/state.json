@@ -587,7 +587,8 @@
     "EZD-2029",
     "EZD-2022",
     "EZD-2030",
-    "EZD-2016"
+    "EZD-2016",
+    "EZD-2020"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2665,11 +2666,19 @@
       "ts": "2026-11-27T17:36:41Z",
       "kind": "ticket",
       "lane": 4
+    },
+    {
+      "id": "EZD-2020",
+      "title": "Security: error-tunnel alerts are marked as unverified browser reports",
+      "commit": "2352f1a2c",
+      "ts": "2026-11-27T18:28:32Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2983,17 +2992,17 @@
       "started": "2026-11-27T16:30:13Z",
       "develop": "5d6406f5c"
     },
-    "EZD-2020": {
-      "lane": 3,
-      "title": "Security: error-tunnel alerts are marked as unverified browser reports",
-      "started": "2026-11-27T16:30:13Z",
-      "develop": "5d6406f5c"
-    },
     "EZD-2017": {
       "lane": 4,
       "title": "Fix: sources bucket over-limit put T4 times out sending 50 MB under load (EZD-296)",
       "started": "2026-11-27T17:36:55Z",
       "develop": "a5c7c7de3"
+    },
+    "EZD-2031": {
+      "lane": 1,
+      "title": "The editor runs on an iPad held upright (744 to 1023 px wide)",
+      "started": "2026-11-27T17:52:32Z",
+      "develop": "70ffca174"
     }
   },
   "advisories_checked_at": "2026-11-27T16:29:29Z",
