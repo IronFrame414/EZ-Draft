@@ -569,7 +569,8 @@
     "EZD-708b",
     "EZD-232",
     "EZD-1995",
-    "EZD-708c"
+    "EZD-708c",
+    "EZD-1913a"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2503,6 +2504,14 @@
       "ts": "2026-11-27T00:52:18Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1913a",
+      "title": "Cabinets and Countertops modes as registry features",
+      "commit": "79fc51fc",
+      "ts": "2026-11-27T01:44:17Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2776,11 +2785,11 @@
       "started": "2026-11-27T00:02:46Z",
       "develop": "1424682b"
     },
-    "EZD-1913a": {
-      "lane": 3,
-      "title": "Cabinets and Countertops modes as registry features",
-      "started": "2026-11-27T00:02:47Z",
-      "develop": "1424682b"
+    "EZD-614": {
+      "lane": 2,
+      "title": "Appliance rating defaults",
+      "started": "2026-11-27T00:52:27Z",
+      "develop": "41009561"
     }
   },
   "advisories_checked_at": "2026-11-26T22:21:01Z",
