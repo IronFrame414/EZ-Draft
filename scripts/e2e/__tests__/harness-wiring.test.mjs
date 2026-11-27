@@ -143,7 +143,7 @@ describe('EZD-016d harness wiring', () => {
     assert.ok(smoke, 'the @smoke done-when test is listed');
     assert.deepEqual(projectsOf(smoke), ['desktop']);
     const code = scoped.find(
-      (e) => e.spec.title === 'EZD-007f done when: typing the 6-digit code signs in without opening the link',
+      (e) => e.spec.title === 'EZD-007f done when: typing the 8-digit code signs in without opening the link',
     );
     assert.ok(!code || code.spec.tests.length === 0, 'the code test is not listed');
   });

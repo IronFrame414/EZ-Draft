@@ -285,7 +285,7 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
     await closeHarness();
   });
 
-  it('EZD-007d done when: requesting sign-in sends one bilingual email with a link and a 6-digit code', async () => {
+  it('EZD-007d done when: requesting sign-in sends one bilingual email with a link and an 8-digit code (EZD-2030)', async () => {
     const m = await createTestMember({ tenantId: tenantA, status: 'active' });
     const { result, before } = await request(newStore(), m.email);
     expect(result).toEqual({ step: 'code' });
@@ -324,7 +324,7 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
     expect(link.searchParams.get('type')).toBe('email');
     expect((link.searchParams.get('token_hash') ?? '').length).toBeGreaterThan(0);
 
-    expect(mail.code).toMatch(/^\d{6}$/);
+    expect(mail.code).toMatch(/^\d{8}$/);
     const en = mail.html.search(/lang="en"/);
     const es = mail.html.search(/lang="es"/);
     expect(en).toBeGreaterThanOrEqual(0);
@@ -671,7 +671,7 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
       const { result, before } = await request(storeA, member.email);
       expect(result).toEqual({ step: 'code' });
       const { code } = await waitForAuthEmail(member.email, { after: before });
-      const wrong = String((Number(code) + 1) % 1000000).padStart(6, '0');
+      const wrong = String((Number(code) + 1) % 100000000).padStart(8, '0');
       expect(await run(storeA, () => verifySignInCode(form({ code: wrong })))).toEqual({
         resolved: { error: 'code_invalid' },
       });
@@ -679,7 +679,7 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
 
       // (b) malformed codes: no Auth call
       let mark = requests.length;
-      for (const bad of ['12345', 'abcdef']) {
+      for (const bad of ['12345', 'abcdef', '1234567', '123456789']) {
         expect(
           await run(newStore(), () => verifySignInCode(form({ email: member.email, code: bad }))),
         ).toEqual({ resolved: { error: 'code_invalid' } });

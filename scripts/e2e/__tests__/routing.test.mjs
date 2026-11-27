@@ -18,7 +18,7 @@ const T3 = 'EZD-016a T3 network off and on';
 const T12 = 'EZD-016a T12 the gate secret stays out of the browser';
 const T13 = 'EZD-016a T13 an unknown email is refused before the browser';
 const F1 = 'EZD-007f done when: link from the mail catcher signs in and the user signs out';
-const F2 = 'EZD-007f done when: typing the 6-digit code signs in without opening the link';
+const F2 = 'EZD-007f done when: typing the 8-digit code signs in without opening the link';
 
 function childEnv(grep) {
   const env = { ...process.env };

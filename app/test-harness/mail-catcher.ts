@@ -94,11 +94,11 @@ function parse(detail: Detail): AuthEmail {
       .replace(/<[^>]*>/g, ' ')
       .replace(ANY_URL, ' ');
   const codes = new Set([
-    ...(strip(text).match(/(?<!\d)\d{6}(?!\d)/g) ?? []),
-    ...(strip(decodeEntities(html)).match(/(?<!\d)\d{6}(?!\d)/g) ?? []),
+    ...(strip(text).match(/(?<!\d)(?:\d{8}|\d{6})(?!\d)/g) ?? []),
+    ...(strip(decodeEntities(html)).match(/(?<!\d)(?:\d{8}|\d{6})(?!\d)/g) ?? []),
   ]);
   if (codes.size !== 1) {
-    throw new Error(`mail-catcher: expected one distinct 6-digit code, found ${codes.size}`);
+    throw new Error(`mail-catcher: expected one distinct 6- or 8-digit code, found ${codes.size}`);
   }
   const [code] = [...codes];
   return { subject: detail.Subject ?? '', text, html, link, code };

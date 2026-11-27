@@ -1,14 +1,14 @@
 // EZD-024 Step 3 (vault/plans/EZD-024.md): scrubbing for everything sent to Sentry or put in an owner email,
 // shared by browser and server. Pure, no imports. It enforces the "never logged" list of docs/architecture.md
-// Errors and logging: tokens, keys, secrets, request bodies, email addresses (and the 6-digit sign-in code,
-// R26 R15).
+// Errors and logging: tokens, keys, secrets, request bodies, email addresses (and the emailed sign-in code,
+// R26 R15: 8 digits since EZD-2030, Q-0910; 6-digit runs are still removed, as are 6-digit invite codes).
 
 // EZD-142 D2: the URL tail and email passes are linear-time scanners (dropUrlTails, replaceEmails) with the
 // same output as the regexes `(https?:\/\/[^\s?#]*)[?#]\S*` and `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}`,
 // which backtracked from every start. The three patterns below are bounded per start, so they stay regexes.
 const UUID = /\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/g;
 const TOKEN_RUN = /[A-Za-z0-9_-]{24,}/g;
-const SIX_DIGITS = /\b\d{6}\b/g;
+const CODE_DIGITS = /\b(?:\d{8}|\d{6})\b/g;
 
 // D5: exactly the code units JavaScript `\s` matches.
 function isSpace(c: number): boolean {
@@ -128,7 +128,7 @@ export function scrubText(s: string): string {
   return replaceEmails(dropUrlTails(s))
     .replace(UUID, '<uuid>')
     .replace(TOKEN_RUN, (run) => (/[A-Za-z]/.test(run) && /\d/.test(run) ? '<token>' : run))
-    .replace(SIX_DIGITS, '<code>');
+    .replace(CODE_DIGITS, '<code>');
 }
 
 // EZD-040: tags, contexts and stack frames.

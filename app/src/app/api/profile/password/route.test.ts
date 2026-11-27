@@ -246,13 +246,14 @@ describe('EZD-108 password route', () => {
     expect(mailTo(aged.email)).toHaveLength(0);
     expect(await canSignIn(aged.email, agedPassword)).toBe(false);
 
-    const badCode = await setPw(agedPassword, '000000');
+    const badCode = await setPw(agedPassword, '00000000');
     expect(badCode.res.status).toBe(400);
     expect(badCode.json).toEqual(err('code_invalid'));
     expect(await canSignIn(aged.email, agedPassword)).toBe(false);
 
     const mail = await waitForRawEmail(aged.email, { after: startedAt });
-    const codes = new Set(mail.text.match(/(?<!\d)\d{6}(?!\d)/g) ?? []);
+    // EZD-2030 (Q-0910): the reauthentication code follows otp_length = 8.
+    const codes = new Set(mail.text.match(/(?<!\d)\d{8}(?!\d)/g) ?? []);
     expect(codes.size).toBe(1);
     const [code] = [...codes];
     const accepted = await setPw(agedPassword, code);

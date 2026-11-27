@@ -5,6 +5,7 @@
 // password does not keep them.
 import * as z from 'zod/mini';
 import { validateNewPassword } from '../auth/password-rules';
+import { isEmailCode } from './email-code';
 import type { AiKeyState } from './ai-key';
 
 export type Language = 'en' | 'es';
@@ -102,7 +103,8 @@ export function newPasswordProblem(
   return null;
 }
 
-// A reauthentication code is exactly six digits (Q-0447 (a)); the browser and setPassword both check it.
+// A reauthentication code is the emailed code (Q-0447 (a)): 8 digits since EZD-2030 (Q-0910), 6 still
+// accepted for now (./email-code.ts); the browser and setPassword both check it.
 export function codeProblem(code: string): 'code_invalid' | null {
-  return /^\d{6}$/.test(code) ? null : 'code_invalid';
+  return isEmailCode(code) ? null : 'code_invalid';
 }

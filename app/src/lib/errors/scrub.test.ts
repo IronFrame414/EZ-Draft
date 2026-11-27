@@ -1,7 +1,7 @@
 // EZD-040 U1-U6 (vault/plans/EZD-040.md Tests): scrubEvent covers tags, contexts and stack frames.
 // EZD-142 T4-T6 (vault/plans/EZD-142.md Tests; D7-D11): scrubEvent keeps only its allowlist of event fields.
 import { describe, expect, it } from 'vitest';
-import { scrubEvent, type ScrubbableEvent } from './scrub';
+import { scrubEvent, scrubText, type ScrubbableEvent } from './scrub';
 
 const UUID = '6f1c9a2e-1111-4222-8333-444455556666';
 const TOKEN = 'AbCdEfGhIjKlMnOpQrStUv12';
@@ -333,5 +333,16 @@ describe('EZD-142 scrubEvent covers every event field', () => {
     expect(
       run({ threads: { values: [{ id: 'ab ' + EMAIL, stacktrace: { frames: 'x' } }] } }),
     ).toEqual({ threads: { values: [{ id: 'ab <email>' }] } });
+  });
+});
+
+// EZD-2030 (AC-EZD-2030-3): the emailed sign-in code is 8 digits; scrubText removes 8- and 6-digit runs
+// (6 is still accepted, and the invite code is 6) and leaves a 7-digit run alone.
+describe('EZD-2030 scrubText removes 8-digit codes', () => {
+  it('8 and 6 digits become <code>, 7 digits stay', () => {
+    expect(scrubText('code 48291375 sent')).toBe('code <code> sent');
+    expect(scrubText('code 482913 sent')).toBe('code <code> sent');
+    expect(scrubText('n 4829137 n')).toBe('n 4829137 n');
+    expect(run({ contexts: { page: { code: 'code 48291375' } } }).contexts.page.code).toBe('code <code>');
   });
 });

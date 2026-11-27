@@ -126,7 +126,7 @@ describe('EZD-1977 sign-in lands on the asked-for page', () => {
     }
   });
 
-  it('code: the emailed 6-digit code lands on next', async () => {
+  it('code: the emailed 8-digit code lands on next', async () => {
     state.ip = freshIp();
     const m = await createTestMember({ tenantId: tenant, status: 'active' });
     const after = new Date();

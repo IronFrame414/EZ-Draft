@@ -35,7 +35,7 @@ function legacyScrubText(s: string): string {
     .replace(/[A-Za-z0-9_-]{24,}/g, (run) =>
       /[A-Za-z]/.test(run) && /\d/.test(run) ? '<token>' : run,
     )
-    .replace(/\b\d{6}\b/g, '<code>');
+    .replace(/\b(?:\d{8}|\d{6})\b/g, '<code>');
 }
 
 // D15: mulberry32, seeded 142.
