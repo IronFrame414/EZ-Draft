@@ -586,7 +586,8 @@
     "EZD-2015",
     "EZD-2029",
     "EZD-2022",
-    "EZD-2030"
+    "EZD-2030",
+    "EZD-2016"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2656,6 +2657,14 @@
       "ts": "2026-11-27T16:29:18Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-2016",
+      "title": "Fix: benchmark 150,000-entity DXF hits the statement timeout on a busy runner (EZD-901a)",
+      "commit": "6e9c1b6e2",
+      "ts": "2026-11-27T17:36:41Z",
+      "kind": "ticket",
+      "lane": 4
     }
   ],
   "set_aside": {},
@@ -2962,8 +2971,27 @@
       "reason": "check red after a review fix"
     }
   },
-  "running": {},
-  "advisories_checked_at": "2026-11-27T10:22:44Z",
+  "running": {
+    "EZD-2031": {
+      "lane": 1,
+      "title": "The editor runs on an iPad held upright (744 to 1023 px wide)",
+      "started": "2026-11-27T16:30:12Z",
+      "develop": "5d6406f5c"
+    },
+    "EZD-2019": {
+      "lane": 2,
+      "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
+      "started": "2026-11-27T16:30:13Z",
+      "develop": "5d6406f5c"
+    },
+    "EZD-2020": {
+      "lane": 3,
+      "title": "Security: error-tunnel alerts are marked as unverified browser reports",
+      "started": "2026-11-27T16:30:13Z",
+      "develop": "5d6406f5c"
+    }
+  },
+  "advisories_checked_at": "2026-11-27T16:29:29Z",
   "hold": {},
   "perf_trend_at": "2026-11-27T04:12:31Z",
   "set_aside_history": [
