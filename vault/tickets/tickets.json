@@ -28367,6 +28367,25 @@
    ],
    "acs_source": "josh-2026-11-27",
    "spec_phase": 11
+  },
+  {
+   "id": "EZD-2039",
+   "phase": 10,
+   "title": "Fix: scratch-check-local still times out at 300 s with 4 lanes after EZD-2008",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-27: after EZD-2008 (per-lane scratch stacks, merged 05:15Z) scripts/release/__tests__/scratch-check-local.test.mjs still timed out as a whole file (killed at 300 s by scripts/check.mjs:64) 6 times in 4 unrelated tickets: EZD-2019 (3, set aside at 23:09Z), EZD-2020, EZD-2017, EZD-2021, with lanes [1,2,3,4] since 09:18Z. The file took 175-184 s alone before EZD-2008 (flaky-test audit 2026-11-27 row 1, vault/plans/audit-flaky-tests-2026-11-27.md); four lanes each starting their own scratch stack now push it past the limit. The audit's second fix was not done: start the stack once per file and reset the database between its tests.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2039-1",
+    "AC-EZD-2039-2",
+    "AC-EZD-2039-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
