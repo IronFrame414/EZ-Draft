@@ -27460,6 +27460,122 @@
     "AC-EZD-2001-3"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2005",
+   "phase": 10,
+   "title": "Storage hides supplier-named files from members without See company costs",
+   "depends_raw": "",
+   "spec_ref": "Security audit 2026-11-27 S1 (vault/plans/audit-security-2026-11-27.md): the app treats a source file as a cost file when its kind is supplier_pdf or order_report or it has supplier_name or supplier_contact_email, but the Storage policy in supabase/migrations/20261026120002_create_storage_buckets.sql (kind test at line 38) hides only the two kinds, so a member without See company costs can list and download supplier-named images and DXFs from Storage directly.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2005-1",
+    "AC-EZD-2005-2",
+    "AC-EZD-2005-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2006",
+   "phase": 10,
+   "title": "Client link views are logged at most once per link per hour",
+   "depends_raw": "",
+   "spec_ref": "Security audit 2026-11-27 S3 (vault/plans/audit-security-2026-11-27.md): app/src/app/api/share-links/resolve/route.ts (lines 20, 28) lets anyone holding a live client link post {token, view: true} in a loop with no session; each call writes a share_link.viewed row to the company's append-only event_log with no limit.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2006-1",
+    "AC-EZD-2006-2",
+    "AC-EZD-2006-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2007",
+   "phase": 10,
+   "title": "Client link /c/<token> is public and its token never leaks into a redirect",
+   "depends_raw": "EZD-1202",
+   "spec_ref": "Security audit 2026-11-27 S2 (vault/plans/audit-security-2026-11-27.md): Send to client emails /c/<token>, but /c is not in app/src/server/auth/public-paths.ts, so app/src/proxy.ts redirects the client to /sign-in?next=/c/<token>, copying the secret token into a query string. EZD-1202 builds the /c page.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [
+    "EZD-1202"
+   ],
+   "acs": [
+    "AC-EZD-2007-1",
+    "AC-EZD-2007-2",
+    "AC-EZD-2007-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2002",
+   "phase": 10,
+   "title": "Field pages use the stored copy on a slow connection and keep the newer phone copy of rooms",
+   "depends_raw": "",
+   "spec_ref": "Accessibility and iPad audit 2026-11-27 A1 and A2 (vault/plans/audit-a11y-ipad-2026-11-27.md): app/src/lib/pwa/sw-rules.mjs:76-89 and lib/pwa/project-cache.ts:68-96 use the stored field pack only when the phone reports offline or the request fails outright, so a hanging request shows a blank page and a 5xx shows the error; field measure (sw-rules.mjs:104, FieldMeasureScreen.tsx:113-124) can reopen offline with old or empty rooms and then overwrite the phone and server copies.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2002-1",
+    "AC-EZD-2002-2",
+    "AC-EZD-2002-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2003",
+   "phase": 10,
+   "title": "Touch targets of at least 44 px on iPad in cabinets, countertops, import review, the edit menu and small editor controls",
+   "depends_raw": "",
+   "spec_ref": "Accessibility and iPad audit 2026-11-27 A22-A26 (vault/plans/audit-a11y-ipad-2026-11-27.md): cabinet run, countertop, import review and edit menu controls and several small editor controls are 20-40 px tall with no coarse-pointer rule. Same approach as EZD-1980 (coarse-pointer rules only, desktop unchanged).",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2003-1",
+    "AC-EZD-2003-2",
+    "AC-EZD-2003-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2004",
+   "phase": 10,
+   "title": "Keyboard and screen-reader fixes in field and editor screens",
+   "depends_raw": "",
+   "spec_ref": "Accessibility and iPad audit 2026-11-27 A9, A11-A14, A19-A21, A28-A30 (vault/plans/audit-a11y-ipad-2026-11-27.md): field measure menu with no Escape or focus return, drawing lengths and keypad keys with no spoken names, tab counts ignored, page language always en, cabinet Swap/Duplicate/Delete reachable only by right-click, library rows drag-only, circuit rename double-click only, hand-made dialogs with no focus trap or return, state shown by a coloured dot only, the New project customer search with no label. None changes how a screen looks on desktop.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2004-1",
+    "AC-EZD-2004-2",
+    "AC-EZD-2004-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
