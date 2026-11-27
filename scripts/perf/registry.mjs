@@ -75,6 +75,15 @@ export const MEASUREMENTS = Object.freeze([
   row('js-size:client-link', 'download.client-link', 'active', 'js-size', 'EZD-020; EZD-1202 repoints'),
   // EZD-1996 (AC-EZD-1996-3): the sign-in page's CSS on its own gate row.
   row('css-size:sign-in', 'download.sign-in-css', 'active', 'css-size', 'EZD-1996 (AC-EZD-1996-3)'),
+  // EZD-1995 (AC-EZD-1995-3): the screen messages inside each page's HTML, on the pages the download rows measure.
+  row(
+    'inline-messages:projects-settings',
+    'inline-messages.projects-settings',
+    'active',
+    'inline-messages',
+    'EZD-1995 (AC-EZD-1995-3)',
+  ),
+  row('inline-messages:editor', 'inline-messages.editor', 'active', 'inline-messages', 'EZD-1995 (AC-EZD-1995-3)'),
   row('entry-contents:office', 'contents.office', 'active', 'js-contents', 'EZD-020; EZD-117a, EZD-103 repoint'),
   row('entry-contents:editor', 'contents.editor', 'active', 'js-contents', 'EZD-020; EZD-120b repoints'),
   row(

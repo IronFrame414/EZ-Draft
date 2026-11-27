@@ -46,18 +46,23 @@ export default {
   profile: 'desktop',
   panUrl: '/dev/benchmark-plan',
   measurements: [
-    { id: 'js-size:editor', url: '/dev/benchmark-plan' },
+    // EZD-1995 (AC-EZD-1995-3): the projects-settings and editor download rows count the page's HTML too, where
+    // its screen messages travel.
+    { id: 'js-size:editor', url: '/dev/benchmark-plan', document: true },
     { id: 'js-size:sign-in', url: '/sign-in' },
     { id: 'js-size:auth-confirm', url: '/auth/confirm' },
     // EZD-1996 (AC-EZD-1996-3): the sign-in page's CSS alone.
     { id: 'css-size:sign-in', url: '/sign-in' },
     // EZD-020 Step 6: placeholder entry pages until the owner tickets repoint them.
-    { id: 'js-size:projects-settings', url: '/dev/entry/office' },
+    { id: 'js-size:projects-settings', url: '/dev/entry/office', document: true },
     // EZD-1998 (AC-EZD-1998-1): the real field pages of the seeded project the run is given (--project, signed in
     // with --storage-state), not the /dev/entry/field placeholder.
     { id: 'js-size:field-pack', url: '/projects/{project}/field' },
     { id: 'js-size:field-measure', url: '/projects/{project}/field-measure' },
     { id: 'js-size:client-link', url: '/dev/entry/client' },
+    // EZD-1995 (AC-EZD-1995-3): the screen messages inside the same pages' HTML.
+    { id: 'inline-messages:projects-settings', url: '/dev/entry/office' },
+    { id: 'inline-messages:editor', url: '/dev/benchmark-plan' },
     { id: 'entry-contents:office', url: '/dev/entry/office' },
     { id: 'entry-contents:editor', url: '/dev/entry/editor' },
     { id: 'entry-contents:field-pack', url: '/projects/{project}/field' },

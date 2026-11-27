@@ -18,6 +18,7 @@ import { getSession } from '../server/auth/session';
 import { createSessionClient } from '../server/auth/supabase-server';
 import { reportError } from '../server/errors/report';
 import { catalogFor } from '../server/messages/catalog';
+import { pageMessages } from '../server/messages/page-messages';
 import { getT } from '../server/messages/get-t';
 import { getNotFoundLanguage } from '../server/messages/not-found-language';
 import { can } from '../server/permissions';
@@ -67,7 +68,7 @@ export default async function NotFound(): Promise<JSX.Element> {
   const t = getT('sign_in', language);
   const messages = catalogFor('sign_in', language);
   return (
-    <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
+    <MessagesProvider language="en" messages={pageMessages('not_found')}>
       <div className={styles.signedInPage}>
         <NotFoundHeader account={account} />
         <main className={styles.centred}>

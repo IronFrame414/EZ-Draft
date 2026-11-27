@@ -8,7 +8,7 @@ import { ImportReview } from '../../../../../../editor/import-review/ImportRevie
 import { StateHost } from '../../../../../../components/states/StateHost';
 import { MessagesProvider } from '../../../../../../lib/messages';
 import { requireSession } from '../../../../../../server/auth/session';
-import { catalogFor } from '../../../../../../server/messages/catalog';
+import { pageMessages } from '../../../../../../server/messages/page-messages';
 
 export default async function ImportReviewPage({
   params,
@@ -19,7 +19,7 @@ export default async function ImportReviewPage({
   await requireSession();
   const { id, jobId } = await params;
   return (
-    <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
+    <MessagesProvider language="en" messages={pageMessages('import_review')}>
       <StateHost>
         <ImportReview projectId={id} jobId={jobId} />
       </StateHost>

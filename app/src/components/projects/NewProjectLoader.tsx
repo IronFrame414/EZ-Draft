@@ -6,12 +6,15 @@
 // Once loaded the module stays cached, so a reopen draws the wizard at once.
 import { useEffect, useState, type ReactElement } from 'react';
 import { lazyModule, type LazyModule } from '../../lib/lazy/lazy-module';
+import { withScreenMessages } from '../../lib/messages/screen-messages';
 import { useToast } from '../states/ToastProvider';
 import type { NewProjectDialogProps } from '../../lazy/new-project';
 
 export type NewProjectModule = typeof import('../../lazy/new-project');
 
-export const newProjectModule: LazyModule<NewProjectModule> = lazyModule(() => import('../../lazy/new-project'));
+export const newProjectModule: LazyModule<NewProjectModule> = lazyModule(() =>
+  withScreenMessages(import('../../lib/messages/screens/new-project.messages'), import('../../lazy/new-project')),
+);
 
 export function NewProjectLoader(
   props: NewProjectDialogProps & { module?: LazyModule<NewProjectModule> },

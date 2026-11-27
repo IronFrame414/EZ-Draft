@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { MessagesProvider } from '../../../lib/messages';
-import { catalogFor } from '../../../server/messages/catalog';
+import { pageMessages } from '../../../server/messages/page-messages';
 import { PanCommitProbe } from '../perf-probe/PanCommitProbe';
 import { BenchmarkPlan } from './BenchmarkPlan';
 
@@ -14,7 +14,7 @@ export default async function Page({
   if (process.env.VERCEL_ENV === 'production') notFound();
   const { inject } = await searchParams;
   return (
-    <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
+    <MessagesProvider language="en" messages={pageMessages('editor')}>
       <div data-perf-wait-plan="">
         <BenchmarkPlan />
       </div>

@@ -136,6 +136,7 @@ import { usePdfUnderlay } from './plan/PdfUnderlay';
 import { ZoomStack } from './plan/ZoomStack';
 import type { ConflictBannerProps } from './conflicts/ConflictBanner';
 import { lazyModule } from '../lib/lazy/lazy-module';
+import { withScreenMessages } from '../lib/messages/screen-messages';
 import { lazyPart, useLazy } from './shared/lazy-part';
 import { useStoreValue } from './shared/use-store-value';
 import { editorDefaults, useDefault } from './shared/use-default';
@@ -1641,14 +1642,18 @@ export function ProjectEditor({
   );
 }
 
-const conflictPanelModule = lazyModule(() => import('../lazy/conflict-panel'));
+const conflictPanelModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/conflict-panel.messages'), import('../lazy/conflict-panel')),
+);
 
 // EZD-1910 (editor plan R11, L4): every lazy part below is one `lazyPart` call (shared/lazy-part.tsx); nothing shows
 // for the moment a module downloads, and a failed download is tried again the next time the part is wanted.
 
 // EZD-111 (11 Budgets; EZD-120c B11): the Send dialog and the Project settings dialog it opens load when Share is
 // first pressed.
-const sendDialogModule = lazyModule(() => import('../lazy/send-dialog'));
+const sendDialogModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/send-dialog.messages'), import('../lazy/send-dialog')),
+);
 
 const LazySend = lazyPart(
   sendDialogModule,
@@ -1696,7 +1701,9 @@ const LazySend = lazyPart(
 
 // EZD-126 (11 rule 7): the lock UI loads on the first pointer move or press, or the first edit (not on
 // pointerover, which a browser fires when the page changes under a resting mouse).
-const lockUiModule = lazyModule(() => import('../lazy/lock-ui'));
+const lockUiModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/lock-ui.messages'), import('../lazy/lock-ui')),
+);
 
 // EZD-122 (11 Budgets): the Versions tab, the version inspector and the status text load when the tab first opens.
 // EZD-1910: through the lazy facade, so the entry contents check (EZD-120c B11) covers them.
@@ -1771,7 +1778,9 @@ const LazyDiffLayer = lazyPart(versionsModule, 'DiffLayer');
 
 // EZD-227 Build (11 Budgets; vault/build/assumptions.md EZD-227): the assistant panel loads when first opened, as the
 // conflict list does; nothing shows for the moment it downloads, and a failed download is tried again on next open.
-const assistantPanelModule = lazyModule(() => import('../lazy/assistant-panel'));
+const assistantPanelModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/assistant-panel.messages'), import('../lazy/assistant-panel')),
+);
 
 // EZD-5604b (11 Budgets; EZD-120c B11): the Assistant preview layer comes with the panel's lazy module, shown while
 // a preview is open.
@@ -1834,7 +1843,9 @@ const LazyScene3dOverlay = lazyPart(scene3dModule, 'Scene3dOverlay');
 const LazyBenchmarkRunner = lazyPart(benchmarkRunnerModule, 'BenchmarkRunner');
 
 // EZD-404 (11 Budgets; 11 rule 7): the cabinet run screen loads when the Cabinets tool is first turned on.
-const cabinetRunModule = lazyModule(() => import('../lazy/cabinet-run'));
+const cabinetRunModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/cabinet-run.messages'), import('../lazy/cabinet-run')),
+);
 
 const LazyCabinetRun = lazyPart(cabinetRunModule, 'CabinetRunView');
 const LazyCabinetInspector = lazyPart(cabinetRunModule, 'CabinetInspector');
@@ -1842,13 +1853,17 @@ const LazyCabinetLibrary = lazyPart(cabinetRunModule, 'CabinetLibrary');
 const LazyCabinetStatus = lazyPart(cabinetRunModule, 'CabinetRunStatus');
 
 // EZD-702a (11 Budgets; 11 rule 7): the Sheets screen loads when the Sheets tab is first pressed.
-const sheetsScreenModule = lazyModule(() => import('../lazy/sheets-screen'));
+const sheetsScreenModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/sheets-screen.messages'), import('../lazy/sheets-screen')),
+);
 
 // One part for the panel, canvas and status (EZD-120c B11: the entry's size).
 const LazySheets = lazyPart(sheetsScreenModule, 'SheetsPart');
 
 // EZD-412 (11 Budgets; 11 rule 7): the countertop screen loads when the Countertops tool is first turned on.
-const countertopsModule = lazyModule(() => import('../lazy/countertops'));
+const countertopsModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/countertops.messages'), import('../lazy/countertops')),
+);
 
 const LazyCountertops = lazyPart(countertopsModule, 'CountertopsView');
 // EZD-416: the countertop left panel and status readouts, from the same module.
@@ -1879,7 +1894,9 @@ const LazyNotice = lazyPart(
 );
 
 // EZD-222 (11 Budgets): the Help panel loads when Help is first opened.
-const helpPanelModule = lazyModule(() => import('../lazy/help-panel'));
+const helpPanelModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/help-panel.messages'), import('../lazy/help-panel')),
+);
 
 const LazyHelpPanel = lazyPart(helpPanelModule, 'HelpPanel');
 

@@ -18,7 +18,7 @@ import { projectMeshUrl } from '../../../../server/imports/project-mesh';
 import { reportError } from '../../../../server/errors/report';
 import { can } from '../../../../server/permissions';
 import { settingsPermissionContext } from '../../../../server/settings/shell-data';
-import { catalogFor } from '../../../../server/messages/catalog';
+import { pageMessages } from '../../../../server/messages/page-messages';
 import { fieldMeasureReviewJob } from '../../../../server/field-measure/review-redirect';
 
 // EZD-299 Build step 10 (vault/plans/EZD-299.md Decided D-Page; C14): `?conflicts=open` opens the conflict list.
@@ -102,7 +102,7 @@ export default async function EditorPage({
       ? { canManageDefaults: true }
       : {};
   return (
-    <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
+    <MessagesProvider language="en" messages={pageMessages('editor')}>
       <StateHost>
         {imported ? <ImportedNotice counts={imported} /> : null}
         <ProjectEditor
