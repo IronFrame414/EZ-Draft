@@ -576,7 +576,8 @@
     "EZD-2023",
     "EZD-2024",
     "EZD-2026",
-    "EZD-2027"
+    "EZD-2027",
+    "EZD-2001"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2566,6 +2567,14 @@
       "ts": "2026-11-27T07:38:14Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-2001",
+      "title": "Loop: a fourth build lane (lane 4)",
+      "commit": "4276f94c",
+      "ts": "2026-11-27T08:12:06Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2848,29 +2857,21 @@
     }
   },
   "running": {
-    "EZD-2001": {
-      "lane": 1,
-      "title": "Loop: a fourth build lane (lane 4)",
-      "started": "2026-11-27T06:36:48Z",
-      "develop": "48f113c6"
-    },
     "EZD-2029": {
       "lane": 3,
       "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
       "started": "2026-11-27T06:36:49Z",
       "develop": "48f113c6"
+    },
+    "EZD-2028": {
+      "lane": 2,
+      "title": "Toasts and the reload notice sit above the field tab bar and the home bar",
+      "started": "2026-11-27T07:38:20Z",
+      "develop": "22bfb49e"
     }
   },
   "advisories_checked_at": "2026-11-27T04:21:45Z",
-  "hold": {
-    "EZD-2001": {
-      "holders": [
-        "EZD-2023"
-      ],
-      "ts": "2026-11-27T05:19:00Z",
-      "why": "needs a file held by EZD-2023"
-    }
-  },
+  "hold": {},
   "perf_trend_at": "2026-11-27T04:12:31Z",
   "set_aside_history": [
     {
