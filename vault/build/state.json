@@ -571,7 +571,8 @@
     "EZD-1995",
     "EZD-708c",
     "EZD-1913a",
-    "EZD-614"
+    "EZD-614",
+    "EZD-2008"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2521,20 +2522,19 @@
       "ts": "2026-11-27T02:14:41Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-2008",
+      "title": "Fix: scratch-check-local times out when lanes share one scratch database (EZD-153)",
+      "commit": "887e15a8",
+      "ts": "2026-11-27T05:15:07Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
-  "set_aside": {
-    "EZD-2000": {
-      "title": "Gate rules that keep pages small and fast as the app grows",
-      "ts": "2026-11-27T04:12:31Z",
-      "reason": "check red after merging newer develop (first try: check red after merging newer develop)",
-      "detail": "release/__tests__/workflow.test.mjs scripts/test-harness/db-lock.test.mjs\nfull log: /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-2000/check.log\n\n== failure lines ==\nnot ok 321 - EZD-1953 T6 the 2574 rows of the old assumptions.md are all in the ticket files, each once (AC-EZD-1953-1)\n  location: '/Users/josh/Projects/ezdraft/.claude/worktrees/EZD-2000/vault/tools/assumptions-index.test.mjs:169:1'\n  error: 'row 2342aac9 missing from vault/build/assumptions/'\n  name: 'AssertionError'\n  expected: true\n\n== last lines ==\n      type: 'test'\n      ...\n    # Subtest: EZD-023a T10 findUnverifiable: cascade and dynamic text (Step 3)\n    ok 5 - EZD-023a T10 findUnverifiable: cascade and dynamic text (Step 3)\n      ---\n      duration_ms: 1.227667\n      type: 'test'\n      ...\n    1..5\nok 571 - EZD-023a sql scan\n  ---\n  duration_ms: 7.192125\n  type: 'suite'\n  ...\n# Subtest: EZD-325 scratch stack ports\n    # Subtest: EZD-325 T1 scratch stack ports are bare integers below 32768 and not shared\n    ok 1 - EZD-325 T1 scratch stack ports are bare integers below 32768 and not shared\n      ---\n      duration_ms: 10.794584\n      type: 'test'\n      ...\n    1..1\nok 572 - EZD-325 scratch stack ports\n  ---\n  duration_ms: 11.274167\n  type: 'suite'\n  ...\n# Subtest: EZD-023a release tags\n    # Subtest: EZD-023a T13 Tag order: listReleaseTags sorts by phase then patch and ignores other names\n    ok 1 - EZD-023a T13 Tag order: listReleaseTags sorts by phase then patch and ignores other names\n      ---\n      duration_ms: 3.400417\n      type: 'test'\n      ...\n    # Subtest: EZD-360 T6 compareReleaseTags orders phase-56 after phase-5.3 and before phase-6 (AC-EZD-360-3)\n    ok 2 - EZD-360 T6 compareReleaseTags orders phase-56 after phase-5.3 and before phase-6 (AC-EZD-360-3)\n      ---\n      duration_ms: 0.272458\n      type: 'test'\n      ...\n    # Subtest: EZD-360 T7 a Phase 6 pull request after phase-56 gets phase-6 (AC-EZD-360-3)\n    ok 3 - EZD-360 T7 a Phase 6 pull request after phase-56 gets phase-6 (AC-EZD-360-3)\n      ---\n      duration_ms: 2.20075\n      type: 'test'\n      ...\n    # Subtest: EZD-360 T8 a Phase 56 pull request after phase-5 gets phase-56 (AC-EZD-360-3)\n    ok 4 - EZD-360 T8 a Phase 56 pull request after phase-5 gets phase-56 (AC-EZD-360-3)\n      ---\n      duration_ms: 0.144334\n      type: 'test'\n      ...\n    # Subtest: EZD-360 T9 a Phase 56 pull request after phase-6 is not_newer (AC-EZD-360-3)\n    ok 5 - EZD-360 T9 a Phase 56 pull request after phase-6 is not_newer (AC-EZD-360-3)\n      ---\n      duration_ms: 0.07675\n      type: 'test'\n      ...\n    1..5\nok 573 - EZD-023a release tags\n  ---\n  duration_ms: 7.919\n  type: 'suite'\n  ...\n# Subtest: EZD-023c Vercel client requests\n    # Subtest: EZD-023c T23 (a)-(g) requests and results\n    ok 1 - EZD-023c T23 (a)-(g) requests and results\n      ---\n      duration_ms: 14.57675\n      type: 'test'\n      ...\n    # Subtest: EZD-023c T23 (h) errors name neither ids nor token nor body\n    ok 2 - EZD-023c T23 (h) erro",
-      "branch": "t/EZD-2000",
-      "worktree": ".claude/worktrees/EZD-2000"
-    }
-  },
+  "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2812,22 +2812,30 @@
     }
   },
   "running": {
-    "EZD-2008": {
-      "lane": 1,
-      "title": "Fix: scratch-check-local times out when lanes share one scratch database (EZD-153)",
-      "started": "2026-11-27T04:16:44Z",
-      "develop": "cc6811c2"
-    },
     "EZD-2023": {
       "lane": 3,
       "title": "Loop: final sweeps build after phase 58, non-test ACs skip the AC trace, and prep rows bind the builder",
       "started": "2026-11-27T04:22:38Z",
       "develop": "baac1717"
+    },
+    "EZD-2024": {
+      "lane": 2,
+      "title": "Only an Owner can give or take away the Owner role",
+      "started": "2026-11-27T04:24:45Z",
+      "develop": "9373efb3"
     }
   },
   "advisories_checked_at": "2026-11-27T04:21:45Z",
   "hold": {},
   "perf_trend_at": "2026-11-27T04:12:31Z",
-  "set_aside_history": [],
+  "set_aside_history": [
+    {
+      "ticket": "EZD-2000",
+      "reason": "check red after merging newer develop (first try: check red after merging newer develop)",
+      "set_aside_ts": "2026-11-27T04:12:31Z",
+      "retried_ts": "2026-11-27T04:29:39Z",
+      "by": "overwatch"
+    }
+  ],
   "backups_checked_at": "2026-11-26T09:58:49Z"
 }
