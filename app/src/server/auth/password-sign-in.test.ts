@@ -239,7 +239,7 @@ describe('EZD-033 password sign-in actions', () => {
     for (const body of [mail.text, mail.html]) {
       expect(body).not.toContain('http');
       expect(body).not.toContain('href');
-      expect(body).not.toMatch(/\b\d{6}\b/);
+      expect(body).not.toMatch(/\b(?:\d{8}|\d{6})\b/);
     }
     expect(mail.subject).toMatch(/^EZ Draft password reset requested \/ .*\S/);
 

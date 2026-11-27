@@ -115,9 +115,10 @@ describe('EZD-108 profile lib', () => {
     expect(newPasswordProblem('abcd-wxyz1', 'abcd-wxyz1', EMAIL)).toBeNull();
   });
 
-  it('T2 (e) codeProblem: only exactly six digits pass', () => {
-    for (const code of ['', '12345', '12a456', '1234567'])
+  it('T2 (e) codeProblem: only exactly eight digits, or six for now, pass (EZD-2030)', () => {
+    for (const code of ['', '12345', '12a456', '1234567', '123456789', '1234a678', ' 12345678'])
       expect(codeProblem(code), JSON.stringify(code)).toBe('code_invalid');
+    expect(codeProblem('12345678')).toBeNull();
     expect(codeProblem('123456')).toBeNull();
   });
 });

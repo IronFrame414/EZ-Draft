@@ -234,8 +234,8 @@ enable_confirmations = true
 secure_password_change = true
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
 max_frequency = "1s"
-# Number of characters used in the email OTP (R26 R15: 6-digit code).
-otp_length = 6
+# Number of characters used in the email OTP (R26 R15; EZD-2030, Q-0910: 8-digit code).
+otp_length = 8
 # Number of seconds before the email OTP expires (Q-0049: the link and code are valid 15 minutes).
 otp_expiry = 900
 

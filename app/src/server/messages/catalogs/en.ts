@@ -31,9 +31,9 @@ export const en = {
   'common.sign_in.email_label': 'Email',
   'common.sign_in.send': 'Email me a sign-in link',
   'common.sign_in.sent':
-    'If {email} has EZ Draft access, we sent a sign-in link and a 6-digit code. Open the link, or type the code here.',
+    'If {email} has EZ Draft access, we sent a sign-in link and an 8-digit code. Open the link, or type the code here.',
   'common.sign_in.check_spam': 'Not in your inbox? Check your spam or junk folder.',
-  'common.sign_in.code_label': '6-digit code',
+  'common.sign_in.code_label': '8-digit code',
   'common.sign_in.code_submit': 'Sign in',
   'common.sign_in.change_email': 'Use a different email',
   'common.sign_in.confirm_title': 'Finish signing in',
@@ -88,6 +88,8 @@ export const en = {
   'common.disclaimer':
     "For design and planning only. All calculations and codes must be verified by the user and a licensed professional in the project's jurisdiction.",
   'common.no_access': "You don't have access to this. Ask your supervisor.",
+  // EZD-2029 (Q-0909): the touch-screen control that opens and folds the editor left panel.
+  'common.shell.left_panel_toggle': 'Show or hide the left panel',
   'error.project_not_found': "That project isn't available.",
   // EZD-1201: share links (S18 States Expired).
   'error.share_link_expired': 'This link has expired. Ask {company} to renew it.',
@@ -2172,6 +2174,11 @@ export const en = {
   'office.alert.webhook.body':
     'Delivery of {event} (event {eventId}) failed after {attempts} tries. Last response: {status}.',
   'office.alert.open_app': 'Open EZ Draft',
+  'office.alert.digest.subject': 'EZ Draft errors reported by a browser (unverified): {count} new',
+  'office.alert.digest.body':
+    'These errors were reported by a browser through the public error tunnel. Anyone can send such a report, so they are unverified. Browser reports come as one email per hour; repeats are counted but not emailed.',
+  'office.alert.digest.line': '{title} ({source}, seen {occurrences} times)',
+  'office.alert.digest.more': 'And {count} more.',
   'office.notifications.kind.client_response.approved': 'Client approved {version}',
   'office.notifications.kind.client_response.commented': 'Client commented on {version}',
   'office.notifications.kind.field_conflict': 'Field conflict to resolve',

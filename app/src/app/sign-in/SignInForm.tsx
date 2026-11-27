@@ -1,6 +1,6 @@
 'use client';
 // EZD-007f Step 7 (vault/plans/EZD-007f.md section 3; Q-0035 note; Q-0100; Q-0169 (a); Q-0170 (b)).
-// Step 1 asks for the email; step 2 tells the user to check spam and takes the 6-digit code. The emailed
+// Step 1 asks for the email; step 2 tells the user to check spam and takes the 8-digit code (EZD-2030). The emailed
 // link, token hash and code are never shown. Next's redirect after a sign-in is rethrown, never caught.
 import { useActionState, useState } from 'react';
 import { unstable_rethrow } from 'next/navigation';
@@ -14,6 +14,7 @@ import {
 } from '../../server/auth/actions';
 import { Captcha, type CaptchaSetup } from '../../components/auth/Captcha';
 import { InviteCodeForm } from '../../components/auth/InviteCodeForm';
+import { EMAIL_CODE_INPUT_PATTERN, EMAIL_CODE_LENGTH } from '../../lib/profile/email-code';
 import styles from '../../components/auth/auth.module.css';
 
 // EZD-033 Step 6 (vault/plans/EZD-033.md; Q-0091; Q-0101): step 1 is email and password first, then
@@ -279,8 +280,8 @@ export function SignInForm({
           name="code"
           inputMode="numeric"
           autoComplete="one-time-code"
-          pattern="[0-9]{6}"
-          maxLength={6}
+          pattern={EMAIL_CODE_INPUT_PATTERN}
+          maxLength={EMAIL_CODE_LENGTH}
           data-testid="sign-in-code"
         />
         {error}

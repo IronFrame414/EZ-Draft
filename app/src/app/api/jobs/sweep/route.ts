@@ -7,6 +7,7 @@ import { reportError } from '../../../../server/errors/report';
 import { rewrapStaleAiKeys } from '../../../../server/jobs/ai-key-rewrap';
 import { defaultJobHooks } from '../../../../server/jobs/default-hooks';
 import { runJobs } from '../../../../server/jobs/runner';
+import { sweepTunnelAlertDigest } from '../../../../server/jobs/tunnel-alert-digest';
 import { sweepExpiredLocks } from '../../../../server/lock/sweep';
 import { sweepShareLinkReminders } from '../../../../server/share-links/sweep';
 import { sweepVersionCleanup } from '../../../../server/versions/cleanup-sweep';
@@ -68,6 +69,16 @@ export async function GET(request: Request): Promise<Response> {
     await sweepShareLinkReminders();
   } catch {
     await reportError(new Error('share_link_reminder_sweep_failed'), {
+      source: 'job',
+      location: '/api/jobs/sweep',
+    });
+  }
+  // EZD-2020 (audit 2026-11-27 X3): tunnel (browser) alerts go out as one digest per hour; a failure is
+  // reported by code and does not change the answer.
+  try {
+    await sweepTunnelAlertDigest();
+  } catch {
+    await reportError(new Error('tunnel_alert_digest_failed'), {
       source: 'job',
       location: '/api/jobs/sweep',
     });

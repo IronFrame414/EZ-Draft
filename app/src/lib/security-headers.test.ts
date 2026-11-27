@@ -22,7 +22,10 @@ function headersFor(all: Rule[], source: string): Record<string, string> {
 describe('EZD-1930 security headers', () => {
   it('every path carries frame-ancestors self, nosniff and the Permissions-Policy', async () => {
     const all = headersFor(await rules(), '/:path*');
-    expect(all['Content-Security-Policy']).toBe("frame-ancestors 'self'");
+    // EZD-2022: the policy gained object-src 'none' and base-uri 'self'; frame-ancestors is still 'self'.
+    expect(all['Content-Security-Policy'].split(';').map((d) => d.trim())).toContain(
+      "frame-ancestors 'self'",
+    );
     expect(all['X-Content-Type-Options']).toBe('nosniff');
     expect(all['Permissions-Policy']).toBe('camera=(), microphone=(), geolocation=()');
   });
@@ -30,8 +33,13 @@ describe('EZD-1930 security headers', () => {
   it('never forbids same-origin framing (Run benchmark frames the editor)', async () => {
     const values = (await rules()).flatMap((r) => r.headers);
     expect(values.find((h) => h.key.toLowerCase() === 'x-frame-options')).toBeUndefined();
+    // EZD-2022: object-src 'none' is allowed; only the frame-ancestors directive must not be 'none'.
     for (const h of values.filter((v) => v.key === 'Content-Security-Policy')) {
-      expect(h.value).not.toContain("'none'");
+      const frame = h.value
+        .split(';')
+        .map((d) => d.trim())
+        .find((d) => d.startsWith('frame-ancestors'));
+      expect(frame).toBe("frame-ancestors 'self'");
     }
   });
 

@@ -45,7 +45,16 @@ describe('EZD-004b GET /api/health', () => {
     const res = await GET();
     expect(res.status).toBe(200);
     expect(res.headers.get('cache-control')).toContain('no-store');
-    expect(await res.json()).toEqual({ status: 'ok', schema_version: newestMigration });
+    // EZD-2022 (AC-EZD-2022-3): signed out, the answer is only the status; the cron secret shows the version.
+    expect(await res.json()).toEqual({ status: 'ok' });
+    vi.stubEnv('CRON_SECRET', 'cron-secret-TEST');
+    const full = await GET(
+      new Request('http://localhost/api/health', {
+        headers: { authorization: 'Bearer cron-secret-TEST' },
+      }),
+    );
+    expect(full.status).toBe(200);
+    expect(await full.json()).toEqual({ status: 'ok', schema_version: newestMigration });
   });
 
   it('EZD-004b T3a health failure, address nothing listens on, done when', async () => {

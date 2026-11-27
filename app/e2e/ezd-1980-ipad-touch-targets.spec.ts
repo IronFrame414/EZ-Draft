@@ -54,7 +54,15 @@ async function expectAllTouchTargets(page: Page, root: Locator): Promise<number>
       for (const t of targets) {
         let region: Element = t.parentElement ?? rootEl;
         let up = region.parentElement;
-        while (up && rootEl.contains(up) && up.getBoundingClientRect().height <= max) {
+        // EZD-2029: a list that scrolls its rows is never a region (scrolling it into view would leave its lower
+        // rows out of sight), also when it is short, as in the left panel a touch screen opens below the edit bar.
+        const scrolls = (el: Element) => el.scrollHeight > el.clientHeight + 1;
+        while (
+          up &&
+          rootEl.contains(up) &&
+          up.getBoundingClientRect().height <= max &&
+          !scrolls(up)
+        ) {
           region = up;
           up = up.parentElement;
         }
@@ -253,6 +261,8 @@ test.describe('EZD-1980 touch targets of at least 44 px on iPad', () => {
         .getByRole('navigation', { name: 'Views' })
         .getByRole('button', { name: 'Sheets', exact: true })
         .click();
+      // EZD-2029 (Q-0909): on a touch screen the left panel starts folded; its control opens it.
+      await tid(page, 'left-panel-toggle').click();
       await expect(tid(page, 'sheet-row-A1.0')).toBeVisible();
       await tid(page, 'sheet-row-A1.0').click();
       await expect(tid(page, 'sheet-preview')).toHaveAttribute('data-sheet', 'A1.0');
@@ -271,6 +281,8 @@ test.describe('EZD-1980 touch targets of at least 44 px on iPad', () => {
     async ({ page, signInAs }) => {
       await editorWithRoom(page, signInAs);
       await page.keyboard.press('c');
+      // EZD-2029 (Q-0909): on a touch screen the left panel starts folded; its control opens it.
+      await tid(page, 'left-panel-toggle').click();
       await expect(tid(page, 'cabinet-library')).toBeVisible();
       await expect(tid(page, 'cabinet-library-trim-row')).toBeVisible();
       await expect(tid(page, 'cabinet-library-line')).toBeVisible();

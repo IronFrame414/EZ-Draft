@@ -68,12 +68,13 @@ type Dims = {
 const IPAD: Dims = {
   W: 1180,
   H: 820,
-  helpY: 703,
+  helpY: 631,
   maxRight: 1163,
+  // EZD-2029 (Q-0909): on a touch screen the left panel starts folded; the rail column holds the rail and, 16 px
+  // below it, the 56 px fold control, and the canvas takes the panel's width.
   boxes: {
-    rail: { x: 16, y: 92, width: 56, height: 666 },
-    'left-panel': { x: 88, y: 92, width: 248, height: 666 },
-    canvas: { x: 352, y: 92, width: 460, height: 666 },
+    rail: { x: 16, y: 92, width: 56, height: 594 },
+    canvas: { x: 88, y: 92, width: 724, height: 666 },
     inspector: { x: 828, y: 92, width: 336, height: 666 },
     'status-bar': { x: 16, y: 774, width: 1148, height: 30 },
   },
@@ -82,12 +83,11 @@ const IPAD: Dims = {
 const SURFACE: Dims = {
   W: 1440,
   H: 960,
-  helpY: 843,
+  helpY: 771,
   maxRight: 1423,
   boxes: {
-    rail: { x: 16, y: 92, width: 56, height: 806 },
-    'left-panel': { x: 88, y: 92, width: 248, height: 806 },
-    canvas: { x: 352, y: 92, width: 720, height: 806 },
+    rail: { x: 16, y: 92, width: 56, height: 734 },
+    canvas: { x: 88, y: 92, width: 984, height: 806 },
     inspector: { x: 1088, y: 92, width: 336, height: 806 },
     'status-bar': { x: 16, y: 914, width: 1408, height: 30 },
   },
@@ -102,6 +102,15 @@ async function fullShellChecks(page: Page, d: Dims): Promise<void> {
   for (const [name, b] of Object.entries(d.boxes)) {
     expect(await box(region(page, name)), name).toEqual(b);
   }
+  // EZD-2029: the folded left panel takes no box; its fold control sits below the rail.
+  await expect(region(page, 'left-panel')).toBeHidden();
+  const rail = d.boxes.rail!;
+  expect(await box(page.getByTestId('left-panel-toggle'))).toEqual({
+    x: 16,
+    y: rail.y + rail.height + 16,
+    width: 56,
+    height: 56,
+  });
   const scroll = await page.evaluate(() => ({
     w: document.documentElement.scrollWidth,
     h: document.documentElement.scrollHeight,
@@ -134,7 +143,8 @@ async function fullShellChecks(page: Page, d: Dims): Promise<void> {
   await expect(links).toHaveCount(1);
   expect((await box(links)).height).toBeGreaterThanOrEqual(44);
 
-  expect(await expectTouchTargets(page, frame(page))).toBe(12);
+  // EZD-2029: 12 before, plus the left panel's fold control.
+  expect(await expectTouchTargets(page, frame(page))).toBe(13);
 
   const edges = await header(page)
     .locator('a[href], button')
@@ -248,7 +258,7 @@ test.describe('EZD-014c device layouts', () => {
   });
 
   test(
-    'EZD-014c B5 layout switches live at 1024 px (EZD-324)',
+    'EZD-014c B5 layout switches live at 744 px wide and tall and at 1024 px (EZD-324; Q-0908)',
     { tag: ['@ipad'] },
     async ({ page }) => {
       await page.goto('/dev/device');
@@ -256,9 +266,14 @@ test.describe('EZD-014c device layouts', () => {
       await page.evaluate(() => {
         (window as unknown as Record<string, unknown>).__ezdMarker = 1;
       });
+      // AC-EZD-2031-4: this test assumed the 1024 px boundary; from 1024 px wide the steps are unchanged.
+      // EZD-2031 (Q-0908, which changes Q-0054 (a)): under 1024 px wide the full shell needs at least 744 px each way.
       const steps: Array<[number, number, 'full' | 'phone']> = [
         [1024, 820, 'full'],
-        [1023, 820, 'phone'],
+        [1023, 820, 'full'],
+        [1023, 743, 'phone'],
+        [768, 1024, 'full'],
+        [743, 1024, 'phone'],
         [1180, 820, 'full'],
         [390, 844, 'phone'],
         [1180, 820, 'full'],

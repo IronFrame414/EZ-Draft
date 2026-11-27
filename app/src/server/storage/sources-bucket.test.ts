@@ -13,6 +13,7 @@ import {
   signIn,
   type Session,
 } from '../../../test-harness/rls/fixtures';
+import { overLimitBody, sendUntilAnswered } from '../../../test-harness/storage/over-limit-stream';
 import { SOURCE_CONTENT_TYPES, SOURCE_MAX_BYTES } from '../../lib/storage/source-file-kinds';
 import { kindOptions } from '../../lib/imports/upload-files';
 import { uploadFile, UploadError } from '../../lib/storage/upload';
@@ -94,8 +95,11 @@ describe('EZD-296 sources bucket limits', () => {
     return started;
   };
 
-  const directPut = (path: string, bytes: Uint8Array, contentType: string) =>
-    s.serverDb.storage.from('sources').upload(path, bytes, { contentType });
+  const directPut = (
+    path: string,
+    bytes: Uint8Array | ReadableStream<Uint8Array>,
+    contentType: string,
+  ) => s.serverDb.storage.from('sources').upload(path, bytes, { contentType });
 
   const rowCount = async () => {
     const { count, error } = await adminDb()
@@ -151,7 +155,12 @@ describe('EZD-296 sources bucket limits', () => {
   it('T4 a direct put over the size limit is refused, a small one is accepted', async () => {
     const { sourceFile } = await pending();
     const path = sourceFile.storagePath;
-    const big = await directPut(path, new Uint8Array(N + 1).fill(0x61), 'application/pdf');
+    // EZD-2017: the over-limit file goes out as a stream that stops once Storage has answered, not as 50 MB held
+    // in memory; same size (one byte over), same request, same assertion.
+    const body = overLimitBody(N + 1);
+    const big = await sendUntilAnswered(body, (stream) =>
+      directPut(path, stream, 'application/pdf'),
+    );
     expect(big.error).not.toBeNull();
     expect(await objectExists(path)).toBe(false);
 

@@ -108,7 +108,7 @@ test.describe('EZD-007f sign-in pages', () => {
     let t2Link = '';
 
     // T2 (AC-3): P-T2; R26 R15.
-    test('EZD-007f done when: typing the 6-digit code signs in without opening the link', async ({
+    test('EZD-007f done when: typing the 8-digit code signs in without opening the link', async ({
       browser,
       baseURL,
     }) => {
@@ -120,7 +120,14 @@ test.describe('EZD-007f sign-in pages', () => {
 
       const mail = await requestCode(page, m.email);
       t2Link = mail.link;
-      expect(mail.code).toMatch(/^\d{6}$/);
+      expect(mail.code).toMatch(/^\d{8}$/);
+      // AC-EZD-2030-2: the field takes 8 digits (6 still pass the browser check for now, 7 do not).
+      const field = page.getByTestId('sign-in-code');
+      await expect(field).toHaveAttribute('maxlength', '8');
+      for (const [typed, ok] of [['1234567', false], ['123456', true], [mail.code, true]] as const) {
+        await field.fill(typed);
+        expect(await field.evaluate((el: HTMLInputElement) => el.checkValidity()), typed).toBe(ok);
+      }
       await page.getByTestId('sign-in-code').fill(mail.code);
       await page.getByTestId('sign-in-code-submit').click();
       await page.waitForURL((u) => u.pathname === '/');
@@ -323,7 +330,7 @@ test.describe('EZD-007f sign-in pages', () => {
     const m = await activeMember();
     const mail = await requestCode(page, m.email);
     const firstAt = Date.now();
-    const wrong = String((Number(mail.code) + 1) % 1000000).padStart(6, '0');
+    const wrong = String((Number(mail.code) + 1) % 100000000).padStart(8, '0');
     await page.getByTestId('sign-in-code').fill(wrong);
     await page.getByTestId('sign-in-code-submit').click();
     await expect(page.getByTestId('sign-in-error')).toHaveText(text('en', 'error.code_invalid'));

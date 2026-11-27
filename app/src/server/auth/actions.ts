@@ -30,9 +30,12 @@ import { timingSafeEqual } from 'node:crypto';
 import { acceptInviteByToken } from '../users/accept-invite';
 import { inviteCode, inviteToken } from '../users/invite-token';
 import { inviteCodeTake } from './admin-auth';
+import { isEmailCode } from '../../lib/profile/email-code';
 
 const EmailSchema = z.string().trim().toLowerCase().pipe(z.email());
-const CODE_PATTERN = /^\d{6}$/;
+// EZD-2030: the emailed sign-in code is 8 digits (6 still accepted for now, lib/profile/email-code.ts);
+// the invite code (Q-0695, server/users/invite-token.ts) stays 6 digits.
+const INVITE_CODE_PATTERN = /^\d{6}$/;
 
 function parseEmail(value: FormDataEntryValue | null | undefined): string | null {
   const parsed = EmailSchema.safeParse(typeof value === 'string' ? value : '');
@@ -230,7 +233,7 @@ export async function verifySignInCode(formData: FormData): Promise<{
   );
   const codeField = formData.get('code');
   const code = typeof codeField === 'string' ? codeField.trim() : '';
-  if (!email || !CODE_PATTERN.test(code)) return { error: 'code_invalid' };
+  if (!email || !isEmailCode(code)) return { error: 'code_invalid' };
 
   const slot = await takeSlot('code', email);
   if (!slot) return { error: 'unavailable' };
@@ -353,7 +356,7 @@ export async function acceptInviteCode(formData: FormData): Promise<{
   const email = parseEmail(formData.get('email'));
   const codeField = formData.get('code');
   const code = typeof codeField === 'string' ? codeField.replace(/\s+/g, '') : '';
-  if (!email || !CODE_PATTERN.test(code)) return { error: 'invite_code_invalid' };
+  if (!email || !INVITE_CODE_PATTERN.test(code)) return { error: 'invite_code_invalid' };
 
   const slot = await takeSlot('code', email);
   if (!slot) return { error: 'unavailable' };

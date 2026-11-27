@@ -319,8 +319,12 @@ test.describe('EZD-211b door and window tools', () => {
       near(center(o).y, 0);
       // EZD-232: 16 top tools need 16 x (44 + 2) = 736 px, more than this rail's height (15 fitted: at least 690 px),
       // so 14 tools and the More tools button fit (Q-0038 (b)); the other two are in its flyout.
+      // EZD-2029 (Q-0909): on a touch screen the left panel's 56 px fold control and a 16 px gap sit below the rail,
+      // so the rail is 72 px shorter (806 -> 734). Its top group is 734 - 20 padding - 90 bottom group (2 x 44 + 2)
+      // = 624 px, room 626 with the last gap: More tools takes 46, and 12 more 46 px places fit (46 + 12 x 46 = 598;
+      // 13 would need 644), so 12 tools and More tools.
       await expect(tool(page, 'more-tools')).toBeVisible();
-      expect(await expectTouchTargets(page, rail(page).locator('[data-rail="top"]'))).toBe(15); // EZD-601: plus Electrical; EZD-412: plus Countertops; EZD-216: plus Dimension, Text; EZD-232: plus Revision cloud, so More tools
+      expect(await expectTouchTargets(page, rail(page).locator('[data-rail="top"]'))).toBe(13); // EZD-601: plus Electrical; EZD-412: plus Countertops; EZD-216: plus Dimension, Text; EZD-232: plus Revision cloud, so More tools
       expect(await expectTouchTargets(page, rail(page).locator('[data-rail="bottom"]'))).toBe(2); // EZD-222: Assistant and Help
       expect(await expectTouchTargets(page, id(page, 'opening-chips'))).toBe(2);
       await id(page, 'opening-chip-left').tap();

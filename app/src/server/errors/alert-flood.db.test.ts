@@ -1,8 +1,9 @@
 // EZD-1933 (audit 2026-11-23 S3; vault/plans/audit-2026-11-23.md), local stack. The two error-alert functions
 // anon may run, record_error_alert and release_error_alert_email, called as anon with the API gate header 100
 // times in a row with distinct fingerprints, never queue more owner alert emails than the EZD-024 limit:
-// 20 alerts per rolling hour (vault/plans/EZD-024.md line 161, Q-0068 (a)), of which browser and worker
-// alerts may use at most 10 (EZD-143, Q-0278 (b); supabase/migrations/20261025043420_error_alert_caps_per_source.sql).
+// 20 alerts per rolling hour (vault/plans/EZD-024.md line 161, Q-0068 (a)). EZD-2020 (audit 2026-11-27 X3): browser
+// and worker alerts get no email claim of their own (they go out in the hourly digest, tunnel-digest.db.test.ts),
+// replacing their share of 10 (EZD-143, Q-0278 (b)).
 // Holds the error-alert lock for the whole file and clears error_alert around every test (EZD-024 V7).
 import { randomBytes } from 'node:crypto';
 import * as Sentry from '@sentry/nextjs';
@@ -18,7 +19,7 @@ const fingerprint = () => randomBytes(32).toString('hex');
 const randomUuid = () => crypto.randomUUID();
 const ROUNDS = 100;
 const EMAIL_CAP = 20; // EZD-024 plan line 161 (Q-0068 (a))
-const BROWSER_WORKER_SHARE = 10; // EZD-143 (Q-0278 (b))
+const BROWSER_WORKER_SHARE = 0; // EZD-2020: tunnel reports wait for the hourly digest
 
 type Source = 'browser' | 'worker' | 'function';
 
@@ -71,7 +72,7 @@ beforeEach(async () => {
 });
 
 describe('EZD-1933 signed-out error-alert functions cannot flood the owner with email', () => {
-  it('100 direct anon calls of both functions hand out at most the browser share of 10 and the cap of 20', async () => {
+  it('100 direct anon calls of both functions hand out no browser claim and at most the cap of 20', async () => {
     const anon = anonDb({ gate: true });
     let claims = 0;
     for (const source of ['browser', 'function'] as const) {
@@ -101,7 +102,7 @@ describe('EZD-1933 signed-out error-alert functions cannot flood the owner with 
     }
   }, 180000);
 
-  it('100 browser alerts through the sending path queue exactly 10 owner emails', async () => {
+  it('100 browser alerts through the sending path queue no per-report owner email', async () => {
     const anon = anonDb({ gate: true });
     for (let i = 0; i < ROUNDS; i++) {
       await recordAndAlert(anon, alertInput(i % 2 === 0 ? 'browser' : 'worker', i), process.env);

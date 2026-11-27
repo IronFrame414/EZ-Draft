@@ -238,6 +238,8 @@ describe('EZD-323 test-only database functions', () => {
       'app/src/server/jobs/handlers/reference-convert.ts',
       'app/src/server/jobs/queue.ts',
       'app/src/server/jobs/runner.ts',
+      // EZD-2020: the sweep's tunnel alert digest (called from api/jobs/sweep/route.ts) runs claim_tunnel_alert_digest and release_tunnel_alert_digest, granted to service_role only (audit 2026-11-27 X3).
+      'app/src/server/jobs/tunnel-alert-digest.ts',
       // EZD-125: the sweep's edit lock pass (called from api/jobs/sweep/route.ts) runs sweep_edit_locks, granted to service_role only (Q-0697 decisions 03).
       'app/src/server/lock/sweep.ts',
       // EZD-1201: the sweep's share link reminder pass (called from api/jobs/sweep/route.ts) runs sweep_share_link_reminders, granted to service_role only (07 share_link.expiring).

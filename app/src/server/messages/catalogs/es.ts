@@ -51,10 +51,10 @@ export const es = {
   'common.sign_in.email_label': 'Correo electrónico',
   'common.sign_in.send': 'Envíame un enlace de acceso por correo',
   'common.sign_in.sent':
-    'Si {email} tiene acceso a EZ Draft, enviamos un enlace de acceso y un código de 6 dígitos. Abre el enlace o escribe el código aquí.',
+    'Si {email} tiene acceso a EZ Draft, enviamos un enlace de acceso y un código de 8 dígitos. Abre el enlace o escribe el código aquí.',
   'common.sign_in.check_spam':
     '¿No está en tu bandeja de entrada? Revisa la carpeta de spam o correo no deseado.',
-  'common.sign_in.code_label': 'Código de 6 dígitos',
+  'common.sign_in.code_label': 'Código de 8 dígitos',
   'common.sign_in.code_submit': 'Iniciar sesión',
   'common.sign_in.change_email': 'Usar otro correo electrónico',
   'common.sign_in.confirm_title': 'Termina de iniciar sesión',
@@ -92,6 +92,8 @@ export const es = {
   'common.disclaimer':
     'Solo para diseño y planificación. Todos los cálculos y códigos deben ser verificados por el usuario y por un profesional con licencia en la jurisdicción del proyecto.',
   'common.no_access': 'No tienes acceso a esto. Pregúntale a tu supervisor.',
+  // EZD-2029 (Q-0909): the touch-screen control that opens and folds the editor left panel.
+  'common.shell.left_panel_toggle': 'Mostrar u ocultar el panel izquierdo',
   'error.project_not_found': 'Ese proyecto no está disponible.',
   // EZD-1201: share links (S18 States Expired).
   'error.share_link_expired': 'Este enlace ha vencido. Pida a {company} que lo renueve.',

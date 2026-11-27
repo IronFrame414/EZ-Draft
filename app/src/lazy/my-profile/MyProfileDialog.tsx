@@ -22,6 +22,7 @@ import {
   type ProfileResponse,
 } from '../../lib/profile/profile';
 import type { AiKeyState } from '../../lib/profile/ai-key';
+import { EMAIL_CODE_LENGTH } from '../../lib/profile/email-code';
 import type { NotificationKind } from '../../lib/notifications/kinds';
 import {
   fetchNotificationSettings,
@@ -266,7 +267,7 @@ function PasswordSection({
             type="text"
             inputMode="numeric"
             autoComplete="one-time-code"
-            maxLength={6}
+            maxLength={EMAIL_CODE_LENGTH}
             className={styles.input}
             value={code}
             onChange={(e) => setCode(e.target.value)}

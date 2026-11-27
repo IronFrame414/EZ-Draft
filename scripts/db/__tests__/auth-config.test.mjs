@@ -82,10 +82,18 @@ test('EZD-007a T16 (b) config.toml [auth.email] holds the code, expiry, confirma
   const toml = read('supabase', 'config.toml');
   const email = tomlTable(toml, '[auth.email]');
   assert.ok(email, 'config.toml has [auth.email]');
-  assert.ok(keyLine(email, 'otp_length', '6'), 'otp_length = 6 (R26 R15)');
+  assert.ok(keyLine(email, 'otp_length', '8'), 'otp_length = 8 (R26 R15; EZD-2030, Q-0910)');
   assert.ok(keyLine(email, 'otp_expiry', '900'), 'otp_expiry = 900 (Q-0049)');
   assert.ok(keyLine(email, 'enable_confirmations', 'true'), 'enable_confirmations = true');
   assert.ok(keyLine(email, 'secure_password_change', 'true'), 'secure_password_change = true');
+});
+
+test('AC-EZD-2030-1 [auth.email] otp_length is 8 and [auth.mfa.phone] otp_length stays 6', () => {
+  const toml = read('supabase', 'config.toml');
+  const email = tomlTable(toml, '[auth.email]');
+  assert.ok(email && keyLine(email, 'otp_length', '8'), '[auth.email] otp_length = 8 (Q-0910)');
+  const phone = tomlTable(toml, '[auth.mfa.phone]');
+  assert.ok(phone && keyLine(phone, 'otp_length', '6'), '[auth.mfa.phone] otp_length = 6 (unchanged)');
 });
 
 test('EZD-007a T16 (c) config.toml [auth.sessions] inactivity_timeout is 400 days', () => {

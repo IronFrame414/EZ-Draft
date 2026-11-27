@@ -61,3 +61,36 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* EZD-2031 (Q-0908; AC-EZD-2031-2): on an iPad held upright (under 1024 px wide) the bar keeps every cell on one line;
+   the cells sit 12 px apart instead of 20 so the plan's Floor, View, Scale, Snap, Cursor and Zoom fit at 768 px. From
+   1024 px nothing changes. */
+@media (width < 1024px) {
+  .bar,
+  .start,
+  .end {
+    gap: 12px;
+  }
+
+  /* The start cells keep their width (only a `.fit` cell in them gives way); a long reading at the end, such as the
+     Cursor, is cut with an ellipsis instead of running under its neighbour (Q-0807). */
+  .bar > .start {
+    min-width: auto;
+  }
+
+  .end {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .end .item {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .end .item .value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

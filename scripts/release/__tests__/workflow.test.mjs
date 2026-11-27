@@ -167,7 +167,7 @@ function checkReleaseWorkflow(text, { pins, pnpmVersion, secretNames }) {
           bad('step 5 is not the release script with an env');
         } else {
           const expected = ['GITHUB_TOKEN: ${{ github.token }}', ...secretNames.map((n) => `${n}: \${{ secrets.${n} }}`)];
-          if (!sameSet(get(s5, 'env').kids, expected)) bad('step 5 env is not GITHUB_TOKEN plus the 10 secret names');
+          if (!sameSet(get(s5, 'env').kids, expected)) bad('step 5 env is not GITHUB_TOKEN plus the secret names');
         }
       }
     }
@@ -210,7 +210,8 @@ describe('EZD-023e release workflow', () => {
     const pins = usesOf(readFileSync(SUPABASE_DEV_YML, 'utf8'));
     assert.equal(pins.length, 2, 'supabase-dev.yml has the two pinned uses');
     const pnpmVersion = /"packageManager":\s*"pnpm@([^"]+)"/.exec(readFileSync(path.join(REPO_ROOT, 'package.json'), 'utf8'))[1];
-    const opts = { pins, pnpmVersion, secretNames: [...RELEASE_SECRET_NAMES] };
+    // EZD-2022 (audit 2026-11-27 X7): the release step also gets CRON_SECRET, for the health check's schema version.
+    const opts = { pins, pnpmVersion, secretNames: [...RELEASE_SECRET_NAMES, 'CRON_SECRET'] };
 
     assert.deepEqual(checkReleaseWorkflow(real, opts), [], 'the real file has no problems');
     assert.deepEqual(usesOf(real), pins, 'the real file uses exactly the supabase-dev pins');

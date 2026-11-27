@@ -583,7 +583,15 @@
     "EZD-2005",
     "EZD-2012",
     "EZD-2009",
-    "EZD-2015"
+    "EZD-2015",
+    "EZD-2029",
+    "EZD-2022",
+    "EZD-2030",
+    "EZD-2016",
+    "EZD-2020",
+    "EZD-2017",
+    "EZD-2018",
+    "EZD-2031"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2629,6 +2637,70 @@
       "ts": "2026-11-27T14:45:01Z",
       "kind": "ticket",
       "lane": 4
+    },
+    {
+      "id": "EZD-2029",
+      "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
+      "commit": "55616b44a",
+      "ts": "2026-11-27T15:24:29Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-2022",
+      "title": "Security: request gate covers every page path, browser protection headers, and a quieter health check",
+      "commit": "56550c9b6",
+      "ts": "2026-11-27T16:00:20Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-2030",
+      "title": "The emailed sign-in code is 8 digits",
+      "commit": "dc78d22d6",
+      "ts": "2026-11-27T16:29:18Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-2016",
+      "title": "Fix: benchmark 150,000-entity DXF hits the statement timeout on a busy runner (EZD-901a)",
+      "commit": "6e9c1b6e2",
+      "ts": "2026-11-27T17:36:41Z",
+      "kind": "ticket",
+      "lane": 4
+    },
+    {
+      "id": "EZD-2020",
+      "title": "Security: error-tunnel alerts are marked as unverified browser reports",
+      "commit": "2352f1a2c",
+      "ts": "2026-11-27T18:28:32Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-2017",
+      "title": "Fix: sources bucket over-limit put T4 times out sending 50 MB under load (EZD-296)",
+      "commit": "3eda9c44e",
+      "ts": "2026-11-27T19:02:27Z",
+      "kind": "ticket",
+      "lane": 4
+    },
+    {
+      "id": "EZD-2018",
+      "title": "Fix: conflict list B6 sign-in aborted after EZD-1935 (EZD-299)",
+      "commit": "0a4997ad9",
+      "ts": "2026-11-27T20:06:40Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-2031",
+      "title": "The editor runs on an iPad held upright (744 to 1023 px wide)",
+      "commit": "53e9094c3",
+      "ts": "2026-11-27T20:54:42Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -2691,7 +2763,8 @@
     "EZD-2030": 1,
     "EZD-2010": 1,
     "EZD-2022": 1,
-    "EZD-2019": 1
+    "EZD-2019": 1,
+    "EZD-2031": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2933,29 +3006,33 @@
     "EZD-2019": {
       "ts": "2026-11-27T14:17:26Z",
       "reason": "check red after a review fix"
+    },
+    "EZD-2031": {
+      "ts": "2026-11-27T17:51:48Z",
+      "reason": "check red after a review fix"
     }
   },
   "running": {
-    "EZD-2029": {
-      "lane": 1,
-      "title": "On touch screens the editor left panel folds away so the edit bar does not cover the inspector",
-      "started": "2026-11-27T12:48:54Z",
-      "develop": "b791995e"
+    "EZD-2002": {
+      "lane": 4,
+      "title": "Field pages use the stored copy on a slow connection and keep the newer phone copy of rooms",
+      "started": "2026-11-27T19:02:40Z",
+      "develop": "602b4f894"
     },
-    "EZD-2022": {
-      "lane": 3,
-      "title": "Security: request gate covers every page path, browser protection headers, and a quieter health check",
-      "started": "2026-11-27T13:24:42Z",
-      "develop": "05c93a08"
-    },
-    "EZD-2030": {
+    "EZD-2021": {
       "lane": 2,
-      "title": "The emailed sign-in code is 8 digits",
-      "started": "2026-11-27T14:18:13Z",
-      "develop": "15e028b9"
+      "title": "Security: signed-out sign-in and invite answers do not reveal who is a member or has an invite",
+      "started": "2026-11-27T19:09:41Z",
+      "develop": "9e7b6bae6"
+    },
+    "EZD-2003": {
+      "lane": 3,
+      "title": "Touch targets of at least 44 px on iPad in cabinets, countertops, import review, the edit menu and small editor controls",
+      "started": "2026-11-27T20:06:54Z",
+      "develop": "73e3ccd66"
     }
   },
-  "advisories_checked_at": "2026-11-27T10:22:44Z",
+  "advisories_checked_at": "2026-11-27T16:29:29Z",
   "hold": {},
   "perf_trend_at": "2026-11-27T04:12:31Z",
   "set_aside_history": [
@@ -2978,6 +3055,13 @@
       "reason": "check red after merging newer develop (first try: check red after a review fix)",
       "set_aside_ts": "2026-11-27T12:57:50Z",
       "retried_ts": "2026-11-27T12:59:35Z",
+      "by": "overwatch"
+    },
+    {
+      "ticket": "EZD-2019",
+      "reason": "develop kept moving: 3 merge rounds (first try: check red after a review fix)",
+      "set_aside_ts": "2026-11-27T19:09:41Z",
+      "retried_ts": "2026-11-27T19:29:19Z",
       "by": "overwatch"
     }
   ],

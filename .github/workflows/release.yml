@@ -46,4 +46,5 @@ jobs:
           BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
           RELEASE_S3_ACCESS_KEY_ID: ${{ secrets.RELEASE_S3_ACCESS_KEY_ID }}
           RELEASE_S3_SECRET_ACCESS_KEY: ${{ secrets.RELEASE_S3_SECRET_ACCESS_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: node scripts/release/release.mjs

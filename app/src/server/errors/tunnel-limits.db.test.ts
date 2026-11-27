@@ -1,7 +1,7 @@
 // EZD-143 B1-B10 (vault/plans/EZD-143.md section 4; Data; D4-D6, D13, D16), local stack.
 // error_tunnel_take (anon only, gated; 60 slots per key per rolling hour), the row cap of record_error_alert
 // counted per source group (function apart from browser + worker; 100 each) and the browser + worker share
-// of the alert emails (10 of the 20 per rolling hour). Holds the error-alert lock from the start of
+// of the alert emails (10 of the 20 per rolling hour; EZD-2020 replaced it: tunnel alerts claim none). Holds the error-alert lock from the start of
 // beforeAll to the end of afterAll and clears error_alert and error_tunnel_throttle in beforeAll, afterAll
 // and beforeEach (D13). fillErrorRows is copied unchanged from alerts.db.test.ts (D13); "emailed" rows are
 // fillErrorRows(n, { emailed_at: new Date().toISOString(), source }) (EZD-024 T7 (b) pattern).
@@ -251,12 +251,14 @@ describe('EZD-143 tunnel throttle and per-source row caps', () => {
     expect(await rowByFingerprint(F)).toBeNull();
   });
 
-  it('EZD-143 B8 browser alerts use at most 10 of the 20 emails an hour', async () => {
+  // EZD-2020 (audit 2026-11-27 X3): tunnel alerts no longer claim one email each (the hourly digest sends them),
+  // so B8 to B10 check that they never claim and that emailed tunnel rows leave the 20 to function errors.
+  it('EZD-143 B8 browser alerts never claim an email of their own and leave the 20 to function errors', async () => {
     await fillErrorRows(10, emailed('browser'));
     const H1 = fingerprint();
     const first = await record(H1, { p_source: 'browser' });
     expect(first.error).toBeNull();
-    expect(first.data?.[0]).toMatchObject({ is_new: true, email_claim: null, capped: true });
+    expect(first.data?.[0]).toMatchObject({ is_new: true, email_claim: null, capped: false });
     const h1Row = await rowByFingerprint(H1);
     expect(h1Row).not.toBeNull();
     expect(h1Row?.emailed_at).toBeNull();
@@ -270,13 +272,13 @@ describe('EZD-143 tunnel throttle and per-source row caps', () => {
     expect(await emailedInLastHour()).toBe(11);
   });
 
-  it('EZD-143 B9 worker alerts share the browser email share', async () => {
-    await fillErrorRows(5, emailed('browser'));
+  it('EZD-143 B9 worker alerts are tunnel alerts too: no email claim of their own', async () => {
+    await fillErrorRows(20, emailed('browser'));
     await fillErrorRows(5, emailed('worker'));
     const worker = await record(fingerprint(), { p_source: 'worker' });
     expect(worker.error).toBeNull();
     expect(worker.data?.[0].email_claim).toBeNull();
-    expect(worker.data?.[0].capped).toBe(true);
+    expect(worker.data?.[0].capped).toBe(false);
 
     const fn = await record(fingerprint(), { p_source: 'function' });
     expect(fn.error).toBeNull();
@@ -284,13 +286,13 @@ describe('EZD-143 tunnel throttle and per-source row caps', () => {
     expect(fn.data?.[0].capped).toBe(false);
   });
 
-  it('EZD-143 B10 the total of 20 emails still bounds every source, and the hour rolls', async () => {
+  it('EZD-143 B10 the total of 20 emails bounds function errors, and the hour rolls', async () => {
     await fillErrorRows(20, emailed('function'));
     const H3 = fingerprint();
     const browser = await record(H3, { p_source: 'browser' });
     expect(browser.error).toBeNull();
     expect(browser.data?.[0].email_claim).toBeNull();
-    expect(browser.data?.[0].capped).toBe(true);
+    expect(browser.data?.[0].capped).toBe(false);
 
     const H4 = fingerprint();
     const fn = await record(H4, { p_source: 'function' });
@@ -299,10 +301,12 @@ describe('EZD-143 tunnel throttle and per-source row caps', () => {
     expect(fn.data?.[0].capped).toBe(true);
 
     await harnessSql()`update public.error_alert set emailed_at = now() - interval '61 minutes' where emailed_at is not null`;
-    const again = await record(H3, { p_source: 'browser' });
+    const again = await record(H4, { p_source: 'function' });
     expect(again.error).toBeNull();
     expect(again.data?.[0].is_new).toBe(false);
     expect(again.data?.[0].email_claim).not.toBeNull();
     expect(again.data?.[0].capped).toBe(false);
+    const browserAgain = await record(H3, { p_source: 'browser' });
+    expect(browserAgain.data?.[0].email_claim).toBeNull();
   });
 });

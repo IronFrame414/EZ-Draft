@@ -21,7 +21,9 @@ import { createSessionClient, type SessionCookieJar } from './server/auth/supaba
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|.*\\..*).*)',
+    // EZD-2022 (audit 2026-11-27 X5): only real static file endings skip the gate, so a page path with a dot in it
+    // (/projects/a.b) is still gated.
+    '/((?!_next/static|_next/image|.*\\.(?:png|jpe?g|gif|webp|avif|svg|ico|js|mjs|css|map|woff2?|txt|webmanifest|json)$).*)',
     '/api/:path*',
     '/dev/:path*',
     // EZD-1931: the same two with any letter percent-escaped (/%64ev/a.b), which the router decodes.

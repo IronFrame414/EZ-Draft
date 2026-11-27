@@ -145,6 +145,15 @@ describe('EZD-138 acceptInviteCode', () => {
     expect(state.store.size).toBe(0);
   }, 60000);
 
+  it('AC-EZD-2030-2: the invite code stays 6 digits; an 8-digit or 7-digit entry is refused', async () => {
+    const m = await invite();
+    const code = inviteCode(m.secret);
+    expect(code).toMatch(/^\d{6}$/);
+    expect(await submit(m.email, `${code}00`)).toEqual({ error: 'invite_code_invalid' });
+    expect(await submit(m.email, `${code}0`)).toEqual({ error: 'invite_code_invalid' });
+    expect(await statusOf(m.membershipId)).toMatchObject({ accepted: false, tries: 0 });
+  }, 60000);
+
   it('C2 AC-4: an unknown email, an email with no invite and a wrong code all get the same one answer', async () => {
     const m = await invite();
     const code = inviteCode(m.secret);

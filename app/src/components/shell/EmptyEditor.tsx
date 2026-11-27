@@ -1,6 +1,7 @@
 'use client';
 // The empty Studio editor: no tools exist in Phase 0 (vault/plans/EZD-012b.md Step 3).
-// Under 1024 px it shows the phone notice instead (vault/plans/EZD-014a.md Step 8).
+// On a phone layout (PHONE_LAYOUT_QUERY: under 744 px wide, or under 1024 px wide and under 744 px tall;
+// Q-0908) it shows the phone notice instead (vault/plans/EZD-014a.md Step 8).
 import type { ReactNode } from 'react';
 import { DeviceLayout } from '../device/DeviceLayout';
 import { EditorPhoneNotice } from '../phone/EditorPhoneNotice';
