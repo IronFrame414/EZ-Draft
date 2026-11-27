@@ -2721,9 +2721,18 @@
       "lane": 1
     }
   ],
-  "set_aside": {},
+  "set_aside": {
+    "EZD-2019": {
+      "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
+      "ts": "2026-11-27T23:09:37Z",
+      "reason": "check red after merging newer develop (first try: check red after a review fix)",
+      "detail": "/release/__tests__/tags.test.mjs scripts/release/__tests__/vercel-api.test.mjs scripts/release/__tests__/workflow.test.mjs scripts/test-harness/db-lock.test.mjs\nfull log: /Users/josh/Projects/ezdraft/.claude/worktrees/EZD-2019/check.log\n\n== failure lines ==\nnot ok 124 - scripts/release/__tests__/scratch-check-local.test.mjs\n  location: '/Users/josh/Projects/ezdraft/.claude/worktrees/EZD-2019/scripts/release/__tests__/scratch-check-local.test.mjs:1:1'\n  error: 'test timed out after 300000ms'\n  code: 'ERR_TEST_FAILURE'\n\n== last lines ==\n      type: 'test'\n      ...\n    # Subtest: EZD-023a T10 findUnverifiable: cascade and dynamic text (Step 3)\n    ok 5 - EZD-023a T10 findUnverifiable: cascade and dynamic text (Step 3)\n      ---\n      duration_ms: 0.687166\n      type: 'test'\n      ...\n    1..5\nok 587 - EZD-023a sql scan\n  ---\n  duration_ms: 5.464625\n  type: 'suite'\n  ...\n# Subtest: EZD-325 scratch stack ports\n    # Subtest: EZD-325 T1 scratch stack ports are bare integers below 32768 and not shared\n    ok 1 - EZD-325 T1 scratch stack ports are bare integers below 32768 and not shared\n      ---\n      duration_ms: 23.891584\n      type: 'test'\n      ...\n    1..1\nok 588 - EZD-325 scratch stack ports\n  ---\n  duration_ms: 24.668\n  type: 'suite'\n  ...\n# Subtest: EZD-023a release tags\n    # Subtest: EZD-023a T13 Tag order: listReleaseTags sorts by phase then patch and ignores other names\n    ok 1 - EZD-023a T13 Tag order: listReleaseTags sorts by phase then patch and ignores other names\n      ---\n      duration_ms: 2.020542\n      type: 'test'\n      ...\n    # Subtest: EZD-360 T6 compareReleaseTags orders phase-56 after phase-5.3 and before phase-6 (AC-EZD-360-3)\n    ok 2 - EZD-360 T6 compareReleaseTags orders phase-56 after phase-5.3 and before phase-6 (AC-EZD-360-3)\n      ---\n      duration_ms: 0.273708\n      type: 'test'\n      ...\n    # Subtest: EZD-360 T7 a Phase 6 pull request after phase-56 gets phase-6 (AC-EZD-360-3)\n    ok 3 - EZD-360 T7 a Phase 6 pull request after phase-56 gets phase-6 (AC-EZD-360-3)\n      ---\n      duration_ms: 1.854375\n      type: 'test'\n      ...\n    # Subtest: EZD-360 T8 a Phase 56 pull request after phase-5 gets phase-56 (AC-EZD-360-3)\n    ok 4 - EZD-360 T8 a Phase 56 pull request after phase-5 gets phase-56 (AC-EZD-360-3)\n      ---\n      duration_ms: 0.461875\n      type: 'test'\n      ...\n    # Subtest: EZD-360 T9 a Phase 56 pull request after phase-6 is not_newer (AC-EZD-360-3)\n    ok 5 - EZD-360 T9 a Phase 56 pull request after phase-6 is not_newer (AC-EZD-360-3)\n      ---\n      duration_ms: 0.167708\n      type: 'test'\n      ...\n    1..5\nok 589 - EZD-023a release tags\n  ---\n  duration_ms: 5.708709\n  type: 'suite'\n  ...\n# Subtest: EZD-023c Vercel client requests\n    # Subtest: EZD-023c T23 (a)-(g) requests and results\n    ok 1 - EZD-023c T23 (a)-(g) requests and results\n      ---\n      duration_ms: 6.6445\n      type: 'test'\n      ...\n    # Subtest: EZD-023c T23 (h) errors name neither ids nor token nor body\n    ok 2 - EZD-023c",
+      "branch": "t/EZD-2019",
+      "worktree": ".claude/worktrees/EZD-2019"
+    }
+  },
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -3042,17 +3051,17 @@
       "started": "2026-11-27T20:06:54Z",
       "develop": "73e3ccd66"
     },
-    "EZD-2019": {
-      "lane": 2,
-      "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
-      "started": "2026-11-27T21:28:55Z",
-      "develop": "437ef24f6"
-    },
     "EZD-2025": {
       "lane": 4,
       "title": "Field screens say when a save, a Send or a task tick did not reach the office, with Retry",
       "started": "2026-11-27T22:03:54Z",
       "develop": "35045c75d"
+    },
+    "EZD-2000": {
+      "lane": 1,
+      "title": "Gate rules that keep pages small and fast as the app grows",
+      "started": "2026-11-27T22:33:13Z",
+      "develop": "d84530a23"
     }
   },
   "advisories_checked_at": "2026-11-27T22:29:55Z",
