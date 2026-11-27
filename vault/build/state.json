@@ -585,7 +585,8 @@
     "EZD-2009",
     "EZD-2015",
     "EZD-2029",
-    "EZD-2022"
+    "EZD-2022",
+    "EZD-2030"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2647,6 +2648,14 @@
       "ts": "2026-11-27T16:00:20Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-2030",
+      "title": "The emailed sign-in code is 8 digits",
+      "commit": "dc78d22d6",
+      "ts": "2026-11-27T16:29:18Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -2953,14 +2962,7 @@
       "reason": "check red after a review fix"
     }
   },
-  "running": {
-    "EZD-2030": {
-      "lane": 2,
-      "title": "The emailed sign-in code is 8 digits",
-      "started": "2026-11-27T14:18:13Z",
-      "develop": "15e028b9"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-27T10:22:44Z",
   "hold": {},
   "perf_trend_at": "2026-11-27T04:12:31Z",
