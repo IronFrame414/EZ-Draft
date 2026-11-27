@@ -577,7 +577,8 @@
     "EZD-2024",
     "EZD-2026",
     "EZD-2027",
-    "EZD-2001"
+    "EZD-2001",
+    "EZD-2028"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2575,11 +2576,19 @@
       "ts": "2026-11-27T08:12:06Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-2028",
+      "title": "Toasts and the reload notice sit above the field tab bar and the home bar",
+      "commit": "b5d7461d",
+      "ts": "2026-11-27T09:17:12Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2861,14 +2870,7 @@
       "reason": "check red after merging newer develop"
     }
   },
-  "running": {
-    "EZD-2028": {
-      "lane": 2,
-      "title": "Toasts and the reload notice sit above the field tab bar and the home bar",
-      "started": "2026-11-27T07:38:20Z",
-      "develop": "22bfb49e"
-    }
-  },
+  "running": {},
   "advisories_checked_at": "2026-11-27T04:21:45Z",
   "hold": {},
   "perf_trend_at": "2026-11-27T04:12:31Z",
