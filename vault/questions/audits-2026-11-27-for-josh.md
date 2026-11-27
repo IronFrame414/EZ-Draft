@@ -13,5 +13,6 @@ Sources: vault/plans/audit-security-2026-11-27.md (S), vault/plans/audit-a11y-ip
 | 907 | Pop-up messages at the bottom cover the field Tasks and Photo tabs (A15). | A. Lift them above the tab bar. B. Leave as is. | A |
 | 908 | An iPad held upright gets the phone notice, which tells an iPad user to use "an iPad or a computer" (A17). | A. On an iPad, say "Turn your iPad sideways to edit," with links to Projects and the field pack. B. Let the editor run upright too. | A |
 | 909 | On a 1024 px iPad the edit bar covers the inspector (A18). | A. Fold the left panel away on touch screens to make room. B. Let the edit bar wrap onto two lines. | A |
+| 910 | Sign-in code length (X2, outside-attacker audit). The emailed sign-in code is 6 digits (your Q-0105). Someone with many internet addresses could guess one within its 15 minutes. | A. Make it 8 digits. B. Keep 6. | A |
 
 ## Answers

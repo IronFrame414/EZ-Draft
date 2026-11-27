@@ -27776,6 +27776,81 @@
     "AC-EZD-2018-2"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2019",
+   "phase": 10,
+   "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
+   "depends_raw": "",
+   "spec_ref": "External security audit 2026-11-27 X1 (vault/plans/audit-security-external-2026-11-27.md): requestSignIn (app/src/server/auth/actions.ts:185-205, 117-160) takes the per-email throttle slot before Auth checks the captcha token and a refused token still counts, so five posts with a junk token block a member's email sign-in for an hour with no captcha solved.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2019-1",
+    "AC-EZD-2019-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2020",
+   "phase": 10,
+   "title": "Security: error-tunnel alerts are marked as unverified browser reports",
+   "depends_raw": "",
+   "spec_ref": "External security audit 2026-11-27 X3 (vault/plans/audit-security-external-2026-11-27.md): anyone can post made-up browser errors to app/src/app/api/monitoring/route.ts:60-121; up to 10 an hour become owner alert emails with the attacker's text in the subject and use up the browser-alert room.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2020-1",
+    "AC-EZD-2020-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2021",
+   "phase": 10,
+   "title": "Security: signed-out sign-in and invite answers do not reveal who is a member or has an invite",
+   "depends_raw": "",
+   "spec_ref": "External security audit 2026-11-27 X4 and X9 (vault/plans/audit-security-external-2026-11-27.md): acceptInviteCode (app/src/server/auth/actions.ts:268-310) answers locked instead of invalid after five wrong codes, revealing a pending invite; Email me a code may answer faster for a stranger than for a member.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2021-1",
+    "AC-EZD-2021-2",
+    "AC-EZD-2021-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2022",
+   "phase": 10,
+   "title": "Security: request gate covers every page path, browser protection headers, and a quieter health check",
+   "depends_raw": "",
+   "spec_ref": "External security audit 2026-11-27 X5, X6 and X7 (vault/plans/audit-security-external-2026-11-27.md): the matcher in app/src/proxy.ts:23 skips any path containing a dot; next.config.ts:16-20 sends only frame-ancestors in CSP, x-powered-by, no site-wide Referrer-Policy, HSTS without includeSubDomains and no robots.txt; /api/health shows the schema version and build time to anyone.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2022-1",
+    "AC-EZD-2022-2",
+    "AC-EZD-2022-3",
+    "AC-EZD-2022-4"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
