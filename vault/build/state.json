@@ -589,7 +589,8 @@
     "EZD-2030",
     "EZD-2016",
     "EZD-2020",
-    "EZD-2017"
+    "EZD-2017",
+    "EZD-2018"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2683,20 +2684,19 @@
       "ts": "2026-11-27T19:02:27Z",
       "kind": "ticket",
       "lane": 4
+    },
+    {
+      "id": "EZD-2018",
+      "title": "Fix: conflict list B6 sign-in aborted after EZD-1935 (EZD-299)",
+      "commit": "0a4997ad9",
+      "ts": "2026-11-27T20:06:40Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
-  "set_aside": {
-    "EZD-2019": {
-      "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
-      "ts": "2026-11-27T19:09:41Z",
-      "reason": "develop kept moving: 3 merge rounds (first try: check red after a review fix)",
-      "detail": "",
-      "branch": "t/EZD-2019",
-      "worktree": ".claude/worktrees/EZD-2019"
-    }
-  },
+  "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -3010,17 +3010,17 @@
       "started": "2026-11-27T17:52:32Z",
       "develop": "70ffca174"
     },
-    "EZD-2018": {
-      "lane": 3,
-      "title": "Fix: conflict list B6 sign-in aborted after EZD-1935 (EZD-299)",
-      "started": "2026-11-27T18:28:47Z",
-      "develop": "025b69d41"
-    },
     "EZD-2002": {
       "lane": 4,
       "title": "Field pages use the stored copy on a slow connection and keep the newer phone copy of rooms",
       "started": "2026-11-27T19:02:40Z",
       "develop": "602b4f894"
+    },
+    "EZD-2021": {
+      "lane": 2,
+      "title": "Security: signed-out sign-in and invite answers do not reveal who is a member or has an invite",
+      "started": "2026-11-27T19:09:41Z",
+      "develop": "9e7b6bae6"
     }
   },
   "advisories_checked_at": "2026-11-27T16:29:29Z",
@@ -3046,6 +3046,13 @@
       "reason": "check red after merging newer develop (first try: check red after a review fix)",
       "set_aside_ts": "2026-11-27T12:57:50Z",
       "retried_ts": "2026-11-27T12:59:35Z",
+      "by": "overwatch"
+    },
+    {
+      "ticket": "EZD-2019",
+      "reason": "develop kept moving: 3 merge rounds (first try: check red after a review fix)",
+      "set_aside_ts": "2026-11-27T19:09:41Z",
+      "retried_ts": "2026-11-27T19:29:19Z",
       "by": "overwatch"
     }
   ],
