@@ -2685,9 +2685,18 @@
       "lane": 4
     }
   ],
-  "set_aside": {},
+  "set_aside": {
+    "EZD-2019": {
+      "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
+      "ts": "2026-11-27T19:09:41Z",
+      "reason": "develop kept moving: 3 merge rounds (first try: check red after a review fix)",
+      "detail": "",
+      "branch": "t/EZD-2019",
+      "worktree": ".claude/worktrees/EZD-2019"
+    }
+  },
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2995,12 +3004,6 @@
     }
   },
   "running": {
-    "EZD-2019": {
-      "lane": 2,
-      "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
-      "started": "2026-11-27T16:30:13Z",
-      "develop": "5d6406f5c"
-    },
     "EZD-2031": {
       "lane": 1,
       "title": "The editor runs on an iPad held upright (744 to 1023 px wide)",
@@ -3012,6 +3015,12 @@
       "title": "Fix: conflict list B6 sign-in aborted after EZD-1935 (EZD-299)",
       "started": "2026-11-27T18:28:47Z",
       "develop": "025b69d41"
+    },
+    "EZD-2002": {
+      "lane": 4,
+      "title": "Field pages use the stored copy on a slow connection and keep the newer phone copy of rooms",
+      "started": "2026-11-27T19:02:40Z",
+      "develop": "602b4f894"
     }
   },
   "advisories_checked_at": "2026-11-27T16:29:29Z",

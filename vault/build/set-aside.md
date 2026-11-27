@@ -3,7 +3,10 @@
 Tickets that failed twice (a first failure is retried automatically). These need Josh. Each keeps its branch and worktree.
 To retry one, run `node scripts/loop.mjs --retry <ticket>` (the loop picks it up again).
 
-None.
+## EZD-2019 · Security: a junk captcha token can no longer lock a member out of Email me a code
+- When: 2026-11-27T19:09:41Z
+- Reason: develop kept moving: 3 merge rounds (first try: check red after a review fix)
+- Branch: t/EZD-2019 · worktree: .claude/worktrees/EZD-2019
 
 ## History (last 20 retries)
 
