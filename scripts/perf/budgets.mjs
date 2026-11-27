@@ -18,6 +18,13 @@ export function compressedSize(body) {
 const SIGN_IN_CSS_MEASURED = 4163;
 const SIGN_IN_CSS_BUDGET = Math.ceil(SIGN_IN_CSS_MEASURED * 1.1);
 
+// EZD-1995 (AC-EZD-1995-3): the screen messages each measured page sends inside its HTML (scripts/perf/
+// inline-messages.mjs), measured by scripts/perf after the per-page split, and their gate values (measured + 10%,
+// rounded up to a whole byte). Before the split both pages sent the whole office catalog: 46,707 and 46,520 bytes.
+const PROJECTS_MESSAGES_MEASURED = 14018;
+const EDITOR_MESSAGES_MEASURED = 24612;
+const MESSAGES_SOURCE = 'AC-EZD-1995-3 (Q-0814): measured inline messages + 10%; Q-0071 (a)';
+
 const SIZE_SOURCE = '11 Budgets Download size; Q-0071 (a)';
 const FRAME_SOURCE = '11 Budgets Pan row; Q-0061 (a)';
 
@@ -56,6 +63,21 @@ const ROWS = [
     unit: 'bytes',
     value: SIGN_IN_CSS_BUDGET,
     source: 'AC-EZD-1996-3 (Q-0814): measured sign-in CSS + 10%; Q-0071 (a)',
+  },
+  // EZD-1995 (AC-EZD-1995-3): the inline screen messages of the projects-settings and editor pages.
+  {
+    id: 'inline-messages.projects-settings',
+    kind: 'gate',
+    unit: 'bytes',
+    value: Math.ceil(PROJECTS_MESSAGES_MEASURED * 1.1),
+    source: MESSAGES_SOURCE,
+  },
+  {
+    id: 'inline-messages.editor',
+    kind: 'gate',
+    unit: 'bytes',
+    value: Math.ceil(EDITOR_MESSAGES_MEASURED * 1.1),
+    source: MESSAGES_SOURCE,
   },
   { id: 'react-commits.pan', kind: 'gate', unit: 'count', value: 0, source: '11 rule 4; EZD-207 row' },
   { id: 'long-tasks.pan', kind: 'gate', unit: 'count', value: 0, source: 'Q-0073 (a); 11 opening paragraph' },

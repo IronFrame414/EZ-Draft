@@ -18,6 +18,7 @@
 // EZD-1009: the `design_option` type (03b rules 3 and 4); a new type, so the version stays. It names no level; each
 // add or replace object in its delta is checked against its own type's schema and holds that object's file ids.
 // EZD-216: the `dimension` and `text` types (03 Q-0667; dimension.ts, text.ts); new types, so the version stays.
+// EZD-232: the `revision_cloud` type (revision-cloud.ts); a new type, so the version stays.
 import * as z from 'zod/mini';
 import { actGridDataSchema, type ActGridData } from './act-grid';
 import { beamDataSchema, type BeamData } from './beam';
@@ -72,6 +73,7 @@ import { utilityPointDataSchema, type UtilityPointData } from './utility-point';
 import { floorDataSchema, type FloorData } from './floor';
 import { migrateStoredObject } from './migrate';
 import { openingDataSchema, type OpeningData } from './opening';
+import { revisionCloudDataSchema, type RevisionCloudData } from './revision-cloud';
 import { roomDataSchema, type RoomData } from './room';
 import { sheetSetDataSchema, type SheetSetData } from './sheet-set';
 import { textDataSchema, type TextData } from './text';
@@ -98,6 +100,7 @@ export * from './tile-shower';
 export * from './utility-point';
 export * from './migrate';
 export * from './opening';
+export * from './revision-cloud';
 export * from './room';
 export * from './sheet-set';
 export * from './text';
@@ -140,6 +143,7 @@ export const OBJECT_TYPES = [
   'act_grid',
   'dimension',
   'text',
+  'revision_cloud',
 ] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
@@ -182,6 +186,7 @@ type DataByType = {
   act_grid: ActGridData;
   dimension: DimensionData;
   text: TextData;
+  revision_cloud: RevisionCloudData;
 };
 export type ModelObject = {
   [T in ObjectType]: { id: string; type: T; data: DataByType[T] };
@@ -257,6 +262,7 @@ const DATA_SCHEMAS: { [T in ObjectType]: z.ZodMiniType<DataByType[T]> } = {
   act_grid: actGridDataSchema,
   dimension: dimensionDataSchema,
   text: textDataSchema,
+  revision_cloud: revisionCloudDataSchema,
 };
 
 // A source_file id held in an object, with the source_file kinds that field accepts. An empty `kinds` refuses
@@ -317,6 +323,7 @@ const FILE_REFS: { [T in ObjectType]: (data: DataByType[T]) => FileRef[] } = {
   act_grid: none,
   dimension: none,
   text: none,
+  revision_cloud: none,
 };
 
 export function fileRefs(object: ModelObject): FileRef[] {

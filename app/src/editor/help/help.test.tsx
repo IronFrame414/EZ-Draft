@@ -51,6 +51,7 @@ describe('EZD-222 rail keys', () => {
       ['dimension', 'L'],
       ['text', 'T'],
       ['sketch', 'S'],
+      ['revision-cloud', 'Q'],
     ]);
   });
 });
@@ -127,8 +128,8 @@ describe('EZD-230 full rail', () => {
       const tip = slotFor(html, id)?.[1] ?? '';
       expect(tip, id).toMatch(new RegExp(`<kbd[^>]*>${SPEC_KEYS[id]!.replace(/[?+]/g, '\\$&')}</kbd>$`));
     }
-    // Tools not built yet are not on the rail (phase-02.md EZD-230); Dimension and Text are built (EZD-216).
-    for (const id of ['catalog', 'detail-callout', 'revision-cloud', 'reference', 'markup']) {
+    // Tools not built yet are not on the rail (phase-02.md EZD-230); Dimension and Text are built (EZD-216), Revision cloud too (EZD-232).
+    for (const id of ['catalog', 'detail-callout', 'reference', 'markup']) {
       expect(ids, id).not.toContain(id);
     }
   });

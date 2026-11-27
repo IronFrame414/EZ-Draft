@@ -25,6 +25,7 @@ const FLOOR_RAIL = [
   'dimension', // EZD-216
   'text',
   'sketch',
+  'revision-cloud', // EZD-232
   'measure',
   'cabinets',
   'countertops',
@@ -56,7 +57,7 @@ test.describe('EZD-1901 editor feature contract', () => {
     await expect(tid(page, 'editor-state')).toHaveAttribute('data-editor-state', 'ready');
     await expect(tid(page, 'plan-canvas')).toHaveAttribute('data-plan-state', 'ready');
 
-    await expect(rail(page, 'top')).toHaveCount(15); // EZD-216: plus Dimension, Text
+    await expect(rail(page, 'top')).toHaveCount(16); // EZD-216: plus Dimension, Text; EZD-232: plus Revision cloud
     const top = await rail(page, 'top').evaluateAll((els) =>
       els.map((e) => e.getAttribute('data-rail-tool') ?? ''),
     );

@@ -95,6 +95,9 @@ export const EVENTS = {
   'tenant.code_edition_updated': { kind: 'log_only' },
   // EZD-709 (S15b Events emitted "tenant.title_block_updated (new)"): Settings > Title block saved.
   'tenant.title_block_updated': { kind: 'log_only' },
+  // EZD-708c (S06 Events emitted "sheet.updated (new) on Add to E2.0"): Add to E2.0 or Update E2.0 placed a panel's
+  // schedule and load calc on the panel sheet; the sheet's number and the panel.
+  'sheet.updated': { kind: 'log_only' },
   // EZD-1102 (S15f Events emitted "render.model_config_updated (new)"): Settings > Render models saved.
   'render.model_config_updated': { kind: 'log_only' },
   // EZD-125 (Q-0697 decisions 10): Cancel request; written as the event_log row by cancel_edit_request.
@@ -273,6 +276,7 @@ export interface EventPayloads {
   'tenant.defaults_updated': { keys: string[] };
   'tenant.code_edition_updated': { keys: ('code_edition' | 'optional_load_calc')[] };
   'tenant.title_block_updated': { keys: 'show_company'[] };
+  'sheet.updated': { sheet: string; panelId: string };
   // EZD-1102: the tiers whose model or cost changed, and whether the allowance changed.
   'render.model_config_updated': {
     tiers: ('fast' | 'standard' | 'photoreal')[];

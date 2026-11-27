@@ -14,7 +14,7 @@ import { allowedSections } from '../../lib/settings/sections';
 import { requireSession } from '../auth/session';
 import { createSessionClient } from '../auth/supabase-server';
 import { reportError } from '../errors/report';
-import { catalogFor } from '../messages/catalog';
+import { pageMessages } from '../messages/page-messages';
 import { can } from '../permissions';
 import { loadSettingsShellData, settingsPermissionContext } from './shell-data';
 
@@ -32,7 +32,7 @@ export async function SettingsRoot({ children }: { children: ReactNode }) {
     });
   }
   return (
-    <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
+    <MessagesProvider language="en" messages={pageMessages('settings')}>
       <StateHost>
         {data === null || ctx === 'failed' ? (
           <SettingsLoadError />

@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { signOutOnDevice } from '../../lib/auth/device-sign-out';
 import { lazyModule } from '../../lib/lazy/lazy-module';
+import { withScreenMessages } from '../../lib/messages/screen-messages';
 import { useT } from '../../lib/messages';
 import { signOut } from '../../server/auth/actions';
 import touch from '../../styles/touch.module.css';
@@ -18,7 +19,9 @@ import { useOutboxSignOut } from '../outbox/OutboxDrain';
 import { useToast } from '../states/ToastProvider';
 import styles from './account.module.css';
 
-const profileModule = lazyModule(() => import('../../lazy/my-profile'));
+const profileModule = lazyModule(() =>
+  withScreenMessages(import('../../lib/messages/screens/my-profile.messages'), import('../../lazy/my-profile')),
+);
 
 export type AvatarMenuProps = {
   initials: string;

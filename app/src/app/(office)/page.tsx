@@ -17,7 +17,7 @@ import { mayOpenSettings } from '../../lib/settings/sections';
 import { requireSession } from '../../server/auth/session';
 import { createSessionClient } from '../../server/auth/supabase-server';
 import { reportError } from '../../server/errors/report';
-import { catalogFor } from '../../server/messages/catalog';
+import { pageMessages } from '../../server/messages/page-messages';
 import { can } from '../../server/permissions';
 import { loadProjectsAccount } from '../../server/projects/account';
 import { settingsPermissionContext } from '../../server/settings/shell-data';
@@ -60,7 +60,7 @@ export default async function ProjectsPage(): Promise<ReactElement> {
     (can(ctx, 'send_field_measurement') || can(ctx, 'approve_field_measurements'));
   const account = { ...valueOf(accountRead), showSettings };
   return (
-    <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
+    <MessagesProvider language="en" messages={pageMessages('projects')}>
       <StateHost>
         <div className={styles.page}>
           {allowed ? (

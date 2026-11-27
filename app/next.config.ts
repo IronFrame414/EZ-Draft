@@ -22,6 +22,14 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: workspaceRoot,
   turbopack: {
     root: workspaceRoot,
+    // EZD-1995 (AC-EZD-1995-1; Q-0814): a lazy screen's messages file is replaced by its own slice of the catalog,
+    // so no browser file holds the whole catalog (app/tools/screen-messages-loader.cjs).
+    rules: {
+      '*.messages.ts': {
+        loaders: [path.join(__dirname, 'tools', 'screen-messages-loader.cjs')],
+        as: '*.js',
+      },
+    },
   },
   // EZD-020 Step 5 (vault/plans/EZD-020.md): browser source maps for the entry contents check in the gate and CI
   // builds; Vercel builds (VERCEL=1) emit none, so no source map is published on a deploy.

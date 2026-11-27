@@ -8,6 +8,8 @@ import type { Objects } from '../model/patches';
 import { takenSpaces } from './circuits';
 import { circuitRows, panelRows, type CircuitRow } from './electrical';
 import { sameId } from '../shared/ids';
+import { panelLoadCalc } from './existing-panel';
+import { panelSheetEntry, type PanelSheetEntry } from '../../lib/sheets/panel-sheet-table';
 
 export type ScheduleSpace = {
   space: number;
@@ -63,4 +65,15 @@ export function scheduleRows(schedule: PanelSchedule): ScheduleRow[] {
   for (let i = 0; i + 1 < schedule.spaces.length; i += 2)
     rows.push({ left: schedule.spaces[i]!, right: schedule.spaces[i + 1]! });
   return rows;
+}
+
+// EZD-708c (S06 Controls "Add to E2.0 | ... Places/updates panel schedule and load calc on sheet E2.0"; AC-EZD-708c-1):
+// what Add to E2.0 stores for a panel: its schedule and its load calc (the panel's own, as the status bar reads it,
+// existing-panel.ts panelLoadCalc) as printed cells (lib/sheets/panel-sheet-table.ts); null when there is no such panel.
+export function panelSheetFor(objects: Objects, panelId: string | null): PanelSheetEntry | null {
+  if (panelId === null) return null;
+  const panel = panelRows(objects).find((p) => sameId(p.id, panelId));
+  const schedule = panelSchedule(objects, panelId);
+  if (panel === undefined || schedule === null) return null;
+  return panelSheetEntry(panel, schedule, panelLoadCalc(objects, panel.id));
 }

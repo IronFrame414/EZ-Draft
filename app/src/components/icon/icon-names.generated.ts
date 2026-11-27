@@ -20,6 +20,7 @@ export const ICON_NAMES = [
   'chevron_left',
   'chevron_right',
   'close',
+  'cloud',
   'cloud_off',
   'compare_arrows',
   'contact_mail',

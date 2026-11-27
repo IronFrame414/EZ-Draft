@@ -1,0 +1,288 @@
+{
+ "settings": {
+  "countertopWaste": 10,
+  "wireSlack": 15
+ },
+ "lines": [
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "countertops",
+   "item": "countertop",
+   "key": "A",
+   "unit": "SF",
+   "qty": 17,
+   "waste": {
+    "material": "countertop",
+    "pct": 10
+   },
+   "total": 18.7,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000061"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "countertops",
+   "item": "countertop",
+   "key": "B",
+   "unit": "SF",
+   "qty": 18,
+   "waste": {
+    "material": "countertop",
+    "pct": 10
+   },
+   "total": 19.8,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000062"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "countertops",
+   "item": "countertop_edge",
+   "key": "A",
+   "unit": "LF",
+   "qty": 10.2,
+   "waste": null,
+   "total": 10.2,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000061"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "countertops",
+   "item": "countertop_edge",
+   "key": "B",
+   "unit": "LF",
+   "qty": 18,
+   "waste": null,
+   "total": 18,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000062"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "cabinets",
+   "item": "cabinet",
+   "key": "B36",
+   "unit": "EA",
+   "qty": 3,
+   "waste": null,
+   "total": 3,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000041",
+    "00000000-0000-4000-8000-000000000042",
+    "00000000-0000-4000-8000-000000000045"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "cabinets",
+   "item": "cabinet",
+   "key": "F3",
+   "unit": "EA",
+   "qty": 1,
+   "waste": null,
+   "total": 1,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000044"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "cabinets",
+   "item": "cabinet",
+   "key": "SB36",
+   "unit": "EA",
+   "qty": 1,
+   "waste": null,
+   "total": 1,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000043"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "cabinets",
+   "item": "cabinet",
+   "key": "W3030",
+   "unit": "EA",
+   "qty": 2,
+   "waste": null,
+   "total": 2,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000049",
+    "00000000-0000-4000-8000-00000000004a"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "fixtures",
+   "item": "fixture",
+   "key": "sink",
+   "unit": "EA",
+   "qty": 2,
+   "waste": null,
+   "total": 2,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000071",
+    "00000000-0000-4000-8000-000000000072"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "fixtures",
+   "item": "fixture",
+   "key": "refrigerator",
+   "unit": "EA",
+   "qty": 1,
+   "waste": null,
+   "total": 1,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000074"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "fixtures",
+   "item": "fixture",
+   "key": "dishwasher",
+   "unit": "EA",
+   "qty": 1,
+   "waste": null,
+   "total": 1,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000073"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "electrical",
+   "item": "device",
+   "key": "recessed_light",
+   "unit": "EA",
+   "qty": 2,
+   "waste": null,
+   "total": 2,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000086",
+    "00000000-0000-4000-8000-000000000087"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "electrical",
+   "item": "device",
+   "key": "receptacle_duplex",
+   "unit": "EA",
+   "qty": 3,
+   "waste": null,
+   "total": 3,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000081",
+    "00000000-0000-4000-8000-000000000083",
+    "00000000-0000-4000-8000-000000000085"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "electrical",
+   "item": "device",
+   "key": "switch_single",
+   "unit": "EA",
+   "qty": 1,
+   "waste": null,
+   "total": 1,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-000000000084"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "electrical",
+   "item": "wire",
+   "key": "00000000-0000-4000-8000-0000000000a1",
+   "unit": "LF",
+   "qty": 47.7,
+   "waste": {
+    "material": "wire",
+    "pct": 15
+   },
+   "total": 55,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-0000000000a1",
+    "00000000-0000-4000-8000-000000000091",
+    "00000000-0000-4000-8000-000000000081",
+    "00000000-0000-4000-8000-000000000083"
+   ]
+  },
+  {
+   "roomId": "00000000-0000-4000-8000-000000000031",
+   "roomName": "Kitchen",
+   "trade": "electrical",
+   "item": "wire",
+   "key": "00000000-0000-4000-8000-0000000000a2",
+   "unit": "LF",
+   "qty": 59.5,
+   "waste": {
+    "material": "wire",
+    "pct": 15
+   },
+   "total": 69,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-0000000000a2",
+    "00000000-0000-4000-8000-000000000091",
+    "00000000-0000-4000-8000-000000000084",
+    "00000000-0000-4000-8000-000000000085"
+   ]
+  },
+  {
+   "roomId": null,
+   "roomName": null,
+   "trade": "electrical",
+   "item": "device",
+   "key": "receptacle_duplex",
+   "unit": "EA",
+   "qty": 1,
+   "waste": null,
+   "total": 1,
+   "count": null,
+   "sourceIds": [
+    "00000000-0000-4000-8000-00000000008a"
+   ]
+  }
+ ]
+}

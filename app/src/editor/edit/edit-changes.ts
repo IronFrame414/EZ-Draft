@@ -61,6 +61,7 @@ const DELETE_TYPES: ReadonlySet<string> = new Set([
   'pin', // EZD-220: its source_file row is kept (03c:15)
   'dimension', // EZD-216: drawn ones only (isAutoDimension)
   'text', // EZD-216
+  'revision_cloud', // EZD-232 (Q-0200 "clouds can also be added or removed by hand")
 ]);
 
 // EZD-216 (Q-0685 (a)): an auto dimension is never deleted by Delete.

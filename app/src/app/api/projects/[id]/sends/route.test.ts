@@ -237,4 +237,37 @@ describe('EZD-111 send routes', () => {
     const after = await notes(pClient);
     expect(after.slice(before)).toEqual(['x'.repeat(1000), null]);
   }, 60000);
+
+  // EZD-719 (assumptions EZD-719 "What sends the set sends"): the Sheets screen's set goes on the sent_package row;
+  // a set with an unknown kind or a malformed id is refused with nothing written.
+  it('A5 the set: kept on the row; an unknown kind or a malformed id is 400 invalid_input', async () => {
+    const setId = '00000000-0000-4000-8000-0000000007a1';
+    const sets = async () =>
+      harnessSql()<{ sheet_set_kind: string | null; sheet_set_id: string | null }[]>`
+        select sheet_set_kind, sheet_set_id from public.sent_package
+        where project_id = ${pClient}::uuid order by created_at`;
+    const before = (await sets()).length;
+    for (const set of [{ kind: 'field', id: null }, { kind: 'permit', id: 'not-a-uuid' }]) {
+      state.store = new Map(senderCookies);
+      const r = await post(pClient, JSON.stringify({ note: null, set }));
+      expect(r.res.status).toBe(400);
+      expect(r.json).toEqual(INVALID);
+      vi.resetModules();
+    }
+    expect(await sets()).toHaveLength(before);
+
+    state.store = new Map(senderCookies);
+    expect((await post(pClient, JSON.stringify({ note: null, set: { kind: 'client', id: setId } }))).res.status).toBe(201);
+    vi.resetModules();
+    state.store = new Map(senderCookies);
+    expect((await post(pClient, JSON.stringify({ note: null, set: { kind: 'permit', id: null } }))).res.status).toBe(201);
+    vi.resetModules();
+    state.store = new Map(senderCookies);
+    expect((await post(pClient, JSON.stringify({ note: null }))).res.status).toBe(201);
+    expect((await sets()).slice(before)).toEqual([
+      { sheet_set_kind: 'client', sheet_set_id: setId },
+      { sheet_set_kind: 'permit', sheet_set_id: null },
+      { sheet_set_kind: null, sheet_set_id: null },
+    ]);
+  }, 60000);
 });

@@ -649,6 +649,7 @@ export function DrawingLayer({ controller, handle, canEdit, onCancel }: DrawingL
             ui.tool !== 'sketch' &&
             ui.tool !== 'dimension' &&
             ui.tool !== 'text' &&
+            ui.tool !== 'revision-cloud' &&
             ui.tool !== 'measure' &&
             ui.tool !== 'electrical'
               ? DRAWING_TOOLS[ui.tool]

@@ -2,6 +2,7 @@
 // its budget and writes the results file on every run that passed validation. Node built-ins and the root
 // devDependency @playwright/test only.
 // EZD-235b Build step 13: the worker-job collector branch (runWorkerJob).
+// EZD-1995 (AC-EZD-1995-3): the inline-messages collector branch (measureInlineMessages).
 import { spawn } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
@@ -12,6 +13,7 @@ import { pathToFileURL } from 'node:url';
 import { chromium } from '@playwright/test';
 import { BUDGETS } from './budgets.mjs';
 import { bundleReport, writeBundleReport } from './bundle-report.mjs';
+import { measureInlineMessages } from './inline-messages.mjs';
 import { measureJsContents } from './js-contents.mjs';
 import { measureCssSize, measureJsSize } from './js-size.mjs';
 import { frameStats, runPan } from './pan-script.mjs';
@@ -130,6 +132,8 @@ function planRows(cfg, only) {
     const known = byId.get(entry.id);
     if (known) {
       known.url = entry.url;
+      // EZD-1995: a size row may count the page's HTML document too.
+      if (entry.document === true) known.document = true;
       continue;
     }
     if (entry.budget === undefined) {
@@ -140,14 +144,18 @@ function planRows(cfg, only) {
       budget: entry.budget,
       status: 'active',
       owner: 'config',
-      // EZD-020 Step 5: entry-contents rows go to js-contents.mjs; EZD-1996: css-size rows measure CSS alone; any
-      // other config-only row is a size row.
+      // EZD-020 Step 5: entry-contents rows go to js-contents.mjs; EZD-1996: css-size rows measure CSS alone;
+      // EZD-1995: inline-messages rows measure the messages in the page's HTML; any other config-only row is a size
+      // row.
       collector: entry.id.startsWith('entry-contents:')
         ? 'js-contents'
         : entry.id.startsWith('css-size:')
           ? 'css-size'
-          : 'js-size',
+          : entry.id.startsWith('inline-messages:')
+            ? 'inline-messages'
+            : 'js-size',
       url: entry.url,
+      ...(entry.document === true ? { document: true } : {}),
     };
     rows.push(row);
     byId.set(row.id, row);
@@ -251,14 +259,19 @@ async function collect(browser, profile, baseUrl, panUrl, plan, storageState) {
     } else if (r.url === null) {
       // EZD-1998: the row measures a seeded project's page and the run was given no --project.
       inputs.push({ ...base, error: 'no_project' });
-    } else if (r.collector === 'js-size' || r.collector === 'css-size') {
+    } else if (r.collector === 'js-size' || r.collector === 'css-size' || r.collector === 'inline-messages') {
       if (!r.url) {
         inputs.push({ ...base, error: 'no_url' });
         continue;
       }
-      const measure = r.collector === 'css-size' ? measureCssSize : measureJsSize;
+      const measure =
+        r.collector === 'css-size'
+          ? measureCssSize
+          : r.collector === 'inline-messages'
+            ? measureInlineMessages
+            : measureJsSize;
       try {
-        const opts = { storageState: r.signedIn ? storageState : undefined };
+        const opts = { storageState: r.signedIn ? storageState : undefined, document: r.document === true };
         inputs.push({ ...base, ...(await measure(browser, profile, baseUrl, r.url, opts)) });
       } catch (e) {
         logStack(e);

@@ -17,7 +17,7 @@ import type {
   ViewportScale,
 } from '@ezdraft/geometry';
 import type { SheetArea } from '@ezdraft/geometry';
-import { floorCopyOf, type SheetFloor } from './sheet-set';
+import { ELECTRICAL_PLAN_SHEET, electricalLayoutFloor, floorCopyOf, type SheetFloor } from './sheet-set';
 
 // A viewport as the screen shows it: a default one has no id until the set is first changed.
 export type SheetViewport = Omit<Viewport, 'id'> & { id: string | null };
@@ -85,8 +85,10 @@ export function viewShows(view: SheetView, status: unknown): boolean {
   return true;
 }
 
-// The default set's viewports (EZD-701 sheets): the plan sheets draw the lowest floor at 1/4"; A6.0 (RCP) and E1.0
-// draw the proposed plan until their own tickets (EZD-708a, EZD-708b) give them content; A4.0 holds one elevation
+// The default set's viewports (EZD-701 sheets): the plan sheets draw the lowest floor at 1/4"; A6.0's proposed plan
+// draws as the reflected ceiling plan (EZD-708a, lazy/sheets/renderer.ts); E1.0's proposed plan draws as the
+// electrical plan (EZD-708b, lazy/electrical-sheet), and each further floor's electrical layout sheet (E2.0 ..., Q-0763)
+// has E1.0's defaults on its own floor; A4.0 holds one elevation
 // viewport at 1/2" that draws the floor's elevations (EZD-707, lib/sheets/elevation-sheet.ts).
 const DEFAULTS: Readonly<Record<string, readonly { kind: ViewportKind; view: SheetView }[]>> = {
   'A1.0': [{ kind: 'plan', view: 'existing' }],
@@ -99,9 +101,20 @@ const DEFAULTS: Readonly<Record<string, readonly { kind: ViewportKind; view: She
 
 // A floor copy (A1.1) has its plan sheet's defaults on its own floor (Q-0509); the lowest floor's sheets name none.
 export function defaultViewports(sheet: string, floors: readonly SheetFloor[] = []): SheetViewport[] {
-  const copy = floorCopyOf(sheet);
-  const base = copy?.base ?? sheet;
-  const level = copy === null || copy.floor === 0 ? null : (floors[copy.floor]?.id ?? null);
+  let base: string;
+  let floor: number;
+  // EZD-708b (Q-0763): E2.0 ... are the further floors' electrical layouts when the model has them; the panel sheet
+  // after the last layout has no default viewport.
+  const layout = electricalLayoutFloor(sheet, floors.length);
+  if (layout !== null) {
+    base = ELECTRICAL_PLAN_SHEET;
+    floor = layout;
+  } else {
+    const copy = floorCopyOf(sheet);
+    base = copy?.base ?? sheet;
+    floor = copy?.floor ?? 0;
+  }
+  const level = floor === 0 ? null : (floors[floor]?.id ?? null);
   return (DEFAULTS[base] ?? []).map(({ kind, view }) => ({
     id: null,
     sheet,

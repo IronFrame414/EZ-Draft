@@ -2396,6 +2396,8 @@ export const en = {
   'office.send.email_body':
     '{company} sent you the design for {project}. Open it with the link below.',
   'office.send.email_link': 'Open the design',
+  // EZD-719 (S13 Controls "Version N before Rev 0, Rev N after"; assumptions EZD-719): the set and its label.
+  'office.send.set_label': '{set} · {label}',
   // EZD-1201: the Share panel's links in the Send dialog (Q-0213).
   'office.share.links': 'Links sent',
   'office.share.row': 'Version {n} · {name}',
@@ -2863,6 +2865,9 @@ export const en = {
   'office.electrical.schedule.col.load': 'Load',
   'office.electrical.schedule.spaces_left': { one: '{count} space left', other: '{count} spaces left' },
   'office.electrical.schedule.no_spaces_left': 'No spaces left',
+  // EZD-708c (S06 "Add to E2.0"; "If already placed, label reads "Update E2.0""): {sheet} is the panel sheet's number.
+  'office.electrical.panel_sheet.add': 'Add to {sheet}',
+  'office.electrical.panel_sheet.update': 'Update {sheet}',
   'office.fixtures.detail.receptacle_duplex': 'Duplex receptacle',
   'office.fixtures.detail.receptacle_240v': '240V receptacle',
   'office.fixtures.detail.switch_single': 'Switch',
@@ -3524,6 +3529,8 @@ export const en = {
   'office.defaults.error.paint_coats': 'Enter a whole number from 1 to 5',
   'office.defaults.error.paint_coverage': 'Enter a whole number from 100 to 1,000',
   'office.defaults.error.tile_box_coverage': 'Enter a whole number from 1 to 100',
+  // EZD-1611b: the takeoff's wire slack row under Electrical.
+  'office.defaults.row.wire_slack': 'Wire slack',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

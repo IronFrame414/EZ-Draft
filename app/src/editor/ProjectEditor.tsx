@@ -43,12 +43,12 @@
 // EZD-225 (S03 States; S06:48, 78, 100; Q-0697 decisions 05): Edit model without the lock shows the drawing tools
 // paused with the note under the banner; a lock lost mid-session pauses the drawing controller and every edit path
 // reads `mayEdit`.
-// EZD-404 (S04 Layout; AC-EZD-404-1): while the Cabinets tool is on, the cabinet run screen (lazy) covers the plan
-// and the status bar shows its View "Plan + elevation A" before Scale.
-// EZD-406 (S04 Layout "Inspector 336px: selected box"): while it is on, the inspector place holds the box inspector
-// (lazy, same module), which reads the box selected on the drawing through one small selection store per session.
+// EZD-1913a (editor plan 5.3): the registry features (features/index.generated.ts) fill the overlay, left panel,
+// inspector and status slots; shared/feature-slots.tsx says which part shows where.
 // EZD-111 (vault/plans/EZD-111.md D-Entry, C2; Q-0700; Q-0701): with Send to client, the header Share button opens
 // the Send dialog (lazy). Its no-client link opens Project settings for the session, after the Send dialog closes.
+// EZD-719 (S13 Controls "Send to client | Header Share"; assumptions EZD-719): on the Sheets screen Share sends the
+// chosen set; a send numbered Rev N after Rev 0 moves the header to "Rev N issued" and reloads the revision log.
 // EZD-304 (S01 PDF: scale calibration; Q-0203): the project's newest calibrated PDF lies under the plan for tracing;
 // for an editor, a PDF with no scale shows a banner with Set scale. An upload from the header reads it again.
 // EZD-122 (S20 Entry points, Controls; Q-0700 05, 03 "Revert", 10; AC-EZD-122-2 to -10): the Versions tab in the left
@@ -117,12 +117,11 @@ import {
 import { hubResync } from './project-defaults';
 import { newerVersionNo, versionLabel } from './version-label';
 import { hubVersionSent } from './version-sent';
+import type { SendSet } from '../lib/sends/sends';
 import { InspectorMore, InspectorStack } from './edit/InspectorMore';
 import type { EditMenuRequest } from '../lazy/edit-menu';
 import { expandGroups } from './selection/groups';
 import { EmptyPlanHint } from './EmptyPlanHint';
-import { createCountertopSelectionStore } from './countertops/selection-store';
-import { createCabinetSelectionStore } from './cabinets/cabinet-selection-store';
 import { InspectorEmpty } from './inspector/InspectorEmpty';
 import type { InspectorPanelProps } from '../lazy/inspector-panel';
 import { chosenFloor } from './floors/floors';
@@ -133,6 +132,7 @@ import { usePdfUnderlay } from './plan/PdfUnderlay';
 import { ZoomStack } from './plan/ZoomStack';
 import type { ConflictBannerProps } from './conflicts/ConflictBanner';
 import { lazyModule } from '../lib/lazy/lazy-module';
+import { withScreenMessages } from '../lib/messages/screen-messages';
 import { lazyPart, useLazy } from './shared/lazy-part';
 import { useStoreValue } from './shared/use-store-value';
 import { editorDefaults, useDefault } from './shared/use-default';
@@ -168,6 +168,20 @@ import { CheckPill } from './check/CheckPill';
 import { useCodeCheck } from './check/use-code-check';
 import { useDevHooks } from './dev-hooks';
 import { createControllers, type EditorControllers } from './session/create-controllers';
+import { features } from './features/index.generated';
+import type { EditorFeatureContext } from './features/types';
+import {
+  activeFeatures,
+  coversPlan,
+  featureParts,
+  inspectorSlot,
+  leftPanelSlot,
+  railClasses,
+  statusEndSlot,
+  statusStartSlot,
+  useFeatureLeave,
+  type EditorScreen,
+} from './shared/feature-slots';
 import styles from './ProjectEditor.module.css';
 
 // EZD-1911: kept here for the code that reads it from ProjectEditor.
@@ -187,7 +201,7 @@ export type ProjectEditorProps = {
   canSend?: boolean;
   // EZD-230 (Q-0038): the user's own rail tool order, read by the page; the default order without it.
   railOrder?: readonly string[];
-  // EZD-416: the viewer holds Settings → Defaults (the countertop panel's "Change in company settings" link).
+  // EZD-416: the viewer holds Settings → Defaults (a feature's "Change in company settings" link).
   canManageDefaults?: boolean;
   // EZD-503 (S05 Read heights from scan "Only when a GLB mesh exists for the project"): the project's Polycam GLB
   // link the page signed; absent without one.
@@ -236,9 +250,13 @@ export function ProjectEditor({
   // EZD-121 (Q-0700 05): the newest sent version number from a send or a version.sent broadcast; the load's
   // number until one arrives.
   const [sentNo, setSentNo] = useState<number | null>(null);
-  const onSent = useCallback((n: number) => {
+  // EZD-719: a send that took Rev N after Rev 0 tells the Sheets screen (set further down) through this ref.
+  const onRevSent = useRef<((rev: number) => void) | null>(null);
+  const onSent = useCallback((n: number, rev?: number | null) => {
     if (Number.isInteger(n) && n >= 1) setSentNo((cur) => newerVersionNo(cur, n));
+    if (typeof rev === 'number' && Number.isInteger(rev) && rev >= 0) onRevSent.current?.(rev);
   }, []);
+  const [sendSet, setSendSet] = useState<SendSet | null>(null);
   useEffect(() => hubVersionSent(projectId, onSent), [projectId, onSent]);
   // EZD-301 (S02 Entry): the Upload files dialog, loaded with the edit menus' lazy module.
   const [uploading, setUploading] = useState(false);
@@ -338,33 +356,20 @@ export function ProjectEditor({
     false,
   );
 
-  // EZD-404: the cabinet run screen is shown while the Cabinets tool is on.
-  const cabinetsOn = useStoreValue(drawing, (d) => d.getUi().tool === 'cabinets', false);
-  // EZD-412 (S04b Entry points "Countertops (K) tool on the rail"): the countertop screen is shown while the
-  // Countertops tool is on. Like the cabinet screen it covers the plan, so the plan's edit keys and zoom are off.
-  const countertopsOn = useStoreValue(drawing, (d) => d.getUi().tool === 'countertops', false);
-  const screenOn = cabinetsOn || countertopsOn;
+  // EZD-1913a: the rail tool on now, which the registry features read.
+  const tool = useStoreValue(drawing, (d) => d.getUi().tool ?? null, null);
   // EZD-601 (S06 Entry points "Plan tab, Electrical tool (E)"): electrical mode is on while the Electrical tool is.
   const electricalOn = useStoreValue(drawing, (d) => d.getUi().tool === 'electrical', false);
   // EZD-1985 (Q-0809 (a)): while the Fixtures tool is on, its panel docks in the inspector place, like the
-  // Countertops tool's inspector, instead of floating over the plan. The choice is the controller's own object, so the
+  // other modes' inspectors, instead of floating over the plan. The choice is the controller's own object, so the
   // snapshot is stable between renders.
   const fixtureChoice = useStoreValue(
     drawing,
     (d) => (d.getUi().tool === 'fixtures' ? d.getUi().fixtureChoice : null),
     null,
   );
-  const sessionStore = session?.store ?? null;
-  // A new model session starts with no cabinet selected.
-  const cabinetSelection = useMemo(
-    () => (sessionStore === null ? null : createCabinetSelectionStore()),
-    [sessionStore],
-  );
-  // EZD-407: the Defaults "Cabinet fit" tolerance for the fit chip, re-read on every defaults resync; null while not
-  // set.
   // EZD-1910 (editor plan R12): every Defaults reader below goes through useDefault (shared/use-default.ts).
   const sessionDefaults = session?.defaults ?? null;
-  const fitTolerance = useDefault(sessionDefaults, editorDefaults.fitTolerance);
   // EZD-222 (S15d Keyboard shortcuts; phase-02.md EZD-222 "rail and tooltips read bindings"): the company key map,
   // re-read on every defaults resync; the rail's tooltips and the Help list show it.
   const bindings = useDefault(sessionDefaults, editorDefaults.keyboardShortcuts);
@@ -479,8 +484,6 @@ export function ProjectEditor({
         ) : null}
       </>
     ) : null;
-  // EZD-408: the Defaults "Cabinet auto-fill increment" (per project) for Auto-fill run; null while not read.
-  const autoFillIncrement = useDefault(sessionDefaults, editorDefaults.autoFillIncrement);
   // EZD-515 (S05 Validation; S05 Decision 4): the Defaults "Fan blade clearance" for the RCP and the inspector, re-read
   // on every defaults resync; null while Not set (no fan check).
   const fanClearance = useDefault(sessionDefaults, editorDefaults.fanClearance);
@@ -493,24 +496,6 @@ export function ProjectEditor({
   useEffect(() => {
     actMinShareRef.current = actMinShare;
   }, [actMinShare]);
-  // EZD-412, EZD-416, EZD-414: the Defaults the countertop screen, panel and inspector read (per project): Trace's
-  // and the presets' overhangs, the countertop increment and the support check (EZD-415). One read of all eight, as
-  // text so the snapshot stays the same between changes (one hook instead of eight keeps the editor route within its
-  // budget).
-  const countertopDefaults = useDefault(sessionDefaults, editorDefaults.countertopDefaults);
-  // EZD-416: the countertop selection the screen and its left panel share; a new model session starts with none,
-  // and leaving the Countertops tool drops it.
-  const countertopSelection = useMemo(
-    () => (sessionStore === null ? null : createCountertopSelectionStore()),
-    [sessionStore],
-  );
-  useEffect(() => {
-    if (!countertopsOn) countertopSelection?.getState().select(null);
-  }, [countertopsOn, countertopSelection]);
-  // Leaving the Cabinets tool drops its selection, as the screen's own selection did before EZD-406.
-  useEffect(() => {
-    if (!cabinetsOn) cabinetSelection?.getState().send({ type: 'set', ids: [] });
-  }, [cabinetsOn, cabinetSelection]);
 
   const conflicts = useConflictInputs(session, projectId, listOpen);
 
@@ -575,7 +560,7 @@ export function ProjectEditor({
   const viewing = view.viewing;
   const [leftTab, setLeftTab] = useState<LeftTab>('layers');
   // EZD-502: Ceiling and Both draw through the lazy RCP module, and a switch away from Floor ends any standard tool
-  // (the cabinet screen too).
+  // (a feature's screen too).
   const shownSurface = useSyncExternalStore(
     surface.subscribe,
     () => surface.get().surface,
@@ -658,6 +643,21 @@ export function ProjectEditor({
   // working copy shown (EZD-122).
   const holdsLock = (session?.model.viewer.canEdit ?? false) && !lockLost;
   const mayEdit = holdsLock && viewing === null;
+  // EZD-1913a: what the registry features read, and the ones on now (lower order first).
+  const featureCtx: EditorFeatureContext = {
+    projectId,
+    tool,
+    store: session?.store ?? null,
+    floors: floors ?? undefined,
+    mayEdit,
+    defaults: sessionDefaults,
+    canManageDefaults,
+  };
+  const active = activeFeatures(features, featureCtx);
+  useFeatureLeave(active, featureCtx);
+  // EZD-404, EZD-412: while a feature's screen covers the plan, the plan's edit keys (Delete, copy, paste, undo) and
+  // zoom are off.
+  const screenOn = coversPlan(active);
 
   // EZD-123 (Q-0700 05 "Cleanup sheet"; S20 Permissions): a project with due rows opens the cleanup sheet once for a
   // user with Edit model; Save choices shows only to the lock holder, Later closes it.
@@ -745,6 +745,16 @@ export function ProjectEditor({
     };
     read();
     return sheetsScreen.subscribe(read);
+  }, [sheetsScreen]);
+  // EZD-719: a client send numbered Rev N shows at once in the header and the Sheets screen's revision log.
+  useEffect(() => {
+    onRevSent.current = (rev) => {
+      setIssuedNo((cur) => newerVersionNo(cur, rev));
+      if (sheetsScreen !== null) void sheetsScreen.reloadIssue();
+    };
+    return () => {
+      onRevSent.current = null;
+    };
   }, [sheetsScreen]);
   useEffect(
     () => (sheetsScreen === null ? undefined : () => sheetsScreen.dispose()),
@@ -993,7 +1003,14 @@ export function ProjectEditor({
               <HeaderButton
                 icon="share"
                 data-testid="header-share"
-                onClick={() => setSendOpen(true)}
+                onClick={() => {
+                  // EZD-719: the Sheets screen's chosen set goes with the send (its id once the sets have loaded).
+                  if (showSheets && sheetsScreen !== null) {
+                    const kind = sheetsScreen.get().kind;
+                    setSendSet({ kind, id: sheetsScreen.set()?.id ?? null });
+                  } else setSendSet(null);
+                  setSendOpen(true);
+                }}
               >
                 {t('office.header.share')}
               </HeaderButton>
@@ -1028,6 +1045,7 @@ export function ProjectEditor({
             projectId={projectId}
             sync={sync}
             sendOpen={sendOpen}
+            set={sendSet}
             settings={sendSettingsOpen && lock ? lock.ui.switcher : null}
             onCloseSend={() => setSendOpen(false)}
             onSent={onSent}
@@ -1258,8 +1276,6 @@ export function ProjectEditor({
         />
       ) : null}
       {selection !== null ? (
-        // EZD-404: under the cabinet screen the plan's edit keys (Delete, copy, paste, undo) are off. EZD-412: and
-        // under the countertop screen.
         <SelectionLayer selection={selection} edit={mayEdit && !screenOn ? edit : null} />
       ) : null}
       {session !== null ? (
@@ -1284,28 +1300,7 @@ export function ProjectEditor({
           floors={floors ?? undefined}
         />
       ) : null}
-      {cabinetsOn && session !== null ? (
-        // EZD-405: boxes are edited here with Edit model and the lock.
-        <LazyCabinetRun
-          store={session.store}
-          floors={floors ?? undefined}
-          canEdit={mayEdit}
-          selectionStore={cabinetSelection ?? undefined}
-          fitTolerance={fitTolerance}
-          autoFillIncrement={autoFillIncrement}
-        />
-      ) : null}
-      {countertopsOn && session !== null ? (
-        // EZD-412: tops are traced and drawn here with Edit model and the lock.
-        <LazyCountertops
-          store={session.store}
-          floors={floors ?? undefined}
-          canEdit={mayEdit}
-          newId={newObjectId}
-          defaults={countertopDefaults}
-          selection={countertopSelection ?? undefined}
-        />
-      ) : null}
+      {session !== null ? featureParts(active, 'overlay', featureCtx) : null}
       {stateArea}
       {panel}
       {checkParts}
@@ -1320,172 +1315,154 @@ export function ProjectEditor({
       {part('canvas')}
     </>
   );
+  // EZD-1913a (editor plan 2.4, 2.5): the screen, and the parts ProjectEditor itself can show now; the slot functions
+  // (shared/feature-slots.tsx) pick the one that shows, with the registry features in their places.
+  const screen: EditorScreen = { show3d, showSheets, showPlan };
+  const openAssistant = shown !== null && assistantOpen ? assistantSession : null;
   // EZD-213b (vault/plans/EZD-213b.md D-Editor): the inspector aside for every viewer of a ready plan.
-  const inspector =
-    show3d || showSheets ? null : showPlan && viewing !== null && session !== null ? (
-      <LazyVersionInspector
-        row={versionRows?.find((r) => r.id === viewing.id) ?? viewing}
-        rows={versionRows ?? []}
-        canEditModel={session.lock.canEditModel}
-        canRevert={holdsLock}
-        onName={nameSnapshot}
-        onRevert={() => void revert()}
-        reverting={reverting}
-        error={versionError?.id === viewing.id ? t(versionError.key) : null}
-      />
-    ) : showPlan && cabinetsOn && session !== null && cabinetSelection !== null ? (
-      <LazyCabinetInspector
+  const inspectorPlace = inspectorSlot(screen, active, featureCtx, {
+    assistant:
+      openAssistant === null
+        ? null
+        : () => <LazyAssistantPanel session={openAssistant} preview={preview} />,
+    version:
+      viewing !== null && session !== null
+        ? () => (
+            <LazyVersionInspector
+              row={versionRows?.find((r) => r.id === viewing.id) ?? viewing}
+              rows={versionRows ?? []}
+              canEditModel={session.lock.canEditModel}
+              canRevert={holdsLock}
+              onName={nameSnapshot}
+              onRevert={() => void revert()}
+              reverting={reverting}
+              error={versionError?.id === viewing.id ? t(versionError.key) : null}
+            />
+          )
+        : null,
+    fixtures:
+      drawing !== null && fixtureChoice !== null
+        ? () => <LazyFixturesPanel choice={fixtureChoice} onChoose={drawing.setFixtureChoice} />
+        : null,
+    selection:
+      session !== null && selection !== null
+        ? () => (
+            <InspectorStack>
+              <LazyInspectorPanel
+                store={session.store}
+                selection={selection}
+                canEdit={canEdit}
+                drawing={drawing}
+                newStatus={phase === null ? undefined : phase.newObjectStatus}
+                floors={floors ?? undefined}
+                projectId={projectId}
+                fanClearance={fanClearance}
+                actMinShare={actMinShare}
+                surface={surface}
+                framingDrawing={
+                  shownSurface === 'floor' || !rcp ? undefined : rcp.framingDrawingFor(surface)
+                }
+              />
+              <InspectorMore
+                selection={selection}
+                canEdit={canEdit}
+                onOpen={(at) => setMenu({ kind: 'more', at })}
+              />
+            </InspectorStack>
+          )
+        : null,
+  });
+  const leftPanel = leftPanelSlot(screen, active, featureCtx, {
+    sheets: () => sheetsScreen && <LazySheets part="panel" screen={sheetsScreen} canEdit={mayEdit} />,
+    layers:
+      session !== null && selection !== null && layers !== null && plan !== null
+        ? () => (
+      <LeftPanel
         store={session.store}
-        selectionStore={cabinetSelection}
+        layers={layers}
+        selection={selection}
+        showObject={plan.handle.showObject}
+        canEdit={canEdit}
+        roomArea={derived?.roomAreaSqFt}
         floors={floors ?? undefined}
-        canEdit={mayEdit}
-      />
-    ) : showPlan && countertopsOn && session !== null ? (
-      // EZD-418 (S04b Layout "Inspector: ... Top schedule"): while the Countertops tool is on, the inspector place
-      // holds the countertop inspector: the selected top's piece inspector (EZD-414) above its footer's Top schedule.
-      <LazyCountertopsInspector
-        store={session.store}
-        floors={floors ?? undefined}
-        selection={countertopSelection ?? undefined}
-        canEdit={mayEdit}
-        defaults={countertopDefaults}
-        canManageDefaults={canManageDefaults}
-      />
-    ) : showPlan && drawing !== null && fixtureChoice !== null ? (
-      <LazyFixturesPanel choice={fixtureChoice} onChoose={drawing.setFixtureChoice} />
-    ) : showPlan && session !== null && selection !== null ? (
-      <InspectorStack>
-        <LazyInspectorPanel
-          store={session.store}
-          selection={selection}
-          canEdit={canEdit}
-          drawing={drawing}
-          newStatus={phase === null ? undefined : phase.newObjectStatus}
-          floors={floors ?? undefined}
-          projectId={projectId}
-          fanClearance={fanClearance}
-          actMinShare={actMinShare}
-          surface={surface}
-          framingDrawing={
-            shownSurface === 'floor' || !rcp ? undefined : rcp.framingDrawingFor(surface)
-          }
-        />
-        <InspectorMore
-          selection={selection}
-          canEdit={canEdit}
-          onOpen={(at) => setMenu({ kind: 'more', at })}
-        />
-      </InspectorStack>
-    ) : null;
-  // EZD-416 (S04b Layout "Left panel: tabs Pieces / Edges / Material"): while the Countertops tool is on, the
-  // countertop panel takes the left panel.
-  // EZD-403 (S04 Layout "Left panel 248px 'Cabinet library'"): while the Cabinets tool is on, the cabinet library
-  // takes the left panel.
-  const leftPanel = show3d ? null : showSheets ? (
-    sheetsScreen && <LazySheets part="panel" screen={sheetsScreen} canEdit={mayEdit} />
-  ) : showPlan && cabinetsOn && session !== null && cabinetSelection !== null ? (
-    <LazyCabinetLibrary
-      store={session.store}
-      floors={floors ?? undefined}
-      canEdit={mayEdit}
-      selectionStore={cabinetSelection}
-      fitTolerance={fitTolerance}
-    />
-  ) : showPlan && countertopsOn && session !== null && countertopSelection !== null ? (
-    <LazyCountertopsPanel
-      store={session.store}
-      floors={floors ?? undefined}
-      canEdit={mayEdit}
-      selection={countertopSelection}
-      defaults={countertopDefaults}
-      canManageDefaults={canManageDefaults}
-    />
-  ) : showPlan && session !== null && selection !== null && layers !== null && plan !== null ? (
-    <LeftPanel
-      store={session.store}
-      layers={layers}
-      selection={selection}
-      showObject={plan.handle.showObject}
-      canEdit={canEdit}
-      roomArea={derived?.roomAreaSqFt}
-      floors={floors ?? undefined}
-      projectId={projectId}
-      tab={leftTab}
-      onTab={setLeftTab}
-      surface={surface}
-      ceiling={
-        rcp === undefined ? undefined : (
-          <>
-            <rcp.RoomCeiling
+        projectId={projectId}
+        tab={leftTab}
+        onTab={setLeftTab}
+        surface={surface}
+        ceiling={
+          rcp === undefined ? undefined : (
+            <>
+              <rcp.RoomCeiling
+                store={session.store}
+                selection={selection}
+                floors={floors ?? undefined}
+                canEdit={canEdit}
+                {...(readScan === undefined ? {} : { readScan })}
+              />
+              <rcp.Lighting
+                surface={surface}
+                canEdit={mayEdit}
+                // EZD-509: Auto-layout cans, above Switching zones; it places through the routed store like the tools.
+                autoLayout={
+                  routedStore === null || phase === null ? undefined : (
+                    <rcp.AutoLayout
+                      store={routedStore}
+                      selection={selection}
+                      floors={floors ?? undefined}
+                      surface={surface}
+                      canEdit={mayEdit}
+                      defaults={autoLayoutDefaults}
+                      newId={newObjectId}
+                      newStatus={() => phase.newObjectStatus()}
+                      actMinShare={actMinShare}
+                    />
+                  )
+                }
+              />
+              <rcp.FixtureSchedule
+                store={session.store}
+                floors={floors ?? undefined}
+                onPick={(ids) => selection.select(ids)}
+              />
+            </>
+          )
+        }
+        electrical={
+          electricalOn ? (
+            <LazyElectricalPanel
               store={session.store}
               selection={selection}
+              showObject={plan.handle.showObject}
+              layers={layers}
               floors={floors ?? undefined}
-              canEdit={canEdit}
-              {...(readScan === undefined ? {} : { readScan })}
-            />
-            <rcp.Lighting
-              surface={surface}
-              canEdit={mayEdit}
-              // EZD-509: Auto-layout cans, above Switching zones; it places through the routed store like the tools.
-              autoLayout={
-                routedStore === null || phase === null ? undefined : (
-                  <rcp.AutoLayout
-                    store={routedStore}
-                    selection={selection}
-                    floors={floors ?? undefined}
-                    surface={surface}
-                    canEdit={mayEdit}
-                    defaults={autoLayoutDefaults}
-                    newId={newObjectId}
-                    newStatus={() => phase.newObjectStatus()}
-                    actMinShare={actMinShare}
-                  />
-                )
+              // EZD-604: New circuit, rename and the circuit fields with Edit model, paused while view only.
+              // EZD-606: the project the Existing panel dialog reads panel photos for.
+              edit={
+                session.lock.canEditModel
+                  ? { slot: deviceSlot, paused: !mayEdit, projectId }
+                  : undefined
               }
             />
-            <rcp.FixtureSchedule
-              store={session.store}
-              floors={floors ?? undefined}
-              onPick={(ids) => selection.select(ids)}
+          ) : undefined
+        }
+        versions={
+          versionView !== null ? (
+            <LazyVersions
+              rows={versionRows}
+              failed={versionsFailed}
+              openFailed={view.failed}
+              viewingId={viewing?.id ?? null}
+              openingId={view.opening}
+              cleanupAgeDays={typeof cleanupAge === 'number' ? cleanupAge : CLEANUP_AGE_DEFAULT}
+              onOpen={(row) => void versionView.open(row)}
+              onBack={versionView.back}
             />
-          </>
-        )
-      }
-      electrical={
-        electricalOn ? (
-          <LazyElectricalPanel
-            store={session.store}
-            selection={selection}
-            showObject={plan.handle.showObject}
-            layers={layers}
-            floors={floors ?? undefined}
-            // EZD-604: New circuit, rename and the circuit fields with Edit model, paused while view only.
-            // EZD-606: the project the Existing panel dialog reads panel photos for.
-            edit={
-              session.lock.canEditModel
-                ? { slot: deviceSlot, paused: !mayEdit, projectId }
-                : undefined
-            }
-          />
-        ) : undefined
-      }
-      versions={
-        versionView !== null ? (
-          <LazyVersions
-            rows={versionRows}
-            failed={versionsFailed}
-            openFailed={view.failed}
-            viewingId={viewing?.id ?? null}
-            openingId={view.opening}
-            cleanupAgeDays={typeof cleanupAge === 'number' ? cleanupAge : CLEANUP_AGE_DEFAULT}
-            onOpen={(row) => void versionView.open(row)}
-            onBack={versionView.back}
-          />
-        ) : undefined
-      }
-    />
-  ) : null;
-  const openAssistant = shown !== null && assistantOpen ? assistantSession : null;
+          ) : undefined
+        }
+      />
+          )
+        : null,
+  });
   // EZD-702a: one wrapper on every tab, so a switch to Sheets and back never remounts the plan canvas.
   const backdrop = showPlan ? (
     <div
@@ -1517,95 +1494,65 @@ export function ProjectEditor({
           }
           rail={
             show3d || showSheets || rail === null ? null : (
-              // EZD-1986 (audit F9): while the cabinet library is open the pressed Cabinets tool shows no tooltip,
-              // which would sit over the library's rows. The wrapper is always there, so the rail is not remounted
-              // (and keeps its focus) when the tool turns on or off; only its class changes.
-              <div
-                className={
-                  cabinetsOn ? `${styles.railWrap} ${styles.cabinetsRail}` : styles.railWrap
-                }
-              >
-                {rail}
-              </div>
+              // EZD-1986: the wrapper is always there, so the rail is not remounted (and keeps its focus) when a
+              // feature turns on or off; only its class changes (a feature's railClass).
+              <div className={[styles.railWrap, ...railClasses(active)].join(' ')}>{rail}</div>
             )
           }
           leftPanel={leftPanel ?? undefined}
           leftPanelLabel={leftPanel === null ? undefined : 'office.shell.left_panel'}
           canvas={canvas}
-          inspector={
-            openAssistant !== null ? (
-              <LazyAssistantPanel session={openAssistant} preview={preview} />
-            ) : (
-              (inspector ?? undefined)
-            )
-          }
-          inspectorLabel={
-            openAssistant !== null
-              ? 'office.assistant.title'
-              : inspector === null
-                ? undefined
-                : 'office.shell.inspector'
-          }
+          inspector={inspectorPlace.part ?? undefined}
+          inspectorLabel={inspectorPlace.label}
           statusBar={
             <StatusBar
-              start={
-                showSheets ? (
-                  sheetsScreen && <LazySheets part="start" screen={sheetsScreen} />
-                ) : !show3d && showPlan && scale && phase ? (
-                  <>
-                    {session !== null && floors !== null ? (
-                      <FloorSwitcher store={session.store} floors={floors} canEdit={canEdit} />
-                    ) : null}
-                    {cabinetsOn && session !== null ? (
-                      <LazyCabinetStatus
-                        store={session.store}
-                        floors={floors ?? undefined}
-                        selectionStore={cabinetSelection ?? undefined}
-                      />
-                    ) : null}
-                    {countertopsOn && session !== null ? (
-                      <LazyCountertopsStatus
-                        store={session.store}
-                        floors={floors ?? undefined}
-                        defaults={countertopDefaults}
-                      />
-                    ) : null}
-                    {shownSurface === 'floor' || rcp === undefined ? null : (
-                      <rcp.CeilingViewStatus />
-                    )}
-                    {electricalOn && shownSurface === 'floor' && session !== null ? (
-                      <LazyElectricalStatus store={session.store} />
-                    ) : null}
-                    <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
-                    {shownSurface === 'floor' || rcp === undefined ? null : (
-                      // EZD-514: the text follows the active room's Framing known choice.
-                      <rcp.JoistsStatus
-                        store={session?.store}
-                        selection={selection ?? undefined}
-                        floors={floors ?? undefined}
-                      />
-                    )}
-                    {part('status')}
-                    {leftTab === 'versions' || viewing !== null ? (
-                      <LazyVersionsStatus
-                        rows={versionRows}
-                        viewing={viewing}
-                        onBack={versionView?.back ?? noop}
-                        diff={view.diff}
-                        showChanges={view.showChanges}
-                        onShowChanges={versionView?.setShowChanges ?? noop}
-                      />
-                    ) : null}
-                  </>
-                ) : undefined
-              }
-              end={
-                showSheets ? (
-                  sheetsScreen && <LazySheets part="end" screen={sheetsScreen} />
-                ) : showPlan && !show3d ? (
-                  <PlanStatusEnd handle={plan.handle} />
-                ) : undefined
-              }
+              start={statusStartSlot(screen, active, featureCtx, {
+                sheets: () => sheetsScreen && <LazySheets part="start" screen={sheetsScreen} />,
+                planReady: scale !== null && phase !== null,
+                floorSwitcher:
+                  session !== null && floors !== null
+                    ? () => <FloorSwitcher store={session.store} floors={floors} canEdit={canEdit} />
+                    : null,
+                ceilingView:
+                  shownSurface === 'floor' || rcp === undefined ? null : () => <rcp.CeilingViewStatus />,
+                electrical:
+                  electricalOn && shownSurface === 'floor' && session !== null
+                    ? () => <LazyElectricalStatus store={session.store} />
+                    : null,
+                planStart:
+                  scale !== null && phase !== null
+                    ? () => <PlanStatusStart scale={scale} snap={deviceSnapSettings} phase={phase} />
+                    : null,
+                joists:
+                  shownSurface === 'floor' || rcp === undefined
+                    ? null
+                    : () => (
+                        // EZD-514: the text follows the active room's Framing known choice.
+                        <rcp.JoistsStatus
+                          store={session?.store}
+                          selection={selection ?? undefined}
+                          floors={floors ?? undefined}
+                        />
+                      ),
+                lock: () => part('status'),
+                versions:
+                  leftTab === 'versions' || viewing !== null
+                    ? () => (
+                        <LazyVersionsStatus
+                          rows={versionRows}
+                          viewing={viewing}
+                          onBack={versionView?.back ?? noop}
+                          diff={view.diff}
+                          showChanges={view.showChanges}
+                          onShowChanges={versionView?.setShowChanges ?? noop}
+                        />
+                      )
+                    : null,
+              })}
+              end={statusEndSlot(screen, active, featureCtx, {
+                sheets: () => sheetsScreen && <LazySheets part="end" screen={sheetsScreen} />,
+                planEnd: plan !== null ? () => <PlanStatusEnd handle={plan.handle} /> : null,
+              })}
             />
           }
           backdrop={backdrop}
@@ -1616,14 +1563,18 @@ export function ProjectEditor({
   );
 }
 
-const conflictPanelModule = lazyModule(() => import('../lazy/conflict-panel'));
+const conflictPanelModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/conflict-panel.messages'), import('../lazy/conflict-panel')),
+);
 
 // EZD-1910 (editor plan R11, L4): every lazy part below is one `lazyPart` call (shared/lazy-part.tsx); nothing shows
 // for the moment a module downloads, and a failed download is tried again the next time the part is wanted.
 
 // EZD-111 (11 Budgets; EZD-120c B11): the Send dialog and the Project settings dialog it opens load when Share is
 // first pressed.
-const sendDialogModule = lazyModule(() => import('../lazy/send-dialog'));
+const sendDialogModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/send-dialog.messages'), import('../lazy/send-dialog')),
+);
 
 const LazySend = lazyPart(
   sendDialogModule,
@@ -1633,9 +1584,10 @@ const LazySend = lazyPart(
       projectId: string;
       sync: EditorSession['sync'];
       sendOpen: boolean;
+      set: SendSet | null;
       settings: LockUi['switcher'] | null;
       onCloseSend: () => void;
-      onSent: (versionNo: number) => void;
+      onSent: (versionNo: number, revNo: number | null) => void;
       onOpenSettings: () => void;
       onCloseSettings: () => void;
     },
@@ -1649,6 +1601,7 @@ const LazySend = lazyPart(
             sync={props.sync}
             onClose={props.onCloseSend}
             onSent={props.onSent}
+            set={props.set}
             onOpenProjectSettings={props.onOpenSettings}
           />
         ) : null}
@@ -1669,7 +1622,9 @@ const LazySend = lazyPart(
 
 // EZD-126 (11 rule 7): the lock UI loads on the first pointer move or press, or the first edit (not on
 // pointerover, which a browser fires when the page changes under a resting mouse).
-const lockUiModule = lazyModule(() => import('../lazy/lock-ui'));
+const lockUiModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/lock-ui.messages'), import('../lazy/lock-ui')),
+);
 
 // EZD-122 (11 Budgets): the Versions tab, the version inspector and the status text load when the tab first opens.
 // EZD-1910: through the lazy facade, so the entry contents check (EZD-120c B11) covers them.
@@ -1744,7 +1699,9 @@ const LazyDiffLayer = lazyPart(versionsModule, 'DiffLayer');
 
 // EZD-227 Build (11 Budgets; vault/build/assumptions.md EZD-227): the assistant panel loads when first opened, as the
 // conflict list does; nothing shows for the moment it downloads, and a failed download is tried again on next open.
-const assistantPanelModule = lazyModule(() => import('../lazy/assistant-panel'));
+const assistantPanelModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/assistant-panel.messages'), import('../lazy/assistant-panel')),
+);
 
 // EZD-5604b (11 Budgets; EZD-120c B11): the Assistant preview layer comes with the panel's lazy module, shown while
 // a preview is open.
@@ -1806,29 +1763,13 @@ const scene3dModule = lazyModule(() => import('../lazy/scene-3d'));
 const LazyScene3dOverlay = lazyPart(scene3dModule, 'Scene3dOverlay');
 const LazyBenchmarkRunner = lazyPart(benchmarkRunnerModule, 'BenchmarkRunner');
 
-// EZD-404 (11 Budgets; 11 rule 7): the cabinet run screen loads when the Cabinets tool is first turned on.
-const cabinetRunModule = lazyModule(() => import('../lazy/cabinet-run'));
-
-const LazyCabinetRun = lazyPart(cabinetRunModule, 'CabinetRunView');
-const LazyCabinetInspector = lazyPart(cabinetRunModule, 'CabinetInspector');
-const LazyCabinetLibrary = lazyPart(cabinetRunModule, 'CabinetLibrary');
-const LazyCabinetStatus = lazyPart(cabinetRunModule, 'CabinetRunStatus');
-
 // EZD-702a (11 Budgets; 11 rule 7): the Sheets screen loads when the Sheets tab is first pressed.
-const sheetsScreenModule = lazyModule(() => import('../lazy/sheets-screen'));
+const sheetsScreenModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/sheets-screen.messages'), import('../lazy/sheets-screen')),
+);
 
 // One part for the panel, canvas and status (EZD-120c B11: the entry's size).
 const LazySheets = lazyPart(sheetsScreenModule, 'SheetsPart');
-
-// EZD-412 (11 Budgets; 11 rule 7): the countertop screen loads when the Countertops tool is first turned on.
-const countertopsModule = lazyModule(() => import('../lazy/countertops'));
-
-const LazyCountertops = lazyPart(countertopsModule, 'CountertopsView');
-// EZD-416: the countertop left panel and status readouts, from the same module.
-const LazyCountertopsPanel = lazyPart(countertopsModule, 'CountertopsPanel');
-const LazyCountertopsStatus = lazyPart(countertopsModule, 'CountertopsStatus');
-// EZD-418: the countertop inspector place (footer Top schedule), from the same module.
-const LazyCountertopsInspector = lazyPart(countertopsModule, 'CountertopsInspector');
 
 // EZD-1985 (Q-0809 (a)): the Fixtures panel in the inspector place, from the module the Fixtures tool loads.
 const LazyFixturesPanel = lazyPart(fixturesModule, 'FixturesPanel');
@@ -1852,7 +1793,9 @@ const LazyNotice = lazyPart(
 );
 
 // EZD-222 (11 Budgets): the Help panel loads when Help is first opened.
-const helpPanelModule = lazyModule(() => import('../lazy/help-panel'));
+const helpPanelModule = lazyModule(() =>
+  withScreenMessages(import('../lib/messages/screens/help-panel.messages'), import('../lazy/help-panel')),
+);
 
 const LazyHelpPanel = lazyPart(helpPanelModule, 'HelpPanel');
 

@@ -421,6 +421,16 @@ export const DEFAULTS_REGISTRY: readonly DefaultRow[] = [
     type: 'switch',
     default: false,
   }),
+  // EZD-1611b (09i Takeoff rules "Wire | ... x (1 + slack) | Slack 15%"; vault/build/assumptions/EZD-1611b.md "Wire per
+  // circuit"): the takeoff's wire slack, company only.
+  row({
+    key: 'wire_slack',
+    group: 'electrical',
+    label: L('wire_slack'),
+    type: 'percent',
+    unit: '%',
+    default: 15,
+  }),
   // Baths. EZD-228 (09d:34 "The bath clearance values that Round 3 put in Defaults now start at these code
   // minimums"; B-07 to B-09): the default is the code minimums; the tub front clearance has none (no code value).
   // The Q-0710 editor waits for Josh's values, so the row is not stored yet.

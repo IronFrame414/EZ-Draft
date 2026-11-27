@@ -23,7 +23,7 @@ export function railMode(o: {
 }
 
 // EZD-222 (S15d Keyboard shortcuts): the keys come from the company key map, as in the engine's `keyDown`.
-// EZD-216: Dimension (L) and Text (T).
+// EZD-216: Dimension (L) and Text (T). EZD-232: Revision cloud (Q).
 const EDIT_TOOLS: ReadonlySet<string> = new Set([
   'wall',
   'room-rect',
@@ -34,6 +34,7 @@ const EDIT_TOOLS: ReadonlySet<string> = new Set([
   'dimension',
   'text',
   'sketch',
+  'revision-cloud',
 ]);
 // EZD-231 Measure, EZD-404 Cabinets, EZD-412 Countertops and EZD-601 Electrical work without Edit model.
 const VIEW_TOOLS: ReadonlySet<string> = new Set([

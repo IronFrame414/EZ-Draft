@@ -5,6 +5,9 @@
 // send the outbox is drained, so the server checkpoint holds the latest edits. After the send, Copy link copies
 // the link of the email, also when the email did not go. One send per opening. The shell copies CustomerDialog.
 // EZD-1201: the Share panel's earlier links (on or off, client, expiry, Renew, Turn off) sit under the send.
+// EZD-719 (S13 Controls "Send to client", rule 12; R24 #26; assumptions EZD-719): from the Sheets screen the dialog
+// sends the chosen set, and after the send reads "{Set name} · Version N" before Rev 0 or "· Rev N" after
+// (sendLabel). Opened from other tabs it has no set and keeps EZD-111's lines.
 import { Dialog } from 'radix-ui';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { InlineError } from '../../components/states/InlineError';
@@ -19,6 +22,8 @@ import {
   fetchSendRecipient,
   postClientSend,
   SEND_NOTE_MAX,
+  sendLabel,
+  type SendSet,
   type ClientSend,
   type SendRecipient,
 } from '../../lib/sends/sends';
@@ -33,7 +38,10 @@ export type SendDialogProps = {
   onClose: () => void;
   onOpenProjectSettings: () => void;
   // EZD-121: the new version's number, so the header reads "Working copy · Version N sent".
-  onSent?: (versionNo: number) => void;
+  // EZD-719: revNo is the Rev the send took after Rev 0, null before.
+  onSent?: (versionNo: number, revNo: number | null) => void;
+  // EZD-719: the Sheets screen's chosen set; null or absent on other tabs.
+  set?: SendSet | null;
   fetchImpl?: typeof fetch;
 };
 
@@ -60,6 +68,7 @@ export function SendDialog({
   onClose,
   onSent,
   onOpenProjectSettings,
+  set = null,
   fetchImpl,
 }: SendDialogProps): ReactElement {
   const t = useT();
@@ -109,10 +118,10 @@ export function SendDialog({
         return;
       }
     }
-    const r = await postClientSend(projectId, note, fetchImpl ? { fetchImpl } : undefined);
+    const r = await postClientSend(projectId, note, { ...(fetchImpl ? { fetchImpl } : {}), set });
     if (r.ok) {
       setState({ kind: 'sent', recipient, send: r.send });
-      onSent?.(r.send.versionNo);
+      onSent?.(r.send.versionNo, typeof r.send.revNo === 'number' ? r.send.revNo : null);
     }
     else if (r.status === 400 && r.code === 'no_client') setState({ kind: 'no-client' });
     else setState({ kind: 'send-failed', recipient, error: sendError(r.status, r.code) });
@@ -217,6 +226,17 @@ export function SendDialog({
                 {sent.emailSent
                   ? t('office.send.sent_to', { name: sent.recipient.name })
                   : t('office.send.email_failed')}
+              </p>
+            ) : null}
+            {sent !== null && set !== null ? (
+              <p data-testid="send-label" className={styles.message}>
+                {(() => {
+                  const l = sendLabel(sent);
+                  return t('office.send.set_label', {
+                    set: t(set.kind === 'client' ? 'office.sheets.set.client' : 'office.sheets.set.permit'),
+                    label: t(l.kind === 'rev' ? 'office.editor.rev' : 'office.editor.version', { n: l.no }),
+                  });
+                })()}
               </p>
             ) : null}
             {sent !== null && sent.holder !== null ? (

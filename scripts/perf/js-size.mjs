@@ -1,6 +1,8 @@
 // EZD-017 Step 6 (vault/plans/EZD-017.md S1-S5, G7): compressed JavaScript a page downloads with no user action
 // (11 rule 7). One new browser context per measurement, so the HTTP cache starts empty (S4).
 // EZD-1996 (AC-EZD-1996-3): a page's download size counts its CSS too; measureCssSize is the CSS alone.
+// EZD-1995 (AC-EZD-1995-3): a row whose config entry sets `document: true` counts the page's HTML too, where the
+// page's screen messages travel.
 import path from 'node:path';
 import { compressedSize } from './budgets.mjs';
 
@@ -72,7 +74,7 @@ function displayUrl(url, baseOrigin) {
  * @returns {Promise<{ error?: string; details: object; scripts: { url: string; displayUrl: string; body: Buffer;
  *   serviceWorker: boolean; kind: 'js' | 'css' }[] }>} details = { url, status, idleTimeout }
  */
-export async function collectScripts(ctx, url, { styles = false } = {}) {
+export async function collectScripts(ctx, url, { styles = false, documents = false } = {}) {
   const { browser, profile, baseUrl, storageState } = ctx;
   const baseOrigin = new URL(baseUrl).origin;
   const details = { url, status: null, idleTimeout: false };
@@ -90,12 +92,13 @@ export async function collectScripts(ctx, url, { styles = false } = {}) {
       if (seen.has(rUrl)) return;
       const fromWorker = response.request().serviceWorker() !== null;
       const css = styles && !fromWorker && isStylesheet(response);
-      if (!fromWorker && !css && !isJavaScript(response)) return;
+      const html = documents && !fromWorker && response.request().resourceType() === 'document';
+      if (!fromWorker && !css && !html && !isJavaScript(response)) return;
       seen.add(rUrl);
       const body = response.body();
       // A body that cannot be read rejects when awaited below (E1), never as an unhandled rejection.
       body.catch(() => {});
-      collected.push({ url: rUrl, fromWorker, body, kind: css ? 'css' : 'js' });
+      collected.push({ url: rUrl, fromWorker, body, kind: html ? 'html' : css ? 'css' : 'js' });
     });
 
     const page = await context.newPage();
@@ -143,7 +146,8 @@ export async function collectScripts(ctx, url, { styles = false } = {}) {
  * plus jsBytes and cssBytes; each file names its kind.
  */
 async function measureSize(browser, profile, baseUrl, url, kinds, storageState) {
-  const collected = await collectScripts({ browser, profile, baseUrl, storageState }, url, { styles: true });
+  const documents = kinds.includes('html');
+  const collected = await collectScripts({ browser, profile, baseUrl, storageState }, url, { styles: true, documents });
   const details = {
     url,
     status: collected.details.status,
@@ -153,6 +157,12 @@ async function measureSize(browser, profile, baseUrl, url, kinds, storageState) 
     excludedServiceWorkerBytes: 0,
     idleTimeout: collected.details.idleTimeout,
   };
+  // EZD-1995: the page's HTML is listed in `documents`, not `files` (files are the page's static script and style
+  // files, e2e/entries.spec.ts E4).
+  if (documents) {
+    details.documentBytes = 0;
+    details.documents = [];
+  }
   if (collected.details.landedUrl !== undefined) details.landedUrl = collected.details.landedUrl;
   if (collected.error !== undefined) return { error: collected.error, details };
   let value = 0;
@@ -165,8 +175,11 @@ async function measureSize(browser, profile, baseUrl, url, kinds, storageState) 
     if (!kinds.includes(s.kind)) continue;
     value += compressedBytes;
     if (s.kind === 'css') details.cssBytes += compressedBytes;
+    else if (s.kind === 'html') details.documentBytes += compressedBytes;
     else details.jsBytes += compressedBytes;
-    details.files.push({ url: s.displayUrl, kind: s.kind, rawBytes: s.body.length, compressedBytes });
+    const entry = { url: s.displayUrl, kind: s.kind, rawBytes: s.body.length, compressedBytes };
+    if (s.kind === 'html') details.documents.push(entry);
+    else details.files.push(entry);
   }
   return { value, details };
 }
@@ -175,8 +188,8 @@ async function measureSize(browser, profile, baseUrl, url, kinds, storageState) 
  * The page's download size: its JavaScript and, since EZD-1996, its CSS.
  * @returns {Promise<{ value: number; details: object } | { error: string; details: object }>} details = SizeDetails
  */
-export function measureJsSize(browser, profile, baseUrl, url, { storageState } = {}) {
-  return measureSize(browser, profile, baseUrl, url, ['js', 'css'], storageState);
+export function measureJsSize(browser, profile, baseUrl, url, { storageState, document = false } = {}) {
+  return measureSize(browser, profile, baseUrl, url, document ? ['js', 'css', 'html'] : ['js', 'css'], storageState);
 }
 
 /** EZD-1996 (AC-EZD-1996-3): the page's CSS alone. */

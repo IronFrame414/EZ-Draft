@@ -24,6 +24,7 @@
 // EZD-216 (S03 rail Dimension, Text; 03 Q-0667; 09-calculations Q-0664): stored dimensions draw on `dimensions` from
 // what they measure now (dimensions/measure.ts), notes on their status layer, at the paper size `options.annotation`
 // gives; both after the flagged items.
+// EZD-232: stored revision clouds draw on `dimensions` with the stored dimensions and notes (revision-cloud.ts).
 import { hasLevel } from '../schema';
 import type { DoorHand, DoorSwing, ModelDocument, ModelObject, Point } from '../schema';
 import { tileLayoutPieces, type TileLayoutObject } from '../tile/hosts';
@@ -52,6 +53,7 @@ import { add } from '../vec';
 import { roomInsideBox, wallsOuterBox } from '../dimensions/auto';
 import { dimensionItems, SHEET_ANNOTATION_SCALE, textItems, type AnnotationScale, type TextObject } from '../dimensions/items';
 import { measureDimension, type Box, type DimensionObject } from '../dimensions/measure';
+import { revisionCloudItems, type RevisionCloudObject } from './revision-cloud';
 
 type WallObject = Extract<ModelObject, { type: 'wall' }>;
 type OpeningObject = Extract<ModelObject, { type: 'opening' }>;
@@ -378,6 +380,9 @@ export function buildDrawingList(
       else dimItems.push(...dimensionItems(o as DimensionObject, m, annotation));
     } else if (o.type === 'text') {
       dimItems.push(...textItems(o as TextObject, annotation));
+    } else if (o.type === 'revision_cloud') {
+      // EZD-232: a revision cloud and its delta tag, on `dimensions` (revision-cloud.ts).
+      dimItems.push(...revisionCloudItems(o as RevisionCloudObject, annotation));
     }
   }
 

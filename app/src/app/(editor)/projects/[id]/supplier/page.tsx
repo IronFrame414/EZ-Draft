@@ -14,7 +14,7 @@ import { MessagesProvider } from '../../../../../lib/messages';
 import { requireSession } from '../../../../../server/auth/session';
 import { createSessionClient } from '../../../../../server/auth/supabase-server';
 import { reportError } from '../../../../../server/errors/report';
-import { catalogFor } from '../../../../../server/messages/catalog';
+import { pageMessages } from '../../../../../server/messages/page-messages';
 import { can } from '../../../../../server/permissions';
 import { settingsPermissionContext } from '../../../../../server/settings/shell-data';
 
@@ -52,7 +52,7 @@ export default async function SupplierMarkupPage({
     project = { name: read.data.name, clientName: read.data.customer?.name ?? null };
   }
   return (
-    <MessagesProvider language="en" messages={catalogFor('office', 'en')}>
+    <MessagesProvider language="en" messages={pageMessages('supplier')}>
       <StateHost>
         <SupplierMarkupScreen projectId={id} canUpload={canUpload} project={project} />
       </StateHost>

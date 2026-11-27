@@ -38,6 +38,7 @@ import {
   type AnnotationScale,
   type DimensionObject,
   type TextObject,
+  type RevisionCloudObject,
   beamSetPickShape,
   blockingPickShape,
   type BlockingObject,
@@ -198,7 +199,9 @@ function parseOnFloor(
   return r.object.data.level.toLowerCase() === floorId.toLowerCase() ? r.object : null;
 }
 
-type AnnotationObject = DimensionObject | TextObject;
+// EZD-232: a revision cloud picks by its outline (a ring with area, as a switching zone), so the smaller objects it
+// surrounds still pick first.
+type AnnotationObject = DimensionObject | TextObject | RevisionCloudObject;
 
 function annotationPickShape(
   o: AnnotationObject,
@@ -211,6 +214,16 @@ function annotationPickShape(
     points: [a, b, c, d],
     area,
   });
+  if (o.type === 'revision_cloud') {
+    const pts = o.data.geometry.boundary;
+    let twice = 0;
+    for (let k = 0; k < pts.length; k++) {
+      const p = pts[k]!;
+      const q = pts[(k + 1) % pts.length]!;
+      twice += p.x * q.y - q.x * p.y;
+    }
+    return { kind: 'ring', points: pts, area: Math.abs(twice / 2) };
+  }
   if (o.type === 'text') {
     const { box } = textBlock(o.data, scale);
     const w = box.maxX - box.minX;
@@ -311,7 +324,10 @@ export function createPickIndex(opts: { annotation?: () => AnnotationScale } = {
     annotations.delete(key);
     rooms.delete(key);
     dropOpening(key);
-    if (object !== null && (object.type === 'dimension' || object.type === 'text')) {
+    if (
+      object !== null &&
+      (object.type === 'dimension' || object.type === 'text' || object.type === 'revision_cloud')
+    ) {
       annotations.set(key, object as AnnotationObject);
     } else if (object !== null && object.type === 'room') {
       rooms.set(key, object);

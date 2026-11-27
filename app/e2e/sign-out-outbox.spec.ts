@@ -230,6 +230,9 @@ test.describe('EZD-120d sign-out with queued edits', () => {
     await signInAs(a.email);
     await queueOneEdit(page, ids.P1);
     await page.goto('/settings');
+    // EZD-1995: the page loads the confirm dialog's code once it has counted the queued edit; wait for that request
+    // to finish, so going offline cannot cut it off (the dialog then never opens and the click below times out).
+    await page.waitForLoadState('networkidle');
     const signInCookies = watchSignInCookies(page);
     await network.set(page, 'off');
     const errorPage = offlineErrorPage(page);

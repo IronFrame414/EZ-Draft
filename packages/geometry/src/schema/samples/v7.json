@@ -1406,6 +1406,42 @@
       }
     },
     {
+      "id": "ae3b6a4c-7d9f-4c50-8b82-3f4e5d6c7a83",
+      "type": "revision_cloud",
+      "schema_version": 7,
+      "data": {
+        "geometry": {
+          "boundary": [
+            {
+              "x": 24,
+              "y": 24
+            },
+            {
+              "x": 120,
+              "y": 24
+            },
+            {
+              "x": 120,
+              "y": 96
+            },
+            {
+              "x": 24,
+              "y": 96
+            }
+          ],
+          "tag": {
+            "x": 120,
+            "y": 96
+          }
+        },
+        "level": "34234c39-7f4e-4f09-8b77-92e9c457f84b",
+        "attributes": {
+          "source": "manual",
+          "rev": null
+        }
+      }
+    },
+    {
       "id": "b7e2c4a1-5d3f-4e8a-9c61-2f0a7d5e9b13",
       "type": "room",
       "schema_version": 7,
