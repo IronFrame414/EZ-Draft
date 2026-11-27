@@ -2669,7 +2669,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2727,7 +2727,8 @@
     "EZD-2030": 1,
     "EZD-2010": 1,
     "EZD-2022": 1,
-    "EZD-2019": 1
+    "EZD-2019": 1,
+    "EZD-2031": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2969,15 +2970,13 @@
     "EZD-2019": {
       "ts": "2026-11-27T14:17:26Z",
       "reason": "check red after a review fix"
+    },
+    "EZD-2031": {
+      "ts": "2026-11-27T17:51:48Z",
+      "reason": "check red after a review fix"
     }
   },
   "running": {
-    "EZD-2031": {
-      "lane": 1,
-      "title": "The editor runs on an iPad held upright (744 to 1023 px wide)",
-      "started": "2026-11-27T16:30:12Z",
-      "develop": "5d6406f5c"
-    },
     "EZD-2019": {
       "lane": 2,
       "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
@@ -2989,6 +2988,12 @@
       "title": "Security: error-tunnel alerts are marked as unverified browser reports",
       "started": "2026-11-27T16:30:13Z",
       "develop": "5d6406f5c"
+    },
+    "EZD-2017": {
+      "lane": 4,
+      "title": "Fix: sources bucket over-limit put T4 times out sending 50 MB under load (EZD-296)",
+      "started": "2026-11-27T17:36:55Z",
+      "develop": "a5c7c7de3"
     }
   },
   "advisories_checked_at": "2026-11-27T16:29:29Z",
