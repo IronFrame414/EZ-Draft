@@ -2660,7 +2660,8 @@
     "EZD-2000": 1,
     "EZD-1913b": 1,
     "EZD-640": 1,
-    "EZD-2029": 1
+    "EZD-2029": 1,
+    "EZD-2030": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -2886,15 +2887,13 @@
     "EZD-2029": {
       "ts": "2026-11-27T08:19:11Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-2030": {
+      "ts": "2026-11-27T11:08:44Z",
+      "reason": "check red after a review fix"
     }
   },
   "running": {
-    "EZD-2030": {
-      "lane": 2,
-      "title": "The emailed sign-in code is 8 digits",
-      "started": "2026-11-27T09:18:08Z",
-      "develop": "2f1a33eb"
-    },
     "EZD-2005": {
       "lane": 3,
       "title": "Storage hides supplier-named files from members without See company costs",
@@ -2906,6 +2905,12 @@
       "title": "Fix: perf js-contents C4 verdicts differ by which scripts loaded first (EZD-020)",
       "started": "2026-11-27T10:36:57Z",
       "develop": "888748c3"
+    },
+    "EZD-2009": {
+      "lane": 1,
+      "title": "Fix: first 3D open within 1,000 ms (AC-EZD-1001a-3) fails on CI under shared workers",
+      "started": "2026-11-27T11:03:52Z",
+      "develop": "8e13886c"
     }
   },
   "advisories_checked_at": "2026-11-27T10:22:44Z",
