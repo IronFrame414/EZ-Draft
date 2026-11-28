@@ -22,6 +22,14 @@ export const TARGETS = [
     type: 'EditorFeature',
     typeFrom: './types',
   },
+  // EZD-1914 (editor plan 5.3 "ceiling/tools/"): one click receiver per ceiling tool.
+  {
+    dir: 'src/editor/ceiling/tools',
+    exportName: 'tool',
+    listName: 'ceilingTools',
+    type: 'CeilingTool',
+    typeFrom: './types',
+  },
 ];
 
 export const INDEX_FILE = 'index.generated.ts';

@@ -29,6 +29,21 @@ describe('EZD-1910 features/index.generated.ts', () => {
   });
 });
 
+// EZD-1914 (editor plan 5.3 "ceiling/tools/"): the ceiling tools' index is made the same way.
+const CEILING_TOOLS = TARGETS.find((t) => t.dir === 'src/editor/ceiling/tools')!;
+
+describe('EZD-1914 ceiling/tools/index.generated.ts', () => {
+  it('is what the script makes from the folder listing now', () => {
+    expect(CEILING_TOOLS).toBeDefined();
+    expect(isStale(CEILING_TOOLS, path.join(APP_ROOT, CEILING_TOOLS.dir))).toBe(false);
+  });
+
+  it('reaches nothing in app/src/lazy through static imports', () => {
+    const entry = path.join(APP_ROOT, CEILING_TOOLS.dir, INDEX_FILE);
+    expect(lazyReaches(entry, { srcRoot: SRC, lazyRoot: path.join(SRC, 'lazy') })).toEqual([]);
+  });
+});
+
 let tmp: string | null = null;
 
 afterEach(() => {
@@ -100,7 +115,8 @@ describe('EZD-1910 gen-registry lazy reach', () => {
       'src/editor/features/types.ts': 'export type EditorFeature = { order: number };\n',
       'src/editor/features/alpha.tsx': `import { helper } from '../shared/helper';\n${FEATURE('alpha')}`,
       'src/editor/features/beta.tsx': `export { Panel } from '@/lazy/panel';\n${FEATURE('beta')}`,
-      'src/editor/shared/helper.ts': "import {\n  Big,\n  type Small,\n} from '../../lazy/big';\nexport const helper = 1;\n",
+      'src/editor/shared/helper.ts':
+        "import {\n  Big,\n  type Small,\n} from '../../lazy/big';\nexport const helper = 1;\n",
       'src/lazy/big/index.ts': 'export const Big = 1; export type Small = 2;\n',
       'src/lazy/panel/index.tsx': 'export const Panel = 1;\n',
     });
@@ -137,6 +153,8 @@ describe('EZD-1910 gen-registry lazy reach', () => {
       'src/lazy/panel/index.tsx': 'export type PanelProps = {};\n',
     });
     fs.writeFileSync(path.join(features, INDEX_FILE), renderIndex(FEATURES, features));
-    expect(lazyReaches(path.join(features, INDEX_FILE), { srcRoot: src, lazyRoot: lazy })).toEqual([]);
+    expect(lazyReaches(path.join(features, INDEX_FILE), { srcRoot: src, lazyRoot: lazy })).toEqual(
+      [],
+    );
   });
 });

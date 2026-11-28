@@ -9,27 +9,23 @@
 //   the legend with the selected ACT grid's border sizes, and the View and Joists status items;
 // - EZD-505, EZD-507, EZD-513: the beam spacing pill, the device kind chooser and the Soffit, tray, coffer card;
 // - EZD-505 to EZD-514, EZD-602: every ceiling tool's click receiver, and the electrical device toolbar's on the floor
-//   plan, on one tool route (EZD-1914 moves the receivers into ceiling/tools);
+//   plan, on one tool route (EZD-1914: each tool registers its receiver in ceiling/tools);
 // - EZD-514, EZD-515, EZD-511: the selection inspector's Framing known section, fan clearance and ACT border.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { DEFAULT_BINDINGS } from '../../lib/defaults/shortcut-keys';
-import { lazyModule } from '../../lib/lazy/lazy-module';
 import type { MessageKey } from '../../server/messages/catalog';
 import { useCeilingKeys } from '../ceiling/CeilingParts';
+import { beamSpacingModule, ceilingDeviceModule } from '../ceiling/ceiling-tool-modules';
 import { rcpModule } from '../ceiling/rcp-module';
 import type { PlanSurface, SurfaceSetting } from '../ceiling/surface';
+import { ceilingTools } from '../ceiling/tools/index.generated';
+import { ceilingReceivers } from '../ceiling/tools/types';
 import { chosenFloor } from '../floors/floors';
-import type { PlanPointerReceiver } from '../plan/input';
 import type { FeaturePage } from '../shared/feature-page';
 import { lazyPart } from '../shared/lazy-part';
 import { editorDefaults, useDefault } from '../shared/use-default';
 import { useStoreValue } from '../shared/use-store-value';
-import {
-  CEILING_DEVICE_TOOL_IDS,
-  isDeviceTool,
-  wireCeilingTools,
-  type DeviceChoice,
-} from '../tools/ceiling-device-tool';
+import { isDeviceTool, wireCeilingTools, type DeviceChoice } from '../tools/ceiling-device-tool';
 import { newObjectId } from '../tools/model-changes';
 import type { EditorFeature, EditorFeatureContext, FeatureReady } from './types';
 
@@ -46,13 +42,8 @@ type CeilingOwn = {
     (() => ReturnType<typeof import('../ceiling/scan').readScanCeiling>) | undefined;
 };
 
-// EZD-1401 (11 Budgets; EZD-120c B11): the beam spacing pill loads when the Ceiling or Both view first shows.
-const beamSpacingModule = lazyModule(() => import('../../lazy/beam-spacing'));
-
-// EZD-507 (11 Budgets; EZD-1401 precedent): the ceiling device tools' placement and kind chooser load when a device
-// tool is first turned on.
-const ceilingDeviceModule = lazyModule(() => import('../../lazy/rcp'));
-
+// EZD-1401, EZD-507 (11 Budgets; EZD-120c B11): the beam spacing pill and the device kind chooser load with the
+// tools' own modules (EZD-1914: one handle each, ceiling/ceiling-tool-modules.ts).
 const LazyDeviceChooser = lazyPart(ceilingDeviceModule, 'DeviceChooser');
 const LazyBeamSpacingPill = lazyPart(beamSpacingModule, 'BeamSpacingPill');
 
@@ -157,8 +148,8 @@ function useCeilingPage(ctx: EditorFeatureContext): CeilingOwn {
       phase === null
     )
       return;
-    // EZD-222 (11 Budgets; EZD-1401 precedent): the placement code comes with the Ceiling view's lazy module, which
-    // loads when that view first shows; a click before it arrives is placed once it has.
+    // EZD-222 (11 Budgets; EZD-1401 precedent): the placement code comes with the tools' lazy modules; a click before
+    // one arrives is placed once it has. EZD-1914: each tool registers its own receiver in ceiling/tools.
     let live = true;
     // What every ceiling tool is given (EZD-510: held once, 11 Budgets).
     const base = {
@@ -169,50 +160,11 @@ function useCeilingPage(ctx: EditorFeatureContext): CeilingOwn {
       select: (ids: readonly string[]) => selection.select(ids),
       onMessage: (key: MessageKey) => messageRef.current?.(key),
     };
-    // One receiver shape for every lazily placed ceiling tool: placed at once when the module is in; before that a
-    // click loads it and is placed once it has.
-    const lazily =
-      <M,>(
-        module: { peek(): M | undefined; load(): Promise<M> },
-        make: (mod: M) => PlanPointerReceiver,
-      ): PlanPointerReceiver =>
-      (e) => {
-        const mod = module.peek();
-        if (mod) return make(mod)(e);
-        if (e.kind !== 'click') return;
-        module.load().then(
-          (m) => {
-            if (live) make(m)(e);
-          },
-          () => {},
-        );
-      };
-    const receivers: Partial<Record<string, PlanPointerReceiver>> = {
-      beam: lazily(beamSpacingModule, (m) => m.beamReceiver(base)),
-    };
-    // EZD-507: each ceiling device tool places through the lazy RCP module the same way.
-    for (const tool of CEILING_DEVICE_TOOL_IDS)
-      receivers[tool] = lazily(ceilingDeviceModule, (m) =>
-        // EZD-511: a light clicked in an ACT room snaps into a tile.
-        m.deviceReceiver({
-          ...base,
-          tool,
-          choice: deviceChoice,
-          actMinShare: () => actMinShareRef.current,
-        }),
-      );
-    // EZD-510: the Switching zones tool, turned on from the left panel's Lighting section (shown once the RCP
-    // module is in); the tool and its placement come with that module.
-    if (rcp) receivers['switch-zone'] = rcp.zoneReceiver(surface, base);
-    // EZD-514: the framing line tool, turned on from the inspector's Framing known section.
-    if (rcp) receivers['framing-line'] = rcp.framingReceiver(surface, base);
-    // EZD-513: the Soffit, tray, coffer and Height and material tag tools, from the same module.
-    if (rcp) {
-      receivers.soffit = rcp.shapeReceiver(surface, base);
-      receivers.tag = rcp.tagReceiver(base);
-      // EZD-511: the Acoustical grid tool, from the same module.
-      receivers['act-grid'] = rcp.actReceiver({ ...base, minShare: () => actMinShareRef.current });
-    }
+    const receivers = ceilingReceivers(
+      ceilingTools,
+      { base, surface, deviceChoice, actMinShare: () => actMinShareRef.current },
+      () => live,
+    );
     // One wire for every ceiling tool, so one tool turning off never clears another's receiver. EZD-602: and, on
     // the floor plan, the electrical device toolbar's armed item.
     deviceSlot.setState({ base });
@@ -230,7 +182,6 @@ function useCeilingPage(ctx: EditorFeatureContext): CeilingOwn {
     surface,
     mayEdit,
     deviceChoice,
-    rcp,
     deviceSlot,
   ]);
 
