@@ -605,7 +605,8 @@
     "EZD-1711",
     "EZD-2040",
     "EZD-2011",
-    "EZD-2004"
+    "EZD-2004",
+    "EZD-2042"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2827,6 +2828,14 @@
       "ts": "2026-11-28T10:46:17Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-2042",
+      "title": "Fix: Settings Catalog page shows its settings card twice (two main landmarks, EZD-614)",
+      "commit": "30a62e607",
+      "ts": "2026-11-28T11:25:22Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -3170,17 +3179,17 @@
       "started": "2026-11-28T08:58:22Z",
       "develop": "49e5514c4"
     },
-    "EZD-2042": {
-      "lane": 2,
-      "title": "Fix: Settings Catalog page shows its settings card twice (two main landmarks, EZD-614)",
-      "started": "2026-11-28T09:23:32Z",
-      "develop": "73dbd4e8c"
-    },
     "EZD-2019": {
       "lane": 1,
       "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
       "started": "2026-11-28T10:04:15Z",
       "develop": "7840bf851"
+    },
+    "EZD-1202": {
+      "lane": 3,
+      "title": "Client page shell",
+      "started": "2026-11-28T10:46:31Z",
+      "develop": "ba57384f5"
     }
   },
   "advisories_checked_at": "2026-11-28T10:30:54Z",
