@@ -600,7 +600,8 @@
     "EZD-2025",
     "EZD-1913b",
     "EZD-720",
-    "EZD-2021"
+    "EZD-2021",
+    "EZD-1913c"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2782,6 +2783,14 @@
       "ts": "2026-11-28T05:24:34Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1913c",
+      "title": "Versions, Sheets, 3D, Assistant and editor dialogs as registry features",
+      "commit": "10044fe2c",
+      "ts": "2026-11-28T06:00:20Z",
+      "kind": "ticket",
+      "lane": 4
     }
   ],
   "set_aside": {},
@@ -3115,17 +3124,17 @@
       "started": "2026-11-28T03:21:52Z",
       "develop": "e4da4fe8c"
     },
-    "EZD-1913c": {
-      "lane": 4,
-      "title": "Versions, Sheets, 3D, Assistant and editor dialogs as registry features",
-      "started": "2026-11-28T03:50:27Z",
-      "develop": "55526a3c9"
-    },
     "EZD-2040": {
       "lane": 3,
       "title": "Fix: EZD-2003 Cabinets touch-target test fails on the GitHub CI runner (release PR #23)",
       "started": "2026-11-28T05:00:23Z",
       "develop": "06344b704"
+    },
+    "EZD-2014": {
+      "lane": 2,
+      "title": "Fix: password recovery email T7 not found within 10 s under load (EZD-033)",
+      "started": "2026-11-28T05:24:47Z",
+      "develop": "dc13db0c8"
     }
   },
   "advisories_checked_at": "2026-11-28T04:30:44Z",
