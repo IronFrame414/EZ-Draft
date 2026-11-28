@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 660,
+ "count": 883,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -28403,6 +28403,24 @@
     "AC-EZD-2040-1",
     "AC-EZD-2040-2",
     "AC-EZD-2040-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2041",
+   "phase": 10,
+   "title": "Fix: sweep test T2 (c) sees 2 runs for one job at random (EZD-009)",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-28: app/src/server/jobs/sweep.db.test.ts:70 \"EZD-009 T2 (c) done when: two sweeps started at once run the job once @smoke\" failed at random in two unrelated runs: EZD-2031 local gate round 2 (2026-11-27 18:58Z) and release PR #24 CI run 46123715018 (head e6b3d36f, test step): expected 2 to be 1 at line 76, the sum of ran from the two sweep responses. Either the job claim lets both sweeps run one job (a real double-run bug in job_claim / runner.ts), or ran also counts due jobs that other database test files insert while this test runs. Find which, and fix the cause: a double run is fixed in the claim; a test that counts jobs it did not make is fixed by scoping it (for example onlyTenantId or its own job ids), without weakening what T2 (c) proves: one job, run once, attempts 1.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2041-1",
+    "AC-EZD-2041-2"
    ],
    "acs_source": "overwatch-2026-11-24"
   }
