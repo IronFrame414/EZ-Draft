@@ -12,6 +12,7 @@ import {
   type ModelObject,
   type ObjectStatus,
   type RoomObject,
+  type WireMaterial,
   type WireSize,
 } from '@ezdraft/geometry';
 import type { Objects } from '../model/patches';
@@ -83,6 +84,9 @@ export type CircuitRow = {
   count: DeviceCount;
   // EZD-604: its wire size (AWG); null on a circuit stored before EZD-604.
   wire: WireSize | null;
+  // EZD-610: its wire material (absent reads as copper) and one-way run in feet (null: Not set).
+  material: WireMaterial;
+  run: number | null;
 };
 
 // EZD-604: receptacles; lights and fans (fixtures); every other device.
@@ -127,6 +131,8 @@ export function circuitRows(objects: Objects, panelId: string | null): CircuitRo
       load: a.load,
       count: counts.get(idKey(o.id)) ?? { receptacles: 0, fixtures: 0, other: 0 },
       wire: a.wire ?? null,
+      material: a.material ?? 'copper',
+      run: a.runLength ?? null,
     });
   }
   return rows.sort((x, y) => x.space - y.space);

@@ -2852,6 +2852,24 @@ export const en = {
   'office.electrical.circuit.awg': '{size} AWG',
   'office.electrical.circuit.not_set': 'Not set',
   'office.electrical.circuit.edit_failed': 'The circuit could not be changed',
+  // EZD-610: the Selected circuit block (board S06Electrical; wording rows in vault/build/assumptions/EZD-610.md).
+  'office.electrical.circuit.selected': 'Selected circuit',
+  'office.electrical.circuit.tag': '{letter}-{number}',
+  'office.electrical.circuit.material_label': 'Material',
+  'office.electrical.circuit.copper': 'Copper',
+  'office.electrical.circuit.aluminum': 'Aluminum',
+  'office.electrical.circuit.run_label': 'Run (ft)',
+  'office.electrical.circuit.run': 'Run',
+  'office.electrical.circuit.run_ft': '{feet} ft',
+  'office.electrical.circuit.vdrop_label': 'V-drop @{amps}A',
+  'office.electrical.circuit.vdrop': '{percent}%',
+  'office.electrical.circuit.vdrop_none': '—',
+  'office.electrical.circuit.vdrop_set': 'Set in Defaults',
+  'office.electrical.circuit.vdrop_warn':
+    'V-drop {percent}% is over the {limit}% limit (Defaults). Use {wire} or shorten the run.',
+  'office.electrical.circuit.vdrop_shorten':
+    'V-drop {percent}% is over the {limit}% limit (Defaults). Shorten the run.',
+  'office.electrical.circuit.cable': '{size}/2',
   // EZD-606: the Existing panel dialog (S06 Controls "Existing panel"; wording for Josh, assumptions.md EZD-606).
   'office.electrical.existing.open': 'Existing panel',
   'office.electrical.existing.title': 'Existing panel',

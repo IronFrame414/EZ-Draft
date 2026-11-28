@@ -9,6 +9,7 @@ import {
   CURRENT_SCHEMA_VERSION,
   parseStoredObject,
   type ObjectStatus,
+  type WireMaterial,
   type WireSize,
 } from '@ezdraft/geometry';
 import type { ObjectValue } from '../../lib/outbox/model-api';
@@ -160,12 +161,15 @@ export type CircuitEdit =
   | { field: 'name'; text: string }
   | { field: 'breaker'; amps: number }
   | { field: 'wire'; size: WireSize }
-  | { field: 'poles'; poles: 1 | 2 };
+  | { field: 'poles'; poles: 1 | 2 }
+  // EZD-610: the wire's material and the one-way run in feet (null clears it: Not set).
+  | { field: 'material'; material: WireMaterial }
+  | { field: 'run'; feet: number | null };
 
 /**
  * One edit of a circuit (S06 Selected circuit "Fields editable with Edit model (breaker, wire, name)"; poles for the
- * 2-pole numbers). Null when the value is not valid: an empty name, or 2 poles while the space two on is taken or past
- * the panel's spaces.
+ * 2-pole numbers; EZD-610 the wire's material and the run length). Null when the value is not valid: an empty name, a
+ * run that is not above 0, or 2 poles while the space two on is taken or past the panel's spaces.
  */
 export function circuitEditChange(objects: Objects, id: string, edit: CircuitEdit): Change | null {
   const c = find(objects, id, 'circuit');
@@ -179,7 +183,11 @@ export function circuitEditChange(objects: Objects, id: string, edit: CircuitEdi
     patch = { name };
   } else if (edit.field === 'breaker') patch = { breaker: edit.amps };
   else if (edit.field === 'wire') patch = { wire: edit.size };
-  else {
+  else if (edit.field === 'material') patch = { material: edit.material };
+  else if (edit.field === 'run') {
+    if (edit.feet !== null && !(Number.isFinite(edit.feet) && edit.feet > 0)) return null;
+    patch = { runLength: edit.feet };
+  } else {
     if (edit.poles === 2 && a.poles !== 2) {
       const taken = takenSpaces(objects, a.panel, key);
       const spaces = panelSpaces(objects, a.panel);

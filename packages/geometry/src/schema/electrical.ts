@@ -115,6 +115,14 @@ export const WIRE_SIZES = [
 export type WireSize = (typeof WIRE_SIZES)[number];
 export const wireSizeSchema = z.enum(WIRE_SIZES);
 
+// EZD-610 (S06 Selected circuit block "wire, run length, voltage drop"; 09b K for copper and aluminum; vault/build/
+// assumptions/EZD-610.md Settled "Where run length comes from", "Wire material and K"): the wire's material (absent
+// or null reads as copper) and the one-way run length in feet (absent or null: Not set, no voltage drop). Both
+// optional and nullable, so every stored circuit stays valid and the version stays.
+export const WIRE_MATERIALS = ['copper', 'aluminum'] as const;
+export type WireMaterial = (typeof WIRE_MATERIALS)[number];
+export const wireMaterialSchema = z.enum(WIRE_MATERIALS);
+
 export const circuitDataSchema = z.strictObject({
   status: objectStatusSchema,
   level: levelSchema,
@@ -129,6 +137,8 @@ export const circuitDataSchema = z.strictObject({
     load: z.number().check(z.nonnegative()),
     wire: z.optional(wireSizeSchema),
     order: z.optional(z.array(z.uuid())),
+    material: z.optional(z.nullable(wireMaterialSchema)),
+    runLength: z.optional(z.nullable(z.number().check(z.positive()))),
   }),
 });
 export type CircuitData = z.infer<typeof circuitDataSchema>;
