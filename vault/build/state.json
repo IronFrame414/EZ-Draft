@@ -2813,7 +2813,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2876,7 +2876,8 @@
     "EZD-2021": 1,
     "EZD-2003": 1,
     "EZD-2025": 1,
-    "EZD-2014": 1
+    "EZD-2014": 1,
+    "EZD-1921": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -3138,6 +3139,10 @@
     "EZD-2014": {
       "ts": "2026-11-28T06:37:19Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1921": {
+      "ts": "2026-11-28T08:25:29Z",
+      "reason": "check red after a review fix"
     }
   },
   "running": {
@@ -3153,11 +3158,11 @@
       "started": "2026-11-28T06:37:49Z",
       "develop": "2d2139cbe"
     },
-    "EZD-1921": {
-      "lane": 1,
-      "title": "Re-validate open editor plans and document the registry for planners",
-      "started": "2026-11-28T07:11:33Z",
-      "develop": "f1bae246b"
+    "EZD-2004": {
+      "lane": 3,
+      "title": "Keyboard and screen-reader fixes in field and editor screens",
+      "started": "2026-11-28T07:42:44Z",
+      "develop": "af80ee572"
     }
   },
   "advisories_checked_at": "2026-11-28T04:30:44Z",
