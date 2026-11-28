@@ -609,7 +609,8 @@
     "EZD-2042",
     "EZD-2041",
     "EZD-2019",
-    "EZD-1914"
+    "EZD-1914",
+    "EZD-1921"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2863,6 +2864,14 @@
       "ts": "2026-11-28T13:35:04Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1921",
+      "title": "Re-validate open editor plans and document the registry for planners",
+      "commit": "d850b1007",
+      "ts": "2026-11-28T14:07:20Z",
+      "kind": "ticket",
+      "lane": 4
     }
   ],
   "set_aside": {},
@@ -3206,17 +3215,17 @@
       "started": "2026-11-28T10:46:31Z",
       "develop": "ba57384f5"
     },
-    "EZD-1921": {
-      "lane": 4,
-      "title": "Re-validate open editor plans and document the registry for planners",
-      "started": "2026-11-28T11:53:39Z",
-      "develop": "9b453d799"
-    },
     "EZD-2043": {
       "lane": 1,
       "title": "Utility points draw a symbol for each kind (electric 120 V, 240 V, gas, water, drain)",
       "started": "2026-11-28T12:38:28Z",
       "develop": "50569f103"
+    },
+    "EZD-2014": {
+      "lane": 2,
+      "title": "Fix: password recovery email T7 not found within 10 s under load (EZD-033)",
+      "started": "2026-11-28T13:35:59Z",
+      "develop": "b0fe51e6f"
     }
   },
   "advisories_checked_at": "2026-11-28T10:30:54Z",
