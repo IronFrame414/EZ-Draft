@@ -7,6 +7,8 @@
 // EZD-1950 (audit 2026-11-23 P2): the pages open TABS at a time, each in its own tab of the member's one signed-in
 // context (the traffic capture is on the context, so it sees every tab). Each tab still waits for network idle on
 // every page. The paths and the role of each test are asserted equal to the sweep before EZD-1950.
+// EZD-2011 (audit 2026-11-27 row 4): the wait for a quiet network is the harness's watchRequests, with a bound per
+// page and the page's name in the error. W3 shows the page shape that hung the old wait for the whole 300 s.
 import {
   captureTraffic,
   cleanup,
@@ -18,10 +20,12 @@ import {
   expect,
   MONEY_FIELDS,
   MONEY_PAGE_CASES,
+  PAGE_QUIET_TIMEOUT_MS,
   pageViolations,
   PERMISSION_KEYS,
   setPermissions,
   test,
+  watchRequests,
   type Sessions,
 } from '../test-harness/e2e/test';
 
@@ -113,8 +117,16 @@ async function openEveryPage(sessions: Sessions, without: keyof typeof DENIED): 
   await Promise.all(
     tabs.map(async (tab) => {
       for (let p = queue.shift(); p !== undefined; p = queue.shift()) {
-        const res = await tab.goto(p);
-        await tab.waitForLoadState('networkidle');
+        // EZD-2011: one page has PAGE_QUIET_TIMEOUT_MS to load and as long again to go quiet, and a page that does
+        // not is named with its open requests (quiet.ts says why this is not waitForLoadState('networkidle')).
+        const watch = watchRequests(tab);
+        let res: Awaited<ReturnType<typeof tab.goto>>;
+        try {
+          res = await tab.goto(p, { timeout: PAGE_QUIET_TIMEOUT_MS });
+          await watch.quiet(`money pages sweep: page ${p}`);
+        } finally {
+          watch.stop();
+        }
         opened.push(p);
         if (res === null || res.status() !== 200) refused.push(`${p}: ${res?.status()}`);
       }
@@ -154,5 +166,40 @@ test.describe('EZD-133 money pages', () => {
   }) => {
     test.setTimeout(300_000);
     await openEveryPage(sessions, 'see_sell_prices');
+  });
+
+  // EZD-2011 (AC-EZD-2011-2): the hang of audit row 4 with a stub page. The page is quiet for more than 500 ms
+  // before its load event (three scripts that each run for 400 ms; all arrive at once), then one late script starts
+  // and ends before the load event, and nothing follows. Every request has ended, yet Playwright's
+  // waitForLoadState('networkidle') does not return for such a page; the sweep's wait does, within its bound.
+  test('W3 a page whose late request ends before the load event goes quiet within the bound', async ({ page }) => {
+    const busy = 'var t = Date.now(); while (Date.now() - t < 400) {}';
+    const seen: string[] = [];
+    await page.route('**/ezd-2011-quiet/**', async (route) => {
+      const pathname = new URL(route.request().url()).pathname.replace('/ezd-2011-quiet', '');
+      seen.push(pathname);
+      const script = (body: string) => route.fulfill({ status: 200, contentType: 'text/javascript', body });
+      if (pathname === '/late.js') return script('window.late = 1;');
+      if (pathname === '/c.js') return script(`${busy} document.write('<script src="/ezd-2011-quiet/late.js"><\\/script>');`);
+      if (pathname.endsWith('.js')) return script(busy);
+      return route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: '<!doctype html><html><body><p>quiet</p><script src="/ezd-2011-quiet/a.js"></script><script src="/ezd-2011-quiet/b.js"></script><script src="/ezd-2011-quiet/c.js"></script></body></html>',
+      });
+    });
+    const watch = watchRequests(page);
+    const started = Date.now();
+    try {
+      await page.goto('/ezd-2011-quiet/page', { timeout: PAGE_QUIET_TIMEOUT_MS });
+      await watch.quiet('W3 page /ezd-2011-quiet/page');
+    } finally {
+      watch.stop();
+    }
+    expect(Date.now() - started).toBeLessThan(PAGE_QUIET_TIMEOUT_MS);
+    // The late script is asked for last, after the three that ran.
+    expect(seen.at(-1)).toBe('/late.js');
+    expect([...seen].sort()).toEqual(['/a.js', '/b.js', '/c.js', '/late.js', '/page']);
+    expect(await page.evaluate(() => (window as unknown as { late?: number }).late)).toBe(1);
   });
 });
