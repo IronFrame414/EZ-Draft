@@ -611,7 +611,8 @@
     "EZD-2019",
     "EZD-1914",
     "EZD-1921",
-    "EZD-2043"
+    "EZD-2043",
+    "EZD-2014"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2881,11 +2882,19 @@
       "ts": "2026-11-28T14:46:02Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-2014",
+      "title": "Fix: password recovery email T7 not found within 10 s under load (EZD-033)",
+      "commit": "87be354a7",
+      "ts": "2026-11-28T15:37:30Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -3223,12 +3232,6 @@
     }
   },
   "running": {
-    "EZD-2014": {
-      "lane": 2,
-      "title": "Fix: password recovery email T7 not found within 10 s under load (EZD-033)",
-      "started": "2026-11-28T13:35:59Z",
-      "develop": "b0fe51e6f"
-    },
     "EZD-1915": {
       "lane": 4,
       "title": "Inspector: one file per object type",
@@ -3240,6 +3243,12 @@
       "title": "The sink draws a single basin",
       "started": "2026-11-28T14:46:19Z",
       "develop": "2e59dd9d8"
+    },
+    "EZD-1202": {
+      "lane": 3,
+      "title": "Client page shell",
+      "started": "2026-11-28T14:58:17Z",
+      "develop": "1c6dac9fd"
     }
   },
   "advisories_checked_at": "2026-11-28T10:30:54Z",
