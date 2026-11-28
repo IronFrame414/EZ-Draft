@@ -606,7 +606,8 @@
     "EZD-2040",
     "EZD-2011",
     "EZD-2004",
-    "EZD-2042"
+    "EZD-2042",
+    "EZD-2041"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2836,6 +2837,14 @@
       "ts": "2026-11-28T11:25:22Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-2041",
+      "title": "Fix: sweep test T2 (c) sees 2 runs for one job at random (EZD-009)",
+      "commit": "1bcdc92cc",
+      "ts": "2026-11-28T11:53:31Z",
+      "kind": "ticket",
+      "lane": 4
     }
   ],
   "set_aside": {},
@@ -3173,12 +3182,6 @@
     }
   },
   "running": {
-    "EZD-2041": {
-      "lane": 4,
-      "title": "Fix: sweep test T2 (c) sees 2 runs for one job at random (EZD-009)",
-      "started": "2026-11-28T08:58:22Z",
-      "develop": "49e5514c4"
-    },
     "EZD-2019": {
       "lane": 1,
       "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
@@ -3190,6 +3193,12 @@
       "title": "Client page shell",
       "started": "2026-11-28T10:46:31Z",
       "develop": "ba57384f5"
+    },
+    "EZD-1914": {
+      "lane": 2,
+      "title": "Ceiling tools register their own click receivers",
+      "started": "2026-11-28T11:25:33Z",
+      "develop": "730acbff0"
     }
   },
   "advisories_checked_at": "2026-11-28T10:30:54Z",
