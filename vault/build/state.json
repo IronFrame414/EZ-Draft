@@ -607,7 +607,8 @@
     "EZD-2011",
     "EZD-2004",
     "EZD-2042",
-    "EZD-2041"
+    "EZD-2041",
+    "EZD-2019"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2845,6 +2846,14 @@
       "ts": "2026-11-28T11:53:31Z",
       "kind": "ticket",
       "lane": 4
+    },
+    {
+      "id": "EZD-2019",
+      "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
+      "commit": "f7b116df1",
+      "ts": "2026-11-28T12:38:18Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -3182,12 +3191,6 @@
     }
   },
   "running": {
-    "EZD-2019": {
-      "lane": 1,
-      "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
-      "started": "2026-11-28T10:04:15Z",
-      "develop": "7840bf851"
-    },
     "EZD-1202": {
       "lane": 3,
       "title": "Client page shell",
@@ -3199,6 +3202,12 @@
       "title": "Ceiling tools register their own click receivers",
       "started": "2026-11-28T11:25:33Z",
       "develop": "730acbff0"
+    },
+    "EZD-1921": {
+      "lane": 4,
+      "title": "Re-validate open editor plans and document the registry for planners",
+      "started": "2026-11-28T11:53:39Z",
+      "develop": "9b453d799"
     }
   },
   "advisories_checked_at": "2026-11-28T10:30:54Z",
