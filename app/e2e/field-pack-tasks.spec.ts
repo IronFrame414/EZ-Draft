@@ -109,7 +109,8 @@ test.describe('EZD-1409 Tasks tab', () => {
       await expect(row(page, tasks.drain).getByRole('button', { name: 'Edit' })).toHaveCount(0);
 
       await network.set(page, 'off');
-      await box(page, 'Rough in the sink drain').check();
+      // EZD-2025 (AC-EZD-2025-3): the box ticks once the check is stored on the phone, a moment after the tap.
+      await box(page, 'Rough in the sink drain').click();
       await expect(box(page, 'Rough in the sink drain')).toBeChecked();
       await expect(box(page, 'Rough in the sink drain')).toBeDisabled();
       await expect(row(page, tasks.drain).getByTestId('task-done')).toContainText('Done by Luis Ortega');

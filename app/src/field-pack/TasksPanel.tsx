@@ -4,8 +4,14 @@
 // "edit text: Edits the task text. Edit field tasks; online only"; Permissions "Controls the user lacks are hidden";
 // Q-0781: no board for the Tasks tab, built in the style of S17Field; vault/build/assumptions/EZD-1409.md): the
 // Tasks tab's content. The parent queues the actions (FieldPackScreen); this shows the groups and rows.
+// EZD-2025 (audit 2026-11-27 A5, A6; Q-0903; AC-EZD-2025-3, -4): a box ticks only once the check is stored on the
+// phone; if storing fails it stays unticked and the row says the tick was not saved. A check the office refused for
+// good shows unticked with "Not saved to the office. Retry". When the field sender could not start, a line above the
+// tasks says why the checkboxes, Add photo and Edit are not there.
 import { useId, useRef, useState, type ReactElement } from 'react';
 import { Icon } from '../components/icon/Icon';
+import { NotSavedLine } from '../field-measure/NotSavedLine';
+import notes from '../field-measure/NotSaved.module.css';
 import { useT } from '../lib/messages';
 import type { Language } from '../lib/messages/types';
 import { doneTime, groupTasks, taskText } from './tasks-view';
@@ -13,12 +19,17 @@ import type { FieldPackTask } from './types';
 import styles from './FieldPack.module.css';
 
 export type PhotoResult = 'ok' | 'type' | 'size' | 'failed';
+// EZD-2025: ok once the check is stored on the phone; failed when it could not be stored.
+export type CheckResult = 'ok' | 'failed';
 
 export type TaskActions = {
   canCheck: boolean;
   canEdit: boolean;
   online: boolean;
-  check(taskId: string): void;
+  check(taskId: string): Promise<CheckResult>;
+  // EZD-2025: tasks whose check the office refused for good, and Retry for them.
+  refused?: ReadonlySet<string>;
+  retry?(taskId: string): Promise<CheckResult>;
   addPhoto(taskId: string, file: File): Promise<PhotoResult>;
   // True when saved.
   edit(taskId: string, text: string): Promise<boolean>;
@@ -30,12 +41,15 @@ export function TasksPanel({
   language,
   canPhoto,
   actions,
+  senderFailed = false,
 }: {
   tasks: readonly FieldPackTask[];
   room: string;
   language: Language;
   canPhoto: boolean;
   actions: TaskActions | null;
+  // EZD-2025: the field sender could not start, and the member holds a control it hides.
+  senderFailed?: boolean;
 }): ReactElement {
   const t = useT();
   const groups = groupTasks(tasks, room);
@@ -48,6 +62,11 @@ export function TasksPanel({
   }
   return (
     <div className={styles.tasks} data-testid="tasks">
+      {actions === null && senderFailed ? (
+        <p className={notes.note} role="status" data-testid="tasks-sender-failed">
+          {t('field.tasks.sender_failed')}
+        </p>
+      ) : null}
       {groups.map((g) => (
         <section key={g.phase} className={styles.phase} data-phase={g.phase} aria-label={g.phase}>
           <h2 className={styles.phaseName}>{g.phase}</h2>
@@ -85,8 +104,20 @@ function TaskRow({
   const [editing, setEditing] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  // EZD-2025: the check is being stored; the tick was not stored on the phone.
+  const [checking, setChecking] = useState(false);
+  const [checkFailed, setCheckFailed] = useState(false);
   const text = taskText(task, language);
   const done = task.done;
+  const refused = done === null && actions?.refused?.has(task.id) === true;
+
+  const tick = async (run: (taskId: string) => Promise<CheckResult>) => {
+    setChecking(true);
+    setCheckFailed(false);
+    const r = await run(task.id);
+    setChecking(false);
+    setCheckFailed(r === 'failed');
+  };
 
   const startEdit = () => {
     if (actions === null) return;
@@ -143,9 +174,9 @@ function TaskRow({
             type="checkbox"
             className={styles.taskCheck}
             checked={done !== null}
-            disabled={done !== null}
+            disabled={done !== null || checking}
             aria-label={t('field.tasks.check', { task: text })}
-            onChange={() => actions.check(task.id)}
+            onChange={() => void tick((id) => actions.check(id))}
           />
         ) : done !== null ? (
           <span className={styles.taskDoneIcon} aria-hidden="true">
@@ -205,6 +236,21 @@ function TaskRow({
             <p className={styles.taskMessage} role="status">
               {message}
             </p>
+          ) : null}
+          {checkFailed && done === null ? (
+            <p className={notes.note} role="alert" data-testid="task-check-failed">
+              {t('field.tasks.check_failed')}
+            </p>
+          ) : null}
+          {refused && actions?.retry !== undefined ? (
+            <NotSavedLine
+              testId="task-not-saved"
+              busy={checking}
+              onRetry={() => {
+                const retry = actions.retry;
+                if (retry !== undefined) void tick(retry);
+              }}
+            />
           ) : null}
         </div>
       </div>

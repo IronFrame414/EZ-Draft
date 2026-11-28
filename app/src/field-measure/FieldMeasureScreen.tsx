@@ -21,7 +21,13 @@
 // offline or on a slow connection), so the phone's copy also wins when its last save is newer than the page's
 // (device-copy.ts openingRooms). The copy keeps the database's time of the save its rooms are built on, and every
 // change builds on the newer rooms, so it never overwrites them.
-import Link from 'next/link';
+// EZD-2025 (audit 2026-11-27 A3, A4; Q-0903; AC-EZD-2025-1, -2): a save the office refuses (401, 403, a 5xx) drops
+// "Saved on phone" for the decided "Not saved to the office. Retry" (role="alert"); Retry saves the rooms again. A 409
+// means the rooms are already sent: the screen loads the sent rooms and shows the sent state. Send to office that
+// could not be queued on the phone says so, and a greyed Send to office says why (SendMenuItem).
+// To stay inside the page's download budget (11 rule 7; the option noted in assumptions EZD-1998), the back link is
+// a plain link moved by the router: the same switch to Projects with no reload, without next/link in the first load.
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useOutboxActor } from '../components/outbox/OutboxDrain';
 import { useConfirm } from '../components/states/ConfirmProvider';
@@ -37,7 +43,10 @@ import { ShapeCanvas } from './ShapeCanvas';
 import { ShapePicker } from './ShapePicker';
 import { clearDeviceCopy, openingRooms, readDeviceCopy, writeDeviceCopy } from './device-copy';
 import { readFieldLength } from './entry';
+import { NotSavedLine } from './NotSavedLine';
+import notes from './NotSaved.module.css';
 import { useMeasureSend } from './send';
+import { SendMenuItem } from './SendMenuItem';
 import {
   emptyRoom,
   isMeasured,
@@ -94,7 +103,13 @@ export function FieldMeasureScreen({
   const t = useT();
   const confirm = useConfirm();
   const onDevice = useOnDevice();
+  const router = useRouter();
+  // As next/link did: Projects is fetched ahead, so the back link switches to it at once.
+  useEffect(() => router.prefetch('/'), [router]);
   const [reopenFailed, setReopenFailed] = useState(false);
+  // EZD-2025: the office refused the last save; Send to office could not be queued on this phone.
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [sendFailed, setSendFailed] = useState(false);
   const actor = useOutboxActor();
   const sender = useMeasureSend(projectId, sentAt);
   // Queued or sent rooms no longer change on this phone (S17b States "sent").
@@ -145,6 +160,20 @@ export function FieldMeasureScreen({
     }
   }, [sender.status, appUserId, tenantId, projectId]);
 
+  const { markSent } = sender;
+  // EZD-2025: the rooms were sent from another phone (409): show the sent rooms, read-only.
+  const loadSent = useCallback(async () => {
+    changed.current = false;
+    try {
+      const res = await fetch(`/api/projects/${projectId}/field-measure`);
+      const body = res.ok ? ((await res.json()) as { rooms?: unknown }) : null;
+      if (Array.isArray(body?.rooms) && body.rooms.length > 0) setRooms(body.rooms as FieldRoom[]);
+    } catch {
+      /* offline: the rooms on screen stay, read-only */
+    }
+    markSent();
+  }, [projectId, markSent]);
+
   const saveToServer = useCallback(
     async (next: FieldRoom[]) => {
       try {
@@ -153,6 +182,13 @@ export function FieldMeasureScreen({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ rooms: next }),
         });
+        if (res.status === 409) {
+          setSaveFailed(false);
+          await loadSent();
+          return;
+        }
+        // Refused (signed out, no permission, a server error): the office does not have the change.
+        setSaveFailed(!res.ok);
         if (res.ok && appUserId !== undefined && tenantId !== undefined) {
           const body = (await res.json().catch(() => null)) as { savedAt?: unknown } | null;
           if (typeof body?.savedAt === 'string') basis.current = body.savedAt;
@@ -170,7 +206,7 @@ export function FieldMeasureScreen({
         /* offline: the rooms stay on the phone and are saved on reconnect */
       }
     },
-    [projectId, appUserId, tenantId],
+    [projectId, appUserId, tenantId, loadSent],
   );
 
   // Every change is kept on the phone at once, then saved whole to the server once the rooms stop changing, and
@@ -339,6 +375,7 @@ export function FieldMeasureScreen({
   // Send to office: the rooms with any length still being typed, queued in the outbox (sent now when online).
   const sendToOffice = async () => {
     setMenuOpen(false);
+    setSendFailed(false);
     if (!canEdit || !sender.ready) return;
     const taken = await takeDraft();
     // Change on the over-200 ft confirm: nothing is sent and the text stays on the wall. A refused text is dropped.
@@ -349,7 +386,8 @@ export function FieldMeasureScreen({
     clearDraft();
     setRooms(next);
     if (who !== null) writeDeviceCopy(who, projectId, { rooms: next, synced: false });
-    void sender.send(next);
+    // EZD-2025: storage full or private mode: the rooms could not be queued, so nothing will go.
+    if (!(await sender.send(next))) setSendFailed(true);
   };
 
   // EZD-1419: the office reopens sent rooms; the page loads again with the rooms open on every phone.
@@ -385,7 +423,7 @@ export function FieldMeasureScreen({
               text: t('field.measure.send_refused'),
               tone: styles.statusBad,
             }
-          : onPhone
+          : onPhone && !saveFailed
             ? {
                 icon: 'offline_pin' as const,
                 text: t('field.measure.saved_on_phone'),
@@ -411,10 +449,20 @@ export function FieldMeasureScreen({
     <div className={styles.screen} data-testid="field-measure" data-state={screenState}>
       <header className={styles.header}>
         <div className={styles.topRow}>
-          <Link className={styles.back} href="/">
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- moved by the router below, no reload */}
+          <a
+            className={styles.back}
+            href="/"
+            onClick={(e) => {
+              // A plain tap switches pages; a modified click (new tab) is left to the browser.
+              if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+              e.preventDefault();
+              router.push('/');
+            }}
+          >
             <Icon name="arrow_back" size={16} />
             {t('field.measure.back')}
-          </Link>
+          </a>
           <div className={styles.topEnd}>
             {status !== null ? (
               <span
@@ -441,15 +489,11 @@ export function FieldMeasureScreen({
               </button>
               {menuOpen ? (
                 <div className={styles.menu} role="menu">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={styles.menuItem}
-                    disabled={!canEdit || !sender.ready}
-                    onClick={() => void sendToOffice()}
-                  >
-                    {t('field.measure.send')}
-                  </button>
+                  <SendMenuItem
+                    canEdit={canEdit}
+                    senderState={sender.senderState}
+                    onSend={() => void sendToOffice()}
+                  />
                   {sent && canReopen ? (
                     <button
                       type="button"
@@ -474,6 +518,14 @@ export function FieldMeasureScreen({
           <p className={styles.readOnly} data-testid="measure-read-only" role="status">
             <Icon name="lock" size={15} />
             {t('field.measure.read_only')}
+          </p>
+        ) : null}
+        {saveFailed && !locked ? (
+          <NotSavedLine testId="measure-not-saved" onRetry={() => void saveToServer(rooms)} />
+        ) : null}
+        {sendFailed && !locked ? (
+          <p className={notes.note} role="alert" data-testid="measure-send-failed">
+            {t('field.measure.send_failed')}
           </p>
         ) : null}
         {reopenFailed ? (

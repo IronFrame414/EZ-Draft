@@ -114,3 +114,32 @@ describe('EZD-1402 field action queue', () => {
     expect(readout([] as FieldAction[])).toEqual({ count: 0, bytes: 0 });
   });
 });
+
+// EZD-2025 (AC-EZD-2025-3 "a check the office refuses for good ... Retry sends it again"): requeue puts a refused
+// action back as queued, with the same id, ops and time, and no refusal code, so the sender sends it again.
+describe('EZD-2025 requeue a refused action', () => {
+  it('a refused task check goes back in the queue as it was', async () => {
+    const q = createFieldQueue(U1T1, ids);
+    const a = await q.add({ projectId: P, kind: 'task_check', ops: { taskId: 't9', done: true } }, 5);
+    await q.refuse(a, 'permission_denied');
+    await q.requeue(a);
+    const list = await q.list();
+    expect(list).toHaveLength(1);
+    expect(list[0]).toMatchObject({
+      id: 'a1',
+      kind: 'task_check',
+      ops: { taskId: 't9', done: true },
+      queuedAt: 5,
+      state: 'queued',
+      refusal: null,
+    });
+    q.close();
+  });
+
+  it('requeue of an action no longer on the phone changes nothing', async () => {
+    const q = createFieldQueue(U1T1, ids);
+    await q.requeue({ projectId: P, id: 'gone' });
+    expect(await q.list()).toEqual([]);
+    q.close();
+  });
+});

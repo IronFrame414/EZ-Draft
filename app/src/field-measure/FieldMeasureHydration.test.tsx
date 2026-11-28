@@ -2,13 +2,16 @@
 // before the screen's scripts had loaded, so the menu never opened and Reopen never showed). The menu button is
 // disabled in the server's HTML; it is enabled once the screen runs on the phone, which the e2e spec covers (static
 // markup here, as the other component tests: no DOM environment). Every other control keeps its server state.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { StateHost } from '../components/states/StateHost';
 import { MessagesProvider } from '../lib/messages';
 import { catalogFor } from '../server/messages/catalog';
 import { FieldMeasureScreen } from './FieldMeasureScreen';
 import { initialRooms, withShape, type FieldRoom } from './rooms';
+
+// EZD-2025: the back link is moved by the router (no next/link in the first load); no router is mounted here.
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: () => {}, prefetch: () => {} }) }));
 
 function render(sentAt: string | null, language: 'en' | 'es' = 'en'): string {
   return renderToStaticMarkup(

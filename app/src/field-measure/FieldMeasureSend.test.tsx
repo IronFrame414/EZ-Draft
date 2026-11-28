@@ -2,13 +2,16 @@
 // other component tests (no DOM environment); queueing offline and sending on reconnect are covered by
 // e2e/field-measure-send.spec.ts. Expected text: "Send to office" (S17b Controls) and the status wording listed in
 // vault/build/assumptions.md EZD-1417.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MessagesProvider } from '../lib/messages';
 import { catalogFor } from '../server/messages/catalog';
 import { StateHost } from '../components/states/StateHost';
 import { FieldMeasureScreen } from './FieldMeasureScreen';
 import { emptyRoom, initialRooms, withShape, type FieldRoom } from './rooms';
+
+// EZD-2025: the back link is moved by the router (no next/link in the first load); no router is mounted here.
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: () => {}, prefetch: () => {} }) }));
 
 const ROOMS: FieldRoom[] = [
   initialRooms()[0]!,

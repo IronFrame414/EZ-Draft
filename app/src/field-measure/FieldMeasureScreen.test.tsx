@@ -3,13 +3,16 @@
 // markup, as the other component tests (no DOM environment); taps are covered by e2e/field-measure-shapes.spec.ts.
 // Expected text is the board's (S17bFieldMeasure): "Field measure", the five tile names, "Wall C" style labels,
 // "Ceiling at wall", the hint line and "n / m".
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MessagesProvider } from '../lib/messages';
 import { catalogFor } from '../server/messages/catalog';
 import { StateHost } from '../components/states/StateHost';
 import { FieldMeasureScreen } from './FieldMeasureScreen';
 import { emptyRoom, initialRooms, withShape, type FieldRoom } from './rooms';
+
+// EZD-2025: the back link is moved by the router (no next/link in the first load); no router is mounted here.
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: () => {}, prefetch: () => {} }) }));
 
 function render(
   rooms: FieldRoom[],

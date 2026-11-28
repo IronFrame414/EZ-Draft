@@ -39,6 +39,15 @@ export function overlayTasks(tasks: readonly FieldPackTask[], o: TaskOverlay): F
   });
 }
 
+// EZD-2025 (AC-EZD-2025-3): the checks shown ticked: a check the office refused for good shows unticked.
+export function shownChecks(
+  checked: ReadonlyMap<string, number>,
+  refused: ReadonlySet<string>,
+): ReadonlyMap<string, number> {
+  if (refused.size === 0) return checked;
+  return new Map([...checked].filter(([task]) => !refused.has(task)));
+}
+
 export function openCount(tasks: readonly FieldPackTask[]): number {
   return tasks.filter((t) => t.done === null).length;
 }

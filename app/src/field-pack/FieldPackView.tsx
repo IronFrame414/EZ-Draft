@@ -37,6 +37,7 @@ export function FieldPackView({
   initialRoom = ALL_ROOMS,
   overlay = NO_OVERLAY,
   taskActions = null,
+  senderFailed = false,
 }: {
   data: PackData;
   language: Language;
@@ -48,6 +49,8 @@ export function FieldPackView({
   overlay?: TaskOverlay;
   // The task row controls; null shows the tasks with no controls.
   taskActions?: TaskActions | null;
+  // EZD-2025 (AC-EZD-2025-4): the field sender could not start; the Tasks tab says why its controls are missing.
+  senderFailed?: boolean;
 }) {
   const t = useT();
   const [tab, setTab] = useState<FieldPackTab>(initialTab);
@@ -177,6 +180,7 @@ export function FieldPackView({
             language={language}
             canPhoto={canPhoto}
             actions={taskActions}
+            senderFailed={senderFailed}
           />
         ) : null}
       </section>

@@ -336,6 +336,16 @@ export const es = {
   'field.tasks.edit_failed': 'No se pudo guardar la tarea. Inténtalo de nuevo.',
   'field.tasks.save': 'Guardar',
   'field.tasks.cancel': 'Cancelar',
+  // EZD-2025 (Q-0903; traducción para que Josh la confirme, vault/build/assumptions/EZD-2025.md).
+  'field.sync.not_saved': 'No se guardó en la oficina.',
+  'field.measure.send_failed':
+    'No se pudieron guardar las habitaciones en este teléfono para enviarlas. Libera espacio e inténtalo de nuevo.',
+  'field.measure.send_starting': 'Preparando el envío…',
+  'field.measure.send_unavailable':
+    'No se puede enviar desde este teléfono ahora. Se intentará de nuevo cuando vuelvas a tener conexión.',
+  'field.tasks.check_failed': 'La marca no se guardó en este teléfono. Inténtalo de nuevo.',
+  'field.tasks.sender_failed':
+    'Marcar tareas, Agregar foto y Editar no están disponibles en este teléfono ahora. Vuelven cuando tengas conexión.',
   // EZD-2028 (Q-0907): the reload notice on the field pack.
   'field.app.reload_message': 'EZ Draft se actualizó. Recarga para usar la nueva versión.',
   'field.app.reload': 'Recargar',

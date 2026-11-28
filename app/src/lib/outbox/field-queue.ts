@@ -26,6 +26,8 @@ export type FieldQueue = {
   list(): Promise<FieldAction[]>;
   remove(action: Pick<FieldAction, 'projectId' | 'id'>): Promise<void>;
   refuse(action: Pick<FieldAction, 'projectId' | 'id'>, code: string): Promise<void>;
+  // EZD-2025 (AC-EZD-2025-3 "Retry sends it again"): a refused action goes back in the queue, as it was queued.
+  requeue(action: Pick<FieldAction, 'projectId' | 'id'>): Promise<void>;
   // Queued model edits and field actions of this user and company: how many, and their size in bytes.
   readout(): Promise<QueueReadout>;
   close(): void;
@@ -92,6 +94,13 @@ export function createFieldQueue(actor: Actor, newId: () => string = () => crypt
       const k = key(a.projectId, a.id);
       const row = (await tx.store.get(k)) as FieldAction | undefined;
       if (row) await tx.store.put({ ...row, state: 'refused', refusal: code }, k);
+      await tx.done;
+    },
+    async requeue(a) {
+      const tx = (await db()).transaction(OUTBOX_STORE, 'readwrite');
+      const k = key(a.projectId, a.id);
+      const row = (await tx.store.get(k)) as FieldAction | undefined;
+      if (row) await tx.store.put({ ...row, state: 'queued', refusal: null }, k);
       await tx.done;
     },
     async readout() {

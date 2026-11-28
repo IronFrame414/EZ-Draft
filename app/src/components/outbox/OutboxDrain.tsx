@@ -196,22 +196,69 @@ export function useOutboxSignOut(): { check(): Promise<boolean>; dialog: ReactEl
   return { check, dialog };
 }
 
-// EZD-1402: the page's field sender (queue a field action with `add`); null outside a provider, without an actor,
-// or until it has started.
-export function useFieldSync(): FieldSync | null {
+// EZD-2025 (audit 2026-11-27 A4, A6; AC-EZD-2025-2, -4; Q-0903): whether the page's field sender has started.
+// starting: the first try is under way; ready: it runs; failed: it could not start (its file did not load on this
+// phone, or the member could not be read).
+export type FieldSenderState = 'starting' | 'ready' | 'failed';
+
+export type FieldSender = { sync: FieldSync | null; state: FieldSenderState };
+
+// Calls `cb` each time the network comes back; answers the stop function.
+const whenOnline = (cb: () => void) => {
+  window.addEventListener('online', cb);
+  return () => window.removeEventListener('online', cb);
+};
+
+/**
+ * Starts the field sender and tells `report` how it went; after a failure the start is tried again each time the
+ * network comes back (AC-EZD-2025-4). Answers the stop function.
+ */
+export function watchFieldStart(
+  start: () => Promise<FieldDrainHandle | null>,
+  report: (s: FieldSender) => void,
+  onOnline: (cb: () => void) => () => void = whenOnline,
+): () => void {
+  let live = true;
+  // True while a start is under way or once it has worked: no other start is needed.
+  let busy = false;
+  const attempt = () => {
+    busy = true;
+    void start()
+      .catch(() => null)
+      .then((h) => {
+        busy = h !== null;
+        if (live) report({ sync: h?.sync ?? null, state: h ? 'ready' : 'failed' });
+      });
+  };
+  const off = onOnline(() => {
+    if (!live || busy) return;
+    report({ sync: null, state: 'starting' });
+    attempt();
+  });
+  attempt();
+  return () => {
+    live = false;
+    off();
+  };
+}
+
+// EZD-1402: the page's field sender (queue a field action with `add`); sync is null outside a provider, without an
+// actor, or until it has started. EZD-2025: with the state of its start.
+export function useFieldSender(): FieldSender {
   const ctx = useContext(Context);
-  const [sync, setSync] = useState<FieldSync | null>(null);
+  const [sender, setSender] = useState<FieldSender>({ sync: null, state: 'starting' });
   useEffect(() => {
-    if (ctx === null) return;
-    let live = true;
-    void ctx.startField().then((h) => {
-      if (live) setSync(h?.sync ?? null);
-    });
-    return () => {
-      live = false;
-    };
+    if (ctx === null) {
+      queueMicrotask(() => setSender({ sync: null, state: 'failed' }));
+      return;
+    }
+    return watchFieldStart(() => ctx.startField(), setSender);
   }, [ctx]);
-  return sync;
+  return sender;
+}
+
+export function useFieldSync(): FieldSync | null {
+  return useFieldSender().sync;
 }
 
 // EZD-134: who is signed in for the outbox, or null outside a provider or without a loaded actor.

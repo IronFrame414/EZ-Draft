@@ -1,0 +1,43 @@
+/* EZD-2025 (Q-0903; audit 2026-11-27 A3-A6): the not-saved and failure lines on the field screens, in the red of the
+   other refusal lines (--ez-red-text), with a Retry button the size of a finger (--ez-touch-target). */
+.line,
+.note {
+  margin: 0 0 8px;
+  color: var(--ez-red-text);
+  font-size: var(--ez-text-13);
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.retry {
+  min-width: var(--ez-touch-target);
+  min-height: var(--ez-touch-target);
+  padding: 0 12px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-cobalt-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retry:disabled {
+  color: var(--ez-slate-400);
+  cursor: default;
+}
+
+/* .note: a failure line without Retry (Send could not be queued, a tick not kept, the sender not started). */
+
+/* Why Send to office is greyed, beside it in the menu. */
+.reason {
+  display: block;
+  padding: 0 12px 8px;
+  color: var(--ez-slate-500);
+  font-size: var(--ez-text-12);
+}

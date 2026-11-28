@@ -3367,6 +3367,15 @@ export const en = {
   'field.tasks.edit_failed': "Couldn't save the task. Try again.",
   'field.tasks.save': 'Save',
   'field.tasks.cancel': 'Cancel',
+  // EZD-2025 (Q-0903: "Not saved to the office. Retry" is decided; the rest is wording for Josh in
+  // vault/build/assumptions/EZD-2025.md): the field screens say when a save, a Send or a task tick did not get through.
+  'field.sync.not_saved': 'Not saved to the office.',
+  'field.measure.send_failed': "Couldn't keep the rooms on this phone to send. Free up space and try again.",
+  'field.measure.send_starting': 'Getting ready to send…',
+  'field.measure.send_unavailable': "Can't send from this phone right now. It tries again when you're back online.",
+  'field.tasks.check_failed': "The tick wasn't saved on this phone. Try again.",
+  'field.tasks.sender_failed':
+    "Ticking tasks, Add photo and Edit aren't available on this phone right now. They come back when you're back online.",
   // EZD-1418 (S02 header source subtitle, status bar accuracy for rooms sent from the phone; wording for Josh).
   'office.review.subtitle_field_measure': 'Rooms sent from Field measure',
   'office.review.status_accuracy_field_measure': 'Typed on site',
