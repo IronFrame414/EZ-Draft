@@ -614,7 +614,8 @@
     "EZD-2043",
     "EZD-2014",
     "EZD-1915",
-    "EZD-610"
+    "EZD-610",
+    "EZD-1202"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2908,6 +2909,14 @@
       "ts": "2026-11-28T17:12:14Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1202",
+      "title": "Client page shell",
+      "commit": "83ff23555",
+      "ts": "2026-11-28T17:44:02Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -3255,12 +3264,6 @@
     }
   },
   "running": {
-    "EZD-1202": {
-      "lane": 3,
-      "title": "Client page shell",
-      "started": "2026-11-28T14:58:17Z",
-      "develop": "1c6dac9fd"
-    },
     "EZD-1917": {
       "lane": 4,
       "title": "RCP drawing: one file per ceiling item kind",
@@ -3272,6 +3275,12 @@
       "title": "The sink draws a single basin",
       "started": "2026-11-28T16:19:42Z",
       "develop": "e1b729553"
+    },
+    "EZD-1918": {
+      "lane": 2,
+      "title": "Split DrawingTools into rail, layer and per-tool parts",
+      "started": "2026-11-28T17:12:24Z",
+      "develop": "e0a44cda3"
     }
   },
   "advisories_checked_at": "2026-11-28T16:31:43Z",
