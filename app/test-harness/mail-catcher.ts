@@ -196,3 +196,33 @@ export async function emailSubjects(to: string, opts: { after?: Date } = {}): Pr
   }
   return subjects;
 }
+
+// EZD-2014 (flaky-test audit 2026-11-27 row 7): the first email to an address that arrives after `send`
+// began, found by message id as mailFence does, not by time. waitForRawEmail's `after` compares this
+// machine's clock with the mail catcher's clock inside Docker (`Created`); when Docker's clock is behind,
+// a fresh email looks old and is never found. Ids need no clock: every message already there is noted,
+// `send` runs, and the first message whose id was not there is returned. The limit (10 s by default)
+// counts from the moment `send` has returned.
+export async function waitForNewRawEmail(
+  to: string,
+  send: () => Promise<void>,
+  timeoutMs = 10000,
+): Promise<RawEmail> {
+  const seen = new Set((await messagesTo(to)).map((m) => m.ID));
+  await send();
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    // messagesTo lists newest first; the first new message is the last unseen one.
+    const first = (await messagesTo(to)).filter((m) => !seen.has(m.ID)).pop();
+    if (first) {
+      const res = await fetch(`${mailUrl()}/api/v1/message/${first.ID}`);
+      if (!res.ok) throw new Error(`mail-catcher: message answered ${res.status}`);
+      const detail = (await res.json()) as Detail;
+      return { subject: detail.Subject ?? '', text: detail.Text ?? '', html: detail.HTML ?? '' };
+    }
+    if (Date.now() >= deadline) {
+      throw new Error(`mail-catcher: no email within ${timeoutMs} ms`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+}
