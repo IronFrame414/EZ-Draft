@@ -15,6 +15,7 @@
 // stops paying a write to /api is refused 403 billing_read_only; after them every page but Projects is sent to /
 // (where the office layout shows the paywall) and /api is refused 403 billing_inactive, except the billing routes.
 // A failed read passes the request (billing never locks a company out by mistake). Billing off: no read.
+// EZD-1202: a client link page (/c/<token>) answers no-store, no-referrer and noindex (CLIENT_PAGE_HEADERS).
 import { NextResponse, type NextRequest } from 'next/server';
 import { HOST_COOKIE_PREFIX, isForwardedHttps, isSessionCookieName } from './lib/auth/cookie-names';
 import { signedOutCookieName } from './lib/auth/device-sign-out';
@@ -26,6 +27,7 @@ import { isPublicPath } from './server/auth/public-paths';
 import { signInUrl } from './server/auth/return-path';
 import { refuseCrossOriginWrite } from './server/auth/same-origin';
 import { createSessionClient, type SessionCookieJar } from './server/auth/supabase-server';
+import { CLIENT_PAGE_HEADERS, isClientLinkPath } from './server/sends/client-page-headers';
 
 export const config = {
   matcher: [
@@ -87,6 +89,14 @@ function signedOutMarked(request: NextRequest): NextResponse | null {
 }
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
+  const result = await gate(request);
+  if (isClientLinkPath(request.nextUrl.pathname)) {
+    for (const [name, value] of Object.entries(CLIENT_PAGE_HEADERS)) result.headers.set(name, value);
+  }
+  return result;
+}
+
+async function gate(request: NextRequest): Promise<NextResponse> {
   const devRefused = refuseDevPath(request.nextUrl.pathname);
   if (devRefused !== null) return devRefused;
   const refused = refuseCrossOriginWrite(request);

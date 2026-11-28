@@ -1666,6 +1666,9 @@ isOneToOne: false
               "alert_id": string,"claim": string,"first_seen_at": string,"occurrences": number,"ref": string,"source": string,"title": string
             }[]
                            },
+"client_page":
+{ Args: { "p_token_hash": string }; Returns: Json
+                           },
 "complete_project":
 { Args: { "p_project": string }; Returns: Json
                            },

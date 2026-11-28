@@ -13,7 +13,7 @@ const T4_TEXT = `User josh@x.test failed 3 times at https://ezdraft.ezcontractor
 describe('EZD-024 scrubbing and fingerprints', () => {
   it('EZD-024 T4 scrubText and scrubEvent remove emails, ids, tokens, codes and request data', () => {
     expect(scrubText(T4_TEXT)).toBe(
-      'User <email> failed 3 times at https://ezdraft.ezcontractorbinder.com/c/AbCd for <uuid> code <code> key <token>',
+      'User <email> failed 3 times at https://ezdraft.ezcontractorbinder.com/c/<token> for <uuid> code <code> key <token>',
     );
 
     const event = {
@@ -44,7 +44,7 @@ describe('EZD-024 scrubbing and fingerprints', () => {
 
   it('EZD-024 T5 normalizeMessage, normalizeLocation and errorFingerprint follow the Step 3 rules', () => {
     expect(normalizeMessage(T4_TEXT)).toBe(
-      'User <email> failed <n> times at https://ezdraft.ezcontractorbinder.com/c/AbCd for <uuid> code <code> key <token>',
+      'User <email> failed <n> times at https://ezdraft.ezcontractorbinder.com/c/<token> for <uuid> code <code> key <token>',
     );
     expect(normalizeLocation('browser', `https://h.test/p/${UUID}/plan?x=1#y`)).toBe(
       '/p/<id>/plan',

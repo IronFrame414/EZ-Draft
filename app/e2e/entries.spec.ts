@@ -95,7 +95,8 @@ test.describe('EZD-020 entry points and lazy chunks', () => {
     expect(r.status, r.stdout).toBe(0);
     const urls: Record<string, string> = {
       'entry-contents:field-pack': fieldPage(field.projectId),
-      'entry-contents:client-link': '/dev/entry/client',
+      // EZD-1202: measured at the real client link page.
+      'entry-contents:client-link': '/c/not-a-token',
     };
     for (const id of Object.keys(urls)) {
       const row = rowOf(r.res, id);
@@ -145,7 +146,8 @@ test.describe('EZD-020 entry points and lazy chunks', () => {
     const urls: Record<string, string> = {
       'js-size:projects-settings': '/dev/entry/office',
       'js-size:field-pack': fieldPage(field.projectId),
-      'js-size:client-link': '/dev/entry/client',
+      // EZD-1202: measured at the real client link page.
+      'js-size:client-link': '/c/not-a-token',
     };
     for (const [id, url] of Object.entries(urls)) {
       const row = rowOf(r.res, id);

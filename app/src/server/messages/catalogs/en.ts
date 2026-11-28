@@ -3641,6 +3641,24 @@ export const en = {
   'office.billing.paywall_body': 'Your projects are safe and come back when you pay.',
   'office.billing.pay_now': 'Pay now',
   'office.billing.ask_owner': 'Ask your company owner to update billing.',
+  // EZD-1202: the client page (S18; board S18Client; wording rows in vault/build/assumptions/EZD-1202.md).
+  'client.design_approval': 'Design approval',
+  'client.version_sent': 'Version {n} · sent {date}',
+  'client.rev_sent': 'Rev {n} · sent {date}',
+  'client.tabs': 'Page',
+  'client.tab.design': 'Design',
+  'client.menu': 'Menu',
+  'client.help': 'Help',
+  'client.contact': 'Contact {company}',
+  'client.expiring': {
+    one: 'This link expires in {count} day.',
+    other: 'This link expires in {count} days.',
+  },
+  'client.offline': 'Connect to approve',
+  'client.loading': 'Loading…',
+  'client.load_failed': "Couldn't load this page.",
+  'client.try_again': 'Try again',
+  'client.not_found': "This link isn't working. Ask your contractor for a new one.",
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

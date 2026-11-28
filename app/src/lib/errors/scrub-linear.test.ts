@@ -32,6 +32,8 @@ function legacyScrubText(s: string): string {
       /\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/g,
       '<uuid>',
     )
+    // EZD-1202: a client link path's token is redacted, whatever its letters.
+    .replace(/\/c\/[A-Za-z0-9_-]+/g, '/c/<token>')
     .replace(/[A-Za-z0-9_-]{24,}/g, (run) =>
       /[A-Za-z]/.test(run) && /\d/.test(run) ? '<token>' : run,
     )
