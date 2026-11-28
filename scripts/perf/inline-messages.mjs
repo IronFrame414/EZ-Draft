@@ -65,12 +65,22 @@ export function inlineMessagesOf(html) {
   const objects = messageObjects(flightText(html));
   const text = objects.join('\n');
   let keys = 0;
+  // EZD-2000: how many keys each object holds per two-segment prefix (`office.header`), so a page that sends another
+  // screen's messages shows which.
+  const prefixes = [];
   for (const o of objects) {
+    const counts = {};
     try {
-      keys += Object.keys(JSON.parse(o)).length;
+      const names = Object.keys(JSON.parse(o));
+      keys += names.length;
+      for (const k of names) {
+        const p = k.split('.').slice(0, 2).join('.');
+        counts[p] = (counts[p] ?? 0) + 1;
+      }
     } catch {
       // a reference row, not an inline object
     }
+    prefixes.push(counts);
   }
   return {
     value: objects.length === 0 ? 0 : compressedSize(text),
@@ -79,6 +89,7 @@ export function inlineMessagesOf(html) {
       keys,
       rawBytes: Buffer.byteLength(text),
       documentBytes: compressedSize(html),
+      prefixes,
     },
   };
 }

@@ -180,4 +180,26 @@ export default tseslint.config(
     plugins: { ezdraft },
     rules: { 'ezdraft/geometry-root-index-frozen': 'error' },
   },
+  // EZD-2000 (AC-EZD-2000-1 (3), (4); Q-0814) · a server page or layout starts independent reads together, and a page
+  // sends only its own messages. Dev pages answer 404 in production (proxy.ts, server/dev-gate.ts) and are left out.
+  {
+    files: ['app/src/app/**/{page,layout}.{ts,tsx}'],
+    ignores: ['app/src/app/dev/**', 'app/src/app/*/dev/**', '**/*.test.*'],
+    plugins: { ezdraft },
+    rules: { 'ezdraft/parallel-server-reads': 'error' },
+  },
+  // The messages rule reads every app file that can render a page's provider (server/settings/settings-root.tsx was
+  // one of audit F1's three), tests and test helpers left out.
+  {
+    files: ['app/src/**/*.tsx'],
+    ignores: [
+      'app/src/app/dev/**',
+      'app/src/app/*/dev/**',
+      '**/*.test.*',
+      '**/*.test-helpers.*',
+      '**/test-utils/**',
+    ],
+    plugins: { ezdraft },
+    rules: { 'ezdraft/page-own-messages': 'error' },
+  },
 );

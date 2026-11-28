@@ -95,6 +95,8 @@ export const MEASUREMENTS = Object.freeze([
   ),
   row('entry-contents:field-measure', 'contents.field-pack', 'active', 'js-contents', 'EZD-1998 (AC-EZD-1998-1)'),
   row('entry-contents:client-link', 'contents.client-link', 'active', 'js-contents', 'EZD-020; EZD-1202 repoints'),
+  // EZD-2000 (AC-EZD-2000-1 (1)): /auth/confirm's first-load contents, as /sign-in's.
+  row('entry-contents:auth-confirm', 'contents.sign-in', 'active', 'js-contents', 'EZD-2000 (Q-0814)'),
   row('entry-contents:sign-in', 'contents.sign-in', 'active', 'js-contents', "EZD-020; EZD-007's page, no repoint"),
   row('draw-calls-per-frame', 'draw-calls.frame', 'pending', null, 'EZD-1701 (no source gives a number; EZD-207c)'),
   row('buffers-rebuilt-per-edit', 'buffers-per-edit', 'pending', null, 'EZD-207 / EZD-1001a'),

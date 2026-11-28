@@ -3,10 +3,13 @@
 // EZD-001 · C9 test files carry a ticket ID (vault/plans/EZD-001.md, Step 6.1; Q-0006).
 // EZD-010a · C10 colors only in app/src/styles/tokens.css (vault/plans/EZD-010a.md, Step 3).
 // EZD-1954 · C11 font sizes only through --ez-text-* tokens in CSS modules (audit 2026-11-23 U5; AC-EZD-1954-3).
+// EZD-2000 · C12 every page route has a download budget and a contents row measured at its real page; C13 fonts are
+// woff2 and raster images are under the size cap (Q-0814; AC-EZD-2000-1 (1), (2), (5)).
 // Plain Node 22, no dependencies. Usage: node scripts/conventions/check.mjs [rootDir]
 // Prints one line per violation, `[Cn] <repo-relative path>: <problem>`, and exits 1 if any; else prints a pass line and exits 0.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const root = path.resolve(process.argv[2] || process.cwd());
 const problems = [];
@@ -460,6 +463,146 @@ function checkC11() {
   }
 }
 
+// ---------- C12 Every page route is budgeted and measured at its real page (EZD-2000; Q-0814) ----------
+
+// Every app/src/app/**/page.{tsx,ts,jsx,js} is a route; route groups `(name)` are dropped from its address and
+// `/dev/...` routes are left out (they answer 404 in production: app/src/proxy.ts, app/src/server/dev-gate.ts).
+// Each route needs, in scripts/perf/perf.config.mjs, a `js-size:` measurement and an `entry-contents:` measurement
+// whose URL is the route itself: same segments, a dynamic segment `[x]` matched by any one value (a `{project}`
+// token or a sample value). The measurement's budget (the config row's own `budget`, else its scripts/perf/
+// registry.mjs row's) must be a gate row with a value in scripts/perf/budgets.mjs BUDGETS, `download.*` for the
+// size row and `contents.*` for the contents row. A route the check cannot measure is listed in the config's
+// `unmeasuredRoutes` as { route, reason } with the reason written; a listed route that is gone is reported too.
+const C12_CONFIG = 'scripts/perf/perf.config.mjs';
+const C12_REGISTRY = 'scripts/perf/registry.mjs';
+const C12_BUDGETS = 'scripts/perf/budgets.mjs';
+const C12_PAGE = /^page\.(tsx|ts|jsx|js)$/;
+
+/** The address of a page file, `/projects/[id]/field`, or null for a /dev route. */
+function routeOf(file) {
+  const parts = file.slice('app/src/app/'.length).split('/');
+  parts.pop();
+  const segs = parts.filter((p) => !(p.startsWith('(') && p.endsWith(')')) && !p.startsWith('@'));
+  if (segs[0] === 'dev') return null;
+  return '/' + segs.join('/');
+}
+
+/** True when a measurement URL (query dropped) opens the route. */
+function urlMatchesRoute(url, route) {
+  if (typeof url !== 'string') return false;
+  const want = route.split('/').filter(Boolean);
+  const got = url.split('?')[0].split('#')[0].split('/').filter(Boolean);
+  if (want.length !== got.length) return false;
+  return want.every((w, i) =>
+    w.startsWith('[') && w.endsWith(']') ? got[i].length > 0 : w === got[i],
+  );
+}
+
+async function importOrNull(relPath) {
+  if (!isFile(abs(relPath))) return null;
+  return import(pathToFileURL(abs(relPath)).href);
+}
+
+async function checkC12() {
+  const pages = walk('app/src/app').filter(
+    (f) => C12_PAGE.test(path.posix.basename(f)) && !isTestFile(f),
+  );
+  const routes = [...new Set(pages.map(routeOf).filter((r) => r !== null))].sort();
+  if (routes.length === 0) return;
+  const configMod = await importOrNull(C12_CONFIG);
+  const budgetsMod = await importOrNull(C12_BUDGETS);
+  const registryMod = await importOrNull(C12_REGISTRY);
+  if (!configMod || !budgetsMod) {
+    fail(
+      'C12',
+      C12_CONFIG,
+      `${routes.length} page routes but no ${configMod ? C12_BUDGETS : C12_CONFIG}`,
+    );
+    return;
+  }
+  const cfg = configMod.default ?? {};
+  const BUDGETS = budgetsMod.BUDGETS ?? {};
+  const registry = new Map((registryMod?.MEASUREMENTS ?? []).map((m) => [m.id, m]));
+  const measurements = Array.isArray(cfg.measurements) ? cfg.measurements : [];
+  const unmeasured = Array.isArray(cfg.unmeasuredRoutes) ? cfg.unmeasuredRoutes : [];
+  for (const u of unmeasured) {
+    if (typeof u?.reason !== 'string' || u.reason.trim().length === 0) {
+      fail('C12', C12_CONFIG, `unmeasuredRoutes ${u?.route}: the reason is not written`);
+    }
+    if (!routes.includes(u?.route))
+      fail('C12', C12_CONFIG, `unmeasuredRoutes ${u?.route}: no such page route`);
+  }
+  const skipped = new Set(
+    unmeasured.filter((u) => typeof u?.reason === 'string' && u.reason.trim()).map((u) => u.route),
+  );
+  const budgetOf = (m) => m.budget ?? registry.get(m.id)?.budget;
+  const kinds = [
+    { prefix: 'js-size:', budget: 'download.', what: 'download size' },
+    { prefix: 'entry-contents:', budget: 'contents.', what: 'first-load contents' },
+  ];
+  for (const route of routes) {
+    if (skipped.has(route)) continue;
+    for (const k of kinds) {
+      const rows = measurements.filter(
+        (m) =>
+          typeof m?.id === 'string' && m.id.startsWith(k.prefix) && urlMatchesRoute(m.url, route),
+      );
+      if (rows.length === 0) {
+        fail(
+          'C12',
+          C12_CONFIG,
+          `route ${route} has no ${k.prefix} measurement at its own page (${k.what}; Q-0814)`,
+        );
+        continue;
+      }
+      for (const m of rows) {
+        const id = budgetOf(m);
+        const b = id === undefined ? undefined : BUDGETS[id];
+        if (
+          !b ||
+          !String(id).startsWith(k.budget) ||
+          b.kind !== 'gate' ||
+          typeof b.value !== 'number'
+        ) {
+          fail(
+            'C12',
+            C12_CONFIG,
+            `${m.id} (route ${route}): budget ${id} is not a ${k.budget}* gate row with a value in ${C12_BUDGETS}`,
+          );
+        }
+      }
+    }
+  }
+}
+
+// ---------- C13 Fonts are woff2 and raster images are small (EZD-2000; Q-0814) ----------
+
+// Files the app ships, under app/public/ and app/src/ (tests, fixtures and screenshots left out): a font is
+// .woff2 only (no .ttf, .otf, .woff, .eot); a raster image (.png, .jpg, .jpeg, .gif, .webp, .avif, .bmp) is at
+// most C13_RASTER_CAP bytes. An image that only loads on demand is listed in C13_LAZY_IMAGES with its reason.
+export const C13_RASTER_CAP = 50 * 1000;
+const C13_LAZY_IMAGES = Object.freeze({});
+const C13_FONT = /\.(ttf|otf|woff|eot)$/i;
+const C13_RASTER = /\.(png|jpe?g|gif|webp|avif|bmp)$/i;
+
+function checkC13() {
+  for (const file of [...walk('app/public'), ...walk('app/src')]) {
+    if (isTestFile(file)) continue;
+    if (C13_FONT.test(file)) {
+      fail('C13', file, 'font is not woff2; ship the .woff2 subset only (11 rule 8; Q-0814)');
+    } else if (C13_RASTER.test(file) && !Object.hasOwn(C13_LAZY_IMAGES, file)) {
+      const size = statSync(abs(file)).size;
+      if (size > C13_RASTER_CAP) {
+        fail(
+          'C13',
+          file,
+          `image is ${size} bytes, over the ${C13_RASTER_CAP}-byte cap; compress it or load it on demand (Q-0814)`,
+        );
+      }
+    }
+  }
+}
+
 // ---------- run ----------
 
 checkC1();
@@ -473,10 +616,12 @@ checkC8();
 checkC9();
 checkC10();
 checkC11();
+await checkC12();
+checkC13();
 
 if (problems.length) {
   for (const line of problems) console.log(line);
   console.log(`conventions check: ${problems.length} violation${problems.length === 1 ? '' : 's'} (see docs/architecture.md, Machine checks)`);
   process.exit(1);
 }
-console.log(`conventions check: C1–C11 pass (${rel(root) || '.'})`);
+console.log(`conventions check: C1–C13 pass (${rel(root) || '.'})`);

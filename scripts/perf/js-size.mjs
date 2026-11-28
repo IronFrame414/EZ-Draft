@@ -1,6 +1,7 @@
 // EZD-017 Step 6 (vault/plans/EZD-017.md S1-S5, G7): compressed JavaScript a page downloads with no user action
 // (11 rule 7). One new browser context per measurement, so the HTTP cache starts empty (S4).
 // EZD-1996 (AC-EZD-1996-3): a page's download size counts its CSS too; measureCssSize is the CSS alone.
+// EZD-2000: measureDocumentSize is the page's HTML alone (the `document-size:` rows).
 // EZD-1995 (AC-EZD-1995-3): a row whose config entry sets `document: true` counts the page's HTML too, where the
 // page's screen messages travel.
 import path from 'node:path';
@@ -254,4 +255,9 @@ export function measureJsSize(browser, profile, baseUrl, url, { storageState, do
 /** EZD-1996 (AC-EZD-1996-3): the page's CSS alone. */
 export function measureCssSize(browser, profile, baseUrl, url, { storageState } = {}) {
   return measureSize(browser, profile, baseUrl, url, ['css'], storageState);
+}
+
+/** EZD-2000 (AC-EZD-2000-1 (1)): the page's HTML document alone, where its screen messages and flight data travel. */
+export function measureDocumentSize(browser, profile, baseUrl, url, { storageState } = {}) {
+  return measureSize(browser, profile, baseUrl, url, ['html'], storageState);
 }

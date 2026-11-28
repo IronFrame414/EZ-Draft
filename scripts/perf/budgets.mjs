@@ -25,6 +25,20 @@ const PROJECTS_MESSAGES_MEASURED = 14018;
 const EDITOR_MESSAGES_MEASURED = 24612;
 const MESSAGES_SOURCE = 'AC-EZD-1995-3 (Q-0814): measured inline messages + 10%; Q-0071 (a)';
 
+// EZD-2000 (AC-EZD-2000-1 (1); Q-0814): pages with no spec number, at their size measured by scripts/perf at their
+// real page plus 10% (rounded up to a whole byte); recorded in vault/build/assumptions/EZD-2000.md.
+const TERMS_MEASURED = 171401;
+const IMPORT_REVIEW_MEASURED = 307401;
+const SUPPLIER_MEASURED = 192455;
+// The real editor page's HTML (flight data and its screen messages), held on its own row since the 11 Budgets editor
+// number is compressed JavaScript.
+const EDITOR_DOCUMENT_MEASURED = 69274;
+// The screen messages the real Projects and editor pages send (their own pageMessages lists), first measured at the
+// real pages by EZD-2000; the EZD-1995 rows measure the placeholder pages and keep their values.
+const PROJECTS_PAGE_MESSAGES_MEASURED = 24161;
+const EDITOR_PAGE_MESSAGES_MEASURED = 34585;
+const MEASURED_SOURCE = 'AC-EZD-2000-1 (Q-0814): no spec number; measured at the real page + 10%; Q-0071 (a)';
+
 const SIZE_SOURCE = '11 Budgets Download size; Q-0071 (a)';
 const FRAME_SOURCE = '11 Budgets Pan row; Q-0061 (a)';
 
@@ -63,6 +77,43 @@ const ROWS = [
     unit: 'bytes',
     value: SIGN_IN_CSS_BUDGET,
     source: 'AC-EZD-1996-3 (Q-0814): measured sign-in CSS + 10%; Q-0071 (a)',
+  },
+  // EZD-2000 (AC-EZD-2000-1 (1)): the pages with no spec number.
+  { id: 'download.terms', kind: 'gate', unit: 'bytes', value: Math.ceil(TERMS_MEASURED * 1.1), source: MEASURED_SOURCE },
+  {
+    id: 'download.import-review',
+    kind: 'gate',
+    unit: 'bytes',
+    value: Math.ceil(IMPORT_REVIEW_MEASURED * 1.1),
+    source: MEASURED_SOURCE,
+  },
+  {
+    id: 'download.supplier',
+    kind: 'gate',
+    unit: 'bytes',
+    value: Math.ceil(SUPPLIER_MEASURED * 1.1),
+    source: MEASURED_SOURCE,
+  },
+  {
+    id: 'download.editor-document',
+    kind: 'gate',
+    unit: 'bytes',
+    value: Math.ceil(EDITOR_DOCUMENT_MEASURED * 1.1),
+    source: MEASURED_SOURCE,
+  },
+  {
+    id: 'inline-messages.projects-page',
+    kind: 'gate',
+    unit: 'bytes',
+    value: Math.ceil(PROJECTS_PAGE_MESSAGES_MEASURED * 1.1),
+    source: MEASURED_SOURCE,
+  },
+  {
+    id: 'inline-messages.editor-page',
+    kind: 'gate',
+    unit: 'bytes',
+    value: Math.ceil(EDITOR_PAGE_MESSAGES_MEASURED * 1.1),
+    source: MEASURED_SOURCE,
   },
   // EZD-1995 (AC-EZD-1995-3): the inline screen messages of the projects-settings and editor pages.
   {

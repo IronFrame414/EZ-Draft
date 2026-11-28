@@ -1672,7 +1672,7 @@ Path `vault/handoff/CURRENT.md`, format `vault/handoff/TEMPLATE.md`, overwritten
 
 ## Machine checks
 
-`node scripts/conventions/check.mjs [rootDir]` runs C1–C10 (plain Node, no dependencies). The root `lint` script runs it, so `scripts/check.mjs` and CI fail on any violation. Rules with no machine check are marked "review".
+`node scripts/conventions/check.mjs [rootDir]` runs C1–C13 (plain Node, no dependencies). The root `lint` script runs it, so `scripts/check.mjs` and CI fail on any violation. Rules with no machine check are marked "review".
 
 Three strikes (EZD-369):
 - **Recording:** after every unit, the launcher records a verdict for the unit's key in `.git/unit-strikes.json`, using `strikeVerdict` and `recordStrike` in `vault/tools/next_ticket.mjs`. A stop that is not the unit's fault records nothing (`strikeExempt`: a limit, an interrupted run, a dry run).
@@ -1697,6 +1697,8 @@ Launcher units ran with `UNIT_ENV_LIMITS` (`scripts/launcher/unit-env.mjs`, EZD-
 | C8 | No `console.*` in non-test files under `app/src/`, `packages/*/src/`, `worker/src/` except `logger.ts` | same | EZD-000 |
 | C9 | Every `*.test.ts`, `*.test.tsx`, `*.spec.ts` under `app/`, `packages/`, `worker/` has a top-level `describe` / `test.describe` whose title starts with a ticket ID (`test-utils/`, `test-harness/` and config files exempt) | same | EZD-001 |
 | C10 | No literal color (hex or color function) in a declaration of a CSS file under app/src/ other than app/src/styles/tokens.css | same | EZD-010a |
+| C12 | Every page route under `app/src/app/` (route groups dropped, `/dev` left out) has a `js-size:` row on a `download.*` gate budget and an `entry-contents:` row on a `contents.*` budget in `scripts/perf/perf.config.mjs`, measured at its own page; a route that cannot be measured is in `unmeasuredRoutes` with its reason | `scripts/conventions/check.mjs`; `scripts/conventions/__tests__/perf-rules-c12-c13.test.mjs` | EZD-2000 |
+| C13 | Fonts under `app/public/` and `app/src/` are `.woff2` only; a raster image there is at most 50,000 bytes | same | EZD-2000 |
 | — | Named colors in CSS and colors in TSX style props | review | EZD-010a |
 | — | Icon sprite and names file match icons.json; icons:build is byte-stable and refuses missing, repeated or unsorted names | app/src/components/icon/icons.test.ts (T8, T9) | EZD-010b |
 | — | Icons draw from the in-page sprite; its data reaches only IconSprite and the root layout | app/src/components/icon/IconSprite.test.tsx (U1–U5) | EZD-347 |
@@ -1706,6 +1708,9 @@ Launcher units ran with `UNIT_ENV_LIMITS` (`scripts/launcher/unit-env.mjs`, EZD-
 | — | No `private` function executable by PUBLIC, or by an API role outside `PRIVATE_EXECUTE` | `app/src/server/db/rls.audit.test.ts` (`auditRls`, `@smoke`; EZD-168 T1-T4) | EZD-168 |
 | — | PostgREST request gate refuses requests without the server header | `app/src/server/db/rls.api-gate.test.ts` (`@smoke`) | EZD-006 |
 | — | Static imports of heavy libraries; bundle report | `ezdraft/import-boundaries` (`eslint-rules/import-boundaries.mjs`); `scripts/perf/js-contents.mjs` (gate step `perf`); `scripts/tooling/__tests__/import-boundaries-lint.test.mjs`, `scripts/perf/__tests__/sourcemap.test.mjs`, `scripts/perf/__tests__/js-contents.test.mjs`, `app/e2e/entries.spec.ts` | EZD-020, EZD-167 |
+| — | Full zod, Supabase realtime, the image encoder (`@jsquash/*`) and `pdfkit` are in no page's first load (`FIRST_LOAD_PACKAGES`, category `heavy`, counted by every `contents.*` row) | `eslint-rules/boundaries.mjs`; `scripts/perf/js-contents.mjs`; `scripts/perf/__tests__/first-load-packages.test.mjs` | EZD-2000 |
+| — | A server page or layout does not await two independent reads one after another; escape `// sequential-await: <reason>` | `ezdraft/parallel-server-reads` (`eslint-rules/parallel-server-reads.mjs`); `scripts/tooling/__tests__/parallel-server-reads-lint.test.mjs` | EZD-2000 |
+| — | A page never hands the whole office catalog to its MessagesProvider | `ezdraft/page-own-messages` (`eslint-rules/page-own-messages.mjs`); `scripts/tooling/__tests__/page-own-messages-lint.test.mjs`; `inline-messages:*` rows | EZD-2000 |
 | — | No polling: `setInterval` refused in `app/src` | `eslint.config.mjs` (`no-restricted-globals`, `no-restricted-properties`); `scripts/tooling/__tests__/no-polling-lint.test.mjs` (T18) | EZD-018 |
 | — | Realtime event names used in migrations are in `events.ts` | `scripts/db/__tests__/realtime-sql.test.mjs` (T19) | EZD-018 |
 | — | Literal interface strings in phone components | `ezdraft/no-literal-ui-string`, `scripts/tooling/__tests__/messages-lint.test.mjs` | EZD-026a |
@@ -1803,6 +1808,16 @@ Launcher units ran with `UNIT_ENV_LIMITS` (`scripts/launcher/unit-env.mjs`, EZD-
 | — | No workflow or workspace package script names a `pnpm_config_` environment name (any letter case) | `scripts/ci/__tests__/ci.test.mjs` (EZD-177 T1, rule (l)), `scripts/tooling/__tests__/tooling.test.mjs` (EZD-177 T2) | EZD-177 |
 | — | Email subject characters, https links on Vercel, stub outbox cap, alert subject line | `app/src/server/email/input-checks.test.ts`, `app/src/server/errors/alert-email.test.ts` | EZD-151 |
 | — | Every open ticket lists its architecture sections; every listed and core heading exists, is unique and holds no ' or ; | `node vault/tools/next_ticket.mjs --check`, (`scripts/ledger/architecture-map.test.mjs` deleted by EZD-1951) | EZD-244 |
+
+### Page size and loading rules (EZD-2000)
+
+Josh, Q-0814: pages stay small and fast as the app grows. Five rules, each failing the gate on a bad example. Sizes are measured by `scripts/perf` (gzip level 6, Q-0071 (a)); a budget is never raised to pass.
+
+1. **Every route has a download budget, measured at its real page** (C12). A new `page.tsx` fails the conventions check until `scripts/perf/perf.config.mjs` measures it at its own address (`js-size:` and `entry-contents:` rows). Office pages open signed in with the office session (`run.mjs --office-storage-state`, an all-rights member made by `app/e2e/perf-field-session.ts`); `{project}` is the seeded project. A route with no spec number gets its measured size plus 10% as its budget in `scripts/perf/budgets.mjs` (`download.terms`, `download.import-review`, `download.supplier`). The editor's 500 KB is compressed JavaScript and CSS; its real page's HTML is held on its own `document-size:editor-project` row. `/dev` routes answer 404 in production and are left out; `/settings` (a redirect) and `/settings/[section]` are in `unmeasuredRoutes` with their reasons.
+2. **Heavy libraries stay out of first loads.** Three, the exporters, the path tracer, pdf.js, DXF and HEIC are lint import bans (`HEAVY_PACKAGES`). Full zod, Supabase realtime, the image encoder and `pdfkit` are bundle-only (`FIRST_LOAD_PACKAGES`): server code may import them, but every `contents.*` row fails a page whose first load holds them. Three is allowed in the editor only (`ENTRY_RULES`). A page may let one package through in `FIRST_LOAD_ALLOWANCES` (`eslint-rules/boundaries.mjs`, by page path, `{ key, reason }`, read by every contents measurement of that page), or a single config row with `allow: [{ key, reason }]`; the reason is required. Today only realtime on Projects is allowed, because the bell loads it after the page is usable (EZD-1997).
+3. **Server pages start independent reads together** (`ezdraft/parallel-server-reads`, on `app/src/app/**/{page,layout}.tsx`). An `await` that uses nothing an earlier awaited read in the same block produced is reported; request values (`params`, `searchParams`, `cookies()`, `headers()`, `connection()`) are not reads. A real ordering need is written above the later await as `// sequential-await: <reason>`.
+4. **A page sends only its own messages** (`ezdraft/page-own-messages`): no `messages={catalogFor('office', …)}` in any app file (tests and dev pages left out); office and editor pages pass `pageMessages('<page>')`. The `inline-messages:*` rows hold the Projects and editor pages to the EZD-1995 cap.
+5. **Assets are compressed** (C13): fonts `.woff2` only; raster images at most 50,000 bytes, or loaded on demand and listed with a reason.
 
 ### Gate user (EZD-354)
 Retired with `scripts/gate.mjs` (EZD-1951); `scripts/check.mjs` runs as the calling user. On macOS `scripts/gate.mjs` ran every check as the Standard user `ezdraft` (uid 502), so code a check runs cannot reach Josh's keychain, ssh agent, launchd session or home folder (Q-0602 (a); vault/plans/EZD-354.md). Setup: docs/runbook.md, Gate user.
