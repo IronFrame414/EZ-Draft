@@ -616,7 +616,8 @@
     "EZD-1915",
     "EZD-610",
     "EZD-1202",
-    "EZD-2010"
+    "EZD-2010",
+    "EZD-2045"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2926,6 +2927,14 @@
       "ts": "2026-11-28T18:59:22Z",
       "kind": "ticket",
       "lane": 4
+    },
+    {
+      "id": "EZD-2045",
+      "title": "The sink draws a single basin",
+      "commit": "63ddad660",
+      "ts": "2026-11-28T19:38:34Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
@@ -3289,12 +3298,6 @@
       "title": "Client page Plans tab: the sheets of a sent sheet set",
       "started": "2026-11-28T17:45:26Z",
       "develop": "c22a50153"
-    },
-    "EZD-2045": {
-      "lane": 1,
-      "title": "The sink draws a single basin",
-      "started": "2026-11-28T18:00:26Z",
-      "develop": "e2ea30bca"
     }
   },
   "advisories_checked_at": "2026-11-28T16:31:43Z",
