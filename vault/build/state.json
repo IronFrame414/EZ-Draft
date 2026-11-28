@@ -602,7 +602,8 @@
     "EZD-720",
     "EZD-2021",
     "EZD-1913c",
-    "EZD-1711"
+    "EZD-1711",
+    "EZD-2040"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2800,6 +2801,14 @@
       "ts": "2026-11-28T07:11:20Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-2040",
+      "title": "Fix: EZD-2003 Cabinets touch-target test fails on the GitHub CI runner (release PR #23)",
+      "commit": "6b47d1a6b",
+      "ts": "2026-11-28T07:42:31Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -3132,12 +3141,6 @@
     }
   },
   "running": {
-    "EZD-2040": {
-      "lane": 3,
-      "title": "Fix: EZD-2003 Cabinets touch-target test fails on the GitHub CI runner (release PR #23)",
-      "started": "2026-11-28T05:00:23Z",
-      "develop": "06344b704"
-    },
     "EZD-2011": {
       "lane": 4,
       "title": "Fix: money pages sweep W1/W2 hangs on one page that never goes quiet (EZD-133)",
@@ -3149,6 +3152,12 @@
       "title": "Fix: password recovery email T7 not found within 10 s under load (EZD-033)",
       "started": "2026-11-28T06:37:49Z",
       "develop": "2d2139cbe"
+    },
+    "EZD-1921": {
+      "lane": 1,
+      "title": "Re-validate open editor plans and document the registry for planners",
+      "started": "2026-11-28T07:11:33Z",
+      "develop": "f1bae246b"
     }
   },
   "advisories_checked_at": "2026-11-28T04:30:44Z",
