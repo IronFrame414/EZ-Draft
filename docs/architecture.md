@@ -552,6 +552,21 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 - The left panel and the inspector `<aside>` render only when their label (`leftPanelLabel`, `inspectorLabel`) is given; an aside always has a label (EZD-120c).
 - The shell adds no pointer, scroll or resize listener, except the rail's own (EZD-230 below).
 
+### Editor features (EZD-1921)
+
+EZD-1910 to EZD-1918; editor consolidation plan `vault/plans/editor-consolidation-2026-11-23.md` 5.3 and 5.4. How the editor grows without one hot file.
+
+- **The rule.** A new mode, tool, inspector kind, left-panel section or ceiling drawer adds a file in its registry folder and never edits `ProjectEditor.tsx`. `ProjectEditor.tsx` opens the session and maps each slot from the registry; the ceiling tools' click receivers it still wires by hand move out with EZD-1914.
+- **Registry folders.** One file per entry, each exporting the folder's named value:
+  - `app/src/editor/features/<name>.tsx` exports `feature: EditorFeature` (`features/types.ts`): a mode, screen, dialog or header, status, rail or key part (built, EZD-1910 to EZD-1913c);
+  - `app/src/editor/ceiling/tools/` one click receiver per ceiling tool (EZD-1914);
+  - `app/src/editor/inspector/kinds/` one inspector kind per object type (EZD-1915);
+  - `app/src/editor/layers/sections/` one left-panel section (EZD-1916);
+  - `app/src/editor/ceiling/draw/` one ceiling drawer per RCP item kind (EZD-1917).
+  Until a folder's ticket is merged the old file (`InspectorPanel.tsx`, `LeftPanel.tsx`, `rcp.ts`, `DrawingTools.tsx`) is still where that work goes; the folder's ticket moves it.
+- **Generated index.** Each folder's `index.generated.ts` is written by `node app/tools/gen-registry.mjs` (`pnpm --filter app gen:registry`) from the folder listing, sorted, so two branches that add different files produce the same index and a merge conflict is settled by running the script again. `--check` (and `features/index.generated.test.ts`) fails when an index is stale or when anything it imports reaches `app/src/lazy/` statically (EZD-120c B11); a slot loads its lazy part through `shared/lazy-part.tsx`. Never hand-edit an index. A new registry folder adds its entry to `TARGETS` in the script once, in the ticket that makes the folder.
+- **Planners.** Planners never list generated index files in a footprint: a plan names the new entry file (or `<folder>/<new>`), and the builder runs the script. Only the ticket that creates a registry folder lists its index.
+
 ### Typed dimension bar (EZD-209)
 
 - Files: `packages/geometry/src/turn.ts` (`parseTurnAngle`, `resolveTurnDirection`), `app/src/editor/typed-entry/typed-entry.ts` (pure reducer, field consts, `isOpenKey`, `isTypingTarget`), `TypedEntryLayer.tsx` and its CSS module. Not mounted in the real editor; EZD-210 mounts it with the first real tools.
