@@ -86,7 +86,7 @@ function withPoint(
   return objects;
 }
 
-// The sink's plan lines: its outline and its two bowls (12; EZD-422), and four per drawn location.
+// The sink's plan lines: its outline and its one bowl (8; EZD-2045, Q-0922), and four per drawn location.
 function sinkLines(objects: Map<string, ObjectValue>, layers: ReturnType<typeof createLayerSetting>) {
   return planDrawingList(objects, {}, layers, null)!.items.flatMap((i) =>
     i.objectId.toLowerCase() === SINK && i.kind === 'line' ? [i] : [],
@@ -139,7 +139,7 @@ describe('EZD-729 a placed sink on the plan', () => {
     const objects = withSink();
     const layers = createLayerSetting(phase());
     const lines = sinkLines(objects, layers);
-    expect(lines).toHaveLength(12 + 3 * 4);
+    expect(lines).toHaveLength(8 + 3 * 4);
     const from = lines.map((l) => l.from);
     for (const corner of [
       { x: 95, y: 61 },
@@ -152,12 +152,12 @@ describe('EZD-729 a placed sink on the plan', () => {
   it('AC-1 Plumbing off hides the locations and keeps the sink; on again shows them', () => {
     const objects = withSink();
     const layers = createLayerSetting(phase());
-    expect(sinkLines(objects, layers)).toHaveLength(24);
+    expect(sinkLines(objects, layers)).toHaveLength(20);
     layers.setPlumbingEye(false);
-    expect(sinkLines(objects, layers)).toHaveLength(12);
+    expect(sinkLines(objects, layers)).toHaveLength(8);
     expect(sinkLines(objects, layers).map((l) => l.from)).not.toContainEqual({ x: 103, y: 61 });
     layers.setPlumbingEye(true);
-    expect(sinkLines(objects, layers)).toHaveLength(24);
+    expect(sinkLines(objects, layers)).toHaveLength(20);
   });
 
   it('Plumbing off hides water and drain points, not a gas point; the pick index leaves them out', () => {

@@ -154,16 +154,14 @@ export function fixtureSymbolItems(o: FixtureObject, textPt: number): DrawingIte
       break;
     }
     case 'sink': {
-      // Two bowls split at the center line, a deck at the back for the faucet, a drain in each bowl.
+      // EZD-2045 (Q-0922): one bowl, the back 20% of the depth left as the deck for the faucet, and one drain on the
+      // center line (where the plumbing drain sits, EZD-729).
       const v0 = -hd + 0.1 * D;
       const v1 = hd - 0.2 * D;
       const side = hw - 0.06 * W;
-      const mid = 0.03 * W;
       outline();
-      ring(box(-side, v0, -mid, v1));
-      ring(box(mid, v0, side, v1));
-      circle({ u: -(side + mid) / 2, v: (v0 + v1) / 2 }, drain);
-      circle({ u: (side + mid) / 2, v: (v0 + v1) / 2 }, drain);
+      ring(box(-side, v0, side, v1));
+      circle({ u: 0, v: (v0 + v1) / 2 }, drain);
       break;
     }
     case 'cooktop':
