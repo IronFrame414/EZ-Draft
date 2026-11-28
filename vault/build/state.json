@@ -601,7 +601,8 @@
     "EZD-1913b",
     "EZD-720",
     "EZD-2021",
-    "EZD-1913c"
+    "EZD-1913c",
+    "EZD-1711"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2791,11 +2792,19 @@
       "ts": "2026-11-28T06:00:20Z",
       "kind": "ticket",
       "lane": 4
+    },
+    {
+      "id": "EZD-1711",
+      "title": "Billing and paywall for other companies",
+      "commit": "33368a8eb",
+      "ts": "2026-11-28T07:11:20Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -3123,12 +3132,6 @@
     }
   },
   "running": {
-    "EZD-1711": {
-      "lane": 1,
-      "title": "Billing and paywall for other companies",
-      "started": "2026-11-28T03:21:52Z",
-      "develop": "e4da4fe8c"
-    },
     "EZD-2040": {
       "lane": 3,
       "title": "Fix: EZD-2003 Cabinets touch-target test fails on the GitHub CI runner (release PR #23)",
@@ -3140,6 +3143,12 @@
       "title": "Fix: money pages sweep W1/W2 hangs on one page that never goes quiet (EZD-133)",
       "started": "2026-11-28T06:01:13Z",
       "develop": "54f849c30"
+    },
+    "EZD-2014": {
+      "lane": 2,
+      "title": "Fix: password recovery email T7 not found within 10 s under load (EZD-033)",
+      "started": "2026-11-28T06:37:49Z",
+      "develop": "2d2139cbe"
     }
   },
   "advisories_checked_at": "2026-11-28T04:30:44Z",
