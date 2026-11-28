@@ -3,7 +3,10 @@
 Tickets that failed twice (a first failure is retried automatically). These need Josh. Each keeps its branch and worktree.
 To retry one, run `node scripts/loop.mjs --retry <ticket>` (the loop picks it up again).
 
-None.
+## EZD-2014 · Fix: password recovery email T7 not found within 10 s under load (EZD-033)
+- When: 2026-11-28T09:23:32Z
+- Reason: develop kept moving: 3 merge rounds (first try: check red after merging newer develop)
+- Branch: t/EZD-2014 · worktree: .claude/worktrees/EZD-2014
 
 ## History (last 20 retries)
 

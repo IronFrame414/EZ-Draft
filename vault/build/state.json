@@ -2820,9 +2820,18 @@
       "lane": 4
     }
   ],
-  "set_aside": {},
+  "set_aside": {
+    "EZD-2014": {
+      "title": "Fix: password recovery email T7 not found within 10 s under load (EZD-033)",
+      "ts": "2026-11-28T09:23:32Z",
+      "reason": "develop kept moving: 3 merge rounds (first try: check red after merging newer develop)",
+      "detail": "",
+      "branch": "t/EZD-2014",
+      "worktree": ".claude/worktrees/EZD-2014"
+    }
+  },
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -3155,12 +3164,6 @@
     }
   },
   "running": {
-    "EZD-2014": {
-      "lane": 2,
-      "title": "Fix: password recovery email T7 not found within 10 s under load (EZD-033)",
-      "started": "2026-11-28T06:37:49Z",
-      "develop": "2d2139cbe"
-    },
     "EZD-2004": {
       "lane": 3,
       "title": "Keyboard and screen-reader fixes in field and editor screens",
@@ -3172,6 +3175,12 @@
       "title": "Re-validate open editor plans and document the registry for planners",
       "started": "2026-11-28T08:26:05Z",
       "develop": "a764a31db"
+    },
+    "EZD-2041": {
+      "lane": 4,
+      "title": "Fix: sweep test T2 (c) sees 2 runs for one job at random (EZD-009)",
+      "started": "2026-11-28T08:58:22Z",
+      "develop": "49e5514c4"
     }
   },
   "advisories_checked_at": "2026-11-28T04:30:44Z",
