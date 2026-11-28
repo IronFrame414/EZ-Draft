@@ -258,3 +258,22 @@
 .footer .mono {
   color: var(--ez-ink);
 }
+
+/* EZD-2003 (audit 2026-11-27 A23; 11 Non-functional requirements "44 px minimum on touch"): on a touch
+   device these controls are at least 44 x 44 px; the desktop sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .pick,
+  .input {
+    min-height: var(--ez-touch-target);
+  }
+
+  .kv select {
+    height: var(--ez-touch-target);
+  }
+
+  .link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--ez-touch-target);
+  }
+}

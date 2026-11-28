@@ -8,6 +8,7 @@
 // not shown and the saved prices are kept (the server keeps them; a new tick gets 0).
 import { useState, type ReactElement } from 'react';
 import { countertopExposedEdgeLf, edgeOfferTotal, type CountertopPieceData } from '@ezdraft/geometry';
+import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import { formatDollars } from '../../lib/render-settings/models';
 import type { EdgeOffer, EdgeOfferChoice, EdgeProfile } from '../../editor/countertops/edge-profile';
@@ -115,13 +116,19 @@ export function EditOfferedEdges({
             return (
               <li key={p.id} className={styles.row} data-testid="edit-offered-row" data-key={p.key}>
                 <label className={styles.tick} htmlFor={id}>
+                  {/* EZD-2003: on a touch device the checkbox covers the whole label (a 44 px tap area) and the
+                      drawn box beside it shows its state; with a mouse the box is the plain checkbox. */}
                   <input
                     id={id}
                     type="checkbox"
+                    className={styles.tickInput}
                     checked={row.on}
                     data-testid="edit-offered-tick"
                     onChange={(e) => set(p.id, { on: e.target.checked })}
                   />
+                  <span className={styles.check} aria-hidden="true">
+                    <Icon name="check" size={12} />
+                  </span>
                   <ProfileDrawing profile={p} size="large" />
                   <span>{p.name}</span>
                 </label>

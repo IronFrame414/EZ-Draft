@@ -303,3 +303,36 @@
   color: var(--ez-slate-500);
   cursor: pointer;
 }
+
+/* EZD-2003 (audit 2026-11-27 A22; 11 Non-functional requirements "44 px minimum on touch"): on a touch
+   device these controls are at least 44 x 44 px; the desktop sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .input,
+  .swapItem {
+    min-height: var(--ez-touch-target);
+  }
+
+  .linkValue {
+    min-width: var(--ez-touch-target);
+    min-height: var(--ez-touch-target);
+  }
+
+  .pillSelect,
+  .select,
+  .inlineSelect {
+    height: var(--ez-touch-target);
+  }
+
+  .segment {
+    height: var(--ez-touch-target);
+  }
+
+  .footerButton {
+    height: var(--ez-touch-target);
+  }
+
+  .close {
+    min-width: var(--ez-touch-target);
+    min-height: var(--ez-touch-target);
+  }
+}
