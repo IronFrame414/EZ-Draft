@@ -2795,7 +2795,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2857,7 +2857,8 @@
     "EZD-2031": 1,
     "EZD-2021": 1,
     "EZD-2003": 1,
-    "EZD-2025": 1
+    "EZD-2025": 1,
+    "EZD-2014": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -3115,6 +3116,10 @@
     "EZD-2025": {
       "ts": "2026-11-27T23:48:43Z",
       "reason": "check red after a review fix"
+    },
+    "EZD-2014": {
+      "ts": "2026-11-28T06:37:19Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
@@ -3130,11 +3135,11 @@
       "started": "2026-11-28T05:00:23Z",
       "develop": "06344b704"
     },
-    "EZD-2014": {
-      "lane": 2,
-      "title": "Fix: password recovery email T7 not found within 10 s under load (EZD-033)",
-      "started": "2026-11-28T05:24:47Z",
-      "develop": "dc13db0c8"
+    "EZD-2011": {
+      "lane": 4,
+      "title": "Fix: money pages sweep W1/W2 hangs on one page that never goes quiet (EZD-133)",
+      "started": "2026-11-28T06:01:13Z",
+      "develop": "54f849c30"
     }
   },
   "advisories_checked_at": "2026-11-28T04:30:44Z",
