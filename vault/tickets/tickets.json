@@ -28477,7 +28477,7 @@
    "phase": 10,
    "title": "Shower head and shower handle placed separately from the Fixtures panel",
    "depends_raw": "EZD-234, EZD-422",
-   "spec_ref": "Josh 2026-11-28, chat (Q-0921): \"Need to add shower head and handle. they need to be separate because sometimes they are on different sides.\" Add Shower head and Shower handle to the Fixtures panel; each is placed on its own against a wall (may be on different walls of the same shower), takes the view status, draws its own plan symbol in its status colour on the canvas and sheets, and is listed in the sheet legend. Fit them into the existing fixture model (FIXTURE_KINDS in packages/geometry/src/schema/fixture.ts, a schema step if needed with old documents opening unchanged), the plumbing locations layer (EZD-729) and takeoff counts where fixtures are counted. Symbols follow the lettered-circle style Josh accepted in Q-0920: shower head a circle with \"SH\", shower handle a circle with \"V\" (record as wording for Josh). Default mounting heights: shower head 80 in and handle 48 in above the floor, editable (record as assumptions).",
+   "spec_ref": "Josh 2026-11-28, chat (Q-0921): \"Need to add shower head and handle. they need to be separate because sometimes they are on different sides.\" Add Shower head and Shower handle to the Fixtures panel; each is placed on its own against a wall (may be on different walls of the same shower), takes the view status, draws its own plan symbol in its status colour on the canvas and sheets, and is listed in the sheet legend. Fit them into the existing fixture model (FIXTURE_KINDS in packages/geometry/src/schema/fixture.ts, a schema step if needed with old documents opening unchanged), the plumbing locations layer (EZD-729) and takeoff counts where fixtures are counted. Symbols follow the lettered-circle style Josh accepted in Q-0920: shower head a circle with \"SH\", shower handle a circle with \"V\" (record as wording for Josh). Default mounting heights: shower head 80 in and handle 48 in above the floor, editable (record as assumptions). Josh 2026-11-28 (Q-0923): both are fixed to a wall: placed only on a wall, attached to it (moves with it, slides along it), following the wall-hosted rule used by openings and devices when the wall is deleted.",
    "spec_files": [
     "spec/sections/screens/S03-plan-editor.md#Fixtures",
     "spec/sections/03f-model-json-objects.md#Objects inside model_json",
@@ -28499,7 +28499,8 @@
     "AC-EZD-2044-1",
     "AC-EZD-2044-2",
     "AC-EZD-2044-3",
-    "AC-EZD-2044-4"
+    "AC-EZD-2044-4",
+    "AC-EZD-2044-5"
    ],
    "acs_source": "overwatch-2026-11-24"
   },
