@@ -10,13 +10,25 @@
 // layers), the state column's last row, the left panel's props (segment, ceiling and electrical sections), the
 // selection inspector's props, and status items at the ceiling view (300), electrical (400) and joists (600) places.
 // Each listed feature's `usePage` runs on every render (useFeaturePages).
+// EZD-1913c: Versions, Sheets, 3D, the Assistant, conflicts, the edit lock, Send, Upload and Help moved into features/
+// too. ProjectEditor now asks these functions for the screen (a feature's screen that shows covers the plan), the
+// header tabs, and the places their parts take: the slot functions above with the feature parts in the places
+// ProjectEditor gave them (editorInspector, editorLeftPanel, editorStatusStart, editorStatusEnd), the header, the
+// state column (STATE_ORDER) and the canvas's end (CANVAS_END_ORDER). Each listed feature's `useOwn` runs first
+// (useFeatureOwn), then `mayEdit` is worked out (editsAllowed), then the page hooks.
 import { Fragment, useEffect, useRef, type ReactNode } from 'react';
+import type { EditorView } from '../../components/shell/editor-views';
 import type { MessageKey } from '../../server/messages/catalog';
+import type { DevHookParts } from '../dev-hooks';
 import type {
   EditorFeature,
   EditorFeatureContext,
+  FeatureDevParts,
+  FeatureHeaderProps,
   FeatureInspectorProps,
+  FeatureItem,
   FeatureLeftPanelProps,
+  FeatureRailProps,
 } from '../features/types';
 
 /** Which screen the editor shows: the 3D view, the Sheets screen, or the plan canvas (up and not failed). */
@@ -37,7 +49,12 @@ type FeatureSlot =
   | 'statusEnd'
   | 'header'
   | 'planLayer'
-  | 'stateRow';
+  | 'stateRow'
+  | 'inspectorTop'
+  | 'inspectorOver'
+  | 'headerSubtitle'
+  | 'headerEnd'
+  | 'saveBanner';
 
 /** The features on now, lower `order` first. */
 export function activeFeatures(
@@ -218,7 +235,8 @@ function placed(
   );
 }
 
-type FeatureFilled = 'ceilingView' | 'electrical' | 'joists';
+// EZD-1913c: the lock (700) and versions (800) places are filled by features/lock.tsx and features/versions.tsx.
+type FeatureFilled = 'ceilingView' | 'electrical' | 'joists' | 'lock' | 'versions';
 
 export type StatusStartParts = {
   [K in Exclude<keyof typeof STATUS_START_ORDER, FeatureFilled>]: Part;
@@ -247,4 +265,248 @@ export function statusEndSlot(
   if (screen.showSheets) return parts.sheets?.() ?? null;
   if (screen.show3d || !screen.showPlan) return undefined;
   return placed(STATUS_END_ORDER, { planEnd: parts.planEnd }, active, 'statusEnd', ctx);
+}
+
+// ---- EZD-1913c ----
+
+/** The view on screen: the first listed feature's screen that shows, else Plan. */
+export function shownView(list: readonly EditorFeature[], ctx: EditorFeatureContext): EditorView {
+  return list.find((f) => f.screen?.shows(ctx) === true)?.screen?.view ?? 'plan';
+}
+
+/** The feature whose screen shows now, if one does. */
+const screenFeature = (
+  list: readonly EditorFeature[],
+  ctx: EditorFeatureContext,
+): EditorFeature | undefined =>
+  list.find((f) => f.screen !== undefined && f.screen.view === ctx.shownView);
+
+/** Which screen shows (`ctx.shownView`), as the slot functions above read it. */
+export function editorScreen(ctx: EditorFeatureContext): EditorScreen {
+  return {
+    show3d: ctx.shownView === '3d',
+    showSheets: ctx.shownView === 'sheets',
+    showPlan: ctx.planUp === true,
+  };
+}
+
+/** True while the plan's own parts show: the plan is up and no feature's screen covers it. */
+export const planOnly = (ctx: EditorFeatureContext): boolean =>
+  ctx.planUp === true && (ctx.shownView ?? 'plan') === 'plan';
+
+/** The header tabs: Plan, then each listed feature's tab that is available, in feature order. */
+export function editorViews(
+  list: readonly EditorFeature[],
+  ctx: EditorFeatureContext,
+): EditorView[] {
+  return [
+    'plan',
+    ...list.flatMap((f) =>
+      f.screen !== undefined && (f.screen.available?.(ctx) ?? true) ? [f.screen.view] : [],
+    ),
+  ];
+}
+
+/** A tab a press may choose: Plan or a listed feature's. */
+export const knownView = (list: readonly EditorFeature[], v: EditorView): boolean =>
+  v === 'plan' || list.some((f) => f.screen?.view === v);
+
+/** True while the feature whose screen shows hides the plan canvas (it stays mounted). */
+export const planHidden = (list: readonly EditorFeature[], ctx: EditorFeatureContext): boolean =>
+  screenFeature(list, ctx)?.screen?.hidesPlan === true;
+
+/** The showing screen's fill of one of its slots, or null. */
+export function screenPart(
+  list: readonly EditorFeature[],
+  ctx: EditorFeatureContext,
+  slot: 'screenCanvas' | 'screenLeftPanel' | 'screenStatusStart' | 'screenStatusEnd',
+): ReactNode {
+  return screenFeature(list, ctx)?.[slot]?.(ctx) ?? null;
+}
+
+/** Runs each listed feature's `useOwn`, in list order, and returns what each gave, by feature id. */
+export function useFeatureOwn(
+  list: readonly EditorFeature[],
+  ctx: EditorFeatureContext,
+): ReadonlyMap<string, unknown> {
+  const own = new Map<string, unknown>();
+  for (const f of list) if (f.useOwn !== undefined) own.set(f.id, f.useOwn(ctx));
+  return own;
+}
+
+/** `ctx.own` with more entries added (a feature's `usePage` after its `useOwn`). */
+export function withOwn(
+  ctx: EditorFeatureContext,
+  more: ReadonlyMap<string, unknown>,
+): EditorFeatureContext {
+  return { ...ctx, own: new Map([...(ctx.own ?? []), ...more]) };
+}
+
+/** True when any listed feature's flag says so (on or not: each flag reads its own state). */
+export function featureFlag(
+  list: readonly EditorFeature[],
+  flag: 'pausesEdits' | 'limitsTools' | 'quietsSaveBanners',
+  ctx: EditorFeatureContext,
+): boolean {
+  return list.some((f) => f[flag]?.(ctx) === true);
+}
+
+/** May edit now: `holds` (Edit model with the edit hold at open) and no listed feature pauses edits. */
+export const editsAllowed = (
+  list: readonly EditorFeature[],
+  ctx: EditorFeatureContext,
+  holds: boolean,
+): boolean => holds && !featureFlag(list, 'pausesEdits', ctx);
+
+function merge<T extends object>(
+  active: readonly EditorFeature[],
+  pick: (f: EditorFeature) => ((c: EditorFeatureContext) => T) | undefined,
+  ctx: EditorFeatureContext,
+): T {
+  const out: Record<string, unknown> = {};
+  for (const f of active) {
+    const props = pick(f)?.(ctx) ?? {};
+    for (const [k, v] of Object.entries(props))
+      if (out[k] === undefined && v !== undefined) out[k] = v;
+  }
+  return out as T;
+}
+
+/** The header props the active features give; the lower order's stands. */
+export const headerProps = (
+  active: readonly EditorFeature[],
+  ctx: EditorFeatureContext,
+): FeatureHeaderProps => merge(active, (f) => f.headerProps, ctx);
+
+/** The rail props the active features give; the lower order's stands. */
+export const railProps = (
+  active: readonly EditorFeature[],
+  ctx: EditorFeatureContext,
+): FeatureRailProps => merge(active, (f) => f.railProps, ctx);
+
+// EZD-2009: the dev hook's scene loaded check while no feature gives one (the same function on every render).
+const NOT_LOADED = () => false;
+
+/** What the listed features give the dev hooks, with the values dev-hooks.ts had without them. */
+export function featureDevParts(
+  list: readonly EditorFeature[],
+  ctx: EditorFeatureContext,
+): Pick<DevHookParts, 'scene3d' | 'show3d' | 'scene3dLoaded'> {
+  const given = merge<FeatureDevParts>(list, (f) => f.devParts, ctx);
+  return {
+    scene3d: given.scene3d ?? null,
+    show3d: given.show3d ?? false,
+    scene3dLoaded: given.scene3dLoaded ?? NOT_LOADED,
+  };
+}
+
+/** The first active feature's fill of a slot, as a part, or null. */
+function partOf(
+  active: readonly EditorFeature[],
+  slot: FeatureSlot,
+  ctx: EditorFeatureContext,
+): Part {
+  const n = featureSlot(active, slot, ctx);
+  return filled(n) ? () => n : null;
+}
+
+/** The inspector place, with the features' parts where ProjectEditor gave them (inspectorSlot). */
+export function editorInspector(
+  screen: EditorScreen,
+  active: readonly EditorFeature[],
+  ctx: EditorFeatureContext,
+  parts: { fixtures: Part; selection: Part },
+): InspectorPlace {
+  return inspectorSlot(screen, active, ctx, {
+    assistant: partOf(active, 'inspectorTop', ctx),
+    version: partOf(active, 'inspectorOver', ctx),
+    ...parts,
+  });
+}
+
+/** The left panel, with the showing screen's panel where ProjectEditor gave it (leftPanelSlot). */
+export function editorLeftPanel(
+  screen: EditorScreen,
+  list: readonly EditorFeature[],
+  active: readonly EditorFeature[],
+  ctx: EditorFeatureContext,
+  layers: Part,
+): ReactNode {
+  return leftPanelSlot(screen, active, ctx, {
+    sheets: () => screenPart(list, ctx, 'screenLeftPanel'),
+    layers,
+  });
+}
+
+/** The status bar's start, with the showing screen's items where ProjectEditor gave them (statusStartSlot). */
+export function editorStatusStart(
+  screen: EditorScreen,
+  list: readonly EditorFeature[],
+  active: readonly EditorFeature[],
+  ctx: EditorFeatureContext,
+  parts: { planReady: boolean; floorSwitcher: Part; planStart: Part },
+): ReactNode {
+  return statusStartSlot(screen, active, ctx, {
+    sheets: () => screenPart(list, ctx, 'screenStatusStart'),
+    ...parts,
+  });
+}
+
+/** The status bar's end, with the showing screen's items where ProjectEditor gave them (statusEndSlot). */
+export function editorStatusEnd(
+  screen: EditorScreen,
+  list: readonly EditorFeature[],
+  active: readonly EditorFeature[],
+  ctx: EditorFeatureContext,
+  planEnd: Part,
+): ReactNode {
+  return statusEndSlot(screen, active, ctx, {
+    sheets: () => screenPart(list, ctx, 'screenStatusEnd'),
+    planEnd,
+  });
+}
+
+/**
+ * The canvas state column's places (EZD-1913c, as ProjectEditor drew them): the tablet edit bar, the edit lock's banner
+ * (200) and paused note (210), the offline and save banners, the canvas-failed error, then the plan's rows.
+ */
+export const STATE_ORDER = {
+  editBar: 100,
+  banners: 300,
+  canvasFailed: 400,
+  planRows: 500,
+} as const;
+
+/**
+ * After the state column, on every screen (as ProjectEditor drew them): the conflict list (400), the code check
+ * (plan only), the Help panel (600), the edit lock's toasts and prompts (700).
+ */
+export const CANVAS_END_ORDER = { check: 500 } as const;
+
+/** Fixed parts and the active features' items of one list, by order (a fixed part first at the same order). */
+export function featureItems(
+  fixed: Readonly<Record<string, number>>,
+  parts: Readonly<Record<string, Part>>,
+  active: readonly EditorFeature[],
+  slot: 'stateItems' | 'canvasItems',
+  ctx: EditorFeatureContext,
+): ReactNode {
+  const items: Placed[] = Object.entries(fixed).map(([key, order]) => ({
+    order,
+    key,
+    part: parts[key] ?? null,
+  }));
+  for (const f of active)
+    (f[slot] ?? []).forEach((item: FeatureItem, i) =>
+      items.push({ order: item.order, key: `feature:${f.id}:${i}`, part: () => item.part(ctx) }),
+    );
+  items.sort((a, b) => a.order - b.order);
+  return (
+    <>
+      {items.map((i) => {
+        const n = i.part?.();
+        return filled(n) ? <Fragment key={i.key}>{n}</Fragment> : null;
+      })}
+    </>
+  );
 }
