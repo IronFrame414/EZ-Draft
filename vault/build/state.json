@@ -2921,7 +2921,7 @@
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": true,
+  "push_pending": false,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -2987,7 +2987,8 @@
     "EZD-2014": 1,
     "EZD-1921": 1,
     "EZD-1202": 1,
-    "EZD-2045": 1
+    "EZD-2045": 1,
+    "EZD-1917": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -3261,15 +3262,13 @@
     "EZD-2045": {
       "ts": "2026-11-28T16:18:44Z",
       "reason": "check red after merging newer develop"
+    },
+    "EZD-1917": {
+      "ts": "2026-11-28T17:52:49Z",
+      "reason": "check red after a review fix"
     }
   },
   "running": {
-    "EZD-1917": {
-      "lane": 4,
-      "title": "RCP drawing: one file per ceiling item kind",
-      "started": "2026-11-28T16:18:40Z",
-      "develop": "44894d37a"
-    },
     "EZD-2045": {
       "lane": 1,
       "title": "The sink draws a single basin",
@@ -3281,6 +3280,12 @@
       "title": "Split DrawingTools into rail, layer and per-tool parts",
       "started": "2026-11-28T17:12:24Z",
       "develop": "e0a44cda3"
+    },
+    "EZD-2032": {
+      "lane": 3,
+      "title": "Client page Plans tab: the sheets of a sent sheet set",
+      "started": "2026-11-28T17:45:26Z",
+      "develop": "c22a50153"
     }
   },
   "advisories_checked_at": "2026-11-28T16:31:43Z",
