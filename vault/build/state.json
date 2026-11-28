@@ -604,7 +604,8 @@
     "EZD-1913c",
     "EZD-1711",
     "EZD-2040",
-    "EZD-2011"
+    "EZD-2011",
+    "EZD-2004"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2818,20 +2819,19 @@
       "ts": "2026-11-28T08:58:09Z",
       "kind": "ticket",
       "lane": 4
+    },
+    {
+      "id": "EZD-2004",
+      "title": "Keyboard and screen-reader fixes in field and editor screens",
+      "commit": "c08a38c13",
+      "ts": "2026-11-28T10:46:17Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
-  "set_aside": {
-    "EZD-1921": {
-      "title": "Re-validate open editor plans and document the registry for planners",
-      "ts": "2026-11-28T10:04:15Z",
-      "reason": "squash merge failed (first try: check red after a review fix)",
-      "detail": "error: Your local changes to the following files would be overwritten by merge:\n\tvault/lessons/planner.md\nPlease commit your changes or stash them before you merge.\nAborting",
-      "branch": "t/EZD-1921",
-      "worktree": ".claude/worktrees/EZD-1921"
-    }
-  },
+  "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -3164,12 +3164,6 @@
     }
   },
   "running": {
-    "EZD-2004": {
-      "lane": 3,
-      "title": "Keyboard and screen-reader fixes in field and editor screens",
-      "started": "2026-11-28T07:42:44Z",
-      "develop": "af80ee572"
-    },
     "EZD-2041": {
       "lane": 4,
       "title": "Fix: sweep test T2 (c) sees 2 runs for one job at random (EZD-009)",
@@ -3181,9 +3175,15 @@
       "title": "Fix: Settings Catalog page shows its settings card twice (two main landmarks, EZD-614)",
       "started": "2026-11-28T09:23:32Z",
       "develop": "73dbd4e8c"
+    },
+    "EZD-2019": {
+      "lane": 1,
+      "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
+      "started": "2026-11-28T10:04:15Z",
+      "develop": "7840bf851"
     }
   },
-  "advisories_checked_at": "2026-11-28T04:30:44Z",
+  "advisories_checked_at": "2026-11-28T10:30:54Z",
   "hold": {},
   "perf_trend_at": "2026-11-28T04:30:46Z",
   "set_aside_history": [
@@ -3241,6 +3241,13 @@
       "reason": "develop kept moving: 3 merge rounds (first try: check red after merging newer develop)",
       "set_aside_ts": "2026-11-28T09:23:32Z",
       "retried_ts": "2026-11-28T09:29:13Z",
+      "by": "overwatch"
+    },
+    {
+      "ticket": "EZD-1921",
+      "reason": "squash merge failed (first try: check red after a review fix)",
+      "set_aside_ts": "2026-11-28T10:04:15Z",
+      "retried_ts": "2026-11-28T10:29:23Z",
       "by": "overwatch"
     }
   ],
