@@ -593,7 +593,8 @@
     "EZD-2018",
     "EZD-2031",
     "EZD-2002",
-    "EZD-2013"
+    "EZD-2013",
+    "EZD-2000"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2719,11 +2720,19 @@
       "ts": "2026-11-27T22:33:03Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-2000",
+      "title": "Gate rules that keep pages small and fast as the app grows",
+      "commit": "4c9ded75f",
+      "ts": "2026-11-28T00:20:34Z",
+      "kind": "ticket",
+      "lane": 1
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -3046,12 +3055,6 @@
     }
   },
   "running": {
-    "EZD-2000": {
-      "lane": 1,
-      "title": "Gate rules that keep pages small and fast as the app grows",
-      "started": "2026-11-27T22:33:13Z",
-      "develop": "d84530a23"
-    },
     "EZD-2021": {
       "lane": 2,
       "title": "Security: signed-out sign-in and invite answers do not reveal who is a member or has an invite",
@@ -3063,6 +3066,12 @@
       "title": "Touch targets of at least 44 px on iPad in cabinets, countertops, import review, the edit menu and small editor controls",
       "started": "2026-11-27T23:12:49Z",
       "develop": "aa4bc9b9e"
+    },
+    "EZD-2039": {
+      "lane": 4,
+      "title": "Fix: scratch-check-local still times out at 300 s with 4 lanes after EZD-2008",
+      "started": "2026-11-27T23:49:42Z",
+      "develop": "6dc5c75c3"
     }
   },
   "advisories_checked_at": "2026-11-27T22:29:55Z",
