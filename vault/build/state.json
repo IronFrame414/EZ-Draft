@@ -618,7 +618,8 @@
     "EZD-1202",
     "EZD-2010",
     "EZD-2045",
-    "EZD-1918"
+    "EZD-1918",
+    "EZD-2032"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2944,6 +2945,14 @@
       "ts": "2026-11-28T20:09:39Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-2032",
+      "title": "Client page Plans tab: the sheets of a sent sheet set",
+      "commit": "c4e8e30b9",
+      "ts": "2026-11-28T20:36:20Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -3296,11 +3305,17 @@
     }
   },
   "running": {
-    "EZD-2032": {
-      "lane": 3,
-      "title": "Client page Plans tab: the sheets of a sent sheet set",
-      "started": "2026-11-28T17:45:26Z",
-      "develop": "c22a50153"
+    "EZD-2044": {
+      "lane": 1,
+      "title": "Shower head and shower handle placed separately from the Fixtures panel",
+      "started": "2026-11-28T20:10:17Z",
+      "develop": "5c6fcbe13"
+    },
+    "EZD-516": {
+      "lane": 2,
+      "title": "Beam finish, More menu, canvas",
+      "started": "2026-11-28T20:10:18Z",
+      "develop": "5c6fcbe13"
     }
   },
   "advisories_checked_at": "2026-11-28T16:31:43Z",
