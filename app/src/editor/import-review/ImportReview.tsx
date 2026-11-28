@@ -105,6 +105,7 @@ import { CeilingSlopeFields } from './CeilingSlope';
 import type { CeilingSlopeFix } from '../../lib/imports/ceiling-slope';
 import type { CeilingReading } from '../../lib/imports/polycam-glb/ceiling';
 import styles from './ImportReview.module.css';
+import a11y from '../../a11y/a11y.module.css';
 import {
   isOverTolerance,
   itemConflicts,
@@ -639,7 +640,17 @@ function ItemRow({
         data-decision={decision ?? 'none'}
         onClick={() => onSelect(item.id)}
       >
-        <span className={`${styles.dot} ${dotClass}`} />
+        <span className={`${styles.dot} ${dotClass}`} aria-hidden="true" />
+        {/* Audit 2026-11-27 A29: the item's state, said by screen readers, not shown. */}
+        <span className={a11y.srOnly} data-testid="import-review-row-state">
+          {t(
+            decision === 'accepted'
+              ? 'office.review.decision_accepted'
+              : decision === 'rejected'
+                ? 'office.review.decision_rejected'
+                : 'office.review.to_check',
+          )}
+        </span>
         <span
           className={
             decision === 'rejected' ? `${styles.rowLabel} ${styles.rowRejected}` : styles.rowLabel

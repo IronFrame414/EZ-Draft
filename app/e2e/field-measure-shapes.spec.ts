@@ -23,7 +23,8 @@ async function setup() {
   return { project: project as string, a };
 }
 
-const wall = (page: Page, letter: string) => page.getByRole('button', { name: `Wall ${letter}`, exact: true });
+// EZD-2004 (audit A11): a measured wall's name goes on with its length ("Wall A, 12 feet"), so match the start.
+const wall = (page: Page, letter: string) => page.getByRole('button', { name: new RegExp(`^Wall ${letter}(, |$)`) });
 const wallField = (page: Page) => page.locator('[data-field="wall"]');
 
 test.describe('EZD-1415 Field measure: shapes and walls', () => {

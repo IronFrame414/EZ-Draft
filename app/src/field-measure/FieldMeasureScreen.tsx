@@ -47,6 +47,7 @@ import { NotSavedLine } from './NotSavedLine';
 import notes from './NotSaved.module.css';
 import { useMeasureSend } from './send';
 import { SendMenuItem } from './SendMenuItem';
+import { useMenuDismiss } from '../a11y/use-menu-dismiss';
 import {
   emptyRoom,
   isMeasured,
@@ -118,6 +119,15 @@ export function FieldMeasureScreen({
   const [rooms, setRooms] = useState<FieldRoom[]>(initialRooms);
   const [onPhone, setOnPhone] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // Audit 2026-11-27 A9: Escape, a press outside, and focus moved into the menu and back to the ⋯ button.
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useMenuDismiss({
+    open: menuOpen,
+    onClose: () => setMenuOpen(false),
+    triggerRef: menuButtonRef,
+    menuRef,
+  });
   const [activeId, setActiveId] = useState<string>(initialRooms[0]?.id ?? '');
   const [selected, setSelected] = useState<number | null>(
     (initialRooms[0]?.lengths.length ?? 0) > 0 ? 0 : null,
@@ -477,6 +487,7 @@ export function FieldMeasureScreen({
             ) : null}
             <div className={styles.menuWrap}>
               <button
+                ref={menuButtonRef}
                 type="button"
                 className={styles.menuButton}
                 aria-label={t('field.measure.menu')}
@@ -488,7 +499,13 @@ export function FieldMeasureScreen({
                 <Icon name="more_horiz" size={20} />
               </button>
               {menuOpen ? (
-                <div className={styles.menu} role="menu">
+                <div
+                  ref={menuRef}
+                  className={styles.menu}
+                  role="menu"
+                  aria-label={t('field.measure.menu')}
+                  tabIndex={-1}
+                >
                   <SendMenuItem
                     canEdit={canEdit}
                     senderState={sender.senderState}

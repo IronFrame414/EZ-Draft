@@ -6,6 +6,7 @@
 // vault/build/assumptions.md EZD-416): the countertop left panel, shown in the plan's left panel while the
 // Countertops tool is on. Rows select the piece through the selection the screen shares. Material edits apply to
 // every top on the floor, one undo step each, with Edit model and the lock.
+import { InlineDialog } from '../../a11y/InlineDialog';
 import Link from 'next/link';
 import { useEffect, useState, useSyncExternalStore, type ReactElement, type ReactNode } from 'react';
 import {
@@ -414,9 +415,9 @@ export function CountertopsPanel({
         {body}
       </div>
       {picking && canPick ? (
-        <div
+        <InlineDialog
+          onClose={() => setPicking(false)}
           className={styles.pickerLayer}
-          role="dialog"
           aria-label={t('office.countertops.panel.pick_material')}
           data-testid="countertop-panel-picker"
         >
@@ -437,7 +438,7 @@ export function CountertopsPanel({
             initialCategory="countertops"
             onPick={pickMaterial}
           />
-        </div>
+        </InlineDialog>
       ) : null}
       <div className={styles.footer} data-testid="countertop-panel-footer">
         <span data-testid="countertop-panel-counts">

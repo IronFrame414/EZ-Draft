@@ -7,6 +7,7 @@
 // on. It reads the selection the drawing writes (cabinet-selection-store) and every edit is one model edit (one undo
 // step). The Cost row shows only when the catalog route sent the item's cost, which it does only for a member with See
 // company costs.
+import { InlineDialog } from '../../a11y/InlineDialog';
 import { useCallback, useEffect, useState, type ReactElement, type ReactNode } from 'react';
 import { useStore } from 'zustand';
 import {
@@ -457,9 +458,9 @@ function BoxPanel({
       ) : null}
 
       {picking && catalog.kind === 'ready' ? (
-        <div
+        <InlineDialog
+          onClose={() => setPicking(false)}
           className={styles.pickerLayer}
-          role="dialog"
           aria-label={t('office.cabinets.pick_item')}
           data-testid="box-inspector-picker"
         >
@@ -484,7 +485,7 @@ function BoxPanel({
               setPicking(false);
             }}
           />
-        </div>
+        </InlineDialog>
       ) : null}
     </div>
   );

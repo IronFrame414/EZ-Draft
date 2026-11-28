@@ -6,6 +6,7 @@
 // vault/build/assumptions.md EZD-417): the window over the inspector where the profiles offered on this top are
 // ticked, each with its price per LF and the total it makes for this top. Without See sell prices the price column is
 // not shown and the saved prices are kept (the server keeps them; a new tick gets 0).
+import { InlineDialog } from '../../a11y/InlineDialog';
 import { useState, type ReactElement } from 'react';
 import { countertopExposedEdgeLf, edgeOfferTotal, type CountertopPieceData } from '@ezdraft/geometry';
 import { Icon } from '../../components/icon/Icon';
@@ -76,9 +77,9 @@ export function EditOfferedEdges({
   };
 
   return (
-    <div
+    <InlineDialog
+      onClose={onClose}
       className={styles.layer}
-      role="dialog"
       aria-label={t('office.countertops.edge.edit_offered')}
       data-testid="edit-offered-edges"
     >
@@ -182,6 +183,6 @@ export function EditOfferedEdges({
           {t('office.countertops.edge.save')}
         </button>
       </div>
-    </div>
+    </InlineDialog>
   );
 }

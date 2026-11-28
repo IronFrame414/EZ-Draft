@@ -107,7 +107,8 @@ test.describe('EZD-307 Import review', () => {
     }
     await expect(tid(page, 'import-review-accept-n')).toHaveText('Accept 6');
     await expect(tid(page, 'import-review-row')).toHaveCount(1);
-    await expect(tid(page, 'import-review-row')).toHaveText('East wall70%');
+    // EZD-2004 (audit A29): the row starts with its state, read by screen readers and not shown.
+    await expect(tid(page, 'import-review-row')).toHaveText('To checkEast wall70%');
     await expect(tid(page, 'import-review-inspector')).toContainText(
       'Wall · existing · 70% confidence',
     );
@@ -352,7 +353,8 @@ test.describe('EZD-309 Fix and delete', () => {
     });
 
     // The east wall is the one item to check, selected at first.
-    await expect(tid(page, 'import-review-row')).toHaveText('East wall70%');
+    // EZD-2004 (audit A29): the row starts with its state, read by screen readers and not shown.
+    await expect(tid(page, 'import-review-row')).toHaveText('To checkEast wall70%');
     const eastId = (await tid(page, 'import-review-row').getAttribute('data-id')) as string;
     const eastLine = page.locator(`line[data-testid=review-item][data-id="${eastId}"]`);
 
@@ -530,7 +532,8 @@ test.describe('EZD-310 Typed vs scan conflicts', () => {
     });
 
     // The east wall is selected at first: no typed value, scan 9' 10", no conflict.
-    await expect(tid(page, 'import-review-row')).toHaveText('East wall70%');
+    // EZD-2004 (audit A29): the row starts with its state, read by screen readers and not shown.
+    await expect(tid(page, 'import-review-row')).toHaveText('To checkEast wall70%');
     const eastId = (await tid(page, 'import-review-row').getAttribute('data-id')) as string;
     const typed = tid(page, 'import-review-typed');
     await expect(typed).toHaveValue('');
@@ -818,7 +821,8 @@ test.describe('EZD-312 Ceiling slope in review', () => {
     await ready();
 
     const row = page.locator('[data-testid=import-review-row][data-id="s1"]');
-    await expect(row).toHaveText('Ceiling slope, east47%');
+    // EZD-2004 (audit A29): the row starts with its state, read by screen readers and not shown.
+    await expect(row).toHaveText('To checkCeiling slope, east47%');
     await page.locator('[data-testid=import-review-mode][data-mode=one_by_one]').click();
     await row.click();
     const inspector = tid(page, 'import-review-inspector');

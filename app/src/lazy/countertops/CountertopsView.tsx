@@ -79,6 +79,7 @@ import { useStoreValue } from '../../editor/shared/use-store-value';
 import { countertopIncrement, useCountertopFloor } from './use-countertop-floor';
 import { edgeOfferPillState, type EdgeOffer, type EdgeOffersLoad } from '../../editor/countertops/edge-profile';
 import { EdgeProfilePill, useEdgeOffers, useProjectId } from './EdgeProfileCard';
+import { isInsideInlineDialog } from '../../a11y/InlineDialog';
 import styles from './CountertopsView.module.css';
 
 export type CountertopsViewProps = {
@@ -241,6 +242,8 @@ export function CountertopsView({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented) return;
+      // EZD-2004 (audit A28): Escape inside an open picker or schedule closes that layer only.
+      if (e.key === 'Escape' && isInsideInlineDialog(e.target)) return;
       if (e.key === 'Escape') {
         if (typing !== null) {
           setTyping(null);

@@ -29,6 +29,7 @@ import type { SheetsScreen } from './sheets-screen-store';
 import { useSheetsScreen } from './use-sheets-screen';
 import { ViewportTool } from './ViewportTool';
 import styles from './SheetsScreen.module.css';
+import a11y from '../../a11y/a11y.module.css';
 
 export type SheetsPanelProps = { screen: SheetsScreen; canEdit: boolean };
 
@@ -238,6 +239,10 @@ export function SheetsPanel({ screen, canEdit }: SheetsPanelProps): ReactElement
                     onClick={() => screen.open(s.number)}
                   >
                     <span className={`${styles.dot} ${styles[sheetDot(marks)]}`} aria-hidden="true" />
+                    {/* Audit 2026-11-27 A29: the dot's state, said by screen readers, not shown. */}
+                    <span className={a11y.srOnly} data-testid="sheet-row-state">
+                      {t(`office.sheets.legend.${sheetDot(marks)}`)}
+                    </span>
                     <span className={styles.number}>{s.number}</span>
                     <span className={styles.title}>{s.title}</span>
                     {marks.delta !== null ? (

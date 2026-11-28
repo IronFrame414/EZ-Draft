@@ -53,8 +53,9 @@ describe('EZD-916 Import review of an order report', () => {
   it('AC-EZD-916-1: the lines are listed for confirmation and the line to check shows what the report reads', () => {
     const all = render(<ReadyBody review={review()} initialMode="by_room" />);
     expect(elements(all, 'import-review-row').map((r) => textOf(r.inner))).toEqual([
-      'Line #7 · SB3695%',
-      'Line #10 · F360%',
+      // EZD-2004 (audit A29): each row starts with its state, read by screen readers and not shown.
+      'To checkLine #7 · SB3695%',
+      'To checkLine #10 · F360%',
     ]);
     const html = render(<ReadyBody review={review()} initialMode="accept_fix" />);
     expect(textOf(elements(html, 'import-review-summary')[0].inner)).toBe('2 found · 1 high confidence · 1 to check');

@@ -5,6 +5,7 @@
 // the inspector for a selected cabinet run, in the shell's inspector place while the Cabinets tool is on. Every viewer
 // reads it; opening a picker needs Edit model and the lock (`canEdit`), and each pick is one model edit (one undo
 // step). The live 3D preview is EZD-1017; the status pill, size fields and More are not part of this ticket.
+import { InlineDialog } from '../../a11y/InlineDialog';
 import { useMemo, useState, type ReactElement } from 'react';
 import type { ModelObject } from '@ezdraft/geometry';
 import { CatalogPickerView } from '../../components/catalog/CatalogPicker';
@@ -179,9 +180,9 @@ export function RunInspector({
       ) : null}
 
       {picking !== null ? (
-        <div
+        <InlineDialog
+          onClose={() => setPicking(null)}
           className={styles.pickerLayer}
-          role="dialog"
           aria-label={t(
             picking === 'finish'
               ? 'office.cabinets.run.pick_finish'
@@ -211,7 +212,7 @@ export function RunInspector({
             initialCategory={pickCategory[picking]}
             onPick={(i) => pick(picking, i)}
           />
-        </div>
+        </InlineDialog>
       ) : null}
     </div>
   );

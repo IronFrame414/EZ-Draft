@@ -15,6 +15,7 @@ import {
   type ReactElement,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { InlineDialog } from '../../a11y/InlineDialog';
 import { OBJECT_STATUSES, type Point } from '@ezdraft/geometry';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
@@ -314,19 +315,13 @@ function SaveGroupDialog({
     if (r.ok) onSaved();
     else setError(r.messageKey);
   };
+  // Audit 2026-11-27 A28: on Radix Dialog, so focus stays inside and Escape closes it.
   return createPortal(
-    <div
-      role="dialog"
-      aria-modal="true"
+    <InlineDialog
+      onClose={onClose}
       aria-labelledby="save-group-title"
       data-testid="save-group-dialog"
       className={styles.dialog}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          e.stopPropagation();
-          onClose();
-        }
-      }}
     >
       <h2 id="save-group-title" className={styles.heading}>
         {t('office.saved_groups.dialog_title')}
@@ -367,7 +362,7 @@ function SaveGroupDialog({
           </button>
         </div>
       </form>
-    </div>,
+    </InlineDialog>,
     document.body,
   );
 }
