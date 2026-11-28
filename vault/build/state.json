@@ -612,7 +612,8 @@
     "EZD-1914",
     "EZD-1921",
     "EZD-2043",
-    "EZD-2014"
+    "EZD-2014",
+    "EZD-1915"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2890,6 +2891,14 @@
       "ts": "2026-11-28T15:37:30Z",
       "kind": "ticket",
       "lane": 2
+    },
+    {
+      "id": "EZD-1915",
+      "title": "Inspector: one file per object type",
+      "commit": "148ad4067",
+      "ts": "2026-11-28T16:18:27Z",
+      "kind": "ticket",
+      "lane": 4
     }
   ],
   "set_aside": {},
@@ -3232,12 +3241,6 @@
     }
   },
   "running": {
-    "EZD-1915": {
-      "lane": 4,
-      "title": "Inspector: one file per object type",
-      "started": "2026-11-28T14:07:33Z",
-      "develop": "06eb4e3d2"
-    },
     "EZD-2045": {
       "lane": 1,
       "title": "The sink draws a single basin",
@@ -3249,6 +3252,12 @@
       "title": "Client page shell",
       "started": "2026-11-28T14:58:17Z",
       "develop": "1c6dac9fd"
+    },
+    "EZD-610": {
+      "lane": 2,
+      "title": "Selected circuit and voltage drop",
+      "started": "2026-11-28T15:37:45Z",
+      "develop": "a2748bec6"
     }
   },
   "advisories_checked_at": "2026-11-28T10:30:54Z",
