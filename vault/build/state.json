@@ -608,7 +608,8 @@
     "EZD-2004",
     "EZD-2042",
     "EZD-2041",
-    "EZD-2019"
+    "EZD-2019",
+    "EZD-1914"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2854,6 +2855,14 @@
       "ts": "2026-11-28T12:38:18Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1914",
+      "title": "Ceiling tools register their own click receivers",
+      "commit": "1898ade54",
+      "ts": "2026-11-28T13:35:04Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -3197,17 +3206,17 @@
       "started": "2026-11-28T10:46:31Z",
       "develop": "ba57384f5"
     },
-    "EZD-1914": {
-      "lane": 2,
-      "title": "Ceiling tools register their own click receivers",
-      "started": "2026-11-28T11:25:33Z",
-      "develop": "730acbff0"
-    },
     "EZD-1921": {
       "lane": 4,
       "title": "Re-validate open editor plans and document the registry for planners",
       "started": "2026-11-28T11:53:39Z",
       "develop": "9b453d799"
+    },
+    "EZD-2043": {
+      "lane": 1,
+      "title": "Utility points draw a symbol for each kind (electric 120 V, 240 V, gas, water, drain)",
+      "started": "2026-11-28T12:38:28Z",
+      "develop": "50569f103"
     }
   },
   "advisories_checked_at": "2026-11-28T10:30:54Z",
