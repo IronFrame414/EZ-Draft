@@ -33,7 +33,7 @@ import {
   wireZoneDrawing,
   zoneDrawingFor,
 } from './switch-zone-tool';
-import { LightingSection } from './SwitchZonePanel';
+import { LightingSection } from '../inspector/kinds/SwitchZonePanel';
 import { DOOR, F1, roomValue, uid } from './test-utils/fixtures';
 
 const P = (x: number, y: number): Point => ({ x, y });

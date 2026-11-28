@@ -22,7 +22,7 @@ import { activeRoomId } from './room-ceiling';
 import styles from './CeilingParts.module.css';
 
 // EZD-511 (S05 Controls "Legend chip ... ACT border sizes for the selected grid"): `children` is the selected grid's
-// border sizes (tools/ActGridPanel.tsx ActLegend), after the switch zone sample.
+// border sizes (inspector/kinds/ActGridPanel.tsx ActLegend), after the switch zone sample.
 export function CeilingLegend({ children }: { children?: ReactNode } = {}): ReactElement {
   const t = useT();
   return (

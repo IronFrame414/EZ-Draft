@@ -31,7 +31,7 @@ import {
   framingLineReceiver,
   squaredEnd,
 } from './framing-tool';
-import { CeilingFlags } from './DevicePanel';
+import { CeilingFlags } from '../inspector/kinds/DevicePanel';
 import { DOOR, F1, roomValue, uid } from './test-utils/fixtures';
 
 const P = (x: number, y: number): Point => ({ x, y });

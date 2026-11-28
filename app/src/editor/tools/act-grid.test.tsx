@@ -32,7 +32,7 @@ import {
   snapToActTile,
 } from './act-grid-edits';
 import { actGridReceiver } from './act-grid-tool';
-import { ActLegend } from './ActGridPanel';
+import { ActLegend } from '../inspector/kinds/ActGridPanel';
 import { ceilingAware } from './beam-tool';
 import { deviceToolReceiver } from './ceiling-device-receiver';
 import { placeCeilingDevice } from './fixture-tool';
