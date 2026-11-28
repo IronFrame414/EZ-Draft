@@ -2,7 +2,8 @@
 // hand from the stated layout rules in fixtures/fixture-symbol.ts: a 30" × 26" range at (60, 13) with axis +x (front
 // facing down) is its outline x 45 to 75, y 0 to 26, corners back left, back right, front right, front left, then four
 // burners of radius 0.18 × 26 = 4.68 at ±0.25 × 30 = ±7.5 across and ±0.25 × 26 = ±6.5 deep from the center:
-// (52.5, 19.5), (67.5, 19.5), (67.5, 6.5), (52.5, 6.5); a utility point at (55, 2) is a diamond 3" each way.
+// (52.5, 19.5), (67.5, 19.5), (67.5, 6.5), (52.5, 6.5); a gas utility point at (55, 2) is a circle of radius 3 with
+// "G" (EZD-2043, Q-0920).
 import { describe, expect, it } from 'vitest';
 import { buildDrawingList } from '../drawing/build';
 import type { ModelObject } from '../schema';
@@ -33,7 +34,7 @@ const objects: ModelObject[] = [
 ];
 
 describe('EZD-422 fixture symbols on the plan', () => {
-  it('a range draws its outline and four burners; a utility point a diamond', () => {
+  it('a range draws its outline and four burners; a gas utility point a circle with G', () => {
     const list = buildDrawingList(
       { objects },
       { level: F1, dimensionTextPt: 10, roomHatch: null, roomLabelPt: 11 },
@@ -44,7 +45,9 @@ describe('EZD-422 fixture symbols on the plan', () => {
         ? ['line', i.layer, i.role, i.from, i.to]
         : i.kind === 'arc'
           ? ['arc', i.layer, i.role, i.center, i.radius, i.startAngle, i.endAngle]
-          : [i.kind],
+          : i.kind === 'text'
+            ? ['text', i.layer, i.text, i.at]
+            : [i.kind],
     );
     const burner = (x: number, y: number) => ['arc', 'new', 'beyond', p(x, y), 4.68, 0, 360];
     expect(items).toEqual([
@@ -56,10 +59,8 @@ describe('EZD-422 fixture symbols on the plan', () => {
       burner(67.5, 19.5),
       burner(67.5, 6.5),
       burner(52.5, 6.5),
-      ['line', 'existing', 'beyond', p(58, 2), p(55, 5)],
-      ['line', 'existing', 'beyond', p(55, 5), p(52, 2)],
-      ['line', 'existing', 'beyond', p(52, 2), p(55, -1)],
-      ['line', 'existing', 'beyond', p(55, -1), p(58, 2)],
+      ['arc', 'existing', 'beyond', p(55, 2), 3, 0, 360],
+      ['text', 'existing', 'G', p(55, 2)],
     ]);
   });
 });

@@ -7,7 +7,7 @@ import { coordsEqual, pointsEqual } from '../tolerance';
 import { pointInRing } from '../rooms/area';
 import { wallFaceLines, wallFaceOffsets, type WallObject } from '../walls/wall';
 import type { OpeningObject } from '../openings/opening';
-import { utilityMark } from '../drawing/build';
+import { UTILITY_MARK_IN } from '../fixtures/utility-symbol';
 import { fixtureOutline, type FixtureObject, type UtilityPointObject } from '../fixtures/fixtures';
 import type { TileShowerObject } from '../fixtures/tile-shower';
 import { blockingOutline, type BlockingObject } from '../fixtures/blocking';
@@ -184,8 +184,16 @@ export function blockingPickShape(o: BlockingObject, host: WallObject | null): P
   return { kind: 'quad', points: ring, area: shoelace(ring) };
 }
 
+// EZD-2043 (Q-0920): a utility point draws a circle UTILITY_MARK_IN across, so it picks by the square around it.
 export function utilityPointPickShape(o: UtilityPointObject): PickShape {
-  const points = utilityMark(o.data.geometry.point);
+  const { x, y } = o.data.geometry.point;
+  const h = UTILITY_MARK_IN / 2;
+  const points: [Point, Point, Point, Point] = [
+    { x: x + h, y: y + h },
+    { x: x - h, y: y + h },
+    { x: x - h, y: y - h },
+    { x: x + h, y: y - h },
+  ];
   return { kind: 'quad', points, area: shoelace(points) };
 }
 

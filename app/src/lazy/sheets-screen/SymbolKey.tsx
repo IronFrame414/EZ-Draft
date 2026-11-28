@@ -105,8 +105,19 @@ function Mark({ glyph, x, y }: { glyph: SymbolGlyph; x: number; y: number }): Re
           ))}
         </g>
       );
-    case 'diamond':
-      return <path d={`M ${cx} ${y} L ${cx + r} ${cy} L ${cx} ${y + SWATCH_H} L ${cx - r} ${cy} Z`} />;
+    case 'triplex':
+      // EZD-2043 (Q-0920): the 240 V utility point, a circle with 3 short parallel lines and its tag beside it.
+      return (
+        <g>
+          <circle cx={cx} cy={cy} r={r} />
+          {[-0.4, 0, 0.4].map((d) => (
+            <line key={d} x1={cx + r * d} y1={cy - r * 0.6} x2={cx + r * d} y2={cy + r * 0.6} />
+          ))}
+          <text x={cx + r * 1.2} y={cy} fontSize={4 * PT} dominantBaseline="central" className={styles.keyText}>
+            {glyph.tag}
+          </text>
+        </g>
+      );
     case 'keynote':
       return <rect x={cx - r} y={y} width={SWATCH_H} height={SWATCH_H} />;
     case 'delta':

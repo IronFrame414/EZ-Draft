@@ -20,7 +20,7 @@ import { eyeDefaults, type PhaseEyes } from '../../lib/plan/phase-view';
 import { catalogFor } from '../../server/messages/catalog';
 import { attr, elements, textOf } from '../../../test-harness/projects-markup';
 import { createModelStore } from '../model/model-store';
-import { planDrawingList } from '../plan/batches';
+import { planAnnotation, planDrawingList } from '../plan/batches';
 import { createPickIndex } from '../selection/pick-index';
 import { fixtureChoice, placeFixture } from '../tools/fixture-tool';
 import { applyChanges, baseObjects, F1, idSeq, uid } from '../tools/test-utils/fixtures';
@@ -227,5 +227,26 @@ describe('EZD-729 left panel Plumbing row', () => {
     expect(attr(eye.attrs, 'aria-label')).toBe('Show Plumbing');
     expect(attr(eye.attrs, 'data-on')).toBe('false');
     expect(eye.inner).toContain('#ez-icon-visibility_off"');
+  });
+});
+
+// EZD-2043 AC-EZD-2043-2 (Q-0920): the canvas draws a utility point's symbol at the same size relative to the plan as
+// a sheet. By hand: a gas point at (30, 30) is a circle of radius 3 with "G" 4.5" tall; the canvas draws text at 0.5"
+// of plan a point at every plan scale (glyph-atlas PT_TO_MODEL_IN), so "G" is 4.5 / 0.5 = 9 pt; a sheet (no
+// annotation given) draws it at 4.5 / (12 / 18) = 6.75 pt.
+describe('EZD-2043 a utility point on the canvas', () => {
+  it('draws its circle and letter at the plan annotation scale', () => {
+    const objects = withPoint(baseObjects(), 21, 'gas', { x: 30, y: 30 });
+    const items = (options: Parameters<typeof planDrawingList>[1]) =>
+      planDrawingList(objects, options, null, null)!.items.filter((i) => i.objectId.toLowerCase() === uid(21));
+    const canvas = items({ annotation: planAnnotation(48) });
+    expect(canvas.map((i) => i.kind)).toEqual(['arc', 'text']);
+    const [ring, letter] = canvas;
+    if (ring?.kind !== 'arc' || letter?.kind !== 'text') throw new Error('not a circle and a letter');
+    expect([ring.center, ring.radius, ring.layer]).toEqual([{ x: 30, y: 30 }, 3, 'existing']);
+    expect([letter.text, letter.sizePt, letter.at]).toEqual(['G', 9, { x: 30, y: 30 }]);
+    const sheet = items({});
+    expect(sheet[0]).toEqual(ring);
+    expect(sheet[1]?.kind === 'text' ? sheet[1].sizePt : null).toBe(6.75);
   });
 });

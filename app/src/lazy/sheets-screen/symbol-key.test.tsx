@@ -144,3 +144,41 @@ describe('EZD-706 symbol key on the sheet', () => {
     expect(DEVICE_KEY_TEXT).toEqual(DETECTOR_TEXT);
   });
 });
+
+// EZD-2043 AC-EZD-2043-3 (Q-0920): the sheet key lists each utility point symbol on the sheet, with its name and mark.
+describe('EZD-2043 utility point symbols in the sheet key', () => {
+  const utility = (kind: string, volts: number | null, x: number): ObjectValue => ({
+    type: 'utility_point',
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    data: {
+      geometry: { point: { x, y: 60 } },
+      status: 'existing',
+      level: FLOOR,
+      attributes: { kind, volts, amps: volts === null ? null : 30, servesObjectId: null },
+    },
+  });
+
+  it('a plan sheet lists the utility point symbols it draws, each by name', async () => {
+    const { store, screen } = await setup('every_sheet', 'A1.0');
+    store.applyEdit([
+      { id: '00000000-0000-4000-8000-0000000000e1', value: utility('electric', 240, 10) },
+      { id: '00000000-0000-4000-8000-0000000000e2', value: utility('water', null, 20) },
+      { id: '00000000-0000-4000-8000-0000000000e3', value: utility('water', null, 30) },
+    ]);
+    await flush();
+    const page = html(screen);
+    expect(rows(page)).toEqual([
+      'utility_point.electric_240',
+      'utility_point.water',
+      'device.receptacle_duplex',
+      'device.switch_single',
+    ]);
+    expect(page).toContain('Electric 240V utility point');
+    expect(page).toContain('Water utility point');
+    expect(page).not.toContain('Gas utility point');
+    // The 240 V row's mark carries its tag; the water row's circle its letter.
+    const row = (id: string) => page.match(new RegExp(`data-symbol="${id}"[^]*?</g></g>`))?.[0] ?? '';
+    expect(row('utility_point.electric_240')).toContain('>240</text>');
+    expect(row('utility_point.water')).toContain('>W</text>');
+  });
+});

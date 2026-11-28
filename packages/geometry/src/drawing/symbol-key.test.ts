@@ -57,3 +57,51 @@ describe('EZD-706 symbol key', () => {
     expect(SYSTEM_ABBREVIATIONS.map((a) => a.name)).toEqual(['AFF', 'CLR', 'EQ', 'EXIST', 'NEW', 'NTS', 'TYP', 'UNO']);
   });
 });
+
+// EZD-2043 AC-EZD-2043-3 (Q-0920 "The sheet symbol legend lists each one"): one row per utility point symbol, named,
+// listed only when a point of that symbol is on the floor.
+describe('EZD-2043 utility point symbols in the key', () => {
+  const utility = (
+    id: string,
+    kind: 'electric' | 'gas' | 'water' | 'drain',
+    volts: 120 | 240 | null = null,
+    level = L1,
+  ): ModelObject => ({
+    id,
+    type: 'utility_point',
+    data: {
+      geometry: { point: { x: 0, y: 0 } },
+      status: 'new',
+      level,
+      attributes: { kind, volts, amps: volts === null ? null : 20, servesObjectId: null },
+    },
+  });
+
+  it('each utility point symbol is its own named row, drawn as the plan draws it', () => {
+    const rows = SYSTEM_SYMBOLS.filter((s) => s.id.startsWith('utility_point'));
+    expect(rows.map((s) => [s.id, s.label, s.glyph])).toEqual([
+      ['utility_point.electric_120', 'Electric 120V utility point', { kind: 'duplex' }],
+      ['utility_point.electric_240', 'Electric 240V utility point', { kind: 'triplex', tag: '240' }],
+      ['utility_point.gas', 'Gas utility point', { kind: 'circle', text: 'G' }],
+      ['utility_point.water', 'Water utility point', { kind: 'circle', text: 'W' }],
+      ['utility_point.drain', 'Drain utility point', { kind: 'circle', text: 'D' }],
+    ]);
+    expect(SYSTEM_SYMBOLS.some((s) => (s.glyph.kind as string) === 'diamond')).toBe(false);
+  });
+
+  it('lists only the utility point symbols on the floor, once each', () => {
+    const objects = [
+      utility('u1', 'gas'),
+      utility('u2', 'gas'),
+      utility('u3', 'electric', 240),
+      utility('u4', 'drain', null, L2),
+    ];
+    expect(ids(objects, L1)).toEqual(['utility_point.electric_240', 'utility_point.gas']);
+    expect(ids(objects, L2)).toEqual(['utility_point.drain']);
+    expect(ids([utility('a', 'electric', 120), utility('b', 'water')], L1)).toEqual([
+      'utility_point.electric_120',
+      'utility_point.water',
+    ]);
+    expect(symbolIdOf(utility('x', 'electric', 120))).toBe('utility_point.electric_120');
+  });
+});
