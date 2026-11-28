@@ -595,7 +595,8 @@
     "EZD-2002",
     "EZD-2013",
     "EZD-2000",
-    "EZD-2039"
+    "EZD-2039",
+    "EZD-2003"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2737,6 +2738,14 @@
       "ts": "2026-11-28T01:42:02Z",
       "kind": "ticket",
       "lane": 4
+    },
+    {
+      "id": "EZD-2003",
+      "title": "Touch targets of at least 44 px on iPad in cabinets, countertops, import review, the edit menu and small editor controls",
+      "commit": "d23f4d076",
+      "ts": "2026-11-28T02:42:50Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -3064,12 +3073,6 @@
     }
   },
   "running": {
-    "EZD-2003": {
-      "lane": 3,
-      "title": "Touch targets of at least 44 px on iPad in cabinets, countertops, import review, the edit menu and small editor controls",
-      "started": "2026-11-27T23:12:49Z",
-      "develop": "aa4bc9b9e"
-    },
     "EZD-2025": {
       "lane": 1,
       "title": "Field screens say when a save, a Send or a task tick did not reach the office, with Retry",
@@ -3081,6 +3084,12 @@
       "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
       "started": "2026-11-28T01:16:32Z",
       "develop": "85c8f7361"
+    },
+    "EZD-1913b": {
+      "lane": 4,
+      "title": "Electrical and Ceiling modes as registry features",
+      "started": "2026-11-28T01:42:11Z",
+      "develop": "49b307828"
     }
   },
   "advisories_checked_at": "2026-11-27T22:29:55Z",
