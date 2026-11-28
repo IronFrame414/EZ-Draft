@@ -3,7 +3,10 @@
 // skipped unless the run scope holds EZD-153 (inScope, read-only use of the backup fixture). Git repos come from
 // EZD-023a's git fixture (a bare `origin` over file://, never pushed to here); the check runs with --no-fetch,
 // so nothing reaches the network.
-import { describe, test } from 'node:test';
+// EZD-2039: the file starts its lane's stack once (EZD_MIGCHECK_KEEP=1, scratch-check.mjs keep mode); each test's
+// check puts the database back to its state before any migration, and the after hook stops the stack, also when
+// a test fails.
+import { after, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -24,6 +27,8 @@ import {
 const CHECK_SCRIPT = path.join(REPO_ROOT, 'scripts', 'release', 'check-migrations.mjs');
 const loadScratch = () => import('../scratch-check.mjs');
 const loadCheck = () => import('../check-migrations.mjs');
+/** EZD-2039: every check of this file keeps the lane's scratch stack running for the next one. */
+const KEEP = { EZD_MIGCHECK_KEEP: '1' };
 
 /** U8 fixture: `base` (name → text) + RETIRED_EMPTY committed, `phase-0` on it, `newName` in the working tree. */
 function fixture(t, base, newName, newSql) {
@@ -41,7 +46,7 @@ function fixture(t, base, newName, newSql) {
 
 /** `node scripts/release/check-migrations.mjs --no-fetch` in `cwd`, GITHUB_ACTIONS and EZD_TEST_GREP removed. */
 function runCheckLong(cwd) {
-  const env = childEnv();
+  const env = childEnv(KEEP);
   delete env.GITHUB_ACTIONS;
   const r = spawnSync(process.execPath, [CHECK_SCRIPT, '--no-fetch'], {
     cwd,
@@ -54,6 +59,12 @@ function runCheckLong(cwd) {
 }
 
 describe('EZD-153 scratch database (Docker)', { skip: !inScope('EZD-153') }, () => {
+  after(async () => {
+    const { stopKeptScratch } = await loadScratch();
+    const stopped = stopKeptScratch();
+    assert.deepEqual(stopped, { ok: true, failure: null }, 'the kept scratch stack is stopped');
+  });
+
   test("EZD-153 done when: a new migration with execute 'create table x …' fails with M4", (t) => {
     const name = '20261102000000_hidden_create.sql';
     const repo = fixture(t, { [FIX_NAME]: FIX }, name, "do $$ begin execute 'create table x (id int)'; end $$;\n");
@@ -120,7 +131,7 @@ describe('EZD-153 scratch database (Docker)', { skip: !inScope('EZD-153') }, () 
   });
 
   test('EZD-153 L5 real migrations', async () => {
-    const { runScratchCheck } = await loadScratch();
+    const { runScratchCheck, defaultScratchDeps } = await loadScratch();
     const { checkMigrations } = await loadCheck();
     const dir = path.join(REPO_ROOT, 'supabase', 'migrations');
     const names = readdirSync(dir)
@@ -131,7 +142,8 @@ describe('EZD-153 scratch database (Docker)', { skip: !inScope('EZD-153') }, () 
     const released = Object.fromEntries(names.slice(0, -10).map((n) => [n, text(n)]));
     const newFiles = Object.fromEntries(names.slice(-10).map((n) => [n, text(n)]));
 
-    const result = runScratchCheck({ baseTag: 'phase-0', released, newFiles, isRetired: () => false });
+    const deps = { ...defaultScratchDeps(), env: { ...process.env, ...KEEP } };
+    const result = runScratchCheck({ baseTag: 'phase-0', released, newFiles, isRetired: () => false }, deps);
     assert.equal(result.failure, null, `failure null; notes: ${JSON.stringify(result.notes)}`);
     assert.deepEqual(
       result.violations.filter((v) => v.id === 'M4'),
