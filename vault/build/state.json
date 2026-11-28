@@ -599,7 +599,8 @@
     "EZD-2003",
     "EZD-2025",
     "EZD-1913b",
-    "EZD-720"
+    "EZD-720",
+    "EZD-2021"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2773,6 +2774,14 @@
       "ts": "2026-11-28T04:30:27Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-2021",
+      "title": "Security: signed-out sign-in and invite answers do not reveal who is a member or has an invite",
+      "commit": "4eff495ef",
+      "ts": "2026-11-28T05:24:34Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -3100,12 +3109,6 @@
     }
   },
   "running": {
-    "EZD-2021": {
-      "lane": 2,
-      "title": "Security: signed-out sign-in and invite answers do not reveal who is a member or has an invite",
-      "started": "2026-11-28T02:52:47Z",
-      "develop": "57524d359"
-    },
     "EZD-1711": {
       "lane": 1,
       "title": "Billing and paywall for other companies",
@@ -3117,11 +3120,17 @@
       "title": "Versions, Sheets, 3D, Assistant and editor dialogs as registry features",
       "started": "2026-11-28T03:50:27Z",
       "develop": "55526a3c9"
+    },
+    "EZD-2040": {
+      "lane": 3,
+      "title": "Fix: EZD-2003 Cabinets touch-target test fails on the GitHub CI runner (release PR #23)",
+      "started": "2026-11-28T05:00:23Z",
+      "develop": "06344b704"
     }
   },
-  "advisories_checked_at": "2026-11-27T22:29:55Z",
+  "advisories_checked_at": "2026-11-28T04:30:44Z",
   "hold": {},
-  "perf_trend_at": "2026-11-27T04:12:31Z",
+  "perf_trend_at": "2026-11-28T04:30:46Z",
   "set_aside_history": [
     {
       "ticket": "EZD-2000",
