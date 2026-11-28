@@ -613,7 +613,8 @@
     "EZD-1921",
     "EZD-2043",
     "EZD-2014",
-    "EZD-1915"
+    "EZD-1915",
+    "EZD-610"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2899,11 +2900,19 @@
       "ts": "2026-11-28T16:18:27Z",
       "kind": "ticket",
       "lane": 4
+    },
+    {
+      "id": "EZD-610",
+      "title": "Selected circuit and voltage drop",
+      "commit": "6ffa28e1b",
+      "ts": "2026-11-28T17:12:14Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -3252,20 +3261,20 @@
       "started": "2026-11-28T14:58:17Z",
       "develop": "1c6dac9fd"
     },
-    "EZD-610": {
-      "lane": 2,
-      "title": "Selected circuit and voltage drop",
-      "started": "2026-11-28T15:37:45Z",
-      "develop": "a2748bec6"
-    },
     "EZD-1917": {
       "lane": 4,
       "title": "RCP drawing: one file per ceiling item kind",
       "started": "2026-11-28T16:18:40Z",
       "develop": "44894d37a"
+    },
+    "EZD-2045": {
+      "lane": 1,
+      "title": "The sink draws a single basin",
+      "started": "2026-11-28T16:19:42Z",
+      "develop": "e1b729553"
     }
   },
-  "advisories_checked_at": "2026-11-28T10:30:54Z",
+  "advisories_checked_at": "2026-11-28T16:31:43Z",
   "hold": {},
   "perf_trend_at": "2026-11-28T04:30:46Z",
   "set_aside_history": [
