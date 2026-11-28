@@ -8,3 +8,6 @@
 - Queue lock (`queue-lock.ts`): a file that inserts or enqueues `job` rows calls `holdJobQueueShared()`
   first in `beforeAll` (hook timeout 180000 ms) and releases last in `afterAll`, after deleting its jobs.
   The unscoped sweep tests (`sweep.db.test.ts`) hold `holdJobQueueExclusive()`, so they see only their own rows.
+- The sweep route's own passes that queue jobs or write rows for every company (the daily version cleanup,
+  `sweepVersionCleanup`; the tunnel alert digest) are mocked in `sweep.db.test.ts`: companies of files that hold
+  no queue lock would get jobs from them, and the sweep would run those (EZD-2041). Each pass has its own tests.
