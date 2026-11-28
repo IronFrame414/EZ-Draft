@@ -615,7 +615,8 @@
     "EZD-2014",
     "EZD-1915",
     "EZD-610",
-    "EZD-1202"
+    "EZD-1202",
+    "EZD-2010"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2917,20 +2918,19 @@
       "ts": "2026-11-28T17:44:02Z",
       "kind": "ticket",
       "lane": 3
+    },
+    {
+      "id": "EZD-2010",
+      "title": "Fix: sign-out outbox B5 misses the signed-out marker cookie on CI (EZD-120d)",
+      "commit": "deddbd2ff",
+      "ts": "2026-11-28T18:59:22Z",
+      "kind": "ticket",
+      "lane": 4
     }
   ],
-  "set_aside": {
-    "EZD-2045": {
-      "title": "The sink draws a single basin",
-      "ts": "2026-11-28T17:54:51Z",
-      "reason": "check red after merging newer develop (first try: check red after merging newer develop)",
-      "detail": "results/traffic-EZD-353-traffic-ca-45f5b-ltime-token-is-fetched-once-desktop/error-context.md\n    Error: auth createUser failed: Database error creating new user\n    > 119 |     if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);\n    test-results/upload-step-EZD-301-Upload-aa0a9-d-byte-identical-AC-1-AC-2--desktop/test-failed-1.png\n    Error Context: test-results/upload-step-EZD-301-Upload-aa0a9-d-byte-identical-AC-1-AC-2--desktop/error-context.md\n    Error Context: test-results/upload-step-EZD-301-Upload-aa0a9-d-byte-identical-AC-1-AC-2--desktop/error-context.md\n    Error: auth createUser failed: Database error creating new user\n    > 119 |     if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);\n    test-results/upload-step-EZD-301-Upload-3da36-rd-directly-with-Blank-only-desktop/test-failed-1.png\n    Error Context: test-results/upload-step-EZD-301-Upload-3da36-rd-directly-with-Blank-only-desktop/error-context.md\n    Error Context: test-results/upload-step-EZD-301-Upload-3da36-rd-directly-with-Blank-only-desktop/error-context.md\n    Error: auth createUser failed: Database error creating new user\n    > 119 |     if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);\n    test-results/version-cleanup-EZD-123-ve-bc6e3-apshot-and-deletes-the-rest-desktop/test-failed-1.png\n    Error Context: test-results/version-cleanup-EZD-123-ve-bc6e3-apshot-and-deletes-the-rest-desktop/error-context.md\n    Error Context: test-results/version-cleanup-EZD-123-ve-bc6e3-apshot-and-deletes-the-rest-desktop/error-context.md\n    Error: auth createUser failed: Database error creating new user\n    > 119 |     if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);\n    test-results/version-cleanup-EZD-123-ve-c72bc-t-Edit-model-it-never-shows-desktop/test-failed-1.png\n    Error Context: test-results/version-cleanup-EZD-123-ve-c72bc-t-Edit-model-it-never-shows-desktop/error-context.md\n    Error Context: test-results/version-cleanup-EZD-123-ve-c72bc-t-Edit-model-it-never-shows-desktop/error-context.md\n    Error: auth createUser failed: Database error creating new user\n    > 119 |     if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);\n    test-results/versions-panel-EZD-122-Ver-4b4fb--reloads-the-chosen-version-desktop/test-failed-1.png\n    Error Context: test-results/versions-panel-EZD-122-Ver-4b4fb--reloads-the-chosen-version-desktop/error-context.md\n    Error Context: test-results/versions-panel-EZD-122-Ver-4b4fb--reloads-the-chosen-version-desktop/error-context.md\n    Error: auth createUser failed: Database error creating new user\n    > 119 |     if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);\n    test-results/versions-panel-EZD-122-Ver-ff59e-and-no-Revert-AC-EZD-122-6--desktop/test-failed-1.png\n    Error Context: test-results/versions-panel-EZD-122-Ver-ff59e-and-no-Reve",
-      "branch": "t/EZD-2045",
-      "worktree": ".claude/worktrees/EZD-2045"
-    }
-  },
+  "set_aside": {},
   "red_streak": 0,
-  "push_pending": false,
+  "push_pending": true,
   "trial_report_written": true,
   "idle_logged": false,
   "retries": {
@@ -3290,11 +3290,11 @@
       "started": "2026-11-28T17:45:26Z",
       "develop": "c22a50153"
     },
-    "EZD-2010": {
-      "lane": 4,
-      "title": "Fix: sign-out outbox B5 misses the signed-out marker cookie on CI (EZD-120d)",
-      "started": "2026-11-28T17:53:36Z",
-      "develop": "105a3911a"
+    "EZD-2045": {
+      "lane": 1,
+      "title": "The sink draws a single basin",
+      "started": "2026-11-28T18:00:26Z",
+      "develop": "e2ea30bca"
     }
   },
   "advisories_checked_at": "2026-11-28T16:31:43Z",
@@ -3362,6 +3362,13 @@
       "reason": "squash merge failed (first try: check red after a review fix)",
       "set_aside_ts": "2026-11-28T10:04:15Z",
       "retried_ts": "2026-11-28T10:29:23Z",
+      "by": "overwatch"
+    },
+    {
+      "ticket": "EZD-2045",
+      "reason": "check red after merging newer develop (first try: check red after merging newer develop)",
+      "set_aside_ts": "2026-11-28T17:54:51Z",
+      "retried_ts": "2026-11-28T17:59:24Z",
       "by": "overwatch"
     }
   ],
