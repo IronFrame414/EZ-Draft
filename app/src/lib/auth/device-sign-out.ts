@@ -47,6 +47,10 @@ export async function signOutOnDevice(
     const https = env.location.protocol === 'https:';
     const secure = https ? '; Secure' : '';
     env.document.cookie = `${signedOutCookieName(https)}=1; Path=/${secure}; Max-Age=${MARKER_MAX_AGE_SECONDS}; SameSite=Lax`;
+    // EZD-2010: Chrome hands a cookie write to its cookie store without waiting for it, so the request that
+    // follows could leave before the marker was stored. Reading the cookies back waits for the write, so the
+    // marker is stored before the page goes to /sign-in.
+    void env.document.cookie;
     env.location.replace('/sign-in');
   }
 }
