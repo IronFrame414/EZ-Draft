@@ -9,6 +9,8 @@ export const PUBLIC_PATHS: readonly string[] = [
   '/terms',
   // EZD-105: the invite link page (GET shows Accept; only its POST accepts).
   '/invite',
+  // EZD-1202: the client link page (signed out; the link is the only key).
+  '/c',
 ];
 
 export function isPublicPath(pathname: string): boolean {

@@ -197,3 +197,27 @@ describe('EZD-607 panel load calc inputs', () => {
     expect(bad((c) => (c.floorAreaSqFt = null))).toBe(true);
   });
 });
+
+// EZD-610 (S06 Selected circuit block "wire, run length"; 09b K for copper and aluminum; vault/build/assumptions/
+// EZD-610.md Settled): the circuit's wire material and run length, optional so the version stays.
+describe('EZD-610 wire material and run length', () => {
+  it('a circuit stored before EZD-610 (no material, no run) still parses', () => {
+    expect(parse('circuit', () => {})).toBe(true);
+  });
+
+  it('material is copper, aluminum or null', () => {
+    expect(parse('circuit', (d) => (d.attributes.material = 'copper'))).toBe(true);
+    expect(parse('circuit', (d) => (d.attributes.material = 'aluminum'))).toBe(true);
+    expect(parse('circuit', (d) => (d.attributes.material = null))).toBe(true);
+    expect(parse('circuit', (d) => (d.attributes.material = 'silver'))).toBe(false);
+  });
+
+  it('run length is positive feet or null', () => {
+    expect(parse('circuit', (d) => (d.attributes.runLength = 58))).toBe(true);
+    expect(parse('circuit', (d) => (d.attributes.runLength = 12.5))).toBe(true);
+    expect(parse('circuit', (d) => (d.attributes.runLength = null))).toBe(true);
+    expect(parse('circuit', (d) => (d.attributes.runLength = 0))).toBe(false);
+    expect(parse('circuit', (d) => (d.attributes.runLength = -4))).toBe(false);
+    expect(parse('circuit', (d) => (d.attributes.runLength = '58'))).toBe(false);
+  });
+});

@@ -13,13 +13,13 @@ import {
   BEAM_MATCHES,
   BEAM_PLACEMENTS,
 } from '@ezdraft/geometry';
-import { Icon } from '../../components/icon/Icon';
-import { useT } from '../../lib/messages';
-import type { MessageKey } from '../../server/messages/catalog';
-import type { ModelStore } from '../model/model-store';
-import { beamEdit, beamView, type BeamEdit, type BeamView } from './beam-edits';
-import { BeamSection } from '../inspector/BeamSection';
-import styles from '../inspector/InspectorPanel.module.css';
+import { Icon } from '../../../components/icon/Icon';
+import { useT } from '../../../lib/messages';
+import type { MessageKey } from '../../../server/messages/catalog';
+import type { ModelStore } from '../../model/model-store';
+import { beamEdit, beamView, type BeamEdit, type BeamView } from '../../tools/beam-edits';
+import { BeamSection } from '../BeamSection';
+import styles from '../InspectorPanel.module.css';
 
 export type BeamPanelProps = {
   store: Pick<ModelStore, 'getState' | 'subscribe' | 'applyEdit'>;

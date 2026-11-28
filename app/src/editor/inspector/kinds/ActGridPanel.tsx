@@ -8,12 +8,12 @@
 // every field is read only. Each change is one edit (one undo step).
 import { useState, useSyncExternalStore, type KeyboardEvent, type ReactElement } from 'react';
 import { ACT_DIRECTIONS, ACT_MODULES, formatLength } from '@ezdraft/geometry';
-import { Icon } from '../../components/icon/Icon';
-import { useT } from '../../lib/messages';
-import type { MessageKey } from '../../server/messages/catalog';
-import styles from '../inspector/InspectorPanel.module.css';
-import type { ModelStore } from '../model/model-store';
-import { actGridEdit, actGridView, type ActGridEdit } from './act-grid-edits';
+import { Icon } from '../../../components/icon/Icon';
+import { useT } from '../../../lib/messages';
+import type { MessageKey } from '../../../server/messages/catalog';
+import styles from '../InspectorPanel.module.css';
+import type { ModelStore } from '../../model/model-store';
+import { actGridEdit, actGridView, type ActGridEdit } from '../../tools/act-grid-edits';
 import own from './ActGridPanel.module.css';
 
 type Store = Pick<ModelStore, 'getState' | 'subscribe' | 'applyEdit'>;
@@ -150,7 +150,10 @@ export function ActGridInspector({
         >
           <span className={styles.flagTitle}>
             <Icon name="error" size={18} />
-            {t('office.ceiling.act.warning', { border: actLength(w.border), min: actLength(w.min) })}
+            {t('office.ceiling.act.warning', {
+              border: actLength(w.border),
+              min: actLength(w.min),
+            })}
           </span>
         </div>
       ))}
@@ -213,10 +216,15 @@ export function ActGridInspector({
           />
         </div>
         <p className={styles.hint} data-testid="act-grid-borders">
-          {t(view.balanced ? 'office.ceiling.legend.act_balanced' : 'office.ceiling.legend.act_borders', {
-            a: actLength(view.borders[0]),
-            b: actLength(view.borders[1]),
-          })}
+          {t(
+            view.balanced
+              ? 'office.ceiling.legend.act_balanced'
+              : 'office.ceiling.legend.act_borders',
+            {
+              a: actLength(view.borders[0]),
+              b: actLength(view.borders[1]),
+            },
+          )}
         </p>
         {view.balanced ? null : (
           <button
@@ -260,10 +268,13 @@ export function ActLegend({
   if (view === null) return null;
   return (
     <span className={own.legend} data-testid="legend-act-borders">
-      {t(view.balanced ? 'office.ceiling.legend.act_balanced' : 'office.ceiling.legend.act_borders', {
-        a: actLength(view.borders[0]),
-        b: actLength(view.borders[1]),
-      })}
+      {t(
+        view.balanced ? 'office.ceiling.legend.act_balanced' : 'office.ceiling.legend.act_borders',
+        {
+          a: actLength(view.borders[0]),
+          b: actLength(view.borders[1]),
+        },
+      )}
     </span>
   );
 }

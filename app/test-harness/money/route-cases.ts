@@ -1699,6 +1699,31 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-1201: an active link; 200 { link: { status, expiresAt } } (no money)',
   },
+  // EZD-1202 (AC-EZD-1202-1): the client page's data on a fresh row of the same send, as above. No money field.
+  {
+    file: `${API}c/[token]/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/c/[token]/route'),
+    request: async (env) => {
+      const sent = await latestSentPackage(env);
+      const token = randomBytes(32).toString('base64url');
+      const { error } = await adminDb()
+        .from('sent_package')
+        .insert({
+          tenant_id: env.tenantId,
+          project_id: env.projectId,
+          model_version_id: sent.model_version_id,
+          kind: 'client',
+          recipients: sent.recipients,
+          token_hash: createHash('sha256').update(token).digest('hex'),
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        });
+      if (error) throw new Error(`sent_package insert failed: ${error.code}`);
+      return { request: new Request(`${BASE}/api/c/${token}`), params: { token } };
+    },
+    expectStatus: 200,
+    note: 'EZD-1202: the client page; 200 { page } with the fixed field list (no money)',
+  },
   {
     file: `${API}share-links/route.ts`,
     method: 'GET',

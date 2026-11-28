@@ -607,7 +607,15 @@
     "EZD-2011",
     "EZD-2004",
     "EZD-2042",
-    "EZD-2041"
+    "EZD-2041",
+    "EZD-2019",
+    "EZD-1914",
+    "EZD-1921",
+    "EZD-2043",
+    "EZD-2014",
+    "EZD-1915",
+    "EZD-610",
+    "EZD-1202"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2845,6 +2853,70 @@
       "ts": "2026-11-28T11:53:31Z",
       "kind": "ticket",
       "lane": 4
+    },
+    {
+      "id": "EZD-2019",
+      "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
+      "commit": "f7b116df1",
+      "ts": "2026-11-28T12:38:18Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1914",
+      "title": "Ceiling tools register their own click receivers",
+      "commit": "1898ade54",
+      "ts": "2026-11-28T13:35:04Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1921",
+      "title": "Re-validate open editor plans and document the registry for planners",
+      "commit": "d850b1007",
+      "ts": "2026-11-28T14:07:20Z",
+      "kind": "ticket",
+      "lane": 4
+    },
+    {
+      "id": "EZD-2043",
+      "title": "Utility points draw a symbol for each kind (electric 120 V, 240 V, gas, water, drain)",
+      "commit": "fc5c396b4",
+      "ts": "2026-11-28T14:46:02Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-2014",
+      "title": "Fix: password recovery email T7 not found within 10 s under load (EZD-033)",
+      "commit": "87be354a7",
+      "ts": "2026-11-28T15:37:30Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1915",
+      "title": "Inspector: one file per object type",
+      "commit": "148ad4067",
+      "ts": "2026-11-28T16:18:27Z",
+      "kind": "ticket",
+      "lane": 4
+    },
+    {
+      "id": "EZD-610",
+      "title": "Selected circuit and voltage drop",
+      "commit": "6ffa28e1b",
+      "ts": "2026-11-28T17:12:14Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1202",
+      "title": "Client page shell",
+      "commit": "83ff23555",
+      "ts": "2026-11-28T17:44:02Z",
+      "kind": "ticket",
+      "lane": 3
     }
   ],
   "set_aside": {},
@@ -2913,7 +2985,9 @@
     "EZD-2003": 1,
     "EZD-2025": 1,
     "EZD-2014": 1,
-    "EZD-1921": 1
+    "EZD-1921": 1,
+    "EZD-1202": 1,
+    "EZD-2045": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -3179,29 +3253,37 @@
     "EZD-1921": {
       "ts": "2026-11-28T08:25:29Z",
       "reason": "check red after a review fix"
+    },
+    "EZD-1202": {
+      "ts": "2026-11-28T14:56:42Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-2045": {
+      "ts": "2026-11-28T16:18:44Z",
+      "reason": "check red after merging newer develop"
     }
   },
   "running": {
-    "EZD-2019": {
+    "EZD-1917": {
+      "lane": 4,
+      "title": "RCP drawing: one file per ceiling item kind",
+      "started": "2026-11-28T16:18:40Z",
+      "develop": "44894d37a"
+    },
+    "EZD-2045": {
       "lane": 1,
-      "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
-      "started": "2026-11-28T10:04:15Z",
-      "develop": "7840bf851"
+      "title": "The sink draws a single basin",
+      "started": "2026-11-28T16:19:42Z",
+      "develop": "e1b729553"
     },
-    "EZD-1202": {
-      "lane": 3,
-      "title": "Client page shell",
-      "started": "2026-11-28T10:46:31Z",
-      "develop": "ba57384f5"
-    },
-    "EZD-1914": {
+    "EZD-1918": {
       "lane": 2,
-      "title": "Ceiling tools register their own click receivers",
-      "started": "2026-11-28T11:25:33Z",
-      "develop": "730acbff0"
+      "title": "Split DrawingTools into rail, layer and per-tool parts",
+      "started": "2026-11-28T17:12:24Z",
+      "develop": "e0a44cda3"
     }
   },
-  "advisories_checked_at": "2026-11-28T10:30:54Z",
+  "advisories_checked_at": "2026-11-28T16:31:43Z",
   "hold": {},
   "perf_trend_at": "2026-11-28T04:30:46Z",
   "set_aside_history": [

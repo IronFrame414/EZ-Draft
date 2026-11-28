@@ -57,11 +57,11 @@ export { CeilingLegend, CeilingViewStatus, JoistsStatus } from './CeilingShown';
 // EZD-503: the room ceiling summary and the ceiling type editor load with them too.
 export { RoomCeiling } from './RoomCeiling';
 // EZD-510: the left panel's Lighting section with Switching zones.
-export { Lighting, LightingSection } from '../tools/SwitchZonePanel';
+export { Lighting, LightingSection } from '../inspector/kinds/SwitchZonePanel';
 export { placeSwitchZone, roomAt } from '../tools/switch-zone';
 export { switchZoneReceiver, zoneDrawingFor } from '../tools/switch-zone-tool';
 // EZD-511: the ACT grid inspector and the legend's border sizes.
-export { ActGridInspector, ActLegend } from '../tools/ActGridPanel';
+export { ActGridInspector, ActLegend } from '../inspector/kinds/ActGridPanel';
 // EZD-514: the framing line tool's page drawing (the inspector's Framing known section sets its room).
 export { framingDrawingFor } from '../tools/framing-tool';
 // EZD-509: the Auto-layout cans panel (in the Lighting section).

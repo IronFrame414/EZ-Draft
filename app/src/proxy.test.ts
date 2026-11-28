@@ -958,3 +958,31 @@ describe('EZD-1711 billing in the request gate', () => {
     expectPassThrough(res);
   });
 });
+
+// EZD-1202 (vault/build/assumptions/EZD-1202.md Settled "Where the page and its data come from"): the client link
+// page opens signed out and answers no-store, no-referrer and noindex; other pages do not get those headers.
+describe('EZD-1202 client link page', () => {
+  afterEach(() => {
+    h.make = null;
+  });
+
+  it('/c/<token> passes without a session and carries the client link headers', async () => {
+    clientWith(async () => NO_CLAIMS);
+    const res = await call('/c/AbCdEfGhIjKlMnOpQrStUvWxYz0123456789_-abcde');
+    expectPassThrough(res);
+    expect(res.headers.get('cache-control')).toBe('no-store');
+    expect(res.headers.get('referrer-policy')).toBe('no-referrer');
+    expect(res.headers.get('x-robots-tag')).toBe('noindex');
+  });
+
+  it('a signed-in visitor gets the same headers, and other pages do not', async () => {
+    clientWith(async () => WITH_SUB);
+    const res = await call('/c/not-a-token');
+    expectPassThrough(res);
+    expect(res.headers.get('referrer-policy')).toBe('no-referrer');
+    clientWith(async () => NO_CLAIMS);
+    expect((await call('/sign-in')).headers.get('x-robots-tag')).toBeNull();
+    clientWith(async () => NO_CLAIMS);
+    expectSignInRedirect(await call('/clients'), '/clients');
+  });
+});

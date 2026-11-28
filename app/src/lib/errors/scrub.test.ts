@@ -346,3 +346,16 @@ describe('EZD-2030 scrubText removes 8-digit codes', () => {
     expect(run({ contexts: { page: { code: 'code 48291375' } } }).contexts.page.code).toBe('code <code>');
   });
 });
+
+// EZD-1202 (vault/build/assumptions/EZD-1202.md Settled "Where the page and its data come from": /c/ paths are
+// redacted in Sentry): a client link's token never reaches Sentry, even one with no digit in it.
+describe('EZD-1202 client link paths', () => {
+  it('the token after /c/ is replaced, in a path and in a full URL', () => {
+    const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ';
+    expect(scrubText(`GET /c/${letters} failed`)).toBe('GET /c/<token> failed');
+    expect(scrubText(`https://ezdraft.ezcontractorbinder.com/c/${letters}`)).toBe(
+      'https://ezdraft.ezcontractorbinder.com/c/<token>',
+    );
+    expect(scrubText('/api/c/Ab3_-x9 answered 500')).toBe('/api/c/<token> answered 500');
+  });
+});

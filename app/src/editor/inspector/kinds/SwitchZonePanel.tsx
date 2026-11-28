@@ -7,14 +7,14 @@
 // while it is on; and the inspector of one selected zone, whose Dimmer box turns its dimmer mark on or off. Without
 // Edit model and the lock the button and the boxes are disabled. Each change is one edit (one undo step).
 import { useSyncExternalStore, type ReactElement, type ReactNode } from 'react';
-import { Icon } from '../../components/icon/Icon';
-import { useT } from '../../lib/messages';
-import type { SurfaceSetting } from '../ceiling/surface';
-import styles from '../ceiling/CeilingParts.module.css';
-import inspector from '../inspector/InspectorPanel.module.css';
-import type { ModelStore } from '../model/model-store';
-import { switchZoneOf, zoneDimmerChanges } from './switch-zone';
-import { zoneDrawingFor, type ZoneDrawing } from './switch-zone-tool';
+import { Icon } from '../../../components/icon/Icon';
+import { useT } from '../../../lib/messages';
+import type { SurfaceSetting } from '../../ceiling/surface';
+import styles from '../../ceiling/CeilingParts.module.css';
+import inspector from '../InspectorPanel.module.css';
+import type { ModelStore } from '../../model/model-store';
+import { switchZoneOf, zoneDimmerChanges } from '../../tools/switch-zone';
+import { zoneDrawingFor, type ZoneDrawing } from '../../tools/switch-zone-tool';
 
 export function LightingSection({
   surface,

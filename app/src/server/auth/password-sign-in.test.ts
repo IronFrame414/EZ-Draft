@@ -17,7 +17,7 @@ import {
   randomPassword,
 } from '../../../test-harness/auth-users';
 import { holdErrorAlertLock } from '../../../test-harness/errors/alert-lock';
-import { countAuthEmails, waitForRawEmail } from '../../../test-harness/mail-catcher';
+import { countAuthEmails, waitForNewRawEmail } from '../../../test-harness/mail-catcher';
 import {
   cleanup,
   closeHarness,
@@ -221,10 +221,12 @@ describe('EZD-033 password sign-in actions', () => {
 
   it('EZD-033 T7 the recovery email has no link and no code, and the password is unchanged', async () => {
     const r = await createPasswordMember({ tenantId: tenant });
-    const before = new Date();
-    const { error } = await publishableClient().auth.resetPasswordForEmail(r.email);
-    expect(error).toBeNull();
-    const mail = await waitForRawEmail(r.email, { after: before });
+    // EZD-2014 (AC-EZD-2014-1): found by message id, not by comparing this machine's clock with the
+    // mail catcher's.
+    const mail = await waitForNewRawEmail(r.email, async () => {
+      const { error } = await publishableClient().auth.resetPasswordForEmail(r.email);
+      expect(error).toBeNull();
+    });
     await sleep(3000);
     expect(await countAuthEmails(r.email)).toBe(1);
 

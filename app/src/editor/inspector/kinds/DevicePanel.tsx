@@ -20,22 +20,22 @@ import {
   type KeyboardEvent,
   type ReactElement,
 } from 'react';
-import { CatalogPicker } from '../../components/catalog/CatalogPicker';
-import { Icon } from '../../components/icon/Icon';
-import type { CatalogItem } from '../../lib/catalog/catalog';
-import { useT } from '../../lib/messages';
-import type { MessageKey } from '../../server/messages/catalog';
-import { heightNoteEdit, heightNoteView, type HeightNoteEdit } from '../electrical/height-note';
-import { levelModelObjects } from '../inspector/inspector-edits';
-import type { ModelStore } from '../model/model-store';
-import type { Objects } from '../model/patches';
+import { CatalogPicker } from '../../../components/catalog/CatalogPicker';
+import { Icon } from '../../../components/icon/Icon';
+import type { CatalogItem } from '../../../lib/catalog/catalog';
+import { useT } from '../../../lib/messages';
+import type { MessageKey } from '../../../server/messages/catalog';
+import { heightNoteEdit, heightNoteView, type HeightNoteEdit } from '../../electrical/height-note';
+import { levelModelObjects } from '../inspector-edits';
+import type { ModelStore } from '../../model/model-store';
+import type { Objects } from '../../model/patches';
 import {
   fixtureTypeEdit,
   fixtureTypeView,
   type FixtureTypeEdit,
   type FixtureTypeField,
-} from './fixture-type';
-import styles from '../inspector/InspectorPanel.module.css';
+} from '../../tools/fixture-type';
+import styles from '../InspectorPanel.module.css';
 
 export type DevicePanelProps = {
   store: Pick<ModelStore, 'getState' | 'subscribe' | 'applyEdit'>;

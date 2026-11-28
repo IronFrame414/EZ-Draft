@@ -26,8 +26,18 @@
 // AC-EZD-708c-1, -2; vault/build/assumptions/EZD-708c.md): until the inspector exists (EZD-608), Add to E2.0 sits
 // beside Panel schedule, shown with Edit model and disabled while paused. It stores the panel's schedule and load
 // calc on the permit set (one undoable edit) and logs sheet.updated.
-import { DEVICE_KINDS, WIRE_SIZES, type CircuitProtection, type WireSize } from '@ezdraft/geometry';
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactElement } from 'react';
+// EZD-610 (S06 Selected circuit block; vault/build/assumptions/EZD-610.md): until the inspector exists (EZD-608), the
+// chosen circuit's Selected circuit block (SelectedCircuit.tsx) sits under its row, for every viewer, in place of the
+// EZD-604 fields it now holds; its voltage drop warns above the company's threshold from the project's Defaults.
+import { DEVICE_KINDS, type CircuitProtection } from '@ezdraft/geometry';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactElement,
+} from 'react';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
@@ -40,7 +50,6 @@ import { openFloorId } from '../plan/batches';
 import type { SelectionController } from '../selection/selection-controller';
 import { circuitView } from './circuit-view';
 import {
-  BREAKER_SIZES,
   circuitDeviceIds,
   circuitEditChange,
   newCircuitChanges,
@@ -69,6 +78,10 @@ import { notifyPanelSheet } from './panel-sheet-client';
 import { CompactSchedule, ScheduleDialog } from './PanelSchedule';
 import { idKey } from '../shared/ids';
 import { useStoreValue } from '../shared/use-store-value';
+import { useDefault } from '../shared/use-default';
+import type { ProjectDefaults } from '../project-defaults';
+import { SelectedCircuit } from './SelectedCircuit';
+import { voltageDropThreshold } from './voltage-drop';
 import {
   useApplianceDefaults,
   type ApplianceDefaultsSource,
@@ -104,6 +117,8 @@ export type ElectricalPanelProps = {
   layers?: Pick<LayerSetting, 'eyes' | 'setEye'>;
   floors?: FloorChoice;
   initialTab?: ElectricalTab;
+  // EZD-610: the open project's Defaults, for the "Voltage-drop warning" threshold (Not set while absent).
+  projectDefaults?: Pick<ProjectDefaults, 'get' | 'subscribe'> | null;
   // EZD-604: given when the user has Edit model (New circuit, rename and the circuit fields show); `paused` while
   // another user holds the lock or a version is open (shown disabled). The slot's base carries the store's
   // applyEdit, new ids and the new-object status.
@@ -156,6 +171,7 @@ export function ElectricalPanel({
   layers,
   floors,
   initialTab = 'circuits',
+  projectDefaults,
   edit,
 }: ElectricalPanelProps): ReactElement {
   const t = useT();
@@ -179,12 +195,16 @@ export function ElectricalPanel({
     const id = renameBack.current;
     renameBack.current = null;
     document
-      .querySelector<HTMLElement>(`[data-testid="circuit-row"][data-circuit-id="${CSS.escape(id)}"]`)
+      .querySelector<HTMLElement>(
+        `[data-testid="circuit-row"][data-circuit-id="${CSS.escape(id)}"]`,
+      )
       ?.focus();
   }, [renaming]);
   const [existingOpen, setExistingOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const projectId = edit?.projectId;
+  // EZD-610: re-read on every defaults resync (EZD-116); null while Not set (no voltage drop warning).
+  const threshold = useDefault(projectDefaults, voltageDropThreshold);
   const defaults = useApplianceDefaults(edit?.defaultsSource);
   const givenReader = edit?.reader;
   const reader = useMemo<PanelPhotoReader | null>(
@@ -220,7 +240,8 @@ export function ElectricalPanel({
     const entry = panelSheetFor(now, panel.id, defaults);
     if (entry === null) return;
     base.store.applyEdit([panelSheetChange(now, entry, base.newId)]);
-    if (projectId !== undefined) notifyPanelSheet(projectId, { sheet: panelSheet, panelId: panel.id });
+    if (projectId !== undefined)
+      notifyPanelSheet(projectId, { sheet: panelSheet, panelId: panel.id });
   };
   const groups = useMemo(
     () => deviceGroups(objects, openFloorId(objects, chosen)),
@@ -404,69 +425,18 @@ export function ElectricalPanel({
                     {c.load}
                   </span>
                 </button>
-                {on && edit !== undefined ? (
-                  <div className={styles.fields} data-testid="circuit-fields">
-                    <label className={styles.field}>
-                      <span>{t('office.electrical.circuit.breaker_label')}</span>
-                      <select
-                        className={styles.select}
-                        data-testid="circuit-breaker"
-                        disabled={!writable}
-                        value={c.breaker}
-                        onChange={(e) =>
-                          editCircuit(c.id, { field: 'breaker', amps: Number(e.target.value) })
-                        }
-                      >
-                        {(BREAKER_SIZES as readonly number[]).includes(c.breaker) ? null : (
-                          <option value={c.breaker}>{c.breaker}</option>
-                        )}
-                        {BREAKER_SIZES.map((a) => (
-                          <option key={a} value={a}>
-                            {t('office.electrical.circuit.breaker', { amps: a })}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className={styles.field}>
-                      <span>{t('office.electrical.circuit.poles_label')}</span>
-                      <select
-                        className={styles.select}
-                        data-testid="circuit-poles"
-                        disabled={!writable}
-                        value={c.poles}
-                        onChange={(e) =>
-                          editCircuit(c.id, {
-                            field: 'poles',
-                            poles: e.target.value === '2' ? 2 : 1,
-                          })
-                        }
-                      >
-                        <option value={1}>{t('office.electrical.circuit.one_pole')}</option>
-                        <option value={2}>{t('office.electrical.circuit.two_pole')}</option>
-                      </select>
-                    </label>
-                    <label className={styles.field}>
-                      <span>{t('office.electrical.circuit.wire_label')}</span>
-                      <select
-                        className={styles.select}
-                        data-testid="circuit-wire"
-                        disabled={!writable}
-                        value={c.wire ?? ''}
-                        onChange={(e) =>
-                          editCircuit(c.id, { field: 'wire', size: e.target.value as WireSize })
-                        }
-                      >
-                        {c.wire === null ? (
-                          <option value="">{t('office.electrical.circuit.not_set')}</option>
-                        ) : null}
-                        {WIRE_SIZES.map((w) => (
-                          <option key={w} value={w}>
-                            {t('office.electrical.circuit.awg', { size: w })}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
+                {on && panel !== null ? (
+                  <SelectedCircuit
+                    circuit={c}
+                    panelName={panel.name}
+                    objects={objects}
+                    threshold={threshold}
+                    edit={
+                      edit === undefined
+                        ? undefined
+                        : { writable, onEdit: (e) => editCircuit(c.id, e) }
+                    }
+                  />
                 ) : null}
               </div>
             );
@@ -542,9 +512,14 @@ export function ElectricalPanel({
             onClick={placePanelSheet}
           >
             <span>
-              {t(placed ? 'office.electrical.panel_sheet.update' : 'office.electrical.panel_sheet.add', {
-                sheet: panelSheet,
-              })}
+              {t(
+                placed
+                  ? 'office.electrical.panel_sheet.update'
+                  : 'office.electrical.panel_sheet.add',
+                {
+                  sheet: panelSheet,
+                },
+              )}
             </span>
           </button>
         ) : null}

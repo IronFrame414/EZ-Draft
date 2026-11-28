@@ -147,11 +147,11 @@ describe('EZD-133 money fields only with their permission', () => {
     expect(result.stale).toEqual([]);
   });
 
-  it('C4 every page file has a money page case and every case names a real page; there are 52 pages @smoke', () => {
+  it('C4 every page file has a money page case and every case names a real page; there are 53 pages @smoke', () => {
     const result = uncoveredPages(APP_SRC, MONEY_PAGE_CASES);
     expect(result.missing).toEqual([]);
     expect(result.stale).toEqual([]);
-    expect(listPages(APP_SRC).length).toBe(52);
+    expect(listPages(APP_SRC).length).toBe(53);
   });
 
   it('K1 the canary route leaks its cost key and the scan reports it @smoke', async () => {

@@ -632,3 +632,10 @@ Mistake: new routes, policies and triggers missed a guard that sibling objects a
 Cause: the plan described the feature's own rules and did not list the guards its sibling routes, policies and triggers carry.
 Rule: a plan that adds a route, storage policy, trigger or delete names the sibling it copies and lists that sibling's guards one by one (membership header, server-only upload check, path guard, stale-write guard), or states why each is not needed.
 Check: Plan check: the plan names the sibling and a guard list; each guard has a test row (other person, other company, newer refusal).
+
+## L-073  areas: tooling, process, docs  seen: 1  status: candidate
+Tickets EZD-1910 to EZD-1914, EZD-1921 (editor consolidation plan 5.1, 5.4: `ProjectEditor.tsx` was the hottest file in lane waits since 2026-11-06), 2026-11-28
+Mistake: every editor feature plan listed `ProjectEditor.tsx` (and `InspectorPanel.tsx`, `LeftPanel.tsx`, `DrawingTools.tsx`, `rcp.ts`), so editor tickets held one file and waited on each other.
+Cause: features were wired by hand in the page component; there was no folder a feature could add a file to.
+Rule: a plan for a new editor mode, tool, inspector kind, left-panel section or ceiling drawer adds one file in its registry folder (`docs/architecture.md` `### Editor features (EZD-1921)`) and never lists `ProjectEditor.tsx`; it never lists a generated `index.generated.ts` (the builder runs `node app/tools/gen-registry.mjs`), except the one ticket that creates the folder. Until a folder's ticket (EZD-1914 to EZD-1917) is merged, the old file is still the place.
+Check: Plan check: a Files table for an editor feature names no `ProjectEditor.tsx` and no `index.generated.ts`; a plan that must edit `ProjectEditor.tsx` says why no slot in `features/types.ts` fits.

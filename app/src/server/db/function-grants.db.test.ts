@@ -7,6 +7,8 @@ import { adminSql, withRollback, type Sql } from '../../../test-harness/rls/db';
 
 // AC-EZD-1932-2: the intended signed-out set, sorted.
 const SIGNED_OUT_DEFINERS = [
+  // EZD-1202: the signed-out client page's fields (S18; Q-0700).
+  'client_page',
   'error_tunnel_take',
   'health',
   'record_error_alert',

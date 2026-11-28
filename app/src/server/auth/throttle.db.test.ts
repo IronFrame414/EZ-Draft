@@ -404,6 +404,28 @@ describe('EZD-033 sign-in throttle', () => {
       expect((await take('email', ek, null)).allowed).toBe(true); // (g)
     });
 
+    // EZD-2019 (audit 2026-11-27 X1; AC-EZD-2019-1; AC-EZD-2019-2, database test of the changed function):
+    // settled email rows (a captcha refusal) no longer count; rows still marked failed (sent emails) count as before (Q-0094: 5 in 1 hour).
+    it('EZD-2019 the email limit counts only rows still marked failed', async () => {
+      let ek = freshKey();
+      await insertThrottleRows('email', ek, 5, { ageSeconds: 60, failed: false });
+      expect((await take('email', ek, null)).allowed).toBe(true);
+
+      ek = freshKey();
+      await insertThrottleRows('email', ek, 4, { ageSeconds: 60 });
+      await insertThrottleRows('email', ek, 3, { ageSeconds: 60, failed: false });
+      expect((await take('email', ek, null)).allowed).toBe(true);
+      expect(await take('email', ek, null)).toMatchObject({ allowed: false, limited_by: 'email' });
+
+      ek = freshKey();
+      for (let i = 0; i < 5; i += 1) {
+        const t = await take('email', ek, null);
+        expect(t.allowed, `take ${i + 1}`).toBe(true);
+        await settle(t.attempt_id, null);
+      }
+      expect((await take('email', ek, null)).allowed).toBe(true);
+    });
+
     it('EZD-033 T15 (h)-(j), (n), (p) IP windows and clean-up', async () => {
       let ipk = freshKey();
       await insertThrottleRows('ip', ipk, 30, { ageSeconds: 899 });

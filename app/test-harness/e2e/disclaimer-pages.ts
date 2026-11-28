@@ -25,6 +25,13 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
     signedIn: false,
     placement: 'page',
   },
+  // EZD-1202: the client link page (a token of no link shows its message with the footer line).
+  {
+    file: 'src/app/(client)/c/[token]/page.tsx',
+    path: '/c/not-a-token',
+    signedIn: false,
+    placement: 'page',
+  },
   {
     file: 'src/app/(office)/dev/entry/office/page.tsx',
     path: '/dev/entry/office',

@@ -12,6 +12,7 @@ import {
   shapeDistance,
   shapeInRect,
   shapeTouchesRect,
+  utilityPointPickShape,
   wallPickShape,
   type PickShape,
 } from './shapes';
@@ -140,5 +141,27 @@ describe('EZD-208a pick shapes', () => {
     };
     expect(wallPickShape(tiny)).toBeNull();
     expect(openingPickShape(doorAt(pt(72, 0)), tiny)).toBeNull();
+  });
+});
+
+// EZD-2043 (Q-0920): a utility point draws a circle 6" across, so it picks by the 6" square around it: a point at
+// (10, 20) covers x 7 to 13, y 17 to 23, area 36.
+describe('EZD-2043 utility point pick shape', () => {
+  it('is the square around its circle', () => {
+    const shape = utilityPointPickShape({
+      id: 'u1',
+      type: 'utility_point',
+      data: {
+        geometry: { point: pt(10, 20) },
+        status: 'new',
+        level: ID.W1,
+        attributes: { kind: 'gas', volts: null, amps: null, servesObjectId: null },
+      },
+    });
+    expect(shape).toEqual({ kind: 'quad', points: [pt(13, 23), pt(7, 23), pt(7, 17), pt(13, 17)], area: 36 });
+    expect(shapeBounds(shape)).toEqual({ minX: 7, minY: 17, maxX: 13, maxY: 23 });
+    // A point on the circle's edge at 45 degrees picks; one past the square does not.
+    expect(shapeDistance(shape, pt(12, 22))).toBe(0);
+    expect(shapeDistance(shape, pt(14, 20))).toBeCloseTo(1, 9);
   });
 });

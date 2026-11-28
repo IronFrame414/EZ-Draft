@@ -14,6 +14,7 @@ import {
   createMember,
   createTenant,
   expect,
+  harnessSql,
   setPermissions,
   test,
 } from '../test-harness/e2e/test';
@@ -767,5 +768,59 @@ test.describe('EZD-609 panel schedule', () => {
     await expect(dialog.getByTestId('panel-schedule-left')).toHaveText('31 spaces left');
     await tid(page, 'panel-schedule-close').click();
     await expect(dialog).toHaveCount(0);
+  });
+});
+
+// EZD-610 AC-EZD-610-1, -2 (S06 Controls "Selected circuit block | Inspector | ... breaker, wire, run length, voltage
+// drop ... Fields editable with Edit model ... Voltage drop shows a warning above the threshold in settings."; board
+// S06Electrical "A-14", "Run 58 ft", "V-drop @16A 3.1%", "V-drop 3.1% is over the 3% limit (Defaults). Use 10/2 or
+// shorten the run."; 09b test value 3.1%; vault/build/assumptions/EZD-610.md): circuit 14 on 12 AWG copper, run typed
+// as 58 ft, in the left panel until the inspector exists (EZD-608).
+test.describe('EZD-610 Selected circuit and voltage drop', () => {
+  test.afterAll(async () => {
+    try {
+      await cleanup();
+    } finally {
+      await closeHarness();
+    }
+  });
+
+  const runOf = (page: Page) =>
+    page.evaluate(() => {
+      const c = (window as unknown as Hook).__ezdraftEditor
+        .objects()
+        .find(
+          (o) => o.type === 'circuit' && (o.data.attributes as { space: number }).space === 14,
+        )!;
+      return (c.data.attributes as { runLength?: number | null }).runLength ?? null;
+    });
+
+  test('AC-1, AC-2 typing a 58 ft run on 12 AWG gives V-drop @16A 3.1%, over the company 3% it warns', async ({
+    page,
+    signInAs,
+  }) => {
+    const { tenant, ids, user } = await fixtureS(EDITOR);
+    await harnessSql()`update public.tenant set defaults = defaults || '{"voltage_drop_warning": 3}'::jsonb where id = ${tenant}::uuid`;
+    await signInAs(user.email);
+    await openReady(page, ids.P1);
+    await page.keyboard.press('e');
+    await seed(page);
+
+    await page.locator('[data-testid="circuit-row"]', { hasText: 'Small appl. 2' }).click();
+    await expect(tid(page, 'circuit-tag')).toHaveText('A-14');
+    await tid(page, 'circuit-wire').selectOption('12');
+    await expect(tid(page, 'circuit-vdrop')).toHaveText('—');
+    await tid(page, 'circuit-run').fill('58');
+    await tid(page, 'circuit-run').press('Enter');
+    await expect.poll(() => runOf(page)).toBe(58);
+    await expect(tid(page, 'circuit-vdrop-label')).toHaveText('V-drop @16A');
+    await expect(tid(page, 'circuit-vdrop')).toHaveText('3.1%');
+    await expect(tid(page, 'circuit-vdrop-warning')).toHaveText(
+      'V-drop 3.1% is over the 3% limit (Defaults). Use 10/2 or shorten the run.',
+    );
+    // 10 AWG: 1.9%, no warning.
+    await tid(page, 'circuit-wire').selectOption('10');
+    await expect(tid(page, 'circuit-vdrop')).toHaveText('1.9%');
+    await expect(tid(page, 'circuit-vdrop-warning')).toHaveCount(0);
   });
 });

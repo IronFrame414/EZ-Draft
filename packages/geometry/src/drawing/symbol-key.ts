@@ -12,6 +12,13 @@ import {
   hasLevel,
   type ModelObject,
 } from '../schema';
+import {
+  UTILITY_240_TAG,
+  UTILITY_LETTERS,
+  utilitySymbolId,
+  type UtilitySymbolId,
+} from '../fixtures/utility-symbol';
+import type { UtilityPointObject } from '../fixtures/fixtures';
 
 // How a key row draws its mark (the sheet draws it in a small swatch beside the label).
 export type SymbolGlyph =
@@ -24,7 +31,7 @@ export type SymbolGlyph =
   | { kind: 'circle'; text: string | null }
   | { kind: 'duplex' }
   | { kind: 'fan' }
-  | { kind: 'diamond' }
+  | { kind: 'triplex'; tag: string }
   | { kind: 'keynote' }
   | { kind: 'delta' };
 
@@ -120,6 +127,16 @@ const DEVICE_GROUP: Record<(typeof DEVICE_KINDS)[number], SymbolGroup> = {
   doorbell: 'low_voltage',
 };
 
+// EZD-2043 (Q-0920; AC-EZD-2043-3): one row per utility point symbol, drawn as the plan draws it
+// (fixtures/utility-symbol.ts). Labels are wording for Josh (vault/build/assumptions/EZD-2043.md).
+const UTILITY_SYMBOLS: readonly { id: UtilitySymbolId; label: string; glyph: SymbolGlyph }[] = [
+  { id: 'electric_120', label: 'Electric 120V utility point', glyph: { kind: 'duplex' } },
+  { id: 'electric_240', label: 'Electric 240V utility point', glyph: { kind: 'triplex', tag: UTILITY_240_TAG } },
+  { id: 'gas', label: 'Gas utility point', glyph: { kind: 'circle', text: UTILITY_LETTERS.gas } },
+  { id: 'water', label: 'Water utility point', glyph: { kind: 'circle', text: UTILITY_LETTERS.water } },
+  { id: 'drain', label: 'Drain utility point', glyph: { kind: 'circle', text: UTILITY_LETTERS.drain } },
+];
+
 const HVAC_LABEL: Record<(typeof HVAC_KINDS)[number], string> = {
   supply: 'Supply register',
   return: 'Return register',
@@ -162,7 +179,9 @@ export const SYSTEM_SYMBOLS: readonly SystemSymbol[] = [
     (k): SystemSymbol => ({ id: `fixture.${k}`, group: 'plumbing', label: FIXTURE_LABEL[k], glyph: { kind: 'outline' } }),
   ),
   { id: 'tile_shower', group: 'plumbing', label: 'Tile shower', glyph: { kind: 'outline' } },
-  { id: 'utility_point', group: 'plumbing', label: 'Utility point', glyph: { kind: 'diamond' } },
+  ...UTILITY_SYMBOLS.map(
+    (u): SystemSymbol => ({ id: `utility_point.${u.id}`, group: 'plumbing', label: u.label, glyph: u.glyph }),
+  ),
   { id: 'blocking', group: 'walls', label: 'Grab-bar blocking', glyph: { kind: 'register', diagonals: 2 } },
   { id: 'panel', group: 'electrical', label: 'Electrical panel', glyph: { kind: 'hatch' } },
   ...DEVICE_KINDS.filter((k) => DEVICE_GROUP[k] !== 'ceiling').map(
@@ -215,8 +234,9 @@ export function symbolIdOf(o: ModelObject): string | null {
       return `hvac.${o.data.attributes.kind}`;
     case 'access':
       return `access.${o.data.attributes.kind}`;
-    case 'tile_shower':
     case 'utility_point':
+      return `utility_point.${utilitySymbolId(o as UtilityPointObject)}`;
+    case 'tile_shower':
     case 'blocking':
     case 'panel':
     case 'soffit':

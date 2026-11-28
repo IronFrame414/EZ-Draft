@@ -67,6 +67,8 @@ export const feature: EditorFeature = {
           showObject={plan.handle.showObject}
           layers={layers}
           floors={ctx.floors}
+          // EZD-610: the Defaults the Selected circuit block's voltage drop threshold is read from.
+          projectDefaults={ctx.defaults}
           // EZD-604: New circuit, rename and the circuit fields with Edit model, paused while view only.
           // EZD-606: the project the Existing panel dialog reads panel photos for.
           edit={

@@ -85,7 +85,8 @@ export default {
     // with --storage-state), not the /dev/entry/field placeholder.
     { id: 'js-size:field-pack', url: '/projects/{project}/field' },
     { id: 'js-size:field-measure', url: '/projects/{project}/field-measure' },
-    { id: 'js-size:client-link', url: '/dev/entry/client' },
+    // EZD-1202: the real client link page; a token that is no link opens it signed out with the same page code.
+    { id: 'js-size:client-link', url: '/c/not-a-token' },
     // EZD-1995 (AC-EZD-1995-3): the screen messages inside the same pages' HTML.
     { id: 'inline-messages:projects-settings', url: '/dev/entry/office' },
     { id: 'inline-messages:editor', url: '/dev/benchmark-plan' },
@@ -93,7 +94,7 @@ export default {
     { id: 'entry-contents:editor', url: '/dev/entry/editor' },
     { id: 'entry-contents:field-pack', url: '/projects/{project}/field' },
     { id: 'entry-contents:field-measure', url: '/projects/{project}/field-measure' },
-    { id: 'entry-contents:client-link', url: '/dev/entry/client' },
+    { id: 'entry-contents:client-link', url: '/c/not-a-token' },
     { id: 'entry-contents:sign-in', url: '/sign-in' },
     // EZD-235b Build step 10: the worker check runs on the perf probe page (no new page).
     { id: 'long-tasks-worker-job', url: '/dev/perf-probe?inject=worker-job' },

@@ -35,6 +35,8 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   // EZD-1201: the share link functions (authenticated) and the share link status (anon only);
   // sweep_share_link_reminders is service_role only.
   { fn: 'resolve_share_link', args: { p_token_hash: null, p_view: null } },
+  // EZD-1202: the client page's fields (anon only).
+  { fn: 'client_page', args: { p_token_hash: null } },
   { fn: 'renew_share_link', args: { p_sent_package: null, p_expiry_days: null, p_ip: null } },
   { fn: 'revoke_share_link', args: { p_sent_package: null } },
   { fn: 'list_share_links', args: { p_project: null } },

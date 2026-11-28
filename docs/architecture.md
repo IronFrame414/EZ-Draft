@@ -552,6 +552,21 @@ EZD-012a, EZD-012b (vault/plans/EZD-012b.md Step 6); 04 Frame and visual system 
 - The left panel and the inspector `<aside>` render only when their label (`leftPanelLabel`, `inspectorLabel`) is given; an aside always has a label (EZD-120c).
 - The shell adds no pointer, scroll or resize listener, except the rail's own (EZD-230 below).
 
+### Editor features (EZD-1921)
+
+EZD-1910 to EZD-1918; editor consolidation plan `vault/plans/editor-consolidation-2026-11-23.md` 5.3 and 5.4. How the editor grows without one hot file.
+
+- **The rule.** A new mode, tool, inspector kind, left-panel section or ceiling drawer adds a file in its registry folder and never edits `ProjectEditor.tsx`. `ProjectEditor.tsx` opens the session and maps each slot from the registry; the ceiling tools' click receivers it still wires by hand move out with EZD-1914.
+- **Registry folders.** One file per entry, each exporting the folder's named value:
+  - `app/src/editor/features/<name>.tsx` exports `feature: EditorFeature` (`features/types.ts`): a mode, screen, dialog or header, status, rail or key part (built, EZD-1910 to EZD-1913c);
+  - `app/src/editor/ceiling/tools/` one click receiver per ceiling tool (EZD-1914);
+  - `app/src/editor/inspector/kinds/` one inspector kind per object type (EZD-1915);
+  - `app/src/editor/layers/sections/` one left-panel section (EZD-1916);
+  - `app/src/editor/ceiling/draw/` one ceiling drawer per RCP item kind (EZD-1917).
+  Until a folder's ticket is merged the old file (`InspectorPanel.tsx`, `LeftPanel.tsx`, `rcp.ts`, `DrawingTools.tsx`) is still where that work goes; the folder's ticket moves it.
+- **Generated index.** Each folder's `index.generated.ts` is written by `node app/tools/gen-registry.mjs` (`pnpm --filter app gen:registry`) from the folder listing, sorted, so two branches that add different files produce the same index and a merge conflict is settled by running the script again. `--check` (and `features/index.generated.test.ts`) fails when an index is stale or when anything it imports reaches `app/src/lazy/` statically (EZD-120c B11); a slot loads its lazy part through `shared/lazy-part.tsx`. Never hand-edit an index. A new registry folder adds its entry to `TARGETS` in the script once, in the ticket that makes the folder.
+- **Planners.** Planners never list generated index files in a footprint: a plan names the new entry file (or `<folder>/<new>`), and the builder runs the script. Only the ticket that creates a registry folder lists its index.
+
 ### Typed dimension bar (EZD-209)
 
 - Files: `packages/geometry/src/turn.ts` (`parseTurnAngle`, `resolveTurnDirection`), `app/src/editor/typed-entry/typed-entry.ts` (pure reducer, field consts, `isOpenKey`, `isTypingTarget`), `TypedEntryLayer.tsx` and its CSS module. Not mounted in the real editor; EZD-210 mounts it with the first real tools.
@@ -1387,7 +1402,7 @@ EZD-034 (vault/plans/EZD-034.md Steps 1-13); 11 Security and audit; Q-0175 (b); 
 - **Rules** (Q-0243 (c)): Supabase Auth's captcha (Cloudflare Turnstile) stays off locally and in every test (`[auth.captcha]` in `supabase/config.toml` stays commented out); no test loads Cloudflare's script or calls Cloudflare (CLAUDE.md rule 6). With Auth's captcha off, Auth ignores any token. The app never verifies a token itself; Auth does.
 - **Site key.** `captchaConfig(env)` (`app/src/server/auth/captcha-config.ts`) reads `TURNSTILE_SITE_KEY` per request and trims it; empty or unset is `null`: no widget, no `captcha_token` field, step-1 buttons enabled as before. Otherwise `{ siteKey, scriptUrl: TURNSTILE_SCRIPT_URL }`, passed to `SignInForm` as a prop (not `NEXT_PUBLIC_`, which is inlined at build).
 - **Widget and token field.** `Captcha` (`app/src/components/auth/Captcha.tsx`) loads the provider's script itself (explicit render, not `next/script`), renders the widget below the password box in the device's sign-in language and hands the token to `SignInForm`, which sends it as the hidden step-1 field `captcha_token` and keeps the three step-1 buttons disabled until a token exists. Tokens are single-use, so the widget resets after every step-1 answer. A failed script load shows `error.captcha_unavailable`. Step 2 (the code) and `/auth/confirm` have no check.
-- **Actions.** `requestSignIn` and `signInWithPassword` pass `captcha_token` to Auth as `captchaToken`. An Auth refusal is matched on the error code `captcha_failed` only, never on HTTP 400 alone, and is answered `captcha_failed` (`error.captcha_failed`), not reported to Sentry. On a password sign-in it settles the slot (Q-0251 (a)); on a code request it still counts and sets no `ezd_sign_in_email` cookie (Q-0252).
+- **Actions.** `requestSignIn` and `signInWithPassword` pass `captcha_token` to Auth as `captchaToken`. An Auth refusal is matched on the error code `captcha_failed` only, never on HTTP 400 alone, and is answered `captcha_failed` (`error.captcha_failed`), not reported to Sentry. On a password sign-in it settles the slot (Q-0251 (a)); on a code request it sets no `ezd_sign_in_email` cookie (Q-0252) and, since EZD-2019 (audit 2026-11-27 X1), settles only the per-email row: the per-address row stays counted, and the per-email limit (5 sign-in emails in 1 hour) counts only rows still marked failed, so junk tokens cannot use up a member's emails.
 - **Test page.** `/dev/captcha` (not found in production) shows the step-1 form with Cloudflare's always-pass test site key `TURNSTILE_TEST_SITE_KEY` and the same-origin stub script `GET /dev/captcha/stub` (`DEV_CAPTCHA_STUB_URL`, 404 in production), which sets `window.turnstile` and `window.__captchaStub`; tokens are issued only by `__captchaStub.issue()`.
 - **Cloudflare's host** `challenges.cloudflare.com` is named in `app/src` only in `captcha-config.ts`.
 - **Hand check.** `scripts/auth/captcha-check.mjs`, run by Josh by hand (`docs/runbook.md` `## Captcha (EZD-034)` step 5), refused under `CI`, never in a root script or the gate: it asks Auth for a sign-in code without a token and passes only on HTTP 400 `captcha_failed`.

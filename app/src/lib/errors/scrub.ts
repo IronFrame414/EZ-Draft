@@ -9,6 +9,9 @@
 const UUID = /\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/g;
 const TOKEN_RUN = /[A-Za-z0-9_-]{24,}/g;
 const CODE_DIGITS = /\b(?:\d{8}|\d{6})\b/g;
+// EZD-1202 (Settled "Where the page and its data come from": /c/ paths are redacted): the client link path's token,
+// whatever its letters, before TOKEN_RUN (which keeps a run with no digit).
+const CLIENT_LINK = /\/c\/[A-Za-z0-9_-]+/g;
 
 // D5: exactly the code units JavaScript `\s` matches.
 function isSpace(c: number): boolean {
@@ -127,6 +130,7 @@ function replaceEmails(s: string): string {
 export function scrubText(s: string): string {
   return replaceEmails(dropUrlTails(s))
     .replace(UUID, '<uuid>')
+    .replace(CLIENT_LINK, '/c/<token>')
     .replace(TOKEN_RUN, (run) => (/[A-Za-z]/.test(run) && /\d/.test(run) ? '<token>' : run))
     .replace(CODE_DIGITS, '<code>');
 }
