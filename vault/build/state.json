@@ -2821,13 +2821,13 @@
     }
   ],
   "set_aside": {
-    "EZD-2014": {
-      "title": "Fix: password recovery email T7 not found within 10 s under load (EZD-033)",
-      "ts": "2026-11-28T09:23:32Z",
-      "reason": "develop kept moving: 3 merge rounds (first try: check red after merging newer develop)",
-      "detail": "",
-      "branch": "t/EZD-2014",
-      "worktree": ".claude/worktrees/EZD-2014"
+    "EZD-1921": {
+      "title": "Re-validate open editor plans and document the registry for planners",
+      "ts": "2026-11-28T10:04:15Z",
+      "reason": "squash merge failed (first try: check red after a review fix)",
+      "detail": "error: Your local changes to the following files would be overwritten by merge:\n\tvault/lessons/planner.md\nPlease commit your changes or stash them before you merge.\nAborting",
+      "branch": "t/EZD-1921",
+      "worktree": ".claude/worktrees/EZD-1921"
     }
   },
   "red_streak": 0,
@@ -3170,17 +3170,17 @@
       "started": "2026-11-28T07:42:44Z",
       "develop": "af80ee572"
     },
-    "EZD-1921": {
-      "lane": 1,
-      "title": "Re-validate open editor plans and document the registry for planners",
-      "started": "2026-11-28T08:26:05Z",
-      "develop": "a764a31db"
-    },
     "EZD-2041": {
       "lane": 4,
       "title": "Fix: sweep test T2 (c) sees 2 runs for one job at random (EZD-009)",
       "started": "2026-11-28T08:58:22Z",
       "develop": "49e5514c4"
+    },
+    "EZD-2042": {
+      "lane": 2,
+      "title": "Fix: Settings Catalog page shows its settings card twice (two main landmarks, EZD-614)",
+      "started": "2026-11-28T09:23:32Z",
+      "develop": "73dbd4e8c"
     }
   },
   "advisories_checked_at": "2026-11-28T04:30:44Z",
@@ -3235,7 +3235,14 @@
       "set_aside_ts": "2026-11-28T02:52:47Z",
       "retried_ts": "2026-11-28T02:59:32Z",
       "by": "overwatch"
+    },
+    {
+      "ticket": "EZD-2014",
+      "reason": "develop kept moving: 3 merge rounds (first try: check red after merging newer develop)",
+      "set_aside_ts": "2026-11-28T09:23:32Z",
+      "retried_ts": "2026-11-28T09:29:13Z",
+      "by": "overwatch"
     }
   ],
-  "backups_checked_at": "2026-11-27T09:59:34Z"
+  "backups_checked_at": "2026-11-28T10:00:06Z"
 }
