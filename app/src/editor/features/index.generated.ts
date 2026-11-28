@@ -2,9 +2,13 @@
 // `node app/tools/gen-registry.mjs` after adding or removing a file.
 import type { EditorFeature } from './types';
 import { feature as cabinets } from './cabinets';
+import { feature as ceiling } from './ceiling';
 import { feature as countertops } from './countertops';
+import { feature as electrical } from './electrical';
 
 export const features: readonly EditorFeature[] = [
   cabinets,
+  ceiling,
   countertops,
+  electrical,
 ].sort((a, b) => a.order - b.order);

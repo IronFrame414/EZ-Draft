@@ -6,9 +6,18 @@
 //   inspector > the Fixtures panel (EZD-1985) > the selection inspector with More;
 // - status bar: Sheets' own items, or the plan's items with the active features' items placed by `order` between
 //   the fixed ones (STATUS_START_ORDER, STATUS_END_ORDER).
+// EZD-1913b: Ceiling and Electrical moved into features/ too. Their places: the plan layer (under the plan's own
+// layers), the state column's last row, the left panel's props (segment, ceiling and electrical sections), the
+// selection inspector's props, and status items at the ceiling view (300), electrical (400) and joists (600) places.
+// Each listed feature's `usePage` runs on every render (useFeaturePages).
 import { Fragment, useEffect, useRef, type ReactNode } from 'react';
 import type { MessageKey } from '../../server/messages/catalog';
-import type { EditorFeature, EditorFeatureContext } from '../features/types';
+import type {
+  EditorFeature,
+  EditorFeatureContext,
+  FeatureInspectorProps,
+  FeatureLeftPanelProps,
+} from '../features/types';
 
 /** Which screen the editor shows: the 3D view, the Sheets screen, or the plan canvas (up and not failed). */
 export type EditorScreen = {
@@ -20,7 +29,15 @@ export type EditorScreen = {
 /** A part ProjectEditor can show now, or null when it cannot (its inputs are not there). */
 export type Part = (() => ReactNode) | null;
 
-type FeatureSlot = 'leftPanel' | 'inspector' | 'overlay' | 'statusStart' | 'statusEnd' | 'header';
+type FeatureSlot =
+  | 'leftPanel'
+  | 'inspector'
+  | 'overlay'
+  | 'statusStart'
+  | 'statusEnd'
+  | 'header'
+  | 'planLayer'
+  | 'stateRow';
 
 /** The features on now, lower `order` first. */
 export function activeFeatures(
@@ -57,6 +74,34 @@ export function featureParts(
     if (filled(n)) out.push(<Fragment key={f.id}>{n}</Fragment>);
   }
   return out;
+}
+
+/**
+ * EZD-1913b: runs each listed feature's `usePage`, in list order, and returns what each gave, by feature id. `list` is
+ * the generated feature list, which never changes while the page lives, so the hooks keep their order.
+ */
+export function useFeaturePages(
+  list: readonly EditorFeature[],
+  ctx: EditorFeatureContext,
+): ReadonlyMap<string, unknown> {
+  const own = new Map<string, unknown>();
+  for (const f of list) if (f.usePage !== undefined) own.set(f.id, f.usePage(ctx));
+  return own;
+}
+
+/** EZD-1913b: the props the active features give a panel; where two give the same prop, the lower order's stands. */
+export function featureProps<K extends 'leftPanelProps' | 'inspectorProps'>(
+  active: readonly EditorFeature[],
+  slot: K,
+  ctx: EditorFeatureContext,
+): K extends 'leftPanelProps' ? FeatureLeftPanelProps : FeatureInspectorProps {
+  const out: Record<string, unknown> = {};
+  for (const f of active) {
+    const props = (f[slot] as ((c: EditorFeatureContext) => object) | undefined)?.(ctx) ?? {};
+    for (const [k, v] of Object.entries(props))
+      if (out[k] === undefined && v !== undefined) out[k] = v;
+  }
+  return out as K extends 'leftPanelProps' ? FeatureLeftPanelProps : FeatureInspectorProps;
 }
 
 /** True while an active feature's screen covers the plan (the plan's edit keys and zoom are off, EZD-404). */
@@ -101,7 +146,9 @@ export function inspectorSlot(
   // EZD-5603a: an open Assistant takes the inspector place on every screen.
   if (parts.assistant !== null) return { part: parts.assistant(), label: 'office.assistant.title' };
   const part = inspectorPart(screen, active, ctx, parts);
-  return filled(part) ? { part, label: 'office.shell.inspector' } : { part: null, label: undefined };
+  return filled(part)
+    ? { part, label: 'office.shell.inspector' }
+    : { part: null, label: undefined };
 }
 
 function inspectorPart(
@@ -118,7 +165,11 @@ function inspectorPart(
   return parts.selection?.() ?? null;
 }
 
-/** Where the plan's own status start items sit; a feature's item sits by its `order` among them. */
+/**
+ * Where the plan's own status start items sit; a feature's item sits by its `order` among them. EZD-1913b: the
+ * Ceiling and Electrical features fill the ceilingView, electrical and joists places (features/ceiling.tsx,
+ * features/electrical.tsx); ProjectEditor passes none of those three.
+ */
 export const STATUS_START_ORDER = {
   floorSwitcher: 0,
   ceilingView: 300,
@@ -148,7 +199,12 @@ function placed(
   }));
   for (const f of active) {
     const fill = f[slot];
-    if (fill !== undefined) items.push({ order: f.order, key: `feature:${f.id}`, part: () => fill(ctx) });
+    if (fill !== undefined)
+      items.push({ order: f.order, key: `feature:${f.id}`, part: () => fill(ctx) });
+    if (slot === 'statusStart')
+      (f.statusStartItems ?? []).forEach((item, i) =>
+        items.push({ order: item.order, key: `feature:${f.id}:${i}`, part: () => item.part(ctx) }),
+      );
   }
   // Stable: a fixed item comes before a feature of the same order.
   items.sort((a, b) => a.order - b.order);
@@ -162,7 +218,11 @@ function placed(
   );
 }
 
-export type StatusStartParts = { [K in keyof typeof STATUS_START_ORDER]: Part };
+type FeatureFilled = 'ceilingView' | 'electrical' | 'joists';
+
+export type StatusStartParts = {
+  [K in Exclude<keyof typeof STATUS_START_ORDER, FeatureFilled>]: Part;
+} & { [K in FeatureFilled]?: Part };
 
 /** The status bar's start: Sheets' items, or the plan's items once its scale and phase are read; else nothing. */
 export function statusStartSlot(
