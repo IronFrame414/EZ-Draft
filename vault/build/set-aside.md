@@ -3,7 +3,38 @@
 Tickets that failed twice (a first failure is retried automatically). These need Josh. Each keeps its branch and worktree.
 To retry one, run `node scripts/loop.mjs --retry <ticket>` (the loop picks it up again).
 
-None.
+## EZD-2045 · The sink draws a single basin
+- When: 2026-11-28T17:54:51Z
+- Reason: check red after merging newer develop (first try: check red after merging newer develop)
+- Branch: t/EZD-2045 · worktree: .claude/worktrees/EZD-2045
+- Last output:
+```
+results/traffic-EZD-353-traffic-ca-45f5b-ltime-token-is-fetched-once-desktop/error-context.md
+    Error: auth createUser failed: Database error creating new user
+    > 119 |     if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);
+    test-results/upload-step-EZD-301-Upload-aa0a9-d-byte-identical-AC-1-AC-2--desktop/test-failed-1.png
+    Error Context: test-results/upload-step-EZD-301-Upload-aa0a9-d-byte-identical-AC-1-AC-2--desktop/error-context.md
+    Error Context: test-results/upload-step-EZD-301-Upload-aa0a9-d-byte-identical-AC-1-AC-2--desktop/error-context.md
+    Error: auth createUser failed: Database error creating new user
+    > 119 |     if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);
+    test-results/upload-step-EZD-301-Upload-3da36-rd-directly-with-Blank-only-desktop/test-failed-1.png
+    Error Context: test-results/upload-step-EZD-301-Upload-3da36-rd-directly-with-Blank-only-desktop/error-context.md
+    Error Context: test-results/upload-step-EZD-301-Upload-3da36-rd-directly-with-Blank-only-desktop/error-context.md
+    Error: auth createUser failed: Database error creating new user
+    > 119 |     if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);
+    test-results/version-cleanup-EZD-123-ve-bc6e3-apshot-and-deletes-the-rest-desktop/test-failed-1.png
+    Error Context: test-results/version-cleanup-EZD-123-ve-bc6e3-apshot-and-deletes-the-rest-desktop/error-context.md
+    Error Context: test-results/version-cleanup-EZD-123-ve-bc6e3-apshot-and-deletes-the-rest-desktop/error-context.md
+    Error: auth createUser failed: Database error creating new user
+    > 119 |     if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);
+    test-results/version-cleanup-EZD-123-ve-c72bc-t-Edit-model-it-never-shows-desktop/test-failed-1.png
+    Error Context: test-results/version-cleanup-EZD-123-ve-c72bc-t-Edit-model-it-never-shows-desktop/error-context.md
+    Error Context: test-results/version-cleanup-EZD-123-ve-c72bc-t-Edit-model-it-never-shows-desktop/error-context.md
+    Error: auth createUser failed: Database error creating new user
+    > 119 |     if (error || !data.user) throw new Error(`auth createUser failed: ${error?.message}`);
+    test-results/versions-panel-EZD-122-Ver-4b4fb--reloads-the-chosen-version-desktop/test-failed-1.png
+    Error Context: test-results/versions-panel-EZD-122-Ver-4b4fb--reloads-the-chosen-ve
+```
 
 ## History (last 20 retries)
 
