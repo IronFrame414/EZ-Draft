@@ -47,6 +47,8 @@ export const es = {
     'Puede que haya vencido, que ya se haya usado o que se haya cancelado. Pide a quien te invitó que vuelva a enviar la invitación.',
   'common.invite.failed': 'No se pudo aceptar la invitación. Inténtalo de nuevo.',
   'common.invite.to_sign_in': 'Ir a iniciar sesión',
+  'common.invite.code_locked':
+    'Demasiados códigos incorrectos, así que tu código de invitación está bloqueado. Este enlace sigue funcionando: presiona Aceptar para unirte.',
   'common.sign_in.title': 'Inicia sesión en EZ Draft',
   'common.sign_in.email_label': 'Correo electrónico',
   'common.sign_in.send': 'Envíame un enlace de acceso por correo',

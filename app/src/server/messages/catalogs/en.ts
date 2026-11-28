@@ -71,6 +71,8 @@ export const en = {
     'It may have expired, been used or been cancelled. Ask the person who invited you to resend the invite.',
   'common.invite.failed': "Couldn't accept the invite. Try again.",
   'common.invite.to_sign_in': 'Go to sign in',
+  'common.invite.code_locked':
+    'Too many wrong codes, so your invite code is locked. This link still works: press Accept to join.',
   'common.terms.title': 'Terms of service',
   'common.terms.no_certification':
     'EZ Draft does not certify that any drawing, calculation or plan complies with building, electrical or other codes.',

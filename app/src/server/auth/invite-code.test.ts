@@ -4,7 +4,8 @@
 // mocked: a success is a rejection whose digest names the target. Expected values: the invite is accepted and
 // the person is signed in to the company, landing on /; the same code then refuses (single use); unknown email,
 // no invite and wrong code get the one same answer; 4 wrong then right is accepted; 5 wrong lock the code
-// (W10) until Resend while the link still works; 30 failed tries from one address refuse with ip_throttled
+// until Resend while the link still works, and the locked code answers invite_code_invalid too (EZD-2021, audit
+// X4: a signed-out caller cannot tell a locked invite from none); 30 failed tries from one address refuse with ip_throttled
 // (architecture "Password sign-in (EZD-033)": 30 per IP in 15 minutes).
 import { randomInt } from 'node:crypto';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -184,14 +185,15 @@ describe('EZD-138 acceptInviteCode', () => {
     expect((await statusOf(m.membershipId)).status).toBe('active');
   }, 60000);
 
-  it('C4 09n row 2: five wrong codes lock the code (W10) until Resend; the link still works', async () => {
+  it('C4 09n row 2: five wrong codes lock the code until Resend, answered as invalid (EZD-2021 X4); the link still works', async () => {
     const m = await invite();
     const code = inviteCode(m.secret);
     for (let i = 0; i < 4; i += 1) {
       expect(await submit(m.email, wrong(code))).toEqual({ error: 'invite_code_invalid' });
     }
-    expect(await submit(m.email, wrong(code))).toEqual({ error: 'invite_code_locked' });
-    expect(await submit(m.email, code)).toEqual({ error: 'invite_code_locked' });
+    expect(await submit(m.email, wrong(code))).toEqual({ error: 'invite_code_invalid' });
+    // The right code is still refused (locked), with the same answer as a wrong one.
+    expect(await submit(m.email, code)).toEqual({ error: 'invite_code_invalid' });
     expect(await statusOf(m.membershipId)).toMatchObject({ status: 'invited', tries: 5 });
     expect(state.store.size).toBe(0);
 
@@ -205,7 +207,7 @@ describe('EZD-138 acceptInviteCode', () => {
     const m = await invite();
     const old = inviteCode(m.secret);
     await harnessSql()`update public.invite set code_tries = 5 where membership_id = ${m.membershipId}::uuid`;
-    expect(await submit(m.email, old)).toEqual({ error: 'invite_code_locked' });
+    expect(await submit(m.email, old)).toEqual({ error: 'invite_code_invalid' });
     const secret = newInviteSecret();
     const { error } = await so.serverDb.rpc('resend_invite', {
       p_membership_id: m.membershipId,

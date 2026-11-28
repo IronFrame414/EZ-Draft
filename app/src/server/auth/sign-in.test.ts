@@ -376,13 +376,20 @@ describe('EZD-007d sign-in actions and invite acceptance', () => {
     const unknown2 = `nobody-${randomUUID().slice(0, 12)}@example.test`;
     const before = new Date();
     const answers: unknown[] = [];
-    for (const email of [member.email, member.email, unknown2, unknown2]) {
+    // EZD-2021: every answer now waits the minimum answer time (X9), longer than Auth's 1 s send spacing, so
+    // the second member request starts as soon as the first email has arrived, while the first still waits.
+    const first = run(newStore(), () => requestSignIn(form({ email: member.email })));
+    await waitForAuthEmail(member.email, { after: before });
+    const second = run(newStore(), () => requestSignIn(form({ email: member.email })));
+    for (const out of await Promise.all([first, second])) {
+      answers.push((out as { resolved?: unknown }).resolved);
+    }
+    for (const email of [unknown2, unknown2]) {
       const out = await run(newStore(), () => requestSignIn(form({ email })));
       answers.push((out as { resolved?: unknown }).resolved);
     }
     sent(member.email);
     for (const a of answers) expect(a).toEqual({ step: 'code' });
-    await waitForAuthEmail(member.email, { after: before });
     await fence();
     expect(await countAuthEmails(member.email, { after: before })).toBe(1);
     expect(await countAuthEmails(unknown2)).toBe(0);

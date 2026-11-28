@@ -1,7 +1,7 @@
 // EZD-138 browser tests (AC-EZD-138-1, -2, -3, -4, -5), desktop 1600 x 1000. Expected values: board S15j and its
 // approved wording (pending row "Code 482 913" after Copy link for the last sender and Owners, nothing for anyone
 // else with the Users switch; "Have an invite code?", "Join with an invite code", "Invite code", "Join", "Back to
-// sign in", W9 one message, W10 locked); Q-0216 (last sender and Owners); Q-0695 decisions 10 row 61 (shown
+// sign in", W9 one message; EZD-2021: a locked code answers W9 too and the lock shows on the link's page); Q-0216 (last sender and Owners); Q-0695 decisions 10 row 61 (shown
 // again after a reload, the invitee lands on Projects, single use, five wrong codes lock the code); Q-0035 (no
 // everyday sign-in code or link is shown). Each test makes its own tenant.
 import type { Page } from '@playwright/test';
@@ -19,8 +19,9 @@ import { addUser, hex8, PRESET_KEYS } from '../test-harness/users/fixtures';
 const tid = (page: Page, id: string) => page.getByTestId(id);
 const pendingRow = (page: Page) => page.locator('[data-testid="user-row"][data-status="invited"]');
 const W9 = "That email and code don't match an open invite. Check both and try again.";
-const W10 =
-  'Too many wrong codes. This code is locked. Ask the person who invited you to resend the invite.';
+// EZD-2021 (audit X4): the lock shows only on the emailed link's page (wording for Josh to confirm).
+const LOCKED_ON_LINK =
+  'Too many wrong codes, so your invite code is locked. This link still works: press Accept to join.';
 
 async function statusOf(email: string): Promise<string | null> {
   const rows = await harnessSql()<{ status: string }[]>`
@@ -176,7 +177,7 @@ test.describe('EZD-138 invite link and code', () => {
     }
   });
 
-  test('V3 the fifth wrong code locks the code (W10) and Join stays off until a field changes (AC-4)', async ({
+  test('V3 the fifth wrong code locks the code but answers W9 like any wrong code; the emailed link shows the lock and still accepts (AC-4; EZD-2021 AC-1)', async ({
     page,
     sessions,
   }) => {
@@ -184,7 +185,7 @@ test.describe('EZD-138 invite link and code', () => {
     const owner = await addUser(tenant, { preset: 'owner', name: 'Cy Owner' });
     const [so] = await sessions.open([owner.email]);
     const email = `omar.${hex8()}@example.com`;
-    const { code } = await sendInvite(so.page, email);
+    const { link, code } = await sendInvite(so.page, email);
     const digits = code.replace(' ', '');
     const wrong = String((Number(digits) + 1) % 1_000_000).padStart(6, '0');
     // Four wrong codes already typed.
@@ -196,14 +197,21 @@ test.describe('EZD-138 invite link and code', () => {
     await tid(page, 'invite-code-code').fill(wrong);
     await tid(page, 'invite-code-submit').click();
     await expect(tid(page, 'invite-code-form')).toHaveAttribute('data-tries', '1');
-    await expect(tid(page, 'invite-code-error')).toHaveText(W10);
-    await expect(tid(page, 'invite-code-submit')).toBeDisabled();
-    await tid(page, 'invite-code-code').fill(digits);
+    // Signed out, a locked code answers as a wrong code (audit X4): nothing tells that an invite exists.
+    await expect(tid(page, 'invite-code-error')).toHaveText(W9);
     await expect(tid(page, 'invite-code-submit')).toBeEnabled();
+    await tid(page, 'invite-code-code').fill(digits);
     await tid(page, 'invite-code-submit').click();
     await expect(tid(page, 'invite-code-form')).toHaveAttribute('data-tries', '2');
-    await expect(tid(page, 'invite-code-error')).toHaveText(W10);
+    await expect(tid(page, 'invite-code-error')).toHaveText(W9);
     expect(await statusOf(email)).toBe('invited');
+
+    // The invitee who follows the emailed link sees the lock, and Accept still joins.
+    await page.goto(new URL(link).pathname);
+    await expect(tid(page, 'invite-code-locked')).toHaveText(LOCKED_ON_LINK);
+    await tid(page, 'invite-accept').click();
+    await page.waitForURL((u) => u.pathname === '/');
+    expect(await statusOf(email)).toBe('active');
   });
 
   test('V4 no everyday sign-in code or link of another person is on the Users page or in its API answer (AC-3)', async ({

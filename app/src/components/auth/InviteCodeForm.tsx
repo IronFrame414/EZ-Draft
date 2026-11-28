@@ -2,9 +2,10 @@
 // EZD-138 (S15 board S15j "Invite code · open", "Wrong email or wrong code · one message", "Locked after 5 wrong
 // codes"; Q-0695 decisions 10 row 61; Q-0216): "Join with an invite code" on /sign-in. The invitee types the
 // email the invite was sent to and the 6-digit code; Join accepts the invite and lands on Projects signed in.
-// One message for a wrong email or a wrong code (W9); a locked code (W10) keeps Join off until the email or the
-// code is changed. Next's redirect after the accept is rethrown, never caught.
-import { useActionState, useState } from 'react';
+// One message for a wrong email or a wrong code (W9). EZD-2021 (audit 2026-11-27 X4; AC-EZD-2021-1): a locked
+// code gets that same message here (the lock shows only on the emailed link's page), so Join is never held off.
+// Next's redirect after the accept is rethrown, never caught.
+import { useActionState } from 'react';
 import { unstable_rethrow } from 'next/navigation';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
@@ -13,7 +14,6 @@ import styles from './auth.module.css';
 
 type InviteCodeError =
   | 'invite_code_invalid'
-  | 'invite_code_locked'
   | 'code_throttled'
   | 'ip_throttled'
   | 'unavailable'
@@ -50,10 +50,6 @@ export function InviteCodeForm({
     typedEmail: null,
     tries: 0,
   });
-  // The try whose locked answer was changed (email or code edited): Join is on again.
-  const [editedAfter, setEditedAfter] = useState(0);
-  const locked = state.error === 'invite_code_locked' && editedAfter !== state.tries;
-  const edited = () => setEditedAfter(state.tries);
 
   return (
     <form
@@ -85,7 +81,6 @@ export function InviteCodeForm({
         inputMode="email"
         required
         defaultValue={state.typedEmail ?? initialEmail ?? ''}
-        onChange={edited}
         data-testid="invite-code-email"
       />
       <label className={styles.label} htmlFor="invite-code-code">
@@ -99,13 +94,12 @@ export function InviteCodeForm({
         autoComplete="one-time-code"
         maxLength={7}
         required
-        onChange={edited}
         data-testid="invite-code-code"
       />
       <button
         type="submit"
         className={styles.primary}
-        disabled={pending || locked}
+        disabled={pending}
         data-testid="invite-code-submit"
       >
         {t('common.sign_in.invite_code_submit')}

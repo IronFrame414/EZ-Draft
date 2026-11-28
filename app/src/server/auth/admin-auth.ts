@@ -32,7 +32,8 @@ function adminClient(): SupabaseClient<Database> {
 }
 
 const statusSchema = z.union([
-  z.object({ live: z.literal(true), companyName: z.string() }),
+  // EZD-2021: codeLocked, five wrong invite codes used (until Resend); the link itself still accepts.
+  z.object({ live: z.literal(true), companyName: z.string(), codeLocked: z.boolean() }),
   z.object({ live: z.literal(false) }),
 ]);
 
