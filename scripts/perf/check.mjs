@@ -15,7 +15,7 @@ import { BUDGETS } from './budgets.mjs';
 import { bundleReport, writeBundleReport } from './bundle-report.mjs';
 import { measureInlineMessages } from './inline-messages.mjs';
 import { measureJsContents } from './js-contents.mjs';
-import { measureCssSize, measureJsSize } from './js-size.mjs';
+import { measureCssSize, measureDocumentSize, measureJsSize } from './js-size.mjs';
 import { frameStats, runPan } from './pan-script.mjs';
 import { runWorkerJob, workerJobInput } from './worker-job.mjs';
 import { laneAppPorts, readLane } from '../db/lane.mjs';
@@ -121,11 +121,36 @@ export function fillUrl(url, project) {
   return project ? url.split(PROJECT_TOKEN).join(project) : null;
 }
 
+/** EZD-2000: the sessions a config row may name; a `{project}` row with none opens with the field session. */
+export const SESSIONS = ['office'];
+
+/** EZD-2000: the storage state a signed-in row opens with: the office session for `session: 'office'`. */
+function stateOf(r, states) {
+  if (!r.signedIn) return undefined;
+  return r.session === 'office' ? states.office : states.field;
+}
+
 /** R1: the registry plus the config's measurements, then --only. */
 function planRows(cfg, only) {
   const rows = MEASUREMENTS.map((m) => ({ ...m, url: undefined }));
   const byId = new Map(rows.map((r) => [r.id, r]));
   for (const entry of cfg.measurements) {
+    // EZD-2000: `session: 'office'` opens the row's page with the office session (--office-storage-state).
+    if (entry.session !== undefined && !SESSIONS.includes(entry.session)) {
+      throw new UsageError(`config entry ${entry.id}: session ${entry.session} is not one of ${SESSIONS.join(', ')}`);
+    }
+    // EZD-2000: an `allow` list names packages a contents row lets through, each with its reason written.
+    if (entry.allow !== undefined) {
+      const ok =
+        entry.id.startsWith('entry-contents:') &&
+        Array.isArray(entry.allow) &&
+        entry.allow.every(
+          (a) => typeof a?.key === 'string' && typeof a?.reason === 'string' && a.reason.trim().length > 0,
+        );
+      if (!ok) {
+        throw new UsageError(`config entry ${entry.id}: allow must be on an entry-contents row, each { key, reason }`);
+      }
+    }
     if (entry.budget !== undefined && !Object.hasOwn(BUDGETS, entry.budget)) {
       throw new UsageError(`config entry ${entry.id}: budget ${entry.budget} is not in BUDGETS`);
     }
@@ -134,6 +159,8 @@ function planRows(cfg, only) {
       known.url = entry.url;
       // EZD-1995: a size row may count the page's HTML document too.
       if (entry.document === true) known.document = true;
+      if (entry.session !== undefined) known.session = entry.session;
+      if (entry.allow !== undefined) known.allow = entry.allow;
       continue;
     }
     if (entry.budget === undefined) {
@@ -153,9 +180,13 @@ function planRows(cfg, only) {
           ? 'css-size'
           : entry.id.startsWith('inline-messages:')
             ? 'inline-messages'
-            : 'js-size',
+            : entry.id.startsWith('document-size:')
+              ? 'document-size'
+              : 'js-size',
       url: entry.url,
       ...(entry.document === true ? { document: true } : {}),
+      ...(entry.session !== undefined ? { session: entry.session } : {}),
+      ...(entry.allow !== undefined ? { allow: entry.allow } : {}),
     };
     rows.push(row);
     byId.set(row.id, row);
@@ -229,7 +260,7 @@ function panInput(id, pan, name) {
 
 const logStack = (e) => process.stderr.write(`${e?.stack ?? e}\n`);
 
-async function collect(browser, profile, baseUrl, panUrl, plan, storageState) {
+async function collect(browser, profile, baseUrl, panUrl, plan, states) {
   const pans = new Map();
   const panProfiles = [
     ...new Set(
@@ -259,7 +290,15 @@ async function collect(browser, profile, baseUrl, panUrl, plan, storageState) {
     } else if (r.url === null) {
       // EZD-1998: the row measures a seeded project's page and the run was given no --project.
       inputs.push({ ...base, error: 'no_project' });
-    } else if (r.collector === 'js-size' || r.collector === 'css-size' || r.collector === 'inline-messages') {
+    } else if (r.session === 'office' && states.office === undefined) {
+      // EZD-2000: the row measures a signed-in office page and the run was given no --office-storage-state.
+      inputs.push({ ...base, error: 'no_office_session' });
+    } else if (
+      r.collector === 'js-size' ||
+      r.collector === 'css-size' ||
+      r.collector === 'inline-messages' ||
+      r.collector === 'document-size'
+    ) {
       if (!r.url) {
         inputs.push({ ...base, error: 'no_url' });
         continue;
@@ -269,9 +308,11 @@ async function collect(browser, profile, baseUrl, panUrl, plan, storageState) {
           ? measureCssSize
           : r.collector === 'inline-messages'
             ? measureInlineMessages
-            : measureJsSize;
+            : r.collector === 'document-size'
+              ? measureDocumentSize
+              : measureJsSize;
       try {
-        const opts = { storageState: r.signedIn ? storageState : undefined, document: r.document === true };
+        const opts = { storageState: stateOf(r, states), document: r.document === true };
         inputs.push({ ...base, ...(await measure(browser, profile, baseUrl, r.url, opts)) });
       } catch (e) {
         logStack(e);
@@ -284,8 +325,8 @@ async function collect(browser, profile, baseUrl, panUrl, plan, storageState) {
       }
       try {
         const entry = r.budget.slice('contents.'.length);
-        const ctx = { browser, profile, baseUrl, storageState: r.signedIn ? storageState : undefined };
-        inputs.push({ ...base, ...(await measureJsContents(ctx, r.url, entry)) });
+        const ctx = { browser, profile, baseUrl, storageState: stateOf(r, states) };
+        inputs.push({ ...base, ...(await measureJsContents(ctx, r.url, entry, r.allow)) });
       } catch (e) {
         logStack(e);
         inputs.push({ ...base, error: 'unexpected_error' });
@@ -427,14 +468,23 @@ export async function runCheck(options) {
     throw new UsageError(`--project ${options.project} is not a project id`);
   }
   for (const r of plan) {
-    // Only the project's pages open signed in; the other pages (sign-in among them) are measured signed out.
-    r.signedIn = typeof r.url === 'string' && r.url.includes(PROJECT_TOKEN);
+    // Only the project's pages and (EZD-2000) office-session rows open signed in; the other pages (sign-in among them)
+    // are measured signed out.
+    r.signedIn = (typeof r.url === 'string' && r.url.includes(PROJECT_TOKEN)) || r.session === 'office';
     r.url = fillUrl(r.url, options.project);
   }
   let storageState;
   if (options.storageState !== undefined) {
     storageState = path.resolve(cwd, options.storageState);
     if (!existsSync(storageState)) throw new UsageError(`--storage-state ${storageState} does not exist`);
+  }
+  // EZD-2000: the signed-in office session (an all-rights member of the seeded project's company).
+  let officeStorageState;
+  if (options.officeStorageState !== undefined) {
+    officeStorageState = path.resolve(cwd, options.officeStorageState);
+    if (!existsSync(officeStorageState)) {
+      throw new UsageError(`--office-storage-state ${officeStorageState} does not exist`);
+    }
   }
   const panUrl = options.panUrl ?? cfg.panUrl;
   const outDir = options.outDir ? path.resolve(cwd, options.outDir) : path.join(cwd, 'perf-results');
@@ -473,7 +523,7 @@ export async function runCheck(options) {
     browser = await chromium.launch({ headless: true });
     results.browser = { name: 'chromium', version: browser.version(), webglRenderer: null };
     results.browser.webglRenderer = await readWebglRenderer(browser);
-    const inputs = await collect(browser, profile, baseUrl, panUrl, plan, storageState);
+    const inputs = await collect(browser, profile, baseUrl, panUrl, plan, { field: storageState, office: officeStorageState });
     const { rows, pass } = evaluate(inputs, BUDGETS, cfg.profile);
     results.measurements = rows;
     results.pass = pass;

@@ -313,3 +313,17 @@ The loop builds eligible tickets in this order: security fix tickets, then the `
 ## Base local database for live UI checks (EZD-1959)
 
 The build lanes use stacks 1-4 (lane 4 since EZD-2001), so the base stack (lane 0, port 54321) falls behind. Before checking signed-in screens against it, run `pnpm db:base` in Terminal from the repo (any checkout). It ends with "Base local database (lane 0, port 54321) is up to date" and exit 0. If it says a lane-0 gate or database reset holds the base stack, wait for that run to end and try again. If it says Docker is not running, start Docker Desktop first. It wipes local data on lane 0 only; lanes 1-4 are never touched.
+
+## Billing (EZD-1711)
+
+Billing is only for other companies. Worth Properties is never billed and never sees any of it. Until the Stripe values below are in Vercel, billing stays off: no Billing page, no paywall, and other companies cannot sign up (EZD-1713).
+
+**Set up Stripe, once:**
+
+1. Make a Stripe account for EZ Draft and turn on Stripe Tax.
+2. In Stripe, add one product "EZ Draft" with two monthly prices: $50 (the plan, 5 office users included) and $10 (each extra office user). Copy each price id (it starts with `price_`).
+3. In Stripe, Settings › Billing › Customer portal: turn on "update payment method", "view invoices" and "cancel subscription".
+4. In Stripe, Developers › Webhooks: add the endpoint `https://ezdraft.ezcontractorbinder.com/api/billing/stripe-webhook` with the events `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`, `customer.subscription.trial_will_end` and `checkout.session.completed`. Copy its signing secret (it starts with `whsec_`).
+5. In Vercel, Production environment variables, add `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_BASE` (the $50 price id) and `STRIPE_PRICE_SEAT` (the $10 price id). Never put these in the repo. Redeploy.
+
+**What a company sees:** a 14-day free trial with no card; a banner with the days left; "Add a card" in Settings › Billing. If a payment fails, a banner asks them to update the card while Stripe retries. If the subscription ends (unpaid, canceled, or the trial ends with no card), they can open and export projects for 14 days, and their client links keep working, but they cannot edit, create, render or send. After 14 days only the paywall shows and their client links say "This link isn't available." Nothing is deleted. Paying again brings everything back.

@@ -214,6 +214,8 @@ describe('EZD-323 test-only database functions', () => {
       .map(rel)
       .sort();
     expect(users).toEqual([
+      // EZD-1711: the Stripe webhook runs billing_apply_subscription, granted to service_role only (it has no member session).
+      'app/src/app/api/billing/stripe-webhook/route.ts',
       'app/src/app/api/dev/notifications/route.ts',
       // EZD-370: the sweep's AI key rewrap (ai-key-rewrap.ts line 26, called from api/jobs/sweep/route.ts line 35) reads every tenant's user_ai_key rows, granted to service_role only (EZD-5601; Q-0638).
       'app/src/server/jobs/ai-key-rewrap.ts',

@@ -35,6 +35,7 @@ export default async function FieldPackPage({
   const session = await requireSession();
   const { id } = await params;
   if (!UUID.test(id)) notFound();
+  // sequential-await: the permission read waits on the same cached session requireSession loaded, so starting it sooner saves nothing (EZD-2000).
   const ctx = await getPermissionContext();
   if (ctx === null || !can(ctx, 'view_projects', { projectId: id })) notFound();
   const client = createSessionClient();

@@ -27,7 +27,7 @@
 // beside Panel schedule, shown with Edit model and disabled while paused. It stores the panel's schedule and load
 // calc on the permit set (one undoable edit) and logs sheet.updated.
 import { DEVICE_KINDS, WIRE_SIZES, type CircuitProtection, type WireSize } from '@ezdraft/geometry';
-import { useMemo, useState, useSyncExternalStore, type ReactElement } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactElement } from 'react';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
@@ -172,6 +172,16 @@ export function ElectricalPanel({
   const circuitId = view.circuit;
   const setCircuitId = (id: string | null) => circuitView.set({ circuit: id });
   const [renaming, setRenaming] = useState<string | null>(null);
+  // Audit 2026-11-27 A21: a rename ended with Enter or Escape puts focus back on its circuit row.
+  const renameBack = useRef<string | null>(null);
+  useEffect(() => {
+    if (renaming !== null || renameBack.current === null) return;
+    const id = renameBack.current;
+    renameBack.current = null;
+    document
+      .querySelector<HTMLElement>(`[data-testid="circuit-row"][data-circuit-id="${CSS.escape(id)}"]`)
+      ?.focus();
+  }, [renaming]);
   const [existingOpen, setExistingOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const projectId = edit?.projectId;
@@ -348,8 +358,12 @@ export function ElectricalPanel({
                       editCircuit(c.id, { field: 'name', text: e.currentTarget.value });
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') e.currentTarget.blur();
-                    else if (e.key === 'Escape') {
+                    if (e.key === 'Enter') {
+                      renameBack.current = c.id;
+                      e.currentTarget.blur();
+                    } else if (e.key === 'Escape') {
+                      e.stopPropagation();
+                      renameBack.current = c.id;
                       e.currentTarget.value = c.name;
                       e.currentTarget.blur();
                     }
@@ -367,6 +381,14 @@ export function ElectricalPanel({
                   onClick={() => chooseCircuit(c.id)}
                   onDoubleClick={() => {
                     if (writable) setRenaming(c.id);
+                  }}
+                  // Audit 2026-11-27 A21: F2 or Enter starts the rename from the keyboard, as a double-click does.
+                  onKeyDown={(e) => {
+                    if (!writable || (e.key !== 'F2' && e.key !== 'Enter')) return;
+                    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+                    e.preventDefault();
+                    if (!on) chooseCircuit(c.id);
+                    setRenaming(c.id);
                   }}
                 >
                   <span className={styles.num} data-testid="circuit-number">

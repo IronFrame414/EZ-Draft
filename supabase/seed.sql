@@ -3,8 +3,9 @@
 -- two files in step (same ids and values, except the email).
 
 -- Worth Properties as tenant 1 (02 Scope "WP as tenant 1"; fixed id EZD-005.md Step 1.2).
-insert into public.tenant (id, name)
-values ('00000000-0000-4000-8000-000000000001', 'Worth Properties');
+-- EZD-1711 (Q-0372): Worth Properties is never billed.
+insert into public.tenant (id, name, billing_exempt)
+values ('00000000-0000-4000-8000-000000000001', 'Worth Properties', true);
 
 -- Josh as owner (02 Users and role presets; Q-0029 (a), Q-0121 (a); example.com test address, Q-0033 (a)).
 insert into public.app_user (id, name, email, language, role_preset)

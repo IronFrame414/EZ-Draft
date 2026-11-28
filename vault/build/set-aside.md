@@ -9,6 +9,11 @@ None.
 
 | Ticket | Set aside | Retried | By | Reason |
 | --- | --- | --- | --- | --- |
+| EZD-1921 | 2026-11-28T10:04:15Z | 2026-11-28T10:29:23Z | overwatch | squash merge failed (first try: check red after a review fix) |
+| EZD-2014 | 2026-11-28T09:23:32Z | 2026-11-28T09:29:13Z | overwatch | develop kept moving: 3 merge rounds (first try: check red after merging newer develop) |
+| EZD-2019 | 2026-11-28T02:52:47Z | 2026-11-28T02:59:32Z | overwatch | check red after merging newer develop (first try: check red after a review fix) |
+| EZD-2021 | 2026-11-28T01:16:32Z | 2026-11-28T01:29:16Z | overwatch | check red after a review fix (first try: check red after merging newer develop) |
+| EZD-2019 | 2026-11-27T23:09:37Z | 2026-11-27T23:29:45Z | overwatch | check red after merging newer develop (first try: check red after a review fix) |
 | EZD-2019 | 2026-11-27T19:09:41Z | 2026-11-27T19:29:19Z | overwatch | develop kept moving: 3 merge rounds (first try: check red after a review fix) |
 | EZD-2030 | 2026-11-27T12:57:50Z | 2026-11-27T12:59:35Z | overwatch | check red after merging newer develop (first try: check red after a review fix) |
 | EZD-2029 | 2026-11-27T11:03:52Z | 2026-11-27T11:14:41Z | overwatch | check red after merging newer develop (first try: check red after merging newer develop) |

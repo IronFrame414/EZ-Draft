@@ -8,6 +8,7 @@
 // the wall that will fill itself shows a grey dash until it is computed.
 import { useRef, type PointerEvent } from 'react';
 import { formatLength } from '@ezdraft/geometry';
+import { spokenLength } from '../a11y/spoken-length';
 import { useT } from '../lib/messages';
 import { CANVAS_H, CANVAS_W, wallsOf, type Pt, type Wall } from './shapes';
 import styles from './FieldMeasure.module.css';
@@ -168,7 +169,15 @@ export function ShapeCanvas({
             type="button"
             className={w.index === selected ? `${styles.letter} ${styles.letterOn}` : styles.letter}
             style={{ left: pct(at.x, VB.x, VB.w), top: pct(at.y, VB.y, VB.h) }}
-            aria-label={t('field.measure.wall', { letter: w.letter })}
+            // Audit 2026-11-27 A11: the drawing is hidden from screen readers, so the wall's length is in its name.
+            aria-label={
+              lengths[w.index] != null
+                ? t('field.measure.wall_length', {
+                    letter: w.letter,
+                    length: spokenLength(lengths[w.index] as number, t),
+                  })
+                : t('field.measure.wall', { letter: w.letter })
+            }
             aria-pressed={w.index === selected}
             data-wall={w.letter}
             onClick={() => onSelect(w.index)}

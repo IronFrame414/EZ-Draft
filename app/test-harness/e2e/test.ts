@@ -56,6 +56,13 @@ export {
   type TrafficResponse,
   type TrafficResult,
 } from './traffic';
+export {
+  PAGE_QUIET_TIMEOUT_MS,
+  QUIET_WINDOW_MS,
+  watchRequests,
+  type QuietOptions,
+  type QuietWatch,
+} from './quiet';
 export { expectTouchTargets } from '../touch-targets';
 export { adminDb } from '../rls/fixtures';
 // Section 4: fresh tenants and users come from EZD-006 createTenant / createMember and are removed with

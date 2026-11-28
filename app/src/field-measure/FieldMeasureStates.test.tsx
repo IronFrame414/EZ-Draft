@@ -4,13 +4,16 @@
 // values: the board's L-shaped Family room (S17bFieldMeasure) closes with A 218", B 108.5", C 124.5", D 87",
 // F 195.5" (E fills in); F typed 1" long is off by 1". The read-only wording is listed in vault/build/assumptions.md
 // EZD-1419.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { StateHost } from '../components/states/StateHost';
 import { MessagesProvider } from '../lib/messages';
 import { catalogFor } from '../server/messages/catalog';
 import { FieldMeasureScreen } from './FieldMeasureScreen';
 import { initialRooms, withShape, type FieldRoom } from './rooms';
+
+// EZD-2025: the back link is moved by the router (no next/link in the first load); no router is mounted here.
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: () => {}, prefetch: () => {} }) }));
 
 function render(rooms: FieldRoom[], sentAt: string | null = null, language: 'en' | 'es' = 'en') {
   return renderToStaticMarkup(

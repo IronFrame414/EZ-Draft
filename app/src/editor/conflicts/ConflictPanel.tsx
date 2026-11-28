@@ -3,6 +3,7 @@
 // D-Show, D-Actions, D-Labels, D-CSS; Q-0502; Q-0511; Q-0540; Q-0628 (b); Q-0632 (a); board S03b): "Changes not
 // saved", the conflict list over the canvas. `ConflictPanelView` is pure; `ConflictPanel` owns the busy rows, the
 // page size and Show, and runs Keep mine, Keep theirs, Remove and Reload.
+import { InlineDialog } from '../../a11y/InlineDialog';
 import { useState, type ReactElement } from 'react';
 import { useStore } from 'zustand';
 import { Icon } from '../../components/icon/Icon';
@@ -252,9 +253,10 @@ export function ConflictPanelView({
   const t = useT();
   const close = t('common.close');
   return (
-    <section
+    <InlineDialog
+      onClose={onClose}
+      modal={false}
       id="changes-not-saved"
-      role="dialog"
       aria-labelledby="changes-not-saved-title"
       className={styles.panel}
       data-testid="conflict-panel"
@@ -341,7 +343,7 @@ export function ConflictPanelView({
         <Icon name="info" size={16} />
         <span>{t('office.conflicts.footer')}</span>
       </div>
-    </section>
+    </InlineDialog>
   );
 }
 

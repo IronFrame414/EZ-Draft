@@ -25,7 +25,9 @@ export type ShareLinkStatus =
     }
   // S18 "This link has expired. Ask [Company] to renew it.": the company name and nothing else.
   | { status: 'expired'; company: string }
-  | { status: 'not_found' };
+  | { status: 'not_found' }
+  // EZD-1711 (Q-0795): the company stopped paying more than 14 days ago.
+  | { status: 'unavailable' };
 
 const SIGNED_OUT_JAR: SessionCookieJar = { getAll: () => [], set: () => {}, isHttps: () => false };
 
@@ -45,6 +47,7 @@ export async function resolveShareLink(
   if (error) throw error;
   const row = data as Record<string, unknown>;
   if (row.status === 'expired') return { status: 'expired', company: String(row.company) };
+  if (row.status === 'unavailable') return { status: 'unavailable' };
   if (row.status !== 'active') return { status: 'not_found' };
   return {
     status: 'active',

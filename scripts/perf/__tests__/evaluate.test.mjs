@@ -24,6 +24,15 @@ const TABLE_B = {
   // 10% = 15,419.8 and 27,073.2, rounded up.
   'inline-messages.projects-settings': { kind: 'gate', unit: 'bytes', value: 15420 },
   'inline-messages.editor': { kind: 'gate', unit: 'bytes', value: 27074 },
+  // EZD-2000 (AC-EZD-2000-1 (1)): pages with no spec number, measured at their real pages by scripts/perf (terms
+  // 171,401; import review 307,401; supplier 192,455; the editor's HTML 69,274; the real Projects and editor pages'
+  // messages 24,161 and 34,585 bytes gzip), plus 10%, rounded up.
+  'download.terms': { kind: 'gate', unit: 'bytes', value: 188542 },
+  'download.import-review': { kind: 'gate', unit: 'bytes', value: 338142 },
+  'download.supplier': { kind: 'gate', unit: 'bytes', value: 211701 },
+  'download.editor-document': { kind: 'gate', unit: 'bytes', value: 76202 },
+  'inline-messages.projects-page': { kind: 'gate', unit: 'bytes', value: 26578 },
+  'inline-messages.editor-page': { kind: 'gate', unit: 'bytes', value: 38044 },
   'react-commits.pan': { kind: 'gate', unit: 'count', value: 0 },
   'long-tasks.pan': { kind: 'gate', unit: 'count', value: 0 },
   'long-tasks.load': { kind: 'trend', unit: 'count', value: null },
@@ -57,7 +66,7 @@ describe('EZD-017 budgets, frame statistics and evaluate', () => {
     assert.equal(buf.length, 10000);
     assert.equal(compressedSize(buf), zlib.gzipSync(buf, { level: 6 }).length);
 
-    assert.equal(Object.keys(BUDGETS).length, 30);
+    assert.equal(Object.keys(BUDGETS).length, 36);
     assert.deepEqual(Object.keys(BUDGETS).sort(), Object.keys(TABLE_B).sort());
     for (const [id, want] of Object.entries(TABLE_B)) {
       const b = BUDGETS[id];

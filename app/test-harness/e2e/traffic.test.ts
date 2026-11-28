@@ -6,6 +6,7 @@ import { describe, expect, test } from 'vitest';
 import { captureTraffic } from './traffic';
 
 // The fake provides browser(), grantPermissions(), on() and route() only (plan section 3).
+// EZD-2002: three listeners (request, requestfinished, requestfailed) are set before the route.
 // name null: browser() returns null (no browser attached to the context).
 function fakeContext(name: string | null, grant?: () => Promise<void>) {
   const calls: string[] = [];
@@ -31,20 +32,20 @@ describe('EZD-353 captureTraffic local network grant', () => {
   test('EZD-353 U1 on Chromium the context gets local-network-access before the route', async () => {
     const { context, calls, grantArgs } = fakeContext('chromium');
     await captureTraffic(context);
-    expect(calls).toEqual(['grantPermissions', 'on', 'route']);
+    expect(calls).toEqual(['grantPermissions', 'on', 'on', 'on', 'route']);
     expect(grantArgs).toEqual([[['local-network-access']]]);
   });
 
   test('EZD-353 U2 WebKit gets no grant', async () => {
     const { context, calls } = fakeContext('webkit');
     await expect(captureTraffic(context)).resolves.toBeDefined();
-    expect(calls).toEqual(['on', 'route']);
+    expect(calls).toEqual(['on', 'on', 'on', 'route']);
   });
 
   test('EZD-353 U3 a context without a browser gets no grant', async () => {
     const { context, calls } = fakeContext(null);
     await expect(captureTraffic(context)).resolves.toBeDefined();
-    expect(calls).toEqual(['on', 'route']);
+    expect(calls).toEqual(['on', 'on', 'on', 'route']);
   });
 
   test('EZD-353 U4 a refused grant fails captureTraffic before it routes', async () => {

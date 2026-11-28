@@ -4,6 +4,8 @@
 // "Range, electric" 240, "Dishwasher" 120, "+ Add appliance type", footer Discard and Save), S15e Controls (Save
 // "Disabled with no edits"), S15e States (loading, error with Retry), and the migration header (volts 120 or 240,
 // amps above 0 in hundredths).
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import type { ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
@@ -24,7 +26,6 @@ import {
   draftsOf,
   ratingsOf,
 } from './ApplianceRatingsPage';
-import Loading from '../../../app/(office)/settings/catalog/loading';
 
 const render = (el: ReactElement) =>
   renderToStaticMarkup(
@@ -123,10 +124,29 @@ describe('EZD-614 Catalog settings: Appliance rating defaults card', () => {
     ]);
   });
 
-  it('loading shows the skeleton; a failed load shows the error with Retry', () => {
-    expect(render(<Loading />)).toContain('data-testid="appliance-ratings-loading"');
+  it('a failed load shows the error with Retry', () => {
     const html = render(<ApplianceRatingsLoadError />);
     expect(html).toContain('data-testid="appliance-ratings-load-error"');
     expect(text(html)).toContain("Couldn't load catalog settings.");
+  });
+
+  // EZD-2042 (AC-EZD-2042-1): one settings card, one `main`, in every view of the page. The route has no loading
+  // file: its skeleton was a second `main data-settings-page="catalog"` that stayed in the document beside the
+  // streamed page until the two were swapped (assumptions EZD-2042).
+  it('EZD-2042 each view is exactly one main with data-settings-page="catalog"; no route loading file', () => {
+    const mains = (html: string) => html.match(/<main\b[^>]*>/g) ?? [];
+    for (const el of [
+      <ApplianceRatingsPage key="page" initial={ROWS} />,
+      <ApplianceRatingsPage key="empty" initial={[]} />,
+      <ApplianceRatingsLoadError key="error" />,
+    ]) {
+      const found = mains(render(el));
+      expect(found).toHaveLength(1);
+      expect(found[0]).toContain('data-settings-page="catalog"');
+    }
+    // Vitest runs from the app folder.
+    const route = join(process.cwd(), 'src/app/(office)/settings/catalog');
+    expect(existsSync(join(route, 'page.tsx'))).toBe(true);
+    expect(existsSync(join(route, 'loading.tsx'))).toBe(false);
   });
 });

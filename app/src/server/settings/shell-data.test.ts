@@ -1,7 +1,7 @@
 // EZD-103a U3 (vault/plans/EZD-103a.md sections 3, 4; AC-EZD-103-6).
 // Expected values: plan Decided "Loader" and "Active-member count" (S15 Controls: Users badge = active
 // user count); session and data inputs from the section 4 U3 row.
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { PermissionKey } from '../../lib/permissions/catalog';
 import type { Session } from '../auth/session';
 import type { PermissionContext } from '../permissions';
@@ -68,6 +68,8 @@ describe('EZD-103a settings shell loader', () => {
       initials: 'JB',
       userName: 'Josh Bishop',
       activeMembers: 4,
+      // EZD-1711: billing is off in unit tests (no Stripe env), so never billed.
+      billed: false,
     });
     expect(calls.membership).toContainEqual(['select', 'id', { count: 'exact', head: true }]);
     expect(calls.membership).toContainEqual(['eq', 'tenant_id', 't1']);
@@ -116,6 +118,7 @@ describe('EZD-103a settings shell loader', () => {
       initials: 'J',
       userName: null,
       activeMembers: null,
+      billed: false,
     });
     expect(calls.membership).toBeUndefined();
   });
@@ -130,5 +133,41 @@ describe('EZD-103a settings shell loader', () => {
     expect(data).not.toBeNull();
     expect(data?.activeMembers).toBeNull();
     expect(calls.membership).toBeUndefined();
+  });
+});
+
+// EZD-1711 (AC-EZD-1711-2): `billed` is the billing_gate answer's `applies` when billing is on; billing off or a
+// failed read is not billed (no Billing nav entry).
+describe('EZD-1711 settings shell billed flag', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  const withRpc = (answer: { data: unknown; error: unknown }) => {
+    const { client } = fakeClient({ tenant: TENANT, app_user: USER });
+    const rpcCalls: string[] = [];
+    const c = client as unknown as Record<string, unknown>;
+    c.rpc = (fn: string) => {
+      rpcCalls.push(fn);
+      return Promise.resolve(answer);
+    };
+    return { client: c as never, rpcCalls };
+  };
+
+  it('B1 billing on: applies true is billed, applies false (exempt) is not', async () => {
+    vi.stubEnv('STRIPE_MODE', 'stub');
+    vi.stubEnv('STRIPE_WEBHOOK_SECRET', 'whsec_test');
+    const billed = withRpc({ data: { applies: true, mode: 'full', status: 'trialing' }, error: null });
+    expect((await loadSettingsShellData(billed.client, session, WITHOUT_USERS))?.billed).toBe(true);
+    expect(billed.rpcCalls).toEqual(['billing_gate']);
+    const exempt = withRpc({ data: { applies: false, mode: 'full' }, error: null });
+    expect((await loadSettingsShellData(exempt.client, session, WITHOUT_USERS))?.billed).toBe(false);
+    const failed = withRpc({ data: null, error: DB_ERROR });
+    expect((await loadSettingsShellData(failed.client, session, WITHOUT_USERS))?.billed).toBe(false);
+  });
+
+  it('B2 billing off: no billing read, not billed', async () => {
+    vi.stubEnv('STRIPE_WEBHOOK_SECRET', '');
+    const r = withRpc({ data: { applies: true }, error: null });
+    expect((await loadSettingsShellData(r.client, session, WITHOUT_USERS))?.billed).toBe(false);
+    expect(r.rpcCalls).toEqual([]);
   });
 });

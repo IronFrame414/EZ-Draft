@@ -19,6 +19,7 @@ const PAGE_FILES = [
   'app/src/app/(office)/dev/entry/office/page.tsx',
   'app/src/app/(office)/dev/settings/page.tsx',
   'app/src/app/(office)/settings/[section]/page.tsx',
+  'app/src/app/(office)/settings/billing/page.tsx',
   'app/src/app/(office)/settings/catalog/page.tsx',
   'app/src/app/(office)/settings/code-edition/page.tsx',
   'app/src/app/(office)/settings/company/page.tsx',
@@ -77,6 +78,8 @@ function basePath(file: string): string {
 // Settings slugs with their own page.tsx (EZD-131 adds libraries).
 const OWN_PAGES = new Set([
   'company',
+  // EZD-1711
+  'billing',
   'defaults',
   'catalog',
   'users',
@@ -88,7 +91,14 @@ const OWN_PAGES = new Set([
   'title-block',
 ]);
 
+// EZD-1711: Settings > Billing answers not found for a company that is not billed (AC-EZD-1711-2), which every
+// company of the page sweep is, so the sweep has no path to open. Its dollar amounts (the plan line, See company
+// costs only, 13b R2) are checked in app/src/app/(office)/settings/billing/page.test.tsx (P3, P4) and
+// app/src/app/api/settings/billing/route.test.ts (R5).
+const NOT_SWEPT = new Set(['app/src/app/(office)/settings/billing/page.tsx']);
+
 function pathsFor(file: string, env: { projectId: string }): string[] {
+  if (NOT_SWEPT.has(file)) return [];
   const base = basePath(file);
   if (base.includes('[section]')) {
     return SETTINGS_SECTIONS.filter(

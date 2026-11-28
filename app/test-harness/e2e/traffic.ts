@@ -18,6 +18,10 @@
 // same-origin when the requesting frame's origin is the target's, same-site for the same host on another port,
 // cross-site otherwise; nothing for a navigation,
 // a request with no frame (a service worker's) or one that already carries it.
+// EZD-2002: online the worker now answers the two field page loads itself (sw-rules.mjs answerFieldPage). Such a
+// page request never reaches the route (the worker's own fetch for it does, and is read as any other), so it is
+// counted as read when the browser reports it finished or failed without having been routed. The worker's fetch
+// for a page load that is waiting on it is recorded as that page load's answer (resourceType 'document').
 import type { BrowserContext, Request, Route } from '@playwright/test';
 import { isLoopback } from '../net-guard/net-guard.mjs';
 
@@ -76,6 +80,8 @@ type Item = {
   finished: Promise<void>;
   resolve(): void;
   failure: string | null;
+  /** EZD-2002: the route handler took the request. */
+  routed: boolean;
 };
 
 function firstLine(error: unknown): string {
@@ -156,6 +162,7 @@ export async function captureTraffic(
       finished,
       resolve,
       failure: null,
+      routed: false,
     };
     byRequest.set(req, item);
     items.push(item);
@@ -167,6 +174,16 @@ export async function captureTraffic(
     entryFor(req);
   });
 
+  // EZD-2002: a request the worker answered ends without a route (see the header).
+  const endUnrouted = (req: Request): void => {
+    const item = byRequest.get(req);
+    if (!item || item.routed || item.done) return;
+    item.done = true;
+    item.resolve();
+  };
+  context.on('requestfinished', endUnrouted);
+  context.on('requestfailed', endUnrouted);
+
   async function handler(route: Route): Promise<void> {
     let item: Item | null = null;
     try {
@@ -176,6 +193,7 @@ export async function captureTraffic(
         await route.fallback();
         return;
       }
+      item.routed = true;
       const entry = item.entry;
       const url = new URL(req.url());
       if ((url.protocol !== 'http:' && url.protocol !== 'https:') || !isLoopback(url)) {
@@ -277,6 +295,14 @@ export async function captureTraffic(
     const failed = items.find((i) => i.failure !== null);
     if (failed) {
       throw new Error(`traffic read failed: ${labelOf(failed.entry)}: ${failed.failure}`);
+    }
+    // EZD-2002: the worker's read of a page load it answered (same method and path; the page load itself was not
+    // routed) is that page load's answer. The browser may report the page load after the worker's fetch, so this is
+    // settled here.
+    const workerLoads = items.filter((i) => i.entry.isNavigation && !i.routed).map((i) => i.entry);
+    for (const r of responses) {
+      if (!r.fromServiceWorker || r.resourceType === 'document') continue;
+      if (workerLoads.some((e) => e.method === r.method && e.path === r.path)) r.resourceType = 'document';
     }
     const cookieValues = (await context.cookies()).map((c) => c.value);
     return { requests, responses, cookieValues };

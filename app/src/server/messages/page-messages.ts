@@ -61,6 +61,9 @@ const DEFAULTS_ANSWERS = [
 /** The avatar menu, the notification bell and the sign-out guard of the page header. */
 const ACCOUNT_MENU = [
   'office.account.',
+  // EZD-1711: the Billing section's nav label and location (lib/settings/sections.ts).
+  'office.billing.location',
+  'office.billing.section',
   'office.notifications.',
   'office.outbox.',
   'office.profile.load_failed',
@@ -101,6 +104,8 @@ export const PAGE_MESSAGES = {
     ...DEFAULTS_ANSWERS,
     ...ACCOUNT_MENU,
     'office.appliance_ratings.',
+    // EZD-1711: Settings > Billing and its nav entry.
+    'office.billing.',
     'office.benchmark.',
     'office.code_edition.',
     'office.company.',

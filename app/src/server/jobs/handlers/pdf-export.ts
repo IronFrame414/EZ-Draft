@@ -34,10 +34,17 @@ import {
   defaultSheetSetData,
   draftRevision,
   sheetDrawingArea,
+  isCountertopSheet,
   sheetsForSet,
+  withCountertopSheets,
   withFloorSheets,
   type SheetFloor,
 } from '../../../lib/sheets/sheet-set';
+import {
+  countertopSheetFor,
+  type CountertopSheetNames,
+  type CountertopSheetPiece,
+} from '../../../lib/sheets/countertop-sheet';
 import {
   sheetScaleLabel,
   sheetViewports,
@@ -123,6 +130,40 @@ async function readObjects(db: Db, tenantId: string, projectId: string): Promise
       out.push({ id: r.object_id, type: r.type, schema_version: r.schema_version, data: r.data });
     if (data.length < PAGE_ROWS) return out;
   }
+}
+
+// EZD-720: the names the client set's countertop sheets print, as the Sheets screen reads them: the company's catalog
+// materials the pieces use, its edge profiles, and the project's open edge offers.
+async function readCountertopNames(
+  db: Db,
+  tenantId: string,
+  projectId: string,
+  pieces: readonly CountertopSheetPiece[],
+): Promise<CountertopSheetNames> {
+  const materialIds = [
+    ...new Set(pieces.flatMap((p) => (p.data.attributes.materialItemId === null ? [] : [p.data.attributes.materialItemId]))),
+  ];
+  const [materials, profiles, offers] = await Promise.all([
+    materialIds.length === 0
+      ? Promise.resolve({ data: [] as { id: string; name: string }[], error: null })
+      : db.from('catalog_item').select('id, name').eq('tenant_id', tenantId).in('id', materialIds),
+    db.from('edge_profile').select('id, key, name').eq('tenant_id', tenantId).order('position'),
+    db
+      .from('selection_offer')
+      .select('subject_id, choices')
+      .eq('tenant_id', tenantId)
+      .eq('project_id', projectId)
+      .eq('kind', 'edge_profile')
+      .eq('status', 'open'),
+  ]);
+  if (materials.error) throw materials.error;
+  if (profiles.error) throw profiles.error;
+  if (offers.error) throw offers.error;
+  return {
+    materials: materials.data.map(({ id, name }) => ({ id, name })),
+    profiles: profiles.data.map(({ id, key, name }) => ({ id, key, name })),
+    open: offers.data.map((o) => ({ pieceId: o.subject_id, profileIds: o.choices })),
+  };
 }
 
 // EZD-717: the objects of one frozen version of the project (its model_json, written by make_checkpoint).
@@ -234,7 +275,23 @@ export const pdfExportHandler: JobHandler<PdfExportPayload, never, PdfExportResu
     const trades = project.data.scope_trades.filter(isScopeTrade);
     // EZD-707: the cabinet schedule prints on A4.0 under the elevations and continues on A4.1, as the preview.
     const scheduleRows = scheduleRowsOf(objects);
-    const sheets = withScheduleSheets(withFloorSheets(sheetsForSet(data.kind, trades), floors), data.size, scheduleRows.length);
+    // EZD-720 (AC-EZD-720-1, -2): the client set prints the countertop sheets while the model has a piece; the permit
+    // set never does.
+    const pieces: CountertopSheetPiece[] = [];
+    for (const stored of objects) {
+      if (stored.type !== 'countertop_piece') continue;
+      const parsed = parseStoredObject(stored);
+      if (parsed.ok && parsed.object.type === 'countertop_piece')
+        pieces.push({ id: parsed.object.id, data: parsed.object.data });
+    }
+    const sheets = withCountertopSheets(
+      withScheduleSheets(withFloorSheets(sheetsForSet(data.kind, trades), floors), data.size, scheduleRows.length),
+      data.kind,
+      pieces.length,
+    );
+    const countertopNames = sheets.some((s) => isCountertopSheet(s.number))
+      ? await readCountertopNames(db, tenantId, projectId, pieces)
+      : null;
 
     const floorIds = new Set(floors.map((f) => f.id));
     // EZD-708a: the RCP drawing is a lazy module (editor code), loaded only when the set has an RCP sheet.
@@ -305,6 +362,9 @@ export const pdfExportHandler: JobHandler<PdfExportPayload, never, PdfExportResu
       );
       for (const t of panelSheetTables(sheet.number, data.size, floors.length, placedPanels) ?? [])
         viewports.push({ list: t.list, scale: 1, area: t.area, marks: false });
+      if (countertopNames !== null)
+        for (const d of countertopSheetFor(sheet.number, data.size, pieces, countertopNames))
+          viewports.push(d.marks ? { list: d.list, scale: d.scale, area: d.area } : { list: d.list, scale: d.scale ?? 1, area: d.area, marks: false });
       pages.set(sheet.number, {
         number: sheet.number,
         title: sheet.title,

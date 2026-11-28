@@ -3,6 +3,7 @@
 // EZD-222 "Help lists shortcuts"): the Help panel. It lists every command with the company's key ("Not set" for a
 // cleared row) and says where keys are changed. Esc, the close button or a click outside closes it.
 import { useEffect, useRef } from 'react';
+import { InlineDialog } from '../../a11y/InlineDialog';
 import { Icon } from '../../components/icon/Icon';
 import { useT } from '../../lib/messages';
 import { SHORTCUT_COMMANDS, keyLabel, type ShortcutBindings } from '../../lib/defaults/shortcuts';
@@ -30,7 +31,14 @@ export function HelpPanel({ bindings, onClose }: { bindings: ShortcutBindings; o
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div role="dialog" aria-modal="true" aria-labelledby="help-title" className={styles.panel} data-testid="help-panel">
+      {/* Audit 2026-11-27 A28: Radix Dialog keeps focus inside and gives it back on close. */}
+      <InlineDialog
+        onClose={onClose}
+        outsideCloses
+        aria-labelledby="help-title"
+        className={styles.panel}
+        data-testid="help-panel"
+      >
         <div className={styles.head}>
           <h2 id="help-title">{t('office.help.title')}</h2>
           <button
@@ -54,7 +62,7 @@ export function HelpPanel({ bindings, onClose }: { bindings: ShortcutBindings; o
           ))}
         </dl>
         <p className={styles.note}>{t('office.help.settings_note')}</p>
-      </div>
+      </InlineDialog>
     </div>
   );
 }

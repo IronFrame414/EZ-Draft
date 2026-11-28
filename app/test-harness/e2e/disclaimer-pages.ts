@@ -95,6 +95,14 @@ export const DISCLAIMER_PAGES: readonly DisclaimerPage[] = [
     signedIn: true,
     placement: 'bar',
   },
+  // EZD-1711: the browser test signs in as Worth Properties (billing exempt), for which Settings > Billing is not
+  // found (AC-EZD-1711-2), so the line is the not-found page's.
+  {
+    file: 'src/app/(office)/settings/billing/page.tsx',
+    path: '/settings/billing',
+    signedIn: true,
+    placement: 'page',
+  },
   {
     file: 'src/app/(office)/settings/company/page.tsx',
     path: '/settings/company',

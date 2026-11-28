@@ -1,0 +1,25 @@
+/* EZD-122 (board S20 header: the version text is a link that opens the Versions tab). EZD-1913c: moved unchanged from
+   ProjectEditor.module.css. */
+.versionLink {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--ez-cobalt-link);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* EZD-1979 (audit 2026-11-24 F6): under a coarse pointer the link's tap area is the title block's bottom half and the
+   body padding below the card (the name has the top half; EditorHeader.module.css). The block is the containing block,
+   so the subtitle's clip does not cut it. */
+@media (any-pointer: coarse) {
+  .versionLink::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    bottom: calc(-1 * var(--ez-body-padding));
+    left: 0;
+  }
+}

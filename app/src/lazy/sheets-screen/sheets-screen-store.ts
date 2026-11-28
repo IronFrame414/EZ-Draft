@@ -30,10 +30,19 @@
 // number and whether the member may issue it (GET /api/projects/[id]/issue). issue() drains the outbox (setSync), posts
 // the issue with the live load calc, then follows the issue's PDF job until its link is ready, and reads the sets
 // again so the sheets show the new draft revision and the title block's revisions table.
+// EZD-720 (AC-EZD-720-1, -2): the client set's countertop sheets (A8.0, A9.0) follow the live model's pieces
+// (withCountertopSheets), as the floors do; the permit set never holds them. A countertop sheet is drawn by the sheet
+// renderer with the names it prints (catalog materials, edge profiles, open edge offers), read once, the first time
+// one is drawn; a failed read draws it without them.
 import { parseStoredObject, type ModelObject, type SheetSetKind, type SheetSize } from '@ezdraft/geometry';
 import { listFloors, resolveOpenFloor } from '../../editor/floors/floors';
 import type { Change, Objects } from '../../editor/model/patches';
 import { lazyModule } from '../../lib/lazy/lazy-module';
+import {
+  isCountertopSheet,
+  withCountertopSheets,
+} from '../../lib/sheets/sheet-set';
+import { NO_COUNTERTOP_NAMES, type CountertopSheetNames } from '../../lib/sheets/countertop-sheet';
 import { withFloorSheets, type SetNotes, type SheetFloor, type SheetSetSummary } from '../../lib/sheets/sheet-set';
 import {
   addElevationChange,
@@ -249,18 +258,35 @@ export function createSheetsScreen(
     }
     return counted.rows;
   };
+  // EZD-720: the model's countertop piece count (for the client set's countertop sheets); null with no model.
+  let pieceCount: { objects: Objects; count: number } | null = null;
+  const countertopPieces = (): number | null => {
+    if (source === null) return null;
+    const objects = source.getState().objects;
+    if (pieceCount === null || pieceCount.objects !== objects) {
+      let count = 0;
+      for (const v of objects.values()) if (v.type === 'countertop_piece') count++;
+      pieceCount = { objects, count };
+    }
+    return pieceCount.count;
+  };
   const withFloors = (sets: SheetSetSummary[], floors: SheetFloor[]) => {
     const rows = scheduleRows();
+    const pieces = countertopPieces();
     return sets.map((s) => {
       const sheets = withFloorSheets(s.sheets, floors);
-      return { ...s, sheets: rows === null ? sheets : withScheduleSheets(sheets, s.size, rows) };
+      const scheduled = rows === null ? sheets : withScheduleSheets(sheets, s.size, rows);
+      // With no model the server's countertop sheets stay (the permit set's are dropped all the same).
+      const counted =
+        pieces ?? (s.kind === 'client' && s.sheets.some((x) => isCountertopSheet(x.number)) ? 1 : 0);
+      return { ...s, sheets: withCountertopSheets(scheduled, s.kind, counted) };
     });
   };
   // The sets with the model's floors; the open sheet stays when it is still in the set.
   const refreshFloors = () => {
     if (state.load !== 'ready' || source === null) return;
     const floors = floorsOf();
-    const key = JSON.stringify([floors, scheduleRows()]);
+    const key = JSON.stringify([floors, scheduleRows(), countertopPieces()]);
     if (key === floorsKey) return;
     floorsKey = key;
     const sets = withFloors(loaded, floors);
@@ -495,6 +521,39 @@ export function createSheetsScreen(
     }
   };
 
+  // EZD-720: the names the countertop sheets print, read once; null until read (or while the read is out).
+  let names: CountertopSheetNames | null = null;
+  let namesAsked = false;
+  const readJson = async <T,>(url: string): Promise<T | null> => {
+    try {
+      const res = await fetchFn(url, { cache: 'no-store', credentials: 'same-origin' });
+      return res.status === 200 ? ((await res.json()) as T) : null;
+    } catch {
+      return null;
+    }
+  };
+  const loadNames = async () => {
+    namesAsked = true;
+    const [catalog, profiles, offers] = await Promise.all([
+      readJson<{ items?: { id: string; name: string }[] }>('/api/catalog'),
+      readJson<{ profiles?: { id: string; key: string; name: string }[] }>('/api/edge-profiles'),
+      readJson<{ offers?: { pieceId: string; status: string; choices: { profileId: string }[] }[] }>(
+        `/api/projects/${encodeURIComponent(projectId)}/edge-offer`,
+      ),
+    ]);
+    names = {
+      materials: (catalog?.items ?? []).map(({ id, name }) => ({ id, name })),
+      profiles: (profiles?.profiles ?? []).map(({ id, key, name }) => ({ id, key, name })),
+      open: (offers?.offers ?? [])
+        .filter((o) => o.status === 'open')
+        .map((o) => ({ pieceId: o.pieceId, profileIds: o.choices.map((c) => c.profileId) })),
+    };
+    // Drawn again with the names.
+    drawn = null;
+    same = null;
+    refresh();
+  };
+
   let busy = false;
   const refresh = () => {
     refreshFloors();
@@ -506,7 +565,14 @@ export function createSheetsScreen(
     const sheet = set?.sheets.find((s) => s.number === state.open) ?? null;
     if (set === null || sheet === null) return;
     // EZD-708b: an electrical sheet always draws, for its EC note, as the PDF prints it (R7).
-    if (!sheetDrawsModel(state.viewports) && schedulePage(sheet.number) === null && !isElectricalSheet(sheet.number)) {
+    const countertop = isCountertopSheet(sheet.number);
+    if (countertop && !namesAsked) void loadNames();
+    if (
+      !sheetDrawsModel(state.viewports) &&
+      schedulePage(sheet.number) === null &&
+      !isElectricalSheet(sheet.number) &&
+      !countertop
+    ) {
       // No plan or elevation viewport left on the open sheet: its old drawing goes.
       drawn = null;
       same = null;
@@ -528,7 +594,15 @@ export function createSheetsScreen(
     update({ renders: state.renders + 1 });
     renderer ??= loadRenderer();
     renderer
-      .then((r) => r.render({ objects: asked.objects, size: asked.size, viewports, sheet: asked.sheet }))
+      .then((r) =>
+        r.render({
+          objects: asked.objects,
+          size: asked.size,
+          viewports,
+          sheet: asked.sheet,
+          ...(countertop ? { names: names ?? NO_COUNTERTOP_NAMES } : {}),
+        }),
+      )
       .then(
         (svg) => {
           busy = false;

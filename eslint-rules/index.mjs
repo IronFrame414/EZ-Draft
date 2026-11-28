@@ -4,6 +4,8 @@ import importBoundaries from './import-boundaries.mjs';
 import noBrowserTableQuery from './no-browser-table-query.mjs';
 import noClientServerOnly from './no-client-server-only.mjs';
 import geometryRootIndexFrozen from './geometry-root-index-frozen.mjs';
+import parallelServerReads from './parallel-server-reads.mjs';
+import pageOwnMessages from './page-own-messages.mjs';
 
 export default {
   meta: { name: 'ezdraft' },
@@ -13,5 +15,7 @@ export default {
     'no-browser-table-query': noBrowserTableQuery,
     'no-client-server-only': noClientServerOnly,
     'geometry-root-index-frozen': geometryRootIndexFrozen,
+    'parallel-server-reads': parallelServerReads,
+    'page-own-messages': pageOwnMessages,
   },
 };

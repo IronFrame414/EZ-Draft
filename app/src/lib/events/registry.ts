@@ -160,6 +160,9 @@ export const EVENTS = {
   // EZD-417 (S04b Events emitted "edge_profile.offered (new)"): written only as the event_log row by save_edge_offer,
   // with ids only (the rates are sell prices).
   'edge_profile.offered': { kind: 'log_only' },
+  // EZD-1711 (07 "(new) write the event log only"; Settled "Events"): written only as the event_log row by
+  // billing_apply_subscription when a company's subscription status changes; never emitted.
+  'billing.status_changed': { kind: 'log_only' },
 } as const satisfies Record<string, EventEntry>;
 
 export type EventName = keyof typeof EVENTS;
@@ -360,4 +363,6 @@ export interface EventPayloads {
   'share_link.viewed': { projectId: string };
   'share_link.expired': { projectId: string; expiresAt: string };
   'share_link.renewed': { projectId: string; expiresAt: string };
+  // EZD-1711: the event_log details; the row's object is the billing_account (the company). No amounts.
+  'billing.status_changed': { oldStatus: string; status: string };
 }

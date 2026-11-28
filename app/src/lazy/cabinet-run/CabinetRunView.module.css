@@ -440,3 +440,46 @@ button.fitChip {
   font-size: var(--ez-text-13);
   font-weight: 500;
 }
+
+/* EZD-2003 (audit 2026-11-27 A22; 11 Non-functional requirements "44 px minimum on touch"): on a touch
+   device these controls are at least 44 x 44 px; the desktop sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  /* The tablet edit bar (Select more, Select all) stays over the canvas's top while this screen is open (margin 14 +
+     height 66 = 80 px, SelectionLayer.module.css .bar; as ZoomStack.module.css, EZD-1979), so the screen's first row
+     starts 12 px below it instead of under it. */
+  .screen {
+    padding-top: 92px;
+  }
+
+  .name,
+  button.fitChip {
+    min-height: var(--ez-touch-target);
+  }
+
+  .picker select {
+    height: var(--ez-touch-target);
+  }
+
+  /* EZD-2040: these are as wide as their text, and the Linux runner's fonts are narrower than the Mac's (the
+     elevation picker's "A" measured 39 px there), so the width has the same floor as the height. */
+  .name,
+  button.fitChip,
+  .picker select,
+  .autoFill,
+  .menuItem,
+  .tileSelect,
+  .tileButton,
+  .fillConfirm {
+    min-width: var(--ez-touch-target);
+  }
+
+  .autoFill,
+  .entryInput,
+  .menuItem,
+  .tileInput,
+  .tileSelect,
+  .tileButton,
+  .fillConfirm {
+    height: var(--ez-touch-target);
+  }
+}

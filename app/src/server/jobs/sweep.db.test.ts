@@ -18,20 +18,41 @@ import { GET as sweep } from '../../app/api/jobs/sweep/route';
 vi.mock('./tunnel-alert-digest', () => ({
   sweepTunnelAlertDigest: vi.fn(async () => ({ status: 'none', count: 0 })),
 }));
+// EZD-2041: the daily version cleanup pass (EZD-123) queues a `cleanup` job, from 08:00 UTC, for every company
+// that has a working version and no cleanup job yet that day. Files that make versions but no jobs do not hold
+// the job-queue lock, so the real pass queued jobs for their companies and this file's sweeps ran them: T2 (c)
+// saw ran 2 and T15 ran 1 at random. This file tests the job run only, so the pass is mocked; it is tested in
+// cleanup.db.test.ts and cleanup-enqueue-race.db.test.ts.
+// AC-EZD-2041-2: with the pass mocked, this file passes repeated runs alongside the other database test files
+// (20 runs in a row beside all of them when this was fixed).
+vi.mock('../versions/cleanup-sweep', () => ({
+  sweepVersionCleanup: vi.fn(async () => 0),
+}));
 
 describe('EZD-009 sweep route on the local stack', () => {
   let tenantA = '';
   let projectId = '';
+  let otherTenant = '';
   let release: () => Promise<void>;
 
   const deleteJobs = async () => {
     if (tenantA) await harnessSql()`delete from public.job where tenant_id = ${tenantA}::uuid`;
+    if (otherTenant)
+      await harnessSql()`delete from public.job where tenant_id = ${otherTenant}::uuid`;
   };
 
   beforeAll(async () => {
     release = await holdJobQueueExclusive();
     tenantA = await createTenant();
     [projectId] = await createProjects(tenantA, 1);
+    // EZD-2041: another company with a working version, as other test files have while this one runs. From
+    // 08:00 UTC the real cleanup pass would queue a `cleanup` job for it on the first sweep of the day, and the
+    // sweeps below would run it.
+    otherTenant = await createTenant();
+    const [otherProject] = await createProjects(otherTenant, 1);
+    await harnessSql()`
+      insert into public.model_version (project_id, tenant_id, model_json, schema_version, created_at)
+      values (${otherProject}::uuid, ${otherTenant}::uuid, '{"objects":[]}'::jsonb, 1, now())`;
   }, 180000);
 
   afterEach(async () => {
@@ -49,6 +70,8 @@ describe('EZD-009 sweep route on the local stack', () => {
     }
   });
 
+  // AC-EZD-2041-1: two sweeps started at once run one due job exactly once (ran sums to 1, status done,
+  // attempts 1) while another company has a working version, as other database test files do in parallel.
   it('EZD-009 T2 (c) done when: two sweeps started at once run the job once @smoke', async () => {
     vi.stubEnv('CRON_SECRET', 'x'.repeat(40));
     const { data, error } = await adminDb()
@@ -80,6 +103,10 @@ describe('EZD-009 sweep route on the local stack', () => {
     >;
     expect(row.status).toBe('done');
     expect(row.attempts).toBe(1);
+    // EZD-2041: the two sweeps queued and ran nothing for the other company.
+    const others = await harnessSql()`
+      select 1 from public.job where tenant_id = ${otherTenant}::uuid`;
+    expect(others).toHaveLength(0);
   });
 
   it('EZD-009 T15 sweep route: 401 without the right secret, 200 { ran: 0 } with it', async () => {

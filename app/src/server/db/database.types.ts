@@ -157,6 +157,46 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"billing_account": {
+                  Row: {
+                    "current_period_end": string | null,"lapsed_at": string | null,"last_event_at": string | null,"office_seats_billed": number,"status": string,"stripe_customer_id": string,"stripe_subscription_id": string | null,"tenant_id": string,"trial_ends_at": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "current_period_end"?: string | null,"lapsed_at"?: string | null,"last_event_at"?: string | null,"office_seats_billed"?: number,"status": string,"stripe_customer_id": string,"stripe_subscription_id"?: string | null,"tenant_id": string,"trial_ends_at"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "current_period_end"?: string | null,"lapsed_at"?: string | null,"last_event_at"?: string | null,"office_seats_billed"?: number,"status"?: string,"stripe_customer_id"?: string,"stripe_subscription_id"?: string | null,"tenant_id"?: string,"trial_ends_at"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "billing_account_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: true
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"billing_event": {
+                  Row: {
+                    "id": string,"received_at": string,"tenant_id": string,"type": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id": string,"received_at"?: string,"tenant_id": string,"type": string
+                  }
+                  Update: {
+                    "id"?: string,"received_at"?: string,"tenant_id"?: string,"type"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "billing_event_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenant"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"catalog_item": {
                   Row: {
                     "ai_confidence": NonNullable<Json>,"allowance_category": string | null,"brand": string | null,"category": string,"created_at": string,"depth": number | null,"finish": string | null,"height": number | null,"id": string,"install_specs": NonNullable<Json>,"is_standard_spec": boolean,"lead_time_days": number | null,"lead_time_text": string | null,"line": string | null,"markup_pct": number | null,"model": string | null,"name": string,"project_id": string | null,"sell_price": number | null,"sku": string | null,"source_url": string | null,"spec_sheet_path": string | null,"subcategory": string | null,"supplier": string | null,"tenant_id": string,"texture_path": string | null,"thumb_path": string | null,"unit_cost": number | null,"updated_at": string,"width": number | null
@@ -1489,14 +1529,14 @@ isOneToOne: false
                   ]
                 },"tenant": {
                   Row: {
-                    "code_edition": string | null,"contact": NonNullable<Json>,"created_at": string,"defaults": NonNullable<Json>,"id": string,"license_no": string | null,"logo_path": string | null,"name": string,"title_block": NonNullable<Json>,"updated_at": string
+                    "billing_exempt": boolean,"code_edition": string | null,"contact": NonNullable<Json>,"created_at": string,"defaults": NonNullable<Json>,"id": string,"license_no": string | null,"logo_path": string | null,"name": string,"title_block": NonNullable<Json>,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "code_edition"?: string | null,"contact"?: NonNullable<Json>,"created_at"?: string,"defaults"?: NonNullable<Json>,"id"?: string,"license_no"?: string | null,"logo_path"?: string | null,"name": string,"title_block"?: NonNullable<Json>,"updated_at"?: string
+                    "billing_exempt"?: boolean,"code_edition"?: string | null,"contact"?: NonNullable<Json>,"created_at"?: string,"defaults"?: NonNullable<Json>,"id"?: string,"license_no"?: string | null,"logo_path"?: string | null,"name": string,"title_block"?: NonNullable<Json>,"updated_at"?: string
                   }
                   Update: {
-                    "code_edition"?: string | null,"contact"?: NonNullable<Json>,"created_at"?: string,"defaults"?: NonNullable<Json>,"id"?: string,"license_no"?: string | null,"logo_path"?: string | null,"name"?: string,"title_block"?: NonNullable<Json>,"updated_at"?: string
+                    "billing_exempt"?: boolean,"code_edition"?: string | null,"contact"?: NonNullable<Json>,"created_at"?: string,"defaults"?: NonNullable<Json>,"id"?: string,"license_no"?: string | null,"logo_path"?: string | null,"name"?: string,"title_block"?: NonNullable<Json>,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -1596,6 +1636,15 @@ isOneToOne: false
                            },
 "attach_permit_revision_export":
 { Args: { "p_job": string,"p_revision": string }; Returns: undefined
+                           },
+"billing_apply_subscription":
+{ Args: { "p_customer": string,"p_event_created": string,"p_event_id": string,"p_event_type": string,"p_period_end": string,"p_seats": number,"p_status": string,"p_subscription": string,"p_trial_ends_at": string }; Returns: string
+                           },
+"billing_gate":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"billing_start_trial":
+{ Args: { "p_customer": string,"p_subscription": string,"p_tenant": string,"p_trial_ends_at": string }; Returns: undefined
                            },
 "cancel_edit_request":
 { Args: { "p_ip"?: unknown,"p_project": string }; Returns: Json

@@ -1,12 +1,13 @@
 // EZD-020 Step 5 (vault/plans/EZD-020.md): collector for the `entry-contents:<entry>` measurements. Collects an
 // entry's scripts exactly as js-size.mjs does, attributes their bytes to sources through their source maps and
-// counts the forbidden categories of eslint-rules/boundaries.mjs ENTRY_RULES. Never passes silently: a file
+// counts the forbidden categories of eslint-rules/boundaries.mjs ENTRY_RULES (EZD-2000: CONTENTS_PACKAGES). Never passes silently: a file
 // without a map, or an entry with no app source, is an error. Bytes are minified bytes, not compressed bytes.
 import { Buffer } from 'node:buffer';
 import {
+  CONTENTS_PACKAGES,
   EDITOR_CODE,
   ENTRY_RULES,
-  HEAVY_PACKAGES,
+  FIRST_LOAD_ALLOWANCES,
   LAZY_ROOT,
   WATCH_PACKAGES,
   findHeavy,
@@ -37,11 +38,14 @@ async function findMap(script, text) {
   return JSON.parse(await res.text());
 }
 
-/** One finding `{ category, key }` for a normalized source, or null. */
-function classify(n) {
+/**
+ * One finding `{ category, key }` for a normalized source, or null. EZD-2000: packages are looked up in
+ * CONTENTS_PACKAGES (HEAVY_PACKAGES and the first-load-only list).
+ */
+export function classify(n) {
   if (n.pkg !== undefined) {
     const spec = n.subpath ? `${n.pkg}/${n.subpath}` : n.pkg;
-    const hit = findHeavy(spec, HEAVY_PACKAGES);
+    const hit = findHeavy(spec, CONTENTS_PACKAGES);
     if (!hit) return null;
     // A prefix inside a package (the exporters) keys by the prefix; anything else by the package name.
     const key = hit.name.length > n.pkg.length ? `pkg:${hit.name}` : `pkg:${n.pkg}`;
@@ -60,9 +64,26 @@ function classify(n) {
 /**
  * @param ctx { browser, profile, baseUrl, storageState? }
  * @param entry an ENTRY_RULES key (`office`, `editor`, `field-pack`, `client-link`, `sign-in`)
+ * @param allow EZD-2000: `{ key, reason }[]`, findings the row lets through (listed in details.allowed), added to the
+ *   page's own FIRST_LOAD_ALLOWANCES (eslint-rules/boundaries.mjs)
  * @returns {Promise<{ value: number; details: object } | { error: string; details: object }>}
  */
-export async function measureJsContents(ctx, url, entry) {
+/**
+ * EZD-2000: findings an `allow` list lets through, by key (`pkg:@supabase/realtime-js`); returns
+ * { forbidden, allowed }, allowed naming each reason.
+ */
+export function applyAllowances(found, allow = []) {
+  const reasons = new Map(allow.map((a) => [a.key, a.reason]));
+  const forbidden = [];
+  const allowed = [];
+  for (const f of found) {
+    if (reasons.has(f.key)) allowed.push({ ...f, reason: reasons.get(f.key) });
+    else forbidden.push(f);
+  }
+  return { forbidden, allowed };
+}
+
+export async function measureJsContents(ctx, url, entry, allow = []) {
   const rules = ENTRY_RULES[entry];
   if (!rules) throw new Error(`no ENTRY_RULES for entry ${entry}`);
   const collected = await collectScripts(ctx, url);
@@ -105,7 +126,11 @@ export async function measureJsContents(ctx, url, entry) {
     }
   }
 
-  details.forbidden = [...found.values()];
+  const pageAllow = FIRST_LOAD_ALLOWANCES[new URL(url, 'http://page.invalid').pathname] ?? [];
+  const allowList = [...pageAllow, ...allow];
+  const { forbidden, allowed } = applyAllowances([...found.values()], allowList);
+  details.forbidden = forbidden;
+  if (allowList.length > 0) details.allowed = allowed;
   details.modules = modules;
   details.byGroup = byGroup;
   details.watch = Object.fromEntries(
@@ -128,5 +153,5 @@ export async function measureJsContents(ctx, url, entry) {
     details.reason = 'no app sources';
     return { error: 'no_app_sources', details };
   }
-  return { value: found.size, details };
+  return { value: forbidden.length, details };
 }

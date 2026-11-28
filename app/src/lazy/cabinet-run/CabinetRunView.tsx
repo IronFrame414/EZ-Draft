@@ -95,6 +95,9 @@ import {
   readLibraryDrag,
   type LibraryDrag,
 } from '../../editor/cabinets/cabinet-library';
+import { startLongPress } from '../../a11y/long-press';
+import { CONTEXT_MENU_PX, LONG_PRESS_MS } from '../../editor/plan/input';
+import { isInsideInlineDialog } from '../../a11y/InlineDialog';
 import styles from './CabinetRunView.module.css';
 
 export type CabinetRunViewProps = {
@@ -234,6 +237,8 @@ export function CabinetRunView({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented) return;
+      // EZD-2004 (audit A28): Escape inside an open picker or schedule closes that layer only.
+      if (e.key === 'Escape' && isInsideInlineDialog(e.target)) return;
       if (e.key === 'Escape') {
         if (fill !== null) setFilling(null);
         else if (drag !== null) setDrag(null);
@@ -1002,6 +1007,9 @@ function RunDrawing({
   const svgRef = useRef<SVGSVGElement>(null);
   // Set when a drag ends as an edit, so the click the browser sends after it changes nothing.
   const swallow = useRef(false);
+  // The finger hold under way on a box, if any (A19).
+  const stopHold = useRef<(() => void) | null>(null);
+  useEffect(() => () => stopHold.current?.(), []);
   const toPoint = (e: { clientX: number; clientY: number }): { x: number; y: number } => {
     const svg = svgRef.current;
     const m = svg?.getScreenCTM();
@@ -1078,6 +1086,22 @@ function RunDrawing({
             if (e.button !== 0 || e.shiftKey) return;
             swallow.current = false;
             edit.beginMove(id, toX(e));
+            // Audit 2026-11-27 A19: a finger held on a box opens its Swap / Duplicate / Delete menu, as a
+            // right-click does (iPad Safari sends no contextmenu for a finger hold).
+            stopHold.current?.();
+            stopHold.current = null;
+            if (e.pointerType === 'touch' && onMenu !== undefined) {
+              stopHold.current = startLongPress(
+                e,
+                (x, y) => {
+                  stopHold.current = null;
+                  edit.cancel();
+                  swallow.current = true;
+                  onMenu(id, x, y);
+                },
+                { ms: LONG_PRESS_MS, slop: CONTEXT_MENU_PX },
+              );
+            }
           },
           onDoubleClick: (e: ReactMouseEvent) => {
             e.stopPropagation();
@@ -1230,7 +1254,8 @@ function RunDrawing({
         edit?.cancel();
       }}
       onDragOver={(e) => {
-        if (onLibraryDrop === undefined || !e.dataTransfer.types.includes(LIBRARY_DRAG_TYPE)) return;
+        if (onLibraryDrop === undefined || !e.dataTransfer.types.includes(LIBRARY_DRAG_TYPE))
+          return;
         e.preventDefault();
         e.dataTransfer.dropEffect = 'copy';
       }}

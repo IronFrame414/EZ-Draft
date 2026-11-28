@@ -729,3 +729,18 @@
   align-items: center;
   padding-bottom: 24px;
 }
+
+/* EZD-2003 (audit 2026-11-27 A24; 11 Non-functional requirements "44 px minimum on touch"): on a touch
+   device these controls are at least 44 x 44 px; the desktop sizes above are unchanged. */
+@media (any-pointer: coarse) {
+  .row,
+  .mode,
+  .typedInput {
+    min-height: var(--ez-touch-target);
+  }
+
+  .groupAccept {
+    min-width: var(--ez-touch-target);
+    min-height: var(--ez-touch-target);
+  }
+}

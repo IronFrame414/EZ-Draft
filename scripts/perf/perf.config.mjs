@@ -42,6 +42,32 @@ export const PROFILES = {
   },
 };
 
+// EZD-2000: the office session rows open with (run.mjs --office-storage-state).
+const OFFICE = { session: 'office' };
+// EZD-2000: every Settings section page (app/src/lib/settings/sections.ts slugs, each with its own page.tsx).
+const SETTINGS_PAGES = [
+  'company',
+  'users',
+  'title-block',
+  'sheet-presets',
+  'defaults',
+  'catalog',
+  'render-models',
+  'code-edition',
+  'libraries',
+  'system-status',
+];
+// EZD-2000: an import job id that is no job, for the Import review page.
+const NO_JOB = '00000000-0000-4000-8000-000000000000';
+
+/** EZD-2000: a real page's download row and first-load contents row. */
+function realPage(name, url, download, contents, extra = {}) {
+  return [
+    { id: `js-size:${name}`, url, budget: download, ...extra },
+    { id: `entry-contents:${name}`, url, budget: contents, ...extra },
+  ];
+}
+
 export default {
   profile: 'desktop',
   panUrl: '/dev/benchmark-plan',
@@ -72,5 +98,57 @@ export default {
     // EZD-235b Build step 10: the worker check runs on the perf probe page (no new page).
     { id: 'long-tasks-worker-job', url: '/dev/perf-probe?inject=worker-job' },
     { id: 'long-tasks-worker-job:ipad', url: '/dev/perf-probe?inject=worker-job' },
+    // EZD-2000 (AC-EZD-2000-1 (1), (2), (4); Q-0814): every page route measured at its real page, its download on a
+    // `download.*` row and its first load on a `contents.*` row (conventions check C12 fails a route without both).
+    // Office pages open with the office session (run.mjs --office-storage-state), `{project}` is the seeded project.
+    { id: 'js-size:projects', url: '/', budget: 'download.projects-settings', ...OFFICE },
+    // The realtime allowance for this page is in eslint-rules/boundaries.mjs FIRST_LOAD_ALLOWANCES.
+    { id: 'entry-contents:projects', url: '/', budget: 'contents.office', ...OFFICE },
+    ...SETTINGS_PAGES.map((slug) =>
+      realPage(`settings-${slug}`, `/settings/${slug}`, 'download.projects-settings', 'contents.office', OFFICE),
+    ).flat(),
+    // 11 Budgets: the editor's 500 KB is compressed JavaScript (CSS counted too since EZD-1996); the real page's HTML
+    // is held on its own row, document-size:editor-project.
+    ...realPage('editor-project', '/projects/{project}', 'download.editor', 'contents.editor', OFFICE),
+    { id: 'document-size:editor-project', url: '/projects/{project}', budget: 'download.editor-document', ...OFFICE },
+    // A job id that is no job: the review screen's code is the same, and it says the job is gone.
+    ...realPage(
+      'import-review',
+      `/projects/{project}/import/${NO_JOB}`,
+      'download.import-review',
+      'contents.editor',
+      OFFICE,
+    ),
+    ...realPage('supplier', '/projects/{project}/supplier', 'download.supplier', 'contents.editor', OFFICE),
+    { id: 'entry-contents:auth-confirm', url: '/auth/confirm' },
+    // Q-0072 (a): the invite page is a sign-in page; a token that is no invite opens it signed out.
+    ...realPage('invite', '/invite/not-a-token', 'download.sign-in', 'contents.sign-in'),
+    ...realPage('terms', '/terms', 'download.terms', 'contents.sign-in'),
+    // EZD-1995 cap on the real Projects and editor pages: the screen messages inside their HTML.
+    { id: 'inline-messages:projects', url: '/', budget: 'inline-messages.projects-page', ...OFFICE },
+    {
+      id: 'inline-messages:editor-project',
+      url: '/projects/{project}',
+      budget: 'inline-messages.editor-page',
+      ...OFFICE,
+    },
+  ],
+  // EZD-2000 (C12): page routes the gate cannot measure at a page of their own, each with its reason.
+  unmeasuredRoutes: [
+    {
+      route: '/settings',
+      reason:
+        'it has no screen of its own: a user with any Settings right is sent on to the first section page they may open (each measured), and one with none sees No access inside the same Settings shell those pages use',
+    },
+    {
+      route: '/settings/[section]',
+      reason:
+        'every Settings section has its own page (settings/<slug>/page.tsx), so this route only answers not found for an unknown slug; a new section without a page of its own is measured here',
+    },
+    {
+      route: '/settings/billing',
+      reason:
+        'EZD-1711: the gate measures pages with the office session, which is Worth Properties (billing exempt, Q-0372), and for it this page answers not found (AC-EZD-1711-2), so there is no real page to measure; for a billed company it is the same Settings shell as the measured section pages plus one small panel (components/settings/billing), with no heavy library',
+    },
   ],
 };

@@ -6,6 +6,9 @@
 // unless retired; M4 = a created object whose create statement the scan does not find, or a migration that fails.
 // EZD-2008: each build lane (EZD_LANE 0-4) has its own scratch stack (project id, container, ports + 100 x lane) and
 // its own lock, so one lane's check never waits on another's; lane 0 is the committed config, unchanged.
+// EZD-2039: with EZD_MIGCHECK_KEEP=1 (set only by scratch-check-local.test.mjs) the lane's stack is started once with no
+// migrations, its data folder is copied to a docker volume, and each later run copies it back instead of a new start;
+// the stack is left running for stopKeptScratch. Without the name every step is as before.
 // Children get only SCRATCH_ENV_NAMES; their output is captured and printed only as failure notes (cliFailureNotes, EZD-259): URL passwords redacted, at most CLI_NOTE_MAX_LINES lines per source.
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -85,6 +88,45 @@ export function scratchLock({ lockRoot, waitMs = SCRATCH_LOCK_WAIT_MS }) {
   return (fn, { lane = 0 } = {}) =>
     withTypesLock(fn, { lockDir: path.join(lockRoot, scratchLockName(lane)), waitMs });
 }
+/** EZD-2039: '1' under this name in deps.env keeps the lane's stack running between runs (tests only). */
+export const SCRATCH_KEEP_ENV = 'EZD_MIGCHECK_KEEP';
+export const SCRATCH_PGDATA = '/var/lib/postgresql/data';
+export const PRISTINE_MOUNT = '/ezd-pristine';
+
+/** The docker volume that holds a kept lane's data folder as it was before any migration. */
+export function scratchPristineVolume(lane) {
+  return `${scratchProjectId(lane)}-pristine`;
+}
+
+/** sh scripts of the helper container; $1 is the database container's id, so a copy is only used with the container it came from. */
+export const PRISTINE_CAPTURE_SH = `set -e; rm -rf ${PRISTINE_MOUNT}/data ${PRISTINE_MOUNT}/complete; cp -a ${SCRATCH_PGDATA} ${PRISTINE_MOUNT}/data; printf %s "$1" > ${PRISTINE_MOUNT}/complete`;
+export const PRISTINE_RESTORE_SH = `[ "$(cat ${PRISTINE_MOUNT}/complete 2>/dev/null)" = "$1" ] || exit 3; set -e; find ${SCRATCH_PGDATA} -mindepth 1 -delete; cp -a ${PRISTINE_MOUNT}/data/. ${SCRATCH_PGDATA}/`;
+export const PG_READY_SH =
+  'i=0; while [ $i -lt 240 ]; do pg_isready -q -h 127.0.0.1 -U postgres && exit 0; i=$((i+1)); sleep 0.25; done; exit 1';
+
+/** `docker run` arguments of the helper: the database container's volumes plus the pristine volume, no network. */
+export function pristineHelperArgs({ container, volume, image, script, id }) {
+  return [
+    'run',
+    '--rm',
+    '--network',
+    'none',
+    '--user',
+    '0',
+    '--entrypoint',
+    'sh',
+    '--volumes-from',
+    container,
+    '-v',
+    `${volume}:${PRISTINE_MOUNT}`,
+    image,
+    '-c',
+    script,
+    'sh',
+    id,
+  ];
+}
+
 /** The only environment names a scratch child gets (the release step holds its secrets in process.env). */
 export const SCRATCH_ENV_NAMES = Object.freeze([
   'PATH',
@@ -360,6 +402,8 @@ function scratchBody(input, deps, lane) {
   const env = scratchEnv(deps.env);
   const run = (command, args, opts) => deps.run(command, args, { ...opts, env });
   const bin = deps.supabaseBin;
+  const keep = deps.env[SCRATCH_KEEP_ENV] === '1';
+  const volume = scratchPristineVolume(lane);
   const violations = [];
   const notes = [];
 
@@ -375,14 +419,8 @@ function scratchBody(input, deps, lane) {
     }
   };
 
-  const steps = () => {
-    mkdirSync(migrationsDir, { recursive: true });
-    writeFileSync(
-      path.join(w, 'supabase', 'config.toml'),
-      scratchConfigToml(readFileSync(SCRATCH_CONFIG_PATH, 'utf8'), lane),
-    );
-    for (const [name, text] of Object.entries(input.released)) writeFileSync(path.join(migrationsDir, name), text);
-
+  /** Stop before start, start, and stop every service but Postgres (steps 2-5). Returns a failure or null. */
+  const startStack = () => {
     const pre = run(bin, ['stop', '--no-backup', '--workdir', w], { cwd: w, timeoutMs: 120000 });
     if (pre.status !== 0) {
       notes.push(...cliFailureNotes('stop before start', pre));
@@ -418,6 +456,81 @@ function scratchBody(input, deps, lane) {
       if (r.status !== 0) {
         notes.push(...cliFailureNotes(`docker stop ${name}`, r));
         return 'scratch_services_stop_failed';
+      }
+    }
+    return null;
+  };
+
+  /** `<id> <image> <running>` of the lane's database container, or null when there is none. */
+  const inspectDb = () => {
+    const r = run('docker', ['inspect', '-f', '{{.Id}} {{.Config.Image}} {{.State.Running}}', dbContainer], {
+      timeoutMs: 120000,
+    });
+    const m = r.status === 0 ? /^(\S+) (\S+) (true|false)$/.exec(r.stdout.trim()) : null;
+    return m ? { id: m[1], image: m[2], running: m[3] === 'true' } : null;
+  };
+
+  /** Stops Postgres, runs `script` in the helper over its data folder, starts it again and waits for it. Returns the failed step's result or null. */
+  const swapData = (db, script) => {
+    const calls = [
+      ['docker stop database', ['stop', dbContainer]],
+      ['pristine copy', pristineHelperArgs({ container: dbContainer, volume, image: db.image, script, id: db.id })],
+      ['docker start database', ['start', dbContainer]],
+      ['database ready', ['exec', dbContainer, 'sh', '-c', PG_READY_SH]],
+    ];
+    for (const [step, args] of calls) {
+      const r = run('docker', args, { timeoutMs: 120000 });
+      if (r.status !== 0) return { step, r };
+    }
+    return null;
+  };
+
+  /** EZD-2039 keep mode: the kept stack with its data folder put back, or a new stack whose data folder is copied first. */
+  const keptStack = () => {
+    const kept = inspectDb();
+    if (kept !== null && kept.running && swapData(kept, PRISTINE_RESTORE_SH) === null) return null;
+    const failure = startStack();
+    if (failure !== null) return failure;
+    const db = inspectDb();
+    if (db === null) {
+      notes.push(`scratch keep: ${dbContainer} cannot be inspected`);
+      return 'scratch_start_failed';
+    }
+    const failed = swapData(db, PRISTINE_CAPTURE_SH);
+    if (failed !== null) {
+      notes.push(...cliFailureNotes(failed.step, failed.r));
+      return 'scratch_start_failed';
+    }
+    return null;
+  };
+
+  const steps = () => {
+    mkdirSync(migrationsDir, { recursive: true });
+    writeFileSync(
+      path.join(w, 'supabase', 'config.toml'),
+      scratchConfigToml(readFileSync(SCRATCH_CONFIG_PATH, 'utf8'), lane),
+    );
+    const writeReleased = () => {
+      for (const [name, text] of Object.entries(input.released)) writeFileSync(path.join(migrationsDir, name), text);
+    };
+    if (!keep) {
+      writeReleased();
+      const failure = startStack();
+      if (failure !== null) return failure;
+    } else {
+      // The kept stack has no migrations; the released ones go on with the same command as the new ones.
+      const failure = keptStack();
+      if (failure !== null) return failure;
+      writeReleased();
+      if (Object.keys(input.released).length > 0) {
+        const up = run(bin, ['migration', 'up', '--local', '--output-format', 'json', '--workdir', w], {
+          cwd: w,
+          timeoutMs: 300000,
+        });
+        if (up.status !== 0) {
+          notes.push(...cliFailureNotes('released migrations', up));
+          return 'scratch_start_failed';
+        }
       }
     }
 
@@ -477,9 +590,46 @@ function scratchBody(input, deps, lane) {
   try {
     failure = steps();
   } finally {
-    const stopped = run(bin, ['stop', '--no-backup', '--workdir', w], { cwd: w, timeoutMs: 120000 });
-    if (stopped.status !== 0) notes.push('scratch_db_stop_failed');
+    if (!keep) {
+      const stopped = run(bin, ['stop', '--no-backup', '--workdir', w], { cwd: w, timeoutMs: 120000 });
+      if (stopped.status !== 0) notes.push('scratch_db_stop_failed');
+    }
     rmSync(w, { recursive: true, force: true });
   }
   return { violations, notes, failure };
+}
+
+/** EZD-2039: stops the lane's kept stack and removes its pristine volume, under the lane's lock. `{ ok, failure }`. */
+export function stopKeptScratch(deps = defaultScratchDeps()) {
+  const lane = scratchLane(deps.env);
+  if (lane === null) return { ok: false, failure: 'scratch_lane_invalid' };
+  const env = scratchEnv(deps.env);
+  const locked = deps.lock(
+    () => {
+      const w = mkdtempSync(path.join(deps.tmpRoot, 'ezd-migcheck-'));
+      try {
+        mkdirSync(path.join(w, 'supabase'), { recursive: true });
+        writeFileSync(
+          path.join(w, 'supabase', 'config.toml'),
+          scratchConfigToml(readFileSync(SCRATCH_CONFIG_PATH, 'utf8'), lane),
+        );
+        const stopped = deps.run(deps.supabaseBin, ['stop', '--no-backup', '--workdir', w], {
+          cwd: w,
+          timeoutMs: 120000,
+          env,
+        });
+        const removed = deps.run('docker', ['volume', 'rm', '-f', scratchPristineVolume(lane)], {
+          timeoutMs: 120000,
+          env,
+        });
+        if (stopped.status !== 0) return 'scratch_db_stop_failed';
+        return removed.status !== 0 ? 'scratch_pristine_remove_failed' : null;
+      } finally {
+        rmSync(w, { recursive: true, force: true });
+      }
+    },
+    { lane },
+  );
+  if (!locked.ok) return { ok: false, failure: 'scratch_db_lock_timeout' };
+  return { ok: locked.value === null, failure: locked.value };
 }

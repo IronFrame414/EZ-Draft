@@ -38,7 +38,7 @@ const ACTIONS = (o: Partial<TaskActions> = {}): TaskActions => ({
   canCheck: true,
   canEdit: true,
   online: true,
-  check: () => {},
+  check: async () => 'ok' as const,
   addPhoto: async () => 'ok',
   edit: async () => true,
   ...o,

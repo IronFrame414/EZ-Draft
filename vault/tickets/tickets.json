@@ -1,6 +1,6 @@
 {
  "source": "Build specification doc, Phases and tickets tab rev 634, exported Oct 11, 2026",
- "count": 660,
+ "count": 887,
  "notes": [
   "depends_on has base IDs expanded to every lettered part.",
   "spec_files is best-effort from the Spec ref text; the Spec ref text governs.",
@@ -28367,6 +28367,169 @@
    ],
    "acs_source": "josh-2026-11-27",
    "spec_phase": 11
+  },
+  {
+   "id": "EZD-2039",
+   "phase": 10,
+   "title": "Fix: scratch-check-local still times out at 300 s with 4 lanes after EZD-2008",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-27: after EZD-2008 (per-lane scratch stacks, merged 05:15Z) scripts/release/__tests__/scratch-check-local.test.mjs still timed out as a whole file (killed at 300 s by scripts/check.mjs:64) 6 times in 4 unrelated tickets: EZD-2019 (3, set aside at 23:09Z), EZD-2020, EZD-2017, EZD-2021, with lanes [1,2,3,4] since 09:18Z. The file took 175-184 s alone before EZD-2008 (flaky-test audit 2026-11-27 row 1, vault/plans/audit-flaky-tests-2026-11-27.md); four lanes each starting their own scratch stack now push it past the limit. The audit's second fix was not done: start the stack once per file and reset the database between its tests.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2039-1",
+    "AC-EZD-2039-2",
+    "AC-EZD-2039-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2040",
+   "phase": 10,
+   "title": "Fix: EZD-2003 Cabinets touch-target test fails on the GitHub CI runner (release PR #23)",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-28: release PR #23 (head d090652d, CI run 46105428945) failed its gate twice, both attempts, on app/e2e/ezd-2003-ipad-touch-targets.spec.ts:449 'EZD-2003 Cabinets: the run header, tile bar, box menu, inspectors, pickers and schedule are at least 44 px' @ipad (ipad-landscape project, shard 4/4): expect(received).toEqual(expected) with 3 entries received where 1 was expected, so two Cabinets controls measure under 44 px on the Linux runner although the test passed on the build Mac. develop at d090652d also has EZD-1913b (Electrical and Ceiling modes as registry features) merged after EZD-2003. The release cannot go out until this passes on CI.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2040-1",
+    "AC-EZD-2040-2",
+    "AC-EZD-2040-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2041",
+   "phase": 10,
+   "title": "Fix: sweep test T2 (c) sees 2 runs for one job at random (EZD-009)",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-28: app/src/server/jobs/sweep.db.test.ts:70 \"EZD-009 T2 (c) done when: two sweeps started at once run the job once @smoke\" failed at random in two unrelated runs: EZD-2031 local gate round 2 (2026-11-27 18:58Z) and release PR #24 CI run 46123715018 (head e6b3d36f, test step): expected 2 to be 1 at line 76, the sum of ran from the two sweep responses. Either the job claim lets both sweeps run one job (a real double-run bug in job_claim / runner.ts), or ran also counts due jobs that other database test files insert while this test runs. Find which, and fix the cause: a double run is fixed in the claim; a test that counts jobs it did not make is fixed by scoping it (for example onlyTenantId or its own job ids), without weakening what T2 (c) proves: one job, run once, attempts 1.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2041-1",
+    "AC-EZD-2041-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2042",
+   "phase": 10,
+   "title": "Fix: Settings Catalog page shows its settings card twice (two main landmarks, EZD-614)",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-28: release PR #24 (head e6b3d36f, CI run 46123715018) failed its e2e step on both attempts on app/e2e/ezd-1980-ipad-touch-targets.spec.ts:241 \"EZD-614 Settings Catalog: every appliance rating control is at least 44 px @ipad\" (ipad-landscape, shard 4/4): strict mode violation, locator([data-settings-page=\"catalog\"]) resolved to 2 elements, both <main data-settings-page=\"catalog\" class=\"card main\"> (one reached as getByRole(main), the other as getByText(\"CatalogAppliance rating\")). So /settings/catalog renders the SettingsShell main twice, likely the page wrapping its content in SettingsShell inside a layout that already does (EZD-614, 5d9ea4d90). A page with two <main> is a real defect (one main landmark per page). The release cannot go out until this passes on CI.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2042-1",
+    "AC-EZD-2042-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2043",
+   "phase": 10,
+   "title": "Utility points draw a symbol for each kind (electric 120 V, 240 V, gas, water, drain)",
+   "depends_raw": "EZD-234, EZD-422",
+   "spec_ref": "Josh 2026-11-28, chat (Q-0920): every utility point draws the same 6\" diamond with no tag (EZD-234 assumption), so electric, gas, water and drain cannot be told apart on a plan. Q-0920 sets the symbols: electric 120 V a circle with 2 short parallel lines; electric 240 V a circle with 3 short parallel lines with \"240\" beside it; gas a circle with \"G\"; water a circle with \"W\"; drain a circle with \"D\"; status colour; canvas and every sheet that shows the plan; sheet legend lists each. Same pattern as EZD-422 (each fixture kind its own symbol).",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Fixtures",
+    "spec/sections/03f-model-json-objects.md#Objects inside model_json",
+    "spec/sections/00k-glossary-phase-10.md"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-234",
+    "EZD-422"
+   ],
+   "acs": [
+    "AC-EZD-2043-1",
+    "AC-EZD-2043-2",
+    "AC-EZD-2043-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2044",
+   "phase": 10,
+   "title": "Shower head and shower handle placed separately from the Fixtures panel",
+   "depends_raw": "EZD-234, EZD-422",
+   "spec_ref": "Josh 2026-11-28, chat (Q-0921): \"Need to add shower head and handle. they need to be separate because sometimes they are on different sides.\" Add Shower head and Shower handle to the Fixtures panel; each is placed on its own against a wall (may be on different walls of the same shower), takes the view status, draws its own plan symbol in its status colour on the canvas and sheets, and is listed in the sheet legend. Fit them into the existing fixture model (FIXTURE_KINDS in packages/geometry/src/schema/fixture.ts, a schema step if needed with old documents opening unchanged), the plumbing locations layer (EZD-729) and takeoff counts where fixtures are counted. Symbols follow the lettered-circle style Josh accepted in Q-0920: shower head a circle with \"SH\", shower handle a circle with \"V\" (record as wording for Josh). Default mounting heights: shower head 80 in and handle 48 in above the floor, editable (record as assumptions).",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Fixtures",
+    "spec/sections/03f-model-json-objects.md#Objects inside model_json",
+    "spec/sections/00k-glossary-phase-10.md"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-234",
+    "EZD-422"
+   ],
+   "acs": [
+    "AC-EZD-2044-1",
+    "AC-EZD-2044-2",
+    "AC-EZD-2044-3",
+    "AC-EZD-2044-4"
+   ],
+   "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2045",
+   "phase": 10,
+   "title": "The sink draws a single basin",
+   "depends_raw": "EZD-422",
+   "spec_ref": "Josh 2026-11-28, chat (Q-0922): \"change the sink to be a single basin\". packages/geometry/src/fixtures/fixture-symbol.ts case sink draws two bowls split at the center line with a drain in each (EZD-422). Draw one bowl with one centred drain and the faucet deck at the back; existing sinks redraw the same way. Check that countertop cutouts and plumbing locations (one drain on the centre line, EZD-729) still agree.",
+   "spec_files": [
+    "spec/sections/screens/S03-plan-editor.md#Fixtures",
+    "spec/sections/03f-model-json-objects.md#Objects inside model_json",
+    "spec/sections/00k-glossary-phase-10.md"
+   ],
+   "decisions": [
+    "spec/decisions/05-screens.md"
+   ],
+   "mockups": [
+    "mockups/S03Plan.png"
+   ],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-02.md",
+   "depends_on": [
+    "EZD-422"
+   ],
+   "acs": [
+    "AC-EZD-2045-1",
+    "AC-EZD-2045-2"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"

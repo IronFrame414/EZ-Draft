@@ -6,8 +6,16 @@
 // inspector More menu and the Save as group dialog. Align and Set status open their choices in place. Every command is
 // one edit (one undo step).
 import { chosenFloor, type FloorChoice } from '../../editor/floors/floors';
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactElement } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactElement,
+} from 'react';
 import { createPortal } from 'react-dom';
+import { InlineDialog } from '../../a11y/InlineDialog';
 import { OBJECT_STATUSES, type Point } from '@ezdraft/geometry';
 import { useT } from '../../lib/messages';
 import type { MessageKey } from '../../server/messages/catalog';
@@ -114,6 +122,9 @@ function EditMenu({
 }: EditMenusProps & { request: EditMenuRequest; onSaveGroup: () => void }): ReactElement {
   const t = useT();
   const ref = useRef<HTMLDivElement>(null);
+  // EZD-2003: on a touch device the rows are 44 px, so the menu is taller than the 360 px kept free below it with a
+  // mouse; it is measured once drawn and moved up just enough that its last row stays on the screen.
+  const [touchTop, setTouchTop] = useState<number | null>(null);
   const [open, setOpen] = useState<'align' | 'status' | null>(null);
   const ids = selection.getUi().ids;
   const ui = edit.getUi();
@@ -220,8 +231,14 @@ function EditMenu({
   // A menu near the right or bottom edge opens back toward the middle.
   const style = {
     left: Math.max(8, Math.min(request.at.x, window.innerWidth - 220)),
-    top: Math.max(8, Math.min(request.at.y, window.innerHeight - 360)),
+    top: touchTop ?? Math.max(8, Math.min(request.at.y, window.innerHeight - 360)),
   };
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (el === null || !window.matchMedia('(any-pointer: coarse)').matches) return;
+    const top = Math.max(8, Math.min(request.at.y, window.innerHeight - 8 - el.offsetHeight));
+    setTouchTop((was) => (was === top ? was : top));
+  }, [request.at.y, open]);
 
   return createPortal(
     <div
@@ -298,19 +315,13 @@ function SaveGroupDialog({
     if (r.ok) onSaved();
     else setError(r.messageKey);
   };
+  // Audit 2026-11-27 A28: on Radix Dialog, so focus stays inside and Escape closes it.
   return createPortal(
-    <div
-      role="dialog"
-      aria-modal="true"
+    <InlineDialog
+      onClose={onClose}
       aria-labelledby="save-group-title"
       data-testid="save-group-dialog"
       className={styles.dialog}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          e.stopPropagation();
-          onClose();
-        }
-      }}
     >
       <h2 id="save-group-title" className={styles.heading}>
         {t('office.saved_groups.dialog_title')}
@@ -351,7 +362,7 @@ function SaveGroupDialog({
           </button>
         </div>
       </form>
-    </div>,
+    </InlineDialog>,
     document.body,
   );
 }

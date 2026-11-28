@@ -47,6 +47,8 @@ export const es = {
     'Puede que haya vencido, que ya se haya usado o que se haya cancelado. Pide a quien te invitó que vuelva a enviar la invitación.',
   'common.invite.failed': 'No se pudo aceptar la invitación. Inténtalo de nuevo.',
   'common.invite.to_sign_in': 'Ir a iniciar sesión',
+  'common.invite.code_locked':
+    'Demasiados códigos incorrectos, así que tu código de invitación está bloqueado. Este enlace sigue funcionando: presiona Aceptar para unirte.',
   'common.sign_in.title': 'Inicia sesión en EZ Draft',
   'common.sign_in.email_label': 'Correo electrónico',
   'common.sign_in.send': 'Envíame un enlace de acceso por correo',
@@ -275,6 +277,12 @@ export const es = {
   'field.measure.length_refused': 'Escribe una medida, como 9\' 0"',
   'field.measure.keypad': 'Teclado de medidas',
   'field.measure.key.backspace': 'Borrar',
+  'field.measure.key.feet': 'Pies',
+  'field.measure.key.inches': 'Pulgadas',
+  'field.measure.key.space': 'Espacio',
+  'field.measure.wall_length': 'Pared {letter}, {length}',
+  'field.measure.length_feet': 'pies',
+  'field.measure.length_inches': 'pulgadas',
   'field.measure.next_wall': 'Siguiente pared',
   'field.measure.closes': 'Cierra',
   'field.measure.off_by': 'Desfase de {gap}',
@@ -317,6 +325,7 @@ export const es = {
   'field.pack.tab.tasks': 'Tareas',
   'field.pack.tab.photo': 'Foto',
   'field.pack.open_tasks': { one: '{count} tarea abierta', other: '{count} tareas abiertas' },
+  'field.pack.tasks_tab_open': { one: 'Tareas, {count} tarea abierta', other: 'Tareas, {count} tareas abiertas' },
   'field.pack.none': 'Todavía no se ha emitido un paquete de obra.',
   'field.pack.load_failed': 'No se pudo abrir el paquete de obra.',
   // EZD-1409: la pestaña Tareas.
@@ -336,7 +345,25 @@ export const es = {
   'field.tasks.edit_failed': 'No se pudo guardar la tarea. Inténtalo de nuevo.',
   'field.tasks.save': 'Guardar',
   'field.tasks.cancel': 'Cancelar',
+  // EZD-2025 (Q-0903; traducción para que Josh la confirme, vault/build/assumptions/EZD-2025.md).
+  'field.sync.not_saved': 'No se guardó en la oficina.',
+  'field.measure.send_failed':
+    'No se pudieron guardar las habitaciones en este teléfono para enviarlas. Libera espacio e inténtalo de nuevo.',
+  'field.measure.send_starting': 'Preparando el envío…',
+  'field.measure.send_unavailable':
+    'No se puede enviar desde este teléfono ahora. Se intentará de nuevo cuando vuelvas a tener conexión.',
+  'field.tasks.check_failed': 'La marca no se guardó en este teléfono. Inténtalo de nuevo.',
+  'field.tasks.sender_failed':
+    'Marcar tareas, Agregar foto y Editar no están disponibles en este teléfono ahora. Vuelven cuando tengas conexión.',
   // EZD-2028 (Q-0907): the reload notice on the field pack.
   'field.app.reload_message': 'EZ Draft se actualizó. Recarga para usar la nueva versión.',
   'field.app.reload': 'Recargar',
+  // EZD-1711 (Q-0795): billing answers a field user can see.
+  'error.billing_read_only':
+    'Tu suscripción terminó. Puedes ver y exportar proyectos, pero no cambiarlos.',
+  'error.billing_inactive': 'Tu suscripción de EZ Draft no está activa.',
+  'error.billing_not_found': 'Esa página no está disponible.',
+  'error.billing_unavailable': 'No se puede conectar con la facturación. Inténtalo de nuevo en un minuto.',
+  'error.invalid_signature': 'No se pudo verificar esa solicitud.',
+  'error.share_link_unavailable': 'Este enlace no está disponible.',
 } as const satisfies Record<SpanishKey, Message>;

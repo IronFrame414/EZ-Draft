@@ -13,6 +13,7 @@ import type { ModelStore } from '../../editor/model/model-store';
 import type { FloorChoice } from '../../editor/floors/floors';
 import type { CabinetSelectionStore } from '../../editor/cabinets/cabinet-selection-store';
 import {
+  cabinetLibraryInsertChanges,
   cabinetRuns,
   cabinetTrimChanges,
   cabinetView,
@@ -21,6 +22,7 @@ import {
 import {
   LIBRARY_DRAG_TYPE,
   libraryCode,
+  libraryItemFor,
   libraryLineItems,
   libraryLines,
   searchLibrary,
@@ -209,6 +211,27 @@ function BoxesTab({
           if (changes.length > 0) store.applyEdit(changes);
         };
 
+  // Audit 2026-11-27 A20: a tap, Enter or Space on a row adds its box at the end of the run (dragging still places it).
+  const addRow =
+    !canEdit || view === null
+      ? undefined
+      : (m: LibraryMatch) => {
+          const width = m.width ?? m.row.width;
+          const id = (newId ?? (() => crypto.randomUUID()))();
+          const rowItems = custom ? {} : libraryLineItems(items, line, m.row);
+          const changes = cabinetLibraryInsertChanges(
+            view,
+            m.row,
+            width,
+            Number.POSITIVE_INFINITY,
+            id,
+            libraryItemFor(rowItems, width),
+          );
+          if (changes.length === 0) return;
+          store.applyEdit(changes);
+          selectionStore.getState().send({ type: 'set', ids: [id] });
+        };
+
   const rowItem = (m: LibraryMatch) => {
     // A search that names a width shows the code it places ("B24").
     const code = m.width === null ? m.row.label : libraryCode(m.row, m.width);
@@ -222,6 +245,18 @@ function BoxesTab({
         draggable={canEdit}
         onDragStart={canEdit ? dragRow(m) : undefined}
         title={canEdit ? t('office.cabinets.library.drag') : undefined}
+        role={addRow !== undefined ? 'button' : undefined}
+        tabIndex={addRow !== undefined ? 0 : undefined}
+        onClick={addRow !== undefined ? () => addRow(m) : undefined}
+        onKeyDown={
+          addRow !== undefined
+            ? (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                e.preventDefault();
+                addRow(m);
+              }
+            : undefined
+        }
       >
         <span className={styles.code}>{code}</span>
         <span className={styles.name}>{t(m.row.name)}</span>
@@ -370,9 +405,14 @@ export function CabinetLibraryRuns({
             ? null
             : fit.fits
               ? t('office.cabinets.library.fit_ok')
-              : t(fit.gap < 0 ? 'office.cabinets.library.fit_long' : 'office.cabinets.library.fit_short', {
-                  gap: inchText(Math.abs(fit.gap)),
-                });
+              : t(
+                  fit.gap < 0
+                    ? 'office.cabinets.library.fit_long'
+                    : 'office.cabinets.library.fit_short',
+                  {
+                    gap: inchText(Math.abs(fit.gap)),
+                  },
+                );
         const open = view !== null && view.run.id === run.id;
         return (
           <li key={run.id}>

@@ -13,6 +13,7 @@ import {
   defaultSheetSet,
   defaultSheetSetData,
   sheetsForSet,
+  withCountertopSheets,
   withFloorSheets,
   type Sheet,
   type SheetFloor,
@@ -43,6 +44,8 @@ export async function loadProjectSheets(
 // outside the member's scope, reads as null.
 // EZD-703 (Q-0509): each floor after the lowest adds its copies of the floor-plan sheets (withFloorSheets), and a set
 // returns its stored viewports and changed-viewport sheets (null while it has none).
+// EZD-720 (AC-EZD-720-1, -2): the client set holds the countertop sheets (A8.0, A9.0) while the project has a live
+// countertop piece; the permit set never does (withCountertopSheets).
 // EZD-717: the permit set carries its issued revisions (permit_revision, oldest first) and its last issued version.
 export async function loadProjectSheetSets(
   client: SupabaseClient<Database>,
@@ -60,7 +63,7 @@ export async function loadProjectSheetSets(
     .from('model_object')
     .select('object_id, type, schema_version, data')
     .eq('project_id', projectId)
-    .in('type', ['sheet_set', 'floor', ...SCHEDULE_OBJECT_TYPES])
+    .in('type', ['sheet_set', 'floor', 'countertop_piece', ...SCHEDULE_OBJECT_TYPES])
     .eq('deleted', false)
     .order('object_id');
   if (rows.error) throw rows.error;
@@ -72,7 +75,13 @@ export async function loadProjectSheetSets(
   const scheduleRows = scheduleRowsOf(
     rows.data.map((row) => ({ id: row.object_id, type: row.type, schema_version: row.schema_version, data: row.data })),
   ).length;
+  let pieces = 0;
   for (const row of rows.data) {
+    if (row.type === 'countertop_piece') {
+      const piece = parseStoredObject({ id: row.object_id, type: row.type, schema_version: row.schema_version, data: row.data });
+      if (piece.ok) pieces++;
+      continue;
+    }
     if (row.type !== 'sheet_set' && row.type !== 'floor') continue;
     const parsed = parseStoredObject({
       id: row.object_id,
@@ -103,7 +112,11 @@ export async function loadProjectSheetSets(
       lastIssuedVersionId:
         kind === 'permit' ? (latestRevision(revisions)?.modelVersionId ?? d.lastIssuedVersionId) : d.lastIssuedVersionId,
       revisions: kind === 'permit' ? revisions : [],
-      sheets: withScheduleSheets(withFloorSheets(sheetsForSet(kind, trades), floors), d.size, scheduleRows),
+      sheets: withCountertopSheets(
+        withScheduleSheets(withFloorSheets(sheetsForSet(kind, trades), floors), d.size, scheduleRows),
+        kind,
+        pieces,
+      ),
       viewports: d.viewports ?? null,
       viewportSheets: d.viewportSheets ?? null,
     };

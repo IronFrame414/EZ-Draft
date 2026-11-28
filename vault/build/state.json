@@ -591,7 +591,23 @@
     "EZD-2020",
     "EZD-2017",
     "EZD-2018",
-    "EZD-2031"
+    "EZD-2031",
+    "EZD-2002",
+    "EZD-2013",
+    "EZD-2000",
+    "EZD-2039",
+    "EZD-2003",
+    "EZD-2025",
+    "EZD-1913b",
+    "EZD-720",
+    "EZD-2021",
+    "EZD-1913c",
+    "EZD-1711",
+    "EZD-2040",
+    "EZD-2011",
+    "EZD-2004",
+    "EZD-2042",
+    "EZD-2041"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2701,6 +2717,134 @@
       "ts": "2026-11-27T20:54:42Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-2002",
+      "title": "Field pages use the stored copy on a slow connection and keep the newer phone copy of rooms",
+      "commit": "5e29404b4",
+      "ts": "2026-11-27T22:02:55Z",
+      "kind": "ticket",
+      "lane": 4
+    },
+    {
+      "id": "EZD-2013",
+      "title": "Fix: assistant preview B4 Send stays disabled after typing on iPad (EZD-5604b)",
+      "commit": "657408daa",
+      "ts": "2026-11-27T22:33:03Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-2000",
+      "title": "Gate rules that keep pages small and fast as the app grows",
+      "commit": "4c9ded75f",
+      "ts": "2026-11-28T00:20:34Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-2039",
+      "title": "Fix: scratch-check-local still times out at 300 s with 4 lanes after EZD-2008",
+      "commit": "a8c9e9815",
+      "ts": "2026-11-28T01:42:02Z",
+      "kind": "ticket",
+      "lane": 4
+    },
+    {
+      "id": "EZD-2003",
+      "title": "Touch targets of at least 44 px on iPad in cabinets, countertops, import review, the edit menu and small editor controls",
+      "commit": "d23f4d076",
+      "ts": "2026-11-28T02:42:50Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-2025",
+      "title": "Field screens say when a save, a Send or a task tick did not reach the office, with Retry",
+      "commit": "e928ea2bf",
+      "ts": "2026-11-28T03:21:44Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-1913b",
+      "title": "Electrical and Ceiling modes as registry features",
+      "commit": "3d39aa69b",
+      "ts": "2026-11-28T03:49:49Z",
+      "kind": "ticket",
+      "lane": 4
+    },
+    {
+      "id": "EZD-720",
+      "title": "Client set content",
+      "commit": "91f120ce1",
+      "ts": "2026-11-28T04:30:27Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-2021",
+      "title": "Security: signed-out sign-in and invite answers do not reveal who is a member or has an invite",
+      "commit": "4eff495ef",
+      "ts": "2026-11-28T05:24:34Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-1913c",
+      "title": "Versions, Sheets, 3D, Assistant and editor dialogs as registry features",
+      "commit": "10044fe2c",
+      "ts": "2026-11-28T06:00:20Z",
+      "kind": "ticket",
+      "lane": 4
+    },
+    {
+      "id": "EZD-1711",
+      "title": "Billing and paywall for other companies",
+      "commit": "33368a8eb",
+      "ts": "2026-11-28T07:11:20Z",
+      "kind": "ticket",
+      "lane": 1
+    },
+    {
+      "id": "EZD-2040",
+      "title": "Fix: EZD-2003 Cabinets touch-target test fails on the GitHub CI runner (release PR #23)",
+      "commit": "6b47d1a6b",
+      "ts": "2026-11-28T07:42:31Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-2011",
+      "title": "Fix: money pages sweep W1/W2 hangs on one page that never goes quiet (EZD-133)",
+      "commit": "fba873c5b",
+      "ts": "2026-11-28T08:58:09Z",
+      "kind": "ticket",
+      "lane": 4
+    },
+    {
+      "id": "EZD-2004",
+      "title": "Keyboard and screen-reader fixes in field and editor screens",
+      "commit": "c08a38c13",
+      "ts": "2026-11-28T10:46:17Z",
+      "kind": "ticket",
+      "lane": 3
+    },
+    {
+      "id": "EZD-2042",
+      "title": "Fix: Settings Catalog page shows its settings card twice (two main landmarks, EZD-614)",
+      "commit": "30a62e607",
+      "ts": "2026-11-28T11:25:22Z",
+      "kind": "ticket",
+      "lane": 2
+    },
+    {
+      "id": "EZD-2041",
+      "title": "Fix: sweep test T2 (c) sees 2 runs for one job at random (EZD-009)",
+      "commit": "1bcdc92cc",
+      "ts": "2026-11-28T11:53:31Z",
+      "kind": "ticket",
+      "lane": 4
     }
   ],
   "set_aside": {},
@@ -2764,7 +2908,12 @@
     "EZD-2010": 1,
     "EZD-2022": 1,
     "EZD-2019": 1,
-    "EZD-2031": 1
+    "EZD-2031": 1,
+    "EZD-2021": 1,
+    "EZD-2003": 1,
+    "EZD-2025": 1,
+    "EZD-2014": 1,
+    "EZD-1921": 1
   },
   "retry_log": {
     "EZD-116": {
@@ -3010,31 +3159,51 @@
     "EZD-2031": {
       "ts": "2026-11-27T17:51:48Z",
       "reason": "check red after a review fix"
+    },
+    "EZD-2021": {
+      "ts": "2026-11-27T21:28:13Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-2003": {
+      "ts": "2026-11-27T23:12:19Z",
+      "reason": "develop kept moving: 3 merge rounds"
+    },
+    "EZD-2025": {
+      "ts": "2026-11-27T23:48:43Z",
+      "reason": "check red after a review fix"
+    },
+    "EZD-2014": {
+      "ts": "2026-11-28T06:37:19Z",
+      "reason": "check red after merging newer develop"
+    },
+    "EZD-1921": {
+      "ts": "2026-11-28T08:25:29Z",
+      "reason": "check red after a review fix"
     }
   },
   "running": {
-    "EZD-2002": {
-      "lane": 4,
-      "title": "Field pages use the stored copy on a slow connection and keep the newer phone copy of rooms",
-      "started": "2026-11-27T19:02:40Z",
-      "develop": "602b4f894"
+    "EZD-2019": {
+      "lane": 1,
+      "title": "Security: a junk captcha token can no longer lock a member out of Email me a code",
+      "started": "2026-11-28T10:04:15Z",
+      "develop": "7840bf851"
     },
-    "EZD-2021": {
-      "lane": 2,
-      "title": "Security: signed-out sign-in and invite answers do not reveal who is a member or has an invite",
-      "started": "2026-11-27T19:09:41Z",
-      "develop": "9e7b6bae6"
-    },
-    "EZD-2003": {
+    "EZD-1202": {
       "lane": 3,
-      "title": "Touch targets of at least 44 px on iPad in cabinets, countertops, import review, the edit menu and small editor controls",
-      "started": "2026-11-27T20:06:54Z",
-      "develop": "73e3ccd66"
+      "title": "Client page shell",
+      "started": "2026-11-28T10:46:31Z",
+      "develop": "ba57384f5"
+    },
+    "EZD-1914": {
+      "lane": 2,
+      "title": "Ceiling tools register their own click receivers",
+      "started": "2026-11-28T11:25:33Z",
+      "develop": "730acbff0"
     }
   },
-  "advisories_checked_at": "2026-11-27T16:29:29Z",
+  "advisories_checked_at": "2026-11-28T10:30:54Z",
   "hold": {},
-  "perf_trend_at": "2026-11-27T04:12:31Z",
+  "perf_trend_at": "2026-11-28T04:30:46Z",
   "set_aside_history": [
     {
       "ticket": "EZD-2000",
@@ -3063,7 +3232,42 @@
       "set_aside_ts": "2026-11-27T19:09:41Z",
       "retried_ts": "2026-11-27T19:29:19Z",
       "by": "overwatch"
+    },
+    {
+      "ticket": "EZD-2019",
+      "reason": "check red after merging newer develop (first try: check red after a review fix)",
+      "set_aside_ts": "2026-11-27T23:09:37Z",
+      "retried_ts": "2026-11-27T23:29:45Z",
+      "by": "overwatch"
+    },
+    {
+      "ticket": "EZD-2021",
+      "reason": "check red after a review fix (first try: check red after merging newer develop)",
+      "set_aside_ts": "2026-11-28T01:16:32Z",
+      "retried_ts": "2026-11-28T01:29:16Z",
+      "by": "overwatch"
+    },
+    {
+      "ticket": "EZD-2019",
+      "reason": "check red after merging newer develop (first try: check red after a review fix)",
+      "set_aside_ts": "2026-11-28T02:52:47Z",
+      "retried_ts": "2026-11-28T02:59:32Z",
+      "by": "overwatch"
+    },
+    {
+      "ticket": "EZD-2014",
+      "reason": "develop kept moving: 3 merge rounds (first try: check red after merging newer develop)",
+      "set_aside_ts": "2026-11-28T09:23:32Z",
+      "retried_ts": "2026-11-28T09:29:13Z",
+      "by": "overwatch"
+    },
+    {
+      "ticket": "EZD-1921",
+      "reason": "squash merge failed (first try: check red after a review fix)",
+      "set_aside_ts": "2026-11-28T10:04:15Z",
+      "retried_ts": "2026-11-28T10:29:23Z",
+      "by": "overwatch"
     }
   ],
-  "backups_checked_at": "2026-11-27T09:59:34Z"
+  "backups_checked_at": "2026-11-28T10:00:06Z"
 }

@@ -4,6 +4,10 @@
 // field measurements (S17 Decision 5 Crew preset plus Send field measurement, as field-measure-entry.spec.ts), so
 // both /projects/<id>/field and /projects/<id>/field-measure open. The session is saved as a Playwright storage
 // state for run.mjs --storage-state; the arguments returned go to every run.mjs call that measures a field row.
+// EZD-2000 (AC-EZD-2000-1 (1); Q-0814 "every route measured at its real page"): the same company also gets an office
+// member with every right and every project (as money-pages.spec.ts), signed in and saved for run.mjs
+// --office-storage-state, so Projects, every Settings page and the seeded project's editor are measured as Josh sees
+// them.
 import { mkdtempSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -13,6 +17,7 @@ import {
   createProjects,
   createTenant,
   harnessSql,
+  PERMISSION_KEYS,
   setPermissions,
 } from '../test-harness/e2e/test';
 import { seedFieldPack } from './fixtures/field-pack';
@@ -69,7 +74,38 @@ export async function fieldPerfSession(
     }
     const file = path.join(mkdtempSync(path.join(os.tmpdir(), 'ezd-perf-session-')), 'state.json');
     await context.storageState({ path: file });
-    return { projectId, args: ['--project', projectId, '--storage-state', file] };
+    const office = await officeSession(browser, baseURL, tenant, projectId);
+    return {
+      projectId,
+      args: ['--project', projectId, '--storage-state', file, '--office-storage-state', office],
+    };
+  } finally {
+    await context.close();
+  }
+}
+
+// EZD-2000: the office member's saved session (every right, every project); Projects and the editor open first.
+async function officeSession(
+  browser: BrowserLike,
+  baseURL: string,
+  tenant: string,
+  projectId: string,
+): Promise<string> {
+  const member = await createMember({ tenantId: tenant, scope: 'all' });
+  await setPermissions(tenant, member.membershipId, [...PERMISSION_KEYS]);
+  const context = await browser.newContext({ baseURL });
+  try {
+    const page = await context.newPage();
+    await signInAs(page, member.email);
+    for (const p of ['/', `/projects/${projectId}`]) {
+      const resp = await page.goto(p);
+      if (resp?.status() !== 200 || new URL(page.url()).pathname !== p) {
+        throw new Error(`perf office session: ${p} answered ${resp?.status()} at ${page.url()}`);
+      }
+    }
+    const file = path.join(mkdtempSync(path.join(os.tmpdir(), 'ezd-perf-session-')), 'office.json');
+    await context.storageState({ path: file });
+    return file;
   } finally {
     await context.close();
   }

@@ -7,7 +7,7 @@
 // The tab contents are EZD-1405 (Plan, 3D), EZD-1406 (Measure), EZD-1409 (Tasks) and EZD-1410 (Photo).
 // EZD-1409: the Tasks tab (TasksPanel) shows the pack's tasks with this phone's checks, photos and edits laid over
 // them (tasks-view.ts); the tab badge counts the open ones.
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { Disclaimer } from '../components/disclaimer/Disclaimer';
 import { Icon } from '../components/icon/Icon';
 import { PhoneFrame } from '../components/phone/PhoneFrame';
@@ -37,6 +37,7 @@ export function FieldPackView({
   initialRoom = ALL_ROOMS,
   overlay = NO_OVERLAY,
   taskActions = null,
+  senderFailed = false,
 }: {
   data: PackData;
   language: Language;
@@ -48,11 +49,14 @@ export function FieldPackView({
   overlay?: TaskOverlay;
   // The task row controls; null shows the tasks with no controls.
   taskActions?: TaskActions | null;
+  // EZD-2025 (AC-EZD-2025-4): the field sender could not start; the Tasks tab says why its controls are missing.
+  senderFailed?: boolean;
 }) {
   const t = useT();
   const [tab, setTab] = useState<FieldPackTab>(initialTab);
   const [room, setRoom] = useState(initialRoom);
   const [noteOpen, setNoteOpen] = useState(false);
+  const panelId = useId();
   const pack = data.pack;
   const title = packTitle(data.projectName, data.clientName);
 
@@ -132,13 +136,42 @@ export function FieldPackView({
         />
       }
       footer={
-        <nav className={styles.tabBar} role="tablist" aria-label={t('field.pack.tabs')}>
+        <nav
+          className={styles.tabBar}
+          role="tablist"
+          aria-label={t('field.pack.tabs')}
+          onKeyDown={(e) => {
+            // Audit 2026-11-27 A13 (WAI-ARIA tabs): arrows move to the next tab and open it; Home and End go to the ends.
+            const at = tabs.indexOf(current);
+            const to =
+              e.key === 'ArrowRight'
+                ? (at + 1) % tabs.length
+                : e.key === 'ArrowLeft'
+                  ? (at - 1 + tabs.length) % tabs.length
+                  : e.key === 'Home'
+                    ? 0
+                    : e.key === 'End'
+                      ? tabs.length - 1
+                      : null;
+            if (to === null) return;
+            e.preventDefault();
+            const next = tabs[to] as FieldPackTab;
+            setTab(next);
+            e.currentTarget.querySelector<HTMLElement>(`[data-tab="${next}"]`)?.focus();
+          }}
+        >
           {tabs.map((k) => (
             <button
               key={k}
               type="button"
               role="tab"
               aria-selected={k === current}
+              aria-controls={panelId}
+              tabIndex={k === current ? 0 : -1}
+              // Audit 2026-11-27 A13: the open-task count is part of the tab's name.
+              aria-label={
+                k === 'tasks' && open > 0 ? t('field.pack.tasks_tab_open', { count: open }) : undefined
+              }
               className={k === current ? `${styles.tab} ${styles.tabOn}` : styles.tab}
               data-tab={k}
               onClick={() => setTab(k)}
@@ -146,11 +179,7 @@ export function FieldPackView({
               <span className={styles.tabIcon}>
                 <Icon name={TAB_ICON[k]} size={22} />
                 {k === 'tasks' && open > 0 ? (
-                  <span
-                    className={styles.count}
-                    data-testid="open-tasks"
-                    aria-label={t('field.pack.open_tasks', { count: open })}
-                  >
+                  <span className={styles.count} data-testid="open-tasks" aria-hidden="true">
                     {open}
                   </span>
                 ) : null}
@@ -164,6 +193,7 @@ export function FieldPackView({
       <section
         className={styles.panel}
         role="tabpanel"
+        id={panelId}
         aria-label={t(`field.pack.tab.${current}`)}
         data-testid="field-pack"
         data-state="ready"
@@ -177,6 +207,7 @@ export function FieldPackView({
             language={language}
             canPhoto={canPhoto}
             actions={taskActions}
+            senderFailed={senderFailed}
           />
         ) : null}
       </section>

@@ -48,7 +48,8 @@ type Loaded = {
   page: number;
 };
 
-function PickerMenu({
+// Exported for the EZD-2004 spoken-name test (a11y/ezd-2004.test.tsx).
+export function PickerMenu({
   value,
   onPick,
 }: {
@@ -110,6 +111,7 @@ function PickerMenu({
         className={`${styles.input} ${styles.search} ${touch.target}`}
         type="search"
         placeholder={t('office.customers.search')}
+        aria-label={t('office.customers.search')}
         value={q}
         onChange={(e) => setQ(e.target.value)}
       />

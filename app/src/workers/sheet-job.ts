@@ -25,6 +25,9 @@
 // lib/sheets/electrical-kinds.ts).
 // EZD-708c (AC-EZD-708c-1): the panel sheet's schedules and load calcs, as Add to E2.0 placed them, are a job of
 // their own (`panelSheet`, lib/sheets/panel-sheet-table.ts).
+// EZD-720 (AC-EZD-720-1): the client set's countertop sheets (A8.0 Countertop plan with the top schedule, A9.0 Edge
+// details) are a job of their own (`countertops`, lib/sheets/countertop-sheet.ts), from the model's pieces.
+import { countertopSheetFor, type CountertopSheetNames, type CountertopSheetPiece } from '../lib/sheets/countertop-sheet';
 import { viewDrawsAs, viewShows } from '../lib/sheets/viewport';
 import { fixtureTableFor } from '../lib/sheets/fixture-schedule-table';
 import { ecNoteFor } from '../lib/sheets/electrical-kinds';
@@ -97,6 +100,11 @@ export type SheetFixturesJobInput = {
 // EZD-707: the cabinet schedule table of one schedule sheet (A4.0 or a continuation), from the schedule rows.
 export type SheetTableJobInput = {
   table: { sheet: string; size: SheetSize; rows: CabinetScheduleRow[] };
+};
+
+// EZD-720: a countertop sheet (A8.0 or A9.0) of the client set, from the model's stored pieces and the names it prints.
+export type SheetCountertopsJobInput = {
+  countertops: { sheet: string; size: SheetSize; pieces: StoredObject[]; names: CountertopSheetNames };
 };
 
 // An NTS drawing fills this share of its area, so it never touches the area's edge.
@@ -221,7 +229,47 @@ function tableJob(input: SheetTableJobInput['table']): SheetSvg {
   return { markup: sheetSvg(t.list, { scale: 1, area: t.area }).markup, shown: [] };
 }
 
+const namesOk = (n: unknown): n is CountertopSheetNames => {
+  const v = n as Partial<CountertopSheetNames> | null;
+  return (
+    typeof v === 'object' &&
+    v !== null &&
+    Array.isArray(v.materials) &&
+    v.materials.every((m) => typeof m?.id === 'string' && typeof m.name === 'string') &&
+    Array.isArray(v.profiles) &&
+    v.profiles.every((p) => typeof p?.id === 'string' && typeof p.key === 'string' && typeof p.name === 'string') &&
+    Array.isArray(v.open) &&
+    v.open.every(
+      (o) => typeof o?.pieceId === 'string' && Array.isArray(o.profileIds) && o.profileIds.every((x: unknown) => typeof x === 'string'),
+    )
+  );
+};
+
+function countertopsJob(input: SheetCountertopsJobInput['countertops']): SheetSvg {
+  if (
+    typeof input.sheet !== 'string' ||
+    !SHEET_SIZES.includes(input.size) ||
+    !Array.isArray(input.pieces) ||
+    !namesOk(input.names)
+  )
+    throw new Error('sheet_input');
+  const pieces: CountertopSheetPiece[] = [];
+  for (const o of input.pieces) {
+    const r = parseStoredObject(o);
+    if (r.ok && r.object.type === 'countertop_piece') pieces.push({ id: r.object.id, data: r.object.data });
+  }
+  const svgs = countertopSheetFor(input.sheet, input.size, pieces, input.names).map((d) =>
+    d.marks ? drawInArea(d.list, d.scale, d.area) : sheetSvg(d.list, { scale: d.scale ?? 1, area: d.area }),
+  );
+  return { markup: svgs.map((s) => s.markup).join(''), shown: [] };
+}
+
 export function sheetJob(input: unknown): SheetSvg {
+  if (typeof input === 'object' && input !== null && 'countertops' in input) {
+    const countertops = (input as Partial<SheetCountertopsJobInput>).countertops;
+    if (typeof countertops !== 'object' || countertops === null) throw new Error('sheet_input');
+    return countertopsJob(countertops);
+  }
   if (typeof input === 'object' && input !== null && 'table' in input) {
     const table = (input as Partial<SheetTableJobInput>).table;
     if (typeof table !== 'object' || table === null) throw new Error('sheet_input');

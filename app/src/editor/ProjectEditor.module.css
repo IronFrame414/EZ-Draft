@@ -43,48 +43,6 @@
   pointer-events: auto;
 }
 
-/* EZD-122 (board S20 header: the version text is a link that opens the Versions tab). */
-.versionLink {
-  border: 0;
-  padding: 0;
-  background: transparent;
-  font: inherit;
-  color: var(--ez-cobalt-link);
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-/* EZD-1979 (audit 2026-11-24 F6): under a coarse pointer the link's tap area is the title block's bottom half and the
-   body padding below the card (the name has the top half; EditorHeader.module.css). The block is the containing block,
-   so the subtitle's clip does not cut it. */
-@media (any-pointer: coarse) {
-  .versionLink::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: 0;
-    bottom: calc(-1 * var(--ez-body-padding));
-    left: 0;
-  }
-}
-
-/* EZD-1001a (S07 Layout "footer 'Model synced with plan'"; States "Model out of sync"): the 3D sync line, in the
-   mockup's small slate text, at the canvas region's bottom left until the 3D left panel (EZD-1005, EZD-1006) holds
-   it; never catches the pointer. */
-.sync3d {
-  position: absolute;
-  left: 12px;
-  bottom: 12px;
-  margin: 0;
-  padding: 6px 10px;
-  font-size: var(--ez-text-12);
-  color: var(--ez-slate-500);
-  background: var(--ez-surface);
-  border: 1px solid var(--ez-border);
-  border-radius: var(--ez-radius-7);
-  pointer-events: none;
-}
-
 /* EZD-702a: on the Sheets tab the plan canvas stays mounted (its WebGL context is kept) but is not shown. */
 .backdropLayer {
   position: absolute;

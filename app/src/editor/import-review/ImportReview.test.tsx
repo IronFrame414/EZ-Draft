@@ -116,7 +116,8 @@ describe('EZD-307 Import review screen', () => {
     const html = render(<ReadyBody review={review()} />);
     const rows = elements(html, 'import-review-row');
     expect(rows).toHaveLength(1);
-    expect(textOf(rows[0].inner)).toBe('East wall70%');
+    // EZD-2004 (audit A29): the row starts with its state, read by screen readers and not shown.
+    expect(textOf(rows[0].inner)).toBe('To checkEast wall70%');
     expect(attr(rows[0].attrs, 'aria-pressed')).toBe('true');
     const inspector = textOf(one(html, 'import-review-inspector').inner);
     expect(inspector).toContain('East wall');

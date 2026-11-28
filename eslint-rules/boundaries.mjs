@@ -53,6 +53,40 @@ export const HEAVY_PACKAGES = [
   },
 ];
 
+/**
+ * EZD-2000 (AC-EZD-2000-1 (2); Q-0814 "heavy libraries stay out of first loads"; audit 2026-11-26 F3, F6): libraries
+ * that are fine on the server, in a worker or loaded on first use, but never in a page's first-load bundle. Checked
+ * in the bundles only, by the `contents.*` rows (scripts/perf/js-contents.mjs), as category `heavy`; not a lint
+ * import ban, since server code imports zod everywhere and realtime arrives inside supabase-js. Full zod is its
+ * classic and v3 builds; `zod/mini` (v4/mini, v4/core) is the small form and is not matched.
+ */
+export const FIRST_LOAD_PACKAGES = [
+  { match: ['zod/v4/classic/', 'zod/v3/'], category: 'heavy', allowed: [] },
+  { match: ['@supabase/realtime-js'], category: 'heavy', allowed: [] },
+  // The image encoder (thumbnails, app/src/workers/thumbnail.worker.ts).
+  { match: ['@jsquash/'], category: 'heavy', allowed: [] },
+  // PDF writing (app/src/server/jobs/pdf-export/write-pdf.ts); pdf.js is in HEAVY_PACKAGES.
+  { match: ['pdfkit'], category: 'heavy', allowed: [] },
+];
+
+/**
+ * EZD-2000 (AC-EZD-2000-2 "record an allowance with its reason"): findings a page's contents check lets through, by
+ * page path, each `{ key, reason }`. Read by scripts/perf/js-contents.mjs for every measurement of that page (the
+ * perf rows and the e2e helpers alike); listed in the report's `allowed`, present or not.
+ */
+export const FIRST_LOAD_ALLOWANCES = {
+  '/': [
+    {
+      key: 'pkg:@supabase/realtime-js',
+      reason:
+        'the notification bell loads realtime only after the load event and an idle moment (EZD-1997, lib/realtime/deferred.ts); the collector counts every script fetched before the page goes quiet, so it may land in the window',
+    },
+  ],
+};
+
+/** EZD-2000: what the `contents.*` rows look for in a bundle: HEAVY_PACKAGES, then FIRST_LOAD_PACKAGES. */
+export const CONTENTS_PACKAGES = [...HEAVY_PACKAGES, ...FIRST_LOAD_PACKAGES];
+
 /** The categories each entry's bundle must not contain (Step 2 ENTRY_RULES; sources in scripts/perf/budgets.mjs). */
 export const ENTRY_RULES = {
   office: ['editor', 'three', 'heavy', 'lazy'],

@@ -11,6 +11,7 @@
 // offered edges""; vault/build/assumptions.md EZD-417): the selected top's Edge profile card under the piece
 // inspector, Edit offered edges on the footer's left for members with Send to client, and profile names in the
 // schedule. One permissions read serves Export, Send to client and See sell prices.
+import { InlineDialog } from '../../a11y/InlineDialog';
 import { useCallback, useEffect, useMemo, useState, type ReactElement } from 'react';
 import type { CountertopPieceData } from '@ezdraft/geometry';
 import { fetchPermissions } from '../../lib/permissions/PermissionsProvider';
@@ -126,9 +127,9 @@ export function TopScheduleView({
   );
   const exportCsv = () => save(t('office.countertops.schedule.file'), topScheduleCsv(lines, headers));
   return (
-    <div
+    <InlineDialog
+      onClose={onClose}
       className={styles.layer}
-      role="dialog"
       aria-label={t('office.countertops.schedule.title')}
       data-testid="top-schedule"
     >
@@ -187,7 +188,7 @@ export function TopScheduleView({
           </button>
         </div>
       ) : null}
-    </div>
+    </InlineDialog>
   );
 }
 

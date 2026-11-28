@@ -2,7 +2,8 @@
 // worker EZD-013 registers at /sw.js with scope /. Runtime routes only, no build manifest: the spec caches what was
 // loaded once (11 Offline "cached by the service worker after first load"): after each load the page names what it
 // loaded and the worker stores it (sw-rules.mjs onWarmMessage, copied in ahead of the Workbox code). The routes
-// match only while the device is offline and answer from the cache; online the worker answers nothing. The API, auth links, invites and dev pages are never answered. Run
+// match only while the device is offline and answer from the cache; online the worker answers nothing but the two
+// field pages (EZD-2002, sw-rules.mjs answerFieldPage). The API, auth links, invites and dev pages are never answered. Run
 // `pnpm --filter app sw` after a change here or in sw-rules.mjs; sw-file.test.ts fails while public/sw.js is out
 // of date.
 import { generateSW } from 'workbox-build';
@@ -14,6 +15,8 @@ import {
   STATIC_CACHE,
   WORKER_CONSTANTS,
   WORKER_FUNCTIONS,
+  answerFieldPage,
+  onlineFieldPage,
   offlineProjectPage,
   offlineShellPage,
   offlineStaticFile,
@@ -36,6 +39,8 @@ export function swConfig(swDest, emptyDir) {
     skipWaiting: true,
     clientsClaim: true,
     runtimeCaching: [
+      // EZD-2002: Workbox copies the handler as source text, as it does the matchers.
+      { urlPattern: onlineFieldPage, handler: answerFieldPage },
       { urlPattern: offlineShellPage, handler: 'CacheOnly', options: fromCache(SHELL_CACHE) },
       { urlPattern: offlineProjectPage, handler: 'CacheOnly', options: fromCache(PROJECT_CACHE) },
       { urlPattern: offlineStaticFile, handler: 'CacheOnly', options: fromCache(STATIC_CACHE) },

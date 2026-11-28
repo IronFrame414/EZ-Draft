@@ -5,6 +5,7 @@
 // schedule view, opened over the inspector. Every viewer sees the table; Export CSV shows only with Export. The CSV
 // is built in the browser from the model the viewer already reads, so the button only hides (Q-0214); the PDF comes
 // with the sheets (EZD-707).
+import { InlineDialog } from '../../a11y/InlineDialog';
 import { useEffect, useMemo, useState, type ReactElement } from 'react';
 import type { ModelObject } from '@ezdraft/geometry';
 import { fetchPermissions } from '../../lib/permissions/PermissionsProvider';
@@ -78,9 +79,9 @@ export function CabinetScheduleView({
   const exportCsv = () =>
     save(t('office.cabinets.schedule_file'), cabinetScheduleCsv(rows, { headers, existing }));
   return (
-    <div
+    <InlineDialog
+      onClose={onClose}
       className={styles.layer}
-      role="dialog"
       aria-label={t('office.cabinets.schedule')}
       data-testid="cabinet-schedule"
     >
@@ -140,6 +141,6 @@ export function CabinetScheduleView({
           </button>
         </div>
       ) : null}
-    </div>
+    </InlineDialog>
   );
 }

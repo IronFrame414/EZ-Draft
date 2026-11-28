@@ -66,7 +66,7 @@ async function scrollState(page: Page) {
 async function openLShape(page: Page, project: string) {
   await page.goto(`/projects/${project}/field-measure`);
   await page.getByRole('button', { name: 'L-shape' }).click();
-  await expect(page.getByRole('button', { name: 'Wall A', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: /^Wall A(, |$)/ })).toHaveAttribute('aria-pressed', 'true');
 }
 
 // Taps the middle of what is on screen now, so nothing is scrolled into view first (locator.tap would scroll).
@@ -120,8 +120,8 @@ test.describe('EZD-2026 Field measure on a wide screen', () => {
         expect(s.docOver, 'the page does not scroll').toBeLessThanOrEqual(0);
 
         // Tapping a wall letter, then typing on the keypad, needs no scrolling.
-        await tapInPlace(page, page.getByRole('button', { name: 'Wall B', exact: true }));
-        await expect(page.getByRole('button', { name: 'Wall B', exact: true })).toHaveAttribute(
+        await tapInPlace(page, page.getByRole('button', { name: /^Wall B(, |$)/ }));
+        await expect(page.getByRole('button', { name: /^Wall B(, |$)/ })).toHaveAttribute(
           'aria-pressed',
           'true',
         );

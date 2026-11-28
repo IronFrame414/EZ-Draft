@@ -10,10 +10,18 @@
 // EZD-1931 (audit 2026-11-23 S7): before anything else, /dev and /api/dev answer 404 on Vercel production and
 // preview (app/src/server/dev-gate.ts). The matcher names /dev (and the
 // percent-escaped spellings of /dev and /api) so a dotted path under it still reaches the gate.
+// EZD-1711 (AC-EZD-1711-1, -3; Q-0795): with billing on, a signed-in request also reads its company's billing mode
+// (public.billing_gate, one indexed read) and server/billing/gate-rules.ts decides: in the 14 days after a company
+// stops paying a write to /api is refused 403 billing_read_only; after them every page but Projects is sent to /
+// (where the office layout shows the paywall) and /api is refused 403 billing_inactive, except the billing routes.
+// A failed read passes the request (billing never locks a company out by mistake). Billing off: no read.
 import { NextResponse, type NextRequest } from 'next/server';
 import { HOST_COOKIE_PREFIX, isForwardedHttps, isSessionCookieName } from './lib/auth/cookie-names';
 import { signedOutCookieName } from './lib/auth/device-sign-out';
 import { refuseDevPath } from './server/dev-gate';
+import { billingEnabled } from './server/billing/config';
+import { billingDecision, billingSkips, type BillingDecision } from './server/billing/gate-rules';
+import { parseBillingGate } from './server/billing/state-parse';
 import { isPublicPath } from './server/auth/public-paths';
 import { signInUrl } from './server/auth/return-path';
 import { refuseCrossOriginWrite } from './server/auth/same-origin';
@@ -31,6 +39,24 @@ export const config = {
     '/((?:a|%61)(?:p|%70)(?:i|%69)(?:/.*)?)',
   ],
 };
+
+const BILLING_MESSAGE_KEY = {
+  billing_read_only: 'error.billing_read_only',
+  billing_inactive: 'error.billing_inactive',
+} as const;
+
+async function readBillingDecision(
+  client: ReturnType<typeof createSessionClient>,
+  request: NextRequest,
+): Promise<BillingDecision> {
+  try {
+    const { data, error } = await client.rpc('billing_gate');
+    if (error) return { kind: 'pass' };
+    return billingDecision(parseBillingGate(data).mode, request.method, request.nextUrl.pathname);
+  } catch {
+    return { kind: 'pass' };
+  }
+}
 
 type Written = { name: string; value: string; options: Parameters<SessionCookieJar['set']>[2] };
 
@@ -87,8 +113,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   };
 
   let signedIn = false;
+  let client: ReturnType<typeof createSessionClient> | null = null;
   try {
-    const { data, error } = await createSessionClient(jar).auth.getClaims();
+    client = createSessionClient(jar);
+    const { data, error } = await client.auth.getClaims();
     signedIn = !error && typeof data?.claims?.sub === 'string' && data.claims.sub !== '';
   } catch {
     signedIn = false;
@@ -101,6 +129,24 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       307,
     );
     for (const { name, value, options } of written) result.cookies.set(name, value, options);
+  } else if (
+    signedIn &&
+    client !== null &&
+    billingEnabled() &&
+    !billingSkips(request.nextUrl.pathname)
+  ) {
+    const decision = await readBillingDecision(client, request);
+    if (decision.kind === 'refuse') {
+      result = NextResponse.json(
+        { error: { code: decision.code, message_key: BILLING_MESSAGE_KEY[decision.code] } },
+        { status: 403, headers: { 'Cache-Control': 'no-store' } },
+      );
+    } else if (decision.kind === 'redirect') {
+      result = NextResponse.redirect(new URL(decision.to, request.nextUrl.origin), 307);
+    }
+    if (result !== response) {
+      for (const { name, value, options } of written) result.cookies.set(name, value, options);
+    }
   }
   for (const name of stale) result.cookies.set(name, '', { path: '/', maxAge: 0, secure: true });
   if (written.length > 0 || stale.length > 0)

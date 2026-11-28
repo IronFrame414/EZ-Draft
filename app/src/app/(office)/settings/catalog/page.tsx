@@ -1,7 +1,8 @@
 // EZD-614 (S15e; board S15eCatalog; Q-0766; ARCH Settings shell page contract): Settings > Catalog, with the Appliance
 // rating defaults card (the other S15e parts are EZD-1609 and EZD-1617). Without settings_catalog the no-access line in
 // place (HTTP 200, URL unchanged); a failed load is reported (`appliance_ratings_load_failed`) and shows the inline
-// error with Retry. This static folder takes precedence over [section].
+// error with Retry. This static folder takes precedence over [section]. EZD-2042: no loading file here; its skeleton
+// was a second `main` beside the streamed page (one main landmark per page).
 import { connection } from 'next/server';
 import {
   ApplianceRatingsLoadError,

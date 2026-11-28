@@ -20,8 +20,9 @@ import {
   test,
 } from '../test-harness/e2e/test';
 
+// EZD-2004 (audit A11): a measured wall's name goes on with its length ("Wall A, 12 feet"), so match the start.
 const wall = (page: Page, letter: string) =>
-  page.getByRole('button', { name: `Wall ${letter}`, exact: true });
+  page.getByRole('button', { name: new RegExp(`^Wall ${letter}(, |$)`) });
 
 async function keys(page: Page, ...ks: string[]) {
   for (const k of ks) {

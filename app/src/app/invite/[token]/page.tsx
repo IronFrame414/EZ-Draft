@@ -2,6 +2,8 @@
 // GET only reads whether the link is live (invite_status, nothing changes), so an email scanner that opens the
 // link accepts nothing; the Accept button posts acceptInvite. Signed out, in the device's sign-in language.
 // Referrer-Policy: no-referrer comes from app/next.config.ts headers(), as /auth/confirm.
+// EZD-2021 (audit 2026-11-27 X4; AC-EZD-2021-1): the invite code's lock (five wrong codes) is shown only here,
+// to the holder of the link, never to a signed-out caller of the invite code form; Accept still works.
 import { LanguageSwitch } from '../../../components/auth/LanguageSwitch';
 import styles from '../../../components/auth/auth.module.css';
 import { Disclaimer } from '../../../components/disclaimer/Disclaimer';
@@ -33,6 +35,11 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
               <h1 className={styles.title} data-testid="invite-title">
                 {t('common.invite.title', { company: status.companyName })}
               </h1>
+              {status.codeLocked ? (
+                <p className={styles.text} role="status" data-testid="invite-code-locked">
+                  {t('common.invite.code_locked')}
+                </p>
+              ) : null}
               <InviteAcceptForm token={token} />
             </>
           ) : (

@@ -4,7 +4,15 @@
 // fixture tasks below.
 import { describe, expect, it } from 'vitest';
 import { ALL_ROOMS } from './pack-view';
-import { doneTime, groupTasks, NO_OVERLAY, openCount, overlayTasks, taskText } from './tasks-view';
+import {
+  doneTime,
+  groupTasks,
+  NO_OVERLAY,
+  openCount,
+  overlayTasks,
+  shownChecks,
+  taskText,
+} from './tasks-view';
 import type { FieldPackTask } from './types';
 
 const task = (o: Partial<FieldPackTask> & Pick<FieldPackTask, 'id' | 'phase' | 'phasePosition'>): FieldPackTask => ({
@@ -88,5 +96,21 @@ describe('EZD-1409 tasks view', () => {
 
   it('the done time reads month, day and time', () => {
     expect(doneTime('2026-11-21T14:30:00Z', 'en', 'UTC')).toBe('Nov 21, 2:30 PM');
+  });
+});
+
+// EZD-2025 (AC-EZD-2025-3 "a check the office refuses for good unticks"): a refused check is not shown ticked.
+describe('EZD-2025 shownChecks', () => {
+  it('drops the refused checks and keeps the rest', () => {
+    const checked = new Map([
+      ['t1', 1000],
+      ['t2', 2000],
+    ]);
+    expect([...shownChecks(checked, new Set(['t1']))]).toEqual([['t2', 2000]]);
+  });
+
+  it('no refused checks: the same map', () => {
+    const checked = new Map([['t1', 1000]]);
+    expect(shownChecks(checked, new Set())).toBe(checked);
   });
 });

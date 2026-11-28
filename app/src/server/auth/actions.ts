@@ -31,6 +31,7 @@ import { acceptInviteByToken } from '../users/accept-invite';
 import { inviteCode, inviteToken } from '../users/invite-token';
 import { inviteCodeTake } from './admin-auth';
 import { isEmailCode } from '../../lib/profile/email-code';
+import { answerAfter, SIGN_IN_MIN_ANSWER_MS } from './min-answer-time';
 
 const EmailSchema = z.string().trim().toLowerCase().pipe(z.email());
 // EZD-2030: the emailed sign-in code is 8 digits (6 still accepted for now, lib/profile/email-code.ts);
@@ -187,7 +188,25 @@ export async function requestSignIn(formData: FormData): Promise<
 > {
   const email = parseEmail(formData.get('email'));
   if (!email) return { error: 'invalid_email' };
+  // EZD-2021 (audit 2026-11-27 X9; AC-EZD-2021-2): a member's request sends an email and a stranger's is
+  // refused by the hook at once, so every answer after this point waits for the same minimum time.
+  return answerAfter(SIGN_IN_MIN_ANSWER_MS, () => requestSignInFor(email, formData));
+}
 
+async function requestSignInFor(
+  email: string,
+  formData: FormData,
+): Promise<
+  | { step: 'code' }
+  | {
+      error:
+        | 'too_many_requests'
+        | 'email_throttled'
+        | 'ip_throttled'
+        | 'unavailable'
+        | 'captcha_failed';
+    }
+> {
   // Never settled: every request counts (Q-0094; Q-0104 (i)).
   const slot = await takeSlot('email', email);
   if (!slot) return { error: 'unavailable' };
@@ -342,13 +361,14 @@ export async function acceptInvite(formData: FormData): Promise<{
 // (the dialog shows it as "482 913"). Order: parse; a throttle slot of kind code (the per-email wrong-code and
 // the per-IP limits); invite_code_take (adds one try to each live unlocked invite for the email); compare the
 // typed code with each invite's derived code; accept with that invite's link token. An unknown email, an email
-// with no invite, a wrong code and a refused accept all get one answer, 'invite_code_invalid'; a live invite
-// whose five tries are used answers 'invite_code_locked' (board S15j W10) until Resend. Nothing is logged but
-// a fixed code; the code, the email and the random value never appear in an error.
+// with no invite, a wrong code and a refused accept all get one answer, 'invite_code_invalid'. EZD-2021 (audit
+// 2026-11-27 X4; AC-EZD-2021-1): a live invite whose five tries are used still refuses every code until Resend,
+// but the signed-out caller gets 'invite_code_invalid' too, so five wrong codes never show that an email has a
+// pending invite; the invitee sees the lock on the emailed link's page (invite_status codeLocked). Nothing is
+// logged but a fixed code; the code, the email and the random value never appear in an error.
 export async function acceptInviteCode(formData: FormData): Promise<{
   error:
     | 'invite_code_invalid'
-    | 'invite_code_locked'
     | 'code_throttled'
     | 'ip_throttled'
     | 'unavailable';
@@ -365,7 +385,6 @@ export async function acceptInviteCode(formData: FormData): Promise<{
   }
 
   let token: string | null = null;
-  let locked: boolean;
   try {
     const taken = await inviteCodeTake(email);
     const typed = Buffer.from(code);
@@ -375,14 +394,13 @@ export async function acceptInviteCode(formData: FormData): Promise<{
         break;
       }
     }
-    // Locked: a live invite was already at five tries, or this try used the last one of every invite.
-    locked = taken.locked || (taken.invites.length > 0 && taken.invites.every((i) => i.tries >= 5));
   } catch {
     await settle(slot);
     await reportSignIn('auth_invite_code_unavailable');
     return { error: 'unavailable' };
   }
-  if (token === null) return { error: locked ? 'invite_code_locked' : 'invite_code_invalid' };
+  // A locked invite gets the same answer as a wrong code (X4): nothing tells a stranger an invite exists.
+  if (token === null) return { error: 'invite_code_invalid' };
 
   if ((await acceptInviteByToken(token)) === 'refused') return { error: 'invite_code_invalid' };
   await settle(slot);

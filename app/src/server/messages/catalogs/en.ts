@@ -71,6 +71,8 @@ export const en = {
     'It may have expired, been used or been cancelled. Ask the person who invited you to resend the invite.',
   'common.invite.failed': "Couldn't accept the invite. Try again.",
   'common.invite.to_sign_in': 'Go to sign in',
+  'common.invite.code_locked':
+    'Too many wrong codes, so your invite code is locked. This link still works: press Accept to join.',
   'common.terms.title': 'Terms of service',
   'common.terms.no_certification':
     'EZ Draft does not certify that any drawing, calculation or plan complies with building, electrical or other codes.',
@@ -3132,6 +3134,12 @@ export const en = {
   'field.measure.length_refused': 'Type a length, like 9\' 0"',
   'field.measure.keypad': 'Measurement keypad',
   'field.measure.key.backspace': 'Backspace',
+  'field.measure.key.feet': 'Feet',
+  'field.measure.key.inches': 'Inches',
+  'field.measure.key.space': 'Space',
+  'field.measure.wall_length': 'Wall {letter}, {length}',
+  'field.measure.length_feet': 'feet',
+  'field.measure.length_inches': 'inches',
   'field.measure.next_wall': 'Next wall',
   'field.measure.closes': 'Closes',
   'field.measure.off_by': 'Off by {gap}',
@@ -3348,6 +3356,7 @@ export const en = {
   'field.pack.tab.tasks': 'Tasks',
   'field.pack.tab.photo': 'Photo',
   'field.pack.open_tasks': { one: '{count} open task', other: '{count} open tasks' },
+  'field.pack.tasks_tab_open': { one: 'Tasks, {count} open task', other: 'Tasks, {count} open tasks' },
   'field.pack.none': 'No field pack issued yet.',
   'field.pack.load_failed': "Couldn't open the field pack.",
   // EZD-1409: the Tasks tab (wording for Josh: vault/build/assumptions/EZD-1409.md).
@@ -3367,6 +3376,15 @@ export const en = {
   'field.tasks.edit_failed': "Couldn't save the task. Try again.",
   'field.tasks.save': 'Save',
   'field.tasks.cancel': 'Cancel',
+  // EZD-2025 (Q-0903: "Not saved to the office. Retry" is decided; the rest is wording for Josh in
+  // vault/build/assumptions/EZD-2025.md): the field screens say when a save, a Send or a task tick did not get through.
+  'field.sync.not_saved': 'Not saved to the office.',
+  'field.measure.send_failed': "Couldn't keep the rooms on this phone to send. Free up space and try again.",
+  'field.measure.send_starting': 'Getting ready to send…',
+  'field.measure.send_unavailable': "Can't send from this phone right now. It tries again when you're back online.",
+  'field.tasks.check_failed': "The tick wasn't saved on this phone. Try again.",
+  'field.tasks.sender_failed':
+    "Ticking tasks, Add photo and Edit aren't available on this phone right now. They come back when you're back online.",
   // EZD-1418 (S02 header source subtitle, status bar accuracy for rooms sent from the phone; wording for Josh).
   'office.review.subtitle_field_measure': 'Rooms sent from Field measure',
   'office.review.status_accuracy_field_measure': 'Typed on site',
@@ -3575,6 +3593,36 @@ export const en = {
   // EZD-2028 (Q-0907): the reload notice on the field pack (the office prompt's words, office.app.reload_*).
   'field.app.reload_message': 'EZ Draft has been updated. Reload to use the new version.',
   'field.app.reload': 'Reload',
+  // EZD-1711 (Q-0237, Q-0795; vault/build/assumptions/EZD-1711.md wording rows): billing for other companies.
+  'error.billing_read_only':
+    'Your subscription has ended. You can view and export projects, but not change them.',
+  'error.billing_inactive': "Your EZ Draft subscription isn't active.",
+  'error.billing_not_found': "That page isn't available.",
+  'error.billing_unavailable': "Can't reach billing. Try again in a minute.",
+  'error.invalid_signature': "That request couldn't be checked.",
+  'error.share_link_unavailable': "This link isn't available.",
+  'office.billing.section': 'Billing',
+  'office.billing.location': 'Settings · Billing',
+  'office.billing.subtitle': 'Your EZ Draft plan and payment',
+  'office.billing.plan':
+    'Plan: ${monthly} a month · {included} office users included · ${extra} a month for each extra office user',
+  'office.billing.trial': {
+    one: 'Free trial · {count} day left',
+    other: 'Free trial · {count} days left',
+  },
+  'office.billing.active': 'Subscription active',
+  'office.billing.add_card': 'Add a card',
+  'office.billing.manage': 'Manage billing',
+  'office.billing.past_due':
+    "Your payment didn't go through. Update your card to keep using EZ Draft.",
+  'office.billing.grace': {
+    one: 'Your subscription has ended. You can view and export projects for {count} more day.',
+    other: 'Your subscription has ended. You can view and export projects for {count} more days.',
+  },
+  'office.billing.paywall_title': "Your EZ Draft subscription isn't active.",
+  'office.billing.paywall_body': 'Your projects are safe and come back when you pay.',
+  'office.billing.pay_now': 'Pay now',
+  'office.billing.ask_owner': 'Ask your company owner to update billing.',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

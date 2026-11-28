@@ -1,9 +1,10 @@
 // EZD-017 Step 8 (vault/plans/EZD-017.md R0, K1-K4): the perf check CLI, run by the gate as `pnpm run perf`.
 // node scripts/perf/run.mjs [--base-url <url>] [--config <file>] [--pan-url <path>] [--only <id,id>] [--out <dir>]
-//   [--storage-state <file>] [--project <uuid>]
+//   [--storage-state <file>] [--project <uuid>] [--office-storage-state <file>]
 // EZD-1998: --project fills `{project}` in config URLs, so the field rows measure the real pages of a seeded project;
 // --storage-state is a Playwright storage state (a signed-in session) those rows' pages open with. Other rows open
-// signed out.
+// signed out. EZD-2000: --office-storage-state is the signed-in office session the rows with `session: 'office'` open
+// with (Projects, Settings, the editor of the seeded project).
 // Exit 0 pass; 1 any fail or error, or a run error; 2 usage error (no results file).
 import path from 'node:path';
 import process from 'node:process';
@@ -17,6 +18,7 @@ const FLAGS = {
   '--out': 'outDir',
   '--storage-state': 'storageState',
   '--project': 'project',
+  '--office-storage-state': 'officeStorageState',
 };
 
 function parseArgs(argv) {

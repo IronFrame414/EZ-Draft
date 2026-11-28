@@ -4,8 +4,14 @@
 // (EZD-1402's outbox, so it waits on the phone while offline and goes on reconnect). The status is read from the
 // queue: queued while the action waits, refused when the server refused it for good (kept on the phone), sent once
 // it has left the queue or when the server already shows the rooms sent.
+// EZD-2025 (AC-EZD-2025-1, -2): the field sender's start state (Send to office says why it is greyed), and markSent
+// for a save the server refused because the rooms are already sent (409).
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useFieldSync, useOutboxActor } from '../components/outbox/OutboxDrain';
+import {
+  useFieldSender,
+  useOutboxActor,
+  type FieldSenderState,
+} from '../components/outbox/OutboxDrain';
 import { createFieldQueue } from '../lib/outbox/field-queue';
 import type { FieldRoom } from './room-model';
 
@@ -15,11 +21,17 @@ export type MeasureSend = {
   status: SendStatus;
   /** False until the page's field sender has started. */
   ready: boolean;
+  /** EZD-2025: starting, ready, or failed to start (tried again when the network comes back). */
+  senderState: FieldSenderState;
+  /** False when the rooms could not be queued on this phone (storage full, private mode). */
   send(rooms: FieldRoom[]): Promise<boolean>;
+  /** EZD-2025: the server says the rooms are already sent. */
+  markSent(): void;
 };
 
 export function useMeasureSend(projectId: string, sentAt: string | null): MeasureSend {
-  const sync = useFieldSync();
+  const sender = useFieldSender();
+  const sync = sender.sync;
   const actor = useOutboxActor();
   const [status, setStatus] = useState<SendStatus>(sentAt !== null ? 'sent' : 'idle');
   // True from the tap on Send to office until the action has left the queue.
@@ -73,5 +85,10 @@ export function useMeasureSend(projectId: string, sentAt: string | null): Measur
     [sync, projectId, read],
   );
 
-  return { status, ready: sync !== null, send };
+  const markSent = useCallback(() => {
+    waiting.current = false;
+    setStatus('sent');
+  }, []);
+
+  return { status, ready: sync !== null, senderState: sender.state, send, markSent };
 }

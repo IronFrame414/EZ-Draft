@@ -69,7 +69,17 @@ export function Keypad({
   onNext: () => void;
 }) {
   const t = useT();
-  const label = (k: KeypadKey) => (k === 'back' ? t('field.measure.key.backspace') : undefined);
+  // Audit 2026-11-27 A12: the marks have spoken names (not shown); the digits and fractions read as they are.
+  const label = (k: KeypadKey) =>
+    k === 'back'
+      ? t('field.measure.key.backspace')
+      : k === "'"
+        ? t('field.measure.key.feet')
+        : k === '"'
+          ? t('field.measure.key.inches')
+          : k === 'sp'
+            ? t('field.measure.key.space')
+            : undefined;
   return (
     <div className={styles.keypad} role="group" aria-label={t('field.measure.keypad')} data-testid="keypad">
       {KEYPAD_ROWS.flat().map((k) => (

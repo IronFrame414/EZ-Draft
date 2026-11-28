@@ -69,7 +69,9 @@ describe('EZD-1404 field pack shell', () => {
     const html = render(DATA);
     expect(tabs(html)).toEqual(['plan', '3d', 'measure', 'tasks', 'photo']);
     expect(html).toMatch(/aria-selected="true"[^>]*data-tab="plan"/);
-    expect(html).toMatch(/data-testid="open-tasks" aria-label="4 open tasks">4</);
+    // EZD-2004 (audit A13): the count moved from the badge (an ignored aria-label) into the Tasks tab's name.
+    expect(html).toMatch(/aria-label="Tasks, 4 open tasks"[^>]*data-tab="tasks"/);
+    expect(html).toMatch(/data-testid="open-tasks" aria-hidden="true">4</);
   });
 
   it('Photo is hidden without Photo notes', () => {

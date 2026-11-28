@@ -162,7 +162,14 @@ describe('EZD-1415 /api/projects/[id]/field-measure', () => {
     state.store = new Map(measurer);
     const saved = await call('PUT', project, { rooms });
     expect(saved.res.status).toBe(200);
-    expect(saved.body).toEqual({ status: 'saved' });
+    // EZD-2002: the answer carries when the database stored the rooms.
+    const answer = saved.body as { status: string; savedAt: string };
+    expect(answer.status).toBe('saved');
+    expect(Number.isNaN(Date.parse(answer.savedAt))).toBe(false);
+    const [row] = (
+      await adminDb().from('field_measure_session').select('updated_at').eq('project_id', project)
+    ).data as { updated_at: string }[];
+    expect(answer.savedAt).toBe(row!.updated_at);
 
     state.store = new Map(viewer);
     const read = await call('GET', project);

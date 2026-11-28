@@ -52,7 +52,8 @@ function runPerf(args: string[]): { status: number | null; stdout: string; out: 
       '--out',
       out,
     ],
-    { cwd: root, encoding: 'utf8', timeout: 170000 },
+    // EZD-2000: the whole check now measures every real page too (about 30 more page loads), so it may take longer.
+    { cwd: root, encoding: 'utf8', timeout: 480000 },
   );
   return { status: r.status, stdout: (r.stdout ?? '') + (r.stderr ?? ''), out };
 }
@@ -86,7 +87,7 @@ test.describe('EZD-017 performance check', () => {
   // EZD-1998 (AC-EZD-1998-1): the whole check now includes the real field pages of a seeded project, so T1 seeds one
   // and signs in (the browser fixture is used for that only; the CLI opens its own browser).
   test('EZD-017 done when: the check passes on the empty shell (T1)', async ({ browser }) => {
-    test.setTimeout(240000);
+    test.setTimeout(600000);
     const field = await fieldPerfSession(browser, String(test.info().project.use.baseURL));
     const r = runPerf(field.args);
     // (a)

@@ -1,0 +1,48 @@
+/* EZD-1711 (Q-0790: built from the written spec in the style of the nearest approved board, the S01 banners). */
+.pageBanner {
+  margin: 8px 12px 0;
+}
+
+.paywall {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--ez-hover);
+}
+
+.card {
+  max-width: 440px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 24px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  text-align: center;
+  color: var(--ez-ink);
+}
+
+.lock {
+  display: inline-flex;
+  color: var(--ez-slate-500);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--ez-text-18);
+  font-weight: 600;
+}
+
+.body {
+  margin: 0;
+  font-size: var(--ez-text-14);
+}
+
+.signOut {
+  margin-top: 8px;
+}
