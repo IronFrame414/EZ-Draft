@@ -22,7 +22,11 @@ import {
   createTenant,
   harnessSql,
 } from '../../../test-harness/rls/fixtures';
-import { throttleRows, type ThrottleKind } from '../../../test-harness/throttle';
+import {
+  insertThrottleRows,
+  throttleRows,
+  type ThrottleKind,
+} from '../../../test-harness/throttle';
 import { requestSignIn, signInWithPassword } from './actions';
 import { throttleKey } from './throttle';
 
@@ -279,8 +283,9 @@ describe('EZD-034 captcha on the sign-in actions', () => {
     }
   }, 60000);
 
-  // T4 (AC-EZD-034-1, -2): Q-0252; Q-0104 (i): a refused code request still counts.
-  it('EZD-034 T4 a captcha refusal on a code request is captcha_failed, sets no cookie and still counts', async () => {
+  // T4 (AC-EZD-034-1, -2; AC-EZD-2019-1): a refused code request sets no cookie; EZD-2019 (audit X1) settles
+  // its per-email row and keeps its per-address row counted (replaces Q-0252's "still counts" for the email row).
+  it('EZD-034 T4 a captcha refusal on a code request is captcha_failed, sets no cookie, settles the email row and keeps the IP row', async () => {
     state.xff = IP_OTP;
     await clearIps();
     const email = unknownEmail();
@@ -294,9 +299,50 @@ describe('EZD-034 captcha on the sign-in actions', () => {
       restore();
     }
     expect(writesOf(store, 'ezd_sign_in_email').filter((w) => !w.deleted)).toEqual([]);
-    expect(await failedRows('email', throttleKey('email', email))).toBe(1);
+    expect(await throttleRows('email', throttleKey('email', email))).toBe(1);
+    expect(await failedRows('email', throttleKey('email', email))).toBe(0);
     expect(await failedRows('ip', throttleKey('ip', IP_OTP))).toBe(1);
     await clearIps();
+  }, 60000);
+
+  // AC-EZD-2019-1, AC-EZD-2019-2 (audit 2026-11-27 X1; Auth is stubbed, no live service): six posts with a
+  // junk token (more than the 5 emails per hour of Q-0094) leave the member's Email me a code working; each post still counts against the address.
+  it('EZD-2019 junk captcha tokens do not use up a member\'s sign-in emails', async () => {
+    state.xff = IP_OTP;
+    await clearIps();
+    const m = await createTestMember({ tenantId: tenant, status: 'active' });
+    const { restore } = spyAuth({ otp: captchaRefusal });
+    try {
+      for (let i = 0; i < 6; i += 1) {
+        expect(
+          await run(newStore(), () => requestSignIn(form({ email: m.email, captcha_token: 'junk' }))),
+          `junk post ${i + 1}`,
+        ).toEqual({ resolved: { error: 'captcha_failed' } });
+      }
+    } finally {
+      restore();
+    }
+    const emailKey = throttleKey('email', m.email);
+    expect(await failedRows('email', emailKey)).toBe(0);
+    expect(await failedRows('ip', throttleKey('ip', IP_OTP))).toBe(6);
+    await spaced(m.email, gap());
+    expect(await run(newStore(), () => requestSignIn(form({ email: m.email })))).toEqual({
+      resolved: { step: 'code' },
+    });
+    expect(await failedRows('email', emailKey)).toBe(1);
+    await clearIps();
+  }, 120000);
+
+  // AC-EZD-2019-1, AC-EZD-2019-2: a real over-limit still answers too many emails (5 sign-in emails per
+  // email in 1 hour, Q-0094); the refused take adds no row.
+  it('EZD-2019 five sent emails in the hour still answer email_throttled', async () => {
+    const email = unknownEmail();
+    const emailKey = throttleKey('email', email);
+    await insertThrottleRows('email', emailKey, 5, { ageSeconds: 60 });
+    expect(await run(newStore(), () => requestSignIn(form({ email })))).toEqual({
+      resolved: { error: 'email_throttled' },
+    });
+    expect(await throttleRows('email', emailKey)).toBe(5);
   }, 60000);
 
   // T5 (AC-EZD-034-1, -2): Q-0251 (a): a refused password attempt is settled, not counted.

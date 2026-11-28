@@ -116,6 +116,15 @@ async function settle(slot: Slot): Promise<void> {
   }
 }
 
+// Settles only the attempt's per-email row; the per-address row stays counted (EZD-2019).
+async function settleEmailOnly(slot: Slot): Promise<void> {
+  try {
+    await throttleSettle(slot.client, slot.attemptId, null);
+  } catch {
+    await reportSignIn('auth_throttle_unavailable');
+  }
+}
+
 export async function signInWithPassword(formData: FormData): Promise<{
   error:
     | 'invalid_email'
@@ -207,7 +216,7 @@ async function requestSignInFor(
         | 'captcha_failed';
     }
 > {
-  // Never settled: every request counts (Q-0094; Q-0104 (i)).
+  // Never settled once Auth has the request (Q-0094; Q-0104 (i)), except a captcha refusal (EZD-2019).
   const slot = await takeSlot('email', email);
   if (!slot) return { error: 'unavailable' };
   if (!slot.allowed) {
@@ -223,8 +232,13 @@ async function requestSignInFor(
     if (status === 429 && errorCode(error) === 'over_request_rate_limit') {
       return { error: 'too_many_requests' };
     }
-    // Auth refused the security check token: no cookie, and the request still counts (Q-0252).
-    if (errorCode(error) === 'captcha_failed') return { error: 'captcha_failed' };
+    // Auth refused the security check token: no cookie and no email. The per-email row stops counting, so
+    // junk tokens cannot use up a member's emails; the per-address row still counts (EZD-2019, audit
+    // 2026-11-27 X1; replaces Q-0252's "still counts" for the email row).
+    if (errorCode(error) === 'captcha_failed') {
+      await settleEmailOnly(slot);
+      return { error: 'captcha_failed' };
+    }
     // Same answer for every address: the hook's refusal (403) and every other 429 (Q-0174 (a)).
     if (status !== 403 && status !== 429) throw new Error('sign_in_request_failed');
   }
