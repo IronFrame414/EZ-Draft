@@ -525,6 +525,68 @@ test.describe('EZD-2003 touch targets of at least 44 px on iPad', () => {
     },
   );
 
+  // EZD-2040 (AC-EZD-2040-1): the GitHub runner's Linux fonts are narrower than the Mac's, and there the elevation
+  // picker (a select as wide as its letter) measured 39 px wide. This test draws the Cabinets controls' text at 9 px
+  // (the screen's own text is 12 to 14 px), which is narrower than any font of either machine, so a control that is
+  // only as wide as its text shows here on the Mac as well. The limit is the same 44 px.
+  // AC-EZD-2040-2: the failing name, from CI run 46105428945 (both attempts, check-failures.log), is
+  // 'SELECT "A" tap area 39x44', the elevation picker of the run header; EZD-1913b's registry move did not cause it
+  // and the registry layout is untouched.
+  // AC-EZD-2040-3: this test and the EZD-2003 Cabinets test above run in the local gate and in the CI e2e job on the
+  // merge to develop.
+  test(
+    'EZD-2040 Cabinets: the header, tile bar, box menu, inspectors and schedule stay at least 44 px with narrower text @ipad',
+    { tag: ['@ipad'] },
+    async ({ page, signInAs }) => {
+      const { ids: project, user } = await editor([...EDITOR, 'export'], true);
+      await signInAs(user.email);
+      await openReady(page, project.P1);
+      const ids = await seedRun(page);
+      await saved(page);
+      await page.keyboard.press('c');
+      await expect(tid(page, 'cabinet-run-name')).toHaveText('Back wall run');
+      const narrow = async (id: string) => {
+        await tid(page, id).evaluate((root) => {
+          for (const el of [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))])
+            (el as HTMLElement).style.setProperty('font-size', '9px', 'important');
+        });
+        return expectAllTouchTargets(page, tid(page, id));
+      };
+
+      await expect(tid(page, 'cabinet-elevation-picker')).toBeVisible();
+      expect(await narrow('cabinet-run-header')).toBeGreaterThanOrEqual(3);
+
+      await tid(page, 'cabinet-tile-add').click();
+      await expect(tid(page, 'cabinet-tile-pattern')).toBeVisible();
+      expect(await narrow('cabinet-tile-bar')).toBeGreaterThanOrEqual(3);
+
+      await elevationBox(page, ids.SB36!).click({ button: 'right' });
+      await expect(tid(page, 'cabinet-menu')).toBeVisible();
+      expect(await narrow('cabinet-menu')).toBeGreaterThanOrEqual(3);
+      await page.keyboard.press('Escape');
+      await expect(tid(page, 'cabinet-menu')).toHaveCount(0);
+
+      await elevationBox(page, ids.SB36!).click();
+      await expect(tid(page, 'box-inspector-title')).toHaveText('SB36 · Sink base');
+      await expect(tid(page, 'box-inspector-schedule')).toBeVisible();
+      expect(await narrow('box-inspector')).toBeGreaterThanOrEqual(8);
+      await tid(page, 'box-inspector-swap').click();
+      await expect(tid(page, 'box-inspector-swap-item').first()).toBeVisible();
+      await narrow('box-inspector');
+      await tid(page, 'box-inspector-swap').click();
+
+      await tid(page, 'box-inspector-schedule').click();
+      await expect(tid(page, 'cabinet-schedule-export')).toBeVisible();
+      expect(await narrow('cabinet-schedule')).toBeGreaterThanOrEqual(2);
+      await tid(page, 'cabinet-schedule-close').click();
+      await expect(tid(page, 'cabinet-schedule')).toHaveCount(0);
+
+      await tid(page, 'cabinet-run-name').click();
+      await expect(tid(page, 'run-inspector-title')).toHaveText('Back wall run');
+      expect(await narrow('run-inspector')).toBeGreaterThanOrEqual(3);
+    },
+  );
+
   test(
     'EZD-2003 Cabinets: the Auto-fill bar is at least 44 px @ipad',
     { tag: ['@ipad'] },

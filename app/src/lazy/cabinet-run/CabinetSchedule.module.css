@@ -103,5 +103,7 @@
 
   .export {
     height: var(--ez-touch-target);
+    /* EZD-2040: as wide as its text, which the Linux runner's fonts draw narrower; the same floor as the height. */
+    min-width: var(--ez-touch-target);
   }
 }

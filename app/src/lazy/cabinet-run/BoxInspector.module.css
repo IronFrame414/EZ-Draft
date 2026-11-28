@@ -331,6 +331,17 @@
     height: var(--ez-touch-target);
   }
 
+  /* EZD-2040: these are as wide as their text, and the Linux runner's fonts are narrower than the Mac's (the
+     elevation picker's "A" measured 39 px there), so the width has the same floor as the height. */
+  .swapItem,
+  .pillSelect,
+  .select,
+  .inlineSelect,
+  .segment,
+  .footerButton {
+    min-width: var(--ez-touch-target);
+  }
+
   .close {
     min-width: var(--ez-touch-target);
     min-height: var(--ez-touch-target);
