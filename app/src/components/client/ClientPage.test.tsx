@@ -40,9 +40,9 @@ describe('EZD-1202 client page shell', () => {
     expect(html).toContain(DISCLAIMER);
   });
 
-  it('parts built by later tickets stay hidden: no Plans tab, Comment, Approve or Compare', () => {
+  it('parts built by later tickets stay hidden: no Comment, Approve or Compare', () => {
     const html = render({ status: 'active', page: { ...PAGE, sharesSheets: true } });
-    for (const text of ['>Plans<', 'Approve', 'Comment', 'Compare', 'Download selections PDF']) {
+    for (const text of ['Approve', 'Comment', 'Compare', 'Download selections PDF']) {
       expect(html).not.toContain(text);
     }
   });
@@ -66,5 +66,12 @@ describe('EZD-1202 client page shell', () => {
     expect(html).toContain('Couldn&#x27;t load this page.');
     expect(html).toContain('>Try again</button>');
     expect(html).toContain(DISCLAIMER);
+  });
+
+  it('EZD-2032 AC-EZD-2032-2 a send with sheet images has a Plans tab; one without has none', () => {
+    const withSheets = render({ status: 'active', page: { ...PAGE, sharesSheets: true } });
+    expect(withSheets).toMatch(/role="tab"[^>]*aria-selected="false"[^>]*>Plans</);
+    const without = render({ status: 'active', page: PAGE });
+    expect(without).not.toContain('>Plans<');
   });
 });

@@ -37,6 +37,10 @@ export const GATED_RPC_CALLS: GatedRpcCall[] = [
   { fn: 'resolve_share_link', args: { p_token_hash: null, p_view: null } },
   // EZD-1202: the client page's fields (anon only).
   { fn: 'client_page', args: { p_token_hash: null } },
+  // EZD-2032: the client page's Plans tab (anon only).
+  { fn: 'client_sheets', args: { p_token_hash: null } },
+  // EZD-2032: the storage policy check for a live client link's sheet images (anon only).
+  { fn: 'client_sheet_object_readable', args: { p_name: null } },
   { fn: 'renew_share_link', args: { p_sent_package: null, p_expiry_days: null, p_ip: null } },
   { fn: 'revoke_share_link', args: { p_sent_package: null } },
   { fn: 'list_share_links', args: { p_project: null } },

@@ -9,6 +9,10 @@ import { adminSql, withRollback, type Sql } from '../../../test-harness/rls/db';
 const SIGNED_OUT_DEFINERS = [
   // EZD-1202: the signed-out client page's fields (S18; Q-0700).
   'client_page',
+  // EZD-2032: the storage policy check for a live client link's sheet images.
+  'client_sheet_object_readable',
+  // EZD-2032: the signed-out client page's Plans tab (S18; Q-0911).
+  'client_sheets',
   'error_tunnel_take',
   'health',
   'record_error_alert',

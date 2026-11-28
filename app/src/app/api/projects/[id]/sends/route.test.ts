@@ -4,6 +4,7 @@
 // written), D-Recipient (a recipient in the body is ignored; Q-0700), D-Note (at most 1,000 characters, trimmed,
 // empty stored as null).
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { holdJobQueueShared } from '../../../../../../test-harness/jobs/queue-lock';
 import { setPermissions } from '../../../../../../test-harness/permissions/grant';
 import {
   adminDb,
@@ -21,6 +22,9 @@ import {
 import { clearStubOutbox, readStubOutbox } from '../../../../../server/email/test-harness/stub-transport';
 
 const state = vi.hoisted(() => ({ store: new Map<string, string>() }));
+
+// EZD-2032: a set send queues the client sheet images job; outside a request there is no after() to start the runner.
+vi.mock('../../../../../server/jobs/kick', () => ({ kickJobRunner: () => {} }));
 
 vi.mock('next/headers', () => ({
   cookies: async () => ({
@@ -120,7 +124,11 @@ describe('EZD-111 send routes', () => {
       )[0].n,
     );
 
+  let release: () => Promise<void>;
+
   beforeAll(async () => {
+    // EZD-2032: set sends enqueue job rows (queue-lock.ts).
+    release = await holdJobQueueShared();
     tenant = await createTenant();
     [pClient, pNone, pUnlisted] = await createProjects(tenant, 3);
     const sql = harnessSql();
@@ -147,8 +155,12 @@ describe('EZD-111 send routes', () => {
   });
 
   afterAll(async () => {
-    await cleanup();
-    await closeHarness();
+    try {
+      await cleanup();
+      await closeHarness();
+    } finally {
+      await release?.();
+    }
   });
 
   it('A1 refuses no session, no Send to client, a malformed id and a project out of scope', async () => {

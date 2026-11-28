@@ -1,0 +1,125 @@
+/* EZD-2032: the client page's Plans tab at phone size (board S18Client styles: cards, slate text, mono numbers). */
+.message {
+  margin: 0;
+  font-size: var(--ez-text-15);
+  color: var(--ez-slate-500);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.failed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.button {
+  min-height: var(--ez-touch-target);
+  padding: 0 16px;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-8);
+  background: var(--ez-surface);
+  color: var(--ez-ink);
+  font-size: var(--ez-text-14);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--ez-border);
+  border-radius: var(--ez-radius-10);
+  background: var(--ez-surface);
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+}
+
+.thumb {
+  display: block;
+  border-bottom: 1px solid var(--ez-border);
+  background: var(--ez-surface);
+}
+
+.label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 14px;
+  min-height: var(--ez-touch-target);
+  box-sizing: border-box;
+}
+
+.number {
+  font-family: var(--ez-font-mono);
+  font-size: var(--ez-text-13);
+  color: var(--ez-ink);
+}
+
+.title {
+  font-size: var(--ez-text-14);
+  color: var(--ez-slate-700);
+}
+
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: var(--ez-surface);
+}
+
+.viewerBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 4px 16px;
+  border-bottom: 1px solid var(--ez-border);
+}
+
+.viewerTitle {
+  flex: 1;
+  margin: 0;
+  font-size: var(--ez-text-14);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ez-touch-target);
+  height: var(--ez-touch-target);
+  border: none;
+  border-radius: var(--ez-radius-8);
+  background: transparent;
+  color: var(--ez-slate-700);
+}
+
+.stage {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  background: var(--ez-surface);
+}
+
+.zoom {
+  width: 100%;
+  transform-origin: 0 0;
+  will-change: transform;
+}

@@ -3659,6 +3659,13 @@ export const en = {
   'client.load_failed': "Couldn't load this page.",
   'client.try_again': 'Try again',
   'client.not_found': "This link isn't working. Ask your contractor for a new one.",
+  // EZD-2032: the Plans tab (S18 Page tab: Plans; wording rows in vault/build/assumptions/EZD-1202.md and EZD-2032.md).
+  'client.tab.plans': 'Plans',
+  'client.preparing_sheets': 'Preparing sheets…',
+  'client.sheets': 'Sheets',
+  'client.sheet_open': 'Open sheet {number} {title}',
+  'client.sheet_close': 'Close',
+  'client.sheets_failed': "Couldn't load the sheets.",
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

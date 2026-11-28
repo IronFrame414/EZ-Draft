@@ -9,8 +9,10 @@
 // EZD-901a adds reference_convert (architect DXF reference buffers), production included.
 // EZD-715 adds export (the permit and client set PDFs), production included.
 // EZD-123 adds cleanup (the daily version cleanup of one company), production included.
+// EZD-2032 adds client_sheet_images (the sheet images of a set sent to the client), production included.
 import { aiReadHandler } from './handlers/ai-read';
 import { cleanupHandler } from './handlers/cleanup';
+import { clientSheetImagesHandler } from './handlers/client-sheet-images';
 import { fieldTaskDraftHandler } from './handlers/field-task-draft';
 import { importHandler } from './handlers/import';
 import { notificationEmailHandler } from './handlers/notification-email';
@@ -25,6 +27,7 @@ export function getHandlers(): JobHandlers {
     return {
       ai_read: aiReadHandler,
       cleanup: cleanupHandler,
+      client_sheet_images: clientSheetImagesHandler,
       export: pdfExportHandler,
       field_task_draft: fieldTaskDraftHandler,
       import: importHandler,
@@ -35,6 +38,7 @@ export function getHandlers(): JobHandlers {
   return {
     ai_read: aiReadHandler,
     cleanup: cleanupHandler,
+    client_sheet_images: clientSheetImagesHandler,
     export: pdfExportHandler,
     field_task_draft: fieldTaskDraftHandler,
     import: importHandler,

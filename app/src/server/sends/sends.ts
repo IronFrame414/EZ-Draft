@@ -74,6 +74,8 @@ export async function sendToClient(
     send?: (input: SendEmailInput) => Promise<SendEmailResult>;
     env?: Record<string, string | undefined>;
     requestIp?: () => Promise<string | null>;
+    // EZD-2032: the job runner start after the client sheet images job is queued (tests pass a no-op).
+    kick?: () => void;
   } = {},
 ): Promise<ClientSendOutcome> {
   const env = deps.env ?? process.env;
@@ -102,6 +104,27 @@ export async function sendToClient(
   }
   const row = data as unknown as SendRow;
   const link = appOrigin(env) + clientLinkPath(token);
+
+  // EZD-2032 (AC-EZD-2032-1): a send of a sheet set queues the client sheet images job for the Plans tab. The send is
+  // already made, so a failed queue is reported and the send still succeeds; the page then has no Plans tab
+  // (vault/build/assumptions/EZD-2032.md).
+  if (input.set) {
+    try {
+      // Loaded here, not at the top: share-links.ts (and so the client page) imports this file, and the job registry
+      // (PDF and image code) must not come with it.
+      const { enqueueJob } = await import('../jobs/enqueue');
+      await enqueueJob(
+        client,
+        { kind: 'client_sheet_images', projectId: input.projectId, payload: { sentPackageId: row.sent_package_id } },
+        deps.kick ? { kick: deps.kick } : {},
+      );
+    } catch {
+      captureToSentry(new Error('client_sheet_images_enqueue_failed'), {
+        source: 'function',
+        location: 'sends.sheet_images',
+      });
+    }
+  }
 
   const t = getT('office', 'en');
   const company = row.company.name;

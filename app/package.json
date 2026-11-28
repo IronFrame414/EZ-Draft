@@ -32,6 +32,7 @@
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.118.0",
     "dxf-parser": "1.1.2",
+    "fontkit": "2.0.4",
     "heic-to": "1.6.7",
     "idb": "8.0.4",
     "next": "16.4.6",

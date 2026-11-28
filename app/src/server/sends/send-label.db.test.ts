@@ -6,6 +6,7 @@
 // project.status, Q-0700 05).
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { holdJobQueueShared } from '../../../test-harness/jobs/queue-lock';
 import { setPermissions } from '../../../test-harness/permissions/grant';
 import {
   cleanup,
@@ -34,7 +35,7 @@ describe('EZD-719 send set to client (database)', () => {
   let sender: Session;
 
   const send = async (s: Session, projectId: string, set: SendSet | null = null) => {
-    const r = await sendToClient(db(s), { projectId, note: null, set }, { env: ENV, requestIp: async () => null });
+    const r = await sendToClient(db(s), { projectId, note: null, set }, { env: ENV, requestIp: async () => null, kick: () => {} });
     if (!r.ok) throw new Error('send refused: ' + r.code);
     return r.send;
   };
@@ -51,7 +52,11 @@ describe('EZD-719 send set to client (database)', () => {
       select rev_no, sent_to, model_version_id from public.permit_revision
       where project_id = ${projectId}::uuid order by rev_no`;
 
+  let release: () => Promise<void>;
+
   beforeAll(async () => {
+    // EZD-2032: set sends enqueue job rows (queue-lock.ts).
+    release = await holdJobQueueShared();
     tenant = await createTenant();
     [pBefore, pAfter] = await createProjects(tenant, 2);
     const sql = harnessSql();
@@ -68,8 +73,12 @@ describe('EZD-719 send set to client (database)', () => {
   }, 180000);
 
   afterAll(async () => {
-    await cleanup();
-    await closeHarness();
+    try {
+      await cleanup();
+      await closeHarness();
+    } finally {
+      await release?.();
+    }
   });
 
   it('AC-EZD-719-1 @smoke a client send before permit is labeled Version 1', async () => {

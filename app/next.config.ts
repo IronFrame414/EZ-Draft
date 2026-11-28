@@ -59,7 +59,9 @@ const nextConfig: NextConfig = {
   // worker module at run time, so it is required from node_modules, not bundled.
   // EZD-715: the PDF export job writes with PDFKit, which reads its own data files at run time, so it is required from
   // node_modules too.
-  serverExternalPackages: ['pdfjs-dist', 'pdfkit'],
+  // EZD-2032: the client sheet images read the drawing fonts' outlines with fontkit (pdfkit's own copy), kept external
+  // like pdfkit.
+  serverExternalPackages: ['pdfjs-dist', 'pdfkit', 'fontkit'],
   // EZD-299a Build step 5 (vault/plans/EZD-299a.md Decided D-Build; Q-0626): one build number per build, inlined
   // into the browser and server bundles, so a save from an older app is refused (app/src/lib/app-version.ts).
   // EZD-237 (vault/plans/EZD-237.md D-Version; Q-0664): the deploy's commit, which a benchmark run names.

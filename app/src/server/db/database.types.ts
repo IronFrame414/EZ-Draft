@@ -1669,6 +1669,12 @@ isOneToOne: false
 "client_page":
 { Args: { "p_token_hash": string }; Returns: Json
                            },
+"client_sheet_object_readable":
+{ Args: { "p_name": string }; Returns: boolean
+                           },
+"client_sheets":
+{ Args: { "p_token_hash": string }; Returns: Json
+                           },
 "complete_project":
 { Args: { "p_project": string }; Returns: Json
                            },

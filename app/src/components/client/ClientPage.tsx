@@ -2,7 +2,7 @@
 // EZD-1202 (S18 Layout, States; board S18Client; AC-EZD-1202-1; vault/build/assumptions/EZD-1202.md Settled rows
 // "Version label", "Header and tabs", "Parts of the Design tab built later", "Expiring banner day count", "Offline"):
 // the client page shell. Header: company name in capitals, project name, "Design approval", the sent version label,
-// the menu (Help: Contact {Company}). Tabs: Design (Plans comes with the shared sheets, EZD-1205). Banners: link
+// the menu (Help: Contact {Company}). Tabs: Design, and Plans when the send shares a sheet set (EZD-2032). Banners: link
 // expiring, offline "Connect to approve". The Design tab's cards are later tickets and stay hidden until they ship.
 // States: expired, not found, unavailable, failed load with Try again, Loading… while it reloads. Dates and the day
 // count use the viewer's device clock and time zone, so they render after hydration.
@@ -13,6 +13,7 @@ import { InlineError } from '../states/InlineError';
 import { OfflineBannerView } from '../states/OfflineBanner';
 import { useT } from '../../lib/messages';
 import { useOnline } from '../../lib/network';
+import { ClientPlans } from './ClientPlans';
 import { expiringBanner, versionLabel, type ClientPageResult, type ClientPageView } from './client-page-model';
 import styles from './ClientPage.module.css';
 
@@ -63,7 +64,7 @@ export function ClientPage({ token, initial }: { token: string; initial: ClientP
     void fetchClientPage(token).then((r) => setLoad(r === null ? { kind: 'failed' } : { kind: 'done', result: r }));
   }, [token]);
 
-  if (load.kind === 'done' && load.result.status === 'active') return <ActivePage page={load.result.page} />;
+  if (load.kind === 'done' && load.result.status === 'active') return <ActivePage token={token} page={load.result.page} />;
   return (
     <div className={styles.frame} data-client-state={stateName(load)}>
       <main className={styles.main}>
@@ -109,8 +110,9 @@ function Notice({ load, onRetry }: { load: Load; onRetry: () => void }) {
   return <InlineError message={KEYS.notFound} />;
 }
 
-function ActivePage({ page }: { page: ClientPageView }) {
+function ActivePage({ token, page }: { token: string; page: ClientPageView }) {
   const t = useT();
+  const [tab, setTab] = useState<'design' | 'plans'>('design');
   const hydrated = useHydrated();
   const online = useOnline();
   const label = hydrated ? versionLabel(page.version) : null;
@@ -134,12 +136,33 @@ function ActivePage({ page }: { page: ClientPageView }) {
           <ClientMenu page={page} />
         </div>
         <div role="tablist" aria-label={t('client.tabs')} className={styles.tabs}>
-          <button type="button" role="tab" aria-selected="true" id="client-tab-design" className={styles.tab}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'design'}
+            aria-controls="client-tabpanel"
+            id="client-tab-design"
+            className={styles.tab}
+            onClick={() => setTab('design')}
+          >
             {t('client.tab.design')}
           </button>
+          {page.sharesSheets ? (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'plans'}
+              aria-controls="client-tabpanel"
+              id="client-tab-plans"
+              className={styles.tab}
+              onClick={() => setTab('plans')}
+            >
+              {t('client.tab.plans')}
+            </button>
+          ) : null}
         </div>
       </header>
-      <main className={styles.main} role="tabpanel" aria-labelledby="client-tab-design">
+      <main className={styles.main} role="tabpanel" id="client-tabpanel" aria-labelledby={`client-tab-${tab}`}>
         {expiring || !online ? (
           <div className={styles.banners}>
             {expiring ? (
@@ -150,6 +173,7 @@ function ActivePage({ page }: { page: ClientPageView }) {
             {!online ? <OfflineBannerView message={KEYS.offline} /> : null}
           </div>
         ) : null}
+        {tab === 'plans' && page.sharesSheets ? <ClientPlans token={token} /> : null}
       </main>
       <footer className={styles.footer}>
         <Disclaimer placement="page" />

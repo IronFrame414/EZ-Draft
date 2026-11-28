@@ -1724,6 +1724,53 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     expectStatus: 200,
     note: 'EZD-1202: the client page; 200 { page } with the fixed field list (no money)',
   },
+  // EZD-2032 (AC-EZD-2032-3): the Plans tab of a fresh set send whose images job is done, with its two image files.
+  // No money field.
+  {
+    file: `${API}c/[token]/sheets/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/c/[token]/sheets/route'),
+    request: async (env) => {
+      const sent = await latestSentPackage(env);
+      const token = randomBytes(32).toString('base64url');
+      const { data, error } = await adminDb()
+        .from('sent_package')
+        .insert({
+          tenant_id: env.tenantId,
+          project_id: env.projectId,
+          model_version_id: sent.model_version_id,
+          kind: 'client',
+          recipients: sent.recipients,
+          token_hash: createHash('sha256').update(token).digest('hex'),
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          sheet_set_kind: 'permit',
+        })
+        .select('id')
+        .single();
+      if (error) throw new Error(`sent_package insert failed: ${error.code}`);
+      const dir = `${env.tenantId}/${env.projectId}/client-sheets/${data.id}`;
+      for (const name of ['01.webp', '01-thumb.webp']) {
+        const up = await adminDb().storage.from('exports').upload(`${dir}/${name}`, Buffer.from('x'), { upsert: true });
+        if (up.error) throw new Error('sheet image upload failed');
+      }
+      const job = await adminDb().from('job').insert({
+        tenant_id: env.tenantId,
+        project_id: env.projectId,
+        kind: 'client_sheet_images',
+        payload: { sentPackageId: data.id },
+        status: 'done',
+        max_attempts: 5,
+        result: {
+          dir,
+          sheets: [{ number: 'A1.0', title: 'Existing', width: 2400, height: 1600, thumbWidth: 400, thumbHeight: 267 }],
+        },
+      });
+      if (job.error) throw new Error(`job insert failed: ${job.error.code}`);
+      return { request: new Request(`${BASE}/api/c/${token}/sheets`), params: { token } };
+    },
+    expectStatus: 200,
+    note: 'EZD-2032: the client Plans tab; 200 { plans } with sheet numbers, titles, sizes and signed links (no money)',
+  },
   {
     file: `${API}share-links/route.ts`,
     method: 'GET',

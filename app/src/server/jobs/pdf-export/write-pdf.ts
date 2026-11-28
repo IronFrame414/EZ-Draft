@@ -82,10 +82,11 @@ const FONT_FILES = {
   'dm-mono-400': new URL('../../../styles/fonts/dm-mono-latin-400-normal.woff2', import.meta.url),
   'instrument-sans-600': new URL('../../../styles/fonts/instrument-sans-latin-600-normal.woff2', import.meta.url),
 } as const;
-type FontName = keyof typeof FONT_FILES;
+export type FontName = keyof typeof FONT_FILES;
 
 let fontCache: Record<FontName, Buffer> | null = null;
-function fonts(): Record<FontName, Buffer> {
+// EZD-2032: also read by the client sheet images (glyph outlines).
+export function fonts(): Record<FontName, Buffer> {
   fontCache ??= {
     'dm-mono-400': readFileSync(FONT_FILES['dm-mono-400']),
     'instrument-sans-600': readFileSync(FONT_FILES['instrument-sans-600']),
@@ -105,7 +106,39 @@ const SHEET_TITLE_PT = 10;
 const EXTENSION_IN = 0.1;
 const TICK_HALF_IN = ((4 / 7) * SHEET_DIMENSION_PT) / 72;
 
-type Doc = InstanceType<typeof PDFDocument>;
+// EZD-2032: the drawing calls a sheet page makes. PDFKit's document has them; the client sheet images draw the same
+// page through an SVG document with the same calls (client-sheet-images/svg-doc.ts), so the image matches the PDF.
+type TextOptions = {
+  lineBreak?: boolean;
+  baseline?: 'alphabetic' | 'middle' | 'bottom';
+  characterSpacing?: number;
+  features?: readonly string[];
+};
+export interface SheetDoc {
+  font(name: FontName): this;
+  fontSize(size: number): this;
+  widthOfString(text: string, options?: TextOptions): number;
+  text(text: string, x: number, y: number, options?: TextOptions): this;
+  addContent(data: string): this;
+  save(): this;
+  restore(): this;
+  rotate(angle: number, options?: { origin?: [number, number] }): this;
+  lineWidth(w: number): this;
+  lineCap(c: 'round'): this;
+  dash(length: number, options?: { space?: number }): this;
+  undash(): this;
+  moveTo(x: number, y: number): this;
+  lineTo(x: number, y: number): this;
+  bezierCurveTo(c1x: number, c1y: number, c2x: number, c2y: number, x: number, y: number): this;
+  closePath(): this;
+  rect(x: number, y: number, w: number, h: number): this;
+  stroke(color?: string): this;
+  fill(color?: string): this;
+  fillAndStroke(fill?: string, stroke?: string): this;
+  fillColor(color: string): this;
+  strokeColor(color: string): this;
+}
+type Doc = SheetDoc;
 type Xy = [number, number];
 
 const pt = (inches: number) => inches * PT_PER_IN;
@@ -305,6 +338,22 @@ function drawFrame(doc: Doc, size: SheetSize, sheet: PdfSheet): void {
   );
 }
 
+// One sheet page: the frame and title block, then each viewport with its print marks. EZD-2032: shared with the client
+// sheet images.
+export function drawSheet(doc: SheetDoc, size: SheetSize, sheet: PdfSheet): void {
+  drawFrame(doc, size, sheet);
+  for (const vp of sheet.viewports) {
+    if (vp.list.items.length === 0) continue;
+    if (vp.marks === false) {
+      drawList(doc, vp.list, vp.scale ?? 1, vp.area);
+      continue;
+    }
+    const { drawing } = splitPrintMarkBand(vp.area);
+    drawList(doc, vp.list, vp.scale ?? ntsScale(vp.list, drawing), drawing);
+    drawPrintMarks(doc, printMarks(vp.scale, vp.area));
+  }
+}
+
 export function writePdf(input: PdfInput): Promise<Uint8Array> {
   const page = pagePoints(input.size);
   // `font: null` keeps PDFKit from writing its default Helvetica (EZD-028 Risks: Default font); no password options,
@@ -328,17 +377,7 @@ export function writePdf(input: PdfInput): Promise<Uint8Array> {
   for (const sheet of input.sheets) {
     doc.addPage({ size: [page.width, page.height], margin: 0 });
     if (input.bookmarks) doc.outline.addItem(`${sheet.number} ${sheet.title}`);
-    drawFrame(doc, input.size, sheet);
-    for (const vp of sheet.viewports) {
-      if (vp.list.items.length === 0) continue;
-      if (vp.marks === false) {
-        drawList(doc, vp.list, vp.scale ?? 1, vp.area);
-        continue;
-      }
-      const { drawing } = splitPrintMarkBand(vp.area);
-      drawList(doc, vp.list, vp.scale ?? ntsScale(vp.list, drawing), drawing);
-      drawPrintMarks(doc, printMarks(vp.scale, vp.area));
-    }
+    drawSheet(doc, input.size, sheet);
   }
   doc.end();
   return done;

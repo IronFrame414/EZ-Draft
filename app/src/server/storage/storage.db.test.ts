@@ -57,7 +57,10 @@ const STORAGE_POLICIES = [
   'storage_media_thumb_insert',
   'storage_media_field_photo_insert',
   'storage_exports_issued_select',
+  'storage_exports_client_sheets_select',
 ];
+// EZD-2032: the one policy for anon, a select the signed-out server signs a live client link's sheet images with.
+const CLIENT_SHEETS_POLICY = 'storage_exports_client_sheets_select';
 
 const sha = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 const db = (s: Session) => s.serverDb as unknown as DbClient;
@@ -161,7 +164,7 @@ describe('EZD-132 file storage', () => {
     }
   });
 
-  it('EZD-132 T8 five private buckets; policies on sources and media and issued exports only, none for update or anon', async () => {
+  it('EZD-132 T8 five private buckets; policies on sources and media and issued exports only, none for update, and one for anon (client sheet images)', async () => {
     const buckets = await harnessSql()<{ id: string; public: boolean }[]>`
       select id, public from storage.buckets where id = any(${FIVE_BUCKETS}::text[])`;
     expect(buckets.map((r) => r.id).sort()).toEqual([...FIVE_BUCKETS].sort());
@@ -184,10 +187,22 @@ describe('EZD-132 file storage', () => {
     // one exports policy: a select of an issued revision's export job folder only.
     const names = policies.map((p) => p.policyname);
     for (const name of STORAGE_POLICIES) expect(names).toContain(name);
-    expect(names).toHaveLength(8);
+    // EZD-2032 (20261128163212): nine, storage_exports_client_sheets_select added, the one policy for anon: a select
+    // whose whole check is the exports bucket and client_sheet_object_readable (the server's gate header and a live
+    // client link's own sheet images).
+    expect(names).toHaveLength(9);
     for (const p of policies) {
       expect(['UPDATE', 'ALL'], p.policyname).not.toContain(p.cmd);
       const text = `${p.qual ?? ''} ${p.with_check ?? ''}`;
+      if (p.policyname === CLIENT_SHEETS_POLICY) {
+        expect(p.cmd).toBe('SELECT');
+        expect(p.roles).toEqual(['anon']);
+        expect(p.with_check).toBeNull();
+        expect(text).toContain("bucket_id = 'exports'");
+        expect(text).toContain('client_sheet_object_readable(name)');
+        for (const word of ['renders', 'jobs', 'sources', 'media']) expect(text, p.policyname).not.toContain(word);
+        continue;
+      }
       const closed = p.policyname === 'storage_exports_issued_select' ? ['renders', 'jobs'] : ['renders', 'exports', 'jobs'];
       if (p.policyname === 'storage_exports_issued_select') {
         expect(p.cmd).toBe('SELECT');

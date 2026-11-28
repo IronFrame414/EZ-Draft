@@ -13,9 +13,33 @@ export type ClientPageView = {
   expiresAt: string;
   // The company's Share link reminder lead (Defaults, registry default 7 days).
   reminderLeadDays: number;
-  // The send went out with a sheet set (Plans tab, EZD-1205).
+  // The send went out with a sheet set and its sheet images job (Plans tab, EZD-2032); false for a Share from another
+  // tab and for a send made before EZD-2032.
   sharesSheets: boolean;
 };
+
+// EZD-2032 (AC-EZD-2032-2, -3): one sheet of the sent set on the Plans tab, its image (2400 px on the long side) and
+// strip thumbnail (400 px) as signed links of at most SIGNED_DOWNLOAD_SECONDS.
+export type ClientSheetView = {
+  number: string;
+  title: string;
+  src: string;
+  width: number;
+  height: number;
+  thumb: { src: string; width: number; height: number };
+};
+
+// The Plans tab: none (no tab), preparing ("Preparing sheets…" until the images exist), or the sheets in set order.
+export type ClientPlansView =
+  | { state: 'none' }
+  | { state: 'preparing' }
+  | { state: 'ready'; sheets: ClientSheetView[] };
+
+export type ClientSheetsResult =
+  | { status: 'active'; plans: ClientPlansView }
+  | { status: 'expired'; company: string }
+  | { status: 'not_found' }
+  | { status: 'unavailable' };
 
 export type ClientPageResult =
   | { status: 'active'; page: ClientPageView }

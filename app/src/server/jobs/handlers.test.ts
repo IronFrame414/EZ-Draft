@@ -39,6 +39,7 @@ describe('EZD-009 job handlers', () => {
     expect(kinds).toEqual([
       'ai_read',
       'cleanup',
+      'client_sheet_images',
       'export',
       'field_task_draft',
       'import',
