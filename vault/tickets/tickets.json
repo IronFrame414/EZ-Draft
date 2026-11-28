@@ -28386,6 +28386,25 @@
     "AC-EZD-2039-3"
    ],
    "acs_source": "overwatch-2026-11-24"
+  },
+  {
+   "id": "EZD-2040",
+   "phase": 10,
+   "title": "Fix: EZD-2003 Cabinets touch-target test fails on the GitHub CI runner (release PR #23)",
+   "depends_raw": "",
+   "spec_ref": "Overwatch 2026-11-28: release PR #23 (head d090652d, CI run 46105428945) failed its gate twice, both attempts, on app/e2e/ezd-2003-ipad-touch-targets.spec.ts:449 'EZD-2003 Cabinets: the run header, tile bar, box menu, inspectors, pickers and schedule are at least 44 px' @ipad (ipad-landscape project, shard 4/4): expect(received).toEqual(expected) with 3 entries received where 1 was expected, so two Cabinets controls measure under 44 px on the Linux runner although the test passed on the build Mac. develop at d090652d also has EZD-1913b (Electrical and Ceiling modes as registry features) merged after EZD-2003. The release cannot go out until this passes on CI.",
+   "spec_files": [],
+   "decisions": [],
+   "mockups": [],
+   "priority": 1,
+   "phase_file": "tickets/phases/phase-10.md",
+   "depends_on": [],
+   "acs": [
+    "AC-EZD-2040-1",
+    "AC-EZD-2040-2",
+    "AC-EZD-2040-3"
+   ],
+   "acs_source": "overwatch-2026-11-24"
   }
  ],
  "recut_applied": "2026-10-20"
