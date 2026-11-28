@@ -617,7 +617,8 @@
     "EZD-610",
     "EZD-1202",
     "EZD-2010",
-    "EZD-2045"
+    "EZD-2045",
+    "EZD-1918"
   ],
   "seeded_done": 324,
   "merged": [
@@ -2935,6 +2936,14 @@
       "ts": "2026-11-28T19:38:34Z",
       "kind": "ticket",
       "lane": 1
+    },
+    {
+      "id": "EZD-1918",
+      "title": "Split DrawingTools into rail, layer and per-tool parts",
+      "commit": "33f0853cd",
+      "ts": "2026-11-28T20:09:39Z",
+      "kind": "ticket",
+      "lane": 2
     }
   ],
   "set_aside": {},
@@ -3287,12 +3296,6 @@
     }
   },
   "running": {
-    "EZD-1918": {
-      "lane": 2,
-      "title": "Split DrawingTools into rail, layer and per-tool parts",
-      "started": "2026-11-28T17:12:24Z",
-      "develop": "e0a44cda3"
-    },
     "EZD-2032": {
       "lane": 3,
       "title": "Client page Plans tab: the sheets of a sent sheet set",
