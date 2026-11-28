@@ -255,3 +255,35 @@ export function sheetDrawingArea(size: SheetSize): { x: number; y: number; width
 export type SetNoteGroup = 'general' | 'code';
 export type SetNote = { id: string; text: string; group: SetNoteGroup };
 export type SetNotes = { general: SetNote[]; required: SetNote[] };
+
+// EZD-720 (R24 #5; S13 Decisions 2, 10; S04b "Top schedule ... Internal and client only; not on permit sheets";
+// vault/build/assumptions/EZD-720.md Settled): the client set's countertop sheets. A8.0 Countertop plan (the pieces
+// with seams, cutouts, labels and edge tags, and the TOP SCHEDULE) and A9.0 Edge details (a section of each edge
+// profile used). They join the client set with the first countertop piece and leave with the last, before R1.0.
+// The permit set never holds them: withCountertopSheets drops them from it whatever it is given.
+export const COUNTERTOP_PLAN_SHEET = 'A8.0';
+export const EDGE_DETAILS_SHEET = 'A9.0';
+export const COUNTERTOP_SHEETS: readonly Sheet[] = [
+  { number: COUNTERTOP_PLAN_SHEET, title: 'Countertop plan', group: 'architectural', viewports: [] },
+  { number: EDGE_DETAILS_SHEET, title: 'Edge details', group: 'architectural', viewports: [] },
+];
+const CLIENT_ONLY_SHEETS: readonly string[] = COUNTERTOP_SHEETS.map((s) => s.number);
+
+export function isCountertopSheet(number: string | undefined): boolean {
+  return number !== undefined && CLIENT_ONLY_SHEETS.includes(number);
+}
+
+// Whether a set of this kind may hold the sheet: the countertop sheets are client only.
+export function sheetAllowedInSet(kind: SheetSetKind, number: string): boolean {
+  return kind === 'client' || !CLIENT_ONLY_SHEETS.includes(number);
+}
+
+// The set's sheets with the countertop sheets as the model's pieces call for them. Any countertop sheet already in
+// `sheets` is dropped first, so the result is the same however often it is applied.
+export function withCountertopSheets(sheets: readonly Sheet[], kind: SheetSetKind, pieceCount: number): Sheet[] {
+  const out = sheets.filter((s) => sheetAllowedInSet('permit', s.number));
+  if (kind !== 'client' || pieceCount <= 0) return out;
+  const at = out.findIndex((s) => s.group === 'renderings');
+  const add = COUNTERTOP_SHEETS.map((s) => ({ ...s, viewports: [] }));
+  return at < 0 ? [...out, ...add] : [...out.slice(0, at), ...add, ...out.slice(at)];
+}

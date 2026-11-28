@@ -15,7 +15,11 @@
 // EZD-708b (AC-EZD-708b-1): on an electrical sheet (E1.0, E2.0 ...) each plan viewport draws the electrical plan
 // (`electrical`), and the EC verification note is one more job, the sheet's general notes block at the bottom of the
 // notes column (lib/sheets/electrical-kinds.ts).
+// EZD-720 (AC-EZD-720-1): a countertop sheet of the client set (A8.0, A9.0) is one job, the model's pieces with the
+// names it prints (lib/sheets/countertop-sheet.ts).
 import type { SheetSize, SheetSvg, StoredObject } from '@ezdraft/geometry';
+import { isCountertopSheet } from '../../lib/sheets/sheet-set';
+import type { CountertopSheetNames } from '../../lib/sheets/countertop-sheet';
 import { createWorkerPool, type WorkerPool } from '../../editor/workers/worker-pool';
 import { resolveOpenFloor } from '../../editor/floors/floors';
 import type { Objects } from '../../editor/model/patches';
@@ -29,6 +33,7 @@ import {
   type SheetPanelJobInput,
   type SheetJobInput,
   type SheetTableJobInput,
+  type SheetCountertopsJobInput,
 } from '../../workers/sheet-job';
 import { fixtureRowsOf, fixtureTablePlan, isRcpSheet } from '../../lib/sheets/fixture-schedule-table';
 import { isElectricalSheet, panelSheetNumber } from '../../lib/sheets/electrical-kinds';
@@ -41,6 +46,8 @@ export type SheetRenderRequest = {
   viewports: readonly Omit<SheetViewport, 'id' | 'sheet'>[];
   // EZD-707: the sheet's number; a schedule sheet (A4.0 and its continuations) also draws the cabinet schedule.
   sheet?: string;
+  // EZD-720: the catalog, edge profile and open offer names a countertop sheet prints; none when absent.
+  names?: CountertopSheetNames;
 };
 
 export type SheetRenderer = {
@@ -55,7 +62,8 @@ type AnyJobInput =
   | SheetTableJobInput
   | SheetFixturesJobInput
   | SheetEcNoteJobInput
-  | SheetPanelJobInput;
+  | SheetPanelJobInput
+  | SheetCountertopsJobInput;
 export type RunSheetJob = (input: AnyJobInput) => Promise<SheetSvg>;
 
 // EZD-708b: the EC verification note job of an electrical sheet, or null on any other sheet.
@@ -73,6 +81,15 @@ export function sheetPanelJobInput(request: SheetRenderRequest): SheetPanelJobIn
   const entries = placedPanelSheets(request.objects);
   if (entries.length === 0) return null;
   return { panelSheet: { sheet: request.sheet, size: request.size, floorCount, entries: [...entries] } };
+}
+
+// EZD-720: the countertop job of a countertop sheet, or null on any other sheet or with no piece in the model.
+export function sheetCountertopsJobInput(request: SheetRenderRequest): SheetCountertopsJobInput | null {
+  if (!isCountertopSheet(request.sheet) || request.sheet === undefined) return null;
+  const pieces = [...storedOf(request.objects)].filter((o) => o.type === 'countertop_piece');
+  if (pieces.length === 0) return null;
+  const names = request.names ?? { materials: [], profiles: [], open: [] };
+  return { countertops: { sheet: request.sheet, size: request.size, pieces, names } };
 }
 
 // EZD-708a: the floor an RCP sheet's schedule lists: its first plan viewport's floor (the lowest when that names none
@@ -165,6 +182,8 @@ export function createSheetRenderer(run?: RunSheetJob): SheetRenderer {
       if (ecNote !== null) inputs.push(ecNote);
       const panelSheet = sheetPanelJobInput(request);
       if (panelSheet !== null) inputs.push(panelSheet);
+      const countertops = sheetCountertopsJobInput(request);
+      if (countertops !== null) inputs.push(countertops);
       if (inputs.length === 0) return null;
       made ??= poolRun();
       const run = made.run;
