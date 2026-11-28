@@ -60,7 +60,9 @@ import {
 } from './status/PlanStatus';
 import { LeftPanel } from './layers/LeftPanel';
 import { deviceSnapSettings } from './status/view-settings';
-import { DrawingLayer, DrawingRail } from './tools/DrawingTools';
+// EZD-1918: the rail before the layer, the order DrawingTools.tsx loaded their styles in.
+import { DrawingRail } from './tools/DrawingRail';
+import { DrawingLayer } from './tools/DrawingLayer';
 import { useEditorCheck } from './check/use-editor-check';
 import { useDevHooks } from './dev-hooks';
 import { useEditorOpen } from './session/use-editor-open';

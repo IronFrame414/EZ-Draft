@@ -13,7 +13,7 @@ import type { FloorView } from '../floors/floors';
 import type { InspectorPanelProps } from '../inspector/InspectorPanel';
 import type { LeftPanelProps } from '../layers/LeftPanel';
 import type { DevHookParts } from '../dev-hooks';
-import type { DrawingRailProps } from '../tools/DrawingTools';
+import type { DrawingRailProps } from '../tools/DrawingRail';
 import type { EditorControllers } from '../session/create-controllers';
 import type { FeaturePage } from '../shared/feature-page';
 

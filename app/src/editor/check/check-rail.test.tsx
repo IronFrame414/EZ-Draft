@@ -9,7 +9,7 @@ import { catalogFor } from '../../server/messages/catalog';
 import { createSurfaceSetting } from '../ceiling/surface';
 import { PAUSED_TOOL_IDS } from '../selection/selection-controller';
 import { DRAWING_RAIL_TOOLS } from '../tools/tool-defs';
-import { DrawingRail } from '../tools/DrawingTools';
+import { DrawingRail } from '../tools/DrawingRail';
 
 const render = (ui: ReactElement) =>
   renderToStaticMarkup(

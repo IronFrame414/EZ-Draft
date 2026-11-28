@@ -67,7 +67,7 @@ import { createPhaseSetting } from '../status/phase-setting';
 import { PlanStatusEnd, PlanStatusStart } from '../status/PlanStatus';
 import type { ScaleSetting, SnapSettingsStore } from '../status/view-settings';
 import { placeActGrid } from '../tools/act-grid-edits';
-import { helpRailTool } from '../tools/DrawingTools';
+import { helpRailTool } from '../tools/DrawingRail';
 import { placeCeilingDevice } from '../tools/fixture-tool';
 import { baseObjects, DOOR, F1, roomValue, uid } from '../tools/test-utils/fixtures';
 import { DEFAULT_SNAP_SETTINGS } from '@ezdraft/geometry';

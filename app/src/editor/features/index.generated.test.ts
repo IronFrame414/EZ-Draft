@@ -44,6 +44,21 @@ describe('EZD-1914 ceiling/tools/index.generated.ts', () => {
   });
 });
 
+// EZD-1918 (editor plan 5.1): the tools' layer parts index is made the same way.
+const LAYER_PARTS = TARGETS.find((t) => t.dir === 'src/editor/tools/parts')!;
+
+describe('EZD-1918 tools/parts/index.generated.ts', () => {
+  it('is what the script makes from the folder listing now', () => {
+    expect(LAYER_PARTS).toBeDefined();
+    expect(isStale(LAYER_PARTS, path.join(APP_ROOT, LAYER_PARTS.dir))).toBe(false);
+  });
+
+  it('reaches nothing in app/src/lazy through static imports', () => {
+    const entry = path.join(APP_ROOT, LAYER_PARTS.dir, INDEX_FILE);
+    expect(lazyReaches(entry, { srcRoot: SRC, lazyRoot: path.join(SRC, 'lazy') })).toEqual([]);
+  });
+});
+
 let tmp: string | null = null;
 
 afterEach(() => {

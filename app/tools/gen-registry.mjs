@@ -30,6 +30,14 @@ export const TARGETS = [
     type: 'CeilingTool',
     typeFrom: './types',
   },
+  // EZD-1918 (editor plan 5.1): one file per tool's part of the drawing layer (sketch strokes, measure chip, ...).
+  {
+    dir: 'src/editor/tools/parts',
+    exportName: 'part',
+    listName: 'layerParts',
+    type: 'LayerPart',
+    typeFrom: './types',
+  },
 ];
 
 export const INDEX_FILE = 'index.generated.ts';

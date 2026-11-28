@@ -9,7 +9,7 @@ import { MessagesProvider } from '../../lib/messages';
 import { DEFAULT_BINDINGS, effectiveBindings } from '../../lib/defaults/shortcuts';
 import { catalogFor } from '../../server/messages/catalog';
 import { DRAWING_RAIL_TOOLS } from '../tools/tool-defs';
-import { DrawingRail } from '../tools/DrawingTools';
+import { DrawingRail } from '../tools/DrawingRail';
 import { createSurfaceSetting } from '../ceiling/surface';
 import { editorRail } from '../selection/selection-controller';
 import { HelpPanel } from './HelpPanel';
