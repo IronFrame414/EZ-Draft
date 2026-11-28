@@ -1321,6 +1321,40 @@ export const MONEY_ROUTE_CASES: readonly MoneyRouteCase[] = [
     request: sendJson('PATCH', '/api/settings/company', COMPANY),
     expectStatus: 200,
   },
+  // EZD-1711: billing is off in this run (no Stripe env), so every billing route is 404 and sends no body; the plan
+  // amounts (See company costs only, 13b R2) are checked in app/src/app/api/settings/billing/route.test.ts.
+  {
+    file: `${API}settings/billing/route.ts`,
+    method: 'GET',
+    load: () => import('../../src/app/api/settings/billing/route'),
+    request: get('/api/settings/billing'),
+    expectStatus: 404,
+    note: 'EZD-1711: billing off in tests; plan dollars only with See company costs',
+  },
+  {
+    file: `${API}settings/billing/checkout/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/settings/billing/checkout/route'),
+    request: sendJson('POST', '/api/settings/billing/checkout', {}),
+    expectStatus: 404,
+    note: 'EZD-1711: billing off in tests; answers only a Stripe URL',
+  },
+  {
+    file: `${API}settings/billing/portal/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/settings/billing/portal/route'),
+    request: sendJson('POST', '/api/settings/billing/portal', {}),
+    expectStatus: 404,
+    note: 'EZD-1711: billing off in tests; answers only a Stripe URL',
+  },
+  {
+    file: `${API}billing/stripe-webhook/route.ts`,
+    method: 'POST',
+    load: () => import('../../src/app/api/billing/stripe-webhook/route'),
+    request: sendJson('POST', '/api/billing/stripe-webhook', {}),
+    expectStatus: 404,
+    note: 'EZD-1711: billing off in tests; Stripe-signed, no session, answers { received } only',
+  },
   {
     file: `${API}settings/company/logo/check/route.ts`,
     method: 'POST',

@@ -3586,6 +3586,36 @@ export const en = {
   // EZD-2028 (Q-0907): the reload notice on the field pack (the office prompt's words, office.app.reload_*).
   'field.app.reload_message': 'EZ Draft has been updated. Reload to use the new version.',
   'field.app.reload': 'Reload',
+  // EZD-1711 (Q-0237, Q-0795; vault/build/assumptions/EZD-1711.md wording rows): billing for other companies.
+  'error.billing_read_only':
+    'Your subscription has ended. You can view and export projects, but not change them.',
+  'error.billing_inactive': "Your EZ Draft subscription isn't active.",
+  'error.billing_not_found': "That page isn't available.",
+  'error.billing_unavailable': "Can't reach billing. Try again in a minute.",
+  'error.invalid_signature': "That request couldn't be checked.",
+  'error.share_link_unavailable': "This link isn't available.",
+  'office.billing.section': 'Billing',
+  'office.billing.location': 'Settings · Billing',
+  'office.billing.subtitle': 'Your EZ Draft plan and payment',
+  'office.billing.plan':
+    'Plan: ${monthly} a month · {included} office users included · ${extra} a month for each extra office user',
+  'office.billing.trial': {
+    one: 'Free trial · {count} day left',
+    other: 'Free trial · {count} days left',
+  },
+  'office.billing.active': 'Subscription active',
+  'office.billing.add_card': 'Add a card',
+  'office.billing.manage': 'Manage billing',
+  'office.billing.past_due':
+    "Your payment didn't go through. Update your card to keep using EZ Draft.",
+  'office.billing.grace': {
+    one: 'Your subscription has ended. You can view and export projects for {count} more day.',
+    other: 'Your subscription has ended. You can view and export projects for {count} more days.',
+  },
+  'office.billing.paywall_title': "Your EZ Draft subscription isn't active.",
+  'office.billing.paywall_body': 'Your projects are safe and come back when you pay.',
+  'office.billing.pay_now': 'Pay now',
+  'office.billing.ask_owner': 'Ask your company owner to update billing.',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof en;

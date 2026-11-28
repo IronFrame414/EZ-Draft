@@ -167,7 +167,9 @@ const allowedIds = (keys: readonly PermissionKey[]) => {
 
 describe('EZD-103a settings sections', () => {
   it('U1 sections: the 10 rows of Decided "Sections" in order, no Translations or Billing', () => {
-    const mapped = SETTINGS_SECTIONS.map((s) => [
+    // EZD-1711: Billing (billed companies only) is checked in its own test below.
+    const unbilled = SETTINGS_SECTIONS.filter((s) => s.billedOnly !== true);
+    const mapped = unbilled.map((s) => [
       s.id,
       s.slug,
       s.permission,
@@ -177,7 +179,7 @@ describe('EZD-103a settings sections', () => {
       s.badge,
     ]);
     expect(mapped).toEqual(ROWS);
-    for (const s of SETTINGS_SECTIONS) {
+    for (const s of unbilled) {
       for (const v of [s.id, s.slug, String(E[s.label])]) {
         expect(v.toLowerCase(), v).not.toContain('translat');
         expect(v.toLowerCase(), v).not.toContain('billing');
@@ -192,7 +194,8 @@ describe('EZD-103a settings sections', () => {
 
     expect(sectionBySlug('title-block')?.id).toBe('title_block');
     expect(sectionBySlug('translations')).toBeNull();
-    expect(sectionBySlug('billing')).toBeNull();
+    // EZD-1711: Billing is a section now, shown only for billed companies.
+    expect(sectionBySlug('billing')?.id).toBe('billing');
 
     expect(sectionForPath('/settings/users')?.id).toBe('users');
     expect(sectionForPath('/settings/users/x')?.id).toBe('users');
@@ -235,7 +238,8 @@ describe('EZD-289 mayOpenSettings', () => {
     expect(mayOpenSettings((p) => onB.has(p))).toBe(false);
 
     // (c) each Settings section's switch alone
-    expect(SETTINGS_SECTIONS).toHaveLength(10);
+    // EZD-1711: ten sections plus Billing, which shows only for a billed company.
+    expect(SETTINGS_SECTIONS).toHaveLength(11);
     for (const s of SETTINGS_SECTIONS) {
       const onC = new Set<PermissionKey>([s.permission]);
       const got = mayOpenSettings((p) => onC.has(p));
@@ -244,5 +248,35 @@ describe('EZD-289 mayOpenSettings', () => {
 
     // (d) all keys on
     expect(mayOpenSettings(() => true)).toBe(true);
+  });
+});
+
+// EZD-1711 (AC-EZD-1711-2; Q-0220; vault/build/assumptions/EZD-1711.md Settled "Who manages billing", wording row
+// "Settings nav 'Billing'"): Billing sits right after Company under the Company settings switch and is allowed
+// only for a billed company, so Worth Properties (billing exempt) never has the entry.
+describe('EZD-1711 Billing section', () => {
+  it('B1 the Billing row: after Company, Company settings switch, only when billed', () => {
+    const ids = SETTINGS_SECTIONS.map((s) => s.id);
+    expect(ids.indexOf('billing')).toBe(ids.indexOf('company') + 1);
+    const billing = SETTINGS_SECTIONS.find((s) => s.id === 'billing');
+    expect(billing).toBeDefined();
+    expect(billing!.permission).toBe('settings_company');
+    expect(E[billing!.label]).toBe('Billing');
+    expect(E[billing!.location]).toBe(`Settings ${DOT} Billing`);
+    expect(settingsHref(billing!)).toBe('/settings/billing');
+    expect(sectionForPath('/settings/billing')?.id).toBe('billing');
+
+    const all = (p: PermissionKey) => PERMISSION_KEYS.includes(p);
+    expect(allowedSections(all).map((s) => s.id)).not.toContain('billing');
+    expect(allowedSections(all, false).map((s) => s.id)).not.toContain('billing');
+    expect(allowedSections(all, true).map((s) => s.id)).toEqual([
+      'company',
+      'billing',
+      ...ALL.slice(1),
+    ]);
+    const companyOnly = (p: PermissionKey) => p === 'settings_company';
+    expect(allowedSections(companyOnly, true).map((s) => s.id)).toEqual(['company', 'billing']);
+    const noCompany = (p: PermissionKey) => p !== 'settings_company';
+    expect(allowedSections(noCompany, true).map((s) => s.id)).not.toContain('billing');
   });
 });

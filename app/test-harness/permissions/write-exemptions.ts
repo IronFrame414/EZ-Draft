@@ -43,4 +43,9 @@ export const WRITE_PERMISSION_EXEMPTIONS: ReadonlyArray<{ path: string; reason: 
     reason:
       'the signed-out client link lookup (no member session; POST keeps the token out of URLs); anon may only run resolve_share_link, which writes nothing but its event_log row (EZD-1201; Q-0700)',
   },
+  {
+    path: 'app/src/app/api/billing/stripe-webhook/route.ts',
+    reason:
+      'Stripe webhook (no member session); trusted only by the Stripe-Signature over the raw body, writes only through billing_apply_subscription (service_role) (EZD-1711)',
+  },
 ];

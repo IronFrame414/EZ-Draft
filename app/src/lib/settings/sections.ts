@@ -6,6 +6,7 @@ import type { PermissionKey } from '../permissions/catalog';
 
 export type SettingsSectionId =
   | 'company'
+  | 'billing'
   | 'users'
   | 'title_block'
   | 'sheet_presets'
@@ -27,6 +28,8 @@ export type SettingsSection = {
   location: MessageKey;
   icon: IconName;
   badge: 'users' | 'units' | null;
+  // EZD-1711 (AC-EZD-1711-2; Q-0220): shown only for a company that is billed (never Worth Properties).
+  billedOnly?: true;
 };
 
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
@@ -38,6 +41,17 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     location: 'office.settings.location.company',
     icon: 'domain',
     badge: null,
+  },
+  // EZD-1711 (Settled "Who manages billing"): under the Company settings switch.
+  {
+    id: 'billing',
+    slug: 'billing',
+    permission: 'settings_company',
+    label: 'office.billing.section',
+    location: 'office.billing.location',
+    icon: 'sell',
+    badge: null,
+    billedOnly: true,
   },
   {
     id: 'users',
@@ -138,9 +152,15 @@ export function sectionForPath(pathname: string | null): SettingsSection | null 
   return m ? sectionBySlug(m[1]) : null;
 }
 
-export function allowedSections(can: (p: PermissionKey) => boolean): SettingsSection[] {
+// EZD-1711: Billing only when `billed` (the company has a billing account and is not exempt).
+export function allowedSections(
+  can: (p: PermissionKey) => boolean,
+  billed = false,
+): SettingsSection[] {
   return SETTINGS_SECTIONS.filter(
-    (s) => can(s.permission) || (s.alsoPermission !== undefined && can(s.alsoPermission)),
+    (s) =>
+      (s.billedOnly !== true || billed) &&
+      (can(s.permission) || (s.alsoPermission !== undefined && can(s.alsoPermission))),
   );
 }
 

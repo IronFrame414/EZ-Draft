@@ -10,6 +10,11 @@ export const SAME_ORIGIN_EXCEPTIONS: readonly { path: string; reason: string }[]
     reason:
       'Error-report tunnel (EZD-024 Step 7): public, reads no session; scripts/errors/live-check.mjs posts to it from outside a browser.',
   },
+  {
+    path: '/api/billing/stripe-webhook',
+    reason:
+      'Stripe webhook (EZD-1711): Stripe posts it from its servers; reads no session and is trusted only by its Stripe-Signature over the raw body.',
+  },
 ];
 
 export const CROSS_ORIGIN_REFUSED = {

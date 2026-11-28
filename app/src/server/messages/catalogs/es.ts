@@ -351,4 +351,12 @@ export const es = {
   // EZD-2028 (Q-0907): the reload notice on the field pack.
   'field.app.reload_message': 'EZ Draft se actualizó. Recarga para usar la nueva versión.',
   'field.app.reload': 'Recargar',
+  // EZD-1711 (Q-0795): billing answers a field user can see.
+  'error.billing_read_only':
+    'Tu suscripción terminó. Puedes ver y exportar proyectos, pero no cambiarlos.',
+  'error.billing_inactive': 'Tu suscripción de EZ Draft no está activa.',
+  'error.billing_not_found': 'Esa página no está disponible.',
+  'error.billing_unavailable': 'No se puede conectar con la facturación. Inténtalo de nuevo en un minuto.',
+  'error.invalid_signature': 'No se pudo verificar esa solicitud.',
+  'error.share_link_unavailable': 'Este enlace no está disponible.',
 } as const satisfies Record<SpanishKey, Message>;

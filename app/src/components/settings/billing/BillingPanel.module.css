@@ -1,0 +1,23 @@
+/* EZD-1711: Settings > Billing (Q-0790: the style of the nearest Settings board). */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: var(--ez-text-14);
+  color: var(--ez-ink);
+}
+
+.status {
+  margin: 0;
+  font-weight: 600;
+}
+
+.plan {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

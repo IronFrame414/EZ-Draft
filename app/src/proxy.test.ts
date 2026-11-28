@@ -566,6 +566,12 @@ describe('EZD-346 same-origin writes', () => {
         reason:
           'Error-report tunnel (EZD-024 Step 7): public, reads no session; scripts/errors/live-check.mjs posts to it from outside a browser.',
       },
+      // EZD-1711: Stripe posts its webhook from its own servers.
+      {
+        path: '/api/billing/stripe-webhook',
+        reason:
+          'Stripe webhook (EZD-1711): Stripe posts it from its servers; reads no session and is trusted only by its Stripe-Signature over the raw body.',
+      },
     ]);
   });
 });
@@ -604,8 +610,11 @@ describe('EZD-346 every write route is checked', () => {
       await loadMatcher(),
       exceptionPaths(),
     );
+    // EZD-1711: every exception path (the tunnel and the Stripe webhook) is left out.
     expect(out).toEqual(
-      routes.filter((r) => r.url !== '/api/monitoring').map((r) => `${r.method} ${r.file}`),
+      routes
+        .filter((r) => !exceptionPaths().includes(r.url))
+        .map((r) => `${r.method} ${r.file}`),
     );
     expect(out.length).toBeGreaterThanOrEqual(18);
   });
@@ -862,5 +871,90 @@ describe('EZD-2022 the matcher skips only static file endings', () => {
       .map((d) => '/' + path.relative(root, path.join(d.parentPath, d.name)).split(path.sep).join('/'));
     expect(files.length).toBeGreaterThan(0);
     for (const f of files) expect(matches(`http://localhost:3000${encodeURI(f)}`), f).toBe(false);
+  });
+});
+
+// EZD-1711 (AC-EZD-1711-1, -3; Q-0795): with billing on, a signed-in request reads billing_gate and the billing
+// rules decide (server/billing/gate-rules.ts); billing off or a failed read changes nothing.
+describe('EZD-1711 billing in the request gate', () => {
+  afterEach(() => {
+    h.make = null;
+    vi.unstubAllEnvs();
+  });
+
+  const billingOn = () => {
+    vi.stubEnv('STRIPE_MODE', 'stub');
+    vi.stubEnv('STRIPE_WEBHOOK_SECRET', 'whsec_test');
+  };
+
+  function clientWithBilling(answer: { data: unknown; error: unknown }) {
+    const rpc = vi.fn(async (_fn: string) => answer);
+    h.make = () => ({ auth: { getClaims: async () => WITH_SUB }, rpc });
+    return rpc;
+  }
+
+  const sameOrigin = (path: string, method: string) =>
+    proxy(
+      new NextRequest(`http://localhost:3000${path}`, {
+        method,
+        headers: { 'sec-fetch-site': 'same-origin' },
+      }),
+    );
+
+  const GRACE = { data: { applies: true, mode: 'grace', status: 'unpaid', days_left: 9 }, error: null };
+  const LOCKED = { data: { applies: true, mode: 'locked', status: 'unpaid' }, error: null };
+  const PROJECT = '/projects/00000000-0000-4000-8000-000000000000';
+
+  it('B1 billing off: no billing read, a write passes', async () => {
+    vi.stubEnv('STRIPE_WEBHOOK_SECRET', '');
+    const rpc = clientWithBilling(GRACE);
+    expectPassThrough(await sameOrigin('/api/projects', 'POST'));
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('B2 grace: a write to /api is 403 billing_read_only; reads, pages and exports pass', async () => {
+    billingOn();
+    const rpc = clientWithBilling(GRACE);
+    const res = await sameOrigin('/api/projects', 'POST');
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({
+      error: { code: 'billing_read_only', message_key: 'error.billing_read_only' },
+    });
+    expect(rpc).toHaveBeenCalledWith('billing_gate');
+    expectPassThrough(await sameOrigin('/api/projects', 'GET'));
+    expectPassThrough(await sameOrigin(PROJECT, 'GET'));
+    expectPassThrough(await sameOrigin(`/api${PROJECT}/exports`, 'POST'));
+    expect((await sameOrigin(`/api${PROJECT}/lock`, 'POST')).status).toBe(403);
+  });
+
+  it('B3 locked: pages go to /, /api is 403 billing_inactive, Projects and Pay now pass', async () => {
+    billingOn();
+    clientWithBilling(LOCKED);
+    const page = await sameOrigin(PROJECT, 'GET');
+    expect(page.status).toBe(307);
+    expect(new URL(page.headers.get('location') ?? '').pathname).toBe('/');
+    expectPassThrough(await sameOrigin('/', 'GET'));
+    const api = await sameOrigin('/api/projects', 'GET');
+    expect(api.status).toBe(403);
+    expect((await api.json()).error.code).toBe('billing_inactive');
+    expectPassThrough(await sameOrigin('/api/settings/billing/checkout', 'POST'));
+  });
+
+  it('B4 a failed billing read passes the request', async () => {
+    billingOn();
+    clientWithBilling({ data: null, error: { code: 'XX000', message: 'boom' } });
+    expectPassThrough(await sameOrigin('/api/projects', 'POST'));
+  });
+
+  it('B5 the Stripe webhook is not refused cross-site', async () => {
+    billingOn();
+    clientWith(async () => NO_CLAIMS);
+    const res = await proxy(
+      new NextRequest('http://localhost:3000/api/billing/stripe-webhook', {
+        method: 'POST',
+        headers: { origin: 'https://stripe.example' },
+      }),
+    );
+    expectPassThrough(res);
   });
 });

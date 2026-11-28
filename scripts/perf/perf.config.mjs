@@ -145,5 +145,10 @@ export default {
       reason:
         'every Settings section has its own page (settings/<slug>/page.tsx), so this route only answers not found for an unknown slug; a new section without a page of its own is measured here',
     },
+    {
+      route: '/settings/billing',
+      reason:
+        'EZD-1711: the gate measures pages with the office session, which is Worth Properties (billing exempt, Q-0372), and for it this page answers not found (AC-EZD-1711-2), so there is no real page to measure; for a billed company it is the same Settings shell as the measured section pages plus one small panel (components/settings/billing), with no heavy library',
+    },
   ],
 };

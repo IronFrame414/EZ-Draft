@@ -163,6 +163,11 @@ export default defineConfig({
       // EZD-5601 step 1: the test-only key set (version 1, 32 zero bytes).
       AI_KEY_ENCRYPTION_KEYS: '1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
       AI_STUB_DIR: aiStub,
+      // EZD-1711: billing on with the Stripe stub (no network) and the fixtures' test webhook secret
+      // (app/src/server/billing/fixtures/stripe-events.ts TEST_WEBHOOK_SECRET). A company with no billing
+      // account, every other spec's, is never limited.
+      STRIPE_MODE: 'stub',
+      STRIPE_WEBHOOK_SECRET: 'whsec_ezd1711_test_secret',
       EZD_NET_GUARD_LOG: guardLog,
       NODE_OPTIONS: `--import ${preloadUrl}`,
       NEXT_TELEMETRY_DISABLED: '1',

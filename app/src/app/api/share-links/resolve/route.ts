@@ -3,6 +3,8 @@
 // never in a URL or a log. 200 `{ link: { status: 'active', expiresAt } }`; 410 the expired response with the
 // company name only; 404 for an unknown, malformed, revoked or deleted-project link. `view: true` records
 // share_link.viewed (the page open), at most once per link per hour (EZD-2006, in resolve_share_link).
+// EZD-1711 (AC-EZD-1711-3; Q-0795): a link of a company locked for not paying is 404 share_link_unavailable
+// ("This link isn't available.").
 // EZD-2006 (AC-EZD-2006-2): every call first takes a slot of the error tunnel's per-address throttle
 // (tunnelAllows, error_tunnel_take: 60 per address per rolling hour); past the limit it answers 429.
 import { z } from 'zod';
@@ -40,6 +42,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
     if (r.status === 'not_found') return fail(404, 'share_link_not_found');
+    if (r.status === 'unavailable') return fail(404, 'share_link_unavailable');
     return Response.json(
       { link: { status: 'active', expiresAt: r.expiresAt } },
       { status: 200, headers: SHARE_LINK_HEADERS },

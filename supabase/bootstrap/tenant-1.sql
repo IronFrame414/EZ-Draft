@@ -14,8 +14,9 @@ begin
     raise exception 'ezd_bootstrap_already_done';
   end if;
 
-  insert into public.tenant (id, name)
-  values ('00000000-0000-4000-8000-000000000001', 'Worth Properties');
+  -- EZD-1711 (Q-0372): Worth Properties is never billed.
+  insert into public.tenant (id, name, billing_exempt)
+  values ('00000000-0000-4000-8000-000000000001', 'Worth Properties', true);
 
   insert into public.app_user (id, name, email, language, role_preset)
   values ('00000000-0000-4000-8000-000000001001', 'Josh Bishop', v, 'en', 'owner');
